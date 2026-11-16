@@ -175,6 +175,7 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
         recorded :: recorded_fns(typed)
         for f in mod.module.files {
             found :: Collected {}
+            collect_decorators(AST.module_decorators(f.program), found)
             for d in f.program.decls {
                 collect_decl_idents(d, found)
             }

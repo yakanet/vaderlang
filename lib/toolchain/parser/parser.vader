@@ -74,29 +74,82 @@ export ModuleHeader :: struct {
 
 /// Read the `module "<name>"` declaration that opens `source`, lexing only its
 /// first tokens: whatever comments come before it are skipped as the parser
-/// skips them.
+/// skips them, and so are the decorators of the module written above it.
 ///
 /// @param source  the text of the file.
 /// @param file    the path its spans name.
 /// @return        null when the file does not open on `module` and a plain
 ///                string name.
 export parse_module_header :: fn(source: string, file: string) -> ModuleHeader | null {
+    // Four tokens hold a header that opens the file ; decorators above it take
+    // more, lexed only when the opening is one.
+    count := 4
+    for {
+        tokens :: tokenize_opening(source, file, count)
+        first :: past_decorator_lines(tokens, 0)
+        if first >= 0 && (tokens.len() - first >= 4 || tokens.len() < count) {
+            return header_at(tokens, first)
+        }
+        if tokens.len() < count {
+            return null
+        }
+        count *= 4
+    }
+}
+
+// The index of the first token past the lines of decorators that open on
+// `tokens[from]`, blank lines included ; -1 when `tokens` ends inside one.
+past_decorator_lines :: fn(tokens: Token[], from: i64) -> i64 {
+    at := from
+    for at < tokens.len() {
+        kind :: tokens[at].kind
+        if kind == .Newline {
+            at += 1
+        } else if kind == .At {
+            at = past_decorator(tokens, at)
+            if at < 0 {
+                return -1
+            }
+        } else {
+            return at
+        }
+    }
+    return at
+}
+
+// The index past the decorator opening at `tokens[at]`: its line ends at the first
+// line break outside its arguments ; -1 when `tokens` ends first.
+past_decorator :: fn(tokens: Token[], at: i64) -> i64 {
+    depth := 0
+    for i in at..<tokens.len() {
+        match tokens[i].kind {
+            .LParen | .LBracket | .LBrace -> { depth += 1 }
+            .RParen | .RBracket | .RBrace -> { depth -= 1 }
+            .Newline                      -> {
+                if depth == 0 {
+                    return i
+                }
+            }
+            _                             -> {}
+        }
+    }
+    return -1
+}
+
+// The header `module "<name>"` that `tokens[first]` opens, null when it is none.
+header_at :: fn(tokens: Token[], first: i64) -> ModuleHeader | null {
     // `module`, then the name: `StringBegin`, its `StringPart` unless it is empty,
     // `StringEnd`. An empty name is the parser's to refuse (P1028).
-    tokens :: tokenize_opening(source, file, 4)
-    if tokens.len() < 3 || tokens[0].kind != .Ident || tokens[0].text != "module" {
+    if tokens.len() - first < 3 || !opens_module_line(tokens, first) {
         return null
     }
-    if tokens[1].kind != .StringBegin {
+    if tokens[first + 2].kind == .StringEnd {
+        return header_of("", tokens[first + 1], tokens[first + 2])
+    }
+    if tokens.len() - first < 4 || tokens[first + 2].kind != .StringPart || tokens[first + 3].kind != .StringEnd {
         return null
     }
-    if tokens[2].kind == .StringEnd {
-        return header_of("", tokens[1], tokens[2])
-    }
-    if tokens.len() < 4 || tokens[2].kind != .StringPart || tokens[3].kind != .StringEnd {
-        return null
-    }
-    return header_of(tokens[2].text, tokens[1], tokens[3])
+    return header_of(tokens[first + 2].text, tokens[first + 1], tokens[first + 3])
 }
 
 // The header naming `name`, its literal running from `begin` to `end`.
@@ -394,7 +447,7 @@ parse_program :: fn(p: Parser) -> Program {
     start_tok :: p.peek()
     decls: Decl[]: []
     p.skip_newlines()
-    module :: p.parse_optional_module_decl()
+    module :: p.parse_optional_module_decl(p.module_decorators())
     p.skip_newlines()
     for !p.check(.Eof) {
         d :: p.parse_decl()
@@ -428,12 +481,22 @@ parse_program :: fn(p: Parser) -> Program {
     }
 }
 
+// The decorators of the module, when the file opens on decorators that `module
+// "..."` follows: above any other declaration they are its own, left unread.
+module_decorators :: fn(p: Parser) -> Decorator[] {
+    if !p.check(.At) || !opens_module_line(p.tokens, past_decorator_lines(p.tokens, i64(p.pos))) {
+        return []
+    }
+    return p.declared_only(p.parse_decorators(), "a module")
+}
+
 // `module` is a *soft* keyword : it stays an `Ident` token at the
 // lexer level and is only recognised here when the prologue position
 // has `ident("module") + StringBegin`. Every other occurrence (struct
 // field name, field-access target) keeps the regular identifier
 // semantics. Parser stays tolerant ; resolver enforces presence.
-parse_optional_module_decl :: fn(p: Parser) -> ModuleDecl | null {
+
+parse_optional_module_decl :: fn(p: Parser, decorators: Decorator[]) -> ModuleDecl | null {
     t :: p.peek()
     if t.kind != .Ident { return null }
     if t.text != "module" { return null }
@@ -445,9 +508,10 @@ parse_optional_module_decl :: fn(p: Parser) -> ModuleDecl | null {
     }
     end_tok :: p.peek_at(-1)
     return ModuleDecl {
-        .span      = p.span_of(start, end_tok),
-        .name      = lit.text,
-        .name_span = lit.span,
+        .span       = p.span_of(start, end_tok),
+        .name       = lit.text,
+        .name_span  = lit.span,
+        .decorators = decorators,
     }
 }
 
@@ -4486,6 +4550,40 @@ test_module_header_needs_a_string_name :: fn() -> void {
 @test
 test_module_header_with_an_empty_name :: fn() -> void {
     assert_eq(header_name("module \"\"\n"), "")
+}
+
+@test
+test_module_header_after_its_decorators :: fn() -> void {
+    source :: """
+        @Owner("platform", reviewers = ["a", "b"])
+        @app.Layer(.Core)
+        module "repro"
+        """
+    assert_eq(header_name(source), "repro")
+}
+
+@test
+test_module_header_after_many_decorators :: fn() -> void {
+    source :: StringBuilder {}
+    for i in 0..<40 {
+        source.append("@Tag(\"t${i}\")\n")
+    }
+    source.append("module \"repro\"\n")
+    assert_eq(header_name(source.to_string()), "repro")
+}
+
+@test
+test_parse_source_keeps_the_decorators_of_the_module :: fn() -> void {
+    program :: parse_source("@Owner(\"platform\")\nmodule \"t\"\n", "t.vader").program
+    module :: program.module else return assert(false, "the module line is read")
+    assert_eq(module.decorators.map((d) -> d.name).collect().join(", "), "Owner")
+}
+
+@test
+test_a_decorator_above_a_declaration_is_not_the_module_s :: fn() -> void {
+    program :: parse_source("module \"t\"\n@Route\nf :: fn() -> void {}\n", "t.vader").program
+    module :: program.module else return assert(false, "the module line is read")
+    assert_eq(module.decorators.len(), 0)
 }
 
 // The source text of the operator the parser records for `expr`, the value of a

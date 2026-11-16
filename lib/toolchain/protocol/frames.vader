@@ -57,6 +57,9 @@ export TypecheckedFrame :: struct {
     /// functions (`declarations.vader`): a module a round generated into comes
     /// back with the generated file's alone.
     declarations: AST.Decl[]
+    /// The decorators written above the `module` line of those files, as written:
+    /// the module's.
+    decorators: AST.Decorator[] = []
 }
 
 /// The pipeline reached a phase.
@@ -170,7 +173,7 @@ export server_payload :: fn(frame: ServerFrame) -> string {
         is TypecheckedFrame -> {
             out.write_field("typechecked")
             out.write_field(frame.module_name)
-            out.write_declarations(frame.declarations)
+            out.write_module(frame.decorators, frame.declarations)
         }
         is PhaseFrame       -> {
             out.write_field("phase")
@@ -341,8 +344,12 @@ read_driver_frame :: fn(r: FieldReader, kind: string) -> DriverFrame | ProtocolE
 
 read_typechecked :: fn(r: FieldReader) -> TypecheckedFrame | ProtocolError {
     module_name :: r.read_field() else return module_name
-    declarations :: r.read_declarations() else return declarations
-    return TypecheckedFrame { .module_name = module_name, .declarations = declarations }
+    delivered :: r.read_module() else return delivered
+    return TypecheckedFrame {
+        .module_name = module_name,
+        .declarations = delivered.declarations,
+        .decorators = delivered.decorators,
+    }
 }
 
 read_phase :: fn(r: FieldReader) -> PhaseFrame | ProtocolError {

@@ -93,6 +93,9 @@ export ResolvedModule :: struct {
     /// that trait's default bodies, bounded by the trait itself. A default body is
     /// checked once against it, as the body of a `fn<Self: Trait>` would be.
     trait_self_params: Map<i32, Symbol> = Map<i32, Symbol> {}
+    /// The decorators written above `module` in each of its files, in file order:
+    /// the module's, added up.
+    module_decorators: Decorator[] = []
     /// R-code diagnostics emitted during body resolution.
     /// Forwarded to the typecheck CLI's `# Diagnostics` block.
     diags: Diagnostic[]
@@ -209,6 +212,7 @@ export resolve_module_files :: fn(
         .type_param_bounds = resolved.type_param_bounds,
         .trait_self_params = resolved.trait_self_params,
         .diags            = resolved.diags,
+        .module_decorators = decorators_above_module(files),
         .deprecated_messages = Map<i32, string> {},
         .namespace_member_types = Map<i32, Map<string, Type>> {},
         .namespace_private_members = Map<i32, Map<string, bool>> {},
@@ -317,3 +321,8 @@ binding_clashes :: fn(collected: CollectedModule, imports: FileImports) -> Diagn
 sort_by_name :: fn(syms: Symbol[]) -> Symbol[] {
     return sort(syms, (a: Symbol, b: Symbol) -> compare_ascending(a.name, b.name))
 }
+
+/// The decorators written above the `module` line of each of `files`, in file
+/// order: the module's.
+export decorators_above_module :: fn(files: SourceFile[]) -> Decorator[] =
+    files.flat_map((f) -> module_decorators(f.program)).collect()

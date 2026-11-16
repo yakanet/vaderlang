@@ -57,6 +57,16 @@ write_declarations :: fn(out: StringBuilder, decls: AST.Decl[]) -> void {
     out.append(w.out.to_string())
 }
 
+// The decorators above the `module` line of a module's files, then its
+// declarations: one table of files for both.
+write_module :: fn(out: StringBuilder, decorators: AST.Decorator[], decls: AST.Decl[]) -> void {
+    w :: DeclWriter {}
+    w.write_decorators(decorators)
+    w.write_list(decls, write_decl)
+    out.write_strings(w.files.keys().collect())
+    out.append(w.out.to_string())
+}
+
 // A list: its count, then each item as `item` writes it.
 write_list :: fn<T>(w: DeclWriter, items: T[], item: fn(DeclWriter, T) -> void) -> void {
     w.out.write_integer(items.len())
@@ -315,6 +325,20 @@ read_declarations :: fn(r: FieldReader) -> AST.Decl[] | ProtocolError {
     files :: r.read_strings() else return files
     d :: DeclReader { .fields = r, .files = files }
     return d.read_list(read_decl)
+}
+
+// What `write_module` wrote: the decorators of a module, then its declarations.
+DeliveredModule :: struct {
+    decorators:   AST.Decorator[]
+    declarations: AST.Decl[]
+}
+
+read_module :: fn(r: FieldReader) -> DeliveredModule | ProtocolError {
+    files :: r.read_strings() else return files
+    d :: DeclReader { .fields = r, .files = files }
+    decorators :: d.read_decorators() else return decorators
+    declarations :: d.read_list(read_decl) else return declarations
+    return DeliveredModule { .decorators = decorators, .declarations = declarations }
 }
 
 // A list after its count, each item read by `item`.

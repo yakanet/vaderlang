@@ -72,6 +72,7 @@ lint_module :: fn(loaded: LoadedModule, diags: Diagnostic[]) -> void = check_dea
     loaded.module.module_name,
     diags,
     loaded.discarded_bodies,
+    decorators_above_module(loaded.module.files),
 )
 
 /// The typed project the comptime engine and the lowering read: every typed

@@ -38,6 +38,9 @@ export TypecheckedMessage :: struct {
     /// takes it: `"app"`, `"app/model"`.
     module_name:  string
     declarations: AST.Decl[]
+    /// The decorators written above the `module` line of its files, each naming
+    /// the module that declares it.
+    decorators:   AST.Decorator[] = []
 }
 
 /// The pipeline crossed a stage boundary.

@@ -82,6 +82,13 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
     }
     for unit in units {
         for f in unit.files {
+            module_names: string[]: []
+            collect_decorator_names(AST.module_decorators(f.program), module_names)
+            for name in module_names {
+                if name in leading && seeded.add(name) {
+                    seed_refs.push(name)
+                }
+            }
             for d in f.program.decls {
                 if unit.trimmed && is_test(d) {
                     continue

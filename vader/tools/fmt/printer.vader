@@ -343,8 +343,13 @@ export emit_program :: fn(self: Printer, prog: p.Program) -> string {
     match m :: prog.module {
         is null         -> {}
         is p.ModuleDecl -> {
-            self.flush_leading_comments(m.span.start.offset, m.span.start.line)
+            lead :: lead_of(m.decorators, m.span.start)
+            self.flush_leading_comments(lead.offset, lead.line)
             self.indent()
+            for dec in m.decorators {
+                self.emit_decorator(dec)
+                self.nl_indent()
+            }
             self.write("module \"${m.name}\"")
             module_end_line = m.span.end.line
             has_module = true
@@ -854,7 +859,7 @@ emit_enum_decl :: fn(self: Printer, d: p.EnumDecl) -> void {
         // A blank line in the source survives : it also ends an alignment
         // group, so dropping it would realign the next run on a second pass.
         self.newline()
-        lead :: variant_lead(v)
+        lead :: lead_of(v.decorators, v.span.start)
         if i > 0 && self.opens_gap(variant_last_line(d.variants[i - 1]), lead.offset, lead.line) {
             self.newline()
         }
@@ -872,12 +877,13 @@ emit_enum_decl :: fn(self: Printer, d: p.EnumDecl) -> void {
     self.close_brace_after_comments(d.span)
 }
 
-// Where `v` starts in the source: its first decorator, else its name.
-variant_lead :: fn(v: p.EnumVariant) -> Position {
-    if v.decorators.len() > 0 {
-        return v.decorators[0].span.start
+// Where a line written below `decorators` starts in the source: its first
+// decorator, else `start`, its own.
+lead_of :: fn(decorators: p.Decorator[], start: Position) -> Position {
+    if decorators.len() > 0 {
+        return decorators[0].span.start
     }
-    return v.span.start
+    return start
 }
 
 // True when a variant carries a decorator, which takes a line of its own: the

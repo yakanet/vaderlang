@@ -26,6 +26,7 @@ import "vader/front/resolver"
 ///               shared.
 /// @param diags  where T3141, T3142, T3143 and the argument errors go.
 export check_decorator_uses :: fn(decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[]) -> void {
+    check_decorators_at(typed.resolved.module_decorators, "Module", typed, diags)
     for decl in decls {
         check_sites(decl, typed, diags)
         for m in AST.members_of(decl) {

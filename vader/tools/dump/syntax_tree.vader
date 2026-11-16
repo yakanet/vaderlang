@@ -123,6 +123,10 @@ write_module_decl :: fn(sb: StringBuilder, d: ModuleDecl, level: i32) -> void {
     sb.kind_entry(level + 1, "ModuleDecl")
     sb.entry(false, level + 1, "name")
     sb.write_string(d.name)
+    if d.decorators.len() > 0 {
+        sb.entry(false, level + 1, "decorators")
+        sb.write_decorators(d.decorators, level + 1)
+    }
     sb.close_obj(level)
 }
 

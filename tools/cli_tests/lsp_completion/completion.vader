@@ -656,6 +656,28 @@ test_completion_in_a_parameter_list_offers_the_decorators_of_a_parameter :: fn()
     assert(!offers(list, "Route"), shown(list))
 }
 
+MODULE_DECORATED_SOURCE :: r"""
+    @Ow
+    module "demo"
+
+    /// The team that answers for the module.
+    Owner :: decorator(.Module) {
+        team: string
+    }
+
+    Route :: decorator(.Function) {}
+    """
+
+// After `@` above the `module` line: the decorators declared for `.Module`.
+@test
+test_completion_above_the_module_line_offers_the_decorators_of_a_module :: fn() -> void {
+    src :: MODULE_DECORATED_SOURCE
+    results :: drive("module_decorators", src, [complete_at(position_of(src, "@Ow", 3))])
+    list :: results[0]
+    assert(offers(list, "Owner"), shown(list))
+    assert(!offers(list, "Route"), shown(list))
+}
+
 ROUTE_SNIPPET_SOURCE :: r"""
     module "demo"
 

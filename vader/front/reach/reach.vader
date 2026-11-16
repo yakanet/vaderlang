@@ -27,6 +27,24 @@ export collect_names :: fn(n: AST.Node, out: string[]) -> void {
     AST.inspect(n, (m) -> referenced_name(m, out))
 }
 
+/// Push every name `decorators` reference, arguments included: those above a
+/// `module` line belong to no declaration, so whatever they name is reached.
+///
+/// @param decorators  the decorators to read.
+/// @param out         receives the names, one per reference.
+export collect_decorator_names :: fn(decorators: AST.Decorator[], out: string[]) -> void {
+    for d in decorators {
+        out.push(d.name)
+        qualifier :: d.qualifier
+        if qualifier != null {
+            out.push(qualifier.name)
+        }
+        for a in d.args {
+            collect_names(a.value, out)
+        }
+    }
+}
+
 // An identifier, a field access and the decorators of a declaration carry a name
 // of their own ; every other node is walked for its children. A compiler
 // decorator's name counts too, which over-approximates on the safe side.

@@ -149,15 +149,19 @@ named_decl :: fn(
 ///                     platform's body is live source, not dead code, and saying
 ///                     otherwise is a false positive on every multi-platform
 ///                     module (see `resolver::discarded_bodies`).
+/// @param decorators   those written above the `module` line of its files: what
+///                     they name counts as reached.
 export check_dead_code :: fn(
     decls: AST.Decl[],
     module_name: string,
     diags: Diagnostic[],
     discarded: AST.FnDecl[] = [],
+    decorators: AST.Decorator[] = [],
 ) -> void {
     refs_by_name :: Map<string, string[]> {}
     root_names: string[]: []
     seed_refs: string[]: []
+    collect_decorator_names(decorators, seed_refs)
     flaggable: DeadDecl[]: []
     for d in decls {
         nd :: collect_decl_refs(d, seed_refs) else continue

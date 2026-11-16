@@ -143,10 +143,13 @@ export Program :: struct {
 /// the validated module name + its source span (the `module` keyword
 /// itself lives in the node's overall `span`).
 export ModuleDecl :: struct {
-    span:      Span
-    id:        i64 = UNASSIGNED_NODE_ID
-    name:      string
-    name_span: Span
+    span:       Span
+    id:         i64 = UNASSIGNED_NODE_ID
+    name:       string
+    name_span:  Span
+    /// The declared decorators written above `module`: the module's, added up
+    /// with those of its other files.
+    decorators: Decorator[] = []
 }
 
 // ---- Generics / Decorators ------------------------------------------------
@@ -380,6 +383,13 @@ export place_of :: fn(decl: Decl) -> string = match decl {
     is TypeAliasDecl -> "Alias"
     is ImportDecl    -> "Import"
     is AssertDecl    -> ""
+}
+
+/// The decorators written above the `module` line of `program`: none when it has
+/// no such line.
+export module_decorators :: fn(program: Program) -> Decorator[] {
+    module :: program.module else return []
+    return module.decorators
 }
 
 /// Each place of `decl` a decorator may be written at: above it, and above each

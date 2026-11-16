@@ -334,6 +334,9 @@ place_on_line :: fn(idx: DocIndex, tokens: Token[], line: i32) -> string {
     if tokens.any_match((t) -> t.kind == .KwImplements) {
         return "Implementation"
     }
+    if opens_module_line(tokens, 0) {
+        return "Module"
+    }
     return ""
 }
 

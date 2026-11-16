@@ -114,6 +114,18 @@ export Token :: struct {
     value: i64 | u64 | f64 | u32 | string | null
 }
 
+/// Whether `tokens[at]` opens a `module "..."` line. `module` is a soft keyword:
+/// an identifier everywhere else, a field name or a field access target.
+///
+/// @param tokens  the tokens of a source, or of its opening.
+/// @param at      where the line would open.
+export opens_module_line :: fn(tokens: Token[], at: i64) -> bool {
+    if at < 0 || at + 1 >= tokens.len() || tokens[at + 1].kind != .StringBegin {
+        return false
+    }
+    return tokens[at].kind == .Ident && tokens[at].text == "module"
+}
+
 export empty_file_span :: fn(file: string) -> Span {
     p :: Position { .file = file, .offset = 0, .line = 1, .column = 1 }
     return Span { .start = p, .end = p }

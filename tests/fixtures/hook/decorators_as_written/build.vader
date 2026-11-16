@@ -1,6 +1,7 @@
-// What a driver receives of the decorators a module writes: each one as written,
-// its arguments as expressions, and the module that declares it, which the build
-// resolved. A `@comptime` argument arrives as the expression it is written with.
+// What a driver receives of the decorators a module writes, those above its
+// `module` line included: each one as written, its arguments as expressions, and
+// the module that declares it, which the build resolved. A `@comptime` argument
+// arrives as the expression it is written with.
 
 module "build"
 
@@ -15,6 +16,9 @@ build :: fn(args: string[]) -> i32 {
     exit := 0
     for msg in ctx.messages() {
         if msg is TypecheckedMessage && msg.module_name == "app" {
+            for dec in msg.decorators {
+                println("driver: ${described(dec)} on the module")
+            }
             for d in msg.declarations {
                 show_decorators(d)
             }

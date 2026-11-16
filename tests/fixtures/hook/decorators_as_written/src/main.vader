@@ -1,6 +1,8 @@
-// A module that declares its decorators and writes them: above a function, twice
-// for a repeatable one, above a struct field, with a computed argument.
+// A module that declares its decorators and writes them: above its `module` line,
+// above a function, twice for a repeatable one, above a struct field, with a
+// computed argument.
 
+@Owner("platform")
 module "app"
 
 import "std/console"
@@ -9,6 +11,11 @@ import "std/console"
 Route :: decorator(.Function, repeatable = true) {
     path:   string
     method: string = "GET"
+}
+
+/// The team that answers for the module.
+Owner :: decorator(.Module) {
+    team: string
 }
 
 /// The name a field takes in the output.

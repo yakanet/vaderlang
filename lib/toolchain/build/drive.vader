@@ -188,6 +188,7 @@ message_of :: fn(frame: TypecheckedFrame | PhaseFrame) -> Message {
     return TypecheckedMessage {
         .module_name = frame.module_name,
         .declarations = frame.declarations,
+        .decorators = frame.decorators,
     }
 }
 

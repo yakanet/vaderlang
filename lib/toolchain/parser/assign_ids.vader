@@ -34,8 +34,12 @@ export mint :: fn(self: NodeIdFactory) -> i64 {
 /// IDs.
 export assign_program_ids :: fn(p: Program, f: NodeIdFactory) -> void {
     p.id = f.mint()
-    if p.module !is null {
-        p.module.id = f.mint()
+    module :: p.module
+    if module != null {
+        module.id = f.mint()
+        for dec in module.decorators {
+            walk_decorator(dec, f)
+        }
     }
     for d in p.decls {
         walk_decl(d, f)

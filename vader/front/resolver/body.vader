@@ -137,6 +137,7 @@ export resolve_module_programs :: fn(
     for program in programs {
         scope :: file_scopes[program.file] else panic("resolver: no scope for `${program.file}`")
         state.enter_file(scope)
+        state.walk_decorators(AST.module_decorators(program))
         for d in program.decls {
             state.walk_decl(d)
         }

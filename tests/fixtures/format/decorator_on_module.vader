@@ -1,0 +1,18 @@
+// tests/fixtures/format/decorator_on_module: the decorators of a module sit above
+// its `module` line, one per line, after the file header.
+
+@Owner("platform")   @Tier(.Core)
+module "decorator_on_module"
+
+Layer :: enum {
+    Core,
+    Edge,
+}
+
+Owner :: decorator(.Module) {
+    team: string
+}
+
+Tier :: decorator(.Module) {
+    layer: Layer
+}

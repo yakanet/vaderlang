@@ -201,6 +201,7 @@ export frame_of :: fn(session: BuildSession, event: BuildEvent) -> ServerFrame =
     is ModuleTypechecked -> TypecheckedFrame {
         .module_name = event.module_name,
         .declarations = concat_file_decls(event.files).filter(crosses).collect(),
+        .decorators = decorators_above_module(event.files),
     }
     is PhaseFrame        -> event
     is CompleteFrame     -> CompleteFrame {
