@@ -746,6 +746,7 @@ static vader_string_t snippet$Vec$Greet$name(void* l0);
 static vader_string_t snippet$Vec$Greet$hello(void* l0);
 static int32_t snippet$main(void);
 static int64_t snippet$$array$Sized$len__i32(void* l0);
+static int64_t snippet$$array$Counted$len__i32(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t concat_5(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
@@ -929,7 +930,7 @@ static int32_t snippet$main(void) {
     vader_obj_header_init(_a1_obj, 1u);
     _a1_obj->f_x = 1.0;
     l1 = (void*) _a1_obj;
-    l2 = vader_array_length(((vader_array_t*) l0));
+    l2 = snippet$$array$Counted$len__i32(l0);
     l3 = snippet$$array$Sized$len__i32(l0);
     l4 = std_core$i32$Display$to_string(INT32_C(5));
     l5 = vader_host_std_core$Intrinsic$byte_len(l4);
@@ -963,6 +964,10 @@ static int32_t snippet$main(void) {
 
 static int64_t snippet$$array$Sized$len__i32(void* l0) {
     return INT64_C(42);
+}
+
+static int64_t snippet$$array$Counted$len__i32(void* l0) {
+    return INT64_C(3);
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {

@@ -1,52 +1,53 @@
 # Typecheck
 
 ## tests/snippets/trait_member_called_through_its_trait
+  TraitDecl      Counted              :: Counted
   TraitDecl      Greet                :: Greet
   FnDecl         main                 :: fn() -> i32
   TraitDecl      Sized                :: Sized
   StructDecl     Vec                  :: Vec
-  expr 25:42    StructLitExpr  :: Vec
-  expr 25:53    BinaryExpr     :: f64
-  expr 25:53    FieldExpr      :: f64
-  expr 25:53    IdentExpr      :: Vec
-  expr 25:62    IdentExpr      :: f64
-  expr 29:42    StructLitExpr  :: Vec
-  expr 29:53    BinaryExpr     :: f64
-  expr 29:53    FieldExpr      :: f64
-  expr 29:53    IdentExpr      :: Vec
-  expr 29:62    FieldExpr      :: f64
-  expr 29:62    IdentExpr      :: Vec
-  expr 34:35    StringLitExpr  :: string
-  expr 34:44    CallExpr       :: string
-  expr 34:44    FieldExpr      :: fn() -> string
-  expr 34:44    IdentExpr      :: Self
-  expr 38:34    StringLitExpr  :: string
-  expr 42:16    SeqLitExpr     :: i32[]
-  expr 43:10    StructLitExpr  :: Vec
-  expr 44:13    StringLitExpr  :: string
-  expr 44:16    CallExpr       :: i64
-  expr 44:29    IdentExpr      :: i32[]
-  expr 44:36    CallExpr       :: i64
-  expr 44:46    IdentExpr      :: i32[]
-  expr 44:5     CallExpr       :: void
-  expr 44:5     IdentExpr      :: fn(T) -> void
-  expr 44:53    CallExpr       :: string
-  expr 45:13    StringLitExpr  :: string
-  expr 45:16    CallExpr       :: Vec
-  expr 45:16    FieldExpr      :: f64
-  expr 45:24    IdentExpr      :: Vec
-  expr 45:37    CallExpr       :: Vec
-  expr 45:37    FieldExpr      :: f64
-  expr 45:45    IdentExpr      :: Vec
-  expr 45:48    IdentExpr      :: Vec
-  expr 45:5     CallExpr       :: void
-  expr 45:5     IdentExpr      :: fn(T) -> void
-  expr 45:56    CallExpr       :: string
-  expr 45:68    IdentExpr      :: Vec
-  expr 46:13    StringLitExpr  :: string
-  expr 46:16    CallExpr       :: i32
-  expr 46:5     CallExpr       :: void
-  expr 46:5     IdentExpr      :: fn(T) -> void
+  expr 33:42    StructLitExpr  :: Vec
+  expr 33:53    BinaryExpr     :: f64
+  expr 33:53    FieldExpr      :: f64
+  expr 33:53    IdentExpr      :: Vec
+  expr 33:62    IdentExpr      :: f64
+  expr 37:42    StructLitExpr  :: Vec
+  expr 37:53    BinaryExpr     :: f64
+  expr 37:53    FieldExpr      :: f64
+  expr 37:53    IdentExpr      :: Vec
+  expr 37:62    FieldExpr      :: f64
+  expr 37:62    IdentExpr      :: Vec
+  expr 42:35    StringLitExpr  :: string
+  expr 42:44    CallExpr       :: string
+  expr 42:44    FieldExpr      :: fn() -> string
+  expr 42:44    IdentExpr      :: Self
+  expr 46:34    StringLitExpr  :: string
+  expr 50:16    SeqLitExpr     :: i32[]
+  expr 51:10    StructLitExpr  :: Vec
+  expr 52:13    StringLitExpr  :: string
+  expr 52:16    CallExpr       :: i64
+  expr 52:28    IdentExpr      :: i32[]
+  expr 52:35    CallExpr       :: i64
+  expr 52:45    IdentExpr      :: i32[]
+  expr 52:5     CallExpr       :: void
+  expr 52:5     IdentExpr      :: fn(T) -> void
+  expr 52:52    CallExpr       :: string
+  expr 53:13    StringLitExpr  :: string
+  expr 53:16    CallExpr       :: Vec
+  expr 53:16    FieldExpr      :: f64
+  expr 53:24    IdentExpr      :: Vec
+  expr 53:37    CallExpr       :: Vec
+  expr 53:37    FieldExpr      :: f64
+  expr 53:45    IdentExpr      :: Vec
+  expr 53:48    IdentExpr      :: Vec
+  expr 53:5     CallExpr       :: void
+  expr 53:5     IdentExpr      :: fn(T) -> void
+  expr 53:56    CallExpr       :: string
+  expr 53:68    IdentExpr      :: Vec
+  expr 54:13    StringLitExpr  :: string
+  expr 54:16    CallExpr       :: i32
+  expr 54:5     CallExpr       :: void
+  expr 54:5     IdentExpr      :: fn(T) -> void
 
 ## tests/snippets/trait_member_called_through_its_trait/loud
   TraitDecl      Loud                 :: Loud

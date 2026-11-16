@@ -29,7 +29,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 #define VADER_COMPTIME_ATOM_COUNT 1u
 
 static int32_t snippet$main(void);
-static int64_t std_core$len(vader_string_t l0);
+static int64_t std_core$len_1(vader_string_t l0);
 static void std_core$decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint32_t* __o0, int64_t* __o1);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
@@ -155,10 +155,10 @@ static int32_t snippet$main(void) {
     ((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint8_t) INT32_C(97);
     t0 = (void*) _a0_arr;
     l0 = vader_host_std_core$Intrinsic$bytes_to_string(t0);
-    t1 = std_core$len(l0);
+    t1 = std_core$len_1(l0);
     std_console$println__i64(t1);
     l1 = INT64_C(0);
-    l2 = std_core$len(l0);
+    l2 = std_core$len_1(l0);
     while ((l1 < l2)) {
         t2 = std_core$string$Index$at(l0, l1);
         std_console$println__u32((uint32_t) (int32_t) ((int32_t) (uint32_t) t2));
@@ -233,7 +233,7 @@ static int32_t snippet$main(void) {
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static int64_t std_core$len(vader_string_t l0) {
+static int64_t std_core$len_1(vader_string_t l0) {
     int64_t l1, l2, l3, l5, l6;
     uint8_t l4;
     bool t0;

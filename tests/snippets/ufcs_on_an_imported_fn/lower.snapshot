@@ -73,7 +73,7 @@
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.index_of<u8>  // std_core$index_of__u8
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
-    fn std.core.len  // std_core$len
+    fn std.core.len  // std_core$len_1
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at

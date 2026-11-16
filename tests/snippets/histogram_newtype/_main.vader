@@ -1,9 +1,10 @@
 // tests/snippets/histogram_newtype: array-backed distinct newtypes.
 //
 // Regression guard for "distinct newtypes over arrays" : a `Name :: T[]` decl is
-// a distinct nominal type, so its structural array ops (index, `len`/`push`,
-// for-in, `[...]` literals) forward to the backing array while its arithmetic is
-// overloaded on the nominal type: `histogram * u32` (`Mul<u32>`) and
+// a distinct nominal type, so indexing, for-in and `[...]` literals forward to the
+// backing array, the functions on arrays take the backing converted
+// (`u32[](h).len()`, the same array), while its arithmetic is overloaded on the
+// nominal type: `histogram * u32` (`Mul<u32>`) and
 // `histogram / u32` -> `[quotient, remainder]` (`Div<u32, [...]>`). Also covers the
 // operator fallback : a distinct-over-primitive with no impl inherits the
 // backing type's arithmetic.
@@ -19,17 +20,21 @@ Histogram :: u32[]
 
 Histogram implements Mul<u32, Histogram> {
     mul :: fn(self, k: u32) -> Histogram {
-        out: Histogram: []
-        for i in 0..<self.len() { out.push(self[i] * k) }
-        return out
+        out: u32[]: []
+        for i in 0..<u32[](self).len() {
+            out.push(self[i] * k)
+        }
+        return Histogram(out)
     }
 }
 
 Histogram implements Div<u32, [Histogram, u32]> {
     div :: fn(self, k: u32) -> [Histogram, u32] {
-        out: Histogram: []
-        for i in 0..<self.len() { out.push(self[i] / k) }
-        return [out, self[0] % k]
+        out: u32[]: []
+        for i in 0..<u32[](self).len() {
+            out.push(self[i] / k)
+        }
+        return [Histogram(out), self[0] % k]
     }
 }
 
@@ -38,11 +43,11 @@ Celsius :: i64
 
 main :: fn() -> i32 {
     h: Histogram: [4, 8, 15]             // array-literal coercion
-    h.push(u32(16))                        // .push forwards to the backing array
+    u32[](h).push(16)                      // pushes into h: the conversion is h itself
     scaled :: h * u32(2)                   // Mul<u32> overload
     println("${scaled[0]},${scaled[1]},${scaled[2]},${scaled[3]}")
     [half, rem] :: h / u32(3)              // Div<u32> -> [quotient, remainder]
-    println("${half[0]},${half[1]} rem=${rem} len=${half.len()}")
+    println("${half[0]},${half[1]} rem=${rem} len=${u32[](half).len()}")
     total: u32 = 0
     for bin in h { total = total + bin }   // for-in forwards
     println("${total}")

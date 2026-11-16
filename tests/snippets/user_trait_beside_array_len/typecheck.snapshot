@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/user_trait_beside_array_ops
+## tests/snippets/user_trait_beside_array_len
   FnDecl         main                 :: fn() -> i32
   FnDecl         measure              :: fn(T) -> i64
   TraitDecl      Sized                :: Sized

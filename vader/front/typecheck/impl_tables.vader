@@ -113,9 +113,9 @@ impl_side_list :: fn(
 ///
 /// @param typed   a module of the project, whose impl tables it reads.
 /// @param t       the receiver.
-/// @param suffix  `"::<member>"`.
-export impl_candidates :: fn(typed: TypedProgram, t: Type, suffix: string) -> ImplMethod[] =
-    settled_members(registered_candidates(typed, t, suffix), typed)
+/// @param member  the member's name.
+export impl_candidates :: fn(typed: TypedProgram, t: Type, member: string) -> ImplMethod[] =
+    settled_members(registered_candidates(typed, t, "::${member}"), typed)
 
 // The candidates as the impl tables registered them.
 registered_candidates :: fn(typed: TypedProgram, t: Type, suffix: string) -> ImplMethod[] {
@@ -217,7 +217,7 @@ trait_members :: fn(
     method: string,
 ) -> ImplMethod[] {
     out: ImplMethod[]: []
-    for m in impl_candidates(typed, t, "::${method}") {
+    for m in impl_candidates(typed, t, method) {
         if m.trait_key == trait_key {
             out.push(m)
         }

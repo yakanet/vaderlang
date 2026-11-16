@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.Offset.at :: fn(self: Offset, i: i64) -> i32 {  // snippet$Offset$std_core$Index$at
-      (i32(@array.len(self)) * 100) + i32(i)
+      (i32(@array.len(i32[](self))) * 100) + i32(i)
   }
   snippet.Offset.set_at :: fn(self: Offset, i: i64, v: i32) -> void {  // snippet$Offset$std_core$IndexSet$set_at
       std.console.println<string>({

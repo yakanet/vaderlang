@@ -90,8 +90,11 @@
                     "name": "out"
                   },
                   "type": {
-                    "kind": "IdentExpr",
-                    "name": "Histogram"
+                    "kind": "ArrayTypeExpr",
+                    "element": {
+                      "kind": "IdentExpr",
+                      "name": "u32"
+                    }
                   },
                   "value": {
                     "kind": "SeqLitExpr",
@@ -116,8 +119,24 @@
                         "callee": {
                           "kind": "FieldExpr",
                           "target": {
-                            "kind": "IdentExpr",
-                            "name": "self"
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "ArrayTypeExpr",
+                              "element": {
+                                "kind": "IdentExpr",
+                                "name": "u32"
+                              }
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "IdentExpr",
+                                  "name": "self"
+                                },
+                                "spread": false
+                              }
+                            ]
                           },
                           "field": "len"
                         },
@@ -170,8 +189,21 @@
                 {
                   "kind": "ReturnStmt",
                   "value": {
-                    "kind": "IdentExpr",
-                    "name": "out"
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "Histogram"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "IdentExpr",
+                          "name": "out"
+                        },
+                        "spread": false
+                      }
+                    ]
                   }
                 }
               ],
@@ -262,8 +294,11 @@
                     "name": "out"
                   },
                   "type": {
-                    "kind": "IdentExpr",
-                    "name": "Histogram"
+                    "kind": "ArrayTypeExpr",
+                    "element": {
+                      "kind": "IdentExpr",
+                      "name": "u32"
+                    }
                   },
                   "value": {
                     "kind": "SeqLitExpr",
@@ -288,8 +323,24 @@
                         "callee": {
                           "kind": "FieldExpr",
                           "target": {
-                            "kind": "IdentExpr",
-                            "name": "self"
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "ArrayTypeExpr",
+                              "element": {
+                                "kind": "IdentExpr",
+                                "name": "u32"
+                              }
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "IdentExpr",
+                                  "name": "self"
+                                },
+                                "spread": false
+                              }
+                            ]
                           },
                           "field": "len"
                         },
@@ -345,8 +396,21 @@
                     "kind": "SeqLitExpr",
                     "elements": [
                       {
-                        "kind": "IdentExpr",
-                        "name": "out"
+                        "kind": "CallExpr",
+                        "callee": {
+                          "kind": "IdentExpr",
+                          "name": "Histogram"
+                        },
+                        "args": [
+                          {
+                            "name": null,
+                            "value": {
+                              "kind": "IdentExpr",
+                              "name": "out"
+                            },
+                            "spread": false
+                          }
+                        ]
                       },
                       {
                         "kind": "BinaryExpr",
@@ -438,8 +502,24 @@
                 "callee": {
                   "kind": "FieldExpr",
                   "target": {
-                    "kind": "IdentExpr",
-                    "name": "h"
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "ArrayTypeExpr",
+                      "element": {
+                        "kind": "IdentExpr",
+                        "name": "u32"
+                      }
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "IdentExpr",
+                          "name": "h"
+                        },
+                        "spread": false
+                      }
+                    ]
                   },
                   "field": "push"
                 },
@@ -447,21 +527,8 @@
                   {
                     "name": null,
                     "value": {
-                      "kind": "CallExpr",
-                      "callee": {
-                        "kind": "IdentExpr",
-                        "name": "u32"
-                      },
-                      "args": [
-                        {
-                          "name": null,
-                          "value": {
-                            "kind": "IntLitExpr",
-                            "value": "16n"
-                          },
-                          "spread": false
-                        }
-                      ]
+                      "kind": "IntLitExpr",
+                      "value": "16n"
                     },
                     "spread": false
                   }
@@ -702,8 +769,24 @@
                             "callee": {
                               "kind": "FieldExpr",
                               "target": {
-                                "kind": "IdentExpr",
-                                "name": "half"
+                                "kind": "CallExpr",
+                                "callee": {
+                                  "kind": "ArrayTypeExpr",
+                                  "element": {
+                                    "kind": "IdentExpr",
+                                    "name": "u32"
+                                  }
+                                },
+                                "args": [
+                                  {
+                                    "name": null,
+                                    "value": {
+                                      "kind": "IdentExpr",
+                                      "name": "half"
+                                    },
+                                    "spread": false
+                                  }
+                                ]
                               },
                               "field": "len"
                             },

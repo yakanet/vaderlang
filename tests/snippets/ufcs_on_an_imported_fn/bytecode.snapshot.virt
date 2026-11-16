@@ -169,7 +169,7 @@ fn 0 snippet$main () -> i32
     local.set 5   ; __off_2
     local.get 1   ; __fallback_0
     ref.cast 2   ; string
-    call 3   ; std_core$len
+    call 3   ; std_core$len_1
     local.set 6   ; $call_28
     local.get 4   ; __buf_1
     local.get 5   ; __off_2
@@ -312,7 +312,7 @@ fn 2 concat_3 (string,string,string) -> string
   return
 end
 
-fn 3 std_core$len (string) -> i64
+fn 3 std_core$len_1 (string) -> i64
   local n i64
   local i i64
   local count i64

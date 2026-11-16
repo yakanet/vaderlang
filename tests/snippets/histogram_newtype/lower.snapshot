@@ -2,34 +2,34 @@
 
 ## snippet
   snippet.Histogram.mul :: fn(self: Histogram, k: u32) -> Histogram {  // snippet$Histogram$std_core$Mul$mul
-      out: Histogram = @array.reserve(@array.len(self))
+      out: u32[] = [] :u32[]
       {
           i: i64 = 0
-          __for_hi_0: i64 = @array.len(self)
+          __for_hi_0: i64 = @array.len(u32[](self))
           for i < __for_hi_0 {
               @array.push_cached(out, self[i] * k)
           } @step {
               i = i +% i64(1)
           }
       }
-      return out
+      return Histogram(out)
   }
   snippet.Histogram.div :: fn(self: Histogram, k: u32) -> [Histogram, u32] {  // snippet$Histogram$std_core$Div$div
-      out: Histogram = @array.reserve(@array.len(self))
+      out: u32[] = [] :u32[]
       {
           i: i64 = 0
-          __for_hi_0: i64 = @array.len(self)
+          __for_hi_0: i64 = @array.len(u32[](self))
           for i < __for_hi_0 {
               @array.push_cached(out, self[i] / k)
           } @step {
               i = i +% i64(1)
           }
       }
-      return [out, self[0] % k] :[Histogram, u32]
+      return [Histogram(out), self[0] % k] :[Histogram, u32]
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       h: Histogram = [u32(4), u32(8), u32(15)] :Histogram
-      @array.push(h, u32(16))
+      @array.push(u32[](h), u32(16))
       scaled: Histogram = snippet.Histogram.mul(h, u32(2))
       std.console.println<string>({
           __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(83))
@@ -55,7 +55,7 @@
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " rem=")
           __off_4 = std.core.write_unsigned(__buf_3, __off_4, rem)
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " len=")
-          __off_4 = std.core.write_int(__buf_3, __off_4, @array.len(half))
+          __off_4 = std.core.write_int(__buf_3, __off_4, @array.len(u32[](half)))
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       total: u32 = 0

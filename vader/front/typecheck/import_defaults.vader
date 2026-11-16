@@ -38,8 +38,16 @@ publish_default_resolutions :: fn(
     into: TypedProgram,
     fd: AST.FnDecl,
 ) -> void {
+    has_default := false
     for pm in fd.params {
-        copy_maybe_resolutions(pm.default_value, from, into)
+        if pm.default_value != null {
+            copy_maybe_resolutions(pm.default_value, from, into)
+            has_default = true
+        }
+    }
+    // A default's `x.f()` resolves among the free fns its own file imports.
+    if has_default {
+        share_file_overloads(from, into, fd.span.start.file)
     }
 }
 

@@ -288,7 +288,7 @@ fn 5 std_core$write_bool (ref,i64,bool) -> i64
   return
 end
 
-fn 6 std_core$len (string) -> i64
+fn 6 std_core$len_1 (string) -> i64
   local n i64
   local i i64
   local count i64
@@ -997,7 +997,7 @@ fn 15 std_string$pad_start (string,i64,char) -> string
   local n i64
   local sb ref
   local.get 0   ; arg 0
-  call 6   ; std_core$len
+  call 6   ; std_core$len_1
   local.tee 3   ; n
   local.get 1   ; arg 1
   i64.ge
@@ -1035,7 +1035,7 @@ fn 16 std_string$pad_end (string,i64,char) -> string
   local n i64
   local sb ref
   local.get 0   ; arg 0
-  call 6   ; std_core$len
+  call 6   ; std_core$len_1
   local.tee 3   ; n
   local.get 1   ; arg 1
   i64.ge

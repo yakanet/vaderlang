@@ -102,8 +102,24 @@
                           "callee": {
                             "kind": "FieldExpr",
                             "target": {
-                              "kind": "IdentExpr",
-                              "name": "self"
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "ArrayTypeExpr",
+                                "element": {
+                                  "kind": "IdentExpr",
+                                  "name": "i32"
+                                }
+                              },
+                              "args": [
+                                {
+                                  "name": null,
+                                  "value": {
+                                    "kind": "IdentExpr",
+                                    "name": "self"
+                                  },
+                                  "spread": false
+                                }
+                              ]
                             },
                             "field": "len"
                           },

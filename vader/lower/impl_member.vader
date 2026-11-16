@@ -310,7 +310,7 @@ impl_member_arg_types :: fn(
     entry: ImplEntry,
 ) -> Type[] {
     entry_typed :: ctx.project.typed.modules[ctx.project.loaded.entry] else return []
-    candidates :: impl_candidates(entry_typed, recv_type, "::${member.name}")
+    candidates :: impl_candidates(entry_typed, recv_type, member.name)
     if candidates.len() == 0 {
         return []
     }

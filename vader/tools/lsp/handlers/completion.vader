@@ -313,7 +313,7 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     }
 
     // Impl methods on the receiver's type (UFCS), whatever the type : a struct,
-    // an array (`T[] implements ArrayOps`), a primitive (`string implements
+    // an array (`T[] implements Contains`), a primitive (`string implements
     // Hash`), the one non-null member of a `T | null`.
     for [name, method] in impl_members_of(cached.result.typed, subtract_type(recv_type, TY_NULL)) {
         if seen[name] != null || !member_in_scope(method, sf.program.file, cached.result.typed) {

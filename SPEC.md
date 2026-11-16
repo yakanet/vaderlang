@@ -570,7 +570,7 @@ A distinct type is held exactly as its backing type at run time.
 
 - Conversions are explicit both ways and change nothing at run time: `Celsius(x)` wraps an `f64` and `f64(c)` unwraps it. An implicit one is an error.
 - Structural operations forward to the backing, while trait impls stay nominal (`BigInt implements Mul<u32>` does not collide with the array repeat, `T[] implements Mul<i64>`):
-  - array: indexing, the built-in array functions (`.len()`, `.push()`, ...), `for x in n`, and the conversion of a `[...]` literal;
+  - array: indexing, `for x in n`, and the conversion of a `[...]` literal. The functions on arrays take the backing, converted: `u32[](n).len()`;
   - struct: field access `c.r` and construction `Color { ... }`, with the backing's fields;
   - tuple: positional access `p.0`, construction from `[a, b]`, and destructuring `[a, b] :: p`.
 - A distinct over an object is not a value of a trait it implements: passing a distinct over a struct, an array, a tuple or a function where its trait is expected (a `Color` for a `Display`) is an error, as an array element or into a union too. Its own impls are reached by a direct call (`c.to_string()`).
@@ -2694,14 +2694,27 @@ Sized :: trait {
     len :: fn(self) -> i64
 }
 
-i32[] implements Sized {
-    len :: fn(self) -> i64 = 42
+Counted :: trait {
+    len :: fn(self) -> i64
 }
 
-xs: i32[]: [1, 2, 3]
-xs.len()            // error: `ArrayOps` and `Sized` both offer `len`
-ArrayOps.len(xs)    // 3
-Sized.len(xs)       // 42
+Pair :: struct {
+    a: i32
+    b: i32
+}
+
+Pair implements Sized {
+    len :: fn(self) -> i64 = 8
+}
+
+Pair implements Counted {
+    len :: fn(self) -> i64 = 2
+}
+
+p :: Pair { .a = 1, .b = 2 }
+p.len()             // error: `Sized` and `Counted` both offer `len`
+Sized.len(p)        // 8
+Counted.len(p)      // 2
 ```
 
 The call runs the member a method call on the receiver would run: several impls of the trait are told apart by the arguments past the receiver, and a default member is reached like any other.
@@ -4053,12 +4066,11 @@ It also declares:
 - `Clone`, an explicit copy: `clone :: fn(self) -> Self`.
 - `Zero` and `One`, the additive and multiplicative identities, two static members (§4 *Static members*).
 - `FloatBits`, `BitsFloat`, `Float32Bits` and `Bits32Float`, the bits of a float (§4 *Float bit patterns*).
-- `ArrayOps<T>`, the built-in methods of arrays: `len`, `push`, `push_all`, `copy_to`, `remove_last` and `clear` (§4 *Mutation methods*).
 - `Stop`, what an iterator returns at its end (*Iteration*, below).
 - `Peek<T>`, the element a source would hand out next, left in place: `peek :: fn(self) -> T | null`.
 - `Cancelled`, the `Error` that joining a cancelled task gives back (§16 *Cancellation*).
 - `deep_copy`, a copy of a value that shares nothing it can write (§16 *Values shared between tasks*).
-- Functions on arrays: `filled` and `filled_indexed` (§4 *Repeat / preallocate: `[lhs] * n`*), `content_equals`, `is_permutation_of`, `contains_all` and `is_disjoint` (§4 *Equality*).
+- Functions on arrays: `len`, `push`, `push_all`, `copy_to`, `remove_last` and `clear` (§4 *Mutation methods*), `filled` and `filled_indexed` (§4 *Repeat / preallocate: `[lhs] * n`*), `content_equals`, `is_permutation_of`, `contains_all` and `is_disjoint` (§4 *Equality*).
 - Functions on strings: `len`, `byte_len`, `byte_at`, `byte_slice`, `is_ascii`, `codepoint_at_byte`, `bytes` and `bytes_to_string` (§4 *Strings*).
 
 #### Implementations on primitive types

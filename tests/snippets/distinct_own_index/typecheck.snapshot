@@ -10,12 +10,14 @@
   expr 13:37    BinaryExpr     :: i32
   expr 13:37    CallExpr       :: i32
   expr 13:37    IdentExpr      :: type
+  expr 13:41    ArrayTypeExpr  :: type
+  expr 13:41    CallExpr       :: i32[]
   expr 13:41    CallExpr       :: i64
   expr 13:41    FieldExpr      :: fn() -> i64
-  expr 13:41    IdentExpr      :: Offset
-  expr 13:61    CallExpr       :: i32
-  expr 13:61    IdentExpr      :: type
-  expr 13:65    IdentExpr      :: i64
+  expr 13:47    IdentExpr      :: Offset
+  expr 13:68    CallExpr       :: i32
+  expr 13:68    IdentExpr      :: type
+  expr 13:72    IdentExpr      :: i64
   expr 18:17    StringLitExpr  :: string
   expr 18:27    IdentExpr      :: i64
   expr 18:32    IdentExpr      :: i32

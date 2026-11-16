@@ -34,7 +34,7 @@ static int32_t snippet$pick_1(int32_t l0, int32_t l1);
 static int32_t snippet$scale(void* l0, int32_t l1, int32_t l2);
 static int32_t snippet$main(void);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
-static int64_t std_core$len(vader_string_t l0);
+static int64_t std_core$len_1(vader_string_t l0);
 static int64_t std_core$ascii_prefix(vader_string_t l0);
 static void std_core$decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint32_t* __o0, int64_t* __o1);
 static bool std_core$is_utf8_continuation(uint8_t l0);
@@ -124,8 +124,8 @@ static int32_t snippet$main(void) {
     _a0_obj->f_v = INT32_C(6);
     t0 = (void*) _a0_obj;
     l4 = snippet$scale(t0, INT32_C(2), INT32_C(1));
-    l5 = std_core$len(l0);
-    l6 = std_core$len(l1);
+    l5 = std_core$len_1(l0);
+    l6 = std_core$len_1(l1);
     t1 = vader_chk_add(i64, l5, l6);
     t2 = vader_chk_add(i32, ((int32_t) (int64_t) t1), l2);
     t3 = vader_chk_add(i32, t2, l3);
@@ -156,7 +156,7 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int64_t std_core$len(vader_string_t l0) {
+static int64_t std_core$len_1(vader_string_t l0) {
     int64_t l1, l2, l3, l5, l6;
     uint8_t l4;
     bool t0;

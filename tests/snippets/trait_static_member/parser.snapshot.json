@@ -1348,14 +1348,30 @@
                         "target": {
                           "kind": "CallExpr",
                           "callee": {
-                            "kind": "FieldExpr",
-                            "target": {
+                            "kind": "ArrayTypeExpr",
+                            "element": {
                               "kind": "IdentExpr",
-                              "name": "Limbs"
-                            },
-                            "field": "zero"
+                              "name": "u32"
+                            }
                           },
-                          "args": []
+                          "args": [
+                            {
+                              "name": null,
+                              "value": {
+                                "kind": "CallExpr",
+                                "callee": {
+                                  "kind": "FieldExpr",
+                                  "target": {
+                                    "kind": "IdentExpr",
+                                    "name": "Limbs"
+                                  },
+                                  "field": "zero"
+                                },
+                                "args": []
+                              },
+                              "spread": false
+                            }
+                          ]
                         },
                         "field": "len"
                       },

@@ -235,7 +235,8 @@ chosen_member :: fn(
 }
 
 // `name` as a member of one of the traits a `T[] implements ...` block of std/core
-// names: `ArrayOps` for `len` / `push` / ..., plus `Contains`, `Into`, `Mul`.
+// names: `Add`, `Contains`, `Display`, `Into`, `Mul`. The functions on arrays
+// (`len`, `push`, ...) are free ones, which `chosen_member` answers before.
 //
 // Read off the PROJECT's own decls rather than `CheckResult.impls`: that
 // registry is built from the entry module's declarations alone
@@ -243,15 +244,9 @@ chosen_member :: fn(
 // the blanket impl in `std/core` is absent from it for every user file. The
 // completion handler documents the same gap on the same table.
 //
-// EVERY array-targeted impl is tried, not the first found: they are four, and
-// only one declares the member being asked about.
-//
-// Without this the lookup fell through to the name-based one, which is blind to
-// the receiver's type. `len` is declared four times across the stdlib, so
-// `xs.len()` answered with whichever the FOLDER ENUMERATION served first, and
-// nothing sorts it: measured `array.vader` on APFS and on a container's
-// overlayfs, `primitives.vader` on the CI runner's ext4. Right on a Mac by luck,
-// wrong on CI, for four red runs.
+// EVERY array-targeted impl is tried, not the first found: only one declares the
+// member being asked about. Without it the lookup falls through to the
+// name-based one, which is blind to the receiver's type.
 
 array_member :: fn(state: ServerState, cached: ProjectCache, name: string) -> ExternalHit | null {
     for [_, m] in cached.project.modules {

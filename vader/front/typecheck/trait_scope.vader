@@ -185,7 +185,7 @@ export report_member_out_of_scope :: fn(
 // The trait of an impl member `name` the receiver offers, or of a default it
 // inherits, whatever file asks.
 unseen_trait_offering :: fn(name: string, target_ty: Type, typed: TypedProgram) -> Symbol | null {
-    for m in receiver_impl_members(default_if_free(target_ty), name, typed) {
+    for m in impl_candidates(typed, default_if_free(target_ty), name) {
         trait_sym :: m.trait_symbol else continue
         return trait_sym
     }
@@ -261,7 +261,7 @@ export trait_qualified_member :: fn(
     }
     receiver :: default_if_free(check_expr(c.args[0].value, null, typed, []))
     members: ImplMethod[]: []
-    for m in receiver_impl_members(receiver, field.field, typed) {
+    for m in impl_candidates(typed, receiver, field.field) {
         if declared_for(m, trait_sym) {
             members.push(m)
         }

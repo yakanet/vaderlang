@@ -1,6 +1,6 @@
 // A trait member called through its trait, `Trait.member(receiver, ...)`: the
 // trait it names is the only one considered, so it settles a method call two
-// traits make ambiguous (`ArrayOps.len(xs)` beside `Sized.len(xs)`) ; behind a
+// traits make ambiguous (`Counted.len(xs)` beside `Sized.len(xs)`) ; behind a
 // namespace alias, the trait's members are reached this way. Several impls of
 // one trait are told apart by the arguments past the receiver, and a default
 // member is reached like any other.
@@ -17,6 +17,14 @@ Sized :: trait {
 
 i32[] implements Sized {
     len :: fn(self) -> i64 = 42
+}
+
+Counted :: trait {
+    len :: fn(self) -> i64
+}
+
+i32[] implements Counted {
+    len :: fn(self) -> i64 = 3
 }
 
 Vec :: struct { x: f64 }
@@ -41,7 +49,7 @@ Vec implements Greet {
 main :: fn() -> i32 {
     xs: i32[]: [1, 2, 3]
     v :: Vec { .x = 1.0 }
-    println("${ArrayOps.len(xs)} ${Sized.len(xs)} ${Display.to_string(5)}")
+    println("${Counted.len(xs)} ${Sized.len(xs)} ${Display.to_string(5)}")
     println("${Add.add(v, 2.0).x} ${Add.add(v, v).x} ${Greet.hello(v)}")
     println("${L.Loud.shout(7)}")
     return 0

@@ -4,94 +4,104 @@
   ConstDecl      Celsius              :: type
   ConstDecl      Histogram            :: type
   FnDecl         main                 :: fn() -> i32
-  expr 22:25    SeqLitExpr     :: Histogram
-  expr 23:18    RangeExpr      :: Range<i64>
-  expr 23:22    CallExpr       :: i64
-  expr 23:22    FieldExpr      :: fn() -> i64
-  expr 23:22    IdentExpr      :: Histogram
-  expr 23:35    CallExpr       :: void
-  expr 23:35    FieldExpr      :: fn(u32) -> void
-  expr 23:35    IdentExpr      :: Histogram
-  expr 23:44    BinaryExpr     :: u32
-  expr 23:44    IdentExpr      :: Histogram
-  expr 23:44    IndexExpr      :: u32
-  expr 23:49    IdentExpr      :: i64
-  expr 23:54    IdentExpr      :: u32
-  expr 24:16    IdentExpr      :: Histogram
-  expr 30:25    SeqLitExpr     :: Histogram
-  expr 31:18    RangeExpr      :: Range<i64>
-  expr 31:22    CallExpr       :: i64
-  expr 31:22    FieldExpr      :: fn() -> i64
-  expr 31:22    IdentExpr      :: Histogram
-  expr 31:35    CallExpr       :: void
-  expr 31:35    FieldExpr      :: fn(u32) -> void
-  expr 31:35    IdentExpr      :: Histogram
-  expr 31:44    BinaryExpr     :: u32
-  expr 31:44    IdentExpr      :: Histogram
-  expr 31:44    IndexExpr      :: u32
-  expr 31:49    IdentExpr      :: i64
-  expr 31:54    IdentExpr      :: u32
-  expr 32:16    SeqLitExpr     :: [Histogram, u32]
-  expr 32:17    IdentExpr      :: Histogram
-  expr 32:22    BinaryExpr     :: u32
-  expr 32:22    IdentExpr      :: Histogram
-  expr 32:22    IndexExpr      :: u32
-  expr 32:32    IdentExpr      :: u32
-  expr 40:19    SeqLitExpr     :: Histogram
-  expr 41:12    CallExpr       :: u32
-  expr 41:12    IdentExpr      :: type
-  expr 41:5     CallExpr       :: void
-  expr 41:5     FieldExpr      :: fn(u32) -> void
-  expr 41:5     IdentExpr      :: Histogram
-  expr 42:15    BinaryExpr     :: Histogram
-  expr 42:15    IdentExpr      :: Histogram
-  expr 42:19    CallExpr       :: u32
-  expr 42:19    IdentExpr      :: type
-  expr 43:13    StringLitExpr  :: string
-  expr 43:16    IdentExpr      :: Histogram
-  expr 43:16    IndexExpr      :: u32
-  expr 43:29    IdentExpr      :: Histogram
-  expr 43:29    IndexExpr      :: u32
-  expr 43:42    IdentExpr      :: Histogram
-  expr 43:42    IndexExpr      :: u32
-  expr 43:5     CallExpr       :: void
-  expr 43:5     IdentExpr      :: fn(T) -> void
-  expr 43:55    IdentExpr      :: Histogram
-  expr 43:55    IndexExpr      :: u32
-  expr 44:20    BinaryExpr     :: [Histogram, u32]
-  expr 44:20    IdentExpr      :: Histogram
-  expr 44:24    CallExpr       :: u32
-  expr 44:24    IdentExpr      :: type
-  expr 45:13    StringLitExpr  :: string
-  expr 45:16    IdentExpr      :: Histogram
-  expr 45:16    IndexExpr      :: u32
-  expr 45:27    IdentExpr      :: Histogram
-  expr 45:27    IndexExpr      :: u32
-  expr 45:42    IdentExpr      :: u32
-  expr 45:5     CallExpr       :: void
-  expr 45:5     IdentExpr      :: fn(T) -> void
-  expr 45:53    CallExpr       :: i64
-  expr 45:53    FieldExpr      :: fn() -> i64
-  expr 45:53    IdentExpr      :: Histogram
-  expr 47:16    IdentExpr      :: Histogram
-  expr 47:20    IdentExpr      :: u32
-  expr 47:28    BinaryExpr     :: u32
-  expr 47:28    IdentExpr      :: u32
-  expr 47:36    IdentExpr      :: u32
+  expr 23:21    SeqLitExpr     :: u32[]
+  expr 24:18    RangeExpr      :: Range<i64>
+  expr 24:22    ArrayTypeExpr  :: type
+  expr 24:22    CallExpr       :: i64
+  expr 24:22    CallExpr       :: u32[]
+  expr 24:22    FieldExpr      :: fn() -> i64
+  expr 24:28    IdentExpr      :: Histogram
+  expr 25:13    CallExpr       :: void
+  expr 25:13    FieldExpr      :: fn(u32) -> void
+  expr 25:13    IdentExpr      :: u32[]
+  expr 25:22    BinaryExpr     :: u32
+  expr 25:22    IdentExpr      :: Histogram
+  expr 25:22    IndexExpr      :: u32
+  expr 25:27    IdentExpr      :: i64
+  expr 25:32    IdentExpr      :: u32
+  expr 27:16    CallExpr       :: Histogram
+  expr 27:16    IdentExpr      :: type
+  expr 27:26    IdentExpr      :: u32[]
+  expr 33:21    SeqLitExpr     :: u32[]
+  expr 34:18    RangeExpr      :: Range<i64>
+  expr 34:22    ArrayTypeExpr  :: type
+  expr 34:22    CallExpr       :: i64
+  expr 34:22    CallExpr       :: u32[]
+  expr 34:22    FieldExpr      :: fn() -> i64
+  expr 34:28    IdentExpr      :: Histogram
+  expr 35:13    CallExpr       :: void
+  expr 35:13    FieldExpr      :: fn(u32) -> void
+  expr 35:13    IdentExpr      :: u32[]
+  expr 35:22    BinaryExpr     :: u32
+  expr 35:22    IdentExpr      :: Histogram
+  expr 35:22    IndexExpr      :: u32
+  expr 35:27    IdentExpr      :: i64
+  expr 35:32    IdentExpr      :: u32
+  expr 37:16    SeqLitExpr     :: [Histogram, u32]
+  expr 37:17    CallExpr       :: Histogram
+  expr 37:17    IdentExpr      :: type
+  expr 37:27    IdentExpr      :: u32[]
+  expr 37:33    BinaryExpr     :: u32
+  expr 37:33    IdentExpr      :: Histogram
+  expr 37:33    IndexExpr      :: u32
+  expr 37:43    IdentExpr      :: u32
+  expr 45:19    SeqLitExpr     :: Histogram
+  expr 46:11    IdentExpr      :: Histogram
+  expr 46:5     ArrayTypeExpr  :: type
+  expr 46:5     CallExpr       :: u32[]
+  expr 46:5     CallExpr       :: void
+  expr 46:5     FieldExpr      :: fn(u32) -> void
+  expr 47:15    BinaryExpr     :: Histogram
+  expr 47:15    IdentExpr      :: Histogram
+  expr 47:19    CallExpr       :: u32
+  expr 47:19    IdentExpr      :: type
   expr 48:13    StringLitExpr  :: string
-  expr 48:16    IdentExpr      :: u32
+  expr 48:16    IdentExpr      :: Histogram
+  expr 48:16    IndexExpr      :: u32
+  expr 48:29    IdentExpr      :: Histogram
+  expr 48:29    IndexExpr      :: u32
+  expr 48:42    IdentExpr      :: Histogram
+  expr 48:42    IndexExpr      :: u32
   expr 48:5     CallExpr       :: void
   expr 48:5     IdentExpr      :: fn(T) -> void
-  expr 49:10    CallExpr       :: Celsius
-  expr 49:10    IdentExpr      :: type
-  expr 50:10    CallExpr       :: Celsius
-  expr 50:10    IdentExpr      :: type
-  expr 51:13    StringLitExpr  :: string
-  expr 51:16    BinaryExpr     :: i64
-  expr 51:16    IdentExpr      :: Celsius
-  expr 51:20    IdentExpr      :: Celsius
-  expr 51:25    BinaryExpr     :: i64
-  expr 51:25    IdentExpr      :: Celsius
-  expr 51:29    IdentExpr      :: Celsius
-  expr 51:5     CallExpr       :: void
-  expr 51:5     IdentExpr      :: fn(T) -> void
+  expr 48:55    IdentExpr      :: Histogram
+  expr 48:55    IndexExpr      :: u32
+  expr 49:20    BinaryExpr     :: [Histogram, u32]
+  expr 49:20    IdentExpr      :: Histogram
+  expr 49:24    CallExpr       :: u32
+  expr 49:24    IdentExpr      :: type
+  expr 50:13    StringLitExpr  :: string
+  expr 50:16    IdentExpr      :: Histogram
+  expr 50:16    IndexExpr      :: u32
+  expr 50:27    IdentExpr      :: Histogram
+  expr 50:27    IndexExpr      :: u32
+  expr 50:42    IdentExpr      :: u32
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 50:53    ArrayTypeExpr  :: type
+  expr 50:53    CallExpr       :: i64
+  expr 50:53    CallExpr       :: u32[]
+  expr 50:53    FieldExpr      :: fn() -> i64
+  expr 50:59    IdentExpr      :: Histogram
+  expr 52:16    IdentExpr      :: Histogram
+  expr 52:20    IdentExpr      :: u32
+  expr 52:28    BinaryExpr     :: u32
+  expr 52:28    IdentExpr      :: u32
+  expr 52:36    IdentExpr      :: u32
+  expr 53:13    StringLitExpr  :: string
+  expr 53:16    IdentExpr      :: u32
+  expr 53:5     CallExpr       :: void
+  expr 53:5     IdentExpr      :: fn(T) -> void
+  expr 54:10    CallExpr       :: Celsius
+  expr 54:10    IdentExpr      :: type
+  expr 55:10    CallExpr       :: Celsius
+  expr 55:10    IdentExpr      :: type
+  expr 56:13    StringLitExpr  :: string
+  expr 56:16    BinaryExpr     :: i64
+  expr 56:16    IdentExpr      :: Celsius
+  expr 56:20    IdentExpr      :: Celsius
+  expr 56:25    BinaryExpr     :: i64
+  expr 56:25    IdentExpr      :: Celsius
+  expr 56:29    IdentExpr      :: Celsius
+  expr 56:5     CallExpr       :: void
+  expr 56:5     IdentExpr      :: fn(T) -> void

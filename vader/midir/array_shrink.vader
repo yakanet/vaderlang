@@ -2,7 +2,7 @@
 //
 // The range analysis keeps what it knows of an array's length across an
 // instruction that cannot shorten one (`ranges/transfer.vader`, `transfer`). Only
-// `remove_last` and `clear` shorten an array (`ArrayOps` in `std/core`); every
+// `remove_last` and `clear` shorten an array (`std/core/array.vader`); every
 // other change makes it longer, which leaves `i < len(xs)` true.
 //
 // A call may shorten an array when its callee's body does, or calls something

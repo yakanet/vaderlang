@@ -95,7 +95,7 @@ static int32_t snippet$main(void);
 static vader_string_t concat_10(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, vader_string_t l5, vader_string_t l6, vader_string_t l7, vader_string_t l8, vader_string_t l9);
 static vader_string_t concat_5(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static int64_t std_core$len(vader_string_t l0);
+static int64_t std_core$len_1(vader_string_t l0);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
@@ -231,7 +231,7 @@ static void snippet$show(vader_string_t l0, vader_string_t l1) {
     l5 = vader_host_std_core$Intrinsic$is_ascii(l1);
     l3 = std_core$write_bool(l4, l3, l5);
     l3 = std_core$write_string_at(l4, l3, 2u);
-    l6 = std_core$len(l1);
+    l6 = std_core$len_1(l1);
     l3 = std_core$write_int(l4, l3, l6);
     t0 = std_core$finish_buffer(l4, l3);
     std_console$println__string(t0);
@@ -509,7 +509,7 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int64_t std_core$len(vader_string_t l0) {
+static int64_t std_core$len_1(vader_string_t l0) {
     int64_t l1, l2, l3, l5, l6;
     uint8_t l4;
     bool t0;

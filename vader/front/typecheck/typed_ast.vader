@@ -83,6 +83,20 @@ imported_overloads_table_in :: fn(
     typed: TypedProgram, file: string,
 ) -> Map<string, FnCandidate[]> | null = typed.imported_fn_overloads[file]
 
+/// Lend `into` the imported overloads of `file`, a file of `from`: a default value
+/// `from` declares is checked in `into`, and resolves its `x.f()` as its own file
+/// does. The key is the file path, which none of `into`'s own files share. The
+/// table is shared, not copied: `from` fills it afresh IN PLACE on every populate
+/// (`file_overload_table`), so it holds whichever of the two modules is populated
+/// first.
+///
+/// @param from  the module that declares the default.
+/// @param into  the module that checks it.
+/// @param file  the declaring file.
+share_file_overloads :: fn(from: TypedProgram, into: TypedProgram, file: string) -> void {
+    into.imported_fn_overloads[file] = file_overload_table(from, file)
+}
+
 /// A bound on one argument of a generic type : one a generic impl puts on the type
 /// it implements a trait for (`Box<T> implements<T: Display> Display` holds for
 /// `Box<X>` only when `X` implements `Display`), or one a struct declares on its own
@@ -541,7 +555,8 @@ export TypedProgram :: struct {
     /// Keyed per file because imports are file-scoped (SPEC §"Modules") while a
     /// `TypedProgram` covers a whole module: two files of one module may import
     /// different modules, or the same one under different modifier lists, and
-    /// neither may lend its names to the other.
+    /// neither may lend its names to the other. A file of another module may be
+    /// a key too, its table shared with that module (`share_file_overloads`).
     imported_fn_overloads: Map<string, Map<string, FnCandidate[]>>
 
     /// The traits each file sees, keyed like `imported_fn_overloads`: a trait

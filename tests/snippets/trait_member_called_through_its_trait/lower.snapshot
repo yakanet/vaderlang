@@ -18,8 +18,8 @@
       xs: i32[] = [1, 2, 3] :i32[]
       v: Vec = Vec { .x = 1.0 }
       std.console.println<string>({
-          __p_0: i64 = @array.len(xs)
-          __p_1: i64 = snippet.i32[].len(xs)
+          __p_0: i64 = snippet$$array$Counted$len__i32(xs)
+          __p_1: i64 = snippet$$array$Sized$len__i32(xs)
           __p_2: string = std.core.i32.to_string(5)
           __buf_3: Buffer = std_core$Intrinsic$new_byte_buffer(i64(42) +% std_core$Intrinsic$byte_len(__p_2))
           __off_4: i64 = 0
@@ -39,8 +39,11 @@
       } :string)
       return 0
   }
-  snippet.i32[].len :: fn(self: i32[]) -> i64 {  // snippet$$array$Sized$len__i32
+  snippet$$array$Sized$len__i32 :: fn(self: i32[]) -> i64 {
       i64(42)
+  }
+  snippet$$array$Counted$len__i32 :: fn(self: i32[]) -> i64 {
+      i64(3)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
@@ -64,9 +67,10 @@
       std_core$Intrinsic$buffer_write_string(buf, c3, p4)
       std_core$Intrinsic$buffer_intern_string(buf, c4)
   }
+  vtable snippet.Counted.len for i32[]  snippet$$array$Counted$len__i32
   vtable snippet.Greet.hello for Vec  snippet.Vec.hello  // snippet$Vec$Greet$hello
   vtable snippet.Greet.name for Vec  snippet.Vec.name  // snippet$Vec$Greet$name
-  vtable snippet.Sized.len for i32[]  snippet.i32[].len  // snippet$$array$Sized$len__i32
+  vtable snippet.Sized.len for i32[]  snippet$$array$Sized$len__i32
   vtable std.core.Add.add for Vec  snippet$Vec$std_core$Add$add
   vtable std.core.Add.add for Vec  snippet$Vec$std_core$Add$add$1
 

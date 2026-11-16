@@ -42,5 +42,5 @@
     fn std.core.ascii_prefix  // std_core$ascii_prefix
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
-    fn std.core.len  // std_core$len
+    fn std.core.len  // std_core$len_1
     struct std.core.Buffer  // std_core$Buffer

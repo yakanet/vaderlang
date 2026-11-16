@@ -58,7 +58,7 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
-static int64_t std_core$len(vader_string_t l0);
+static int64_t std_core$len_1(vader_string_t l0);
 static int64_t std_core$ascii_prefix(vader_string_t l0);
 static void std_core$decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint32_t* __o0, int64_t* __o1);
 static bool std_core$is_utf8_continuation(uint8_t l0);
@@ -236,7 +236,7 @@ static int64_t snippet$snippet_shelf$Sorted$Size$size__Any(void* l0) {
     };
     vader_gc_top = &gc_frame;
     t0 = snippet_shelf$Named$name$$dispatch(((vader_struct_snippet_shelf$Sorted__Any_t*) l0)->f_item);
-    t1 = std_core$len(t0);
+    t1 = std_core$len_1(t0);
     { int64_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -250,7 +250,7 @@ static int64_t snippet$snippet_shelf$Sorted$Width$width__Any(void* l0) {
     };
     vader_gc_top = &gc_frame;
     t0 = snippet_shelf$Named$name$$dispatch(((vader_struct_snippet_shelf$Sorted__Any_t*) l0)->f_item);
-    t1 = std_core$len(t0);
+    t1 = std_core$len_1(t0);
     t2 = vader_chk_mul(i64, t1, INT64_C(2));
     { int64_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -265,7 +265,7 @@ static int64_t snippet$Pair$Size$size__Any(void* l0) {
     };
     vader_gc_top = &gc_frame;
     t0 = snippet_shelf$Named$name$$dispatch(((vader_struct_snippet$Pair__Any_t*) l0)->f_left);
-    t1 = std_core$len(t0);
+    t1 = std_core$len_1(t0);
     { int64_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -363,7 +363,7 @@ static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2) {
     return t0;
 }
 
-static int64_t std_core$len(vader_string_t l0) {
+static int64_t std_core$len_1(vader_string_t l0) {
     int64_t l1, l2, l3, l5, l6;
     uint8_t l4;
     bool t0;

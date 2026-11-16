@@ -128,7 +128,7 @@
     fn std.core.format_f64  // std_core$format_f64
     fn std.core.insert_point  // std_core$insert_point
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
-    fn std.core.len  // std_core$len
+    fn std.core.len  // std_core$len_1
     fn std.core.log10_pow2  // std_core$log10_pow2
     fn std.core.log10_pow5  // std_core$log10_pow5
     fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64

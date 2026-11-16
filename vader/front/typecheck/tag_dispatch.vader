@@ -160,7 +160,7 @@ union_dispatch_traits :: fn(
     typed: TypedProgram,
 ) -> TraitType[] {
     out: TraitType[]: []
-    for m in impl_candidates(typed, u.variants[0], "::${method}") {
+    for m in impl_candidates(typed, u.variants[0], method) {
         sym :: m.trait_symbol else continue
         if trait_key != "" && m.trait_key != trait_key {
             continue

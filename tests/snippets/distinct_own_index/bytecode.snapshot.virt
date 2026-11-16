@@ -30,19 +30,19 @@ impl 7 std_core$ByteAccess
 export main 4
 
 fn 0 snippet$Offset$std_core$Index$at (ref,i64) -> i32
-  local $mul_checked_5 i32
-  local $cast_6 i32
+  local $mul_checked_6 i32
+  local $cast_7 i32
   local.get 0   ; arg 0
   array.len
   i64.to_i32
   i32.const 100
   i32.checked_mul
-  local.set 2   ; $mul_checked_5
+  local.set 2   ; $mul_checked_6
   local.get 1   ; arg 1
   i64.to_i32
-  local.set 3   ; $cast_6
-  local.get 2   ; $mul_checked_5
-  local.get 3   ; $cast_6
+  local.set 3   ; $cast_7
+  local.get 2   ; $mul_checked_6
+  local.get 3   ; $cast_7
   i32.checked_add
   return
 end

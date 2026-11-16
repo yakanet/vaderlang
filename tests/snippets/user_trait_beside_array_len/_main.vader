@@ -1,6 +1,6 @@
-// A program's own trait may offer `len` on `i32[]` beside `ArrayOps`: the
-// standard library, which does not see that trait, keeps calling the `len` of
-// `ArrayOps` (the map below goes through it). Reached through a bound, the
+// A program's own trait may offer `len` on `i32[]` beside the `len` of
+// `std/core`: the standard library, which does not see that trait, keeps calling
+// its own `len` (the map below goes through it). Reached through a bound, the
 // program's member answers.
 // Expected: prints "42" then "2", exits 0.
 

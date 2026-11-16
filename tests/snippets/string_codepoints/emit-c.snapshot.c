@@ -121,7 +121,7 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
-static int64_t std_core$len(vader_string_t l0);
+static int64_t std_core$len_1(vader_string_t l0);
 static void std_core$codepoint_at_byte(vader_string_t l0, int64_t l1, uint32_t* __o0, int64_t* __o1);
 static int64_t std_core$ascii_prefix(vader_string_t l0);
 static void std_core$decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint32_t* __o0, int64_t* __o1);
@@ -308,7 +308,7 @@ static int32_t snippet$main(void) {
     l0 = (void*) vader_buffer_new((size_t) INT64_C(61));
     l4 = INT64_C(0);
     l4 = std_core$write_string_at(l0, l4, 9u);
-    l5 = std_core$len(1u);
+    l5 = std_core$len_1(1u);
     l4 = std_core$write_int(l0, l4, l5);
     l4 = std_core$write_string_at(l0, l4, 7u);
     t3 = vader_host_std_core$Intrinsic$bytes(1u);
@@ -319,7 +319,7 @@ static int32_t snippet$main(void) {
     l0 = (void*) vader_buffer_new((size_t) INT64_C(61));
     l4 = INT64_C(0);
     l4 = std_core$write_string_at(l0, l4, 10u);
-    l5 = std_core$len(5u);
+    l5 = std_core$len_1(5u);
     l4 = std_core$write_int(l0, l4, l5);
     l4 = std_core$write_string_at(l0, l4, 7u);
     t3 = vader_host_std_core$Intrinsic$bytes(5u);
@@ -330,7 +330,7 @@ static int32_t snippet$main(void) {
     l0 = (void*) vader_buffer_new((size_t) INT64_C(61));
     l4 = INT64_C(0);
     l4 = std_core$write_string_at(l0, l4, 11u);
-    l5 = std_core$len(3u);
+    l5 = std_core$len_1(3u);
     l4 = std_core$write_int(l0, l4, l5);
     l4 = std_core$write_string_at(l0, l4, 7u);
     t3 = vader_host_std_core$Intrinsic$bytes(3u);
@@ -341,7 +341,7 @@ static int32_t snippet$main(void) {
     l0 = (void*) vader_buffer_new((size_t) INT64_C(61));
     l4 = INT64_C(0);
     l4 = std_core$write_string_at(l0, l4, 12u);
-    l5 = std_core$len(13u);
+    l5 = std_core$len_1(13u);
     l4 = std_core$write_int(l0, l4, l5);
     l4 = std_core$write_string_at(l0, l4, 7u);
     t3 = vader_host_std_core$Intrinsic$bytes(13u);
@@ -352,7 +352,7 @@ static int32_t snippet$main(void) {
     l0 = (void*) vader_buffer_new((size_t) INT64_C(61));
     l4 = INT64_C(0);
     l4 = std_core$write_string_at(l0, l4, 14u);
-    l5 = std_core$len(0u);
+    l5 = std_core$len_1(0u);
     l4 = std_core$write_int(l0, l4, l5);
     l4 = std_core$write_string_at(l0, l4, 7u);
     t3 = vader_host_std_core$Intrinsic$bytes(0u);
@@ -604,7 +604,7 @@ static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2) {
     return t0;
 }
 
-static int64_t std_core$len(vader_string_t l0) {
+static int64_t std_core$len_1(vader_string_t l0) {
     int64_t l1, l2, l3, l5, l6;
     uint8_t l4;
     bool t0;

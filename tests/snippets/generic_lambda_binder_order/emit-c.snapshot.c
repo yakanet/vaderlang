@@ -30,7 +30,7 @@ static void* __lambda_snippet_2(void);
 static int64_t __lambda_snippet_3(vader_string_t l0);
 static int64_t snippet$zip_with__string(void* l0, void* l1);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static int64_t std_core$len(vader_string_t l0);
+static int64_t std_core$len_1(vader_string_t l0);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
@@ -196,7 +196,7 @@ static void* __lambda_snippet_0(void) {
 
 static int64_t __lambda_snippet_1(vader_string_t l0) {
     int64_t t0;
-    t0 = std_core$len(l0);
+    t0 = std_core$len_1(l0);
     return t0;
 }
 
@@ -214,7 +214,7 @@ static void* __lambda_snippet_2(void) {
 
 static int64_t __lambda_snippet_3(vader_string_t l0) {
     int64_t t0;
-    t0 = std_core$len(l0);
+    t0 = std_core$len_1(l0);
     return t0;
 }
 
@@ -271,7 +271,7 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int64_t std_core$len(vader_string_t l0) {
+static int64_t std_core$len_1(vader_string_t l0) {
     int64_t l1, l2, l3, l5, l6;
     uint8_t l4;
     bool t0;

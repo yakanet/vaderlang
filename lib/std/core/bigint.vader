@@ -22,9 +22,10 @@ module "std/core"
 /// limbs. Zero is any run of zero limbs: `[]` usually, `[0]` after a `/` that
 /// leaves nothing in the top limb.
 ///
-/// `BigInt :: u32[]` is a distinct newtype (array-backed) : the structural array
-/// ops (index, `len`/`push`, for-in, `[...]` literals) forward to the backing
-/// array, while the scalar arithmetic is overloaded on the nominal type:
+/// `BigInt :: u32[]` is a distinct newtype (array-backed) : indexing, for-in and
+/// `[...]` literals forward to the backing array, the functions here reach its
+/// limbs through `u32[](self)`, while the scalar arithmetic is overloaded on the
+/// nominal type:
 /// `bigint * u32` (`Mul<u32>`) and `bigint / u32` -> `[quotient, remainder]`
 /// (`Div<u32, [BigInt, u32]>`). `mul_add_small` (x+add) has no operator form and
 /// stays a method.
@@ -40,10 +41,10 @@ BigInt :: u32[]
 /// @param add   a u32 addend folded into the low limb (carrying up).
 /// @return      `self * mul + add`, one limb wider when it overflows.
 mul_add_small :: fn(self: BigInt, mul: u32, add: u32) -> BigInt {
-    out: BigInt: []
+    out: u32[]: []
     carry: u64 = u64(add)
-    for i in 0..<self.len() {
-        v :: u64(self[i]) * u64(mul) + carry
+    for limb in self {
+        v :: u64(limb) * u64(mul) + carry
         out.push(u32(v & 0xFFFFFFFF))
         carry = v >> 32
     }
@@ -51,7 +52,7 @@ mul_add_small :: fn(self: BigInt, mul: u32, add: u32) -> BigInt {
         out.push(u32(carry & 0xFFFFFFFF))
         carry = carry >> 32
     }
-    return out
+    return BigInt(out)
 }
 
 /// Multiply by a small (u32) scalar: the `*` operator (`bigint * u32`).
@@ -69,22 +70,23 @@ BigInt implements Zero -> []
 /// sticky-bit rounding in the slow-path float parser.
 BigInt implements Div<u32, [BigInt, u32]> {
     div :: fn(self, d: u32) -> [BigInt, u32] {
-        msb: BigInt: []          // quotient limbs, most-significant first
+        msb: u32[]: []           // quotient limbs, most-significant first
         rem: u64 = 0
-        i := self.len() - 1
+        limbs :: u32[](self)
+        i := limbs.len() - 1
         for i >= 0 {
-            cur :: (rem << 32) | u64(self[i])
+            cur :: (rem << 32) | u64(limbs[i])
             msb.push(u32(cur / u64(d)))
             rem = cur % u64(d)
             i -= 1
         }
-        out: BigInt: []          // reverse to little-endian
+        out: u32[]: []           // reverse to little-endian
         j := msb.len() - 1
         for j >= 0 {
             out.push(msb[j])
             j -= 1
         }
-        return [out, u32(rem)]
+        return [BigInt(out), u32(rem)]
     }
 }
 
@@ -100,28 +102,30 @@ div_small :: fn(self: BigInt, d: u32) -> BigInt {
 /// @param bits  the shift amount in bits.
 /// @return      `self << bits`.
 shl :: fn(self: BigInt, bits: i32) -> BigInt {
-    out: BigInt: []
+    out: u32[]: []
     for 0..<i64(bits / 32) { out.push(0) }
     bit_shift :: bits % 32
     if bit_shift == 0 {
-        for i in 0..<self.len() { out.push(self[i]) }
-        return out
+        out.push_all(u32[](self))
+        return BigInt(out)
     }
     carry: u32 = 0
-    for i in 0..<self.len() {
-        v :: (u64(self[i]) << u64(bit_shift)) | u64(carry)
+    for limb in self {
+        v :: (u64(limb) << u64(bit_shift)) | u64(carry)
         out.push(u32(v & 0xFFFFFFFF))
         carry = u32(v >> 32)
     }
     if carry != 0 { out.push(carry) }
-    return out
+    return BigInt(out)
 }
 
 /// True when every limb is zero. The generic `is_zero` does not apply : `BigInt`
 /// has no `Equals`, and its zero has several forms.
 is_zero :: fn(self: BigInt) -> bool {
-    for i in 0..<self.len() {
-        if self[i] != 0 { return false }
+    for limb in self {
+        if limb != 0 {
+            return false
+        }
     }
     return true
 }
@@ -149,9 +153,10 @@ any_below :: fn(self: BigInt, pos: i32) -> bool {
 /// @param self  the operand.
 /// @return      the number of significant bits.
 bit_len :: fn(self: BigInt) -> i32 {
-    i: i32 = i32(self.len()) - 1
+    limbs :: u32[](self)
+    i: i32 = i32(limbs.len()) - 1
     for i >= 0 {
-        if self[i] != 0 { return i * 32 + (32 - clz32(self[i])) }
+        if limbs[i] != 0 { return i * 32 + (32 - clz32(limbs[i])) }
         i -= 1
     }
     return 0
@@ -192,10 +197,10 @@ top128 :: fn(self: BigInt) -> [u64, u64] {
 /// @param k  a non-negative exponent.
 /// @return   the power of two with bit `k` set and all others clear.
 two_pow :: fn(k: i32) -> BigInt {
-    out: BigInt: []
+    out: u32[]: []
     for _z in 0..<(k / 32) { out.push(0) }
     out.push(u32(1) << u32(k % 32))
-    return out
+    return BigInt(out)
 }
 
 /// Left-shift a raw 128-bit value `(hi:lo)` by `s` in [0, 127].
@@ -213,7 +218,7 @@ shl128 :: fn(hi: u64, lo: u64, s: i32) -> [u64, u64] {
 // ---- internal helpers -----------------------------------------------------
 
 // Limb `i` of `self`, or 0 outside it.
-limb :: fn(self: BigInt, i: i64) -> u64 = if i in 0..<self.len() { u64(self[i]) } else { u64(0) }
+limb :: fn(self: BigInt, i: i64) -> u64 = if i in 0..<u32[](self).len() { u64(self[i]) } else { u64(0) }
 
 // Count leading zeros of a non-zero u32.
 clz32 :: fn(x: u32) -> i32 {

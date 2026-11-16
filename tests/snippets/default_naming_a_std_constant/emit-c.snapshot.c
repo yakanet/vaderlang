@@ -194,7 +194,7 @@ static int32_t snippet$main(void);
 static void __defer_snippet_0(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
-static int64_t std_core$len(vader_string_t l0);
+static int64_t std_core$len_1(vader_string_t l0);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
@@ -588,7 +588,7 @@ static int32_t snippet$main(void) {
         l5 = INT64_C(0);
         l5 = std_core$write_string_at(l4, l5, 4u);
         t0 = l1.payload.s;
-        l6 = std_core$len(t0);
+        l6 = std_core$len_1(t0);
         l5 = std_core$write_int(l4, l5, l6);
         t0 = std_core$finish_buffer(l4, l5);
         std_console$println__string(t0);
@@ -599,7 +599,7 @@ static int32_t snippet$main(void) {
         l5 = INT64_C(0);
         l5 = std_core$write_string_at(l4, l5, 5u);
         t0 = l1.payload.s;
-        l6 = std_core$len(t0);
+        l6 = std_core$len_1(t0);
         l5 = std_core$write_int(l4, l5, l6);
         t0 = std_core$finish_buffer(l4, l5);
         std_console$println__string(t0);
@@ -679,7 +679,7 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int64_t std_core$len(vader_string_t l0) {
+static int64_t std_core$len_1(vader_string_t l0) {
     int64_t l1, l2, l3, l5, l6;
     uint8_t l4;
     bool t0;

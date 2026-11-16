@@ -63,9 +63,6 @@ infer_field :: fn(
         note_callee(typed, e, FN_VALUE_CALLEE)
         return union_read
     }
-    // Built-in array methods (`len`/`push`/...) resolve as members of
-    // `T[] implements ArrayOps` (std/core/array.vader), through
-    // `try_impl_method_ufcs`'s `[]`-keyed lookup + `impl_member_type`.
     candidate:= try_impl_method_ufcs(target_ty, e, expected, typed, diags)
     if candidate !is null {
         return candidate
@@ -138,7 +135,7 @@ try_impl_method_ufcs :: fn(
     // receivers are unaffected.
     key_ty :: default_if_free(target_ty)
     candidates :: members_in_scope(
-        receiver_impl_members(key_ty, e.field, typed), e.span.start.file, typed,
+        impl_candidates(typed, key_ty, e.field), e.span.start.file, typed,
     )
     if candidates.len() == 0 {
         return null
@@ -197,19 +194,6 @@ of_one_trait :: fn(members: ImplMethod[]) -> bool {
         }
     }
     return true
-}
-
-// The members named `field` the impls covering `key_ty` offer. An array-backed
-// distinct newtype (`BigInt :: i32[]`) takes the array's : its base name is the
-// newtype's, not `[]`, so `bigint.push(x)` forwards to `T[] implements ArrayOps`.
-receiver_impl_members :: fn(key_ty: Type, field: string, typed: TypedProgram) -> ImplMethod[] {
-    suffix :: "::${field}"
-    own :: impl_candidates(typed, key_ty, suffix)
-    if own.len() > 0 || array_backing(key_ty) !is ArrayType {
-        return own
-    }
-    found :: typed.impl_tables.impl_methods["[]${suffix}"] else return own
-    return settled_members(found, typed)
 }
 
 /// The member `chosen` a call `e` reaches on `target_ty`, typed for that receiver and
@@ -506,7 +490,7 @@ try_static_member :: fn(
     } else {
         check_trait_ambiguity(e, owner, typed, diags)
         candidates :: members_in_scope(
-            impl_candidates(typed, owner, "::${e.field}"), e.span.start.file, typed,
+            impl_candidates(typed, owner, e.field), e.span.start.file, typed,
         )
         if candidates.len() > 1 && of_one_trait(candidates) {
             typed.overloaded_members[e.id] = candidates
@@ -576,7 +560,7 @@ type_member :: fn(owner: Type, name: string, file: string, typed: TypedProgram) 
         trait_ty :: bound_declaring(owner, name, typed) else return null
         return trait_type_member(trait_ty, owner, name, typed)
     }
-    candidates :: members_in_scope(impl_candidates(typed, owner, "::${name}"), file, typed)
+    candidates :: members_in_scope(impl_candidates(typed, owner, name), file, typed)
     if candidates.len() == 0 {
         return builtin_equals_member(owner, name, typed)
     }
@@ -1811,13 +1795,14 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
     }
     bindings :: Map<i32, Type> {}
     unify_type_param(ft.params[0], target_ty, bindings)
-    // Default Free* bindings so the curried return type comes back as
-    // `i32`/`f64` instead of `{integer}`/`{float}`.
-    default_free_bindings(bindings)
+    // The receiver is held to the bindings as they are, so a `{integer}[]` fits
+    // `T[]` as in the bare call ; only the curried type defaults them, coming back
+    // as `i32`/`f64` instead of `{integer}`/`{float}`.
     fitted_first :: substitute_map(ft.params[0], bindings)
     if !accepts_argument(target_ty, erase_type_params(fitted_first), typed) {
         return null
     }
+    default_free_bindings(bindings)
     return mk_fn_drop_self(substitute_fn_map(ft, bindings))
 }
 

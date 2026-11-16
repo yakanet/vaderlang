@@ -278,7 +278,7 @@ fn 2 concat_3 (string,string,string) -> string
   return
 end
 
-fn 3 std_core$len (string) -> i64
+fn 3 std_core$len_1 (string) -> i64
   local n i64
   local i i64
   local count i64
@@ -3965,7 +3965,7 @@ fn 62 std_string$pad_start (string,i64,char) -> string
   local n i64
   local sb ref
   local.get 0   ; arg 0
-  call 3   ; std_core$len
+  call 3   ; std_core$len_1
   local.tee 3   ; n
   local.get 1   ; arg 1
   i64.ge
@@ -4158,7 +4158,7 @@ fn 68 std_string$pad_end (string,i64,char) -> string
   local n i64
   local sb ref
   local.get 0   ; arg 0
-  call 3   ; std_core$len
+  call 3   ; std_core$len_1
   local.tee 3   ; n
   local.get 1   ; arg 1
   i64.ge

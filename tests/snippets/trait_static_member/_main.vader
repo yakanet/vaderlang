@@ -98,7 +98,7 @@ main :: fn() -> i32 {
     a: P: via_a()
     b: P: via_b()
     println(a.v * 10 + b.v)
-    println(Limbs.zero().len())
+    println(u32[](Limbs.zero()).len())
     println([2, 3, 4].product())
     println([1.5, 4.0].product())
     println(i64(0).is_zero())

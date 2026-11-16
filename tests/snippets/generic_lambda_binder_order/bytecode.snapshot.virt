@@ -88,7 +88,7 @@ end
 
 fn 2 __lambda_snippet_1 (string) -> i64
   local.get 0   ; arg 0
-  call 7   ; std_core$len
+  call 7   ; std_core$len_1
   return
 end
 
@@ -101,7 +101,7 @@ end
 
 fn 4 __lambda_snippet_3 (string) -> i64
   local.get 0   ; arg 0
-  call 7   ; std_core$len
+  call 7   ; std_core$len_1
   return
 end
 
@@ -178,7 +178,7 @@ fn 6 concat_2 (string,string) -> string
   return
 end
 
-fn 7 std_core$len (string) -> i64
+fn 7 std_core$len_1 (string) -> i64
   local n i64
   local i i64
   local count i64

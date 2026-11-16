@@ -125,14 +125,14 @@ end
 fn 2 snippet$snippet_shelf$Sorted$Size$size__Any (ref) -> i64
   local.field 0 4 0   ; arg 0 snippet_shelf$Sorted__Any.item
   virtual.call 1 snippet_shelf$Named.name -> string
-  call 10   ; std_core$len
+  call 10   ; std_core$len_1
   return
 end
 
 fn 3 snippet$snippet_shelf$Sorted$Width$width__Any (ref) -> i64
   local.field 0 4 0   ; arg 0 snippet_shelf$Sorted__Any.item
   virtual.call 1 snippet_shelf$Named.name -> string
-  call 10   ; std_core$len
+  call 10   ; std_core$len_1
   i64.const 2
   i64.checked_mul
   return
@@ -141,7 +141,7 @@ end
 fn 4 snippet$Pair$Size$size__Any (ref) -> i64
   local.field 0 6 0   ; arg 0 snippet$Pair__Any.left
   virtual.call 1 snippet_shelf$Named.name -> string
-  call 10   ; std_core$len
+  call 10   ; std_core$len_1
   return
 end
 
@@ -316,7 +316,7 @@ fn 9 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 10 std_core$len (string) -> i64
+fn 10 std_core$len_1 (string) -> i64
   local n i64
   local i i64
   local count i64
