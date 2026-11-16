@@ -9,6 +9,7 @@ module "tools/cli_tests/lsp_completion"
 
 import "json"
 import "std/iter"
+import "std/sort"
 import "std/string"
 import "tools/cli_tests/lsp"
 import "tools/cli_tests/rpc"
@@ -626,3 +627,45 @@ test_a_declared_decorator_inserts_its_required_fields :: fn() -> void {
     route :: item_named(results[0], "Route")
     assert_eq(string_member(route, "insertText") else "", "Route(\${1:path}, \${2:method})")
 }
+
+ROUTE_ARGUMENTS_SOURCE :: r"""
+    module "demo"
+
+    Method :: enum {
+        Get
+        Post
+    }
+
+    Route :: decorator(.Function) {
+        method: Method
+        path: string
+        tags: string[] = []
+    }
+
+    @Route(., ta)
+    show :: fn() -> i32 = 0
+    """
+
+// Inside a decorator's arguments: the variants of the field at the rank of the
+// argument after `.`, and the fields still to give, past the positional ones.
+@test
+test_completion_inside_decorator_arguments_offers_variants_and_fields :: fn() -> void {
+    src :: ROUTE_ARGUMENTS_SOURCE
+    results :: drive(
+        "decorator_arguments",
+        src,
+        [
+            complete_at(position_of(src, "@Route(.", 8)),
+            complete_at(position_of(src, ", ta", 4)),
+        ],
+    )
+    assert_eq(sorted_labels(results[0]), "Get Post")
+    fields :: results[1]
+    assert(offers(fields, "path"), shown(fields))
+    assert(offers(fields, "tags"), shown(fields))
+    assert(!offers(fields, "method"), shown(fields))
+    assert_eq(string_member(item_named(fields, "tags"), "insertText") else "", "tags = ")
+}
+
+// The labels of `result`, sorted, apart by a space.
+sorted_labels :: fn(result: JsonValue) -> string = sort(labels_of(result), compare_ascending).join(" ")

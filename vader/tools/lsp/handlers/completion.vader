@@ -61,6 +61,14 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
             dot :: member_context(li, line0, char0)
             if dot != null {
                 lead :: is_leading_dot(li.source, dot)
+                // `@Route(.|`: the variants of the field the argument fills, read
+                // off the tokens, which need not parse yet.
+                if lead {
+                    variants :: decorator_variant_items(state, uri, idx, dot)
+                    if variants != null {
+                        return completion_list(variants)
+                    }
+                }
                 skey :: dot_after_brace_or_comma(li.source, dot)
                 return member_completion(state, uri, line0, span_column(li, line0, dot), lead, skey)
             }
@@ -70,7 +78,7 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
             line :: line0 + 1
             col  :: lsp_span_column(li, line0, char0)
 
-            items: JsonValue[]: []
+            items: JsonValue[]: decorator_field_items(state, uri, idx, offset)
             seen :: Map<string, bool> {}
 
             // The typed cache lets us show a binding's *inferred* type
@@ -389,11 +397,16 @@ leading_dot_completion :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, 
     }
     // Otherwise an enum literal whose enum is reconstructed from context.
     et :: expected_enum_at(decls, line, col, typed) else return completion_list([])
+    return completion_list(enum_variant_items(et))
+}
+
+// The variants of `et`, as written after a leading dot.
+enum_variant_items :: fn(et: EnumType) -> JsonValue[] {
     items: JsonValue[]: []
     for [name, _] in et.indices {
-        items.push(completion_item(name, .Enum, ""))
+        items.push(completion_item(name, .EnumMember, ""))
     }
-    return completion_list(items)
+    return items
 }
 
 // Field items of the struct literal enclosing `(line, col)`, or null when the

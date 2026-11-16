@@ -661,3 +661,33 @@ test_hover_on_a_decorated_field_shows_its_decorators :: fn() -> void {
     form :: hover_value(results[1])
     assert("Form :: struct {\n    @Caption(\"Name\")\n    name: string\n}" in form, form)
 }
+
+ROUTE_SIGNATURE_SOURCE :: r"""
+    module "lsptest"
+
+    Route :: decorator(.Function) {
+        path: string
+        tags: string[] = []
+    }
+
+    @Route("/a", tags = [])
+    show :: fn() -> i32 = 0
+    """
+
+// Inside a decorator's arguments, its fields are the parameters, a named
+// argument on the field it names.
+@test
+test_signature_help_inside_decorator_arguments_shows_its_fields :: fn() -> void {
+    src :: ROUTE_SIGNATURE_SOURCE
+    results :: drive(
+        "signature_decorator",
+        src,
+        [
+            ask_at("textDocument/signatureHelp", position_of(src, "\"/a", 1)),
+            ask_at("textDocument/signatureHelp", position_of(src, "tags = [", 8)),
+        ],
+    )
+    assert_eq(signature_label(results[0]), "@Route(path: string, tags: string[] = [])")
+    assert_eq(int_at(results[0], ["activeParameter"]), 0)
+    assert_eq(int_at(results[1], ["activeParameter"]), 1)
+}

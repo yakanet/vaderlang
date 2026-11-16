@@ -2,8 +2,9 @@
 //
 // When the cursor sits inside a `CallExpr`'s argument list, look up
 // the callee's `FnDecl` and render its signature with the active
-// parameter highlighted. Returns `null` for any other cursor
-// context (literals, decls, comments, etc.).
+// parameter highlighted. Inside the arguments of a declared decorator
+// (`@Route(|`), its fields are the parameters. Returns `null` for any other
+// cursor context (literals, decls, comments, etc.).
 //
 // LSP §3.17.16 SignatureHelp shape :
 //   { signatures: SignatureInformation[],
@@ -15,7 +16,9 @@ module "vader/tools/lsp/handlers"
 
 import "std/collections"
 import "json"
+import "std/string"
 import "std/uri"
+import "vader/tools/fmt"
 import "vader/front/typecheck"
 import "vader/tools/lsp/protocol"
 import "vader/tools/lsp/analysis"
@@ -30,6 +33,13 @@ export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> Jso
     file_path :: path_of_uri(uri) else return JsonNull {}
 
     cached :: typed_project_for(state, file_path)
+    idx :: state.index_for(uri)
+    if idx != null {
+        written :: decorator_signature(state, cached, idx, li_offset(idx.line_index, line, char))
+        if written != null {
+            return written
+        }
+    }
     project :: cached.project
     result :: cached.result
     entry :: project.modules[project.entry] else return JsonNull {}
@@ -41,12 +51,42 @@ export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> Jso
     sig :: build_signature(call, result.typed) else return JsonNull {}
     active :: active_param_index(call, target_line, target_col) + receiver_slots(call, result.typed)
 
-    sigs: JsonValue[]: [sig]
+    return signature_help_of(sig, active)
+}
+
+// The SignatureHelp holding the one signature `sig`, parameter `active` lit.
+signature_help_of :: fn(sig: JsonValue, active: i64) -> JsonValue {
     obj :: Map<string, JsonValue> {}
-    obj["signatures"]      = JsonArray { .items = sigs }
+    obj["signatures"]      = JsonArray { .items = [sig] }
     obj["activeSignature"] = JsonNumber { .value = 0.0 }
     obj["activeParameter"] = JsonNumber { .value = f64(active) }
     return JsonObject { .entries = obj }
+}
+
+// The signature help of the declared decorator whose arguments hold the cursor at
+// byte `offset`, read off the tokens ; null outside one. Its fields are the
+// parameters, each shown as declared, its default included.
+decorator_signature :: fn(
+    state: ServerState, cached: ProjectCache, idx: DocIndex, offset: i64,
+) -> JsonValue | null {
+    args :: idx.decorator_arguments_at(offset) else return null
+    sym :: decorator_named(cached, idx, args) else return null
+    fields :: decorator_fields(cached.result.typed, sym)
+    labels: string[]: []
+    params: JsonValue[]: []
+    sources :: Map<string, DocIndex> {}
+    for [_, info] in fields {
+        source :: doc_index_for(state, sources, info.decl.span.start.file).source
+        label :: format_field_head(source, info.decl).text
+        labels.push(label)
+        param :: Map<string, JsonValue> {}
+        param["label"] = JsonString { .value = label }
+        params.push(JsonObject { .entries = param })
+    }
+    signature :: Map<string, JsonValue> {}
+    signature["label"] = JsonString { .value = "@${sym.name}(${labels.join(", ")})" }
+    signature["parameters"] = JsonArray { .items = params }
+    return signature_help_of(JsonObject { .entries = signature }, active_field(fields, args))
 }
 
 // The `find_enclosing_call` cursor walker lives in

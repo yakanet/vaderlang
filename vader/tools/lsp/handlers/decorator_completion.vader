@@ -23,6 +23,7 @@ import "std/uri"
 AST :: import "toolchain/ast"
 import "toolchain/lexer"
 import "vader/core/symbol"
+import "vader/core/types"
 import "vader/front/typecheck"
 import "vader/tools/lsp/analysis"
 
@@ -112,6 +113,103 @@ decorator_item :: fn(typed: TypedProgram, sym: Symbol, slot: DecoratorSlot) -> J
 // declared means anywhere, and an unknown `place` ("") anything.
 fits :: fn(places: string[], place: string) -> bool =
     places.len() == 0 || place == "" || place in places
+
+// ---- inside the arguments ---------------------------------------------------
+
+// The declared decorator whose arguments `args` reads, among those in scope.
+decorator_named :: fn(cached: ProjectCache, idx: DocIndex, args: DecoratorArguments) -> Symbol | null {
+    in_scope :: decorators_in_scope(cached, idx, alias_of(args))
+    return in_scope.find((sym) -> sym.name == args.name)
+}
+
+// The alias `args` writes its decorator through, null when it writes none.
+alias_of :: fn(args: DecoratorArguments) -> string | null {
+    if args.alias == "" {
+        return null
+    }
+    return args.alias
+}
+
+// The fields of the decorator `sym`, in order, with their types.
+decorator_fields :: fn(typed: TypedProgram, sym: Symbol) -> [string, StructFieldInfo][] {
+    out: [string, StructFieldInfo][]: []
+    fields :: typed.struct_fields[sym.id] else return out
+    for [name, info] in fields {
+        out.push([name, info])
+    }
+    return out
+}
+
+// The rank among `fields` of the field the argument at the cursor fills: the one
+// it names, else the one at its rank ; -1 for none.
+active_field :: fn(fields: [string, StructFieldInfo][], args: DecoratorArguments) -> i64 {
+    for i in 0..<fields.len() {
+        if fields[i].0 == args.named {
+            return i
+        }
+    }
+    if args.named != "" || args.position >= fields.len() {
+        return -1
+    }
+    return args.position
+}
+
+/// The names of the fields the argument at the cursor at `offset` may still give,
+/// written `name = ` : an empty list outside a decorator's arguments, or past an
+/// argument's own `=`.
+///
+/// @param state   the server state, for the typed project.
+/// @param uri     the document.
+/// @param idx     the document's index.
+/// @param offset  the byte offset of the cursor.
+decorator_field_items :: fn(state: ServerState, uri: string, idx: DocIndex, offset: i64) -> JsonValue[] {
+    args :: idx.decorator_arguments_at(offset) else return []
+    if args.named != "" {
+        return []
+    }
+    file_path :: path_of_uri(uri) else return []
+    cached :: typed_project_for(state, file_path)
+    sym :: decorator_named(cached, idx, args) else return []
+    fields :: decorator_fields(cached.result.typed, sym)
+    // The positional arguments come first and fill the first fields.
+    positional :: args.position - args.given.len()
+    out: JsonValue[]: []
+    for i in 0..<fields.len() {
+        [name, info] :: fields[i]
+        if i < positional || name in args.given {
+            continue
+        }
+        item :: completion_item(name, .Field, display_type(info.ty))
+        item.entries["insertText"] = JsonString { .value = "${name} = " }
+        out.push(item)
+    }
+    return out
+}
+
+/// The variants of the enum the argument at the leading dot at `dot` fills, as
+/// completion items ; null outside a decorator's arguments, or for a field of
+/// another type.
+///
+/// @param state  the server state, for the typed project.
+/// @param uri    the document.
+/// @param idx    the document's index.
+/// @param dot    the byte offset of the dot.
+decorator_variant_items :: fn(
+    state: ServerState, uri: string, idx: DocIndex, dot: i64,
+) -> JsonValue[] | null {
+    args :: idx.decorator_arguments_at(dot) else return null
+    file_path :: path_of_uri(uri) else return null
+    cached :: typed_project_for(state, file_path)
+    typed :: cached.result.typed
+    sym :: decorator_named(cached, idx, args) else return null
+    fields :: decorator_fields(typed, sym)
+    active :: active_field(fields, args)
+    if active < 0 {
+        return null
+    }
+    enum_type :: as_enum_type(fields[active].1.ty, typed) else return null
+    return enum_variant_items(enum_type)
+}
 
 // ---- the declaration below the cursor -------------------------------------
 
