@@ -15,6 +15,7 @@ import { index, module_paths, source_url } from './data.js';
  */
 
 // The kinds of each group, in the order the page shows them.
+/** @type {[string, string[]][]} */
 const GROUPS = [
 	['Types', ['struct', 'enum', 'trait', 'type']],
 	['Decorators', ['decorator']],
@@ -333,6 +334,7 @@ export function module_page(data) {
 	for (const [title, kinds] of GROUPS) {
 		const items = [...by_name.values()]
 			.filter((group) => kinds.includes(group[0].kind))
+			.sort((a, b) => by_kind_then_name(kinds, a[0], b[0]))
 			.map((group) => decl_view(module, group, impls_for.get(group[0].id) ?? []));
 		if (items.length > 0) groups.push({ title, items });
 	}
@@ -349,6 +351,16 @@ export function module_page(data) {
 		groups
 	};
 }
+
+/**
+ * The order of two declarations in a group: by their kind's rank in `kinds`,
+ * then by name.
+ * @param {string[]} kinds
+ * @param {any} a
+ * @param {any} b
+ */
+const by_kind_then_name = (kinds, a, b) =>
+	kinds.indexOf(a.kind) - kinds.indexOf(b.kind) || a.name.localeCompare(b.name, 'en');
 
 // The header of a module without the `path: summary` line it opens with,
 // which the page shows as its title and lede.
