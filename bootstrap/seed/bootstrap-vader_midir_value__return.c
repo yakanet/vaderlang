@@ -2538,7 +2538,7 @@ static int32_t vader_midir_value__return$tuple_field_index(vader_string_t l0) {
     }
     l1 = std_core$len(l0);
     vader_struct_std_core$Range__i64_t* _a0_obj = (vader_struct_std_core$Range__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_core$Range__i64_t));
-    vader_obj_header_init(_a0_obj, 897u);
+    vader_obj_header_init(_a0_obj, 898u);
     _a0_obj->f_start = INT64_C(1);
     _a0_obj->f_end = l1;
     _a0_obj->f_inclusive = false;

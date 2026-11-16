@@ -807,7 +807,7 @@ void* toolchain_ast$extern_headers(void* l0, vader_box_t l1) {
     }
     if (!(l1.tag == 0u)) {
         t0 = l1.payload.obj;
-        { void* __vret = ((vader_struct_std_ffi$CLibrary_t*) t0)->f_headers; vader_gc_top = gc_frame.prev; return __vret; }
+        { void* __vret = ((vader_struct_std_core$CLibrary_t*) t0)->f_headers; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_array_t* _a1_arr = vader_array_new(26u, 0u, 0u, 507u);
     t0 = (void*) _a1_arr;

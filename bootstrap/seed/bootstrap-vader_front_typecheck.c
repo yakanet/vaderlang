@@ -1678,7 +1678,7 @@ static vader_string_t vader_front_typecheck$arith_trait_method(uint8_t l0) {
         return 1773u;
     }
     if (l0 == INT32_C(1)) {
-        return 3035u;
+        return 3034u;
     }
     if (l0 == INT32_C(2)) {
         return 2624u;
@@ -8735,7 +8735,7 @@ static void vader_front_typecheck$check_main_signature(void* l0, void* l1, vader
         if (l5.tag == 1217u) {
             t2 = l5.payload.obj;
             t0 = vader_core_types$primitive_name(((vader_struct_vader_core_types$ArrayType_t*) t2)->f_element);
-            if (t0 == 3004u) {
+            if (t0 == 3003u) {
                 { vader_gc_top = gc_frame.prev; return; }
             }
         }
@@ -10521,7 +10521,7 @@ static void vader_front_typecheck$check_sites(vader_box_t l0, void* l1, void* l2
     l3 = toolchain_ast$decorator_sites(l0);
     for (;;) {
         l4 = std_core$Iterator$next$$dispatch(l3);
-        if (!(l4.tag == 899u)) {
+        if (!(l4.tag == 900u)) {
             l5 = l4.payload.obj;
             l6 = ((vader_struct_toolchain_ast$DecoratorSite_t*) l5)->f_decorators;
             l7 = ((vader_struct_toolchain_ast$DecoratorSite_t*) l5)->f_place;
@@ -24102,7 +24102,7 @@ static bool vader_front_typecheck$is_extern_abi_element(vader_box_t l0) {
         if (l1) {
             t0 = l0.payload.obj;
             t1 = ((vader_struct_vader_core_types$PrimitiveType_t*) t0)->f_name;
-            return t1 != 3004u;
+            return t1 != 3003u;
         }
         return false;
     }
@@ -24487,7 +24487,7 @@ static bool vader_front_typecheck$is_known_non_iterable(vader_box_t l0) {
     }
     t0 = l0.payload.obj;
     t1 = ((vader_struct_vader_core_types$PrimitiveType_t*) t0)->f_name;
-    return t1 != 3004u;
+    return t1 != 3003u;
 }
 
 static bool vader_front_typecheck$is_known_non_struct(vader_box_t l0) {
@@ -24652,7 +24652,7 @@ static bool vader_front_typecheck$is_nullable_string(vader_box_t l0) {
             }
             t0 = l6.payload.obj;
             t3 = ((vader_struct_vader_core_types$PrimitiveType_t*) t0)->f_name;
-            if (t3 == 3004u) {
+            if (t3 == 3003u) {
                 l2 = true;
             }
         }
@@ -24885,7 +24885,7 @@ static bool vader_front_typecheck$is_string(vader_box_t l0) {
     if (l0.tag == 1228u) {
         t0 = l0.payload.obj;
         t1 = ((vader_struct_vader_core_types$PrimitiveType_t*) t0)->f_name;
-        return t1 == 3004u;
+        return t1 == 3003u;
     }
     return false;
 }
@@ -25039,7 +25039,7 @@ static bool vader_front_typecheck$is_unmarshalled_scalar(vader_box_t l0, bool l1
     }
     t0 = l0.payload.obj;
     t2 = ((vader_struct_vader_core_types$PrimitiveType_t*) t0)->f_name;
-    if (t2 == 3004u) {
+    if (t2 == 3003u) {
         return false;
     }
     t0 = l0.payload.obj;
@@ -33452,7 +33452,7 @@ static vader_box_t vader_front_typecheck$primitive_display(void* l0, void* l1) {
     t0 = ((vader_struct_vader_core_types$PrimitiveType_t*) l1)->f_name;
     if (!(t0 == 1891u)) {
         t0 = ((vader_struct_vader_core_types$PrimitiveType_t*) l1)->f_name;
-        if (!(t0 == 3004u)) {
+        if (!(t0 == 3003u)) {
             t1 = vader_front_typecheck$display_member(l0, vader_ref_box(l1));
             { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -33468,7 +33468,7 @@ static uint8_t vader_front_typecheck$primitive_slot_layout(void* l0) {
     vader_string_t l1;
     bool l2;
     l1 = ((vader_struct_vader_core_types$PrimitiveType_t*) l0)->f_name;
-    if (l1 == 3004u) {
+    if (l1 == 3003u) {
         l2 = true;
     } else {
         l2 = l1 == 2680u;
@@ -47087,7 +47087,7 @@ static vader_box_t vader_front_typecheck$type_for_result(vader_string_t l0, void
         t0 = vader_array_ref_load_obj(_a1_slotarr->buf, vader_array_offset(_a1_slotarr) + (size_t) INT64_C(0));
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l0 == 3004u) {
+    if (l0 == 3003u) {
         t0 = (void*) &vader_data_44;
         vader_array_t* _a2_slotarr = ((vader_array_t*) t0);
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)

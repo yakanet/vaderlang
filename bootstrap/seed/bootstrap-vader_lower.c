@@ -5605,7 +5605,7 @@ static uint8_t vader_lower$classify_kind(vader_box_t l0) {
         }
         t0 = l0.payload.obj;
         t2 = ((vader_struct_vader_core_types$PrimitiveType_t*) t0)->f_name;
-        if (t2 == 3004u) {
+        if (t2 == 3003u) {
             return (uint8_t) 1;
         }
         return (uint8_t) 5;
@@ -9297,7 +9297,7 @@ static vader_box_t vader_lower$emit_value_cast(void* l0, void* l1, vader_box_t l
     if (l2.tag == 1228u) {
         t1 = l2.payload.obj;
         l8 = ((vader_struct_vader_core_types$PrimitiveType_t*) t1)->f_name;
-        if (l8 == 3004u) {
+        if (l8 == 3003u) {
             l9 = true;
         } else {
             l9 = l8 == 1891u;
@@ -17184,7 +17184,7 @@ static bool vader_lower$is_string_type(vader_box_t l0) {
     }
     t0 = l0.payload.obj;
     t1 = ((vader_struct_vader_core_types$PrimitiveType_t*) t0)->f_name;
-    return t1 == 3004u;
+    return t1 == 3003u;
 }
 
 static bool vader_lower$is_true_literal(vader_box_t l0) {
@@ -18269,7 +18269,7 @@ static vader_box_t vader_lower$lower_binary(void* l0, void* l1, vader_box_t l2) 
         l3 = vader_lower$expr_type(l4, l3);
         l5 = vader_lower$recorded_target(l0, vader_ref_box(l1), (uint8_t) 1, l3);
         if (l5.tag == 0u) {
-            vader_lower$observe_no_call(l0, vader_ref_box(l1), (uint8_t) 1, 3034u);
+            vader_lower$observe_no_call(l0, vader_ref_box(l1), (uint8_t) 1, 3033u);
             t0 = vader_lower$stub(((vader_struct_toolchain_ast$BinaryExpr_t*) l1)->f_span, l2, 1616u);
             { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -20692,7 +20692,7 @@ static vader_box_t vader_lower$lower_for_in(void* l0, void* l1, void* l2) {
     }
     l8 = ((vader_struct_vader_lower$FnLowerCtx_t*) l0)->f_project;
     l9 = vader_core_types$display_type(l5);
-    t1 = concat_3(2989u, l9, 1473u);
+    t1 = concat_3(2988u, l9, 1473u);
     l9 = concat_2(t1, 2693u);
     vader_lower$record_miss(l8, 2297u, l3, l9);
     l6 = ((vader_struct_toolchain_ast$InFor_t*) l2)->f_loop_var;
@@ -20764,7 +20764,7 @@ static vader_box_t vader_lower$lower_for_in(void* l0, void* l1, void* l2) {
     l7 = ((vader_struct_toolchain_ast$InFor_t*) l2)->f_loop_var;
     l12 = vader_lower$resolve_loop_binding(l0, l7, l3);
     l13 = vader_lower$fresh_synthetic_symbol(l0, 2503u);
-    l14 = vader_lower$fresh_synthetic_symbol(l0, 2988u);
+    l14 = vader_lower$fresh_synthetic_symbol(l0, 2987u);
     l7 = ((vader_struct_vader_lower$StepShape_t*) l8)->f_type;
     l9 = ((vader_struct_vader_core_symbol$Symbol_t*) l13)->f_name;
     l15 = l4;
@@ -27485,7 +27485,7 @@ static vader_box_t vader_lower$op_trait_method(uint8_t l0) {
         vader_struct_vader_lower$OpTraitInfo_t* _a1_obj = (vader_struct_vader_lower$OpTraitInfo_t*) vader_gc_alloc(sizeof(vader_struct_vader_lower$OpTraitInfo_t));
         vader_obj_header_init(_a1_obj, 1565u);
         _a1_obj->f_trait_key = t0;
-        _a1_obj->f_method_name = 3035u;
+        _a1_obj->f_method_name = 3034u;
         _a1_obj->f_shape = INT32_C(0);
         t1 = (void*) _a1_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
@@ -30282,7 +30282,7 @@ static vader_box_t vader_lower$render_data_pool_entry(void* l0, vader_string_t l
         vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (l1 == 3004u) {
+    if (l1 == 3003u) {
         l2 = vader_lower$render_string_items(l0);
         if (l2.tag == 0u) {
             { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
@@ -40301,7 +40301,7 @@ static vader_box_t vader_lower$zero_value_lit(void* l0, vader_box_t l1) {
     }
     t0 = l1.payload.obj;
     t1 = ((vader_struct_vader_core_types$PrimitiveType_t*) t0)->f_name;
-    if (t1 == 3004u) {
+    if (t1 == 3003u) {
         l2 = l1.payload.obj;
         vader_struct_vader_lower_ir$LoweredStringLit_t* _a4_obj = (vader_struct_vader_lower_ir$LoweredStringLit_t*) vader_gc_alloc(sizeof(vader_struct_vader_lower_ir$LoweredStringLit_t));
         vader_obj_header_init(_a4_obj, 1623u);

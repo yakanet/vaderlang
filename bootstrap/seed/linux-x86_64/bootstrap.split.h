@@ -220,7 +220,7 @@ typedef struct vader_struct_std_collections$Map__i32__std_collections_Map_string
 typedef struct vader_struct_std_collections$Map__i32__std_collections_Set_Any__t vader_struct_std_collections$Map__i32__std_collections_Set_Any__t;
 typedef struct vader_struct_std_collections$Map__i32__std_collections_Set_i32__t vader_struct_std_collections$Map__i32__std_collections_Set_i32__t;
 typedef struct vader_struct_std_collections$Map__i32__std_collections_Set_i64__t vader_struct_std_collections$Map__i32__std_collections_Set_i64__t;
-typedef struct vader_struct_std_collections$Map__i32__std_ffi_CLibrary_t vader_struct_std_collections$Map__i32__std_ffi_CLibrary_t;
+typedef struct vader_struct_std_collections$Map__i32__std_core_CLibrary_t vader_struct_std_collections$Map__i32__std_core_CLibrary_t;
 typedef struct vader_struct_std_collections$Map__i32__string_t vader_struct_std_collections$Map__i32__string_t;
 typedef struct vader_struct_std_collections$Map__i32__string___t vader_struct_std_collections$Map__i32__string___t;
 typedef struct vader_struct_std_collections$Map__i32__toolchain_ast_ArrayTypeExpr___toolchain_ast_BinaryExpr___toolchain_ast_BlockExpr___toolchain_ast_BoolLitExpr___toolchain_ast_CallExpr___toolchain_ast_CastExpr___toolchain_ast_CharLitExpr___toolchain_ast_DotVariantExpr___toolchain_ast_FallbackExpr___toolchain_ast_FieldExpr___toolchain_ast_FloatLitExpr___toolchain_ast_FnTypeExpr___toolchain_ast_GenericInstExpr___toolchain_ast_IdentExpr___toolchain_ast_IfExpr___toolchain_ast_IndexExpr___toolchain_ast_IntLitExpr___toolchain_ast_IntrinsicCallExpr___toolchain_ast_LambdaExpr___toolchain_ast_MatchExpr___toolchain_ast_NullLitExpr___toolchain_ast_RangeExpr___toolchain_ast_SeqLitExpr___toolchain_ast_StringLitExpr___toolchain_ast_StructLitExpr___toolchain_ast_UnaryExpr_t vader_struct_std_collections$Map__i32__toolchain_ast_ArrayTypeExpr___toolchain_ast_BinaryExpr___toolchain_ast_BlockExpr___toolchain_ast_BoolLitExpr___toolchain_ast_CallExpr___toolchain_ast_CastExpr___toolchain_ast_CharLitExpr___toolchain_ast_DotVariantExpr___toolchain_ast_FallbackExpr___toolchain_ast_FieldExpr___toolchain_ast_FloatLitExpr___toolchain_ast_FnTypeExpr___toolchain_ast_GenericInstExpr___toolchain_ast_IdentExpr___toolchain_ast_IfExpr___toolchain_ast_IndexExpr___toolchain_ast_IntLitExpr___toolchain_ast_IntrinsicCallExpr___toolchain_ast_LambdaExpr___toolchain_ast_MatchExpr___toolchain_ast_NullLitExpr___toolchain_ast_RangeExpr___toolchain_ast_SeqLitExpr___toolchain_ast_StringLitExpr___toolchain_ast_StructLitExpr___toolchain_ast_UnaryExpr_t;
@@ -260,7 +260,7 @@ typedef struct vader_struct_std_collections$Map__i64__bool_t vader_struct_std_co
 typedef struct vader_struct_std_collections$Map__i64__i32_t vader_struct_std_collections$Map__i64__i32_t;
 typedef struct vader_struct_std_collections$Map__i64__i64_t vader_struct_std_collections$Map__i64__i64_t;
 typedef struct vader_struct_std_collections$Map__i64__i64___t vader_struct_std_collections$Map__i64__i64___t;
-typedef struct vader_struct_std_collections$Map__i64__std_ffi_CLibrary_t vader_struct_std_collections$Map__i64__std_ffi_CLibrary_t;
+typedef struct vader_struct_std_collections$Map__i64__std_core_CLibrary_t vader_struct_std_collections$Map__i64__std_core_CLibrary_t;
 typedef struct vader_struct_std_collections$Map__i64__string_t vader_struct_std_collections$Map__i64__string_t;
 typedef struct vader_struct_std_collections$Map__i64__toolchain_ast_IntLitExpr_t vader_struct_std_collections$Map__i64__toolchain_ast_IntLitExpr_t;
 typedef struct vader_struct_std_collections$Map__i64__toolchain_span_Span_t vader_struct_std_collections$Map__i64__toolchain_span_Span_t;
@@ -378,12 +378,12 @@ typedef struct vader_struct_std_collections$Set__string_t vader_struct_std_colle
 typedef struct vader_struct_std_collections$Set__toolchain_span_Span_t vader_struct_std_collections$Set__toolchain_span_Span_t;
 typedef struct vader_struct_std_collections$Set__u64_t vader_struct_std_collections$Set__u64_t;
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
+typedef struct vader_struct_std_core$CLibrary_t vader_struct_std_core$CLibrary_t;
 typedef struct vader_struct_std_core$Dec64_t vader_struct_std_core$Dec64_t;
 typedef struct vader_struct_std_core$DecimalParts_t vader_struct_std_core$DecimalParts_t;
 typedef struct vader_struct_std_core$Range__i64_t vader_struct_std_core$Range__i64_t;
 typedef struct vader_struct_std_core$SlowParts_t vader_struct_std_core$SlowParts_t;
 typedef struct vader_struct_std_core$Stop_t vader_struct_std_core$Stop_t;
-typedef struct vader_struct_std_ffi$CLibrary_t vader_struct_std_ffi$CLibrary_t;
 typedef struct vader_struct_std_fs$File_t vader_struct_std_fs$File_t;
 typedef struct vader_struct_std_fs$ListedEntry_t vader_struct_std_fs$ListedEntry_t;
 typedef struct vader_struct_std_fs$OpenOptions_t vader_struct_std_fs$OpenOptions_t;
@@ -2362,7 +2362,7 @@ struct vader_struct_std_collections$Map__i32__std_collections_Set_i64__t {
     int64_t f_size;
     int64_t f_tombs;
 };
-struct vader_struct_std_collections$Map__i32__std_ffi_CLibrary_t {
+struct vader_struct_std_collections$Map__i32__std_core_CLibrary_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
@@ -2762,7 +2762,7 @@ struct vader_struct_std_collections$Map__i64__i64___t {
     int64_t f_size;
     int64_t f_tombs;
 };
-struct vader_struct_std_collections$Map__i64__std_ffi_CLibrary_t {
+struct vader_struct_std_collections$Map__i64__std_core_CLibrary_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
@@ -3875,6 +3875,14 @@ struct vader_struct_std_collections$Set__u64_t {
 struct vader_struct_std_core$Buffer_t {
     vader_obj_header_t header;
 };
+struct vader_struct_std_core$CLibrary_t {
+    vader_obj_header_t header;
+    vader_string_t f_name;
+    void* f_headers;
+    vader_string_t f_include;
+    void* f_archives;
+    void* f_system;
+};
 struct vader_struct_std_core$Dec64_t {
     vader_obj_header_t header;
     uint64_t f_mantissa;
@@ -3902,14 +3910,6 @@ struct vader_struct_std_core$SlowParts_t {
 };
 struct vader_struct_std_core$Stop_t {
     vader_obj_header_t header;
-};
-struct vader_struct_std_ffi$CLibrary_t {
-    vader_obj_header_t header;
-    vader_string_t f_name;
-    void* f_headers;
-    vader_string_t f_include;
-    void* f_archives;
-    void* f_system;
 };
 struct vader_struct_std_fs$File_t {
     vader_obj_header_t header;

@@ -87,7 +87,7 @@ static bool toolchain_project$is_portable_name(vader_string_t l0) {
     l1 = std_string$chars(l0);
     for (;;) {
         l2 = std_string$StringChars$std_core$Iterator$next(l1);
-        if (!(l2.tag == 899u)) {
+        if (!(l2.tag == 900u)) {
             t1 = ((uint32_t) l2.payload.i);
             t0 = __lambda_toolchain_project_0(t1);
             if (t0) {

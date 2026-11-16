@@ -1326,7 +1326,7 @@ uint64_t std_core$Hash$hash$$dispatch(vader_box_t recv) {
 
 vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 897u: return std_core$Range$Iterator$next__i64(recv.payload.obj);
+        case 898u: return std_core$Range$Iterator$next__i64(recv.payload.obj);
         case 907u: return std_string$StringChars$std_core$Iterator$next(recv.payload.obj);
         case 909u: return toolchain_ast$$genstate_decorator_sites$Iterator$next(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Iterator.next");

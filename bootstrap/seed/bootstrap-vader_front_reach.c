@@ -233,7 +233,7 @@ uint8_t vader_front_reach$referenced_name(vader_box_t l0, void* l1) {
         l3 = toolchain_ast$decorator_sites(l0);
         for (;;) {
             l4 = std_core$Iterator$next$$dispatch(l3);
-            if (!(l4.tag == 899u)) {
+            if (!(l4.tag == 900u)) {
                 t0 = l4.payload.obj;
                 l5 = ((vader_struct_toolchain_ast$DecoratorSite_t*) t0)->f_decorators;
                 l6 = vader_array_length(((vader_array_t*) l5));
