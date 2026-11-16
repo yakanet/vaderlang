@@ -855,17 +855,23 @@ export is_compiler_decorator :: fn(d: Decorator) -> bool =
     d.qualifier == null && decorator_spec(d.name) != null
 
 // The compiler's decorators read their arguments by position: a named one would
-// be dropped in silence.
+// be dropped in silence. `@extern(symbol = "sym")` is the one exception, its
+// symbol being its last argument however it is written.
 reject_named_arguments :: fn(p: Parser, d: Decorator) -> void {
     if !is_compiler_decorator(d) {
         return
     }
-    for a in d.args {
-        if a.name != null {
+    for i in 0..<d.args.len() {
+        a :: d.args[i]
+        if a.name != null && !names_the_extern_symbol(d, i) {
             p.error(.DecoratorArgumentForm, a.span, "`@${d.name}` takes its arguments by position")
         }
     }
 }
+
+// Whether argument `i` of `d` is the `symbol = "..."` of an `@extern`, its last.
+names_the_extern_symbol :: fn(d: Decorator, i: i64) -> bool =
+    d.name == "extern" && d.args[i].name == "symbol" && i == d.args.len() - 1
 
 parse_decorator :: fn(p: Parser) -> Decorator {
     at :: p.advance()
@@ -4651,4 +4657,22 @@ test_a_decorator_on_the_parameter_of_a_lambda_is_rejected :: fn() -> void {
         errors :: parse_source(src, "test.vader").errors
         assert(errors.len() == 1 && errors[0].code.id == "P1014", "one P1014 for `${lambda}`")
     }
+}
+
+// The P1033 codes of parsing `@extern(<arguments>)` above a bodyless function.
+extern_argument_errors :: fn(arguments: string) -> string[] {
+    src :: "@extern(${arguments})\nf :: fn() -> i32\n"
+    return parse_source(src, "test.vader").errors.map((e) -> e.code.id).collect()
+}
+
+@test
+test_extern_takes_its_symbol_by_name :: fn() -> void {
+    assert_eq(extern_argument_errors("symbol = \"puts\"").len(), 0)
+    assert_eq(extern_argument_errors("LIBC, symbol = \"puts\"").len(), 0)
+}
+
+@test
+test_extern_takes_no_other_argument_by_name :: fn() -> void {
+    assert_eq(extern_argument_errors("name = \"puts\"").join(", "), "P1033")
+    assert_eq(extern_argument_errors("symbol = \"puts\", LIBC").join(", "), "P1033")
 }
