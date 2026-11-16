@@ -43,7 +43,7 @@ import "toolchain/protocol"
 import "vader/front/resolver"
 import "toolchain/span"
 import "vader/pipeline"
-import "vader/support/text"
+import "toolchain/lexer"
 Server :: import "vader/build_server"
 
 // ---- discovery ------------------------------------------------------------

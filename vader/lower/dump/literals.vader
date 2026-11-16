@@ -9,9 +9,9 @@ module "vader/lower/dump"
 
 import "std/string"
 import "std/string_builder"
+import "toolchain/lexer"
 import "vader/core/types"
 import "vader/lower/ir"
-import "vader/support/text"
 
 // A value written into a slot of its own type : a literal prints bare, and a
 // value joining branches drops the type the slot already gives.

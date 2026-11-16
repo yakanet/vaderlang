@@ -23,6 +23,7 @@
 module "toolchain/ast"
 
 import "std/ffi"
+import "std/iter"
 import "toolchain/span"
 
 /// Sentinel `id` on a node the parser has just minted.
@@ -197,14 +198,19 @@ export decorators_have :: fn(decs: Decorator[], name: string) -> bool = find_dec
 ///
 /// @param decs  the declaration's decorators.
 /// @param name  the decorator name, without the `@`.
-export find_decorator :: fn(decs: Decorator[], name: string) -> Decorator | null {
-    for d in decs {
-        if d.name == name {
-            return d
-        }
-    }
-    return null
-}
+export find_decorator :: fn(decs: Decorator[], name: string) -> Decorator | null =
+    decs.find((d) -> d.name == name)
+
+/// The decorator called `name` that `module_name` declares, among `decs`: what a
+/// build driver looks for, since a name alone may be another module's.
+///
+/// @param decs         the decorators of a declaration, a field or a parameter,
+///                     as the build hands them to a driver.
+/// @param module_name  the module that declares the decorator (`json`).
+/// @param name         the decorator name, without the `@`.
+export find_declared_decorator :: fn(
+    decs: Decorator[], module_name: string, name: string,
+) -> Decorator | null = decs.find((d) -> d.module_name == module_name && d.name == name)
 
 /// The C type a `@c_type("...")` among `decs` names, or `""` when none does or its
 /// argument is not one plain string.
@@ -292,11 +298,18 @@ export c_struct_spelling :: fn(decs: Decorator[], struct_name: string) -> string
 
 // The text of `d`'s argument when it has exactly one, a plain string; `""`
 // otherwise.
-sole_string_argument :: fn(d: Decorator) -> string {
+sole_string_argument :: fn(d: Decorator) -> string = string_argument(d) else ""
+
+/// The text of the one argument `d` takes, when it is a plain string literal:
+/// what a build driver reads of `@json_name("user_id")`.
+///
+/// @param d  a decorator as written.
+/// @return   null when `d` takes no argument, several, or one of another form.
+export string_argument :: fn(d: Decorator) -> string | null {
     if d.args.len() != 1 {
-        return ""
+        return null
     }
-    return string_literal_text(d.args[0].value) else ""
+    return string_literal_text(d.args[0].value)
 }
 
 // ---- Declarations ---------------------------------------------------------

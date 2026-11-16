@@ -210,11 +210,14 @@ The generated code is written under `build/generated/`, where it can be read. A 
 
 ## Sharing a plugin
 
-A plugin is a type: put it in a module of a library, and a driver plugs it in with an import. `json/derive` is one, giving each struct of the project a `to_json`:
+A plugin is a type: put it in a module of a library, and a driver plugs it in with an import. `json/derive` is one, giving each struct marked `@json` a `to_json`. The decorators come from `json`, the module the program imports: `@json_name("key")` renames a field, `@json_skip` leaves one out.
 
 ```vader
 # module "app"
 # import "std/console"
+import "json"
+
+@json
 Point :: struct {
     x: i32
     y: i32

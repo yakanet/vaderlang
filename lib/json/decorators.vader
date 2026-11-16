@@ -1,0 +1,41 @@
+// json/decorators: what a program writes for `json/derive` to read.
+//
+// The decorators live in the runtime module, which a program imports, and the
+// plugin that reads them in `json/derive`, which only a build driver imports.
+// They compile to nothing: importing them costs the program nothing.
+
+module "json"
+
+/// Give the struct below a JSON serialiser, written by `json/derive`.
+///
+/// @example
+///   @json
+///   Point :: struct {
+///       x: i32
+///       y: i32
+///   }
+export json :: decorator(.Struct) {}
+
+/// The key the field below takes in JSON, in place of its name.
+///
+/// @example
+///   @json
+///   User :: struct {
+///       @json_name("user_id")
+///       id: i64
+///   }
+export json_name :: decorator(.Field) {
+    /// The key, a string literal: the plugin reads it as written.
+    name: string
+}
+
+/// Leave the field below out of the JSON a serialiser writes.
+///
+/// @example
+///   @json
+///   Session :: struct {
+///       user:  string
+///       @json_skip
+///       token: string
+///   }
+export json_skip :: decorator(.Field) {}

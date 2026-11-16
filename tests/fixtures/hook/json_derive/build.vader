@@ -1,6 +1,6 @@
 // A driver whose JSON serialisers come from a plugin shipped as a library:
-// `json/derive` reads each struct of the project and writes its `to_json` into
-// the struct's module.
+// `json/derive` reads each struct of the project marked `@json` and writes its
+// `to_json` into the struct's module.
 
 module "build"
 

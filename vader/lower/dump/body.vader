@@ -14,9 +14,9 @@
 module "vader/lower/dump"
 
 import "std/string"
+import "toolchain/lexer"
 import "vader/core/types"
 import "vader/lower/ir"
-import "vader/support/text"
 
 INDENT_STEP :: "    "
 
