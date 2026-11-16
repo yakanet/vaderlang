@@ -13,8 +13,10 @@ module "vader/front/comptime"
 
 import "std/collections"
 import "std/iter"
+import "std/string"
 AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
+import "toolchain/span"
 import "vader/core/types"
 import "vader/front/typecheck"
 
@@ -146,4 +148,126 @@ has_uncomputed_argument :: fn(use: DecoratorUse, program: EvaluatedProgram) -> b
 is_computed :: fn(reference: AST.Expr, program: EvaluatedProgram) -> bool {
     constant :: program.typed.resolved.idents[reference.span.hash()] else return true
     return program.comptime_decls[constant.id] != null
+}
+
+// ---- the value a build driver reads -----------------------------------------
+
+/// The arguments a build driver reads of the decorator `written`: one named
+/// argument per field of `declared`, in its order, holding the value `value`
+/// gives it as a literal, the defaults filled. An argument written keeps its
+/// span ; a default takes the decorator's.
+///
+/// @param written   the decorator as written.
+/// @param value     the value it builds.
+/// @param declared  the fields of its declaration, in order.
+/// @return          a field whose value has no literal (none a decorator field
+///                  holds) is left out.
+export value_arguments :: fn(
+    written: AST.Decorator, value: StructValue, declared: Map<string, StructFieldInfo>,
+) -> AST.CallArg[] {
+    out: AST.CallArg[]: []
+    position: i64 = 0
+    for [name, field] in declared {
+        span :: written_span(written, name, position, field.decl.variadic)
+        if !field.decl.variadic {
+            position += 1
+        }
+        field_value :: value.fields[name] else continue
+        literal :: literal_of(field_value, span) else continue
+        out.push(AST.CallArg {
+            .span = span,
+            .name = name,
+            .value = literal,
+            .spread = false,
+        })
+    }
+    return out
+}
+
+// The span of the argument `written` gives the field `name`, by name or as the
+// positional one at `position` ; the decorator's when it gives none, or when the
+// field is variadic and takes several.
+written_span :: fn(written: AST.Decorator, name: string, position: i64, variadic: bool) -> Span {
+    if variadic {
+        return written.span
+    }
+    argument :: AST.argument_named(written, name, position) else return written.span
+    return argument.span
+}
+
+/// `value` written as a literal at `span`: a number, a boolean, a character, a
+/// string, an enum variant (`.Get`), `null`, or an array of these.
+///
+/// @param value  a value computed at compile time.
+/// @param span   where the literal stands.
+/// @return       null for a value no literal writes: a struct, a type.
+export literal_of :: fn(value: ComptimeValue, span: Span) -> AST.Expr | null = match value {
+    is IntValue    -> int_literal(value, span)
+    is FloatValue  -> AST.FloatLitExpr { .span = span, .value = value.value }
+    is BoolValue   -> AST.BoolLitExpr { .span = span, .value = value.value }
+    is CharValue   -> AST.CharLitExpr { .span = span, .value = value.value }
+    is StringValue -> string_literal(value.value, span)
+    is NullValue   -> AST.NullLitExpr { .span = span }
+    is EnumValue   -> AST.DotVariantExpr {
+        .span = span,
+        .variant = value.variant,
+        .variant_span = span,
+    }
+    is ArrayValue  -> array_literal(value, span)
+    is VoidValue | StructValue | TypeValue -> null
+}
+
+// An integer, signed unless its type is unsigned: a `u64` past `i64` keeps its
+// bits.
+int_literal :: fn(value: IntValue, span: Span) -> AST.Expr {
+    if value.value < 0 && !value.type_name.starts_with("u") {
+        return AST.IntLitExpr { .span = span, .value = u64(0 -% value.value), .negative = true }
+    }
+    return AST.IntLitExpr { .span = span, .value = u64(value.value) }
+}
+
+string_literal :: fn(text: string, span: Span) -> AST.Expr = AST.StringLitExpr {
+    .span = span,
+    .parts = [AST.StringLitText { .value = text, .span = span }],
+}
+
+// An array literal, null when one of its elements has none.
+array_literal :: fn(value: ArrayValue, span: Span) -> AST.Expr | null {
+    elements: AST.Expr[]: []
+    for element in value.elements {
+        elements.push(literal_of(element, span) else return null)
+    }
+    return AST.SeqLitExpr { .span = span, .elements = elements }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_negative_integer_reads_back_as_written :: fn() -> void {
+    literal :: literal_of(IntValue { .value = -128, .type_name = "i8" }, empty_span())
+    assert(literal is AST.IntLitExpr && AST.int_literal_text(literal) == "-128", "`-128`")
+}
+
+@test
+test_an_unsigned_integer_past_i64_keeps_its_bits :: fn() -> void {
+    literal :: literal_of(IntValue { .value = -1, .type_name = "u64" }, empty_span())
+    assert(literal is AST.IntLitExpr && AST.int_literal_text(literal) == "18446744073709551615",
+        "the greatest `u64`")
+}
+
+@test
+test_an_array_of_strings_is_a_literal_of_its_elements :: fn() -> void {
+    tags :: ArrayValue {
+        .elements = [StringValue { .value = "a" }, StringValue { .value = "b" }],
+        .type = TY_UNRESOLVED,
+    }
+    literal :: literal_of(tags, empty_span())
+    assert(literal is AST.SeqLitExpr && literal.elements.len() == 2, "two elements")
+}
+
+@test
+test_a_type_has_no_literal :: fn() -> void {
+    assert(literal_of(TypeValue { .value = TY_UNRESOLVED }, empty_span()) == null, "no literal")
 }

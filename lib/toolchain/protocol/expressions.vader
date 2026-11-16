@@ -174,8 +174,9 @@ write_call_args :: fn(w: DeclWriter, args: AST.CallArg[]) -> void =
 write_call_arg :: fn(w: DeclWriter, a: AST.CallArg) -> void {
     w.write_span(a.span)
     w.out.write_optional_field(a.name)
-    // A `@comptime` argument of a decorator crosses as written, its operand in
-    // place of the hidden constant the parser made, which does not cross.
+    // A `@comptime` argument of a decorator the build has no value for crosses
+    // as written, its operand in place of the hidden constant the parser made,
+    // which does not cross.
     w.write_expr(a.comptime_body else a.value)
     w.out.write_flag(a.spread)
 }

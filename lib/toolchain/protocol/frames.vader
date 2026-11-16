@@ -57,8 +57,8 @@ export TypecheckedFrame :: struct {
     /// functions (`declarations.vader`): a module a round generated into comes
     /// back with the generated file's alone.
     declarations: AST.Decl[]
-    /// The decorators written above the `module` line of those files, as written:
-    /// the module's.
+    /// The decorators written above the `module` line of those files: the
+    /// module's.
     decorators: AST.Decorator[] = []
 }
 

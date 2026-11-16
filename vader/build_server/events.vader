@@ -26,6 +26,7 @@ import "std/string" { join as join_strings }
 import "toolchain/diagnostics"
 import "toolchain/project"
 import "toolchain/protocol"
+import "vader/front/comptime"
 import "vader/front/resolver"
 import "vader/front/typecheck"
 import "vader/pipeline"
@@ -47,13 +48,28 @@ export ModuleTypechecked :: struct {
 
 // ---- the stream -----------------------------------------------------------
 
-// Write on each decorator the module that declares it, as the typecheck resolved
-// it, for the driver that receives the declarations: the one writer of
-// `Decorator.module_name`, which the front end leaves empty. A decorator of the
-// compiler names none.
-name_decorator_modules :: fn(typed: TypedProgram) -> void {
+// Make each declared decorator of `files` what the driver that receives them
+// reads: the module that declares it, as the typecheck resolved it, and its
+// value, one named argument per field (`value_arguments`, ADR 0154). The one
+// writer of `Decorator.module_name`, which the front end leaves empty ; a
+// decorator of the compiler names none and keeps its arguments. The nodes are
+// rewritten in place for the delivery: no pass reads the arguments of a
+// declared decorator once its value is computed.
+deliver_decorators :: fn(
+    typed: TypedProgram, evaluated: EvaluatedProgram | null, files: SourceFile[],
+) -> void {
+    paths :: files.map((f) -> f.path).collect()
     for [_, use] in typed.decorator_uses {
+        if use.written.span.start.file !in paths {
+            continue
+        }
         use.written.module_name = use.symbol.module_name
+        if evaluated == null {
+            continue
+        }
+        built :: evaluated.decorator_values[use.written.id] else continue
+        declared :: typed.struct_fields[use.symbol.id] else continue
+        use.written.args = value_arguments(use.written, built.value, declared)
     }
 }
 
@@ -193,7 +209,7 @@ export build_events :: fn(session: BuildSession) -> Iterator<BuildEvent> {
                 session.remember_delivered(fresh)
                 typed :: pipeline.typed.modules[module_id]
                 if typed != null {
-                    name_decorator_modules(typed)
+                    deliver_decorators(typed, pipeline.evaluated.modules[module_id], fresh)
                 }
                 yield ModuleTypechecked { .module_name = loaded.module.module_name, .files = fresh }
             }

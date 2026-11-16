@@ -1,6 +1,6 @@
 // A module that declares its decorators and writes them: above its `module` line,
 // above a function, twice for a repeatable one, above a struct field, with a
-// computed argument.
+// computed argument and a default left out.
 
 @Owner("platform")
 module "app"

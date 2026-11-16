@@ -326,18 +326,6 @@ export c_struct_spelling :: fn(decs: Decorator[], struct_name: string) -> string
     return string_literal_text(value) else ""
 }
 
-/// The text of the one argument `d` takes, when it is a plain string literal:
-/// what a build driver reads of `@json_name("user_id")`.
-///
-/// @param d  a decorator as written.
-/// @return   null when `d` takes no argument, several, or one of another form.
-export string_argument :: fn(d: Decorator) -> string | null {
-    if d.args.len() != 1 {
-        return null
-    }
-    return string_literal_text(d.args[0].value)
-}
-
 // ---- Declarations ---------------------------------------------------------
 
 /// The span of `decl`, from its first token to its last.

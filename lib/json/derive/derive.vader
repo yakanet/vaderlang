@@ -1,8 +1,9 @@
 // json/derive: a build plugin writing a JSON serialiser for each struct marked
 // `@json`.
 //
-// It reads the decorators of `json` (`decorators.vader` there) as written: `@json`
-// above a struct, `@json_name("key")` and `@json_skip` above a field. The code
+// It reads the decorators of `json` (`decorators.vader` there), each with the
+// value the build computed: `@json` above a struct, `@json_name("key")` and
+// `@json_skip` above a field. The code
 // joins the struct's own module, which is what lets it name the type: a module of
 // its own would have to import the struct's module, which imports it back.
 
@@ -120,17 +121,15 @@ write_field :: fn(ctx: BuildContext, out: StringBuilder, f: AST.StructField, sib
     ctx.report(f.span, "field `${f.name}` has no JSON mapping: skipped by the derived serialiser")
 }
 
-// The key `f` takes: the string literal its `@json_name` writes, its name
-// otherwise. A key the plugin cannot read as written is reported, and the name
-// stands in for it.
+// The key `f` takes: the one its `@json_name` gives, its name otherwise. A
+// `@json_name` that arrives without one is reported, and the name stands in.
 key_of :: fn(ctx: BuildContext, f: AST.StructField) -> string {
     renamed :: json_decorator(f.decorators, "json_name") else return f.name
-    key :: AST.string_argument(renamed)
-    if key != null {
-        return key
+    key :: AST.argument_named(renamed, "name", 0) else {
+        ctx.report(renamed.span, "`@json_name` gives no key")
+        return f.name
     }
-    ctx.report(renamed.span, "`@json_name` takes a string literal: the key is read as written")
-    return f.name
+    return AST.string_literal_text(key) else f.name
 }
 
 // The `JsonValue` expression for a value of type `ty` read at `access`, or null when
@@ -223,7 +222,7 @@ test_a_field_under_json_skip_is_left_out :: fn() -> void {
 }
 
 @test
-test_a_json_name_not_written_as_a_literal_is_reported :: fn() -> void {
+test_a_json_name_without_a_key_is_reported :: fn() -> void {
     ctx :: new_build_context(["driver", "/tmp/proj"])
     out :: StringBuilder {}
     field :: field_of("id", named_type("i64"))

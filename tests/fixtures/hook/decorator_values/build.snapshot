@@ -1,0 +1,10 @@
+# stdout
+driver: @Owner of `app` (team = "platform") on the module
+driver: @Rename of `app` (name = "user_id") on User.id
+driver: @Route of `app` (path = "/users", method = "GET") on list_users
+driver: @Route of `app` (path = "/api/people", method = "POST") on list_users
+# stderr
+vader build: wrote <project>/build/driver/driver
+vader build: wrote <project>/build/debug-<host>/app (split: <n> objects compiled in parallel)
+# exit
+0

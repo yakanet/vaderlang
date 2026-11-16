@@ -6,6 +6,10 @@ Accepted (2026-11-16). Supersedes the part of
 [0152](0152-a-decorator-is-a-declared-type.md) that has a plugin decode a
 decorator as a typed value.
 
+**Superseded in part by
+[0154](0154-a-driver-reads-the-value-of-a-decorator.md) (2026-11-16)**: a driver
+receives a declared decorator with its value, as literals ; reflection stays.
+
 ## Context
 
 A decorator has two readers: a build driver, which runs in a process of its own

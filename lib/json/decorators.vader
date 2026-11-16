@@ -25,7 +25,7 @@ export json :: decorator(.Struct) {}
 ///       id: i64
 ///   }
 export json_name :: decorator(.Field) {
-    /// The key, a string literal: the plugin reads it as written.
+    /// The key.
     name: string
 }
 

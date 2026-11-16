@@ -1,7 +1,7 @@
 // What a driver receives of the decorators a module writes, those above its
-// `module` line included: each one as written, its arguments as expressions, and
-// the module that declares it, which the build resolved. A `@comptime` argument
-// arrives as the expression it is written with.
+// `module` line included: the module that declares each, which the build
+// resolved, and its value, one named argument per field holding a literal. A
+// `@comptime` argument arrives computed, a default left out filled in.
 
 module "build"
 
@@ -61,10 +61,8 @@ arguments :: fn(args: AST.CallArg[]) -> string {
     return shown.join(", ")
 }
 
-// The form of `e`, in a few words.
-// @partial: the forms the module does not write share one line.
-shape :: fn(e: AST.Expr) -> string = @partial match e {
-    is AST.StringLitExpr -> "a string"
-    is AST.CallExpr      -> "a call"
-    _                    -> "another expression"
+// The string `e` holds, quoted, or what else it is.
+shape :: fn(e: AST.Expr) -> string {
+    text :: AST.string_literal_text(e) else return "not a string"
+    return "\"${text}\""
 }

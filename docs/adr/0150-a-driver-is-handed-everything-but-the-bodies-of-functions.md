@@ -43,8 +43,8 @@ but the bodies".
 - **One codec for every expression.** A value may hold a lambda or a block, so
   the codec covers statements and patterns too. A type is an expression in the
   tree and crosses through the same codec. An operator crosses as its spelling.
-- Decorators cross as written, each naming the module that declares it
-  ([0153](0153-a-driver-reads-a-decorator-as-written.md)). A `@comptime`
+- Decorators cross with their value, each naming the module that declares it
+  ([0154](0154-a-driver-reads-the-value-of-a-decorator.md)). A `@comptime`
   constant arrives without its marker.
 
 ## Consequences
