@@ -3354,7 +3354,7 @@ main :: fn() -> i32 {
 
 ## 12. Decorators
 
-Decorators are written with `@`. The compiler's own, in the table below, are instructions that act at compile time, never at run time; a program declares others (*Declaring a decorator*, below). Placing `@target`, `@singleton`, `@returns`, `@ensures`, a `@c_*` decorator, `@main_thread`, `@displayable`, `@alias` or `@assert` where it does not apply is an error. `@comptime` is written before the value it computes (§14): above a declaration it is an error.
+Decorators are written with `@`. The compiler's own, in the table below, are instructions that act at compile time, never at run time; a program declares others (*Declaring a decorator*, below). The compiler's are declared in `std/core`, like a program's: each may be written only where its declaration allows, elsewhere it is an error. `@comptime` is written before the value it computes (§14).
 
 | Decorator | Target | Purpose |
 |-----------|--------|---------|
@@ -3368,9 +3368,9 @@ Decorators are written with `@`. The compiler's own, in the table below, are ins
 | `@c_struct`, `@c_struct("struct name")` | struct | Mirrors a C struct (§13), named by an optional C type name |
 | `@c_variadic` | parameter of an `@extern` fn | C receives the parameter through `...` (§13) |
 | `@main_thread` | `@extern` fn | The C function runs on the main thread only, out of reach of every task (§13) |
-| `@intrinsic` | fn or impl without body | The host runtime provides the body (*`@intrinsic`*, below) |
-| `@test` | fn | Marks a test, run by `vader test` (`docs/TOOLING.md` *Tests*) |
-| `@deprecated("reason")` | any declaration | Warns at every use; the code still compiles |
+| `@intrinsic` | fn, impl or impl member without body | The host runtime provides the body (*`@intrinsic`*, below) |
+| `@test` | top-level fn | Marks a test, run by `vader test` (`docs/TOOLING.md` *Tests*) |
+| `@deprecated("reason")` | any declaration but an import, a field or a variant | Warns at every use; the code still compiles |
 | `@assert(cond)`, `@assert(cond, "message")` | top level | Fails the build unless `cond` is true at compile time |
 | `@partial` | `match` | Lifts the exhaustiveness check (below) |
 | `@unreachable` | `match` | Lifts the exhaustiveness check and traps on the missing cases (below) |
