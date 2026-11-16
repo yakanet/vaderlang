@@ -137,6 +137,46 @@ test_definition_on_a_string_receiver_reaches_the_free_fn_not_the_array_trait :: 
     assert_eq(file_name(results[0]), "utf8.vader")
 }
 
+// `Intrinsic.byte_at` is the member of the trait, not the free `byte_at` that
+// forwards to it ; `Sized.len` is the member of the impl the call settled on.
+CALLED_THROUGH_A_TRAIT_SOURCE :: r"""
+    module "lsptest"
+
+    first :: fn(s: string) -> u8 = Intrinsic.byte_at(s, 0)
+
+    Sized :: trait {
+        len :: fn(self) -> i64
+    }
+
+    Box :: struct { n: i64 }
+
+    Box implements Sized {
+        len :: fn(self) -> i64 = self.n
+    }
+
+    size :: fn(b: Box) -> i64 = Sized.len(b)
+    """
+
+@test
+test_definition_of_a_member_called_through_its_trait :: fn() -> void {
+    results :: drive(
+        "definition_called_through_a_trait",
+        CALLED_THROUGH_A_TRAIT_SOURCE,
+        [
+            ask("textDocument/definition", 2, 43),
+            ask("textDocument/definition", 14, 35),
+            ask("textDocument/signatureHelp", 2, 52),
+        ],
+    )
+    assert(results[0] is JsonObject, stringify(results[0]))
+    assert_eq(file_name(results[0]), "intrinsics.vader")
+    assert_eq(start_line(results[1]), 11)
+    // Signature help answers on a member named through its trait.
+    signatures :: array_at(results[2], ["signatures"])
+    assert(signatures.len() > 0, stringify(results[2]))
+    assert_eq(string_at(signatures[0], ["label"]) else "", "byte_at(s: string, i: i64) -> u8")
+}
+
 // Two structs declare `cond`: the type of the receiver tells them apart, not the
 // name.
 FIELD_PRECISION_SOURCE :: r"""

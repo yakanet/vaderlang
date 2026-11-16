@@ -662,7 +662,7 @@ param_default_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: Typed
 // `f(..., .|, ...)` or `x.f(..., .|, ...)`: the callee resolves via `lookup_fn_decl`.
 call_arg_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
     call :: find_enclosing_call(decls, line, col) else return null
-    fd :: lookup_fn_decl(call.callee, typed) else return null
+    fd :: lookup_fn_decl(call, typed) else return null
     sig :: declared_fn_type(typed, fd)
     if sig !is FnType || sig.params.len() == 0 { return null }
     // Clamp into range : an incomplete arg (`f(.`) can make active_param_index

@@ -97,7 +97,7 @@ decorator_signature :: fn(
 /// Resolve `call.callee` to its `FnDecl` and render it as a
 /// SignatureInformation. Returns `null` on miss (no fn behind the callee).
 build_signature :: fn(call: AST.CallExpr, typed: TypedProgram) -> JsonValue | null {
-    fn_decl :: lookup_fn_decl(call.callee, typed) else return null
+    fn_decl :: lookup_fn_decl(call, typed) else return null
     label :: render_signature_label(fn_decl)
     params: JsonValue[]: []
     for p in fn_decl.params {
@@ -112,10 +112,12 @@ build_signature :: fn(call: AST.CallExpr, typed: TypedProgram) -> JsonValue | nu
     return JsonObject { .entries = obj }
 }
 
-// The declaration of the fn `callee` calls: the one typecheck chose, which tells
+// The declaration of the fn `call` calls: the one typecheck chose, which tells
 // overloads apart and covers a UFCS `x.f()` and a method call `x.m()`, else the
-// one its name designates.
-lookup_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {
+// one the call recorded (a member named through its trait, `Intrinsic.byte_at`),
+// else the one its name designates.
+lookup_fn_decl :: fn(call: AST.CallExpr, typed: TypedProgram) -> AST.FnDecl | null {
+    callee :: call.callee
     chosen :: chosen_decl(typed, callee.id)
     if chosen != null {
         return chosen
@@ -123,6 +125,10 @@ lookup_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null
     method :: chosen_impl_decl(typed, callee.id)
     if method != null {
         return method
+    }
+    recorded :: recorded_decl(typed, call)
+    if recorded != null {
+        return recorded
     }
     return lookup_callee_fn_decl(callee, typed)
 }

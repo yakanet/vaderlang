@@ -96,9 +96,11 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
 
 // Resolve `name` as a member of the type it is accessed ON.
 //
-// Three shapes reach here, and all carry their answer in the typed program:
+// Four shapes reach here, and all carry their answer in the typed program:
 //
 //   - `recv.name(...)` resolved to a free fn by UFCS: the fn typecheck chose.
+//   - `Trait.name(...)`, a member named through its trait (`Intrinsic.byte_at`):
+//     the declaration the call recorded.
 //   - `recv.name`: the receiver's type names the declaring struct or trait.
 //   - `.Variant`: the dot-variant's OWN type names the enum, inferred from
 //     whatever slot it sits in.
@@ -147,7 +149,7 @@ member_by_type :: fn(
     // A UFCS call typecheck resolved names the fn it chose : the receiver's type
     // alone does not tell `last(arr: T[])` from `last(it: Iterator<T>)`, two
     // overloads declared side by side.
-    chosen :: chosen_member(state, cached.result.typed, at_cursor)
+    chosen :: chosen_member(state, cached.result.typed, at_cursor, sf.program.decls, [l, column])
     if chosen != null {
         return chosen
     }
@@ -209,13 +211,16 @@ declaring_struct :: fn(typed: TypedProgram, sym: Symbol, name: string) -> Symbol
 // file that declares it ; null when it chose none, or when that declaration has
 // no source file to index (a generated impl).
 chosen_member :: fn(
-    state: ServerState, typed: TypedProgram, e: AST.Expr | null,
+    state: ServerState,
+    typed: TypedProgram,
+    e: AST.Expr | null,
+    decls: AST.Decl[],
+    cursor: [i32, i32],
 ) -> ExternalHit | null {
     if e !is AST.FieldExpr {
         return null
     }
-    free :: chosen_decl(typed, e.id)
-    decl :: if free != null { free } else { chosen_impl_decl(typed, e.id) else return null }
+    decl :: member_decl(typed, e, decls, cursor) else return null
     // A member an impl inherits is written nowhere : its trait's default is.
     at :: AST.body_source(decl).name_span.start
     src :: state.source_for_path(at.file)
@@ -232,6 +237,30 @@ chosen_member :: fn(
         .module = index.module,
         .source = index.source,
     }
+}
+
+// The declaration the typecheck chose for the member access `e` : a free fn by UFCS,
+// an impl member, both keyed by `e` itself and so answered for a method value too ;
+// else, when `e` is the callee of the call around the cursor, the declaration the
+// call recorded, which a member named through its trait has (`Intrinsic.byte_at`,
+// `Sized.len(b)`). That call is looked for last: it takes a walk of the file.
+member_decl :: fn(
+    typed: TypedProgram, e: AST.FieldExpr, decls: AST.Decl[], cursor: [i32, i32],
+) -> AST.FnDecl | null {
+    free :: chosen_decl(typed, e.id)
+    if free != null {
+        return free
+    }
+    member :: chosen_impl_decl(typed, e.id)
+    if member != null {
+        return member
+    }
+    [line, column] :: cursor
+    call :: find_enclosing_call(decls, line, column) else return null
+    if call.callee.id != e.id {
+        return null
+    }
+    return recorded_decl(typed, call)
 }
 
 // `name` as a member of one of the traits a `T[] implements ...` block of std/core
