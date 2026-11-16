@@ -729,25 +729,22 @@ validate_extern :: fn(decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]) 
     }
     validate_param_decorators(decl, true, diags)
     validate_result_c_type(decl, return_type, true, diags)
-    args :: extern_decorator_args(decl.decorators)
-    if args.len() > 2 {
+    written :: AST.find_decorator(decl.decorators, "extern") else return
+    if written.args.len() > 2 {
         diags.push(
             typecheck_error(
                 .InvalidExternDecl,
                 decl.span,
-                "`@extern` accepts 0, 1, or 2 arguments, got ${args.len()}",
+                "`@extern` accepts 0, 1, or 2 arguments, got ${written.args.len()}",
             ),
         )
         return
     }
-    // The symbol is the last argument; a library before it is checked once the
-    // bodies are walked (`check_extern_library`).
-    if args.len() > 0 {
-        symbol :: args[args.len() - 1]
-        if AST.string_literal_text(symbol) == null {
-            detail :: "`@extern` names its symbol with a plain string literal (no interpolation)"
-            diags.push(typecheck_error(.InvalidExternDecl, symbol.span, detail))
-        }
+    // The library is checked once the bodies are walked (`check_extern_library`).
+    symbol :: AST.extern_arguments(written).symbol
+    if symbol != null && AST.string_literal_text(symbol) == null {
+        detail :: "`@extern` names its symbol with a plain string literal (no interpolation)"
+        diags.push(typecheck_error(.InvalidExternDecl, symbol.span, detail))
     }
 }
 
@@ -986,11 +983,8 @@ export check_extern_library :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    args :: extern_decorator_args(decl.decorators)
-    if args.len() != 2 {
-        return
-    }
-    argument :: args[0]
+    written :: AST.find_decorator(decl.decorators, "extern") else return
+    argument :: AST.extern_arguments(written).library else return
     if argument !is AST.IdentExpr {
         detail :: "the library is a `CLibrary` constant, as in `@extern(RAYLIB, \"InitWindow\")`"
         diags.push(typecheck_error(.InvalidExternDecl, argument.span, detail))
@@ -1023,11 +1017,6 @@ return_type_span :: fn(decl: AST.FnDecl) -> Span {
         return decl.return_type.span
     }
     return decl.span
-}
-
-extern_decorator_args :: fn(decs: AST.Decorator[]) -> AST.Expr[] {
-    d :: AST.find_decorator(decs, "extern") else return []
-    return d.args.map((a) -> a.value).collect()
 }
 
 /// C-ABI type whitelist. Primitives and `string`; a distinct type over one; two

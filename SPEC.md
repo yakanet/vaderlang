@@ -3360,7 +3360,7 @@ Decorators are written with `@`. The compiler's own, in the table below, are ins
 |-----------|--------|---------|
 | `@alias` | constant naming a type | Declares a transparent alias of it (§4 *Distinct types*) |
 | `@comptime` | before the value of a constant, a `for` | Evaluates at compile time (§14) |
-| `@extern`, `@extern("symbol")`, `@extern(LIBRARY, "symbol")` | fn without body | Declares a foreign function (§13) |
+| `@extern`, `@extern(symbol = "symbol")`, `@extern(LIBRARY, "symbol")` | fn without body | Declares a foreign function (§13) |
 | `@c_address` | parameter of an `@extern` fn | Lends the parameter by address, for C to read (§13) |
 | `@c_out` | parameter of an `@extern` fn | Lends the parameter by address, for C to write (§13) |
 | `@c_type("size_t")` | parameter or result of an `@extern` fn | The C spelling of an integer type, or of what an array points to (§13) |
@@ -3514,16 +3514,16 @@ A program calls a C function by declaring it with `@extern`: a signature without
 ```vader
 LIBM: CLibrary: CLibrary { .name = "", .headers = ["<math.h>"] }
 
-@extern add_i32 :: fn(a: i32, b: i32) -> i32                    // C symbol: add_i32
-@extern("puts") c_puts :: fn(s: string) -> i32                  // C symbol: puts
-@extern(LIBM, "cbrt") cube_root :: fn(x: f64) -> f64            // C symbol: cbrt, from LIBM
+@extern add_i32 :: fn(a: i32, b: i32) -> i32                // C symbol: add_i32
+@extern(symbol = "puts") c_puts :: fn(s: string) -> i32     // C symbol: puts
+@extern(LIBM, "cbrt") cube_root :: fn(x: f64) -> f64        // C symbol: cbrt, from LIBM
 ```
 
 `@extern` takes 0 to 2 arguments:
 
 - without arguments, the symbol is the function's own name;
-- the last argument, a string, is the symbol: the C linker symbol, or the `field` of a WASM import on the planned WASM target (*Future WASM target*);
-- the first of two is the library, a `CLibrary` constant (below). Without one, the symbol is one the program links anyway, such as a C library function.
+- the first is the library, a `CLibrary` constant (below). Without one, the symbol is one the program links anyway, such as a C library function;
+- the symbol, a string, comes last, positional after a library or written `symbol = "..."`: the C linker symbol, or the `field` of a WASM import on the planned WASM target (*Future WASM target*).
 
 The following are errors:
 
@@ -3586,7 +3586,7 @@ A C function often takes a pointer where the value would do (`localtime(const ti
 
 ```vader
 @c_header("<time.h>")
-@extern("localtime")
+@extern(symbol = "localtime")
 localtime :: fn(@c_type("time_t") @c_address t: i64) -> CPointer
 ```
 
@@ -3619,7 +3619,7 @@ The following are errors:
 
 ```vader
 @c_header("<unistd.h>")
-@extern("read")
+@extern(symbol = "read")
 sys_read :: fn(fd: i32, @c_out buf: u8[], count: i64) -> i64
 ```
 
@@ -3635,7 +3635,7 @@ Without a header, the compiler declares the C function from its Vader signature,
 
 ```vader
 @c_header("<time.h>")
-@extern("clock_gettime")
+@extern(symbol = "clock_gettime")
 sys_clock_gettime :: fn(clock_id: i32, @c_out ts: i64[]) -> i32
 ```
 
@@ -3652,7 +3652,7 @@ A variadic C function (`fcntl`, `ioctl`) is declared once per argument list the 
 
 ```vader
 @c_header("<fcntl.h>")
-@extern("fcntl")
+@extern(symbol = "fcntl")
 set_flags :: fn(fd: i32, command: i32, @c_variadic flags: i32) -> i32
 ```
 
@@ -3688,7 +3688,7 @@ Without a header, the compiler spells a number by its Vader type (a `u64` is a `
 
 ```vader
 @c_type("size_t")
-@extern("strnlen")
+@extern(symbol = "strnlen")
 c_strnlen :: fn(s: string, @c_type("size_t") max: u64) -> u64
 ```
 
@@ -3722,7 +3722,7 @@ Div :: struct { quot: i32, rem: i32 }
 @extern fill_div :: fn(@c_out d: Div, quot: i32, rem: i32) -> void
 
 @c_header("<stdlib.h>")
-@extern("div") c_div :: fn(numerator: i32, denominator: i32) -> Div
+@extern(symbol = "div") c_div :: fn(numerator: i32, denominator: i32) -> Div
 ```
 
 `@c_struct` takes at most one argument, a plain string naming the C type (`"struct pollfd"`, `"div_t"`); without it, the C type is the struct's own name, read as a `typedef` name.
@@ -3840,7 +3840,7 @@ A native build links what the program's `CLibrary` constants declare. Anything e
 NOPE: CLibrary: CLibrary { .name = "nosuchlib" }
 
 @extern(NOPE, "f") f :: fn() -> i32
-@extern("no_such_fn") missing :: fn() -> i32
+@extern(symbol = "no_such_fn") missing :: fn() -> i32
 
 c_puts("hi")       // prints hi: puts, from the running process
 cube_root(27.0)    // 3.0: cbrt, from the running process too
@@ -3854,7 +3854,7 @@ At compile time (§14), a call that needs an adapter (`docs/TOOLING.md` *`vader 
 
 ### Future WASM target
 
-A WASM target is planned (§17 *Compilation Targets*). There, `@extern` will also give a WASM import, a `(module, field)` pair whose module is `"env"` without a library: `@extern("console_log") log` becomes `(import "env" "console_log" (func ...))`. How to name another module is not designed yet, nor how a function is exposed to the host.
+A WASM target is planned (§17 *Compilation Targets*). There, `@extern` will also give a WASM import, a `(module, field)` pair whose module is `"env"` without a library: `@extern(symbol = "console_log") log` becomes `(import "env" "console_log" (func ...))`. How to name another module is not designed yet, nor how a function is exposed to the host.
 
 ---
 
@@ -4294,7 +4294,7 @@ export is_absolute :: fn(p: string) -> bool = p.starts_with("/")
 is_absolute :: fn(p: string) -> bool { /* drive letter, UNC */ }
 ```
 
-A bare `@target` marks the **declaration** of a function, carrying its signature, visibility, doc and decorators, and optionally a general body. `@target(.Os, ...)` marks a **body** for the OSes it lists, in any file of the module. A body may come from the linker (`@target(.Windows) @extern("CreateFileW")`): the bare form makes a declaration, not the presence of `{ ... }`.
+A bare `@target` marks the **declaration** of a function, carrying its signature, visibility, doc and decorators, and optionally a general body. `@target(.Os, ...)` marks a **body** for the OSes it lists, in any file of the module. A body may come from the linker (`@target(.Windows) @extern(symbol = "CreateFileW")`): the bare form makes a declaration, not the presence of `{ ... }`.
 
 A build keeps one body per declaration, the one listing the target's OS or else the general body, and gives it the parameters, return type and type parameters of the declaration. Bodies not selected are neither resolved nor type-checked; `vader check --target=<os>-<arch>` checks another platform's from any machine.
 

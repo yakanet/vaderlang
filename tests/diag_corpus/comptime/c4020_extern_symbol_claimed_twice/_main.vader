@@ -10,13 +10,13 @@ import "snippet/other"
 
 LIBC :: CLibrary { .name = "c", .headers = ["<stdlib.h>"] }
 
-@extern("abs")
+@extern(symbol = "abs")
 c_abs :: fn(x: i32) -> i32
 
 @extern(LIBC, "labs")
 c_labs :: fn(x: i64) -> i64
 
-@extern("llabs")
+@extern(symbol = "llabs")
 c_llabs :: fn(x: i64) -> i64
 
 main :: fn() -> i32 {

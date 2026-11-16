@@ -8,7 +8,7 @@ import "system/posix"
 // `revents`: the 7 written before the call reads back 0.
 
 @c_header("<poll.h>")
-@extern("poll")
+@extern(symbol = "poll")
 lend_pollfd :: fn(@c_out fds: Pollfd, nfds: u64, timeout_ms: i32) -> i32
 
 main :: fn() -> i32 {

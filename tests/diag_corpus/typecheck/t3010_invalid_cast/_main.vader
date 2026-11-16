@@ -1,7 +1,7 @@
 module "snippet"
 
 @c_header("<stdlib.h>")
-@extern("malloc")
+@extern(symbol = "malloc")
 c_malloc :: fn(n: u64) -> CPointer
 
 // Reading a `CPointer` as a 64-bit integer is allowed: it is the only

@@ -7,7 +7,7 @@ module "snippet"
 
 STDIO :: CLibrary { .name = "", .headers = ["<stdio.h>"] }
 
-@extern("snprintf")
+@extern(symbol = "snprintf")
 without_header :: fn(@c_out into: u8[], size: u64, format: string, @c_variadic n: i32) -> i32
 
 @extern(STDIO, "printf")

@@ -23,7 +23,7 @@ TimeVal :: struct {
 }
 
 @c_header("<sys/time.h>")
-@extern("gettimeofday")
+@extern(symbol = "gettimeofday")
 sys_gettimeofday :: fn(@c_out tv: TimeVal, tz: CPointer | null) -> i32
 
 main :: fn() -> i32 {

@@ -4,7 +4,7 @@
 module "snippet"
 
 @c_header("<fcntl.h>")
-@extern("fcntl")
+@extern(symbol = "fcntl")
 all_variadic :: fn(@c_variadic fd: i32, @c_variadic command: i32) -> i32
 
 main :: fn() -> i32 { return 0 }

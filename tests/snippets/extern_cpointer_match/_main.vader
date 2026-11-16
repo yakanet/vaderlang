@@ -26,11 +26,11 @@ import "std/fs"
 import "std/io"
 
 @c_header("<stdio.h>")
-@extern("fopen")
+@extern(symbol = "fopen")
 c_fopen :: fn(path: string, mode: string) -> CPointer | null
 
 @c_header("<stdio.h>")
-@extern("fclose")
+@extern(symbol = "fclose")
 c_fclose :: fn(f: CPointer) -> i32
 
 main :: fn() -> i32 {

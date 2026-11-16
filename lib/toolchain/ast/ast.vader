@@ -223,17 +223,37 @@ export c_type_of :: fn(decs: Decorator[]) -> string {
     return sole_string_argument(d)
 }
 
-/// The C symbol an `@extern` declaration binds: the last argument of its
-/// `@extern` (`@extern("c_name")`, `@extern(LIBRARY, "c_name")`), else the name
-/// the declaration declares.
+/// What an `@extern` writes, each part null when it is absent.
+export ExternArguments :: struct {
+    /// The `CLibrary` constant the symbol comes from: the first of two arguments.
+    library: Expr | null = null
+    /// The C symbol: the last argument, `symbol = "..."` when it stands alone.
+    symbol:  Expr | null = null
+}
+
+/// The library and the symbol `d`, an `@extern`, writes.
+///
+/// @param d  an `@extern` as written.
+export extern_arguments :: fn(d: Decorator) -> ExternArguments {
+    count :: d.args.len()
+    if count == 0 {
+        return ExternArguments {}
+    }
+    symbol :: d.args[count - 1].value
+    if count == 2 {
+        return ExternArguments { .library = d.args[0].value, .symbol = symbol }
+    }
+    return ExternArguments { .symbol = symbol }
+}
+
+/// The C symbol an `@extern` declaration binds: the symbol its `@extern` writes
+/// (`extern_arguments`), else the name the declaration declares.
 ///
 /// @param decl  the bodyless function declaration.
 export extern_symbol_of :: fn(decl: FnDecl) -> string {
     d :: find_decorator(decl.decorators, "extern") else return decl.name
-    if d.args.len() == 0 {
-        return decl.name
-    }
-    return string_literal_text(d.args[d.args.len() - 1].value) else decl.name
+    symbol :: extern_arguments(d).symbol else return decl.name
+    return string_literal_text(symbol) else decl.name
 }
 
 /// The header an `@extern` declaration's own `@c_header` names, verbatim with

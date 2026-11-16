@@ -99,11 +99,11 @@ test_the_server_publishes_a_division_by_zero_and_a_cycle_at_compile_time :: fn()
 test_the_server_publishes_an_extern_claimed_twice_and_a_variadic_with_no_header :: fn() -> void {
     source :: """
         module "snippet"
-        @extern("abs")
+        @extern(symbol = "abs")
         c_abs :: fn(x: i32) -> i32
-        @extern("abs")
+        @extern(symbol = "abs")
         c_abs_again :: fn(x: i32) -> i32
-        @extern("snprintf")
+        @extern(symbol = "snprintf")
         format :: fn(out: u8[], size: usize, pattern: string, @c_variadic value: i32) -> i32
         """
     assert_eq(comptime_codes(diagnostics_for("externs", source)), "C4020 C4021")

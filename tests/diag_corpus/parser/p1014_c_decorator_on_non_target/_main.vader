@@ -9,7 +9,7 @@
 module "main"
 
 @c_address
-@extern("abs")
+@extern(symbol = "abs")
 sys_abs :: fn(v: i32) -> i32
 
 @c_struct("thing")

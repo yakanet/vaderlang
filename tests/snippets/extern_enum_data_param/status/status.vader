@@ -16,12 +16,12 @@ export HttpStatus :: enum(StatusInfo, i32) {
 ///
 /// @param status  the status whose code C reads.
 @c_header("<stdlib.h>")
-@extern("abs")
+@extern(symbol = "abs")
 export abs_status :: fn(status: HttpStatus) -> i32
 
 /// Seed C's `rand` with `status`'s code.
 ///
 /// @param status  the status whose code seeds it.
 @c_header("<stdlib.h>")
-@extern("srand")
+@extern(symbol = "srand")
 export seed_with :: fn(status: HttpStatus) -> void

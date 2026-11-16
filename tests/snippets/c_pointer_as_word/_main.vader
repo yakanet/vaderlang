@@ -10,11 +10,11 @@ import "std/console"
 // `malloc` rather than one of those two because it is the one allocator every
 // target has, MinGW included; the conversion under test is the same.
 @c_header("<stdlib.h>")
-@extern("malloc")
+@extern(symbol = "malloc")
 c_malloc :: fn(n: u64) -> CPointer
 
 @c_header("<stdlib.h>")
-@extern("free")
+@extern(symbol = "free")
 c_free :: fn(p: CPointer) -> void
 
 main :: fn() -> i32 {

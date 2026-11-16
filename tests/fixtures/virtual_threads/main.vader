@@ -196,7 +196,7 @@ two_panics :: fn() -> void {
 // ---- a switch inside a call to C ------------------------------------------
 
 @c_header("<stdlib.h>")
-@extern("qsort")
+@extern(symbol = "qsort")
 c_qsort :: fn(
     @c_out base: i32[],
     count: u64,

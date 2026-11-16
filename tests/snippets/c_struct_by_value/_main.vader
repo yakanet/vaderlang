@@ -55,7 +55,7 @@ Texture :: struct {
 }
 
 @c_header("<stdlib.h>")
-@extern("div")
+@extern(symbol = "div")
 c_div :: fn(numerator: i32, denominator: i32) -> Div
 
 @c_header("helper.h")

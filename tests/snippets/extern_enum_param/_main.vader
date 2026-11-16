@@ -18,11 +18,11 @@ Wide :: enum(u8) {
 }
 
 @c_header("<stdlib.h>")
-@extern("abs")
+@extern(symbol = "abs")
 abs_sign :: fn(x: Sign) -> i32
 
 @c_header("<stdlib.h>")
-@extern("labs")
+@extern(symbol = "labs")
 labs_wide :: fn(x: Wide) -> i64
 
 main :: fn() -> i32 {

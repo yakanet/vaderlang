@@ -1,7 +1,7 @@
 // `@extern` decl with a body: T3051.
 module "snippet"
 
-@extern("c_strlen")
+@extern(symbol = "c_strlen")
 strlen :: fn(s: string) -> i32 {
     return 0
 }

@@ -8,27 +8,27 @@ import "std/console"
 // `<time.h>` checks against its prototype.
 
 @c_header("<string.h>")
-@extern("memcpy")
+@extern(symbol = "memcpy")
 copy_f64 :: fn(@c_out into: u8[], @c_address x: f64, count: u64) -> void
 
 @c_header("<string.h>")
-@extern("memcpy")
+@extern(symbol = "memcpy")
 copy_f32 :: fn(@c_out into: u8[], @c_address x: f32, count: u64) -> void
 
 @c_header("<string.h>")
-@extern("memcpy")
+@extern(symbol = "memcpy")
 copy_bool :: fn(@c_out into: u8[], @c_address x: bool, count: u64) -> void
 
 @c_header("<string.h>")
-@extern("memcpy")
+@extern(symbol = "memcpy")
 copy_char :: fn(@c_out into: u8[], @c_address x: char, count: u64) -> void
 
 @c_header("<time.h>")
-@extern("gmtime")
+@extern(symbol = "gmtime")
 utc_time :: fn(@c_type("time_t") @c_address seconds: i64) -> CPointer
 
 @c_header("<time.h>")
-@extern("asctime")
+@extern(symbol = "asctime")
 format_time :: fn(time: CPointer) -> string
 
 main :: fn() -> i32 {

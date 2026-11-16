@@ -6,7 +6,7 @@ module "snippet"
 HEADER :: "<stdlib.h>"
 
 @c_header(HEADER)
-@extern("abs")
+@extern(symbol = "abs")
 c_abs :: fn(x: i32) -> i32
 
 main :: fn() -> i32 { return c_abs(-1) }

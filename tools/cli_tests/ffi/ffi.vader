@@ -40,11 +40,11 @@ WITHOUT_HEADER :: r"""
 
     import "std/console"
 
-    @extern("posix_spawnattr_getflags")
+    @extern(symbol = "posix_spawnattr_getflags")
     get_flags :: fn(attributes: u8[], @c_out flags: i16[]) -> i32
 
     @c_header("<spawn.h>")
-    @extern("posix_spawnattr_init")
+    @extern(symbol = "posix_spawnattr_init")
     init_attributes :: fn(@c_out attributes: u8[]) -> i32
 
     main :: fn() -> i32 {
@@ -64,7 +64,7 @@ QUOTED_HEADER :: r"""
     import "std/console"
 
     @c_header("\"my.h\"")
-    @extern("abs")
+    @extern(symbol = "abs")
     c_abs :: fn(x: i32) -> i32
 
     main :: fn() -> i32 {
@@ -105,7 +105,7 @@ first_cell_program :: fn(parameter: string, element: string) -> string = """
     First :: struct { value: i32 }
 
     @c_header("first.h")
-    @extern("first_cell")
+    @extern(symbol = "first_cell")
     first_cell :: fn(${parameter}) -> First
 
     main :: fn() -> i32 {

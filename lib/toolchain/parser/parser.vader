@@ -855,8 +855,7 @@ export is_compiler_decorator :: fn(d: Decorator) -> bool =
     d.qualifier == null && decorator_spec(d.name) != null
 
 // The compiler's decorators read their arguments by position: a named one would
-// be dropped in silence. `@extern(symbol = "sym")` is the one exception, its
-// symbol being its last argument however it is written.
+// be dropped in silence. `@extern(symbol = "sym")` is the one exception.
 reject_named_arguments :: fn(p: Parser, d: Decorator) -> void {
     if !is_compiler_decorator(d) {
         return

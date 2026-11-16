@@ -12,11 +12,11 @@ import "std/console"
 
 @extern add_i32 :: fn(a: i32, b: i32) -> i32
 @c_type("size_t")
-@extern("strlen")
+@extern(symbol = "strlen")
 c_strlen :: fn(s: string) -> u64
 
 @c_type("size_t")
-@extern("strnlen")
+@extern(symbol = "strnlen")
 c_strnlen :: fn(s: string, @c_type("size_t") max: u64) -> u64
 
 main :: fn() -> i32 {

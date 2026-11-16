@@ -104,7 +104,7 @@
             "name": "extern",
             "args": [
               {
-                "name": null,
+                "name": "symbol",
                 "value": {
                   "kind": "StringLitExpr",
                   "parts": [

@@ -7,7 +7,7 @@ module "snippet"
 count :: fn() -> u64 = 0
 
 @c_type("char*")
-@extern("getenv")
+@extern(symbol = "getenv")
 c_getenv :: fn(name: string) -> string
 
 main :: fn() -> i32 = i32(count()) + i32(c_getenv("HOME").byte_len())

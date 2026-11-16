@@ -18,7 +18,7 @@ Step :: enum(StepInfo, i64) {
 }
 
 @c_header("<stdlib.h>")
-@extern("labs")
+@extern(symbol = "labs")
 labs_step :: fn(step: Step) -> i64
 
 apply :: fn(f: fn(HttpStatus) -> i32, status: HttpStatus) -> i32 = f(status)

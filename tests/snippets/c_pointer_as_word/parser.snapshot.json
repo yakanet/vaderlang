@@ -58,7 +58,7 @@
             "name": "extern",
             "args": [
               {
-                "name": null,
+                "name": "symbol",
                 "value": {
                   "kind": "StringLitExpr",
                   "parts": [
@@ -118,7 +118,7 @@
             "name": "extern",
             "args": [
               {
-                "name": null,
+                "name": "symbol",
                 "value": {
                   "kind": "StringLitExpr",
                   "parts": [

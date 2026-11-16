@@ -3,7 +3,7 @@ module "snippet/other"
 
 LIBC :: CLibrary { .name = "c", .headers = ["<stdlib.h>"] }
 
-@extern("abs")
+@extern(symbol = "abs")
 export other_abs :: fn(x: i32) -> i32
 
 @extern(LIBC, "labs")

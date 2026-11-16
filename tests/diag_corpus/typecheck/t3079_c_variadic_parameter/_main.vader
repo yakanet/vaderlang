@@ -21,23 +21,23 @@ Command :: enum(CommandInfo, i32) {
 }
 
 @c_header("<fcntl.h>")
-@extern("fcntl")
+@extern(symbol = "fcntl")
 unmarked_after :: fn(fd: i32, @c_variadic command: i32, flags: i32) -> i32
 
 @c_header("<fcntl.h>")
-@extern("fcntl")
+@extern(symbol = "fcntl")
 widened :: fn(fd: i32, @c_variadic small: u8, @c_variadic flag: bool, @c_variadic ratio: f32) -> i32
 
 @c_header("<fcntl.h>")
-@extern("fcntl")
+@extern(symbol = "fcntl")
 mirror_by_value :: fn(fd: i32, @c_variadic d: Div) -> i32
 
 @c_header("<fcntl.h>")
-@extern("fcntl")
+@extern(symbol = "fcntl")
 mirror_by_address :: fn(fd: i32, @c_variadic @c_out d: Div) -> i32
 
 @c_header("<fcntl.h>")
-@extern("fcntl")
+@extern(symbol = "fcntl")
 enum_with_data :: fn(fd: i32, @c_variadic command: Command) -> i32
 
 main :: fn() -> i32 { return 0 }

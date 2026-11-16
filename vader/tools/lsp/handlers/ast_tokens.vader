@@ -144,7 +144,7 @@ push_span :: fn(out: RawToken[], sp: Span, kind: TokenType) -> void {
 ///
 /// Used where the AST node's `span` reaches past the name : a struct-field
 /// or fn-param `span` runs through the type annotation (`x: i32`), a
-/// decorator `span` runs to the closing `)` of its args (`@extern("c")`).
+/// decorator `span` runs to the closing `)` of its args (`@extern(symbol = "c")`).
 /// Tagging the full span would overlap the inner type / argument tokens,
 /// which LSP forbids and clients render inconsistently, so anchor on the
 /// name alone. `name` is a declaration / decorator / intrinsic identifier,

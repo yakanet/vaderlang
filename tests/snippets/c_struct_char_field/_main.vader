@@ -22,7 +22,7 @@ Pair :: struct {
 }
 
 @c_header("<stdlib.h>")
-@extern("memset")
+@extern(symbol = "memset")
 zero_pair :: fn(@c_out p: Pair, byte: i32, n: i64) -> CPointer
 
 main :: fn() -> i32 {
