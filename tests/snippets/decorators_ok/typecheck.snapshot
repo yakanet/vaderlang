@@ -5,7 +5,7 @@
   FnDecl         log                  :: fn(i32, i32) -> void
   FnDecl         main                 :: fn() -> i32
   FnDecl         test_log             :: fn() -> void
-  expr 12:5     CallExpr       :: void
-  expr 12:5     IdentExpr      :: fn(i32, i32) -> void
-  expr 5:27     StringLitExpr  :: string
-  expr 5:8      StructLitExpr  :: CLibrary
+  expr 10:5     CallExpr       :: void
+  expr 10:5     IdentExpr      :: fn(i32, i32) -> void
+  expr 3:27     StringLitExpr  :: string
+  expr 3:8      StructLitExpr  :: CLibrary

@@ -12,7 +12,6 @@
 
 module "raylib"
 
-import "std/ffi"
 import "std/target"
 
 // ---- library --------------------------------------------------------------

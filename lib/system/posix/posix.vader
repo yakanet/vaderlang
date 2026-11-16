@@ -2,7 +2,6 @@
 
 module "system/posix"
 
-import "std/ffi"
 import "std/target"
 
 /// The runtime's own accessors (`runtime/c/rt/`): no library to open, the

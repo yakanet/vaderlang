@@ -18,7 +18,6 @@ import "vader/core/symbol"
 import "vader/lower/ir"
 import "toolchain/span"
 import "std/collections"
-import "std/ffi"
 
 // ---- index types ----------------------------------------------------------
 

@@ -7,14 +7,6 @@
     },
     "decls": [
       {
-        "kind": "ImportDecl",
-        "path": "std/ffi",
-        "binding": {
-          "kind": "wildcard"
-        },
-        "decorators": []
-      },
-      {
         "kind": "ConstDecl",
         "name": "ENV",
         "visibility": "private",

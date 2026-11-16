@@ -1,7 +1,7 @@
 // vader/front/comptime/libraries: the `CLibrary` constants that `@extern` declarations
 // name, evaluated for the build target.
 //
-// `@extern(RAYLIB, "InitWindow")` names a constant of `std/ffi`'s `CLibrary`.
+// `@extern(RAYLIB, "InitWindow")` names a constant of `std/core`'s `CLibrary`.
 // What it lists (the default headers, the archives, the platform libraries)
 // reaches the native build and the interpreter, so it is evaluated here, once
 // per constant, reaching the whole project: a library is a struct literal that
@@ -10,7 +10,6 @@
 module "vader/front/comptime"
 
 import "std/collections"
-import "std/ffi"
 import "std/path"
 import "std/string"
 import "toolchain/diagnostics"

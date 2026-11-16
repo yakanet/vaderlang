@@ -21,7 +21,6 @@
 module "vader/emit/virt"
 
 import "vader/core/bytecode"
-import "std/ffi"
 import "std/string_builder"
 import "std/numbers"
 import "std/string"

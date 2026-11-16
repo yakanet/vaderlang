@@ -59,5 +59,4 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/ffi
-    struct std.ffi.CLibrary  // std_ffi$CLibrary
+    struct std.core.CLibrary  // std_core$CLibrary

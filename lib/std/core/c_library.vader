@@ -1,11 +1,11 @@
-// std/ffi: what a binding declares about the C library it calls.
+// std/core/c_library: what a binding declares about the C library it calls.
 //
 // A `CLibrary` constant names a library once; each `@extern` that comes from it
 // names the constant (`@extern(RAYLIB, "InitWindow")`). The compiler evaluates
 // the constant when it builds, so its fields may depend on the target through
-// `VADER_OS` and `VADER_ARCH`.
+// `VADER_OS` and `VADER_ARCH`. Part of `std/core`: no import names it.
 
-module "std/ffi"
+module "std/core"
 
 /// A C library that `@extern` declarations come from.
 ///

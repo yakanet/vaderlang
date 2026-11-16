@@ -5,15 +5,15 @@
   ConstDecl      CRT                  :: CLibrary
   FnDecl         main                 :: fn() -> i32
   FnDecl         upper                :: fn(i32) -> i32
-  expr 11:8     StructLitExpr  :: CLibrary
-  expr 12:13    StringLitExpr  :: string
-  expr 13:16    SeqLitExpr     :: string[]
-  expr 13:17    StringLitExpr  :: string
-  expr 13:30    StringLitExpr  :: string
-  expr 23:13    StringLitExpr  :: string
-  expr 23:16    CallExpr       :: i32
-  expr 23:16    IdentExpr      :: fn(i32) -> i32
-  expr 23:30    CallExpr       :: i64
-  expr 23:30    IdentExpr      :: fn(i64) -> i64
-  expr 23:5     CallExpr       :: void
-  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 10:8     StructLitExpr  :: CLibrary
+  expr 11:13    StringLitExpr  :: string
+  expr 12:16    SeqLitExpr     :: string[]
+  expr 12:17    StringLitExpr  :: string
+  expr 12:30    StringLitExpr  :: string
+  expr 22:13    StringLitExpr  :: string
+  expr 22:16    CallExpr       :: i32
+  expr 22:16    IdentExpr      :: fn(i32) -> i32
+  expr 22:30    CallExpr       :: i64
+  expr 22:30    IdentExpr      :: fn(i64) -> i64
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void

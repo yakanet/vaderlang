@@ -20,7 +20,6 @@
 
 module "vader/front/virt"
 
-import "std/ffi"
 import "std/numbers"
 import "std/string"
 import "vader/core/bytecode"

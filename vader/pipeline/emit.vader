@@ -21,7 +21,6 @@ import "std/target"
 import "vader/front/resolver"
 import "vader/core/bytecode"
 import "vader/emit/c"
-import "std/ffi"
 
 /// The C runtime a build compiles against.
 ///
@@ -225,7 +224,7 @@ push_export_dynamic :: fn(argv: string[], os: Os) -> void {
 }
 
 /// What a native build adds for the C libraries that a program's `@extern`
-/// declarations name (`std/ffi`'s `CLibrary`).
+/// declarations name (`std/core`'s `CLibrary`).
 export NativeFlags :: struct {
     /// `-I <folder>` for each library's headers, at every compilation.
     includes: string[] = []

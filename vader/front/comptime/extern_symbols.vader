@@ -13,7 +13,6 @@
 module "vader/front/comptime"
 
 import "std/collections"
-import "std/ffi"
 import "toolchain/ast"
 import "toolchain/diagnostics"
 import "toolchain/span"

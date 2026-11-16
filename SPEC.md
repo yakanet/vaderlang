@@ -3512,8 +3512,6 @@ A program calls a C function by declaring it with `@extern`: a signature without
 ### `@extern`: declaring imports
 
 ```vader
-import "std/ffi"
-
 LIBM: CLibrary: CLibrary { .name = "", .headers = ["<math.h>"] }
 
 @extern add_i32 :: fn(a: i32, b: i32) -> i32                    // C symbol: add_i32
@@ -3538,7 +3536,6 @@ The following are errors:
 #### `CLibrary`: the library a binding calls
 
 ```vader
-import "std/ffi"
 import "std/target"
 
 export RAYLIB: CLibrary: CLibrary {
@@ -3558,7 +3555,7 @@ export RAYLIB: CLibrary: CLibrary {
 export init_window :: fn(width: i32, height: i32, title: string) -> void
 ```
 
-A `CLibrary` (`std/ffi`) names a C library once; each `@extern` from it names the constant. The compiler evaluates the constant at compile time for the build target, without `@comptime`, so its fields may depend on `VADER_OS` and `VADER_ARCH`. It may use:
+A `CLibrary` (`std/core`) names a C library once; each `@extern` from it names the constant. The compiler evaluates the constant at compile time for the build target, without `@comptime`, so its fields may depend on `VADER_OS` and `VADER_ARCH`. It may use:
 
 - literals, struct literals and enum variants;
 - a `match` with variant and `_` arms;

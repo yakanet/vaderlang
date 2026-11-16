@@ -11,8 +11,6 @@
 
 module "main"
 
-import "std/ffi"
-
 DEMO :: CLibrary { .name = "demo", .headers = ["<demo.h>"] }
 
 @c_struct("struct timespec")

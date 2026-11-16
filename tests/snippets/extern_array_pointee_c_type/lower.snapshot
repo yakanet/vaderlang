@@ -77,6 +77,5 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
+    struct std.core.CLibrary  // std_core$CLibrary
     struct std.core.Dec64  // std_core$Dec64
-  std/ffi
-    struct std.ffi.CLibrary  // std_ffi$CLibrary

@@ -6,7 +6,6 @@
 module "snippet"
 
 import "snippet/other"
-import "std/ffi"
 
 GREETER :: CLibrary {
     .name = "greeter",

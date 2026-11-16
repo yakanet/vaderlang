@@ -1,7 +1,5 @@
 module "snippet"
 
-import "std/ffi"
-
 ENV :: CLibrary { .name = "env" }
 
 @extern(ENV, "console_log")

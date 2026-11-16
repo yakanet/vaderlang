@@ -22,7 +22,6 @@
 
 module "toolchain/ast"
 
-import "std/ffi"
 import "std/iter"
 import "toolchain/span"
 

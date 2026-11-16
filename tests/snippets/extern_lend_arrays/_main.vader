@@ -5,7 +5,6 @@
 module "snippet"
 
 import "std/console"
-import "std/ffi"
 
 STRING :: CLibrary { .name = "", .headers = ["<string.h>"] }
 

@@ -2,8 +2,6 @@
 // value the evaluation cannot reduce is reported inside the constant.
 module "snippet"
 
-import "std/ffi"
-
 library_name :: fn() -> string {
     name := "c"
     name = "${name}"

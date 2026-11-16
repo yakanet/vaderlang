@@ -168,7 +168,6 @@ named_parameter :: fn(imp: BcImport, types: BcType[], j: i64) -> CParameter {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/ffi"
 import "std/testing"
 
 // An `@extern` named `name`, mangled `mangled`, taking `params` (named

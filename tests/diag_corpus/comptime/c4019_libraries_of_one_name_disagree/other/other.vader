@@ -1,8 +1,6 @@
 // The second constant of each name.
 module "snippet/other"
 
-import "std/ffi"
-
 GREETER :: CLibrary {
     .name = "greeter",
     .include = "greeter",

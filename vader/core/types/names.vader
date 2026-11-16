@@ -226,14 +226,7 @@ export is_core_struct :: fn(t: StructType, name: string) -> bool =
 /// it calls with, told by its declaration rather than its spelling.
 ///
 /// @param t  the candidate type.
-export is_c_library :: fn(t: Type) -> bool {
-    if t !is StructType {
-        return false
-    }
-    // `std/ffi` held it before `std/core`: the seed compiler, built from that tree,
-    // must still accept the bindings of a tree that moved it.
-    return is_core_struct(t, "CLibrary") || t.symbol.module_name == "std/ffi" && t.symbol.name == "CLibrary"
-}
+export is_c_library :: fn(t: Type) -> bool = t is StructType && is_core_struct(t, STRUCT_C_LIBRARY)
 
 /// The argument of `t` when it is the one-argument `std/core` trait `name`:
 /// `E` for `Iterator<E>`.
@@ -273,6 +266,9 @@ export STRUCT_FIELD :: @type_name(Field)
 
 /// `std/core::Stop`, what an `Iterator.next` returns once the iteration is over.
 export STRUCT_STOP :: @type_name(Stop)
+
+/// `std/core::CLibrary`, the library an `@extern` names.
+export STRUCT_C_LIBRARY :: @type_name(CLibrary)
 
 /// `std/core::DecoratorTarget`, what the parentheses of a decorator declaration name.
 export ENUM_DECORATOR_TARGET :: @type_name(DecoratorTarget)

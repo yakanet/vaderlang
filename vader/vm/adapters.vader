@@ -159,7 +159,6 @@ takes_callback :: fn(imp: bc.BcImport, types: bc.BcType[]) -> bool {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/ffi"
 import "std/string"
 import "std/testing"
 

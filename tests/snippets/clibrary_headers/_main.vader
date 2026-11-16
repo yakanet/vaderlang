@@ -6,7 +6,6 @@
 module "snippet"
 
 import "std/console"
-import "std/ffi"
 
 CRT :: CLibrary {
     .name = "",

@@ -5,8 +5,6 @@
 
 module "system/libc"
 
-import "std/ffi"
-
 /// The C standard library: glibc or musl on Linux, `libSystem` on macOS, the
 /// UCRT on Windows. No library to open, the process has it. A POSIX call goes
 /// in `system/posix`, a Win32 one in `system/windows`.

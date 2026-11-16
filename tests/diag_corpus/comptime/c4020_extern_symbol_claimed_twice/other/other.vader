@@ -1,8 +1,6 @@
 // The second declarations of `abs`, `labs` and `llabs`.
 module "snippet/other"
 
-import "std/ffi"
-
 LIBC :: CLibrary { .name = "c", .headers = ["<stdlib.h>"] }
 
 @extern("abs")

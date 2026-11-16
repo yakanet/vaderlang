@@ -2,8 +2,6 @@
 
 module "std/math"
 
-import "std/ffi"
-
 /// π (3.141592653589793).
 export PI :: 3.141592653589793
 /// Euler's number, e (2.718281828459045).

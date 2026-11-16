@@ -5,8 +5,6 @@
 // lists `<stdio.h>`.
 module "snippet"
 
-import "std/ffi"
-
 STDIO :: CLibrary { .name = "", .headers = ["<stdio.h>"] }
 
 @extern("snprintf")

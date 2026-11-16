@@ -19,7 +19,6 @@
 module "vader/core/bytecode"
 
 import "std/abort"
-import "std/ffi"
 import "std/iter"
 
 

@@ -6,8 +6,6 @@
 
 module "system/darwin"
 
-import "std/ffi"
-
 /// Darwin's own headers: no library to open, the process has them.
 DARWIN :: CLibrary {
     .name = "",

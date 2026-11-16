@@ -6,8 +6,6 @@
 
 module "system/windows"
 
-import "std/ffi"
-
 /// The library the Win32 calls below come from: the interpreter opens
 /// `kernel32.dll` to find them, and `<windows.h>` declares them.
 KERNEL32 :: CLibrary { .name = "kernel32", .headers = ["<windows.h>"] }

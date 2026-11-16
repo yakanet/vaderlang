@@ -1391,7 +1391,6 @@ array_tag :: fn(types: BcType[], elem: i32) -> i32 {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/ffi"
 import "std/testing"
 
 // An `@extern` of no parameter and no result, outside any library, with no header.

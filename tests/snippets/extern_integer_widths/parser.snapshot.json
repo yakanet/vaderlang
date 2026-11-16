@@ -15,14 +15,6 @@
         "decorators": []
       },
       {
-        "kind": "ImportDecl",
-        "path": "std/ffi",
-        "binding": {
-          "kind": "wildcard"
-        },
-        "decorators": []
-      },
-      {
         "kind": "ConstDecl",
         "name": "STDLIB",
         "visibility": "private",

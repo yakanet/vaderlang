@@ -15,7 +15,6 @@
 module "vader/midir"
 
 import "std/collections"
-import "std/ffi"
 import "vader/core/mono"
 import "toolchain/diagnostics"
 import "vader/support/integer"

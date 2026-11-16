@@ -8,7 +8,6 @@
 module "vader/front/comptime"
 
 import "std/collections"
-import "std/ffi"
 import "vader/core/types"
 import "vader/front/typecheck"
 import "toolchain/span"

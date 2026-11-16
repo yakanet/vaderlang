@@ -4,7 +4,6 @@
 module "greeter"
 
 import "libpath"
-import "std/ffi"
 
 /// The greeter library, linked from the archive the test compiles.
 export GREETER: CLibrary: CLibrary {
