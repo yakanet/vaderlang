@@ -76,10 +76,10 @@ impl 13 std_core$Iterator
 impl 16 std_core$Add
 impl 17 snippet$Scale
 impl 17 snippet$Show
-impl 21 std_core$ByteAccess
 impl 1 snippet$Make
 impl 13 std_core$Into
 impl 20 std_core$Into
+impl 21 std_core$ByteAccess
 export main 20
 
 fn 0 snippet$Vec2$std_core$Mul$mul (ref,f64) -> ref

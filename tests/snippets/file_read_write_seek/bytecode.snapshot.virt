@@ -153,11 +153,11 @@ import 20 extern :lseek system_posix$sys_lseek headers=<unistd.h> result_type=3 
 import 21 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
 import 22 extern :vader_fd_size system_posix$sys_fd_size headers=vader.h result_type=3 param_types=1 param_c_out= param_by_address= (i32) -> i64
 import 23 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=13 param_types=5 param_c_out= param_by_address= (string) -> any
-impl 7 std_core$ByteAccess
 impl 15 std_io$Reader
 impl 15 std_io$Writer
 impl 31 std_io$Reader
 impl 4 std_core$Error
+impl 7 std_core$ByteAccess
 vtable std_io$Reader.read 15 45
 vtable std_io$Reader.read 31 61
 export main 0

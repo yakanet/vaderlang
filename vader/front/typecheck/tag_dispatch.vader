@@ -178,8 +178,8 @@ union_dispatch_traits :: fn(
 }
 
 // Whether every array variant of `u` has a body for `method` of `trait_key`, its own
-// or the default it inherits : an `@intrinsic` array member (`ArrayOps.push`) is an
-// op emitted at its call site, with no function a vtable row could name.
+// or the default it inherits : a bodyless `@intrinsic` member is an op emitted at
+// its call site, with no function a vtable row could name.
 array_members_have_bodies :: fn(
     u: UnionType,
     trait_key: string,

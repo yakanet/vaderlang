@@ -48,7 +48,3 @@
       total = total + ((snippet.sign(8) + snippet.sign(-8)) + snippet.sign(0))
       return total
   }
-
-## lowered in dependencies
-  std/core
-    struct std.core.Buffer  // std_core$Buffer

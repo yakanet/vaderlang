@@ -99,7 +99,6 @@ import 3 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string
 import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,15,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=19 () -> void
-impl 3 std_core$ByteAccess
 impl 20 std_core$Index
 impl 20 std_core$IndexSet
 impl 22 std_core$Index
@@ -116,6 +115,7 @@ impl 32 std_core$Index
 impl 32 std_core$IndexSet
 impl 34 std_core$Index
 impl 34 std_core$IndexSet
+impl 3 std_core$ByteAccess
 impl 20 std_core$Contains
 impl 20 std_core$Into
 impl 22 std_core$Contains

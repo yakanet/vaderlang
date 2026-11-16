@@ -62,9 +62,9 @@ import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h re
 import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=21 () -> void
 impl 4 std_core$Display
 impl 5 std_core$Display
-impl 7 std_core$ByteAccess
 impl 22 std_core$Index
 impl 22 std_core$IndexSet
+impl 7 std_core$ByteAccess
 impl 22 std_core$Contains
 impl 22 std_core$Into
 vtable std_core$Display.to_string 4 3

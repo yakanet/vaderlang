@@ -16,4 +16,3 @@
 ## lowered in dependencies
   std/core
     fn std.core.i32[].contains  // std_core$$array$Contains$contains__i32
-    struct std.core.Buffer  // std_core$Buffer

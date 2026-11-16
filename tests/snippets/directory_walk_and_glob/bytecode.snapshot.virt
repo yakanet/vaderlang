@@ -219,10 +219,10 @@ import 19 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=1 
 import 20 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=4,1,1 param_c_out= param_by_address= (string,i32,i32) -> i32
 import 21 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
 import 22 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=17 param_types=4 param_c_out= param_by_address= (string) -> any
-impl 5 std_core$ByteAccess
 impl 31 std_io$Writer
 impl 48 std_core$Iterator
 impl 74 std_core$Display
+impl 5 std_core$ByteAccess
 impl 20 std_core$Error
 impl 24 std_core$Into
 impl 29 std_core$Error

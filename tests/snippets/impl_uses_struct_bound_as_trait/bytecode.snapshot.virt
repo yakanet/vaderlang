@@ -61,9 +61,9 @@ impl 1 std_core$Display
 impl 4 std_core$Index
 impl 7 snippet$Size
 impl 8 snippet$First
-impl 13 std_core$ByteAccess
 impl 10 snippet$Size
 impl 12 snippet$First
+impl 13 std_core$ByteAccess
 impl 24 std_core$Contains
 impl 24 std_core$Iterator
 vtable snippet$Named.name 1 0

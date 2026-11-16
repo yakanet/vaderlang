@@ -40,9 +40,9 @@ import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h re
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=20 () -> void
 impl 2 snippet$Shape
 impl 3 snippet$Shape
-impl 13 std_core$ByteAccess
 impl 4 snippet$A
 impl 4 snippet$B
+impl 13 std_core$ByteAccess
 vtable snippet$Shape.area 2 1
 vtable snippet$Shape.area 3 3
 export main 9

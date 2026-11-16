@@ -32,11 +32,11 @@ import 5 hash std_core$string$Hash$hash result_type=9 param_types=2 param_c_out=
 import 6 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 7 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 8 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=8 () -> void
-impl 3 std_core$ByteAccess
 impl 10 std_core$Contains
 impl 11 std_core$Contains
 impl 12 std_core$Index
 impl 12 std_core$IndexSet
+impl 3 std_core$ByteAccess
 impl 10 std_core$Index
 impl 10 std_core$IndexSet
 impl 10 std_core$Into

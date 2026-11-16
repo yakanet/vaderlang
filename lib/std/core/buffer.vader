@@ -3,23 +3,23 @@
 // `Buffer` is an opaque, GC-managed handle to a contiguous run of bytes. It is
 // the single low-level primitive the higher-level growable types (StringBuilder
 // today ; Array and String later) are written against: none of them touch raw
-// pointers. The handful of `@intrinsic` methods here lower directly to the
-// generic memory opcodes (`object_new` / `load_*` / `store_*` / `memory_copy`,
-// see `vader/midir/select/intrinsics.vader::intrinsic_op_for_mangled`), exactly the
-// way `a.add(b)` on an `i32` lowers to a checked add. Each opcode carries a `(GC-handle,
-// byte-offset)` pair, never a machine address: the frontend stays pointer-free.
+// pointers. The handful of methods here call members of `Intrinsic`, which lower
+// to the generic memory opcodes (`object_new` / `load_*` / `store_*` /
+// `memory_copy`, see `vader/midir/select/intrinsics.vader`). Each opcode carries
+// a `(GC-handle, byte-offset)` pair, never a machine address: the frontend stays
+// pointer-free.
 //
 // Everything here is deliberately UNEXPORTED except the `Buffer` type itself :
-// the raw memory ops stay `@intrinsic`-marked impl members so the low-level
-// boundary is visible, and the rest of the code only ever manipulates the
-// high-level wrappers. `Buffer` lives in `std/core` (the prelude), so consumers
+// the raw memory ops stay private impl members so the low-level boundary is
+// visible, and the rest of the code only ever manipulates the high-level
+// wrappers. `Buffer` lives in `std/core` (the prelude), so consumers
 // reach it (and its methods, via the impl registry) with no import.
 
 module "std/core"
 
 /// Opaque handle to a GC-managed contiguous byte region. Carries no fields : the
 /// backing bytes live in a dedicated runtime object (the `BUFFER` sentinel
-/// type), addressed only through the `@intrinsic` methods below. Never built via
+/// type), addressed only through the methods below. Never built via
 /// a struct literal: allocate with `new_byte_buffer(n)`.
 export Buffer :: struct {}
 
@@ -28,7 +28,7 @@ export Buffer :: struct {}
 /// Allocate a `Buffer` of `cap` zeroed bytes. Lowers to the `buffer.new` op.
 ///
 /// @param cap  the byte count.
-@intrinsic export new_byte_buffer :: fn(cap: i64) -> Buffer
+export new_byte_buffer :: fn(cap: i64) -> Buffer = Intrinsic.new_byte_buffer(cap)
 
 /// Primitive byte read / write / copy over a `Buffer`. Each method lowers to a
 /// single memory opcode ; offsets are **caller-trusted** (no bounds check on the
@@ -55,4 +55,12 @@ ByteAccess :: trait {
     write_string :: fn(self, off: i64, s: string) -> void
 }
 
-@intrinsic Buffer implements ByteAccess
+Buffer implements ByteAccess {
+    load_u8 :: fn(self, off: i64) -> u8 = Intrinsic.buffer_load_u8(self, off)
+    store_u8 :: fn(self, off: i64, v: u8) -> void = Intrinsic.buffer_store_u8(self, off, v)
+    memory_copy :: fn(self, d: i64, src: Self, s: i64, n: i64) -> void =
+        Intrinsic.buffer_memory_copy(self, d, src, s, n)
+    intern_string :: fn(self, len: i64) -> string = Intrinsic.buffer_intern_string(self, len)
+    write_string :: fn(self, off: i64, s: string) -> void =
+        Intrinsic.buffer_write_string(self, off, s)
+}

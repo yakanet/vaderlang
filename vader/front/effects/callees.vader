@@ -2,10 +2,12 @@
 //
 // The typecheck records what each call settles on (`call_sites.vader`, ADR 0056).
 // A function with a body is a node of the call graph. A bodyless one does what
-// the compiler knows of it: a host by `host_summary`, a member of an intrinsic
-// impl by `intrinsic_effects`, an `@extern` by its `@c_out` parameters. So does a
-// primitive of `std/task` (`task_doors.vader`), body or not: what it does to a
-// task is the runtime's, not what its body shows.
+// the compiler knows of it: a host by `host_summary`, a member of `Intrinsic`
+// served by an operation by `intrinsic_effects`, an `@extern` by its `@c_out`
+// parameters. So does a primitive of `std/task` (`task_doors.vader`), body or
+// not: what it does to a task is the runtime's, not what its body shows ; and a
+// function that only forwards to a member of `Intrinsic`, which does what the
+// member does (`forwarded_effects`).
 // A member reached through a trait is the member of that name in every impl of the
 // trait, the whole program being compiled. A function value, or a site the record
 // could not settle, may do anything.
@@ -203,12 +205,30 @@ inherited_function :: fn(
 // Make `decl` a node when it has a body that is no door of the task check, else
 // note what it does.
 register :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> void {
+    forwarded :: forwarded_effects(index, decl, typed)
+    if forwarded != null {
+        index.summarised[decl.id] = KnownEffects { .params = forwarded }
+        return
+    }
     key :: index.intrinsic_key(decl, typed)
     if decl.body != null && task_primitive(key) == null {
         index.nodes[decl.id] = index.add_node(Function { .decl = decl, .typed = typed })
         return
     }
     index.summarised[decl.id] = index.summary_target(decl, key, typed)
+}
+
+// What `decl` does when it only forwards its parameters to a member of
+// `Intrinsic` the table lists (`forwarded_intrinsic`): the member's effects, so a
+// diagnostic names `decl` and the value it was handed, never the member. Null for
+// any other function.
+forwarded_effects :: fn(
+    index: CalleeIndex,
+    decl: AST.FnDecl,
+    typed: TypedProgram,
+) -> ParamEffects[] | null {
+    member :: forwarded_intrinsic(decl, typed) else return null
+    return intrinsic_member_effects(member.name, index.paths.path_to(ELEMENT))
 }
 
 // What `decl` of key `key`, summarised without its body, does: an `@extern` writes
@@ -428,32 +448,17 @@ host_summary :: fn(id: IntrinsicId, paths: PathTable) -> HostSummary = match id 
         | .FfiOpen | .FfiOpenPath | .FfiSymbol -> HostSummary {}
 }
 
-/// What an intrinsic member of an impl does with each of its parameters, by its
-/// key (`trait_key.member`) ; null for one the compiler lists no effects for. A
-/// parameter the table leaves empty is only read.
+/// What a member of `Intrinsic` does with each of its parameters, by its key
+/// (`Intrinsic.member`) ; null for any other key, and for a member the compiler
+/// lists no effects for. A parameter the table leaves empty is only read.
 ///
 /// @param paths  the summary's paths.
-/// @param key    the intrinsic's key.
+/// @param key    the function's key (`intrinsic_key`).
 intrinsic_effects :: fn(paths: PathTable, key: string) -> ParamEffects[] | null {
-    elements :: paths.path_to(ELEMENT)
-    if key.starts_with(INTRINSIC_KEY_PREFIX) {
-        return intrinsic_member_effects(key.trim_prefix(INTRINSIC_KEY_PREFIX), elements)
+    if !key.starts_with(INTRINSIC_KEY_PREFIX) {
+        return null
     }
-    array_ops :: core_trait_key(@type_name(ArrayOps))
-    // `ByteAccess` is private to `std/core`: no name to take its key from.
-    byte_access :: core_trait_key("ByteAccess")
-    if key == "${array_ops}.len"             { return [none()] }
-    if key == "${array_ops}.push"            { return push_effects(ROOT) }
-    if key == "${array_ops}.push_all"        { return push_effects(elements) }
-    if key == "${array_ops}.copy_to"         { return copy_to_effects(elements) }
-    if key == "${array_ops}.remove_last"     { return [remove_last_effects(elements)] }
-    if key == "${array_ops}.clear"           { return [effects_of(.Shrunk, ROOT)] }
-    if key == "${byte_access}.load_u8"       { return [none(), none()] }
-    if key == "${byte_access}.store_u8"      { return writes_bytes(elements) }
-    if key == "${byte_access}.memory_copy"   { return memory_copy_effects(elements) }
-    if key == "${byte_access}.intern_string" { return [none(), none()] }
-    if key == "${byte_access}.write_string"  { return writes_bytes(elements) }
-    return null
+    return intrinsic_member_effects(key.trim_prefix(INTRINSIC_KEY_PREFIX), paths.path_to(ELEMENT))
 }
 
 // What the key of a member of `Intrinsic` starts with.
@@ -461,21 +466,22 @@ INTRINSIC_KEY_PREFIX :: @comptime vtable_key(core_trait_key(TRAIT_INTRINSIC), ""
 
 // What the member `member` of `Intrinsic` does with each of its parameters ; null
 // for one the compiler lists no effects for.
-intrinsic_member_effects :: fn(member: string, elements: i32) -> ParamEffects[] | null = match member {
-    "array_len"            -> [none()]
-    "array_push"           -> push_effects(ROOT)
-    "array_push_all"       -> push_effects(elements)
-    "array_copy_to"        -> copy_to_effects(elements)
-    "array_remove_last"    -> [remove_last_effects(elements)]
-    "array_clear"          -> [effects_of(.Shrunk, ROOT)]
-    "new_byte_buffer"      -> [none()]
-    "buffer_load_u8"       -> [none(), none()]
-    "buffer_store_u8"      -> writes_bytes(elements)
-    "buffer_memory_copy"   -> memory_copy_effects(elements)
-    "buffer_intern_string" -> [none(), none()]
-    "buffer_write_string"  -> writes_bytes(elements)
-    _                      -> null
-}
+intrinsic_member_effects :: fn(member: string, elements: i32) -> ParamEffects[] | null =
+    match member {
+        "array_len"            -> [none()]
+        "array_push"           -> push_effects(ROOT)
+        "array_push_all"       -> push_effects(elements)
+        "array_copy_to"        -> copy_to_effects(elements)
+        "array_remove_last"    -> [remove_last_effects(elements)]
+        "array_clear"          -> [effects_of(.Shrunk, ROOT)]
+        "new_byte_buffer"      -> [none()]
+        "buffer_load_u8"       -> [none(), none()]
+        "buffer_store_u8"      -> writes_bytes(elements)
+        "buffer_memory_copy"   -> memory_copy_effects(elements)
+        "buffer_intern_string" -> [none(), none()]
+        "buffer_write_string"  -> writes_bytes(elements)
+        _                      -> null
+    }
 
 // `self.push(value)` and `self.push_all(other)`: `self` grows, and keeps the value
 // at `kept` below the argument (the value itself, or the elements of `other`).
@@ -527,8 +533,7 @@ import "std/testing"
 
 @test
 test_intrinsic_effects_push_resizes_and_stores :: fn() -> void {
-    effects :: intrinsic_effects(PathTable {}, "${core_trait_key(@type_name(ArrayOps))}.push")
-        else []
+    effects :: intrinsic_effects(PathTable {}, "${INTRINSIC_KEY_PREFIX}array_push") else []
     assert_eq(effects.len(), 2)
     assert(effects[0].accesses[0].effect == .Resized, "push resizes its receiver")
     assert(effects[1].accesses[0].effect == .Stored, "push keeps its value")

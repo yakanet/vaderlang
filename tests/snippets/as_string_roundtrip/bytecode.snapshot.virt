@@ -3,9 +3,9 @@ type 0 scalar null
 type 1 scalar i32
 type 2 scalar string
 type 3 scalar i64
-type 4 struct std_core$Buffer {  }
-type 5 array 6
-type 6 scalar u8
+type 4 array 5
+type 5 scalar u8
+type 6 struct std_core$Buffer {  }
 type 7 scalar void
 type 8 scalar bool
 string 0 "vader"
@@ -16,12 +16,12 @@ string 4 "["
 string 5 "]"
 string 6 "\n"
 import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=3 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=5 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=2 param_types=5 param_c_out= param_by_address= (ref) -> string
-import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=1,5,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=4 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 2 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=2 param_types=4 param_c_out= param_by_address= (ref) -> string
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=1,4,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=7 () -> void
-impl 4 std_core$ByteAccess
+impl 6 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -38,7 +38,7 @@ fn 0 snippet$main () -> i32
   call.import 1   ; std_core$Intrinsic$bytes
   i64.const 1
   i64.const 4
-  array.slice 5   ; u8[]
+  array.slice 4   ; u8[]
   call.import 2   ; std_core$Intrinsic$bytes_to_string
   call 6   ; std_console$println__string
   string.const 3   ; ""
@@ -158,7 +158,7 @@ fn 3 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 5   ; u8[]
+      array.slice 4   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

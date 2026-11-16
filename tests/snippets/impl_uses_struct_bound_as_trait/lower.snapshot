@@ -20,7 +20,7 @@
       std.console.println<string>(snippet.Shelf<Any>.show(s))
       g: Grid<Row> = Grid<Any> { .row = Row { .cells = [i64(7), i64(8)] :i64[] } }
       std.console.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(20))
           __off_1: i64 = 0
           __off_1 = std.core.write_int(__buf_0, __off_1, snippet.Grid<Any>.first(g))
           std.core.finish_buffer(__buf_0, __off_1)
@@ -41,10 +41,10 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
   concat_5 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
@@ -52,13 +52,13 @@
       c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
       c3: i64 = c2 +% std_core$Intrinsic$byte_len(p3)
       c4: i64 = c3 +% std_core$Intrinsic$byte_len(p4)
-      buf: Buffer = std.core.new_byte_buffer(c4)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.write_string(buf, c1, p2)
-      std.core.Buffer.write_string(buf, c2, p3)
-      std.core.Buffer.write_string(buf, c3, p4)
-      std.core.Buffer.intern_string(buf, c4)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c4)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_write_string(buf, c2, p3)
+      std_core$Intrinsic$buffer_write_string(buf, c3, p4)
+      std_core$Intrinsic$buffer_intern_string(buf, c4)
   }
   vtable snippet.First.first for Grid<Any>  snippet.Grid<Any>.first  // snippet$Grid$First$first__Any
   vtable snippet.Named.name for Book  snippet.Book.name  // snippet$Book$Named$name
@@ -77,10 +77,6 @@
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
     const FLOAT_POW5_INV_SPLIT: u64[]  data pool #2
     const FLOAT_POW5_SPLIT: u64[]  data pool #3
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.b2i  // std_core$b2i
     fn std.core.b2u  // std_core$b2u
     fn std.core.b2u32  // std_core$b2u32

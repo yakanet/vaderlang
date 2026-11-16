@@ -42,9 +42,9 @@ import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h re
 import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=14 () -> void
 impl 6 std_core$Into
 impl 8 std_core$Iterator
-impl 11 std_core$ByteAccess
 impl 17 std_core$Display
 impl 8 std_core$Contains
+impl 11 std_core$ByteAccess
 export main 5
 
 fn 0 snippet$describe (i64) -> string

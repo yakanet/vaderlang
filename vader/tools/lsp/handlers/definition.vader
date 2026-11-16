@@ -234,7 +234,7 @@ chosen_member :: fn(
     }
 }
 
-// `name` as a member of one of the traits an intrinsic `T[] implements ...` block
+// `name` as a member of one of the traits a `T[] implements ...` block of std/core
 // names: `ArrayOps` for `len` / `push` / ..., plus `Contains`, `Into`, `Mul`.
 //
 // Read off the PROJECT's own decls rather than `CheckResult.impls`: that

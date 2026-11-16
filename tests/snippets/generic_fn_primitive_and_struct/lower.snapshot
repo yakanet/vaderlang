@@ -15,7 +15,3 @@
   snippet.second<Point> :: fn(xs: Any[]) -> Any {  // snippet$second__snippet_Point
       xs[1]
   }
-
-## lowered in dependencies
-  std/core
-    struct std.core.Buffer  // std_core$Buffer

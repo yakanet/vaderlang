@@ -21,8 +21,8 @@ type 18 struct std_core$Dec64 { mantissa:5,exp:3 }
 type 19 struct __Tuple_u64_u64_u64_2d035edd { _0:5,_1:5,_2:5 }
 type 20 array 2
 type 21 union 2,0
-type 22 fn () -> 23
-type 23 scalar void
+type 22 scalar void
+type 23 fn () -> 22
 type 24 struct std_task$Task__i64 shared { number:2,thread:2,ended:12,result:20,waiters:33 }
 type 25 struct std_task$Started { count:2 }
 type 26 fn () -> 2
@@ -70,19 +70,19 @@ global 1 25 started.instance
 global 2 37 started.gate
 import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=2 param_types=1 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=16 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 2 spawn_thread std_core$Intrinsic$spawn_thread host=spawn_thread result_type=2 param_types=22 param_c_out= param_by_address= (ref) -> i64
-import 3 park std_core$Intrinsic$park host=park result_type=23 () -> void
-import 4 wake std_core$Intrinsic$wake host=wake result_type=23 param_types=2 param_c_out= param_by_address= (i64) -> void
-import 5 sleep_for std_core$Intrinsic$sleep_for host=sleep_for result_type=23 param_types=2 param_c_out= param_by_address= (i64) -> void
+import 2 spawn_thread std_core$Intrinsic$spawn_thread host=spawn_thread result_type=2 param_types=23 param_c_out= param_by_address= (ref) -> i64
+import 3 park std_core$Intrinsic$park host=park result_type=22 () -> void
+import 4 wake std_core$Intrinsic$wake host=wake result_type=22 param_types=2 param_c_out= param_by_address= (i64) -> void
+import 5 sleep_for std_core$Intrinsic$sleep_for host=sleep_for result_type=22 param_types=2 param_c_out= param_by_address= (i64) -> void
 import 6 current_thread std_core$Intrinsic$current_thread host=current_thread result_type=2 () -> i64
 import 7 is_cancelled std_core$Intrinsic$is_cancelled host=is_cancelled result_type=12 () -> bool
 import 8 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=1 param_types=16 param_c_out= param_by_address= (ref) -> string
 import 9 extern :write system_posix$sys_write headers=<unistd.h> result_type=2 param_types=3,16,2 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 10 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
-import 11 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=23 () -> void
-impl 4 std_core$ByteAccess
+import 11 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=22 () -> void
 impl 6 std_core$Display
 impl 24 std_core$Display
+impl 4 std_core$ByteAccess
 impl 6 std_core$Error
 impl 24 std_core$Equals
 vtable std_core$Display.to_string 6 10
@@ -3461,7 +3461,7 @@ fn 64 std_task$started () -> ref
   call 79   ; std_runtime_scheduler$gate_or_new
   local.tee 0   ; gate
   global.set 2   ; started.gate
-  fn.ref 66 22   ; std_task$started$keep fn
+  fn.ref 66 23   ; std_task$started$keep fn
   local.set 1   ; $fn_ref_7
   local.get 0   ; gate
   local.get 1   ; $fn_ref_7
@@ -3536,7 +3536,7 @@ fn 68 std_task$launch__i64 (ref) -> ref
   local.tee 2   ; $arr_7
   local.get 0   ; arg 0
   struct.new 27   ; __lambda_env_std_task_1
-  make_closure 69 22   ; __lambda_std_task_0 fn
+  make_closure 69 23   ; __lambda_std_task_0 fn
   call 67   ; std_task$start_thread
   local.set 1   ; $add_checked_4
   local.get 2   ; $arr_7
@@ -3564,7 +3564,7 @@ fn 70 std_task$run__i64 (ref,ref) -> void
   local $call_ind_6 i64
   local.get 0   ; arg 0
   struct.new 28   ; __defer_env_std_task_3
-  make_closure 71 22   ; __defer_std_task_2 fn
+  make_closure 71 23   ; __defer_std_task_2 fn
   defer.push
   call.import 7   ; std_core$Intrinsic$is_cancelled
   if $L0 void
@@ -3671,7 +3671,7 @@ fn 73 std_task$join__i64 (ref) -> any
   local.get 0   ; arg 0
   local.get 1   ; me
   struct.new 30   ; __defer_env_std_task_5
-  make_closure 74 22   ; __defer_std_task_4 fn
+  make_closure 74 23   ; __defer_std_task_4 fn
   defer.push
   loop $L1 void
     local.field 0 24 2   ; arg 0 std_task$Task__i64.ended
@@ -3872,10 +3872,10 @@ fn 80 std_runtime_scheduler$run_gated (ref,ref) -> bool
   struct.set 38 1   ; std_runtime_scheduler$InitGate.owner
   local.get 0   ; arg 0
   struct.new 39   ; __defer_env_std_runtime_scheduler_1
-  make_closure 81 22   ; __defer_std_runtime_scheduler_0 fn
+  make_closure 81 23   ; __defer_std_runtime_scheduler_0 fn
   defer.push
   local.get 1   ; arg 1
-  call.indirect 22   ; fn
+  call.indirect 23   ; fn
   defer.pop_exec 1
   return.lit bool.const true
 end
@@ -3893,7 +3893,7 @@ fn 82 std_runtime_scheduler$await_gate (ref,i64) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   struct.new 40   ; __defer_env_std_runtime_scheduler_3
-  make_closure 83 22   ; __defer_std_runtime_scheduler_2 fn
+  make_closure 83 23   ; __defer_std_runtime_scheduler_2 fn
   defer.push
   loop $L0 void
     local.field 0 38 0   ; arg 0 std_runtime_scheduler$InitGate.held

@@ -8,7 +8,6 @@ module "vader/front/resolver"
 
 import "std/collections"
 import "std/fs"
-import "std/io"
 import "std/string"
 
 /// How deep under a root a walk looks for module folders.

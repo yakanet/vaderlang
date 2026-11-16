@@ -136,7 +136,7 @@ try_lower_static_member_call :: fn(
         }
     }
     args :: lower_call_args(ctx, call.args, member.arg_types, 0)
-    return build_member_call_or_inline(member, args, type, call.span)
+    return build_member_call_or_inline(ctx, member, args, type, call.span)
 }
 
 // `Trait.member(x, rest)` as the method call `x.member(rest)` it runs: the access
@@ -319,18 +319,8 @@ try_lower_namespace_const :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> Lo
 }
 
 
-// The types the operation `op` on the array member `callee` reads its operands
-// at, the receiver's first : the copying operations' only.
-array_operand_types :: fn(ctx: FnLowerCtx, op: ArrayOp, callee: FieldExpr) -> Type[] {
-    if op != .PushAll && op != .CopyTo {
-        return []
-    }
-    params: Type[]: [ctx.types.expr_type(callee.target)]
-    params.push_all(member_params(ctx, callee))
-    return params
-}
-
-/// An array member an operation serves instead of a call.
+/// An operation on an array, which a member of `Intrinsic` names
+/// (`array_member_op`).
 ArrayOp :: enum {
     Len,
     Push,
@@ -340,28 +330,13 @@ ArrayOp :: enum {
     Clear,
 }
 
-/// The operation serving the array member `name` called with `arity` arguments
-/// besides its receiver ; null for a member a call runs.
-///
-/// @param name   the member.
-/// @param arity  the arguments it is called with, its receiver not counted.
-array_op_of :: fn(name: string, arity: i64) -> ArrayOp | null {
-    if name == "len" && arity == 0         { return .Len }
-    if name == "push" && arity == 1        { return .Push }
-    if name == "push_all" && arity == 1    { return .PushAll }
-    if name == "copy_to" && arity == 4     { return .CopyTo }
-    if name == "remove_last" && arity == 0 { return .RemoveLast }
-    if name == "clear" && arity == 0       { return .Clear }
-    return null
-}
-
 /// The operation `op` on `operands`, the array first.
 ///
 /// @param operands     the array, then the member's arguments, lowered.
 /// @param type         the member's result type.
 /// @param param_types  the type each operand goes in as, the array's first ; empty
 ///                     but for the operations that copy elements in
-///                     (`array_operand_types`).
+///                     (`copied_operand_types`).
 /// @return             the dedicated node, or the `array.*` intrinsic the bytecode
 ///                     op pops its operands for in reverse ; a parameterless op,
 ///                     the runtime reading the element's kind off the array.

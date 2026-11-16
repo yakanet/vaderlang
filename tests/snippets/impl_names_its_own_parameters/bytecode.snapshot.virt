@@ -30,9 +30,9 @@ impl 4 snippet$Getter
 impl 5 snippet$Swap
 impl 5 snippet$Labelled
 impl 6 snippet$Labelled
-impl 7 std_core$ByteAccess
 impl 4 snippet$Labelled
 impl 6 snippet$Swap
+impl 7 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32

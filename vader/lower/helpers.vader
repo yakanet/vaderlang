@@ -44,7 +44,7 @@ recorded_conversion :: fn(
 ) -> LoweredExpr {
     into :: recorded_target(ctx, node, role, expr.type)
     if into is UfcsMember {
-        return build_member_call_or_inline(into, [expr], slot, span)
+        return build_member_call_or_inline(ctx, into, [expr], slot, span)
     }
     return expr
 }

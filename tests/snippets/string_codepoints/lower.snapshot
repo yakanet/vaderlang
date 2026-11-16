@@ -40,7 +40,7 @@
           }
       }
       std.console.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(71))
+          __buf_6: Buffer = std_core$Intrinsic$new_byte_buffer(i64(71))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "chars mixed: codepoints=")
           __off_7 = std.core.write_int(__buf_6, __off_7, n)
@@ -61,7 +61,7 @@
           }
       }
       std.console.println<string>({
-          __buf_10: Buffer = std.core.new_byte_buffer(i64(61))
+          __buf_10: Buffer = std_core$Intrinsic$new_byte_buffer(i64(61))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "len ascii  cp=")
           __off_11 = std.core.write_int(__buf_10, __off_11, std.core.len("vader"))
@@ -70,7 +70,7 @@
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       std.console.println<string>({
-          __buf_12: Buffer = std.core.new_byte_buffer(i64(61))
+          __buf_12: Buffer = std_core$Intrinsic$new_byte_buffer(i64(61))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "len mixed  cp=")
           __off_13 = std.core.write_int(__buf_12, __off_13, std.core.len("héllo"))
@@ -79,7 +79,7 @@
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       std.console.println<string>({
-          __buf_14: Buffer = std.core.new_byte_buffer(i64(61))
+          __buf_14: Buffer = std_core$Intrinsic$new_byte_buffer(i64(61))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "len cjk    cp=")
           __off_15 = std.core.write_int(__buf_14, __off_15, std.core.len("你好嗎？"))
@@ -88,7 +88,7 @@
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       std.console.println<string>({
-          __buf_16: Buffer = std.core.new_byte_buffer(i64(61))
+          __buf_16: Buffer = std_core$Intrinsic$new_byte_buffer(i64(61))
           __off_17: i64 = 0
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "len emoji  cp=")
           __off_17 = std.core.write_int(__buf_16, __off_17, std.core.len("a😀b"))
@@ -97,7 +97,7 @@
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
       std.console.println<string>({
-          __buf_18: Buffer = std.core.new_byte_buffer(i64(61))
+          __buf_18: Buffer = std_core$Intrinsic$new_byte_buffer(i64(61))
           __off_19: i64 = 0
           __off_19 = std.core.write_string_at(__buf_18, __off_19, "len empty  cp=")
           __off_19 = std.core.write_int(__buf_18, __off_19, std.core.len(""))
@@ -114,7 +114,7 @@
           w: i64 = __tup_20._1
           std.console.println<string>({
               __p_21: string = std.core.char.to_string(c)
-              __buf_22: Buffer = std.core.new_byte_buffer(i64(61) +% std_core$Intrinsic$byte_len(__p_21))
+              __buf_22: Buffer = std_core$Intrinsic$new_byte_buffer(i64(61) +% std_core$Intrinsic$byte_len(__p_21))
               __off_23: i64 = 0
               __off_23 = std.core.write_string_at(__buf_22, __off_23, "walk at ")
               __off_23 = std.core.write_int(__buf_22, __off_23, i)
@@ -128,28 +128,28 @@
           i = i + w
       }
       std.console.println<string>({
-          __buf_24: Buffer = std.core.new_byte_buffer(i64(34))
+          __buf_24: Buffer = std_core$Intrinsic$new_byte_buffer(i64(34))
           __off_25: i64 = 0
           __off_25 = std.core.write_string_at(__buf_24, __off_25, "width 'a'   = ")
           __off_25 = std.core.write_int(__buf_24, __off_25, std.string.codepoint_byte_len('a'))
           std.core.finish_buffer(__buf_24, __off_25)
       } :string)
       std.console.println<string>({
-          __buf_26: Buffer = std.core.new_byte_buffer(i64(35))
+          __buf_26: Buffer = std_core$Intrinsic$new_byte_buffer(i64(35))
           __off_27: i64 = 0
           __off_27 = std.core.write_string_at(__buf_26, __off_27, "width 'é'   = ")
           __off_27 = std.core.write_int(__buf_26, __off_27, std.string.codepoint_byte_len('\u{e9}'))
           std.core.finish_buffer(__buf_26, __off_27)
       } :string)
       std.console.println<string>({
-          __buf_28: Buffer = std.core.new_byte_buffer(i64(35))
+          __buf_28: Buffer = std_core$Intrinsic$new_byte_buffer(i64(35))
           __off_29: i64 = 0
           __off_29 = std.core.write_string_at(__buf_28, __off_29, "width '你'  = ")
           __off_29 = std.core.write_int(__buf_28, __off_29, std.string.codepoint_byte_len('\u{4f60}'))
           std.core.finish_buffer(__buf_28, __off_29)
       } :string)
       std.console.println<string>({
-          __buf_30: Buffer = std.core.new_byte_buffer(i64(34))
+          __buf_30: Buffer = std_core$Intrinsic$new_byte_buffer(i64(34))
           __off_31: i64 = 0
           __off_31 = std.core.write_string_at(__buf_30, __off_31, "width emoji = ")
           __off_31 = std.core.write_int(__buf_30, __off_31, std.string.codepoint_byte_len('\u{1f600}'))
@@ -211,20 +211,20 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
   concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
       c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
-      buf: Buffer = std.core.new_byte_buffer(c2)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.write_string(buf, c1, p2)
-      std.core.Buffer.intern_string(buf, c2)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c2)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_intern_string(buf, c2)
   }
 
 ## lowered in dependencies
@@ -234,9 +234,6 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
     fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.ascii_prefix  // std_core$ascii_prefix

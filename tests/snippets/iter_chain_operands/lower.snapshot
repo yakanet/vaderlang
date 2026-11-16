@@ -11,7 +11,7 @@
   }
   snippet.limit :: fn(n: i64) -> i64 {  // snippet$limit
       std.console.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(26))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "limit ")
           __off_1 = std.core.write_int(__buf_0, __off_1, n)
@@ -21,7 +21,7 @@
   }
   snippet.adder :: fn(k: i32) -> fn(i32) -> i32 {  // snippet$adder
       std.console.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(26))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "adder ")
           __off_1 = std.core.write_int(__buf_0, __off_1, k)
@@ -31,7 +31,7 @@
   }
   snippet.above :: fn(k: i32) -> fn(i32) -> bool {  // snippet$above
       std.console.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(26))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "above ")
           __off_1 = std.core.write_int(__buf_0, __off_1, k)
@@ -43,7 +43,7 @@
       xs: i32[] = [1, 2, 3, 4, 5] :i32[]
       empty: i32[] = [] :i32[]
       std.console.println<string>({
-          __buf_2: Buffer = std.core.new_byte_buffer(i64(17))
+          __buf_2: Buffer = std_core$Intrinsic$new_byte_buffer(i64(17))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "any_match = ")
           __off_3 = std.core.write_bool(__buf_2, __off_3, {
@@ -73,7 +73,7 @@
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.console.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(17))
+          __buf_6: Buffer = std_core$Intrinsic$new_byte_buffer(i64(17))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "all_match = ")
           __off_7 = std.core.write_bool(__buf_6, __off_7, {
@@ -103,7 +103,7 @@
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.console.println<string>({
-          __buf_11: Buffer = std.core.new_byte_buffer(i64(27))
+          __buf_11: Buffer = std_core$Intrinsic$new_byte_buffer(i64(27))
           __off_12: i64 = 0
           __off_12 = std.core.write_string_at(__buf_11, __off_12, "find = ")
           __off_12 = std.core.write_int(__buf_11, __off_12, {
@@ -136,7 +136,7 @@
           std.core.finish_buffer(__buf_11, __off_12)
       } :string)
       std.console.println<string>({
-          __buf_15: Buffer = std.core.new_byte_buffer(i64(16))
+          __buf_15: Buffer = std_core$Intrinsic$new_byte_buffer(i64(16))
           __off_16: i64 = 0
           __off_16 = std.core.write_string_at(__buf_15, __off_16, "on empty = ")
           __off_16 = std.core.write_bool(__buf_15, __off_16, {
@@ -166,7 +166,7 @@
           std.core.finish_buffer(__buf_15, __off_16)
       } :string)
       std.console.println<string>({
-          __buf_19: Buffer = std.core.new_byte_buffer(i64(28))
+          __buf_19: Buffer = std_core$Intrinsic$new_byte_buffer(i64(28))
           __off_20: i64 = 0
           __off_20 = std.core.write_string_at(__buf_19, __off_20, "count = ")
           __off_20 = std.core.write_int(__buf_19, __off_20, {
@@ -193,7 +193,7 @@
           std.core.finish_buffer(__buf_19, __off_20)
       } :string)
       std.console.println<string>({
-          __buf_23: Buffer = std.core.new_byte_buffer(i64(27))
+          __buf_23: Buffer = std_core$Intrinsic$new_byte_buffer(i64(27))
           __off_24: i64 = 0
           __off_24 = std.core.write_string_at(__buf_23, __off_24, "take = ")
           __off_24 = std.core.write_int(__buf_23, __off_24, {
@@ -226,7 +226,7 @@
           std.core.finish_buffer(__buf_23, __off_24)
       } :string)
       std.console.println<string>({
-          __buf_27: Buffer = std.core.new_byte_buffer(i64(30))
+          __buf_27: Buffer = std_core$Intrinsic$new_byte_buffer(i64(30))
           __off_28: i64 = 0
           __off_28 = std.core.write_string_at(__buf_27, __off_28, "collect = ")
           __off_28 = std.core.write_int(__buf_27, __off_28, @array.len({
@@ -262,7 +262,7 @@
               if pred(x) {
                   y: i32 = x
                   std.console.println<string>({
-                      __buf_29: Buffer = std.core.new_byte_buffer(i64(28))
+                      __buf_29: Buffer = std_core$Intrinsic$new_byte_buffer(i64(28))
                       __off_30: i64 = 0
                       __off_30 = std.core.write_string_at(__buf_29, __off_30, "for y = ")
                       __off_30 = std.core.write_int(__buf_29, __off_30, y)
@@ -274,7 +274,7 @@
           }
       }
       std.console.println<string>({
-          __buf_37: Buffer = std.core.new_byte_buffer(i64(28))
+          __buf_37: Buffer = std_core$Intrinsic$new_byte_buffer(i64(28))
           __off_38: i64 = 0
           __off_38 = std.core.write_string_at(__buf_37, __off_38, "range = ")
           __off_38 = std.core.write_int(__buf_37, __off_38, {
@@ -304,7 +304,7 @@
               x: i32 = __fuse_arr_41[__fuse_i_44]
               z: i32 = x
               std.console.println<string>({
-                  __buf_39: Buffer = std.core.new_byte_buffer(i64(30))
+                  __buf_39: Buffer = std_core$Intrinsic$new_byte_buffer(i64(30))
                   __off_40: i64 = 0
                   __off_40 = std.core.write_string_at(__buf_39, __off_40, "chain z = ")
                   __off_40 = std.core.write_int(__buf_39, __off_40, z)
@@ -319,7 +319,7 @@
               y: i32 = __fuse_arr_42[__fuse_i_46]
               z: i32 = y
               std.console.println<string>({
-                  __buf_39: Buffer = std.core.new_byte_buffer(i64(30))
+                  __buf_39: Buffer = std_core$Intrinsic$new_byte_buffer(i64(30))
                   __off_40: i64 = 0
                   __off_40 = std.core.write_string_at(__buf_39, __off_40, "chain z = ")
                   __off_40 = std.core.write_int(__buf_39, __off_40, z)
@@ -348,7 +348,7 @@
               } else {
                   i: i32 = i32(__step_49)
                   std.console.println<string>({
-                      __buf_50: Buffer = std.core.new_byte_buffer(i64(36))
+                      __buf_50: Buffer = std_core$Intrinsic$new_byte_buffer(i64(36))
                       __off_51: i64 = 0
                       __off_51 = std.core.write_string_at(__buf_50, __off_51, "range value i = ")
                       __off_51 = std.core.write_int(__buf_50, __off_51, i)
@@ -362,7 +362,7 @@
           __for_hi_54: i32 = snippet.bound("hi", 2)
           for i < __for_hi_54 {
               std.console.println<string>({
-                  __buf_52: Buffer = std.core.new_byte_buffer(i64(30))
+                  __buf_52: Buffer = std_core$Intrinsic$new_byte_buffer(i64(30))
                   __off_53: i64 = 0
                   __off_53 = std.core.write_string_at(__buf_52, __off_53, "plain i = ")
                   __off_53 = std.core.write_int(__buf_52, __off_53, i)
@@ -379,7 +379,7 @@
           for i < __for_hi_57 {
               n = 5
               std.console.println<string>({
-                  __buf_55: Buffer = std.core.new_byte_buffer(i64(32))
+                  __buf_55: Buffer = std_core$Intrinsic$new_byte_buffer(i64(32))
                   __off_56: i64 = 0
                   __off_56 = std.core.write_string_at(__buf_55, __off_56, "rebound i = ")
                   __off_56 = std.core.write_int(__buf_55, __off_56, i)
@@ -391,7 +391,7 @@
       }
       below: i32 = -1
       std.console.println<string>({
-          __buf_60: Buffer = std.core.new_byte_buffer(i64(10))
+          __buf_60: Buffer = std_core$Intrinsic$new_byte_buffer(i64(10))
           __off_61: i64 = 0
           __off_61 = std.core.write_string_at(__buf_60, __off_61, "in = ")
           __off_61 = std.core.write_bool(__buf_60, __off_61, {
@@ -414,10 +414,10 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
 
 ## lowered in dependencies
@@ -427,9 +427,6 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
     fn std.core.finish_buffer  // std_core$finish_buffer

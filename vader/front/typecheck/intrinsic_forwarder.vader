@@ -1,0 +1,92 @@
+// vader/front/typecheck/intrinsic_forwarder: a function that only forwards its
+// parameters to a member of `std/core`'s `Intrinsic`.
+//
+// The standard library wraps the members of `Intrinsic` in functions of its own
+// (`byte_len :: fn(s: string) -> i64 = Intrinsic.byte_len(s)`), free functions
+// and impl members alike. What such a function does is what its member does: the
+// lowering lowers a call to it as the member's (`vader/lower/intrinsic_forwarders`),
+// and the effects summarise it by the member's. The rule reads the shape alone,
+// never a name of the library.
+
+module "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+import "vader/core/symbol"
+import "vader/core/types"
+
+/// The member of `Intrinsic` `decl` calls when its body is that call alone, on its
+/// parameters in order, and it takes and returns what the member does ; null for
+/// any other function.
+///
+/// @param decl   a function, free or an impl member.
+/// @param typed  the module that checked `decl`.
+export forwarded_intrinsic :: fn(decl: AST.FnDecl, typed: TypedProgram) -> AST.FnDecl | null {
+    call :: single_call(decl) else return null
+    intrinsic :: typed.intrinsic_symbol else return null
+    trait_decl :: typed.trait_decls[intrinsic.id] else return null
+    member :: recorded_decl(typed, call) else return null
+    if !declares(trait_decl, member) || !passes_parameters(call, decl) {
+        return null
+    }
+    if !same_signature(decl, member, intrinsic, typed) {
+        return null
+    }
+    return member
+}
+
+// Whether `member` is one of the members of `trait_decl`.
+declares :: fn(trait_decl: AST.TraitDecl, member: AST.FnDecl) -> bool {
+    for m in trait_decl.members {
+        if m.id == member.id {
+            return true
+        }
+    }
+    return false
+}
+
+// The call that is the whole body of `decl` ; null for any other body.
+single_call :: fn(decl: AST.FnDecl) -> AST.CallExpr | null {
+    body :: decl.body else return null
+    if !body.stmts.is_empty() {
+        return null
+    }
+    trailing :: body.trailing else return null
+    if trailing is AST.CallExpr {
+        return trailing
+    }
+    return null
+}
+
+// Whether `call` passes the parameters of `decl`, in order, and nothing else.
+passes_parameters :: fn(call: AST.CallExpr, decl: AST.FnDecl) -> bool {
+    if call.args.len() != decl.params.len() {
+        return false
+    }
+    for i in 0..<decl.params.len() {
+        value :: call.args[i].value
+        if value !is AST.IdentExpr || value.name != decl.params[i].name {
+            return false
+        }
+    }
+    return true
+}
+
+// Whether `decl` takes the parameters `member` of the trait `intrinsic` does and
+// returns what it returns, so a call lowered against the member's signature is
+// the call to `decl`. A generic member is bound at each call, against types its
+// declaration cannot spell.
+same_signature :: fn(
+    decl: AST.FnDecl,
+    member: AST.FnDecl,
+    intrinsic: Symbol,
+    typed: TypedProgram,
+) -> bool {
+    if !member.type_params.is_empty() {
+        return true
+    }
+    own :: declared_fn_type(typed, decl)
+    if own !is FnType {
+        return false
+    }
+    return equals_type(own, trait_member_type(intrinsic.id, member, typed))
+}

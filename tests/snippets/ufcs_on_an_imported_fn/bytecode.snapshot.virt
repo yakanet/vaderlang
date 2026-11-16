@@ -114,8 +114,8 @@ import 20 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcnt
 import 21 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
 import 22 extern :vader_fd_size system_posix$sys_fd_size headers=vader.h result_type=3 param_types=1 param_c_out= param_by_address= (i32) -> i64
 import 23 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=11 param_types=2 param_c_out= param_by_address= (string) -> any
-impl 4 std_core$ByteAccess
 impl 18 std_io$Writer
+impl 4 std_core$ByteAccess
 impl 14 std_core$Error
 impl 18 std_io$Reader
 export main 0

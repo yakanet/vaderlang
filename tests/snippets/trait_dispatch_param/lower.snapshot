@@ -12,4 +12,3 @@
 ## lowered in dependencies
   std/core
     fn std.core.i32.hash  // std_core$i32$Hash$hash
-    struct std.core.Buffer  // std_core$Buffer

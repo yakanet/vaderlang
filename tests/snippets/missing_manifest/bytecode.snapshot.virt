@@ -72,8 +72,8 @@ import 7 extern :close system_posix$sys_close headers=<unistd.h> result_type=2 p
 import 8 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=1,2,2 param_c_out= param_by_address= (string,i32,i32) -> i32
 import 9 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
 import 10 extern :vader_fd_size system_posix$sys_fd_size headers=vader.h result_type=6 param_types=2 param_c_out= param_by_address= (i32) -> i64
-impl 7 std_core$ByteAccess
 impl 11 std_core$Error
+impl 7 std_core$ByteAccess
 impl 16 std_io$Reader
 impl 16 std_io$Writer
 vtable std_core$Error.message 11 33

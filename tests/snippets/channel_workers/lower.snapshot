@@ -108,7 +108,7 @@
       }
       std.console.println<string>(concat_2("taken ", std.string.join(taken, " ")))
       std.console.println<string>({
-          __buf_7: Buffer = std.core.new_byte_buffer(i64(53))
+          __buf_7: Buffer = std_core$Intrinsic$new_byte_buffer(i64(53))
           __off_8: i64 = 0
           __off_8 = std.core.write_string_at(__buf_7, __off_8, "done ")
           __off_8 = std.core.write_int(__buf_7, __off_8, std.task.load(pipes.done))
@@ -124,7 +124,7 @@
   __lambda_snippet_0 :: fn(__env_2: __lambda_env_snippet_1, lines: string[]) -> void {
       @array.push(lines, {
           __p_0: string = __env_2.cap_0
-          __buf_1: Buffer = std.core.new_byte_buffer(i64(21) +% std_core$Intrinsic$byte_len(__p_0))
+          __buf_1: Buffer = std_core$Intrinsic$new_byte_buffer(i64(21) +% std_core$Intrinsic$byte_len(__p_0))
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, ":")
@@ -149,10 +149,10 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
 
 ## lowered in dependencies
@@ -174,10 +174,6 @@
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
     const FLOAT_POW5_INV_SPLIT: u64[]  data pool #2
     const FLOAT_POW5_SPLIT: u64[]  data pool #3
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Cancelled.to_string  // std_core$Cancelled$Display$to_string
     fn std.core.b2i  // std_core$b2i
     fn std.core.b2u  // std_core$b2u

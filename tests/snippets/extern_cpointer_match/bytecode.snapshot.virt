@@ -107,8 +107,8 @@ import 18 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=1 
 import 19 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=2,1,1 param_c_out= param_by_address= (string,i32,i32) -> i32
 import 20 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
 import 21 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=12 param_types=2 param_c_out= param_by_address= (string) -> any
-impl 9 std_core$ByteAccess
 impl 18 std_io$Writer
+impl 9 std_core$ByteAccess
 impl 15 std_core$Error
 impl 18 std_io$Reader
 export main 0

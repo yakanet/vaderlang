@@ -21,7 +21,6 @@ import "std/collections"
 AST :: import "toolchain/ast"
 import "vader/core/symbol"
 import "vader/core/types"
-import "toolchain/span"
 import "vader/lower/ir"
 
 /// Lower a `DeferStmt` to a `LoweredDeferPush`. Synthesises the lifted

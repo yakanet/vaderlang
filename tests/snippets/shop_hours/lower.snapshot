@@ -4,7 +4,7 @@
   snippet.day_of :: fn(n: i32) -> string {  // snippet$day_of
       if (n < 0) || (n > 6) {
           return {
-              __buf_0: Buffer = std.core.new_byte_buffer(i64(27))
+              __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(27))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "no day ")
               __off_1 = std.core.write_int(__buf_0, __off_1, n)
@@ -48,7 +48,7 @@
               }
               Discount(rate)
           } :Discount)
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(12) +% std_core$Intrinsic$byte_len(__p_5))
+          __buf_6: Buffer = std_core$Intrinsic$new_byte_buffer(i64(12) +% std_core$Intrinsic$byte_len(__p_5))
           __off_7: i64 = 0
           __off_7 = std.core.write_bool(__buf_6, __off_7, __p_4)
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
@@ -80,7 +80,7 @@
           }
       }
       std.console.println<string>({
-          __buf_11: Buffer = std.core.new_byte_buffer(i64(41))
+          __buf_11: Buffer = std_core$Intrinsic$new_byte_buffer(i64(41))
           __off_12: i64 = 0
           __off_12 = std.core.write_int(__buf_11, __off_12, hours)
           __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
@@ -128,30 +128,30 @@
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
       c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
       c3: i64 = c2 +% std_core$Intrinsic$byte_len(p3)
-      buf: Buffer = std.core.new_byte_buffer(c3)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.write_string(buf, c1, p2)
-      std.core.Buffer.write_string(buf, c2, p3)
-      std.core.Buffer.intern_string(buf, c3)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c3)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_write_string(buf, c2, p3)
+      std_core$Intrinsic$buffer_intern_string(buf, c3)
   }
   concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
       c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
-      buf: Buffer = std.core.new_byte_buffer(c2)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.write_string(buf, c1, p2)
-      std.core.Buffer.intern_string(buf, c2)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c2)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_intern_string(buf, c2)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
   vtable std.core.Display.to_string for Discount  snippet.Discount.to_string  // snippet$Discount$std_core$Display$to_string
   vtable std.core.Display.to_string for Weekday  snippet.Weekday.to_string  // snippet$Weekday$std_core$Display$to_string
@@ -164,9 +164,6 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.string.to_string  // std_core$string$Display$to_string
     fn std.core.write_bool  // std_core$write_bool

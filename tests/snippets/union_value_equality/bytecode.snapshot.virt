@@ -40,8 +40,8 @@ impl 4 std_core$Equals
 impl 6 std_core$Equals
 impl 1 std_core$Equals
 impl 3 std_core$Equals
-impl 12 std_core$ByteAccess
 impl 11 std_core$Equals
+impl 12 std_core$ByteAccess
 vtable std_core$Equals.equals 6 4
 vtable std_core$Equals.equals 1 8
 vtable std_core$Equals.equals 3 9

@@ -7,7 +7,3 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       return 0
   }
-
-## lowered in dependencies
-  std/core
-    struct std.core.Buffer  // std_core$Buffer

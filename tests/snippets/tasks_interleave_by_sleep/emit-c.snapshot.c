@@ -1025,7 +1025,7 @@ static vader_box_t vader_fn_tramp_std_task$started$keep(void* env) {
 }
 
 static vader_fn_t vader_fn_static_std_task$started$keep = {
-    VADER_STATIC_HEADER(22u), (void*) &vader_fn_tramp_std_task$started$keep, NULL,
+    VADER_STATIC_HEADER(23u), (void*) &vader_fn_tramp_std_task$started$keep, NULL,
 };
 
 static vader_box_t vader_fn_lift___lambda_std_task_0(void* env) {
@@ -1099,7 +1099,7 @@ const vader_type_info_t vader_type_info_table[43] = {
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
     },
     [21] = { .slot_size = 16 },
-    [22] = {
+    [23] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
         .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
@@ -3087,7 +3087,7 @@ static void* std_task$launch__i64(void* l0) {
     _a3_obj->f_cap_1 = l0;
     t0 = (void*) _a3_obj;
     vader_fn_t* _a4_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a4_closure, 22u);
+    vader_obj_header_init(_a4_closure, 23u);
     _a4_closure->code = (void*) &vader_fn_lift___lambda_std_task_0;
     _a4_closure->env = t0;
     t0 = (void*) _a4_closure;
@@ -3123,7 +3123,7 @@ static void std_task$run__i64(void* l0, void* l1) {
     _a0_obj->f_cap_0 = l0;
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 22u);
+    vader_obj_header_init(_a1_closure, 23u);
     _a1_closure->code = (void*) &vader_fn_lift___defer_std_task_2;
     _a1_closure->env = t0;
     t0 = (void*) _a1_closure;
@@ -3213,7 +3213,7 @@ static vader_box_t std_task$join__i64(void* l0) {
     _a1_obj->f_cap_1 = l1;
     t2 = (void*) _a1_obj;
     vader_fn_t* _a2_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a2_closure, 22u);
+    vader_obj_header_init(_a2_closure, 23u);
     _a2_closure->code = (void*) &vader_fn_lift___defer_std_task_4;
     _a2_closure->env = t2;
     t2 = (void*) _a2_closure;
@@ -3376,7 +3376,7 @@ static bool std_runtime_scheduler$run_gated(void* l0, void* l1) {
     _a0_obj->f_cap_0 = l0;
     t2 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 22u);
+    vader_obj_header_init(_a1_closure, 23u);
     _a1_closure->code = (void*) &vader_fn_lift___defer_std_runtime_scheduler_0;
     _a1_closure->env = t2;
     t2 = (void*) _a1_closure;
@@ -3405,7 +3405,7 @@ static void std_runtime_scheduler$await_gate(void* l0, int64_t l1) {
     _a0_obj->f_cap_1 = l1;
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 22u);
+    vader_obj_header_init(_a1_closure, 23u);
     _a1_closure->code = (void*) &vader_fn_lift___defer_std_runtime_scheduler_2;
     _a1_closure->env = t0;
     t0 = (void*) _a1_closure;

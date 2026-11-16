@@ -74,8 +74,8 @@ impl 10 snippet$Poke
 impl 11 snippet$Poke
 impl 13 snippet$Poke
 impl 15 snippet$Poke
-impl 18 std_core$ByteAccess
 impl 6 std_core$Display
+impl 18 std_core$ByteAccess
 vtable snippet$Poke.poke 1 0
 vtable snippet$Poke.poke 8 5
 vtable snippet$Poke.poke 6 6

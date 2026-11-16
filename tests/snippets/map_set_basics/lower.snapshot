@@ -7,7 +7,7 @@
       } else {
           std.console.println<string>({
               __p_0: string = label
-              __buf_1: Buffer = std.core.new_byte_buffer(i64(21) +% std_core$Intrinsic$byte_len(__p_0))
+              __buf_1: Buffer = std_core$Intrinsic$new_byte_buffer(i64(21) +% std_core$Intrinsic$byte_len(__p_0))
               __off_2: i64 = 0
               __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
               __off_2 = std.core.write_string_at(__buf_1, __off_2, "=")
@@ -30,7 +30,7 @@
       std.collections.Map<i32, i32>.set_at(ints, 2, 20)
       std.collections.Map<i32, i32>.set_at(ints, 17, 170)
       std.console.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(35))
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(35))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "i32 keys: size=")
           __off_1 = std.core.write_int(__buf_0, __off_1, std.collections.len<i32, i32>(ints))
@@ -39,7 +39,7 @@
       snippet.show("i32 keys: 1", std.collections.Map<i32, i32>.at(ints, 1))
       snippet.show("i32 keys: 17", std.collections.Map<i32, i32>.at(ints, 17))
       std.console.println<string>({
-          __buf_2: Buffer = std.core.new_byte_buffer(i64(32))
+          __buf_2: Buffer = std_core$Intrinsic$new_byte_buffer(i64(32))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "i32 keys: 2 in=")
           __off_3 = std.core.write_bool(__buf_2, __off_3, std.collections.Map<i32, i32>.contains(ints, 2))
@@ -62,7 +62,7 @@
       std.collections.Map<string, i32>.set_at(words, "world", 2)
       std.collections.Map<string, i32>.set_at(words, "vader", 42)
       std.console.println<string>({
-          __buf_4: Buffer = std.core.new_byte_buffer(i64(38))
+          __buf_4: Buffer = std_core$Intrinsic$new_byte_buffer(i64(38))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "string keys: size=")
           __off_5 = std.core.write_int(__buf_4, __off_5, std.collections.len<string, i32>(words))
@@ -70,7 +70,7 @@
       } :string)
       snippet.show("string keys: vader", std.collections.Map<string, i32>.at(words, "vader"))
       std.console.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(44))
+          __buf_6: Buffer = std_core$Intrinsic$new_byte_buffer(i64(44))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "string keys: hello in=")
           __off_7 = std.core.write_bool(__buf_6, __off_7, std.collections.Map<string, i32>.contains(words, "hello"))
@@ -122,7 +122,7 @@
           }
       }
       std.console.println<string>({
-          __buf_14: Buffer = std.core.new_byte_buffer(i64(36))
+          __buf_14: Buffer = std_core$Intrinsic$new_byte_buffer(i64(36))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "read back: size=")
           __off_15 = std.core.write_int(__buf_14, __off_15, std.collections.len<string, i32>(table))
@@ -154,7 +154,7 @@
                   v: i32 = __gen_elem_20._1
                   std.console.println<string>({
                       __p_17: string = k
-                      __buf_18: Buffer = std.core.new_byte_buffer(i64(38) +% std_core$Intrinsic$byte_len(__p_17))
+                      __buf_18: Buffer = std_core$Intrinsic$new_byte_buffer(i64(38) +% std_core$Intrinsic$byte_len(__p_17))
                       __off_19: i64 = 0
                       __off_19 = std.core.write_string_at(__buf_18, __off_19, "for destructure: ")
                       __off_19 = std.core.write_string_at(__buf_18, __off_19, __p_17)
@@ -169,7 +169,7 @@
           }
       }
       std.console.println<string>({
-          __buf_21: Buffer = std.core.new_byte_buffer(i64(41))
+          __buf_21: Buffer = std_core$Intrinsic$new_byte_buffer(i64(41))
           __off_22: i64 = 0
           __off_22 = std.core.write_string_at(__buf_21, __off_22, "for destructure: sum=")
           __off_22 = std.core.write_int(__buf_21, __off_22, sum)
@@ -187,21 +187,21 @@
           },
       }
       std.console.println<string>({
-          __buf_23: Buffer = std.core.new_byte_buffer(i64(21))
+          __buf_23: Buffer = std_core$Intrinsic$new_byte_buffer(i64(21))
           __off_24: i64 = 0
           __off_24 = std.core.write_string_at(__buf_23, __off_24, "set: add 10 new=")
           __off_24 = std.core.write_bool(__buf_23, __off_24, std.collections.add<i32>(s, 10))
           std.core.finish_buffer(__buf_23, __off_24)
       } :string)
       std.console.println<string>({
-          __buf_25: Buffer = std.core.new_byte_buffer(i64(21))
+          __buf_25: Buffer = std_core$Intrinsic$new_byte_buffer(i64(21))
           __off_26: i64 = 0
           __off_26 = std.core.write_string_at(__buf_25, __off_26, "set: add 20 new=")
           __off_26 = std.core.write_bool(__buf_25, __off_26, std.collections.add<i32>(s, 20))
           std.core.finish_buffer(__buf_25, __off_26)
       } :string)
       std.console.println<string>({
-          __buf_27: Buffer = std.core.new_byte_buffer(i64(27))
+          __buf_27: Buffer = std_core$Intrinsic$new_byte_buffer(i64(27))
           __off_28: i64 = 0
           __off_28 = std.core.write_string_at(__buf_27, __off_28, "set: add 10 again new=")
           __off_28 = std.core.write_bool(__buf_27, __off_28, std.collections.add<i32>(s, 10))
@@ -209,7 +209,7 @@
       } :string)
       std.collections.add<i32>(s, 30)
       std.console.println<string>({
-          __buf_29: Buffer = std.core.new_byte_buffer(i64(53))
+          __buf_29: Buffer = std_core$Intrinsic$new_byte_buffer(i64(53))
           __off_30: i64 = 0
           __off_30 = std.core.write_string_at(__buf_29, __off_30, "set: len=")
           __off_30 = std.core.write_int(__buf_29, __off_30, std.collections.len<i32>(s))
@@ -230,20 +230,20 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
   concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
       c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
-      buf: Buffer = std.core.new_byte_buffer(c2)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.write_string(buf, c1, p2)
-      std.core.Buffer.intern_string(buf, c2)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c2)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_intern_string(buf, c2)
   }
 
 ## lowered in dependencies
@@ -301,9 +301,6 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32.hash  // std_core$i32$Hash$hash
     fn std.core.string.hash  // std_core$string$Hash$hash

@@ -17,4 +17,3 @@
 ## lowered in dependencies
   std/core
     fn std.core.i32.add  // std_core$i32$Add$add
-    struct std.core.Buffer  // std_core$Buffer

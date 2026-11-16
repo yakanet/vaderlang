@@ -97,7 +97,7 @@
               std.console.println<string>({
                   __p_3: i32 = @vcall(snippet.Probe.describe, p)
                   __p_4: string = @vcall(snippet.Probe.kind, p)
-                  __buf_5: Buffer = std.core.new_byte_buffer(i64(54) +% std_core$Intrinsic$byte_len(__p_4))
+                  __buf_5: Buffer = std_core$Intrinsic$new_byte_buffer(i64(54) +% std_core$Intrinsic$byte_len(__p_4))
                   __off_6: i64 = 0
                   __off_6 = std.core.write_int(__buf_5, __off_6, __p_3)
                   __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
@@ -121,10 +121,10 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
   vtable snippet.Probe.absent for Square  snippet.Square.absent  // snippet$Square$Probe$absent
   vtable snippet.Probe.absent for f64  snippet.f64.absent  // snippet$f64$Probe$absent
@@ -156,9 +156,6 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int

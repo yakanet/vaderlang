@@ -30,7 +30,3 @@
       b: i32 = ((snippet.bucket(9) + (snippet.bucket(10) * 10)) + (snippet.bucket(99) * 100)) + (snippet.bucket(100) * 1000)
       return c + b
   }
-
-## lowered in dependencies
-  std/core
-    struct std.core.Buffer  // std_core$Buffer

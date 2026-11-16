@@ -11,12 +11,10 @@
 module "vader/tools/lsp/analysis"
 
 import "std/collections"
-import "std/string"
 import "std/uri"
 import "toolchain/diagnostics"
 import "vader/core/symbol"
 import "vader/front/resolver"
-import "vader/tools/lsp/protocol"
 
 /// Where a cross-file goto-def landed : a file URI + the target's
 /// `name_span` so the handler can encode an LSP `Location`. Returns

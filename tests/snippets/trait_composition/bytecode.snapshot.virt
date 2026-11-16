@@ -18,9 +18,9 @@ import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 p
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=9 () -> void
 impl 1 snippet$Hashable
-impl 5 std_core$ByteAccess
 impl 1 std_core$Hash
 impl 1 std_core$Equals
+impl 5 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$Tag$Hashable$fingerprint (ref) -> u64

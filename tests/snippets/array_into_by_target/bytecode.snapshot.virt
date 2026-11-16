@@ -26,8 +26,8 @@ import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 p
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=14 () -> void
 impl 5 std_core$Into
-impl 8 std_core$ByteAccess
 impl 9 std_core$Iterator
+impl 8 std_core$ByteAccess
 vtable std_core$Iterator.next 9 9
 export main 2
 

@@ -387,7 +387,7 @@ render_part :: fn(
     }
     target :: callee_target(ctx, callee, shown)
     if target is UfcsMember {
-        return build_member_call_or_inline(target, [value], TY_STRING, span)
+        return build_member_call_or_inline(ctx, target, [value], TY_STRING, span)
     }
     // A member dispatched at run time ; a value no writer takes (one that never
     // exists) renders through the vtable too.

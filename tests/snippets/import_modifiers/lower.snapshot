@@ -12,7 +12,3 @@
   snippet.toolkit.compute_bounding_box :: fn() -> i32 {  // snippet_toolkit$compute_bounding_box
       30
   }
-
-## lowered in dependencies
-  std/core
-    struct std.core.Buffer  // std_core$Buffer

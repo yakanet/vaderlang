@@ -18,7 +18,7 @@
               x: i32 = __for_arr_0[__for_i_2]
               out = {
                   __p_3: string = out
-                  __buf_4: Buffer = std.core.new_byte_buffer(i64(21) +% std_core$Intrinsic$byte_len(__p_3))
+                  __buf_4: Buffer = std_core$Intrinsic$new_byte_buffer(i64(21) +% std_core$Intrinsic$byte_len(__p_3))
                   __off_5: i64 = 0
                   __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
                   __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
@@ -77,7 +77,7 @@
           out
       } :i32[])
       std.console.println<string>({
-          __buf_3: Buffer = std.core.new_byte_buffer(i64(40))
+          __buf_3: Buffer = std_core$Intrinsic$new_byte_buffer(i64(40))
           __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "filter count fused: ")
           __off_4 = std.core.write_int(__buf_3, __off_4, {
@@ -106,7 +106,7 @@
       } :string)
       lazy_filter: Iterator<[i32, i32]> = std.iter.zip<i32, i32>(a, b)
       std.console.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(39))
+          __buf_6: Buffer = std_core$Intrinsic$new_byte_buffer(i64(39))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "filter count lazy: ")
           __off_7 = std.core.write_int(__buf_6, __off_7, {
@@ -169,7 +169,7 @@
           out
       } :i32[])
       std.console.println<string>({
-          __buf_10: Buffer = std.core.new_byte_buffer(i64(16))
+          __buf_10: Buffer = std_core$Intrinsic$new_byte_buffer(i64(16))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "any fused: ")
           __off_11 = std.core.write_bool(__buf_10, __off_11, {
@@ -226,7 +226,7 @@
       }
       if !(found is null) {
           std.console.println<string>({
-              __buf_13: Buffer = std.core.new_byte_buffer(i64(53))
+              __buf_13: Buffer = std_core$Intrinsic$new_byte_buffer(i64(53))
               __off_14: i64 = 0
               __off_14 = std.core.write_string_at(__buf_13, __off_14, "find fused: ")
               __off_14 = std.core.write_int(__buf_13, __off_14, ([i32, i32])(found)._0)
@@ -263,7 +263,7 @@
           }
       }
       std.console.println<string>({
-          __buf_15: Buffer = std.core.new_byte_buffer(i64(32))
+          __buf_15: Buffer = std_core$Intrinsic$new_byte_buffer(i64(32))
           __off_16: i64 = 0
           __off_16 = std.core.write_string_at(__buf_15, __off_16, "loop fused: ")
           __off_16 = std.core.write_int(__buf_15, __off_16, total)
@@ -282,7 +282,7 @@
                   pair: [i32, i32] = __gen_elem_20._0
                   i: i64 = __gen_elem_20._1
                   std.console.println<string>({
-                      __buf_18: Buffer = std.core.new_byte_buffer(i64(77))
+                      __buf_18: Buffer = std_core$Intrinsic$new_byte_buffer(i64(77))
                       __off_19: i64 = 0
                       __off_19 = std.core.write_string_at(__buf_18, __off_19, "indexed fused: ")
                       __off_19 = std.core.write_int(__buf_18, __off_19, i)
@@ -300,7 +300,7 @@
       }
       empty: i32[] = [] :i32[]
       std.console.println<string>({
-          __buf_22: Buffer = std.core.new_byte_buffer(i64(33))
+          __buf_22: Buffer = std_core$Intrinsic$new_byte_buffer(i64(33))
           __off_23: i64 = 0
           __off_23 = std.core.write_string_at(__buf_22, __off_23, "empty fused: ")
           __off_23 = std.core.write_int(__buf_22, __off_23, {
@@ -328,10 +328,10 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
 
 ## lowered in dependencies
@@ -341,9 +341,6 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int

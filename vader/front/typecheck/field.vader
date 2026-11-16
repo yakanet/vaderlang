@@ -63,8 +63,8 @@ infer_field :: fn(
         note_callee(typed, e, FN_VALUE_CALLEE)
         return union_read
     }
-    // Built-in array methods (`len`/`push`/...) resolve as members of the
-    // `@intrinsic T[] implements ArrayOps` blanket (std/core/array.vader), through
+    // Built-in array methods (`len`/`push`/...) resolve as members of
+    // `T[] implements ArrayOps` (std/core/array.vader), through
     // `try_impl_method_ufcs`'s `[]`-keyed lookup + `impl_member_type`.
     candidate:= try_impl_method_ufcs(target_ty, e, expected, typed, diags)
     if candidate !is null {

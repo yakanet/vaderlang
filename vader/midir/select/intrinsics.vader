@@ -1,10 +1,10 @@
 // vader/midir/select/intrinsics: mangled name -> dedicated bytecode op.
 //
-// Stdlib `@intrinsic` impl members, and a few free fns, map to a dedicated
-// bytecode op rather than a host-provided import, e.g. `a + b` on `i32` and
-// `a.add(b)` both emit the same `i32.add` op ; the `Buffer` byte ops
-// (`load_u8` / `store_u8` / `memory_copy` / `intern_string` /
-// `write_string`) map to the Target-ABI memory opcodes. The table is built at
+// Stdlib `@intrinsic` impl members, and the members of `Intrinsic` behind the
+// `Buffer` byte ops, map to a dedicated bytecode op rather than a host-provided
+// import, e.g. `a + b` on `i32` and `a.add(b)` both emit the same `i32.add` op ;
+// `Intrinsic.buffer_load_u8` and its siblings map to the Target-ABI memory
+// opcodes. The table is built at
 // compile time from the declarations' names, through the mangler
 // (`vader/core/mangle`): no mangled name is spelled here.
 
@@ -53,16 +53,9 @@ OPS_BY_HOST: Map<string, Op>: @comptime {
     out[primitive_member_mangle("u64", @type_name(BitsFloat), "from_bits")] = BitsToF64 {}
     out[primitive_member_mangle("f32", @type_name(Float32Bits), "to_bits")] = F32ToBits {}
     out[primitive_member_mangle("u32", @type_name(Bits32Float), "from_bits")] = BitsToF32 {}
-    // The Target ABI memory opcodes: the abstract `Buffer`'s methods
-    // (`lib/std/core/buffer.vader`, whose trait the module keeps private), and
-    // its allocation, which takes no operand: the object is always a `Buffer`.
-    out[declaration_mangle(CORE_MODULE, "new_byte_buffer")] = BufferNew {}
-    buffer :: (method: string) -> primitive_member_mangle(@type_name(Buffer), "ByteAccess", method)
-    out[buffer("load_u8")] = LoadU8 {}
-    out[buffer("store_u8")] = StoreU8 {}
-    out[buffer("memory_copy")] = MemoryCopy {}
-    out[buffer("intern_string")] = BufferToString {}
-    out[buffer("write_string")] = BufferWriteString {}
+    // The Target ABI memory opcodes: the members of `Intrinsic` behind the
+    // abstract `Buffer`'s methods (`lib/std/core/buffer.vader`), and its
+    // allocation, which takes no operand: the object is always a `Buffer`.
     intrinsic :: (member: string) -> trait_member_mangle(CORE_MODULE, TRAIT_INTRINSIC, member)
     out[intrinsic("new_byte_buffer")] = BufferNew {}
     out[intrinsic("buffer_load_u8")] = LoadU8 {}
@@ -117,7 +110,7 @@ import "std/testing"
 @test test_hosts_named_by_their_declaration_have_their_op :: fn() -> void {
     to_bits :: intrinsic_op_for_mangled(r"std_core$f64$FloatBits$to_bits")
     assert(to_bits is F64ToBits, "to_bits")
-    load :: intrinsic_op_for_mangled(r"std_core$Buffer$ByteAccess$load_u8")
+    load :: intrinsic_op_for_mangled(r"std_core$Intrinsic$buffer_load_u8")
     assert(load is LoadU8, "load_u8")
     compare :: intrinsic_op_for_mangled(r"std_core$string$Comparable$compare")
     assert(compare is StringCompare, "compare")
@@ -141,8 +134,9 @@ import "std/testing"
     assert(intrinsic_op_for_mangled(r"std_core$u8$Equals$equals") is I32Eq, "u8 equals -> I32Eq")
 }
 
-@test test_free_buffer_allocation_maps_to_buffer_new :: fn() -> void {
-    assert(intrinsic_op_for_mangled(r"std_core$new_byte_buffer") is BufferNew, "new_byte_buffer")
+@test test_buffer_allocation_maps_to_buffer_new :: fn() -> void {
+    allocation :: intrinsic_op_for_mangled(r"std_core$Intrinsic$new_byte_buffer")
+    assert(allocation is BufferNew, "new_byte_buffer")
 }
 
 @test test_intrinsic_op_for_mangled_unknown_returns_null :: fn() -> void {

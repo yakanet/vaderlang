@@ -698,9 +698,9 @@ export LoweredGlobalGet :: struct {
 
 /// Length of an array, exposed by the bytecode op `array.len`.
 ///
-/// This is what `arr.len()` lowers TO: `ArrayOps.len` does exist, in the
-/// prelude (`std/core/array.vader`), and `lower_call` turns every call on an
-/// array receiver into this node rather than a `LoweredCall`. Being the op
+/// This is what `arr.len()` lowers TO: `ArrayOps.len` (`std/core/array.vader`)
+/// only calls `Intrinsic.array_len`, and the lowering turns a call to it into
+/// this node rather than a `LoweredCall` (`array_member_op`). Being the op
 /// itself, it needs no callee resolution and no inlining pass to collapse, and
 /// `push_reserve` can pattern-match a loop bound directly on it. Also filled into the
 /// `length` field when `for x in arr` is auto-wrapped into an `ArrayIter<T>`.

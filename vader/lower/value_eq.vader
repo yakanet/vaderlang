@@ -145,7 +145,7 @@ equals_call :: fn(
 ) -> LoweredExpr | null {
     equals_key :: core_trait_key(TRAIT_EQUALS)
     member :: resolve_impl_member(ctx, t, equals_key, METHOD_EQUALS) else return null
-    return build_member_call_or_inline(member, [left, right], TY_BOOL, span)
+    return build_member_call_or_inline(ctx, member, [left, right], TY_BOOL, span)
 }
 
 virtual_equals :: fn(

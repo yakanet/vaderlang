@@ -9,7 +9,7 @@
   snippet.describe :: fn(n: i64) -> string {  // snippet$describe
       if ((n >= i64(0)) && (n <= i64(55295))) || ((n >= i64(57344)) && (n <= i64(1114111))) {
           return {
-              __buf_0: Buffer = std.core.new_byte_buffer(i64(38))
+              __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(38))
               __off_1: i64 = 0
               __off_1 = std.core.write_int(__buf_0, __off_1, n)
               __off_1 = std.core.write_string_at(__buf_0, __off_1, " is a scalar value")
@@ -17,7 +17,7 @@
           } :string
       }
       return {
-          __buf_2: Buffer = std.core.new_byte_buffer(i64(39))
+          __buf_2: Buffer = std_core$Intrinsic$new_byte_buffer(i64(39))
           __off_3: i64 = 0
           __off_3 = std.core.write_int(__buf_2, __off_3, n)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " is no scalar value")
@@ -39,7 +39,7 @@
   }
   snippet.walk_codes :: fn(c: char) -> string {  // snippet$walk_codes
       {
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(20))
           __off_1: i64 = 0
           __off_1 = std.core.write_unsigned(__buf_0, __off_1, u32(c))
           std.core.finish_buffer(__buf_0, __off_1)
@@ -51,7 +51,7 @@
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       std.console.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(53))
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(53))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "first ")
           __off_1 = std.core.write_unsigned(__buf_0, __off_1, u32('\0'))
@@ -93,7 +93,7 @@
           } :char)
           __p_7: string = std.core.char.to_string(char(glyph))
           __p_8: string = std.core.char.to_string(char(snippet.Boxed.into(boxed)))
-          __buf_9: Buffer = std.core.new_byte_buffer(i64(27) +% ((std_core$Intrinsic$byte_len(__p_6) +% std_core$Intrinsic$byte_len(__p_7)) +% std_core$Intrinsic$byte_len(__p_8)))
+          __buf_9: Buffer = std_core$Intrinsic$new_byte_buffer(i64(27) +% ((std_core$Intrinsic$byte_len(__p_6) +% std_core$Intrinsic$byte_len(__p_7)) +% std_core$Intrinsic$byte_len(__p_8)))
           __off_10: i64 = 0
           __off_10 = std.core.write_string_at(__buf_9, __off_10, __p_6)
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
@@ -156,7 +156,7 @@
           s
       }
       std.console.println<string>({
-          __buf_14: Buffer = std.core.new_byte_buffer(i64(27))
+          __buf_14: Buffer = std_core$Intrinsic$new_byte_buffer(i64(27))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "fused: ")
           __off_15 = std.core.write_unsigned(__buf_14, __off_15, fused)
@@ -211,19 +211,19 @@
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
       c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
-      buf: Buffer = std.core.new_byte_buffer(c2)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.write_string(buf, c1, p2)
-      std.core.Buffer.intern_string(buf, c2)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c2)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_intern_string(buf, c2)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
   vtable std.core.Into.into for Boxed  snippet.Boxed.into  // snippet$Boxed$std_core$Into$into
 
@@ -234,9 +234,6 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<char>.contains  // std_core$Range$Contains$contains__char
     fn std.core.Range<char>.next  // std_core$Range$Iterator$next__char
     fn std.core.char.step  // std_core$char$Step$step

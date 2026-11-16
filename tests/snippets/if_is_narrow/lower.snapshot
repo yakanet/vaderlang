@@ -30,7 +30,7 @@
           return concat_2("dog says ", Dog(p).sound)
       }
       return {
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(30))
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(30))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "pig of ")
           __off_1 = std.core.write_int(__buf_0, __off_1, Pig(p).weight)
@@ -41,7 +41,7 @@
   snippet.primitive_is :: fn(v: i32 | string) -> string {  // snippet$primitive_is
       if v is i32 {
           return {
-              __buf_0: Buffer = std.core.new_byte_buffer(i64(24))
+              __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(24))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "int ")
               __off_1 = std.core.write_int(__buf_0, __off_1, i32(v))
@@ -53,7 +53,7 @@
   snippet.primitive_not_is :: fn(v: i32 | string) -> string {  // snippet$primitive_not_is
       if !(v is string) {
           return {
-              __buf_0: Buffer = std.core.new_byte_buffer(i64(24))
+              __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(24))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "int ")
               __off_1 = std.core.write_int(__buf_0, __off_1, i32(v))
@@ -90,14 +90,14 @@
       cat: Cat = Cat { .name = "felix" }
       dog: Dog = Dog { .sound = "woof" }
       std.console.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(23))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "!is as bool, cat: ")
           __off_1 = std.core.write_bool(__buf_0, __off_1, snippet.is_not_dog(cat))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.console.println<string>({
-          __buf_2: Buffer = std.core.new_byte_buffer(i64(23))
+          __buf_2: Buffer = std_core$Intrinsic$new_byte_buffer(i64(23))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "!is as bool, dog: ")
           __off_3 = std.core.write_bool(__buf_2, __off_3, snippet.is_not_dog(dog))
@@ -108,10 +108,10 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
 
 ## lowered in dependencies
@@ -121,9 +121,6 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int

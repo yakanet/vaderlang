@@ -10,7 +10,7 @@
       s64: i64 = 8
       sstr: i64 = 4
       std.console.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(120))
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(120))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "size_of primitive: i8=")
           __off_1 = std.core.write_int(__buf_0, __off_1, s8)
@@ -26,7 +26,7 @@
       wide: i64 = 4
       inferred: i64 = 1
       std.console.println<string>({
-          __buf_2: Buffer = std.core.new_byte_buffer(i64(92))
+          __buf_2: Buffer = std_core$Intrinsic$new_byte_buffer(i64(92))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "size_of enum: u8=")
           __off_3 = std.core.write_int(__buf_2, __off_3, narrow)
@@ -40,7 +40,7 @@
       arr: i64 = 8
       erased: i64 = 16
       std.console.println<string>({
-          __buf_4: Buffer = std.core.new_byte_buffer(i64(101))
+          __buf_4: Buffer = std_core$Intrinsic$new_byte_buffer(i64(101))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "size_of reference: struct=")
           __off_5 = std.core.write_int(__buf_4, __off_5, ref)
@@ -54,7 +54,7 @@
       a64: i64 = 8
       abox: i64 = 8
       std.console.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(87))
+          __buf_6: Buffer = std_core$Intrinsic$new_byte_buffer(i64(87))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "align_of: i32=")
           __off_7 = std.core.write_int(__buf_6, __off_7, a32)
@@ -71,7 +71,7 @@
       std.console.println<string>(concat_8("type_kind: ", kp, " ", ks, " ", ka, " ", kt))
       matches: bool = (((kp == "primitive") && (ks == "struct")) && (ka == "array")) && (kt == "tuple")
       std.console.println<string>({
-          __buf_8: Buffer = std.core.new_byte_buffer(i64(25))
+          __buf_8: Buffer = std_core$Intrinsic$new_byte_buffer(i64(25))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "type_kind compared: ")
           __off_9 = std.core.write_bool(__buf_8, __off_9, matches)
@@ -84,7 +84,7 @@
       tuple: i64 = 2
       scalar: i64 = 0
       std.console.println<string>({
-          __buf_10: Buffer = std.core.new_byte_buffer(i64(118))
+          __buf_10: Buffer = std_core$Intrinsic$new_byte_buffer(i64(118))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "field_count: Pair=")
           __off_11 = std.core.write_int(__buf_10, __off_11, pair)
@@ -99,7 +99,7 @@
       variants_enum: i64 = 2
       variants_union: i64 = 2
       std.console.println<string>({
-          __buf_12: Buffer = std.core.new_byte_buffer(i64(67))
+          __buf_12: Buffer = std_core$Intrinsic$new_byte_buffer(i64(67))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "variant_count: enum=")
           __off_13 = std.core.write_int(__buf_12, __off_13, variants_enum)
@@ -111,7 +111,7 @@
       index_y: i64 = 1
       index_z: i64 = 2
       std.console.println<string>({
-          __buf_14: Buffer = std.core.new_byte_buffer(i64(81))
+          __buf_14: Buffer = std_core$Intrinsic$new_byte_buffer(i64(81))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "field_index: x=")
           __off_15 = std.core.write_int(__buf_14, __off_15, index_x)
@@ -125,7 +125,7 @@
       hash_text: bool = true
       hash_int: bool = true
       std.console.println<string>({
-          __buf_16: Buffer = std.core.new_byte_buffer(i64(60))
+          __buf_16: Buffer = std_core$Intrinsic$new_byte_buffer(i64(60))
           __off_17: i64 = 0
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "satisfies: string Add=")
           __off_17 = std.core.write_bool(__buf_16, __off_17, concat)
@@ -149,34 +149,34 @@
       c5: i64 = c4 +% std_core$Intrinsic$byte_len(p5)
       c6: i64 = c5 +% std_core$Intrinsic$byte_len(p6)
       c7: i64 = c6 +% std_core$Intrinsic$byte_len(p7)
-      buf: Buffer = std.core.new_byte_buffer(c7)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.write_string(buf, c1, p2)
-      std.core.Buffer.write_string(buf, c2, p3)
-      std.core.Buffer.write_string(buf, c3, p4)
-      std.core.Buffer.write_string(buf, c4, p5)
-      std.core.Buffer.write_string(buf, c5, p6)
-      std.core.Buffer.write_string(buf, c6, p7)
-      std.core.Buffer.intern_string(buf, c7)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c7)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_write_string(buf, c2, p3)
+      std_core$Intrinsic$buffer_write_string(buf, c3, p4)
+      std_core$Intrinsic$buffer_write_string(buf, c4, p5)
+      std_core$Intrinsic$buffer_write_string(buf, c5, p6)
+      std_core$Intrinsic$buffer_write_string(buf, c6, p7)
+      std_core$Intrinsic$buffer_intern_string(buf, c7)
   }
   concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
       c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
-      buf: Buffer = std.core.new_byte_buffer(c2)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.write_string(buf, c1, p2)
-      std.core.Buffer.intern_string(buf, c2)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c2)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_intern_string(buf, c2)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
 
 ## lowered in dependencies
@@ -186,9 +186,6 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int

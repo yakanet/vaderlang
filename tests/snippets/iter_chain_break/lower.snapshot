@@ -36,7 +36,7 @@
           }
       }
       std.console.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(47))
+          __buf_6: Buffer = std_core$Intrinsic$new_byte_buffer(i64(47))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "break in 1st source=")
           __off_7 = std.core.write_int(__buf_6, __off_7, first)
@@ -75,7 +75,7 @@
           }
       }
       std.console.println<string>({
-          __buf_14: Buffer = std.core.new_byte_buffer(i64(48))
+          __buf_14: Buffer = std_core$Intrinsic$new_byte_buffer(i64(48))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "break in 2nd source=")
           __off_15 = std.core.write_int(__buf_14, __off_15, second)
@@ -114,7 +114,7 @@
           }
       }
       std.console.println<string>({
-          __buf_22: Buffer = std.core.new_byte_buffer(i64(42))
+          __buf_22: Buffer = std_core$Intrinsic$new_byte_buffer(i64(42))
           __off_23: i64 = 0
           __off_23 = std.core.write_string_at(__buf_22, __off_23, "labelled break=")
           __off_23 = std.core.write_int(__buf_22, __off_23, labelled)
@@ -151,7 +151,7 @@
           }
       }
       std.console.println<string>({
-          __buf_30: Buffer = std.core.new_byte_buffer(i64(37))
+          __buf_30: Buffer = std_core$Intrinsic$new_byte_buffer(i64(37))
           __off_31: i64 = 0
           __off_31 = std.core.write_string_at(__buf_30, __off_31, "continue=")
           __off_31 = std.core.write_int(__buf_30, __off_31, kept)
@@ -182,7 +182,7 @@
           }
       }
       std.console.println<string>({
-          __buf_38: Buffer = std.core.new_byte_buffer(i64(37))
+          __buf_38: Buffer = std_core$Intrinsic$new_byte_buffer(i64(37))
           __off_39: i64 = 0
           __off_39 = std.core.write_string_at(__buf_38, __off_39, "no break=")
           __off_39 = std.core.write_int(__buf_38, __off_39, whole)
@@ -207,7 +207,7 @@
           }
       }
       std.console.println<string>({
-          __buf_43: Buffer = std.core.new_byte_buffer(i64(38))
+          __buf_43: Buffer = std_core$Intrinsic$new_byte_buffer(i64(38))
           __off_44: i64 = 0
           __off_44 = std.core.write_string_at(__buf_43, __off_44, "map+break=")
           __off_44 = std.core.write_int(__buf_43, __off_44, mapped)
@@ -264,7 +264,7 @@
           }
       }
       std.console.println<string>({
-          __buf_54: Buffer = std.core.new_byte_buffer(i64(40))
+          __buf_54: Buffer = std_core$Intrinsic$new_byte_buffer(i64(40))
           __off_55: i64 = 0
           __off_55 = std.core.write_string_at(__buf_54, __off_55, "nested break=")
           __off_55 = std.core.write_int(__buf_54, __off_55, nested)
@@ -279,10 +279,10 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
 
 ## lowered in dependencies
@@ -292,9 +292,6 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int

@@ -7,7 +7,3 @@
       @array.push(xs, 40)
       return ((xs[0] + xs[1]) + xs[3]) + i32(@array.len(xs))
   }
-
-## lowered in dependencies
-  std/core
-    struct std.core.Buffer  // std_core$Buffer

@@ -14,7 +14,7 @@
   }
   snippet.i32.loud :: fn(self: i32) -> string {  // snippet$i32$Loud$loud
       {
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(24))
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(24))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "INT ")
           __off_1 = std.core.write_int(__buf_0, __off_1, self)
@@ -31,7 +31,7 @@
   snippet.Log.set_at :: fn(self: Log, k: string, v: i32) -> void {  // snippet$Log$std_core$IndexSet$set_at
       @array.push(self.lines, {
           __p_0: string = k
-          __buf_1: Buffer = std.core.new_byte_buffer(i64(21) +% std_core$Intrinsic$byte_len(__p_0))
+          __buf_1: Buffer = std_core$Intrinsic$new_byte_buffer(i64(21) +% std_core$Intrinsic$byte_len(__p_0))
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "=")
@@ -83,7 +83,7 @@
   }
   snippet.Money.to_string :: fn(self: Money) -> string {  // snippet$Money$std_core$Display$to_string
       {
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(21))
           __off_1: i64 = 0
           __off_1 = std.core.write_int(__buf_0, __off_1, self.c)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "c")
@@ -115,7 +115,7 @@
       std.console.println<string>({
           __p_0: i64 = std.collections.len<string, i32>(m)
           __p_1: string = l.lines[1]
-          __buf_2: Buffer = std.core.new_byte_buffer(i64(21) +% std_core$Intrinsic$byte_len(__p_1))
+          __buf_2: Buffer = std_core$Intrinsic$new_byte_buffer(i64(21) +% std_core$Intrinsic$byte_len(__p_1))
           __off_3: i64 = 0
           __off_3 = std.core.write_int(__buf_2, __off_3, __p_0)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
@@ -135,7 +135,7 @@
       }
       c: Cell = Cell { .cells = [5] :i32[] }
       std.console.println<string>({
-          __buf_4: Buffer = std.core.new_byte_buffer(i64(41))
+          __buf_4: Buffer = std_core$Intrinsic$new_byte_buffer(i64(41))
           __off_5: i64 = 0
           __off_5 = std.core.write_int(__buf_4, __off_5, snippet.bump(t))
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
@@ -145,7 +145,7 @@
       xs: i64[] = [i64(4), i64(8)] :i64[]
       odd: Odd = Odd { .n = i64(0) }
       std.console.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(23))
+          __buf_6: Buffer = std_core$Intrinsic$new_byte_buffer(i64(23))
           __off_7: i64 = 0
           __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.holds(xs, i64(8)))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
@@ -165,10 +165,10 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
   concat_5 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
@@ -176,23 +176,23 @@
       c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
       c3: i64 = c2 +% std_core$Intrinsic$byte_len(p3)
       c4: i64 = c3 +% std_core$Intrinsic$byte_len(p4)
-      buf: Buffer = std.core.new_byte_buffer(c4)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.write_string(buf, c1, p2)
-      std.core.Buffer.write_string(buf, c2, p3)
-      std.core.Buffer.write_string(buf, c3, p4)
-      std.core.Buffer.intern_string(buf, c4)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c4)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_write_string(buf, c2, p3)
+      std_core$Intrinsic$buffer_write_string(buf, c3, p4)
+      std_core$Intrinsic$buffer_intern_string(buf, c4)
   }
   concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
       c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
-      buf: Buffer = std.core.new_byte_buffer(c2)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.write_string(buf, c1, p2)
-      std.core.Buffer.intern_string(buf, c2)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c2)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_intern_string(buf, c2)
   }
   vtable snippet.Loud.loud for i32  snippet.i32.loud  // snippet$i32$Loud$loud
   vtable snippet.Loud.loud for string  snippet.string.loud  // snippet$string$Loud$loud
@@ -235,10 +235,6 @@
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
     const FLOAT_POW5_INV_SPLIT: u64[]  data pool #2
     const FLOAT_POW5_SPLIT: u64[]  data pool #3
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.b2i  // std_core$b2i
     fn std.core.b2u  // std_core$b2u
     fn std.core.b2u32  // std_core$b2u32

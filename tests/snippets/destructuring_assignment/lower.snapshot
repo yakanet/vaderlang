@@ -16,7 +16,7 @@
           b = __destr_el_2
       }
       std.console.println<string>({
-          __buf_3: Buffer = std.core.new_byte_buffer(i64(54))
+          __buf_3: Buffer = std_core$Intrinsic$new_byte_buffer(i64(54))
           __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "literal: a=")
           __off_4 = std.core.write_int(__buf_3, __off_4, a)
@@ -32,7 +32,7 @@
           b = __destr_el_7
       }
       std.console.println<string>({
-          __buf_8: Buffer = std.core.new_byte_buffer(i64(54))
+          __buf_8: Buffer = std_core$Intrinsic$new_byte_buffer(i64(54))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "swap:    a=")
           __off_9 = std.core.write_int(__buf_8, __off_9, a)
@@ -51,7 +51,7 @@
       }
       std.console.println<string>({
           __p_13: string = s
-          __buf_14: Buffer = std.core.new_byte_buffer(i64(34) +% std_core$Intrinsic$byte_len(__p_13))
+          __buf_14: Buffer = std_core$Intrinsic$new_byte_buffer(i64(34) +% std_core$Intrinsic$byte_len(__p_13))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "tuple:   n=")
           __off_15 = std.core.write_int(__buf_14, __off_15, n)
@@ -69,7 +69,7 @@
           arr[1] = __destr_el_18
       }
       std.console.println<string>({
-          __buf_19: Buffer = std.core.new_byte_buffer(i64(63))
+          __buf_19: Buffer = std_core$Intrinsic$new_byte_buffer(i64(63))
           __off_20: i64 = 0
           __off_20 = std.core.write_string_at(__buf_19, __off_20, "mixed:   box.x=")
           __off_20 = std.core.write_int(__buf_19, __off_20, box.x)
@@ -90,7 +90,7 @@
           r = __destr_el_24
       }
       std.console.println<string>({
-          __buf_25: Buffer = std.core.new_byte_buffer(i64(77))
+          __buf_25: Buffer = std_core$Intrinsic$new_byte_buffer(i64(77))
           __off_26: i64 = 0
           __off_26 = std.core.write_string_at(__buf_25, __off_26, "rotate:  p=")
           __off_26 = std.core.write_int(__buf_25, __off_26, p)
@@ -119,7 +119,7 @@
           z = __destr_el_29
       }
       std.console.println<string>({
-          __buf_31: Buffer = std.core.new_byte_buffer(i64(54))
+          __buf_31: Buffer = std_core$Intrinsic$new_byte_buffer(i64(54))
           __off_32: i64 = 0
           __off_32 = std.core.write_string_at(__buf_31, __off_32, "map:     k=")
           __off_32 = std.core.write_int(__buf_31, __off_32, {
@@ -162,7 +162,7 @@
           xs = __destr_rest_41
       }
       std.console.println<string>({
-          __buf_43: Buffer = std.core.new_byte_buffer(i64(103))
+          __buf_43: Buffer = std_core$Intrinsic$new_byte_buffer(i64(103))
           __off_44: i64 = 0
           __off_44 = std.core.write_string_at(__buf_43, __off_44, "rest:    head=")
           __off_44 = std.core.write_int(__buf_43, __off_44, head)
@@ -202,7 +202,7 @@
           all = __destr_rest_51
       }
       std.console.println<string>({
-          __buf_53: Buffer = std.core.new_byte_buffer(i64(105))
+          __buf_53: Buffer = std_core$Intrinsic$new_byte_buffer(i64(105))
           __off_54: i64 = 0
           __off_54 = std.core.write_string_at(__buf_53, __off_54, "empty:   p=")
           __off_54 = std.core.write_int(__buf_53, __off_54, p)
@@ -219,7 +219,7 @@
   __lambda_env_snippet_1 :: struct { cap_0: ?, cap_1: ? }
   __lambda_snippet_0 :: fn(__env_33: __lambda_env_snippet_1) -> void {
       std.console.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(56))
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(56))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "capture: c1=")
           __off_1 = std.core.write_int(__buf_0, __off_1, @cell(__env_33.cap_0))
@@ -231,10 +231,10 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
 
 ## lowered in dependencies
@@ -259,9 +259,6 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.string.hash  // std_core$string$Hash$hash
     fn std.core.write_bool  // std_core$write_bool

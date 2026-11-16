@@ -53,9 +53,9 @@ impl 8 std_core$Iterator
 impl 9 std_core$Iterator
 impl 10 std_core$Iterator
 impl 11 std_core$Iterator
-impl 13 std_core$ByteAccess
 impl 15 std_core$Into
 impl 16 std_core$Iterator
+impl 13 std_core$ByteAccess
 vtable std_core$Iterator.next 4 15
 vtable std_core$Iterator.next 7 16
 vtable std_core$Iterator.next 8 17

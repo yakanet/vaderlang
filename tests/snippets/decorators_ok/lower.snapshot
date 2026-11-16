@@ -13,5 +13,4 @@
 
 ## lowered in dependencies
   std/core
-    struct std.core.Buffer  // std_core$Buffer
     struct std.core.CLibrary  // std_core$CLibrary

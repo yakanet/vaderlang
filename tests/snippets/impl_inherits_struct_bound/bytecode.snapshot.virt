@@ -31,8 +31,8 @@ impl 1 snippet_shelf$Named
 impl 4 snippet$Size
 impl 4 snippet$Width
 impl 6 snippet$Size
-impl 9 std_core$ByteAccess
 impl 7 snippet$Size
+impl 9 std_core$ByteAccess
 impl 15 snippet$Size
 impl 15 snippet$Width
 vtable snippet_shelf$Named.name 1 0

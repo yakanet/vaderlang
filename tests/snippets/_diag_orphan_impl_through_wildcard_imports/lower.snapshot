@@ -13,7 +13,3 @@
   snippet.lib_a.Foo :: struct { value: i32 }  // snippet_lib__a$Foo
 
 ## snippet/lib_b
-
-## lowered in dependencies
-  std/core
-    struct std.core.Buffer  // std_core$Buffer

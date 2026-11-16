@@ -81,7 +81,6 @@ import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe he
 impl 9 std_core$Iterator
 impl 12 std_core$Iterator
 impl 13 std_core$Iterator
-impl 16 std_core$ByteAccess
 impl 6 std_core$Into
 impl 17 std_core$Iterator
 impl 22 std_core$Iterator
@@ -90,6 +89,7 @@ impl 28 std_core$Iterator
 impl 33 std_core$Iterator
 impl 36 std_core$Iterator
 impl 38 std_core$Iterator
+impl 16 std_core$ByteAccess
 vtable std_core$Iterator.next 9 15
 vtable std_core$Iterator.next 12 16
 vtable std_core$Iterator.next 13 17

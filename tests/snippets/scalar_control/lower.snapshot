@@ -14,7 +14,3 @@
       }
       return acc
   }
-
-## lowered in dependencies
-  std/core
-    struct std.core.Buffer  // std_core$Buffer

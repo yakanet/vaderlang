@@ -26,6 +26,9 @@ UfcsMember :: struct {
     /// Sourced from `impl_member_arg_types` ; empty when the member's signature
     /// isn't in the frontend table, and callers then pass their args through as-is.
     arg_types: Type[] = []
+    /// The member of `Intrinsic` the member only forwards its parameters to
+    /// (`forwarded_member`) ; a call to it is the member's.
+    intrinsic: FnDecl | null = null
 }
 
 // True when `m` is the trivial identity `fn(self) = self`: expression-bodied,
@@ -47,11 +50,33 @@ is_identity_member :: fn(m: FnDecl) -> bool {
 /// `${...}` interpolation's no-op `to_string`). All other members emit the direct
 /// `LoweredCall`. The single hook every "resolve impl member + build call" site
 /// should route through.
-build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr {
+build_member_call_or_inline :: fn(
+    ctx: FnLowerCtx,
+    member: UfcsMember,
+    args: LoweredExpr[],
+    ret: Type,
+    span: Span,
+) -> LoweredExpr {
     // Identity uses `self` exactly once, so returning the (already-lowered)
     // receiver evaluates it once: no temp / double-eval concern.
     if member.is_identity && args.len() == 1 { return args[0] }
-    return mk_lowered_call(member.symbol, args, ret, span)
+    return member_call(ctx, member, args, ret, span)
+}
+
+/// The call of the impl member `member` on `args`, the receiver first : the member
+/// of `Intrinsic` it forwards to, when it does.
+///
+/// @param args  the receiver, then the arguments, each lowered for its slot.
+/// @param ret   the call's result type.
+member_call :: fn(
+    ctx: FnLowerCtx,
+    member: UfcsMember,
+    args: LoweredExpr[],
+    ret: Type,
+    span: Span,
+) -> LoweredExpr {
+    intrinsic :: member.intrinsic else return mk_lowered_call(member.symbol, args, ret, span)
+    return forwarded_call(ctx, intrinsic, args, ret, span)
 }
 
 // Queue a generic-struct instance for impl-member materialisation : its members
@@ -207,6 +232,13 @@ build_ufcs_member :: fn(
     // (`ImplEntry.overload_suffix`), as every materialiser names them.
     suffix :: "${receiver_suffix(ctx, entry, target_type)}${entry.overload_suffix}"
     mangled :: impl_member_name(entry.module, target_type, entry.trait_symbol, member.name, suffix)
+    arg_types :: impl_member_arg_types(ctx, target_type, member, entry)
+    // A forwarder is never called : nothing to surface or materialise.
+    intrinsic :: forwarded_member(ctx.project, member)
+    if intrinsic != null {
+        named :: ufcs_member_named(ctx, mangled, false, arg_types)
+        return UfcsMember { ...named, .intrinsic = intrinsic }
+    }
     // Record the call so the post-lowering pass surfaces referenced stdlib impl
     // members : bodyless (`@intrinsic`) -> import ; with-body (e.g. `i32
     // implements Hash -> u64(self)`) -> materialised real fn.
@@ -231,9 +263,7 @@ build_ufcs_member :: fn(
     if target_type is StructType {
         if entry.is_generic { queue_generic_impl_receiver(ctx, target_type) }
     }
-    return ufcs_member_named(
-        ctx, mangled, is_identity, impl_member_arg_types(ctx, target_type, member, entry),
-    )
+    return ufcs_member_named(ctx, mangled, is_identity, arg_types)
 }
 
 /// A call to the impl member named `mangled` : a symbol carrying the mangle, whose

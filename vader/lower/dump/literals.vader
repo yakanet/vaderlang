@@ -8,7 +8,6 @@
 module "vader/lower/dump"
 
 import "std/string"
-import "std/string_builder"
 import "toolchain/lexer"
 import "vader/core/types"
 import "vader/lower/ir"

@@ -70,12 +70,6 @@ IntrinsicTarget :: struct {
     signature: FnType
 }
 
-/// An array member an operation serves.
-ArrayOpTarget :: struct {
-    op: ArrayOp
-    element: Type
-}
-
 /// A member called through its trait's vtable, the value's tag picking the impl.
 VirtualTarget :: struct {
     trait_key: string
@@ -89,15 +83,9 @@ EqualsTarget :: struct {}
 EQUALS_TARGET :: EqualsTarget {}
 
 /// What a method-form site calls : a member of `Intrinsic` a function forwards to, a
-/// free fn by UFCS, an array's operation, a member through its trait's vtable, a
-/// built-in `equals`, or an impl member.
-MethodTarget ::
-    | IntrinsicTarget
-    | FreeFnTarget
-    | ArrayOpTarget
-    | VirtualTarget
-    | EqualsTarget
-    | UfcsMember
+/// free fn by UFCS, a member through its trait's vtable, a built-in `equals`, or an
+/// impl member.
+MethodTarget :: IntrinsicTarget | FreeFnTarget | VirtualTarget | EqualsTarget | UfcsMember
 
 /// What a method-form site recorded as `callee` calls on `receiver`, the lowered
 /// target of `field` ; null for a site no form covers. A call and a method value
@@ -132,10 +120,6 @@ method_target :: fn(
         }
     }
     surface :: ctx.types.expr_type(field.target)
-    array_op :: array_target(surface, field.field, arity)
-    if array_op != null && names_array_member(ctx, callee) {
-        return array_op
-    }
     // A trait value dispatches on its tag ; a combinator its trait does not declare
     // (`it.map(f)` on an `Iterator<T>`) is a free fn by UFCS, taken above. A union of
     // the trait's implementors, or a bound the instance leaves erased, dispatches the
@@ -153,34 +137,6 @@ method_target :: fn(
     member :: callee_target(ctx, callee, impl_lookup_type(surface, receiver_type))
     if member is UfcsMember {
         return member
-    }
-    return null
-}
-
-// The array operation `name` names on a receiver of type `surface` taken with
-// `arity` arguments ; null when the receiver is no array, or a call runs it. An
-// array-backed distinct newtype carries them too : its value is the backing array.
-array_target :: fn(surface: Type, name: string, arity: i64) -> ArrayOpTarget | null {
-    array :: array_backing(surface) else return null
-    op :: array_op_of(name, arity) else return null
-    return ArrayOpTarget { .op = op, .element = array.element }
-}
-
-// True when `callee` records a member of `ArrayOps`, which an array operation
-// serves. A member of another trait can share its name (a `clear` of a trait
-// implemented for `i32[]`): the member the typecheck chose runs.
-names_array_member :: fn(ctx: FnLowerCtx, callee: Callee | null) -> bool =
-    member_trait_key(ctx, callee) == core_trait_key(@type_name(ArrayOps))
-
-// The trait of the member `callee` records : an impl member's, or the bound's it is
-// reached through ; null for a free fn and a site with no record.
-member_trait_key :: fn(ctx: FnLowerCtx, callee: Callee | null) -> string | null {
-    if callee is DirectFn {
-        entry :: ctx.project.impls.member_entry(callee.decl) else return null
-        return entry.trait_key
-    }
-    if callee is BoundMember {
-        return callee.trait_key
     }
     return null
 }
@@ -215,16 +171,7 @@ call_operands :: fn(
     is FreeFnTarget  -> build_ufcs_args(ctx, field.target, receiver, call, target.params, 1)
     is UfcsMember    -> build_ufcs_args(ctx, field.target, receiver, call, target.arg_types, 0)
     is VirtualTarget -> build_ufcs_args(ctx, field.target, receiver, call, target.params, 0)
-    is ArrayOpTarget -> build_ufcs_args(ctx, field.target, receiver, call, value_slot(target), 0)
     is EqualsTarget  -> build_ufcs_args(ctx, field.target, receiver, call, [], 0)
-}
-
-// The slot an array operation's argument fills : `push`'s value is an element.
-value_slot :: fn(target: ArrayOpTarget) -> Type[] {
-    if target.op == .Push {
-        return [target.element]
-    }
-    return []
 }
 
 /// The call `target` makes on `operands`, the receiver first, at the site `role`
@@ -261,7 +208,7 @@ build_method_call :: fn(
             ret,
             span,
         )
-        is UfcsMember    -> mk_lowered_call(target.symbol, operands, ret, span)
+        is UfcsMember    -> member_call(ctx, target, operands, ret, span)
         is VirtualTarget -> virtual_call(
             ctx,
             target.trait_key,
@@ -273,13 +220,6 @@ build_method_call :: fn(
             target.params,
         )
         is EqualsTarget  -> equals_primop(operands[0], operands[1], span)
-        is ArrayOpTarget -> array_op(
-            target.op,
-            operands,
-            ret,
-            span,
-            array_operand_types(ctx, target.op, field),
-        )
     }
 }
 

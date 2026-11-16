@@ -136,16 +136,22 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
             synth_ident(cum_syms[i - 1], TY_I64, span)
         }
         call :: build_member_call_or_inline(
-            wstr_member, [synth_ident(buf_sym, buffer_type, span), offset, param_refs[i]], TY_VOID, span,
+            ctx,
+            wstr_member,
+            [synth_ident(buf_sym, buffer_type, span), offset, param_refs[i]],
+            TY_VOID,
+            span,
         )
         stmts.push(LoweredExprStmt { .span = span, .expr = call })
     }
     body :: LoweredBlock {
         .span = span, .type = string_type, .stmts = stmts,
         .trailing = build_member_call_or_inline(
+            ctx,
             intern_member,
             [synth_ident(buf_sym, buffer_type, span), synth_ident(total_sym, TY_I64, span)],
-            string_type, span,
+            string_type,
+            span,
         ),
     }
     decl :: LoweredFnDecl {

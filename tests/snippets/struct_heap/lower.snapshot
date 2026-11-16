@@ -9,7 +9,3 @@
       p: Point = snippet.make(3, 4)
       return p.x + p.y
   }
-
-## lowered in dependencies
-  std/core
-    struct std.core.Buffer  // std_core$Buffer

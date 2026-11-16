@@ -21,7 +21,7 @@
           __p_0: i64 = @array.len(xs)
           __p_1: i64 = snippet.i32[].len(xs)
           __p_2: string = std.core.i32.to_string(5)
-          __buf_3: Buffer = std.core.new_byte_buffer(i64(42) +% std_core$Intrinsic$byte_len(__p_2))
+          __buf_3: Buffer = std_core$Intrinsic$new_byte_buffer(i64(42) +% std_core$Intrinsic$byte_len(__p_2))
           __off_4: i64 = 0
           __off_4 = std.core.write_int(__buf_3, __off_4, __p_0)
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
@@ -32,7 +32,7 @@
       } :string)
       std.console.println<string>(concat_5(std.core.f64.to_string(snippet$Vec$std_core$Add$add(v, 2.0).x), " ", std.core.f64.to_string(snippet$Vec$std_core$Add$add$1(v, v).x), " ", snippet.Vec.hello(v)))
       std.console.println<string>({
-          __buf_5: Buffer = std.core.new_byte_buffer(i64(20))
+          __buf_5: Buffer = std_core$Intrinsic$new_byte_buffer(i64(20))
           __off_6: i64 = 0
           __off_6 = std.core.write_int(__buf_5, __off_6, snippet.loud.i32.shout(7))
           std.core.finish_buffer(__buf_5, __off_6)
@@ -45,10 +45,10 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
   concat_5 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
@@ -56,13 +56,13 @@
       c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
       c3: i64 = c2 +% std_core$Intrinsic$byte_len(p3)
       c4: i64 = c3 +% std_core$Intrinsic$byte_len(p4)
-      buf: Buffer = std.core.new_byte_buffer(c4)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.write_string(buf, c1, p2)
-      std.core.Buffer.write_string(buf, c2, p3)
-      std.core.Buffer.write_string(buf, c3, p4)
-      std.core.Buffer.intern_string(buf, c4)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c4)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_write_string(buf, c2, p3)
+      std_core$Intrinsic$buffer_write_string(buf, c3, p4)
+      std_core$Intrinsic$buffer_intern_string(buf, c4)
   }
   vtable snippet.Greet.hello for Vec  snippet.Vec.hello  // snippet$Vec$Greet$hello
   vtable snippet.Greet.name for Vec  snippet.Vec.name  // snippet$Vec$Greet$name
@@ -85,10 +85,6 @@
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.b2i  // std_core$b2i
     fn std.core.b2u  // std_core$b2u
     fn std.core.d2d  // std_core$d2d

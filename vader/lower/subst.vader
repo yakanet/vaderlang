@@ -5,7 +5,6 @@ module "vader/lower"
 
 import "std/collections"
 import "std/iter"
-import "std/string_builder"
 import "vader/core/mangle"
 
 import "toolchain/ast"

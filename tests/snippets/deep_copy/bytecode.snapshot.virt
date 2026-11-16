@@ -30,8 +30,8 @@ type 27 struct std_core$Dec64 { mantissa:14,exp:2 }
 type 28 struct __Tuple_u64_u64_u64_2d035edd { _0:14,_1:14,_2:14 }
 type 29 array 13
 type 30 union 13,0
-type 31 fn () -> 32
-type 32 scalar void
+type 31 scalar void
+type 32 fn () -> 31
 type 33 ref _
 type 34 union 4,3
 type 35 struct std_task$Started { count:13 }
@@ -88,20 +88,20 @@ global 1 35 started.instance
 global 2 45 started.gate
 import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=13 param_types=3 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=25 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 2 spawn_thread std_core$Intrinsic$spawn_thread host=spawn_thread result_type=13 param_types=31 param_c_out= param_by_address= (ref) -> i64
-import 3 park std_core$Intrinsic$park host=park result_type=32 () -> void
-import 4 wake std_core$Intrinsic$wake host=wake result_type=32 param_types=13 param_c_out= param_by_address= (i64) -> void
+import 2 spawn_thread std_core$Intrinsic$spawn_thread host=spawn_thread result_type=13 param_types=32 param_c_out= param_by_address= (ref) -> i64
+import 3 park std_core$Intrinsic$park host=park result_type=31 () -> void
+import 4 wake std_core$Intrinsic$wake host=wake result_type=31 param_types=13 param_c_out= param_by_address= (i64) -> void
 import 5 current_thread std_core$Intrinsic$current_thread host=current_thread result_type=13 () -> i64
 import 6 is_cancelled std_core$Intrinsic$is_cancelled host=is_cancelled result_type=15 () -> bool
 import 7 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=3 param_types=25 param_c_out= param_by_address= (ref) -> string
 import 8 deep_copy std_core$deep_copy__i32__ result_type=33 param_types=33 param_c_out= param_by_address= (any) -> any
 import 9 extern :write system_posix$sys_write headers=<unistd.h> result_type=13 param_types=2,25,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 10 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 11 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=32 () -> void
-impl 12 std_core$ByteAccess
+import 11 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=31 () -> void
 impl 16 std_core$Display
 impl 9 std_core$Display
 impl 9 std_core$Equals
+impl 12 std_core$ByteAccess
 impl 16 std_core$Error
 vtable std_core$Display.to_string 16 9
 vtable std_core$Display.to_string 17 10
@@ -4097,7 +4097,7 @@ fn 62 std_task$started () -> ref
   call 75   ; std_runtime_scheduler$gate_or_new
   local.tee 0   ; gate
   global.set 2   ; started.gate
-  fn.ref 64 31   ; std_task$started$keep fn
+  fn.ref 64 32   ; std_task$started$keep fn
   local.set 1   ; $fn_ref_7
   local.get 0   ; gate
   local.get 1   ; $fn_ref_7
@@ -4172,7 +4172,7 @@ fn 66 std_task$launch__i32 (ref) -> ref
   local.tee 2   ; $arr_7
   local.get 0   ; arg 0
   struct.new 37   ; __lambda_env_std_task_1
-  make_closure 67 31   ; __lambda_std_task_0 fn
+  make_closure 67 32   ; __lambda_std_task_0 fn
   call 65   ; std_task$start_thread
   local.set 1   ; $add_checked_4
   local.get 2   ; $arr_7
@@ -4200,7 +4200,7 @@ fn 68 std_task$run__i32 (ref,ref) -> void
   local $call_ind_6 i32
   local.get 0   ; arg 0
   struct.new 38   ; __defer_env_std_task_5
-  make_closure 69 31   ; __defer_std_task_4 fn
+  make_closure 69 32   ; __defer_std_task_4 fn
   defer.push
   call.import 6   ; std_core$Intrinsic$is_cancelled
   if $L0 void
@@ -4307,7 +4307,7 @@ fn 71 std_task$join__i32 (ref) -> any
   local.get 0   ; arg 0
   local.get 1   ; me
   struct.new 40   ; __defer_env_std_task_3
-  make_closure 72 31   ; __defer_std_task_2 fn
+  make_closure 72 32   ; __defer_std_task_2 fn
   defer.push
   loop $L1 void
     local.field 0 9 2   ; arg 0 std_task$Task__i32.ended
@@ -4461,10 +4461,10 @@ fn 76 std_runtime_scheduler$run_gated (ref,ref) -> bool
   struct.set 46 1   ; std_runtime_scheduler$InitGate.owner
   local.get 0   ; arg 0
   struct.new 47   ; __defer_env_std_runtime_scheduler_1
-  make_closure 77 31   ; __defer_std_runtime_scheduler_0 fn
+  make_closure 77 32   ; __defer_std_runtime_scheduler_0 fn
   defer.push
   local.get 1   ; arg 1
-  call.indirect 31   ; fn
+  call.indirect 32   ; fn
   defer.pop_exec 1
   return.lit bool.const true
 end
@@ -4482,7 +4482,7 @@ fn 78 std_runtime_scheduler$await_gate (ref,i64) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   struct.new 48   ; __defer_env_std_runtime_scheduler_3
-  make_closure 79 31   ; __defer_std_runtime_scheduler_2 fn
+  make_closure 79 32   ; __defer_std_runtime_scheduler_2 fn
   defer.push
   loop $L0 void
     local.field 0 46 0   ; arg 0 std_runtime_scheduler$InitGate.held

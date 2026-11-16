@@ -106,11 +106,11 @@ import 10 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_strin
 import 11 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=3,19,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 12 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 13 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=2 () -> void
-impl 6 std_core$ByteAccess
 impl 9 std_core$Display
 impl 4 std_core$Display
 impl 26 std_core$Display
 impl 4 std_core$Equals
+impl 6 std_core$ByteAccess
 impl 9 std_core$Error
 impl 26 std_core$Equals
 vtable std_core$Display.to_string 9 30

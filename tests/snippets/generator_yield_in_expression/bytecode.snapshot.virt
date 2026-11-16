@@ -60,8 +60,8 @@ impl 14 std_core$Iterator
 impl 15 std_core$Iterator
 impl 16 std_core$Iterator
 impl 17 std_core$Iterator
-impl 20 std_core$ByteAccess
 impl 4 std_core$Error
+impl 20 std_core$ByteAccess
 vtable std_core$Iterator.next 8 13
 vtable std_core$Iterator.next 11 14
 vtable std_core$Iterator.next 12 15

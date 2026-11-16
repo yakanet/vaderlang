@@ -16,7 +16,7 @@
       add: __method_env_snippet_3 = __method_env_snippet_3 { .receiver = xs }
       __method_snippet_2(add, 4)
       std.console.println<string>({
-          __buf_3: Buffer = std.core.new_byte_buffer(i64(24))
+          __buf_3: Buffer = std_core$Intrinsic$new_byte_buffer(i64(24))
           __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "len ")
           __off_4 = std.core.write_int(__buf_3, __off_4, __method_snippet_0(count))
@@ -24,7 +24,7 @@
       } :string)
       total: __method_env_snippet_5 = __method_env_snippet_5 { .receiver = xs }
       std.console.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(45))
+          __buf_6: Buffer = std_core$Intrinsic$new_byte_buffer(i64(45))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "sum ")
           __off_7 = std.core.write_int(__buf_6, __off_7, __method_snippet_4(total))
@@ -34,7 +34,7 @@
       } :string)
       counted: __method_env_snippet_7 = __method_env_snippet_7 { .receiver = Countdown { .n = 3 } }
       std.console.println<string>({
-          __buf_9: Buffer = std.core.new_byte_buffer(i64(30))
+          __buf_9: Buffer = std_core$Intrinsic$new_byte_buffer(i64(30))
           __off_10: i64 = 0
           __off_10 = std.core.write_string_at(__buf_9, __off_10, "countdown ")
           __off_10 = std.core.write_int(__buf_9, __off_10, __method_snippet_6(counted))
@@ -61,10 +61,10 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
   vtable std.core.Iterator.next for Countdown  snippet.Countdown.next  // snippet$Countdown$std_core$Iterator$next
 
@@ -75,9 +75,6 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32[].into  // std_core$$array$Into$into__i32
     fn std.core.write_bool  // std_core$write_bool

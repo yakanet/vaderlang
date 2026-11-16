@@ -16,7 +16,6 @@ import "vader/front/resolver"
 import "vader/front/typecheck"
 import "vader/core/types"
 import "vader/core/symbol"
-import "toolchain/span"
 
 /// Build phase of generic-fn-instance materialisation. Drains
 /// `fn_instance_queue` and `generic_impl_recv_queue` into

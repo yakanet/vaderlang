@@ -45,11 +45,11 @@ import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe he
 impl 5 std_core$Contains
 impl 6 std_core$Contains
 impl 11 std_core$Contains
-impl 12 std_core$ByteAccess
 impl 13 std_core$Contains
 impl 10 std_core$Contains
 impl 14 std_core$Contains
 impl 11 std_core$Iterator
+impl 12 std_core$ByteAccess
 vtable std_core$Contains.contains 5 6
 vtable std_core$Contains.contains 6 7
 vtable std_core$Contains.contains 11 13

@@ -141,7 +141,6 @@ is_reached :: fn(d: AST.Decl, reachable: Set<string>, private_types: Set<string>
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/iter"
 import "std/string"
 import "std/testing"
 import "toolchain/parser"

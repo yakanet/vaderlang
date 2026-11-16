@@ -21,7 +21,6 @@ import "json"
 import "std/collections"
 import "toolchain/span"
 import "vader/tools/lsp/analysis"
-import "vader/tools/lsp/protocol"
 import "toolchain/parser"
 AST :: import "toolchain/ast"
 

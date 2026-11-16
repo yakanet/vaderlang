@@ -94,7 +94,6 @@ import 2 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string
 import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=1,6,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=12 () -> void
-impl 9 std_core$ByteAccess
 impl 18 std_io$Reader
 impl 19 std_io$Writer
 impl 21 std_io$Reader
@@ -103,6 +102,7 @@ impl 23 std_io$Writer
 impl 14 std_io$Reader
 impl 16 std_io$Writer
 impl 3 std_core$Error
+impl 9 std_core$ByteAccess
 vtable std_io$Reader.read 18 27
 vtable std_io$Reader.read 21 29
 vtable std_io$Reader.read 22 30

@@ -729,10 +729,11 @@ export BufferNew :: struct {}
 // `Store*` twins) are COMPLETE but have no way to fire: the VM executes them
 // (`vm/exec.vader`), the C emit lowers them onto `vader_buffer_load_i32` & co
 // (`emit/c/buffers.vader`), the dump writes them and the `.virt` reader parses
-// them back, but the only thing that MINTS a memory op is a mangle match in
-// `midir/select/intrinsics.vader`, and `std/core/buffer.vader`'s `ByteAccess` trait
-// declares just `load_u8` / `store_u8` / `memory_copy` / `intern_string` /
-// `write_string`. So nothing user-writable reaches them. They are an ABI landed
+// them back, but the only thing that MINTS a memory op is a member of `Intrinsic`
+// matched in `midir/select/intrinsics.vader`, and `Intrinsic` declares just
+// `buffer_load_u8` / `buffer_store_u8` / `buffer_memory_copy` /
+// `buffer_intern_string` / `buffer_write_string`. So nothing user-writable
+// reaches them. They are an ABI landed
 // ahead of its surface, NOT dead weight: do not prune them as unreachable.
 //
 // Their intended consumer is named in `core/bytecode/byte_codec.vader`'s header: a future

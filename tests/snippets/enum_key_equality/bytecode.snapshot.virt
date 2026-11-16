@@ -42,13 +42,13 @@ import 2 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=5 param_typ
 import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=4,20,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=4 () -> i32
 import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=21 () -> void
-impl 9 std_core$ByteAccess
 impl 22 std_core$Index
 impl 22 std_core$IndexSet
 impl 22 std_core$Contains
 impl 24 std_core$Index
 impl 24 std_core$IndexSet
 impl 24 std_core$Contains
+impl 9 std_core$ByteAccess
 impl 22 std_core$Into
 impl 24 std_core$Into
 vtable std_core$Equals.equals 12 11

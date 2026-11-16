@@ -5,7 +5,7 @@
   snippet.Log.set_at :: fn(self: Log, key: string, value: i32) -> void {  // snippet$Log$std_core$IndexSet$set_at
       @array.push(self.lines, {
           __p_0: string = key
-          __buf_1: Buffer = std.core.new_byte_buffer(i64(21) +% std_core$Intrinsic$byte_len(__p_0))
+          __buf_1: Buffer = std_core$Intrinsic$new_byte_buffer(i64(21) +% std_core$Intrinsic$byte_len(__p_0))
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "=")
@@ -39,7 +39,7 @@
       snippet.fill(m)
       snippet.pair_into<Map<string, i32>>(m)
       std.console.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(104))
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(104))
           __off_1: i64 = 0
           __off_1 = std.core.write_int(__buf_0, __off_1, snippet.peek(m, "a"))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
@@ -65,7 +65,7 @@
           __p_5: i64 = @array.len(l.lines)
           __p_6: string = l.lines[0]
           __p_7: string = l.lines[3]
-          __buf_8: Buffer = std.core.new_byte_buffer(i64(22) +% (std_core$Intrinsic$byte_len(__p_6) +% std_core$Intrinsic$byte_len(__p_7)))
+          __buf_8: Buffer = std_core$Intrinsic$new_byte_buffer(i64(22) +% (std_core$Intrinsic$byte_len(__p_6) +% std_core$Intrinsic$byte_len(__p_7)))
           __off_9: i64 = 0
           __off_9 = std.core.write_int(__buf_8, __off_9, __p_5)
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
@@ -87,7 +87,7 @@
       snippet.put_wider<Map<i64, i32>>(wide)
       k: i64 = 9000000000
       std.console.println<string>({
-          __buf_12: Buffer = std.core.new_byte_buffer(i64(62))
+          __buf_12: Buffer = std_core$Intrinsic$new_byte_buffer(i64(62))
           __off_13: i64 = 0
           __off_13 = std.core.write_int(__buf_12, __off_13, {
               __fallback_10: i32 | null = std.collections.Map<i64, i32>.at(wide, k)
@@ -119,10 +119,10 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      buf: Buffer = std.core.new_byte_buffer(c1)
-      std.core.Buffer.write_string(buf, i64(0), p0)
-      std.core.Buffer.write_string(buf, c0, p1)
-      std.core.Buffer.intern_string(buf, c1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
   vtable std.core.IndexSet.set_at for Log  snippet.Log.set_at  // snippet$Log$std_core$IndexSet$set_at
 
@@ -161,9 +161,6 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
-    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
-    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.codepoint_at_byte  // std_core$codepoint_at_byte
     fn std.core.codepoint_count  // std_core$codepoint_count
     fn std.core.codepoint_offset  // std_core$codepoint_offset

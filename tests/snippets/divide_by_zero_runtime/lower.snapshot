@@ -6,7 +6,3 @@
       divisor: i32 = 0
       return numerator / divisor
   }
-
-## lowered in dependencies
-  std/core
-    struct std.core.Buffer  // std_core$Buffer

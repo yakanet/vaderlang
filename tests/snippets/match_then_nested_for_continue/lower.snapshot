@@ -43,7 +43,3 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       return snippet.run(Pair { .a = 5 }, true, true)
   }
-
-## lowered in dependencies
-  std/core
-    struct std.core.Buffer  // std_core$Buffer
