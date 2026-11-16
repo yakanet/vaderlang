@@ -21,11 +21,15 @@ static inline bool vader_host_std_core$Intrinsic$is_ascii(vader_string_t a0) {
 }
 
 static inline void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 29u, 513u);
+    return (void*) vader_string_bytes_view(a0, 29u, 514u);
 }
 
 static inline vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
     return vader_string_as_string((vader_array_t*) a0);
+}
+
+static inline uint64_t vader_host_std_core$Intrinsic$string_hash(vader_string_t a0) {
+    return vader_string_hash(a0);
 }
 
 static inline int64_t vader_host_std_core$Intrinsic$collections(void) {
@@ -147,10 +151,6 @@ static inline vader_string_t vader_host_std_core$Intrinsic$ffi_call(int64_t a0, 
 
 static inline vader_string_t vader_host_std_core$Intrinsic$ffi_call_frame(int64_t a0, void* a1, void* a2) {
     return vader_ffi_call_frame((void*) (intptr_t) a0, (vader_array_t*) a1, (vader_array_t*) a2);
-}
-
-static inline uint64_t vader_host_std_core$string$Hash$hash(vader_string_t a0) {
-    return vader_string_hash(a0);
 }
 
 static inline vader_string_t vader_host_system_windows$find_data_name(void* a0) {
