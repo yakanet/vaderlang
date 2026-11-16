@@ -490,17 +490,12 @@ c_struct_spelling_of :: fn(t: Type, typed: TypedProgram) -> string {
 validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagnostic[]) -> void {
     for pm in decl.params {
         for d in pm.decorators {
-            // A declared decorator is checked at the place `Parameter`, with the
-            // others (`check_decorator_uses`).
-            if !is_compiler_decorator(d) {
+            // Whether it may stand on a parameter at all is the place its
+            // declaration names (`check_decorator_uses`).
+            if !is_parameter_decorator(d) {
                 continue
             }
-            if !is_parameter_decorator(d.name) {
-                diags.push(typecheck_error(
-                    .InvalidParameterDecorator, pm.span,
-                    "`@${d.name}` cannot decorate a parameter: only `@c_address`, `@c_out`, "
-                        + "`@c_type` and `@c_variadic` can"))
-            } else if !is_extern {
+            if !is_extern {
                 diags.push(typecheck_error(
                     .InvalidParameterDecorator, pm.span,
                     "`@${d.name}` only means something on an `@extern` declaration"))
@@ -514,8 +509,9 @@ validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagno
     }
 }
 
-// Whether a parameter may carry the decorator `name`.
-is_parameter_decorator :: fn(name: string) -> bool = decorator_on(name, .Parameter)
+// Whether `d` is a decorator of the compiler a parameter may carry.
+is_parameter_decorator :: fn(d: AST.Decorator) -> bool =
+    is_compiler_decorator(d) && decorator_on(d.name, .Parameter)
 
 // What is wrong with the arguments of the C decorator `d`, or null : `@c_type`
 // takes one plain string, the others none.

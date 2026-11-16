@@ -1,5 +1,0 @@
-[12:1] error[P1014] unknown decorator placement: `@comptime` is written before the value it computes: `NAME :: @comptime <expr>`
-[14:1] error[P1014] unknown decorator placement: `@comptime` is written before the value it computes: `NAME :: @comptime <expr>`
-[17:1] warning[W0007] declaration is never used in its module: `Sized` is never used
-[18:5] error[P1014] unknown decorator placement: `@comptime` is written before the value it computes: `NAME :: @comptime <expr>`
-[9:1] error[P1014] unknown decorator placement: `@comptime` is written before the value it computes: `NAME :: @comptime <expr>`

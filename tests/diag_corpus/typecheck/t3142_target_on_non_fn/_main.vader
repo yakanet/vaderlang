@@ -1,0 +1,18 @@
+// `@target` selects the body of a top-level function, and is declared for one:
+// on a struct, a trait or an impl member it is refused, where it would
+// otherwise do nothing.
+
+module "main"
+
+@target(.Windows)
+S :: struct { x: i32 }
+
+@target(.Windows)
+T :: trait { m :: fn(self) -> i32 }
+
+S implements T {
+    @target(.Windows)
+    m :: fn(self) -> i32 = 1
+}
+
+main :: fn() -> i32 = 0

@@ -511,6 +511,10 @@ export TypedProgram :: struct {
     /// `std/core`'s `DecoratorTarget` enum symbol: the type of the places a
     /// decorator declaration names. Populated once from core by the orchestrator.
     decorator_target_symbol: Symbol | null
+    /// The decorators of the compiler `std/core` declares, keyed by name: where a
+    /// compiler decorator is written, its declaration says the places it takes.
+    /// Populated once from core by the orchestrator.
+    compiler_decorator_symbols: Map<string, Symbol>
     /// The `std/runtime/scheduler` functions the compiler calls : one record for
     /// the whole project, null when it never loads the scheduler. It then runs on
     /// one thread, and a value built on first use needs no gate.
@@ -878,6 +882,7 @@ new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .equals_symbol   = null,
     .iterator_symbol = null,
     .decorator_target_symbol = null,
+    .compiler_decorator_symbols = Map<string, Symbol> {},
     .imported_fn_overloads = Map<string, Map<string, FnCandidate[]>> {},
     .ufcs_receiver_types = Map<i64, Type> {},
     .chosen_fns = Map<i64, FnCandidate> {},

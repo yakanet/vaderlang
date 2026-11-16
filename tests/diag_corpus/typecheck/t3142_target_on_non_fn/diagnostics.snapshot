@@ -1,0 +1,3 @@
+[10:2] error[T3142] this decorator is not declared for this place: `@target` applies to a top-level function, not to a trait
+[14:6] error[T3142] this decorator is not declared for this place: `@target` applies to a top-level function, not to a member of an `implements` block
+[7:2] error[T3142] this decorator is not declared for this place: `@target` applies to a top-level function, not to a struct

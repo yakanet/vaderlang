@@ -1,0 +1,22 @@
+// `@c_address`, `@c_out` and `@c_variadic` are declared for a parameter, and
+// `@c_struct` for a struct. Written on any other declaration they are refused.
+//
+// The `@extern` case is the trap: `@c_address` there LOOKS like it says
+// something about the call.
+
+module "main"
+
+@c_address
+@extern(symbol = "abs")
+sys_abs :: fn(v: i32) -> i32
+
+@c_struct("thing")
+noop :: fn() -> i32 = 1
+
+@c_variadic
+E :: enum(u8) { A, B }
+
+@c_struct("other")
+Tr :: trait { m :: fn(self) -> i32 }
+
+main :: fn() -> i32 = 0

@@ -41,15 +41,28 @@ export extern :: decorator(.Function) {
 export test :: decorator(.Function) {}
 
 /// Marks a bodyless function of the standard library, or a bodyless
-/// `implements` block, as provided by the host runtime.
+/// `implements` block or member, as provided by the host runtime.
 ///
 /// Every bodyless free function carries it or `@extern`; the build fails when the
 /// host does not provide it.
-export intrinsic :: decorator(.Function, .Implementation) {}
+export intrinsic :: decorator(
+    .Function,
+    .Implementation,
+    .ImplMember
+) {}
 
 /// Reports a warning at every reference to the declaration; the code still
 /// compiles.
-export deprecated :: decorator(.Function, .Struct, .Enum, .Trait, .Constant, .Alias) {
+export deprecated :: decorator(
+    .Function,
+    .TraitMember,
+    .ImplMember,
+    .Struct,
+    .Enum,
+    .Trait,
+    .Constant,
+    .Alias,
+) {
     /// What to use instead, shown with the warning.
     reason: string
 }

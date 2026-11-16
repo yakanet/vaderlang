@@ -10,6 +10,7 @@
 module "vader/front/resolver"
 
 import "std/iter"
+import "std/string"
 import "std/string_builder"
 import "toolchain/parser"
 AST :: import "toolchain/ast"
@@ -36,8 +37,7 @@ export with_displayable_impls :: fn(program: AST.Program) -> AST.Program {
 }
 
 // The impl reports at the decorator: a conflict with a written impl, an
-// "implementations" lookup, since its own spans name no real file. It carries
-// the decorator too, which is how a conflict says where the impl came from.
+// "implementations" lookup, since its own spans name no real file.
 displayable_impl :: fn(e: AST.EnumDecl, marker: AST.Decorator, file: string) -> AST.Decl {
     sb :: StringBuilder {}
     sb.append("${e.name} implements Display {\n")
@@ -50,7 +50,13 @@ displayable_impl :: fn(e: AST.EnumDecl, marker: AST.Decorator, file: string) -> 
     impl_ :: parse_source(sb.to_string(), source_file).program.decls[0]
     if impl_ is AST.ImplDecl {
         impl_.span = marker.span
-        impl_.decorators = [marker]
     }
     return impl_
 }
+
+/// Whether `decl` is the `Display` an `@displayable` enum is given, parsed under
+/// a file name of its own.
+///
+/// @param decl  an impl.
+export is_displayable_impl :: fn(decl: AST.ImplDecl) -> bool =
+    decl.members.any_match((m) -> m.span.start.file.starts_with(DISPLAYABLE_FILE_PREFIX))

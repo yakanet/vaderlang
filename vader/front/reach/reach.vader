@@ -54,7 +54,7 @@ referenced_name :: fn(n: AST.Node, out: string[]) -> AST.Walk {
     } else if n is AST.FieldExpr {
         out.push(n.field)
     } else if n is AST.Decl {
-        for site in AST.decorator_sites(n) {
+        for site in AST.decorator_sites(n, AST.place_of(n)) {
             for d in site.decorators {
                 out.push(d.name)
             }

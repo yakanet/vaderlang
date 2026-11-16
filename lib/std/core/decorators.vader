@@ -15,8 +15,12 @@ module "std/core"
 ///       path: string
 ///   }
 export DecoratorTarget :: enum {
-    /// Above a function.
+    /// Above a top-level function.
     Function
+    /// Above a member of a trait.
+    TraitMember
+    /// Above a member of an `implements` block.
+    ImplMember
     /// Above a struct.
     Struct
     /// Above an enum.

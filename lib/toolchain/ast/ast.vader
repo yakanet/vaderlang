@@ -146,7 +146,7 @@ export ModuleDecl :: struct {
     id:         i64 = UNASSIGNED_NODE_ID
     name:       string
     name_span:  Span
-    /// The declared decorators written above `module`: the module's, added up
+    /// The decorators written above `module`: the module's, added up
     /// with those of its other files.
     decorators: Decorator[] = []
 }
@@ -370,9 +370,10 @@ export DecoratorSite :: struct {
     decorators: Decorator[]
 }
 
-/// The `DecoratorTarget` variant `decl` is, where a decorator above it is written.
+/// The `DecoratorTarget` variant the top-level `decl` is, where a decorator above
+/// it is written: a member of a trait or an impl is at `member_place` instead.
 ///
-/// @param decl  a top-level declaration, or the member of a trait or an impl.
+/// @param decl  a top-level declaration.
 /// @return      `"Function"`, `"Struct"`... ; `""` for an assertion, which carries
 ///              no decorator.
 export place_of :: fn(decl: Decl) -> string = match decl {
@@ -394,15 +395,26 @@ export module_decorators :: fn(program: Program) -> Decorator[] {
     return module.decorators
 }
 
+/// The `DecoratorTarget` variant a member of `owner` is: `"TraitMember"` or
+/// `"ImplMember"`.
+///
+/// @param owner  the trait or the impl that declares the member.
+/// @return       `""` for any other declaration, which has no member.
+export member_place :: fn(owner: Decl) -> string = match owner {
+    is TraitDecl -> "TraitMember"
+    is ImplDecl  -> "ImplMember"
+    is ImportDecl | FnDecl | StructDecl | EnumDecl | TypeAliasDecl | ConstDecl | AssertDecl -> ""
+}
+
 /// Each place of `decl` a decorator may be written at: above it, and above each
 /// of its fields, variants and parameters. The members of a trait or an impl are
 /// declarations of their own, with sites of their own (`members_of`).
 ///
-/// @param decl  a top-level declaration, or the member of a trait or an impl.
-export decorator_sites :: fn(decl: Decl) -> Iterator<DecoratorSite> {
-    yield DecoratorSite {
-        .place = place_of(decl), .decorators = decl_decorators(decl)
-    }
+/// @param decl   a top-level declaration, or the member of a trait or an impl.
+/// @param place  the place of `decl` itself: `place_of(decl)`, or the
+///               `member_place` of its owner.
+export decorator_sites :: fn(decl: Decl, place: string) -> Iterator<DecoratorSite> {
+    yield DecoratorSite { .place = place, .decorators = decl_decorators(decl) }
     match decl {
         is StructDecl -> {
             for f in decl.fields {
@@ -649,7 +661,7 @@ export StructField :: struct {
     // Optional default value used when a struct literal omits this field.
     default:    Expr | null
     doc:        DocComment | null = null
-    /// The declared decorators written above the field ; `@internal` is its
+    /// The decorators written above the field ; `@internal` is its
     /// `visibility`.
     decorators: Decorator[] = []
     /// Written `...name: T[]`, the last field of a decorator: it holds the
@@ -690,7 +702,7 @@ export EnumVariant :: struct {
     /// type ; null when the variant has none.
     data:        StructLitItem[] | null = null
     doc:         DocComment | null = null
-    /// The declared decorators written above the variant.
+    /// The decorators written above the variant.
     decorators:  Decorator[] = []
 }
 

@@ -1,0 +1,2 @@
+[15:6] error[T3142] this decorator is not declared for this place: `@singleton` applies to a top-level function, not to a member of an `implements` block
+[9:2] error[T3142] this decorator is not declared for this place: `@singleton` applies to a top-level function, not to a trait

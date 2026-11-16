@@ -1,0 +1,5 @@
+[12:2] error[T3142] this decorator is not declared for this place: `@comptime` applies to an expression, not to a constant
+[14:2] error[T3142] this decorator is not declared for this place: `@comptime` applies to an expression, not to a top-level function
+[17:1] warning[W0007] declaration is never used in its module: `Sized` is never used
+[18:6] error[T3142] this decorator is not declared for this place: `@comptime` applies to an expression, not to a member of a trait
+[9:2] error[T3142] this decorator is not declared for this place: `@comptime` applies to an expression, not to a constant

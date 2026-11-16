@@ -1,2 +1,2 @@
-[14:6] error[T3142] this decorator is not declared for this place: `@Route` is declared for `.Function`, written on `.Field`
-[18:2] error[T3142] this decorator is not declared for this place: `@JsonName` is declared for `.Field`, written on `.Function`
+[14:6] error[T3142] this decorator is not declared for this place: `@Route` applies to a top-level function, not to a struct field
+[18:2] error[T3142] this decorator is not declared for this place: `@JsonName` applies to a struct field, not to a top-level function

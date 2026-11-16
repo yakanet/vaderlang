@@ -1,0 +1,2 @@
+[10:2] error[T3142] this decorator is not declared for this place: `@ensures` applies to a top-level function, not to a struct
+[5:2] error[T3142] this decorator is not declared for this place: `@returns` applies to a top-level function, not to a struct

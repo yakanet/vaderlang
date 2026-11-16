@@ -1,0 +1,6 @@
+[10:2] error[T3142] this decorator is not declared for this place: `@alias` applies to a constant, not to a top-level function
+[13:2] error[T3142] this decorator is not declared for this place: `@alias` applies to a constant, not to a type alias
+[14:1] warning[W0007] declaration is never used in its module: `Maybe` is never used
+[16:1] warning[W0007] declaration is never used in its module: `Named` is never used
+[17:6] error[T3142] this decorator is not declared for this place: `@alias` applies to a constant, not to a member of a trait
+[7:2] error[T3142] this decorator is not declared for this place: `@alias` applies to a constant, not to a struct

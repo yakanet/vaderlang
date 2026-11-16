@@ -1,1 +1,1 @@
-[8:2] error[T3142] this decorator is not declared for this place: `@Route` is declared for `.Function`, written on `.Struct`
+[8:2] error[T3142] this decorator is not declared for this place: `@Route` applies to a top-level function, not to a struct

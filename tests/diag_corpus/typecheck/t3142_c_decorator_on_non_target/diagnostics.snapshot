@@ -1,0 +1,7 @@
+[13:2] error[T3142] this decorator is not declared for this place: `@c_struct` applies to a struct, not to a top-level function
+[14:1] warning[W0007] declaration is never used in its module: `noop` is never used
+[16:2] error[T3142] this decorator is not declared for this place: `@c_variadic` applies to a function parameter, not to an enum
+[17:1] warning[W0007] declaration is never used in its module: `E` is never used
+[19:2] error[T3142] this decorator is not declared for this place: `@c_struct` applies to a struct, not to a trait
+[20:1] warning[W0007] declaration is never used in its module: `Tr` is never used
+[9:2] error[T3142] this decorator is not declared for this place: `@c_address` applies to a function parameter, not to a top-level function

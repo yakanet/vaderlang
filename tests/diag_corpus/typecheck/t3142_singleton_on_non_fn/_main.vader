@@ -1,5 +1,5 @@
-// `@singleton` shares what a free function builds. On anything else it would do
-// nothing at all, so it is refused where the parser still knows what follows.
+// `@singleton` shares what a top-level function builds, and is declared for
+// one: on a trait or an impl member it is refused.
 module "snippet"
 
 Box :: struct {

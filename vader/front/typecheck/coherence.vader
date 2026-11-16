@@ -167,7 +167,7 @@ may_coincide_each :: fn(a: Type[], b: Type[]) -> bool {
 }
 
 conflict_detail :: fn(decl: AST.ImplDecl, for_ty: Type) -> string {
-    if AST.has_compiler_decorator(decl.decorators, .Displayable) {
+    if is_displayable_impl(decl) {
         return ("`@displayable` generates the `Display` of `${display_type(for_ty)}`, "
             + "which already implements it")
     }

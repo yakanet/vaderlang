@@ -1,0 +1,3 @@
+[10:2] error[T3142] this decorator is not declared for this place: `@displayable` applies to an enum, not to a trait
+[14:6] error[T3142] this decorator is not declared for this place: `@displayable` applies to an enum, not to a member of an `implements` block
+[7:2] error[T3142] this decorator is not declared for this place: `@displayable` applies to an enum, not to a struct

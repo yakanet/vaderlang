@@ -487,7 +487,7 @@ module_decorators :: fn(p: Parser) -> Decorator[] {
     if !p.check(.At) || !opens_module_line(p.tokens, past_decorator_lines(p.tokens, i64(p.pos))) {
         return []
     }
-    return p.declared_only(p.parse_decorators(), "a module")
+    return p.parse_decorators()
 }
 
 // `module` is a *soft* keyword : it stays an `Ident` token at the
@@ -555,8 +555,6 @@ parse_decl :: fn(p: Parser) -> Decl | null {
         return p.parse_assert_decl()
     }
     decorators :: p.parse_decorators()
-    p.reject_comptime_decorator(decorators)
-    p.reject_assert_decorator(decorators)
     p.check_guard_arity(decorators)
     p.check_c_struct_arguments(decorators)
     p.check_c_header_arguments(decorators)
@@ -565,12 +563,6 @@ parse_decl :: fn(p: Parser) -> Decl | null {
         visibility = .Public
     }
     decl :: p.parse_decorated_decl(decorators, visibility)
-    if decl != null && decl !is EnumDecl {
-        p.reject_displayable_decorator(decorators)
-    }
-    if decl != null && decl !is ConstDecl {
-        p.reject_alias_decorator(decorators, decl is TypeAliasDecl)
-    }
     if decl != null && doc != null {
         set_decl_doc(decl, doc)
     }
@@ -648,28 +640,6 @@ static_assert_message :: fn(p: Parser, arg: Expr) -> string | null {
     return text
 }
 
-// An `@assert` after another decorator would decorate the declaration below,
-// which nothing checks.
-reject_assert_decorator :: fn(p: Parser, decorators: Decorator[]) -> void {
-    for d in decorators {
-        if d.is_compiler(.Assert) {
-            p.error(.UnknownDecoratorPlacement, d.span,
-                "`@assert` stands on its own line, before any decorator")
-        }
-    }
-}
-
-// `@comptime` is written before the value it computes, never above a
-// declaration.
-reject_comptime_decorator :: fn(p: Parser, decorators: Decorator[]) -> void {
-    for d in decorators {
-        if d.is_compiler(.Comptime) {
-            p.error(.UnknownDecoratorPlacement, d.span,
-                "`@comptime` is written before the value it computes: `NAME :: @comptime <expr>`")
-        }
-    }
-}
-
 parse_decorated_decl :: fn(
     p: Parser, decorators: Decorator[], visibility: Visibility,
 ) -> Decl | null {
@@ -696,51 +666,6 @@ parse_decorated_decl :: fn(
     p.error(.ExpectedDeclaration, t.span, "got ${describe_token(t)}")
     p.sync_to_top_level()
     return null
-}
-
-// What a constant uses where it would write `@target`.
-VADER_OS_HINT :: " ; use `VADER_OS`, which is a value"
-
-// `@target` selects a FUNCTION BODY, and `@singleton` shares what a free function
-// builds. Anywhere else they would parse, pass the resolver's whitelist, and do
-// NOTHING: the silent no-op that is worse than either accepting or rejecting
-// them, because nothing tells the author their annotation was ignored. Rejected
-// here, where the parser still knows what kind of declaration follows; by resolve
-// time an impl member and a free fn are the same `FnDecl`.
-//
-// `target_hint` follows the `@target` message: what to write instead, or "".
-reject_free_fn_decorators :: fn(
-    p: Parser, decorators: Decorator[], what: string, target_hint: string,
-) -> void {
-    for d in decorators {
-        which :: compiler_decorator_of(d) else continue
-        match which {
-            .Target -> {
-                p.error(.UnknownDecoratorPlacement, d.span,
-                    "`@target` selects a function body ; "
-                        + "it does not apply to ${what}${target_hint}")
-            }
-            .Singleton -> {
-                p.error(.UnknownDecoratorPlacement, d.span,
-                    "`@singleton` applies to a free function ; it does not apply to ${what}")
-            }
-            .Returns -> {
-                p.error(.UnknownDecoratorPlacement, d.span,
-                    "`@returns` states what a free function returns ; it does not apply to ${what}")
-            }
-            .Ensures -> {
-                p.error(.UnknownDecoratorPlacement, d.span,
-                    "`@ensures` states what holds once a free function returns ; "
-                        + "it does not apply to ${what}")
-            }
-            .CType -> {
-                p.error(.UnknownDecoratorPlacement, d.span,
-                    "`@c_type` names the C type of an `@extern` result or parameter ; "
-                        + "it does not apply to ${what}")
-            }
-            _ -> {}
-        }
-    }
 }
 
 // `@returns(cond)` and `@ensures(cond)` state one condition.
@@ -783,50 +708,6 @@ check_c_header_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
     }
 }
 
-// The decorators the registry places on a PARAMETER only (`@c_address`, `@c_out`,
-// `@c_variadic`) and `@c_struct`, which belongs on a struct. Written on a
-// declaration they reach neither check and do nothing: the same silent no-op
-// `reject_free_fn_decorators` exists to prevent.
-reject_c_decorators :: fn(p: Parser, decorators: Decorator[], what: string) -> void {
-    for d in decorators {
-        if decorator_on(d.name, .Parameter) && !decorator_on(d.name, .Declaration) {
-            p.error(.UnknownDecoratorPlacement, d.span,
-                "`@${d.name}` decorates a PARAMETER of an `@extern` ; it does not apply to ${what}")
-        }
-        if d.is_compiler(.CStruct) {
-            p.error(.UnknownDecoratorPlacement, d.span,
-                "`@c_struct` names the C type a STRUCT mirrors ; it does not apply to ${what}")
-        }
-    }
-}
-
-// `@displayable` asks for an enum's generated `Display` ; on anything else there
-// is no variant name to render, and nothing downstream would read it.
-reject_displayable_decorator :: fn(p: Parser, decorators: Decorator[]) -> void {
-    for d in decorators {
-        if d.is_compiler(.Displayable) {
-            p.error(.UnknownDecoratorPlacement, d.span, "`@displayable` applies to an enum only")
-        }
-    }
-}
-
-// `@alias` off a constant naming a type ; `generic` says the declaration is a
-// generic alias, transparent without it.
-reject_alias_decorator :: fn(p: Parser, decorators: Decorator[], generic: bool) -> void {
-    for d in decorators {
-        if d.is_compiler(.Alias) {
-            p.error(.UnknownDecoratorPlacement, d.span, alias_placement_detail(generic))
-        }
-    }
-}
-
-alias_placement_detail :: fn(generic: bool) -> string {
-    if generic {
-        return "a generic alias is transparent already: `@alias` is not needed"
-    }
-    return "`@alias` applies to a constant naming a type"
-}
-
 parse_decorators :: fn(p: Parser) -> Decorator[] {
     out: Decorator[]: []
     for p.check(.At) {
@@ -836,20 +717,6 @@ parse_decorators :: fn(p: Parser) -> Decorator[] {
         p.skip_newlines()
     }
     return out
-}
-
-// The declared decorators among `decorators`, written above `place` (`an enum
-// variant`): no decorator of the compiler applies there.
-declared_only :: fn(p: Parser, decorators: Decorator[], place: string) -> Decorator[] {
-    declared: Decorator[]: []
-    for d in decorators {
-        if is_compiler_decorator(d) {
-            p.error(.UnknownDecoratorPlacement, d.span, "`@${d.name}` does not apply to ${place}")
-        } else {
-            declared.push(d)
-        }
-    }
-    return declared
 }
 
 /// Whether `d` is one of the compiler's decorators rather than one a program
@@ -1104,7 +971,6 @@ missing_trait_name :: fn(p: Parser) -> TypeExpr {
 }
 
 parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
-    p.reject_free_fn_decorators(decorators, "an `implements` block", "")
     start_tok :: p.peek()
     for_type :: p.parse_type()
     p.expect(.KwImplements, "`implements` keyword")
@@ -1134,13 +1000,7 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
         for !p.check(.RBrace) && !p.check(.Eof) {
             fn_opt :: p.parse_fn_decl_inside_trait()
             match fn_opt {
-                is FnDecl -> {
-                    // An impl member is a `FnDecl` like any other by the time the
-                    // resolver sees it, so this is the last point where the
-                    // distinction still exists.
-                    p.reject_free_fn_decorators(fn_opt.decorators, "an impl member", "")
-                    members.push(fn_opt)
-                }
+                is FnDecl -> members.push(fn_opt)
                 is null   -> {}
             }
             p.skip_newlines()
@@ -1259,7 +1119,6 @@ parse_named_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
 }
 
 parse_fn_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> FnDecl {
-    p.reject_c_decorators(decorators, "a function")
     p.advance()  // `fn`
     type_params :: p.parse_angle_type_params()
     sig :: p.parse_fn_signature_params()
@@ -1309,9 +1168,6 @@ parse_fn_body_tail :: fn(p: Parser) -> FnBodyTail {
 parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
     doc :: p.take_doc()
     decorators :: p.parse_decorators()
-    p.reject_displayable_decorator(decorators)
-    p.reject_comptime_decorator(decorators)
-    p.reject_alias_decorator(decorators, false)
     visibility: Visibility = .Private
     if p.match_kind(.KwExport) != null { visibility = .Public }
     // Unified syntax: `name :: fn(...)`, same shape as top-level fns.
@@ -1446,7 +1302,6 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
 }
 
 parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> StructDecl {
-    p.reject_free_fn_decorators(decorators, "a struct", "")
     p.advance()  // `struct`
     type_params :: p.parse_angle_type_params()
     return p.parse_struct_body(decorators, visibility, name_tok, type_params, null)
@@ -1458,7 +1313,6 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
 parse_decorator_decl :: fn(
     p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token,
 ) -> StructDecl {
-    p.reject_free_fn_decorators(decorators, "a decorator", "")
     p.advance()  // `decorator`
     args: CallArg[] = []
     if p.match_kind(.LParen) != null {
@@ -1495,18 +1349,15 @@ parse_struct_body :: fn(
             continue
         }
         // Fields are PUBLIC by default ; an `@internal` decorator restricts a
-        // field to its declaring module (typecheck enforces, T3054), and is the only
-        // decorator of the compiler a field takes. Declared ones go to the typecheck.
+        // field to its declaring module (typecheck enforces, T3054). Every other
+        // decorator goes to the typecheck, which checks its place.
         field_visibility: Visibility = .Public
         declared: Decorator[]: []
         for d in field_decos {
-            if !is_compiler_decorator(d) {
-                declared.push(d)
-            } else if decorator_on(d.name, .Field) {
+            if d.is_compiler(.Internal) {
                 field_visibility = .Private
             } else {
-                p.error(.UnknownDecoratorPlacement, d.span,
-                    "`@${d.name}` does not apply to a struct field ; only `@internal` does")
+                declared.push(d)
             }
         }
         start :: p.peek()
@@ -1637,8 +1488,6 @@ parse_angle_type_params :: fn(p: Parser) -> TypeParam[] {
 }
 
 parse_trait_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> TraitDecl {
-    p.reject_free_fn_decorators(decorators, "a trait", "")
-    p.reject_c_decorators(decorators, "a trait")
     p.advance()  // `trait`
     type_params :: p.parse_angle_type_params()
     // Trait composition. Two forms :
@@ -1686,8 +1535,6 @@ parse_trait_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
 }
 
 parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> EnumDecl {
-    p.reject_free_fn_decorators(decorators, "an enum", "")
-    p.reject_c_decorators(decorators, "an enum")
     p.advance()  // `enum`
     header: TypeExpr[]: []
     if p.match_kind(.LParen) != null {
@@ -1703,7 +1550,7 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
     for !p.check(.RBrace) && !p.check(.Eof) {
         errors_before :: p.errors.len()
         doc :: p.take_doc()
-        variant_decorators :: p.declared_only(p.parse_decorators(), "an enum variant")
+        variant_decorators :: p.parse_decorators()
         v_tok :: p.expect(.Ident, "variant name")
         variant_data: StructLitItem[] | null = null
         if p.match_kind(.LBrace) != null {
@@ -1761,7 +1608,6 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
 // `name :: value`: untyped top-level const. The typed shape uses the
 // Odin-style `name : Type : value` form parsed by `parse_typed_const_decl`.
 parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> ConstDecl {
-    p.reject_free_fn_decorators(decorators, "a constant", VADER_OS_HINT)
     // Multi-line union with a leading pipe :
     //   T ::
     //       | A
@@ -1904,7 +1750,6 @@ lift_trailing_return :: fn(block: BlockExpr) -> BlockExpr {
 // `name : Type : value`: typed top-level const, mirrors the local
 // `name : Type : value` immutable-let form for surface uniformity.
 parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility) -> ConstDecl {
-    p.reject_free_fn_decorators(decorators, "a constant", VADER_OS_HINT)
     name_tok :: p.advance()  // name
     p.advance()  // first `:`
     ty :: p.parse_type()

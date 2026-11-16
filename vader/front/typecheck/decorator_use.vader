@@ -1,11 +1,12 @@
-// vader/front/typecheck/decorator_use: the checks of a declared decorator where it
-// is written.
+// vader/front/typecheck/decorator_use: the checks of a decorator where it is
+// written.
 //
 // `@Route(.Get, "/users/{id}")` above a function names a decorator declaration
 // (`decorator_decl.vader`), declared for some places, repeatable or not. Its
 // arguments are those of a call whose parameters are the fields, in order, a field
-// with a default being optional. A compiler decorator is checked by its own rules
-// (`decl.vader`), never here.
+// with a default being optional. A decorator of the compiler is declared by
+// `std/core` and checked here for its place and its repetition ; its arguments
+// are read by its own rules (`decl.vader`).
 
 module "vader/front/typecheck"
 
@@ -19,30 +20,34 @@ import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/resolver"
 
-/// Check every declared decorator written on `decls`, at each of their places
+/// Check every decorator written on `decls`, at each of their places
 /// (`AST.decorator_sites`) and on the members of their traits and impls.
 ///
 /// @param decls  the declarations of a module.
 /// @param typed  the module's typed program, the struct tables of the project
 ///               shared.
 /// @param diags  where T3141, T3142, T3143 and the argument errors go.
-export check_decorator_uses :: fn(decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[]) -> void {
+export check_decorator_uses :: fn(
+    decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[],
+) -> void {
     check_decorators_at(typed.resolved.module_decorators, "Module", typed, diags)
     for decl in decls {
-        check_sites(decl, typed, diags)
+        check_sites(decl, AST.place_of(decl), typed, diags)
         for m in AST.members_of(decl) {
-            check_sites(m, typed, diags)
+            check_sites(m, AST.member_place(decl), typed, diags)
         }
     }
 }
 
-check_sites :: fn(decl: AST.Decl, typed: TypedProgram, diags: Diagnostic[]) -> void {
-    for site in AST.decorator_sites(decl) {
+check_sites :: fn(
+    decl: AST.Decl, place: string, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    for site in AST.decorator_sites(decl, place) {
         check_decorators_at(site.decorators, site.place, typed, diags)
     }
 }
 
-// The declared decorators of one declaration, written at `place`.
+// The decorators of one declaration, written at `place`.
 check_decorators_at :: fn(
     decs: AST.Decorator[], place: string, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
@@ -51,9 +56,6 @@ check_decorators_at :: fn(
     }
     written: i32[]: []
     for d in decs {
-        if is_compiler_decorator(d) {
-            continue
-        }
         sym :: decorator_symbol(d, typed, diags) else continue
         declaration :: typed.struct_decls[sym.id]
         if !sym.is_decorator || declaration == null {
@@ -67,13 +69,21 @@ check_decorators_at :: fn(
                 "`@${d.name}` again on this declaration"))
         }
         written.push(sym.id)
-        check_decorator_arguments(d, sym, typed, diags)
+        if !is_compiler_decorator(d) {
+            check_decorator_arguments(d, sym, typed, diags)
+        }
     }
 }
 
 // The declaration `d` names, followed through its import ; null when the name is
-// unresolved, which the resolver or the namespace lookup reports.
-decorator_symbol :: fn(d: AST.Decorator, typed: TypedProgram, diags: Diagnostic[]) -> Symbol | null {
+// unresolved, which the resolver or the namespace lookup reports, and for a
+// decorator of the compiler while `std/core` itself is checked.
+decorator_symbol :: fn(
+    d: AST.Decorator, typed: TypedProgram, diags: Diagnostic[],
+) -> Symbol | null {
+    if is_compiler_decorator(d) {
+        return typed.compiler_decorator_symbols[d.name]
+    }
     qualifier :: d.qualifier
     if qualifier != null {
         member :: AST.FieldExpr {
@@ -112,9 +122,40 @@ check_place :: fn(
     if places.len() == 0 || place in places {
         return
     }
-    listed :: places.map((p) -> "`.${p}`").collect().join(", ")
+    allowed :: either_of(places.map(place_phrase).collect())
     diags.push(typecheck_error(.DecoratorMisplaced, d.name_span,
-        "`@${d.name}` is declared for ${listed}, written on `.${place}`"))
+        "`@${d.name}` applies to ${allowed}, not to ${place_phrase(place)}"))
+}
+
+// The `DecoratorTarget` variant `place`, in the words of a diagnostic.
+place_phrase :: fn(place: string) -> string = match place {
+    "Function"       -> "a top-level function"
+    "TraitMember"    -> "a member of a trait"
+    "ImplMember"     -> "a member of an `implements` block"
+    "Struct"         -> "a struct"
+    "Enum"           -> "an enum"
+    "Trait"          -> "a trait"
+    "Implementation" -> "an `implements` block"
+    "Constant"       -> "a constant"
+    "Alias"          -> "a type alias"
+    "Import"         -> "an import"
+    "Field"          -> "a struct field"
+    "Variant"        -> "an enum variant"
+    "Parameter"      -> "a function parameter"
+    "Module"         -> "a module"
+    "Match"          -> "a `match`"
+    "Expression"     -> "an expression"
+    "Assertion"      -> "a line of its own among the declarations"
+    _                -> "`.${place}`"
+}
+
+// `phrases` as one alternative: `a, b or c`.
+either_of :: fn(phrases: string[]) -> string {
+    if phrases.len() == 1 {
+        return phrases[0]
+    }
+    last :: phrases.len() - 1
+    return "${phrases[0..<last].join(", ")} or ${phrases[last]}"
 }
 
 /// Whether `declaration` writes `repeatable = true`: the decorator may be written
@@ -225,4 +266,14 @@ export argument_type :: fn(field: StructFieldInfo) -> Type {
     }
     backing :: array_backing(field.ty) else return field.ty
     return backing.element
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_either_of_joins_the_last_phrase_with_or :: fn() -> void {
+    assert_eq(either_of(["a constant"]), "a constant")
+    assert_eq(either_of(["a struct", "an enum", "a trait"]), "a struct, an enum or a trait")
 }

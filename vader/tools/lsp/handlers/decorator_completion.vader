@@ -317,6 +317,16 @@ decorator_names :: fn(line: Token[], skipped: Token | null) -> string[] {
     return out
 }
 
+// The place of a member whose `owner` is a trait of the document, or the type an
+// impl is for.
+member_place_on :: fn(idx: DocIndex, owner: string) -> string {
+    entry :: idx.find_toplevel(owner) else return "ImplMember"
+    if entry.kind == .Trait {
+        return "TraitMember"
+    }
+    return "ImplMember"
+}
+
 // The place of the declaration on `line`, whose tokens are `tokens`: the index's
 // entry there, a field or a declaration, else an import or an `implements` block,
 // which have no entry ; "" when none says.
@@ -330,6 +340,9 @@ place_on_line :: fn(idx: DocIndex, tokens: Token[], line: i32) -> string {
             }
             if node is AST.EnumVariant {
                 return "Variant"
+            }
+            if node is AST.FnDecl && entry.owner != "" {
+                return member_place_on(idx, entry.owner)
             }
             if node is AST.Decl {
                 return AST.place_of(node)
@@ -397,6 +410,25 @@ Form :: struct {
     assert_eq(function.written.join(" "), "Route")
     field :: slot_after(src, "@Ca")
     assert_eq(field.place, "Field")
+}
+
+@test
+test_a_decorator_slot_tells_a_member_of_a_trait_from_one_of_an_impl :: fn() -> void {
+    src :: """
+Shape :: trait {
+    @Tr
+    area :: fn(self) -> f64
+}
+
+Square :: struct { side: f64 }
+
+Square implements Shape {
+    @Im
+    area :: fn(self) -> f64 = self.side * self.side
+}
+"""
+    assert_eq(slot_after(src, "@Tr").place, "TraitMember")
+    assert_eq(slot_after(src, "@Im").place, "ImplMember")
 }
 
 @test

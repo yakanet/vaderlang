@@ -263,6 +263,11 @@ populate_core_symbols_into :: fn(
     core_loaded: LoadedModule,
     core_typed: TypedProgram | null,
 ) -> void {
+    for [name, sym] in core_loaded.collected.symbols {
+        if is_compiler_decorator_symbol(sym) {
+            typed.compiler_decorator_symbols[name] = sym
+        }
+    }
     // Surface each core symbol's declared type into `external_types` so a
     // reference to a core symbol (e.g. via `mk_struct(Range, ...)`) returns the
     // concrete declared type.

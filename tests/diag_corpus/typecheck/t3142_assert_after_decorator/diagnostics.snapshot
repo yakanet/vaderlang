@@ -1,0 +1,1 @@
+[5:16] error[T3142] this decorator is not declared for this place: `@assert` applies to a line of its own among the declarations, not to a constant
