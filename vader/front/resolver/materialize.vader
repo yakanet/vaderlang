@@ -3,19 +3,17 @@
 // Each entry point expands an `ImplDecl.members` array with synthesised method
 // declarations drawn from the trait :
 //
-//   1. `materialize_intrinsic_members`: @intrinsic impl with an empty
-//      body : push one stub FnDecl per trait method, signature only.
-//   2. `materialize_default_members`: trait methods with a default
+//   1. `materialize_default_members`: trait methods with a default
 //      body : inject a declaration without a body for any name the impl
 //      didn't override, its signature substituted. The body stays the
 //      trait's, checked once there and lowered for each impl from there
 //      (`vader/lower/inherited.vader`).
-//   3. `materialize_sam_members`: single-abstract-method sugar
+//   2. `materialize_sam_members`: single-abstract-method sugar
 //      (`Foo implements Trait -> expr`) : fill name/params/return_type
 //      on the parser-fabricated synthetic FnDecl(s) from the trait's
 //      single required method.
 //
-// All three share the `Self -> impl_.for_type` + trait type-param ->
+// Both share the `Self -> impl_.for_type` + trait type-param ->
 // impl trait-arg substitution wired through `substitute.vader`.
 
 module "vader/front/resolver"
@@ -35,31 +33,6 @@ import "toolchain/span"
 unplaced_span :: fn() -> Span {
     pos :: Position { .file = SYNTHETIC_FILE, .offset = 0, .line = 0, .column = 0 }
     return Span { .start = pos, .end = pos }
-}
-
-/// `@intrinsic impl ... {}` carries an empty body : fill it with one
-/// stub FnDecl per trait method so downstream phases see the impl's
-/// full surface. No-op when the impl already has members.
-///
-/// @param impl_decl   the `@intrinsic` impl to fill.
-/// @param trait_decl  the trait it implements.
-/// @param factory     the project's node-id factory : each stub takes a
-///                    declaration id of its own from it.
-export materialize_intrinsic_members :: fn(
-    impl_decl: AST.ImplDecl,
-    trait_decl: AST.TraitDecl,
-    factory: NodeIdFactory,
-) -> void {
-    if !AST.has_compiler_decorator(impl_decl.decorators, .Intrinsic) { return }
-    if impl_decl.members.len() > 0 { return }
-    subst :: build_subst(impl_decl, trait_decl)
-    for method in trait_decl.members {
-        decorators :: intrinsic_decorator(impl_decl.span)
-        params :: substitute_params(method.params, subst)
-        id :: factory.mint()
-        stub :: synth_signature(method, unplaced_span(), params, subst, decorators, id)
-        impl_decl.members.push(stub)
-    }
 }
 
 /// Add to `impl_` a declaration without a body of each default method it does not
@@ -90,10 +63,23 @@ export materialize_default_members :: fn(
 
 // The member an impl inherits : typed from the trait's (`declare_inherited_member`),
 // its signature substituted only to be shown.
-synth_inherited :: fn(method: AST.FnDecl, subst: Subst, id: i64) -> AST.FnDecl {
-    params :: method.params.map((p) -> unplaced_param(p, subst)).collect()
-    signature :: synth_signature(method, unplaced_span(), params, subst, [], id)
-    return AST.FnDecl { ...signature, .inherits = method }
+synth_inherited :: fn(method: AST.FnDecl, subst: Subst, id: i64) -> AST.FnDecl = AST.FnDecl {
+    .span = method.span,
+    .id = id,
+    .name = method.name,
+    .name_span = unplaced_span(),
+    .visibility = .Public,
+    .type_params = [],
+    .params = method.params.map((p) -> unplaced_param(p, subst)).collect(),
+    .params_span = method.params_span,
+    .return_type = substitute_opt_type(method.return_type, subst),
+    .body = null,
+    .decorators = [],
+    .sam_synthetic = false,
+    .is_expression_bodied = method.is_expression_bodied,
+    .materialized = true,
+    .doc = method.doc,
+    .inherits = method,
 }
 
 // `p` as `substitute_param` reads it, written nowhere.
@@ -112,7 +98,7 @@ synth_param_span :: fn(factory: NodeIdFactory) -> Span {
     return Span { .start = pos, .end = pos }
 }
 
-/// `substitute_params` but `self` re-anchors at `self_span` (its type is
+/// The params with `substitute_param`, but `self` re-anchors at `self_span` (its type is
 /// contextual, so a shared span is fine) while every non-self param gets a
 /// fresh minted span, so a two-arg SAM method (`Comparable.compare(self,
 /// other: Self)`) doesn't collide `other` across sibling impls in the
@@ -226,36 +212,6 @@ build_subst :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> Subst {
     return subst
 }
 
-synth_signature :: fn(
-    method: AST.FnDecl,
-    name_span: Span,
-    params: AST.FnParam[],
-    subst: Subst,
-    decorators: AST.Decorator[],
-    id: i64,
-) -> AST.FnDecl {
-    return AST.FnDecl {
-        .span = method.span,
-        .id = id,
-        .name = method.name,
-        .name_span = name_span,
-        .visibility = .Public,
-        .type_params = [],
-        .params = params,
-        .params_span = method.params_span,
-        .return_type = substitute_opt_type(method.return_type, subst),
-        .body = null,
-        .decorators = decorators,
-        .sam_synthetic = false,
-        .is_expression_bodied = method.is_expression_bodied,
-        .materialized = true,
-        .doc = method.doc,
-    }
-}
-
-substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam[] =
-    params.map((p) -> substitute_param(p, subst)).collect()
-
 // `p` with `Self` and the trait's parameters substituted, as a member declared for
 // an impl reads it.
 substitute_param :: fn(p: AST.FnParam, subst: Subst) -> AST.FnParam = AST.FnParam {
@@ -267,18 +223,6 @@ substitute_param :: fn(p: AST.FnParam, subst: Subst) -> AST.FnParam = AST.FnPara
 substitute_opt_type :: fn(t: AST.TypeExpr | null, subst: Subst) -> AST.TypeExpr | null {
     if t == null { return null }
     return substitute_type_expr(t, subst)
-}
-
-intrinsic_decorator :: fn(span: Span) -> AST.Decorator[] {
-    args: AST.CallArg[]: []
-    return [
-        AST.Decorator {
-            .span = span,
-            .name = AST.DecoratorName(AST.CompilerDecorator.Intrinsic).text,
-            .name_span = span,
-            .args = args,
-        },
-    ]
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -313,40 +257,6 @@ Point implements Equals -> true
                         if m.name == "equals" { found = true }
                     }
                     assert(found, "SAM-synthetic member should be named after the trait's method")
-                }
-            }
-        }
-    }
-}
-
-@test
-test_materialize_intrinsic_fills_empty_body :: fn() -> void {
-    // `@intrinsic <T> implements <Trait>` is the bare-impl form ; the
-    // parser leaves `members` empty, and materialize pushes one stub
-    // FnDecl per trait method.
-    src :: """
-Iter :: trait {
-    next :: fn(self) -> i32
-}
-
-@intrinsic i32 implements Iter
-"""
-    parsed :: parse_source(src, "t.vader")
-    trait_decl :: find_trait(parsed.program.decls, "Iter")
-    impl_decl  :: find_impl(parsed.program.decls)
-    match trait_decl {
-        is null -> { assert(false, "Iter trait should be parsed") }
-        is AST.TraitDecl -> {
-            match impl_decl {
-                is null -> { assert(false, "i32 implements Iter should be parsed") }
-                is AST.ImplDecl -> {
-                    before :: impl_decl.members.len()
-                    assert_eq(before, 0)
-                    materialize_intrinsic_members(impl_decl, trait_decl, new_node_id_factory())
-                    after :: impl_decl.members.len()
-                    assert_eq(after, 1)
-                    assert_eq(impl_decl.members[0].name, "next")
-                    assert(impl_decl.members[0].id != AST.UNASSIGNED_NODE_ID, "the stub has an id")
                 }
             }
         }

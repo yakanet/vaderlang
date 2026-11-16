@@ -936,10 +936,6 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
     // `Iterator<T>`, `Fmt.Display`.
     implemented :: if p.check(.Ident) { p.parse_named_type() } else { p.missing_trait_name() }
 
-    // `@intrinsic Type implements Trait` (no body): resolver synthesises
-    // body-less members from the trait's methods.
-    is_intrinsic :: has_compiler_decorator(decorators, .Intrinsic)
-
     members: FnDecl[]: []
     end_tok: Token = p.peek_at(-1)
     if p.check(.Arrow) {
@@ -959,8 +955,6 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
         end_tok = p.expect(.RBrace, "`}` to close impl body")
     } else if p.check(.LBrace) {
         members.push(p.parse_sam_block_member())
-        end_tok = p.peek_at(-1)
-    } else if is_intrinsic {
         end_tok = p.peek_at(-1)
     } else {
         t :: p.peek()

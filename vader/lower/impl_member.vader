@@ -101,29 +101,14 @@ queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
 // `is Trait` membership rows are now seeded from the frontend's
 // `struct_traits_by_sym` at emit (`build_impl_table_from_vtable`), covering
 // every interned struct tag incl. generic instances. Host-produced structs
-// (IOError, returned by `@intrinsic` io fns) become vtable-eligible because
+// (IOError, returned by `@extern` io fns) become vtable-eligible because
 // `call.vader::mark_produced_structs` marks a call's return-type structs
 // as constructed, so the existing `vtable_gate` surfaces their impl methods.
 // The old per-is-check `materialize_trait_check_impls` force-hook is gone.
 
-// An impl-member match carried across the scan as the `@intrinsic` fallback:
-// a named struct (not a bare tuple) so its fields keep their types through the
-// `| null` union and narrow cleanly after the null guard.
-ImplMemberMatch :: struct {
-    entry:  ImplEntry
-    member: FnDecl
-}
-
 /// Resolve `target_type`'s impl member : in its impl of `trait_key` (any impl when
 /// empty), the member `name`. Keying on the trait keeps a same-named member of
 /// another trait the type implements from being the one called.
-///
-/// Owns the one invariant every lookup shares: a user impl (with a real
-/// body) shadows an `@intrinsic` builtin of the same (type, member):
-/// `i32 implements Display -> "..."` must win over the std_core intrinsic
-/// `Display`. Single pass: return the first non-intrinsic match immediately;
-/// remember the first intrinsic match as a fallback and use it only when no
-/// user impl turns up.
 resolve_impl_member :: fn(
     ctx: FnLowerCtx,
     target_type: Type,
@@ -133,21 +118,12 @@ resolve_impl_member :: fn(
 ) -> UfcsMember | null {
     if type_surface_name(target_type) == "" { return null }
     target :: impl_base_key(target_type)
-    fallback: ImplMemberMatch | null = null
     candidates: ImplEntry[]: if trait_key == "" { ctx.project.impls.impls_on(target) } else {
         ctx.project.impls.impls_of(target, trait_key)
     }
     for entry in covering_first(candidates, target_type) {
-        decl :: entry.decl
         m :: select_member(entry, name) else continue
-        if !has_compiler_decorator(decl.decorators, .Intrinsic) {
-            return member_or_instance(ctx, target_type, m, entry, own_args)
-        }
-        // An `@intrinsic` fallback is bodyless -> never an inlineable identity.
-        if fallback == null { fallback = ImplMemberMatch { .entry = entry, .member = m } }
-    }
-    if fallback != null {
-        return build_ufcs_member(ctx, target_type, fallback.member, fallback.entry, false)
+        return member_or_instance(ctx, target_type, m, entry, own_args)
     }
     return null
 }
@@ -213,7 +189,6 @@ build_ufcs_member :: fn(
     target_type: Type,
     member: FnDecl,
     entry: ImplEntry,
-    is_identity: bool,
 ) -> UfcsMember {
     // Synthesise a Fn symbol carrying the member's deterministic mangle so the
     // call site resolves to the synth decl's mangle index
@@ -263,7 +238,7 @@ build_ufcs_member :: fn(
     if target_type is StructType {
         if entry.is_generic { queue_generic_impl_receiver(ctx, target_type) }
     }
-    return ufcs_member_named(ctx, mangled, is_identity, arg_types)
+    return ufcs_member_named(ctx, mangled, is_identity_member(member), arg_types)
 }
 
 /// A call to the impl member named `mangled` : a symbol carrying the mangle, whose
@@ -429,7 +404,7 @@ member_or_instance :: fn(
     if m.type_params.len() > 0 {
         return member_instance(ctx, target, m, entry, own_args else [])
     }
-    return build_ufcs_member(ctx, target, m, entry, is_identity_member(m))
+    return build_ufcs_member(ctx, target, m, entry)
 }
 
 // The name of an impl member : the impl's module, its target segment, its trait

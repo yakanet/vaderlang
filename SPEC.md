@@ -1922,7 +1922,7 @@ These are errors (narrow the union first):
 - a member taking another `Self` (`compare`, `Add<Self>`), except in `Equals`, whose parameter checks the other operand's type;
 - a member returning `Self` inside another type (`Self[]`), unless every variant is a struct.
 
-A generic member, or an `@intrinsic` array member (`push`), is not dispatched through a union.
+A generic member is not dispatched through a union.
 
 #### Static members
 
@@ -1946,7 +1946,7 @@ sum :: fn<T: Add & Zero>(xs: T[]) -> T {
 
 A value of the trait reaches only its instance members, even in a trait that also has static ones. These are errors:
 
-- a static member called on a value, or on the trait itself (`Zero.zero()`), except a member of `Intrinsic` (§12 *`@intrinsic`*);
+- a static member called on a value, or on the trait itself (`Zero.zero()`), except a member of `Intrinsic` (§15 *The `Intrinsic` trait*);
 - an instance member called on a type;
 - a static member named without being called (`f :: i64.zero`).
 
@@ -2423,7 +2423,7 @@ q :: Packet { .payload = bytes_of("abc").clone() }   // OK: a copy
 
 The compiler reads from a function's body what it does with each parameter: which parts it assigns, grows or shrinks, keeps past the call or returns. Calls are followed over the whole program: a write at the end of a call chain counts at the call that lends a frozen value.
 
-An intrinsic is described by the compiler, an `@extern` by its `@c_out` parameters (§13), and a function value may do anything. The same reading decides whether an array argument may widen its element (§4 *Variance*).
+A member of `Intrinsic` is described by the compiler, an `@extern` by its `@c_out` parameters (§13), and a function value may do anything. The same reading decides whether an array argument may widen its element (§4 *Variance*).
 
 ### No mutability marker
 
@@ -3381,7 +3381,6 @@ Decorators are written with `@`. The compiler's own, in the table below, are ins
 | `@c_struct`, `@c_struct("struct name")` | struct | Mirrors a C struct (§13), named by an optional C type name |
 | `@c_variadic` | parameter of an `@extern` fn | C receives the parameter through `...` (§13) |
 | `@main_thread` | `@extern` fn | The C function runs on the main thread only, out of reach of every task (§13) |
-| `@intrinsic` | fn, impl or impl member without body | The host runtime provides the body (*`@intrinsic`*, below) |
 | `@test` | top-level fn | Marks a test, run by `vader test` (`docs/TOOLING.md` *Tests*) |
 | `@deprecated("reason")` | any declaration but an import, a field or a variant | Warns at every use; the code still compiles |
 | `@assert(cond)`, `@assert(cond, "message")` | top level | Fails the build unless `cond` is true at compile time |
@@ -3449,32 +3448,6 @@ list_users :: fn() -> string = "users"
 - A name after `@` that names no decorator, or names a declaration that is not one, is an error. The compiler's decorators, declared in `std/core`, are written only at the places their declarations name and take their arguments as their fields say, like any other. They are read as written and never computed: each argument is a literal (a string without interpolation, a number, a boolean, an enum variant), except the library of `@extern`, a `CLibrary` constant, and the condition of `@returns`, `@ensures` and `@assert`. None of them is a value a program names.
 
 A decorator is written above a struct field as above a declaration, beside `@internal`, and above an enum variant, where no decorator of the compiler applies. On a function parameter it is written before the name, beside the compiler's `@c_*` of an `@extern`. Above the `module` line it decorates the module; when a module spans several files, each writes its own.
-
-### `@intrinsic`
-
-`@intrinsic` and `@extern` both mark a function whose body is not written in Vader. `@extern` is for user code that calls a foreign library. `@intrinsic` is for the standard library, whose body the host runtime provides (`collect`, the members of `string implements Hash`).
-
-A free function without a body must carry one of the two. A named function type is therefore written inline where it is used, never as a bodiless declaration. A build fails if an intrinsic has no host implementation.
-
-`@intrinsic` applies to a function or to a whole impl:
-
-```vader
-// Standalone fn: a free-function host import (I/O, GC, builders...).
-@intrinsic
-export collect :: fn() -> void
-
-// Trait impl: every method of the impl is provided by the host.
-@intrinsic
-string implements Hash
-```
-
-`std/core` also declares the trait `Intrinsic`, whose members are operations the toolchain performs (`byte_len`, `park`, `current_os`). The toolchain that runs the program implements it, the interpreter or the native runtime, so a program does not: `X implements Intrinsic` is an error. Its members are static and are called on the trait itself, the only trait whose members are:
-
-```vader
-export byte_len :: fn(s: string) -> i64 = Intrinsic.byte_len(s)
-```
-
-They are unstable: a program calls the standard library functions that wrap them.
 
 ### `@assert`
 
@@ -3546,6 +3519,8 @@ LIBM: CLibrary: CLibrary { .name = "", .headers = ["<math.h>"] }
 - without arguments, the symbol is the function's own name;
 - the first is the library, a `CLibrary` constant (below). Without one, the symbol is one the program links anyway, such as a C library function;
 - the symbol, a string, comes last, positional after a library or written `symbol = "..."`: the C linker symbol, or the `field` of a WASM import on the planned WASM target (*Future WASM target*).
+
+A free function without a body must be `@extern`. A named function type is therefore written inline where it is used, never as a bodiless declaration.
 
 The following are errors:
 
@@ -4120,6 +4095,16 @@ Contains :: trait<T> {
 }
 ```
 
+### The `Intrinsic` trait
+
+`std/core` declares the trait `Intrinsic`, whose members are operations the toolchain performs (`byte_len`, `park`, `current_os`). The toolchain that runs the program implements it, the interpreter or the native runtime, so a program does not: `X implements Intrinsic` is an error. Its members are static and are called on the trait itself, the only trait whose members are:
+
+```vader
+export byte_len :: fn(s: string) -> i64 = Intrinsic.byte_len(s)
+```
+
+They are unstable: a program calls the standard library functions that wrap them.
+
 ### Iteration
 
 ```vader
@@ -4334,7 +4319,7 @@ A build keeps one body per declaration, the one listing the target's OS or else 
 @target LIMIT :: 3                                                    // error: not a function
 ```
 
-Whatever the target being built, each line above is an error, and so are: a body carrying a decorator other than `@extern` and `@intrinsic`; a body with another number of parameters (a body binds them by position, and their types are not compared); `@target` on anything but a top-level free function (a constant that depends on the target uses `VADER_OS`).
+Whatever the target being built, each line above is an error, and so are: a body carrying a decorator other than `@extern`; a body with another number of parameters (a body binds them by position, and their types are not compared); `@target` on anything but a top-level free function (a constant that depends on the target uses `VADER_OS`).
 
 A declaration with no general body and no body for the OS being built is an error too.
 

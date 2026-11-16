@@ -69,7 +69,7 @@ referenced_name :: fn(n: AST.Node, out: string[]) -> AST.Walk {
 /// visibility.
 ///
 /// It is when it is an entry point (`main`), wired to the host or to the test
-/// runner (`@test`, `@extern`, `@intrinsic`), or exempted by its author
+/// runner (`@test`, `@extern`), or exempted by its author
 /// (`@allow_unused`).
 ///
 /// @param decorators  the decorators of the declaration.
@@ -87,8 +87,8 @@ wires_a_root :: fn(dec: AST.Decorator) -> bool {
     which :: AST.compiler_decorator_of(dec) else return false
     // @partial: every other decorator of the compiler wires nothing.
     return @partial match which {
-        .Test | .Extern | .Intrinsic | .AllowUnused -> true
-        _                                           -> false
+        .Test | .Extern | .AllowUnused -> true
+        _                              -> false
     }
 }
 

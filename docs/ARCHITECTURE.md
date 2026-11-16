@@ -292,17 +292,20 @@ once by dominator tree ([ADR 0027](adr/0027-the-structurer-places-each-block-onc
 
 ## Intrinsics
 
-A function without a body is an `@intrinsic` or an `@extern` (SPEC §12). Bytecode
-emission fails the build on a host import, other than an `@extern`, whose mangled
-name is neither in the intrinsic manifest
-(`vader/core/bytecode/intrinsic_manifest.vader`) nor mapped to a dedicated op, so
-no unbound `call.import` reaches run time. The VM and the C backend each match on
-the manifest exhaustively: both must handle a new intrinsic.
+What Vader cannot write itself is a member of `std/core`'s trait `Intrinsic`
+(SPEC §15 *The `Intrinsic` trait*), declared without a body. A call to one is a host
+import named after the member, `std_core$Intrinsic$<member>` (a generic member is
+imported once per instance, `std_core$Intrinsic$deep_copy__Shape`). The member's
+name gives its `IntrinsicId` (`vader/core/bytecode/intrinsic_manifest.vader`), which
+the VM and the C backend each match exhaustively: both must handle a new member.
+Some members lower to a dedicated op instead (`vader/midir/select/intrinsics.vader`).
 
-`@intrinsic` on an impl (`string implements Hash`) makes the resolver create one
-bodiless function per trait method, mangled `<module>$<type>$<trait>$<method>`.
-For some, the bytecode emitter recognises that name (`std_core$i32$Add$add`) and
-emits a dedicated op (`i32.add`), so `a + b` and `a.add(b)` take the same path.
+A function whose body is one primitive operation on its parameters, in order, a
+member of `Intrinsic` or a native operator on scalars, is lowered at each call as
+that operation (`vader/front/typecheck/intrinsic_forwarder.vader`,
+`vader/lower/intrinsic_forwarders.vader`): `xs.len()` is `array.len`, `a.add(b)` on
+`i32` is `i32.add`. A debug build keeps the call, so a breakpoint in the function
+is hit.
 
 ## Foreign calls
 

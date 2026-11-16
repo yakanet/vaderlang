@@ -666,7 +666,7 @@ emit_fn_body :: fn(self: Printer, body: p.BlockExpr | null, is_expression_bodied
         return
     }
     match b :: body {
-        is null -> {}    // signature-only (@intrinsic / @extern)
+        is null -> {}    // signature-only (@extern, a trait member)
         is p.BlockExpr -> {
             self.write(" ")
             self.emit_block_expr(b)
@@ -1080,12 +1080,6 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
     self.emit_decorators(d.decorators, d.for_type.span.start.line)
     self.emit_impl_head(d)
     if d.members.len() == 0 {
-        // `@intrinsic Type implements Trait` (no body) is a valid form
-        // for host-provided impls. Skip the empty `{}` so we round-trip
-        // the source layout exactly.
-        if p.has_compiler_decorator(d.decorators, .Intrinsic) {
-            return
-        }
         self.write(" {}")
         return
     }

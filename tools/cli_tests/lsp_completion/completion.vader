@@ -412,8 +412,7 @@ test_completion_after_a_namespace_alias_in_a_struct_literal_lists_its_exports ::
     assert(!offers(list, "size"), shown(list))
 }
 
-// A built-in receiver's methods come from impls the prelude declares, an
-// `@intrinsic` one among them, whose members its trait declares.
+// A built-in receiver's methods come from impls the prelude declares.
 BUILTIN_RECEIVER_SOURCE :: r"""
     module "lsptest"
 

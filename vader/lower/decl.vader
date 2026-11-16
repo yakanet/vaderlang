@@ -186,8 +186,9 @@ lower_fn_decl :: fn(
 
 /// A fn or an impl member, lowered: its state machine when it is a generator,
 /// its plain body otherwise, with the type that body hands back ; no body for
-/// one that has none (`@extern`, `@intrinsic`). Every site that materialises one
-/// goes through here, so the body and its return type are decided together.
+/// one that has none (`@extern`, a member of `Intrinsic`). Every site that
+/// materialises one goes through here, so the body and its return type are
+/// decided together.
 /// Lowered as a plain body, a generator would drop every `yield` and return no
 /// value.
 ///

@@ -31,7 +31,6 @@ export CompilerDecorator :: enum(DecoratorName) {
     Ensures     { .text = "ensures" },
     Extern      { .text = "extern" },
     Internal    { .text = "internal" },
-    Intrinsic   { .text = "intrinsic" },
     MainThread  { .text = "main_thread" },
     NoReturn    { .text = "no_return" },
     Partial     { .text = "partial" },
@@ -61,7 +60,6 @@ export compiler_decorator_named :: fn(name: string) -> CompilerDecorator | null 
     "ensures"      -> .Ensures
     "extern"       -> .Extern
     "internal"     -> .Internal
-    "intrinsic"    -> .Intrinsic
     "main_thread"  -> .MainThread
     "no_return"    -> .NoReturn
     "partial"      -> .Partial
@@ -114,8 +112,8 @@ test_a_compiler_decorator_reads_back_from_its_name :: fn() -> void {
     every: CompilerDecorator[]: [
         .Alias, .AllowUnused, .Assert, .CAddress, .CHeader, .COut, .CStruct, .CType,
         .CVariadic, .Comptime, .Deprecated, .Displayable, .Ensures, .Extern, .Internal,
-        .Intrinsic, .MainThread, .NoReturn, .Partial, .Returns, .Singleton, .Target,
-        .Test, .Unreachable,
+        .MainThread, .NoReturn, .Partial, .Returns, .Singleton, .Target, .Test,
+        .Unreachable,
     ]
     for which in every {
         text :: DecoratorName(which).text

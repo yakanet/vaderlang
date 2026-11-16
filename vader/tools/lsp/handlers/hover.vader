@@ -6,10 +6,9 @@
 //
 //     toolchain/ast › CompilerIntrinsic     the module, and the owning type
 //     ```
-//     @intrinsic                            decorators, `export`, the head :
-//     export arg_kind :: fn(                a long parameter list one per line,
-//         intrinsic: CompilerIntrinsic,     a struct's fields, an enum's variants
-//         i: i64,
+//     export arg_kind :: fn(                decorators, `export`, the head :
+//         intrinsic: CompilerIntrinsic,     a long parameter list one per line,
+//         i: i64,                           a struct's fields, an enum's variants
 //     ) -> IntrinsicArgKind
 //     ```
 //     ---

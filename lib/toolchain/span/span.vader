@@ -83,7 +83,7 @@ Span implements Display -> "${self.start.line}:${self.start.column}-${self.end.l
 // ---- compiler-minted spans ------------------------------------------------
 
 /// Sentinel file name on spans minted by the compiler with no real source
-/// origin (test fixtures, intrinsic stubs, lowering-synthesised nodes).
+/// origin (test fixtures, inherited impl members, lowering-synthesised nodes).
 export SYNTHETIC_FILE :: "<synthetic>"
 
 /// Synthetic `Span` for AST nodes minted by the compiler (test fixtures,

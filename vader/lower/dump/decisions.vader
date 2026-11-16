@@ -77,7 +77,7 @@ dependency_lines :: fn(
 }
 
 // A constant shows through its storage line. A bodyless free function
-// (`@extern`, `@intrinsic`) is lowered whether or not anything calls it, so it
+// (`@extern`) is lowered whether or not anything calls it, so it
 // says nothing of the program ; a bodyless impl member is lowered only when
 // reached, and the one filling a vtable slot is kept.
 dependency_line :: fn(names: DumpNames, decl: LoweredDecl) -> string | null = match decl {

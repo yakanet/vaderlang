@@ -44,17 +44,6 @@ export extern :: decorator(.Function) {
 /// Marks a `fn() -> void` as a test, run by `vader test`.
 export test :: decorator(.Function) {}
 
-/// Marks a bodyless function of the standard library, or a bodyless
-/// `implements` block or member, as provided by the host runtime.
-///
-/// Every bodyless free function carries it or `@extern`; the build fails when the
-/// host does not provide it.
-export intrinsic :: decorator(
-    .Function,
-    .Implementation,
-    .ImplMember
-) {}
-
 /// Reports a warning at every reference to the declaration; the code still
 /// compiles.
 export deprecated :: decorator(

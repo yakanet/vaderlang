@@ -77,11 +77,6 @@ materialize_file_impl_members :: fn(
         }
         trait_decl :: found.trait_decl
         check_short_impl_arity(decl, trait_decl, project.diags)
-        // `@intrinsic <T> implements <Trait>` arrives with an empty
-        // `members` list: synthesise body-less FnDecls from the
-        // trait's methods so the rest of the pipeline (declare /
-        // ufcs / walk_fn_body) sees them.
-        materialize_intrinsic_members(decl, trait_decl, loaded.node_id_factory)
         // Always materialise the SAM rename: `check_short_impl_arity`
         // already marked invalid synthetics as `materialized=true` so
         // body-walk + body-typecheck skip them, but the rename still

@@ -5,9 +5,9 @@
 // several places. Under `$VADER_VERIFY_CALLEES`, each of those places reports what
 // it chose, and a choice the record does not account for is listed at the end of
 // the run (`render_callee_report`). `agrees` holds the few rules under which a
-// lowering shortcut still says what the record says: the same declaration, an
-// `@intrinsic` one served by an operation, a bound's or a trait value's member
-// reached at the instance or through the vtable, a function value called directly.
+// lowering shortcut still says what the record says: the same declaration, a
+// bound's or a trait value's member reached at the instance or through the
+// vtable, a function value called directly.
 //
 // Inert unless the variable is set: `LowerProjectCtx.callee_verifier` is then null,
 // and each observation point tests it before building anything, so it costs one
@@ -426,17 +426,9 @@ agrees :: fn(recorded: Callee, observed: ObservedCallee) -> bool = match recorde
     is UnsettledCallee -> false
 }
 
-// The same declaration ; an `@intrinsic` one served by an operation.
-direct_agrees :: fn(recorded: DirectFn, observed: ObservedCallee) -> bool {
-    if observed is ObservedFn {
-        decl :: observed.decl else return false
-        return decl.id == recorded.decl.id
-    }
-    if observed is ObservedNoCall {
-        return has_compiler_decorator(recorded.decl.decorators, .Intrinsic)
-    }
-    return false
-}
+// The same declaration.
+direct_agrees :: fn(recorded: DirectFn, observed: ObservedCallee) -> bool =
+    observed is ObservedFn && observed.decl != null && observed.decl.id == recorded.decl.id
 
 // The trait's member through the vtable, or the member of an impl of that trait
 // at the instance. A bound settled on a primitive instance runs the built-in

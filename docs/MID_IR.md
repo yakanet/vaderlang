@@ -10,7 +10,7 @@ listed in [`ARCHITECTURE.md`](ARCHITECTURE.md).
 ## Model
 
 **Program.** A program is a set of modules. Each module holds functions with a body,
-bodiless functions (`@extern` and `@intrinsic`, provided by the host or a C library),
+bodiless functions (`@extern`, or a member of `Intrinsic`, provided by a C library or the host),
 and struct declarations. The program also has:
 
 - a string pool: each string literal is stored once, and a `const` refers to it by

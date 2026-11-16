@@ -104,7 +104,7 @@ emit_decl :: fn(names: DumpNames, lines: string[], decl: LoweredDecl, indent: st
     }
 }
 
-// A function without a body (`@extern`, `@intrinsic`) prints its signature alone.
+// A function without a body (`@extern`, a member of `Intrinsic`) prints its signature alone.
 emit_fn :: fn(names: DumpNames, lines: string[], decl: LoweredFnDecl, indent: string) -> void {
     signature :: "fn(${params_text(decl.params)}) -> ${display_type(decl.return_type)}"
     head :: "${indent}${declared_text(names, decl.mangled)} :: ${signature}"

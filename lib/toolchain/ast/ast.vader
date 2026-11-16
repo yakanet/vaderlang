@@ -515,7 +515,7 @@ export ImportName :: struct {
 /// Three flags mark functions the parser or the compiler shaped. `sam_synthetic`
 /// is a single-abstract-method lambda the parser desugared into an impl member,
 /// which the user wrote in short; `materialized` a member declared for an impl
-/// from its trait (one it inherits, `inherits`, or an intrinsic stub);
+/// from its trait, one it inherits (`inherits`);
 /// `comptime_synthetic` the helper the parser writes to compute a `@comptime`
 /// constant. The last two hold nothing of the user's source
 /// (`is_compiler_made`). And `is_expression_bodied` distinguishes
@@ -542,8 +542,7 @@ export FnDecl :: struct {
     sam_synthetic:         bool
     is_expression_bodied:  bool
     /// `true` when this FnDecl was declared for an impl from its trait rather than
-    /// written in it : a member the impl inherits (`inherits`), or a stub of an
-    /// `@intrinsic` impl.
+    /// written in it : a member the impl inherits (`inherits`).
     materialized:          bool
     /// `true` when this FnDecl is the `__comptime_NAME` helper the parser
     /// synthesises for the `NAME :: @comptime <expr>` const sugar (see

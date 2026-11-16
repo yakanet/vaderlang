@@ -131,7 +131,7 @@ main :: fn() -> i32 {
     hash_text :: @satisfies(string, Hash)
     hash_int  :: @satisfies(i32, Hash)
     println("satisfies: string Add=${concat} string Hash=${hash_text} i32 Hash=${hash_int}")
-    // `std/core` declares `i32 implements Add` (`@intrinsic`).
+    // `std/core` declares `i32 implements Add`.
     if @satisfies(i32, Add) {
         println("satisfies in a condition: i32 Add taken")
     }

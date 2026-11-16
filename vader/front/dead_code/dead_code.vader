@@ -5,7 +5,7 @@
 // A reference-reachability lint. For every top-level declaration of the (merged,
 // all-files) module, collect the NAMES it references: in bodies, signatures,
 // field / alias / const / enum types, decorator args. Then BFS from the roots
-// (`export`-visible decls, `main`, `@test` / `@extern` / `@intrinsic`, every
+// (`export`-visible decls, `main`, `@test` / `@extern`, every
 // `impl` member, `@assert`); a PRIVATE top-level decl whose name is never reached
 // is dead -> W0007.
 //
