@@ -243,7 +243,7 @@ drain_lowering_queues :: fn(
         materialize_nongeneric_imported_fns(typed, project_ctx, project, diags)
         materialize_nongeneric_imported_consts(typed, project_ctx, project, diags)
         materialize_enum_tables(typed, project_ctx, project)
-        surface_referenced_intrinsic_externs(loaded, typed, project_ctx, project)
+        surface_referenced_members(loaded, typed, project_ctx, project)
         round_gates_len :: project_ctx.referenced_impl_mangles.len() +
             project_ctx.virtually_dispatched_traits.len() +
             project_ctx.constructed_struct_symbols.len() +

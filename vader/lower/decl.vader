@@ -82,7 +82,7 @@ build_impl_member_params :: fn(
 
 // The type of the impl member's `i`-th parameter `p`. The lone `self` carries no
 // written type : it is the receiver the member is lowered for, not `Self`. Another
-// reads the member's signature, keyed by its node id: an `@intrinsic` stub shares
+// reads the member's signature, keyed by its node id: an inherited member shares
 // its parameters' spans with every other impl of its trait.
 impl_member_param_type :: fn(
     p: FnParam,

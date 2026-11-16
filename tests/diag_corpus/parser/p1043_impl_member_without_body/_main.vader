@@ -1,0 +1,17 @@
+// Only a trait member may be a bare signature: an impl member needs a body,
+// which nothing else provides. P1043.
+module "snippet"
+
+Shape :: trait {
+    area :: fn(self) -> i32
+}
+
+Square :: struct {
+    side: i32
+}
+
+Square implements Shape {
+    area :: fn(self) -> i32
+}
+
+main :: fn() -> i32 = 0

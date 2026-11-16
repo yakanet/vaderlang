@@ -4,8 +4,7 @@
 // An impl names its trait, and the trait may come from any module, `std/core`
 // included. This pass finds it in the scope the resolver will build for the impl's
 // file, then fills the impl with what the trait implies (`materialize.vader`): the
-// stubs of an `@intrinsic` impl, the method a short impl stands for, the default
-// methods it does not override. The resolver then walks those bodies with `self`
+// method a short impl stands for, the default methods it does not override. The resolver then walks those bodies with `self`
 // and the trait's parameters bound like any written member's.
 
 module "vader/front/resolver"
@@ -17,8 +16,8 @@ import "toolchain/diagnostics"
 import "vader/core/symbol"
 
 /// Fill every impl of `project` with the members its trait implies, before the
-/// resolver walks a body: the stubs of an `@intrinsic` impl, the method a short
-/// impl (`Type implements Trait -> expr`) stands for, and a declaration of each
+/// resolver walks a body: the method a short impl (`Type implements Trait ->
+/// expr`) stands for, and a declaration of each
 /// default method the impl inherits (`FnDecl.inherits`). Works across modules, so
 /// `Foo implements Display -> "..."` finds `Display` in `std/core`.
 ///

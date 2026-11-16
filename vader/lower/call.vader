@@ -23,7 +23,7 @@ import "toolchain/span"
 // Mark every struct in `t` (and its union variants) as "a value of this type
 // exists": the same signal a struct literal records at
 // `struct_lit.vader::constructed_struct_symbols.add`. Used at `lower_call`
-// entry so a host / `@intrinsic` callee's return struct (`read_file_bytes ->
+// entry so a host / `@extern` callee's return struct (`read_file_bytes ->
 // u8[] | IOError`) is treated as constructed, making it vtable-eligible for
 // `is Trait` + trait-method dispatch without hard-coding the type. Redundant
 // (idempotent set add) for a Vader-bodied callee whose producer already marked it.

@@ -252,7 +252,7 @@ summary_target :: fn(
     if AST.has_compiler_decorator(decl.decorators, .Extern) {
         return KnownEffects { .params = decl.params.map(foreign_effects).collect() }
     }
-    // By its node id : an `@intrinsic` stub shares its parameters' spans with the
+    // By its node id : an inherited member shares its parameters' spans with the
     // other impls of its trait.
     signature :: index.signature_of(decl, typed)
     host :: host_of(index, decl)

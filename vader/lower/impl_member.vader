@@ -215,9 +215,8 @@ build_ufcs_member :: fn(
         named :: ufcs_member_named(ctx, mangled, false, arg_types)
         return UfcsMember { ...named, .forwarding = forwarding }
     }
-    // Record the call so the post-lowering pass surfaces referenced stdlib impl
-    // members : bodyless (`@intrinsic`) -> import ; with-body (e.g. `i32
-    // implements Hash -> u64(self)`) -> materialised real fn.
+    // Record the call so the post-lowering pass surfaces the referenced impl
+    // members of a lazily lowered module as real fns.
     ctx.project.referenced_impl_mangles.add(mangled)
     // Array impl (`T[] implements Contains` / `Into`, `MonType[] implements ...`) :
     // the generic-impl materialiser is struct-instance-driven and never reaches an

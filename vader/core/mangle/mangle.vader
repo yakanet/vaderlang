@@ -143,8 +143,6 @@ export DerivedRole :: enum {
     EnumData
     /// The value table of an enum.
     EnumValue
-    /// The function a vtable slot reaches a host import through.
-    Wrapper
     /// The function that dispatches a vtable key.
     Dispatcher
 }
@@ -166,7 +164,6 @@ export derived_mangle :: fn(base: string, role: DerivedRole) -> string = match r
     .ExternImport   -> "${base}\$extern_import"
     .EnumData       -> "${base}\$data"
     .EnumValue      -> "${base}\$value"
-    .Wrapper        -> "${base}\$\$wrapper"
     .Dispatcher     -> "${base}\$\$dispatch"
 }
 
@@ -335,7 +332,6 @@ test_instance_suffix_prefixes_each_segment :: fn() -> void {
 @test
 test_derived_mangle_appends_its_role :: fn() -> void {
     assert_eq(derived_mangle(r"a$f", .Guard), r"a$f$guard")
-    assert_eq(derived_mangle(r"a$f", .Wrapper), r"a$f$$wrapper")
 }
 
 @test

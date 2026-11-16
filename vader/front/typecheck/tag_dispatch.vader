@@ -12,7 +12,6 @@ module "vader/front/typecheck"
 
 import "std/iter"
 import "std/string"
-AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
 import "toolchain/span"
 import "vader/core/symbol"
@@ -168,36 +167,10 @@ union_dispatch_traits :: fn(
         if out.any_match((t) -> t.symbol.id == sym.id) {
             continue
         }
-        if !array_members_have_bodies(u, m.trait_key, method, typed) {
-            continue
-        }
         found :: union_trait_instance(u, sym, typed) else continue
         out.push(found)
     }
     return out
-}
-
-// Whether every array variant of `u` has a body for `method` of `trait_key`, its own
-// or the default it inherits : a bodyless `@intrinsic` member is an op emitted at
-// its call site, with no function a vtable row could name.
-array_members_have_bodies :: fn(
-    u: UnionType,
-    trait_key: string,
-    method: string,
-    typed: TypedProgram,
-) -> bool {
-    for v in u.variants {
-        if v !is ArrayType {
-            continue
-        }
-        for m in trait_members(typed, v, trait_key, method) {
-            decl :: m.decl else return false
-            if AST.body_source(decl).body == null {
-                return false
-            }
-        }
-    }
-    return true
 }
 
 // The instance of the trait `sym` every variant of `u` implements, argument by

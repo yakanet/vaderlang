@@ -1,4 +1,4 @@
-// vader/lower/stdlib: surface referenced stdlib / intrinsic externs.
+// vader/lower/stdlib: surface the referenced members of lazily lowered modules.
 //
 
 module "vader/lower"
@@ -16,22 +16,22 @@ import "vader/front/typecheck"
 
 /// Post-lowering pass : surface the referenced impl members of every
 /// LAZILY-lowered module (every non-entry module: stdlib and user alike),
-/// appended to their owning module's lowered decls (intrinsic members as
-/// bodyless externs the bytecode emit reserves as imports ; with-body members as
+/// appended to their owning module's lowered decls (the members of `Intrinsic`
+/// as bodyless externs the bytecode emit reserves as imports ; impl members as
 /// real fns). Gated by `referenced_impl_mangles` so only members an actual call
-/// hit are surfaced, see `surface_stdlib_impl_externs`. The entry module's own
+/// hit are surfaced, see `surface_stdlib_impl_members`. The entry module's own
 /// members are lowered eagerly by `lower_module` (surfacing them again would
 /// double-emit): all but its array impls, which only ever materialise per
 /// element (`surface_array_impl_members`).
-surface_referenced_intrinsic_externs :: fn(
+surface_referenced_members :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> void {
     for [module_id, module_typed] in typed.modules {
         is_entry :: module_id == loaded.entry
         module_loaded :: loaded.modules[module_id] else continue
         decls_list :: module_decls(module_loaded)
-        // Bracket the synth_decls the with-body members surfaced below spawn :
-        // `surface_stdlib_impl_externs` / `surface_array_impl_members` call
+        // Bracket the synth_decls the impl members surfaced below spawn :
+        // `surface_stdlib_impl_members` / `surface_array_impl_members` call
         // `lower_fn_body`, which lifts any lambda/defer in the body into
         // `synth_decls`: the same post-module orphan class as the materialise
         // sites. Drained into this module after the batch merge.
@@ -44,8 +44,7 @@ surface_referenced_intrinsic_externs :: fn(
         }
         for d in decls_list.filter_is<ImplDecl>() {
             if !is_entry {
-                externs :: surface_stdlib_impl_externs(d, module_typed, project_ctx)
-                extra.push_all(externs)
+                extra.push_all(surface_stdlib_impl_members(d, module_typed, project_ctx))
             }
             extra.push_all(surface_array_impl_members(d, module_typed, project_ctx))
         }
@@ -67,14 +66,9 @@ surface_referenced_intrinsic_externs :: fn(
 /// below). Members nothing reaches are left out: lowering every stdlib body up
 /// front is what the stdlib skip avoids.
 ///
-/// A bodyless member becomes a bodyless `LoweredFnDecl` (an extern signature):
-/// it flows through `make_extern_decl` to a CFG import, so a concrete
-/// `recv.method()` call on an intrinsic impl (`string implements Display {
-/// to_string }`) resolves to a `CallImport` the Vader VM dispatches via
-/// `host.vader`. A member with a body is lowered as a real fn. The mangle
-/// matches `find_impl_member_for`'s call-site mangle (both via the impl's
-/// owning module).
-surface_stdlib_impl_externs :: fn(
+/// Each member is lowered as a real fn, under the mangle the call site names
+/// (`find_impl_member_for`, both via the impl's owning module).
+surface_stdlib_impl_members :: fn(
     impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
 ) -> LoweredDecl[] {
     out: LoweredDecl[]: []
@@ -94,9 +88,9 @@ surface_stdlib_impl_externs :: fn(
     //
     // Non-generic STRUCT receivers : a non-generic stdlib struct implementing a
     // virtually-dispatched trait (`StringChars implements Iterator<char>`), reached
-    // through a value of the trait,
-    // as a `for` over an `Iterator<char>` steps it: the generic-impl materialiser
-    // never covers it (no type params) and no direct call records its mangle. Gated on `constructed_struct_symbols` : surface
+    // through a value of the trait, as a `for` over an `Iterator<char>` steps it:
+    // the generic-impl materialiser never covers it (no type params) and no direct
+    // call records its mangle. Gated on `constructed_struct_symbols` : surface
     // only when the struct is actually built (`StringChars` via `chars()`), so
     // an UNCONSTRUCTED stdlib implementor (`std_io$IOError`) is NOT pulled into a
     // snippet that merely dispatches the same trait. Generic struct implementors
@@ -119,10 +113,6 @@ surface_stdlib_impl_externs :: fn(
             continue
         }
         entry :: synth_impl_entry(member, typed, mangled, impl_trait)
-        // Bodyless (`@intrinsic`) -> extern import (Vader VM dispatches via
-        // host.vader). With-body (e.g. `i32 implements Hash -> u64(self)`) ->
-        // materialise the real fn so a devirtualised concrete call resolves
-        // directly instead of dropping / surfacing as an unbound host import.
         subst :: new_substitution()
         out.push(lower_impl_member(project_ctx, member, typed, impl_entry, self_type, subst, entry))
     }
@@ -169,12 +159,6 @@ surface_array_impl_members :: fn(
     if impl_decl.for_type !is ArrayTypeExpr { return out }
     impl_entry :: project_ctx.impls.entry_of(impl_decl) else return out
     for member in impl_decl.members {
-        // A bodyless `@intrinsic` member has no body to lower: the lowerer emits
-        // its op at the call site. Skip it here so surfacing doesn't try to lower a
-        // null body. An inherited member lowers from its trait's default body.
-        if body_source(member).body == null {
-            continue
-        }
         for [mangled, reached] in project_ctx.array_member_uses {
             if reached.member_id != member.id { continue }
             // Dedupe against re-entrant drain-loop passes.

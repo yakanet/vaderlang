@@ -80,8 +80,8 @@ export CFGExternDecl :: struct {
     extern_name: string
     /// True when the originating decl carried @extern (user-supplied
     /// foreign symbol: c-emit emits a real `extern ...(...)` declaration
-    /// that the linker resolves). False for @intrinsic-style bodyless
-    /// fns (stdlib host bindings handled by the c-emit shim switch).
+    /// that the linker resolves). False for a member of `Intrinsic`, which the
+    /// c-emit shim switch serves.
     is_extern:   bool
     /// See `extern_headers` (`toolchain/ast`).
     c_headers:   string[]

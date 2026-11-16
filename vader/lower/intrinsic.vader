@@ -1,4 +1,4 @@
-// vader/lower/intrinsic: @intrinsic lowering and compile-time type introspection.
+// vader/lower/intrinsic: the `@size_of`-style reflection calls, lowered or folded.
 //
 
 module "vader/lower"

@@ -131,7 +131,7 @@ note_construction :: fn(ctx: FnLowerCtx, type: Type) -> void {
     st_backing :: struct_backing(type)
     if st_backing != null {
         if !st_backing.args.is_empty() { queue_generic_impl_receiver(ctx, st_backing) }
-        // Record the construction so `surface_stdlib_impl_externs` can surface a
+        // Record the construction so `surface_stdlib_impl_members` can surface a
         // NON-generic stdlib struct's vtable members only when the struct is
         // actually built (`StringChars` via `chars()`), not for every snippet
         // that merely virtually dispatches its trait.

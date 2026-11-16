@@ -315,8 +315,7 @@ targets_of :: fn(d: Decl, target_decls: FnDecl[]) -> string[] {
     return sort(oses, (a: string, b: string) -> a < b)
 }
 
-// Whether `fd` has a body: written, or provided by the host (`@extern`,
-// `@intrinsic`).
+// Whether `fd` has a body: written, or provided by a C library (`@extern`).
 has_body :: fn(fd: FnDecl) -> bool {
     if fd.body != null {
         return true

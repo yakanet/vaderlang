@@ -314,7 +314,7 @@ LowerProjectCtx :: struct {
     /// a generic-`T` `Display` coercion). Unlike a direct call, an erased
     /// dispatch can't name the concrete primitive receiver (the boxed tag
     /// picks the impl at runtime) so EVERY primitive implementor of the
-    /// trait must enter the vtable. `surface_stdlib_impl_externs` consults
+    /// trait must enter the vtable. `surface_stdlib_impl_members` consults
     /// this to surface all primitive impl members of a virtually-dispatched
     /// trait (the mono model materialises every non-generic impl member
     /// upfront then DCEs to the dispatched keys). Empty for snippets
@@ -325,7 +325,7 @@ LowerProjectCtx :: struct {
     /// constructed by a `lower_struct_lit`, OR produced by a callee's return type
     /// (`call.vader::mark_produced_structs`, which also covers host-
     /// fabricated structs like `std_io$IOError` that no bytecode literal builds).
-    /// `surface_stdlib_impl_externs` gates a NON-generic stdlib struct's vtable
+    /// `surface_stdlib_impl_members` gates a NON-generic stdlib struct's vtable
     /// surfacing on this : an implementor of a virtually-dispatched trait
     /// (`StringChars implements Iterator<char>`, or host-produced `IOError
     /// implements Error`) gets its impl members in the vtable ONLY when a value

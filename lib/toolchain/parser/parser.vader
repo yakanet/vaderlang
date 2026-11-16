@@ -945,10 +945,14 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
         p.advance()  // `{`
         p.skip_newlines()
         for !p.check(.RBrace) && !p.check(.Eof) {
-            fn_opt :: p.parse_fn_decl_inside_trait()
-            match fn_opt {
-                is FnDecl -> members.push(fn_opt)
-                is null   -> {}
+            member :: p.parse_fn_decl_inside_trait()
+            if member != null {
+                // Only a trait member may be a bare signature: nothing else
+                // provides an impl member's body.
+                if member.body == null {
+                    p.error(.ImplMemberWithoutBody, member.name_span, "`${member.name}`")
+                }
+                members.push(member)
             }
             p.skip_newlines()
         }

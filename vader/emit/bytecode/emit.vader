@@ -58,40 +58,6 @@ reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx) -> void {
     ctx.function_index_by_mangle[cfg_fn.mangled] = function_index
 }
 
-/// Synthesise a forwarding wrapper fn for every `@intrinsic` impl-member
-/// import referenced by a vtable entry, so `virtual.call` dispatch lands on a
-/// real fn index. The wrapper loads its params and forwards to the host import
-/// via `CallImport`. Registered under the member's mangle so
-/// `resolve_fn_index` (mangle-first) finds it.
-synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> void {
-    referenced :: Map<string, bool> {}
-    for e in cfg.vtable_entries { referenced[e.fn_symbol.name] = true }
-    import_count :: i32(ctx.imports.len())
-    i: i32 = 0
-    for i < import_count {
-        imp :: ctx.imports[i]
-        import_index :: i
-        i += 1
-        if imp.is_extern { continue }
-        if referenced[imp.mangled_name] == null { continue }
-        // Already a real fn under this mangle: nothing to wrap.
-        if ctx.function_index_by_mangle[imp.mangled_name] is i32 { continue }
-        // Reuse the bytecode emitter's builder so the intrinsic-op-vs-
-        // `call.import` choice lives in ONE place : `@intrinsic` impl members
-        // on primitives (`i32 implements Equals`) inline their dedicated op so
-        // the cc-emitted C (and the VM without its host-dispatch fallback)
-        // lands on a real op rather than an unbound host import ; genuine host
-        // shims (`string`'s `Hash`) forward via `call.import`.
-        body :: build_intrinsic_wrapper_body(imp, import_index)
-        debug: (DebugPos | null)[]: [null] * body.len()
-        jump_table: i32[]: [-1] * body.len()
-        no_locals: BcLocal[]: []
-        fn_index :: i32(ctx.functions.len())
-        ctx.functions.push(BcFunction { .name = derived_mangle(imp.mangled_name, .Wrapper), .is_main = false, .signature = imp.signature, .locals = no_locals, .body = body, .debug = debug, .jump_table = jump_table })
-        ctx.function_index_by_mangle[imp.mangled_name] = fn_index
-    }
-}
-
 reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
     base :: build_cfg_signature(ext.params, ext.return_type, [], ctx)
     // `@c_address`, `@c_out` and `@c_type` are read straight off the origin AST
@@ -116,9 +82,9 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
     if sym is Symbol {
         ctx.import_index_by_symbol_id[sym.id] = import_index
     }
-    // Index by mangle too : intrinsic impl-member calls carry the member's
-    // mangle with a synthetic `id = 0`, so the symbol-id path can't resolve
-    // them: the InstrCall emit falls back to this map -> `CallImport`.
+    // Index by mangle too : a call to an instance of a generic member of
+    // `Intrinsic` carries the instance's mangle with a synthetic `id = 0`, so the
+    // symbol-id path can't resolve it: the InstrCall emit falls back to this map.
     ctx.import_index_by_mangle[ext.mangled] = import_index
 }
 
@@ -370,14 +336,6 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         for s in m.struct_decls { reserve_cfg_struct(s, ctx) }
     }
     lend_written_mirrors(ctx)
-    // Pass 1.5: synthesise wrapper fns for `@intrinsic` impl-member imports
-    // that a vtable entry references. A `virtual.call` dispatches through the
-    // vtable to a real fn index, but an intrinsic impl member (e.g. `string
-    // implements Hash`) is only surfaced as an import: without a wrapper,
-    // `resolve_fn_index` misses and the row is silently dropped, so the
-    // VM traps "no impl for type N". The wrapper forwards to the host import
-    // via `CallImport`.
-    synthesise_cfg_intrinsic_wrappers(cfg, ctx)
     // Pre-translate CFG string indices into bytecode pool indices.
     string_index_map: i32[]: []
     for s in cfg.strings { string_index_map.push(intern_string(s, ctx)) }
@@ -1528,23 +1486,18 @@ DirectCallTarget :: struct {
     signature: BcSignature
 }
 
-// Direct fn call -> `Call` ; @extern/@intrinsic import -> `CallImport`. A fn
-// resolves as a vtable target does (`resolve_fn_index`, mangle first). An
-// intrinsic impl-member call carries the member's mangle (synthetic id 0) and
-// was surfaced as a bodyless extern -> import. An unresolved callee is a
-// materialisation gap and fails loud : emitting anything else would
-// silently drop the call and return whatever the stack holds.
+// Direct fn call -> `Call` ; an import (`@extern`, a member of `Intrinsic`) ->
+// `CallImport` or its op. A fn resolves as a vtable target does
+// (`resolve_fn_index`, mangle first). A member of `Intrinsic` instantiated per
+// type carries its instance's mangle (synthetic id 0), found by mangle. An
+// unresolved callee is a materialisation gap and fails loud : emitting anything
+// else would silently drop the call and return whatever the stack holds.
 resolve_direct_call :: fn(ctx: FnEmitCfg, ins: InstrCall) -> DirectCallTarget {
     p :: ctx.project
     by_symbol :: p.import_index_by_symbol_id[ins.callee.id]
     import_index :: if by_symbol is i32 { by_symbol } else { p.import_index_by_mangle[ins.callee.name] }
-    // An `@intrinsic` with an op of its own emits that op, even where a vtable entry
-    // gave it a wrapper fn under the same mangle : the wrapper serves dispatch only.
     if import_index is i32 {
-        target :: import_call_target(p, import_index)
-        if target.op !is CallImport {
-            return target
-        }
+        return import_call_target(p, import_index)
     }
     fn_index :: resolve_fn_index(ins.callee, p)
     if fn_index != null {
@@ -1553,15 +1506,11 @@ resolve_direct_call :: fn(ctx: FnEmitCfg, ins: InstrCall) -> DirectCallTarget {
             .signature = p.functions[fn_index].signature,
         }
     }
-    if import_index is i32 {
-        return import_call_target(p, import_index)
-    }
     panic("emit/bytecode/emit: unresolved callee '${ins.callee.name}' (id=${ins.callee.id}) in '${ctx.fn_.mangled}' : a callee never materialised")
 }
 
-// A call to import `index` : `CallImport`, or the dedicated op of an `@intrinsic`
-// that has one, which the native build binds no host for: the choice
-// `build_intrinsic_wrapper_body` makes for a vtable target.
+// A call to import `index` : `CallImport`, or the dedicated op of a member of
+// `Intrinsic` that has one, which the native build binds no host for.
 import_call_target :: fn(p: EmitterCtx, index: i32) -> DirectCallTarget {
     imp :: p.imports[index]
     intrinsic :: if imp.is_extern { null } else { intrinsic_op_for_mangled(imp.mangled_name) }

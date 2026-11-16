@@ -6,7 +6,7 @@
 // to a function by mangle then symbol id, else to an import by symbol id then
 // mangle. The CFG build (a parameter's type), the verifier and the call graph
 // resolve through this one chain. `emit/bytecode/emit.vader::resolve_direct_call` resolves on
-// the bytecode's own tables, an `@intrinsic` with an op of its own first.
+// the bytecode's own tables, an import first.
 
 module "vader/midir"
 

@@ -316,9 +316,8 @@ RecordedFns :: struct {
 
 // The fns the typecheck recorded in `typed`, by node : one pass over the record's
 // tables rather than a lookup per role at every node. A member inherited from a
-// trait default refers to the default ; any other member materialised from its
-// trait (an intrinsic stub) has no source of its own, nor has the helper of a
-// `@comptime` value, called where the value is declared.
+// trait default refers to the default ; the helper of a `@comptime` value has no
+// source of its own, called where the value is declared.
 recorded_fns :: fn(typed: TypedProgram) -> Map<i64, RecordedFns> {
     out :: Map<i64, RecordedFns> {}
     for role in all_roles() {

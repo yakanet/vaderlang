@@ -60,7 +60,7 @@ check_impl_members :: fn(
 // parameters, each of the same type, and the same return type. The vtable slot and
 // the direct call both assume this shape. A generic trait method is held to its arity
 // alone, its own type parameters being the impl's to name. A member declared from the
-// trait (a SAM member, an intrinsic stub, an inherited member) has its signature.
+// trait (a SAM member, an inherited member) has its signature.
 check_member_signature :: fn(
     member: AST.FnDecl,
     trait_method: AST.FnDecl,
