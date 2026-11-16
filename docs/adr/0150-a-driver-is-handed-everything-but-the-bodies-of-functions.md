@@ -43,17 +43,16 @@ but the bodies".
 - **One codec for every expression.** A value may hold a lambda or a block, so
   the codec covers statements and patterns too. A type is an expression in the
   tree and crosses through the same codec. An operator crosses as its spelling.
-- Decorators do not cross yet: their shape waits on the plan for user
-  decorators. Until they do, a `@comptime` constant arrives without its
-  marker; when they do, the `@comptime` decorator the parser adds to such a
-  constant is one the compiler made, and stays behind.
+- Decorators cross as written, each naming the module that declares it
+  ([0153](0153-a-driver-reads-a-decorator-as-written.md)). A `@comptime`
+  constant arrives without its marker.
 
 ## Consequences
 
 A plugin sees every declaration, and each field it reads is either what the
-source wrote or empty by a rule it can name: a function body, a decorator, a
-vaderdoc. A rule over the names of constants, or a derive that follows an
-alias `Celsius :: f64`, now has what it needs.
+source wrote or empty by a rule it can name: a function body, a vaderdoc. A
+rule over the names of constants, or a derive that follows an alias
+`Celsius :: f64`, now has what it needs.
 
 The codec holds what a function body is made of, so sending a body later costs
 no new code on the wire, only the question that asks for it. The frames grow

@@ -23,10 +23,11 @@ export Message :: TypecheckedMessage | PhaseMessage | CompleteMessage
 ///
 /// They are what crosses from `vader` to the driver (`toolchain/protocol`): every
 /// declaration the source writes, with what it writes outside the body of a
-/// function (values, defaults, the data of a variant). The body of a function
-/// (a trait member's default included) and the decorators do not cross, and the
-/// nodes hold none; a doc comment is asked for (`doc_of`). A span taken from one
-/// anchors a diagnostic in the user's source.
+/// function (values, defaults, the data of a variant), and its decorators as
+/// written, each naming the module that declares it (`Decorator.module_name`).
+/// The body of a function (a trait member's default included) does not cross,
+/// and the nodes hold none; a doc comment is asked for (`doc_of`). A span taken
+/// from one anchors a diagnostic in the user's source.
 ///
 /// Each declaration is delivered exactly ONCE per entry. A module the
 /// driver generated into is therefore delivered a second time carrying only the

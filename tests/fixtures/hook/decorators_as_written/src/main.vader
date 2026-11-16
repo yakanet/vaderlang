@@ -1,0 +1,38 @@
+// A module that declares its decorators and writes them: above a function, twice
+// for a repeatable one, above a struct field, with a computed argument.
+
+module "app"
+
+import "std/console"
+
+/// A route of the app.
+Route :: decorator(.Function, repeatable = true) {
+    path:   string
+    method: string = "GET"
+}
+
+/// The name a field takes in the output.
+Rename :: decorator(.Field) {
+    name: string
+}
+
+prefixed :: fn(path: string) -> string = "/api${path}"
+
+User :: struct {
+    @Rename("user_id")
+    id:   i32
+    name: string
+}
+
+@Route("/users")
+@Route(path = @comptime prefixed("/people"), method = "POST")
+list_users :: fn() -> void {
+    println("users")
+}
+
+main :: fn() -> i32 {
+    list_users()
+    user :: User { .id = 1, .name = "ada" }
+    println(user.name)
+    return 0
+}

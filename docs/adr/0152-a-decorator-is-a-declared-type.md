@@ -4,6 +4,10 @@
 
 Accepted (2026-11-15).
 
+**Superseded in part by
+[0153](0153-a-driver-reads-a-decorator-as-written.md) (2026-11-16)**: a driver
+reads a decorator as written; its value stays in the compiler, for reflection.
+
 ## Context
 
 The compiler knows a closed table of decorators (`lib/toolchain/parser/decorators.vader`)

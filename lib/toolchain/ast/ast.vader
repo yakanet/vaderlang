@@ -177,6 +177,10 @@ export Decorator :: struct {
     name_span: Span
     /// Written as a call's: positional, then named (`@Route(.Get, path = "/")`).
     args: CallArg[]
+    /// The module that declares the decorator, `http` for `@H.Route`: what the
+    /// build tells a driver. Empty in the front end, and for a decorator of the
+    /// compiler.
+    module_name: string = ""
 }
 
 /// Whether `decs` carries the decorator called `name`.

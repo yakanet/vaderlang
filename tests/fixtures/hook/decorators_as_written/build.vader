@@ -1,0 +1,66 @@
+// What a driver receives of the decorators a module writes: each one as written,
+// its arguments as expressions, and the module that declares it, which the build
+// resolved. A `@comptime` argument arrives as the expression it is written with.
+
+module "build"
+
+import "std/console"
+import "std/string"
+import "toolchain/build"
+AST :: import "toolchain/ast"
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_entry("app", "src/main.vader")
+    exit := 0
+    for msg in ctx.messages() {
+        if msg is TypecheckedMessage && msg.module_name == "app" {
+            for d in msg.declarations {
+                show_decorators(d)
+            }
+        }
+        if msg is CompleteMessage {
+            exit = msg.code
+        }
+    }
+    return exit
+}
+
+show_decorators :: fn(d: AST.Decl) -> void {
+    for dec in AST.decl_decorators(d) {
+        println("driver: ${described(dec)} on ${named(d)}")
+    }
+    if d is AST.StructDecl {
+        for f in d.fields {
+            for dec in f.decorators {
+                println("driver: ${described(dec)} on ${d.name}.${f.name}")
+            }
+        }
+    }
+}
+
+// @partial: the module decorates only functions and fields.
+named :: fn(d: AST.Decl) -> string = @partial match d {
+    is AST.FnDecl -> d.name
+    _             -> "another declaration"
+}
+
+described :: fn(dec: AST.Decorator) -> string =
+    "@${dec.name} of `${dec.module_name}` (${arguments(dec.args)})"
+
+arguments :: fn(args: AST.CallArg[]) -> string {
+    shown: string[]: []
+    for a in args {
+        name :: a.name else "_"
+        shown.push("${name} = ${shape(a.value)}")
+    }
+    return shown.join(", ")
+}
+
+// The form of `e`, in a few words.
+// @partial: the forms the module does not write share one line.
+shape :: fn(e: AST.Expr) -> string = @partial match e {
+    is AST.StringLitExpr -> "a string"
+    is AST.CallExpr      -> "a call"
+    _                    -> "another expression"
+}

@@ -27,6 +27,7 @@ import "toolchain/diagnostics"
 import "toolchain/project"
 import "toolchain/protocol"
 import "vader/front/resolver"
+import "vader/front/typecheck"
 import "vader/pipeline"
 
 // ---- events ---------------------------------------------------------------
@@ -45,6 +46,16 @@ export ModuleTypechecked :: struct {
 }
 
 // ---- the stream -----------------------------------------------------------
+
+// Write on each decorator the module that declares it, as the typecheck resolved
+// it, for the driver that receives the declarations: the one writer of
+// `Decorator.module_name`, which the front end leaves empty. A decorator of the
+// compiler names none.
+name_decorator_modules :: fn(typed: TypedProgram) -> void {
+    for [_, use] in typed.decorator_uses {
+        use.written.module_name = use.symbol.module_name
+    }
+}
 
 /// Run the build the session describes, and yield what the pipeline produces.
 ///
@@ -168,7 +179,7 @@ export build_events :: fn(session: BuildSession) -> Iterator<BuildEvent> {
                 output.target,
                 keep_docs = true,
             )
-            for [_, loaded] in pipeline.loaded.modules {
+            for [module_id, loaded] in pipeline.loaded.modules {
                 if loaded.module.origin != .Build {
                     continue
                 }
@@ -180,6 +191,10 @@ export build_events :: fn(session: BuildSession) -> Iterator<BuildEvent> {
                     continue
                 }
                 session.remember_delivered(fresh)
+                typed :: pipeline.typed.modules[module_id]
+                if typed != null {
+                    name_decorator_modules(typed)
+                }
                 yield ModuleTypechecked { .module_name = loaded.module.module_name, .files = fresh }
             }
             yield PhaseFrame { .phase = .Typechecked }

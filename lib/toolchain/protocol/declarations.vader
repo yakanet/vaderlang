@@ -5,14 +5,17 @@
 // outside the body of a function (ADR 0150). So a constant crosses with its
 // value, a field and a parameter with their default, a variant with its value or
 // its data, a struct with what it spreads. A function crosses with its
-// signature, a trait or an impl with the members its source writes.
+// signature, a trait or an impl with the members its source writes. A
+// declaration, a field and a parameter cross with their decorators as written,
+// each naming the module that declares it (`Decorator.module_name`): the value a
+// decorator holds stays in the compiler.
 //
 // What does not cross: a declaration the compiler made (the helper computing a
-// `@comptime` constant, a member an impl takes from its trait), the body of a
-// function (a trait member's default included), a decorator. A `@comptime`
-// constant crosses with the expression it is written with. The node read back
-// holds none of them, nor a doc comment, which a driver asks for
-// (`DocQueryFrame`).
+// `@comptime` constant or a decorator argument, a member an impl takes from its
+// trait), the body of a function (a trait member's default included). A
+// `@comptime` constant, or argument, crosses with the expression it is written
+// with. The node read back holds none of them, nor a doc comment, which a driver
+// asks for (`DocQueryFrame`).
 //
 // The layout is the frames' own (`frames.vader`): fields after their length,
 // integers as decimal fields, lists as a count then their items. A declaration
@@ -98,16 +101,39 @@ write_head :: fn(
     name: string,
     name_span: Span,
     visibility: AST.Visibility,
+    decorators: AST.Decorator[],
 ) -> void {
     w.write_span(span)
     w.out.write_field(name)
     w.write_span(name_span)
     w.out.write_flag(visibility == .Public)
+    w.write_decorators(decorators)
+}
+
+// The decorators written above a declaration, a field or a parameter.
+write_decorators :: fn(w: DeclWriter, decorators: AST.Decorator[]) -> void =
+    w.write_list(decorators, write_decorator)
+
+write_decorator :: fn(w: DeclWriter, dec: AST.Decorator) -> void {
+    w.write_span(dec.span)
+    w.write_optional(dec.qualifier, write_qualifier)
+    w.out.write_field(dec.name)
+    w.write_span(dec.name_span)
+    w.write_call_args(dec.args)
+    w.out.write_field(dec.module_name)
+}
+
+// The alias of `@H.Route`, as an identifier is written past its form
+// (`read_ident`).
+write_qualifier :: fn(w: DeclWriter, qualifier: AST.IdentExpr) -> void {
+    w.write_span(qualifier.span)
+    w.out.write_field(qualifier.name)
+    w.out.write_flag(qualifier.implicit_dot)
 }
 
 write_struct :: fn(w: DeclWriter, d: AST.StructDecl) -> void {
     w.out.write_field("struct")
-    w.write_head(d.span, d.name, d.name_span, d.visibility)
+    w.write_head(d.span, d.name, d.name_span, d.visibility, d.decorators)
     w.write_type_params(d.type_params)
     w.write_list(d.fields, write_struct_field)
     w.write_list(d.spreads, write_spread)
@@ -120,6 +146,7 @@ write_struct_field :: fn(w: DeclWriter, f: AST.StructField) -> void {
     w.out.write_flag(f.visibility == .Public)
     w.write_expr(f.ty)
     w.write_optional_expr(f.default)
+    w.write_decorators(f.decorators)
 }
 
 write_spread :: fn(w: DeclWriter, spread: AST.StructSpread) -> void {
@@ -136,7 +163,7 @@ write_fn :: fn(w: DeclWriter, d: AST.FnDecl) -> void {
 // A function past its tag: a member is one, with no tag since only a function
 // is.
 write_function :: fn(w: DeclWriter, d: AST.FnDecl) -> void {
-    w.write_head(d.span, d.name, d.name_span, d.visibility)
+    w.write_head(d.span, d.name, d.name_span, d.visibility, d.decorators)
     w.write_type_params(d.type_params)
     w.write_span(d.params_span)
     w.write_params(d.params)
@@ -153,11 +180,12 @@ write_param :: fn(w: DeclWriter, p: AST.FnParam) -> void {
     w.write_optional_expr(p.ty)
     w.write_optional_expr(p.default_value)
     w.out.write_flag(p.variadic)
+    w.write_decorators(p.decorators)
 }
 
 write_enum :: fn(w: DeclWriter, d: AST.EnumDecl) -> void {
     w.out.write_field("enum")
-    w.write_head(d.span, d.name, d.name_span, d.visibility)
+    w.write_head(d.span, d.name, d.name_span, d.visibility, d.decorators)
     w.write_exprs(d.header)
     w.write_list(d.variants, write_variant)
 }
@@ -172,7 +200,7 @@ write_variant :: fn(w: DeclWriter, v: AST.EnumVariant) -> void {
 
 write_trait :: fn(w: DeclWriter, d: AST.TraitDecl) -> void {
     w.out.write_field("trait")
-    w.write_head(d.span, d.name, d.name_span, d.visibility)
+    w.write_head(d.span, d.name, d.name_span, d.visibility, d.decorators)
     w.write_type_params(d.type_params)
     w.write_optional_expr(d.requires)
     w.write_members(d.members)
@@ -181,6 +209,7 @@ write_trait :: fn(w: DeclWriter, d: AST.TraitDecl) -> void {
 write_impl :: fn(w: DeclWriter, d: AST.ImplDecl) -> void {
     w.out.write_field("impl")
     w.write_span(d.span)
+    w.write_decorators(d.decorators)
     w.write_type_params(d.type_params)
     w.write_expr(d.implemented)
     w.write_expr(d.for_type)
@@ -194,14 +223,14 @@ write_members :: fn(w: DeclWriter, members: AST.FnDecl[]) -> void {
 
 write_alias :: fn(w: DeclWriter, d: AST.TypeAliasDecl) -> void {
     w.out.write_field("alias")
-    w.write_head(d.span, d.name, d.name_span, d.visibility)
+    w.write_head(d.span, d.name, d.name_span, d.visibility, d.decorators)
     w.write_type_params(d.type_params)
     w.write_expr(d.aliased)
 }
 
 write_const :: fn(w: DeclWriter, d: AST.ConstDecl) -> void {
     w.out.write_field("const")
-    w.write_head(d.span, d.name, d.name_span, d.visibility)
+    w.write_head(d.span, d.name, d.name_span, d.visibility, d.decorators)
     w.write_optional_expr(d.ty)
     w.write_expr(AST.written_value(d))
 }
@@ -209,6 +238,7 @@ write_const :: fn(w: DeclWriter, d: AST.ConstDecl) -> void {
 write_assert :: fn(w: DeclWriter, d: AST.AssertDecl) -> void {
     w.out.write_field("assert")
     w.write_span(d.span)
+    w.write_decorators(d.decorators)
     w.write_expr(d.condition)
     w.out.write_optional_field(d.message)
     w.write_optional_span(d.message_span)
@@ -227,6 +257,7 @@ write_type_param :: fn(w: DeclWriter, p: AST.TypeParam) -> void {
 write_import :: fn(w: DeclWriter, d: AST.ImportDecl) -> void {
     w.out.write_field("import")
     w.write_span(d.span)
+    w.write_decorators(d.decorators)
     w.out.write_field(d.path)
     binding :: d.binding
     match binding {
@@ -332,6 +363,7 @@ Head :: struct {
     name: string
     name_span: Span
     visibility: AST.Visibility
+    decorators: AST.Decorator[]
 }
 
 read_head :: fn(d: DeclReader) -> Head | ProtocolError {
@@ -339,12 +371,40 @@ read_head :: fn(d: DeclReader) -> Head | ProtocolError {
     name :: d.fields.read_field() else return name
     name_span :: d.read_span() else return name_span
     visibility :: d.read_visibility() else return visibility
+    decorators :: d.read_decorators() else return decorators
     return Head {
         .span = span,
         .name = name,
         .name_span = name_span,
         .visibility = visibility,
+        .decorators = decorators,
     }
+}
+
+read_decorators :: fn(d: DeclReader) -> AST.Decorator[] | ProtocolError = d.read_list(read_decorator)
+
+read_decorator :: fn(d: DeclReader) -> AST.Decorator | ProtocolError {
+    span :: d.read_span() else return span
+    qualifier :: d.read_optional(read_qualifier) else is ProtocolError {
+        return qualifier
+    }
+    name :: d.fields.read_field() else return name
+    name_span :: d.read_span() else return name_span
+    args :: d.read_call_args() else return args
+    module_name :: d.fields.read_field() else return module_name
+    return AST.Decorator {
+        .span = span,
+        .qualifier = qualifier,
+        .name = name,
+        .name_span = name_span,
+        .args = args,
+        .module_name = module_name,
+    }
+}
+
+read_qualifier :: fn(d: DeclReader) -> AST.IdentExpr | ProtocolError {
+    span :: d.read_span() else return span
+    return d.read_ident(span)
 }
 
 read_struct :: fn(d: DeclReader) -> AST.StructDecl | ProtocolError {
@@ -363,7 +423,7 @@ read_struct :: fn(d: DeclReader) -> AST.StructDecl | ProtocolError {
         .type_params = type_params,
         .fields = fields,
         .spreads = spreads,
-        .decorators = [],
+        .decorators = head.decorators,
         .decorator_args = decorator_args,
     }
 }
@@ -376,12 +436,14 @@ read_struct_field :: fn(d: DeclReader) -> AST.StructField | ProtocolError {
     default_value :: d.read_optional_expr() else is ProtocolError {
         return default_value
     }
+    decorators :: d.read_decorators() else return decorators
     return AST.StructField {
         .span = span,
         .name = name,
         .ty = ty,
         .visibility = visibility,
         .default = default_value,
+        .decorators = decorators,
     }
 }
 
@@ -414,7 +476,7 @@ read_fn :: fn(d: DeclReader) -> AST.FnDecl | ProtocolError {
         .params_span = params_span,
         .return_type = return_type,
         .body = null,
-        .decorators = [],
+        .decorators = head.decorators,
         .sam_synthetic = false,
         .is_expression_bodied = false,
         .materialized = false,
@@ -434,6 +496,7 @@ read_param :: fn(d: DeclReader) -> AST.FnParam | ProtocolError {
         return default_value
     }
     variadic :: d.fields.read_flag() else return variadic
+    decorators :: d.read_decorators() else return decorators
     return AST.FnParam {
         .span = span,
         .name = name,
@@ -441,7 +504,7 @@ read_param :: fn(d: DeclReader) -> AST.FnParam | ProtocolError {
         .ty = ty,
         .default_value = default_value,
         .variadic = variadic,
-        .decorators = [],
+        .decorators = decorators,
     }
 }
 
@@ -456,7 +519,7 @@ read_enum :: fn(d: DeclReader) -> AST.EnumDecl | ProtocolError {
         .visibility = head.visibility,
         .header = header,
         .variants = variants,
-        .decorators = [],
+        .decorators = head.decorators,
     }
 }
 
@@ -496,12 +559,13 @@ read_trait :: fn(d: DeclReader) -> AST.TraitDecl | ProtocolError {
         .type_params = type_params,
         .requires = requires,
         .members = members,
-        .decorators = [],
+        .decorators = head.decorators,
     }
 }
 
 read_impl :: fn(d: DeclReader) -> AST.ImplDecl | ProtocolError {
     span :: d.read_span() else return span
+    decorators :: d.read_decorators() else return decorators
     type_params :: d.read_type_params() else return type_params
     implemented :: d.read_expr() else return implemented
     for_type :: d.read_expr() else return for_type
@@ -512,7 +576,7 @@ read_impl :: fn(d: DeclReader) -> AST.ImplDecl | ProtocolError {
         .for_type = for_type,
         .implemented = implemented,
         .members = members,
-        .decorators = [],
+        .decorators = decorators,
     }
 }
 
@@ -529,7 +593,7 @@ read_alias :: fn(d: DeclReader) -> AST.TypeAliasDecl | ProtocolError {
         .visibility = head.visibility,
         .type_params = type_params,
         .aliased = aliased,
-        .decorators = [],
+        .decorators = head.decorators,
     }
 }
 
@@ -546,12 +610,13 @@ read_const :: fn(d: DeclReader) -> AST.ConstDecl | ProtocolError {
         .visibility = head.visibility,
         .ty = ty,
         .value = value,
-        .decorators = [],
+        .decorators = head.decorators,
     }
 }
 
 read_assert :: fn(d: DeclReader) -> AST.AssertDecl | ProtocolError {
     span :: d.read_span() else return span
+    decorators :: d.read_decorators() else return decorators
     condition :: d.read_expr() else return condition
     message :: d.fields.read_optional_field() else is ProtocolError {
         return message
@@ -564,7 +629,7 @@ read_assert :: fn(d: DeclReader) -> AST.AssertDecl | ProtocolError {
         .condition = condition,
         .message = message,
         .message_span = message_span,
-        .decorators = [],
+        .decorators = decorators,
     }
 }
 
@@ -590,13 +655,14 @@ read_type_param :: fn(d: DeclReader) -> AST.TypeParam | ProtocolError {
 
 read_import :: fn(d: DeclReader) -> AST.ImportDecl | ProtocolError {
     span :: d.read_span() else return span
+    decorators :: d.read_decorators() else return decorators
     path :: d.fields.read_field() else return path
     binding :: d.read_import_binding() else return binding
     return AST.ImportDecl {
         .span = span,
         .path = path,
         .binding = binding,
-        .decorators = [],
+        .decorators = decorators,
     }
 }
 
@@ -821,6 +887,87 @@ test_the_hidden_constant_of_a_decorator_argument_does_not_cross :: fn() -> void 
     // The hidden constant and its helper, then `show`.
     assert_eq(decls.len(), 3)
     assert_eq(decls.filter(crosses).collect().len(), 1)
+}
+
+@test
+test_a_decorator_crosses_as_written_with_its_module :: fn() -> void {
+    source :: """
+        module "app"
+
+        H :: import "http"
+
+        @H.Route(.Get, path = @comptime prefix("a"))
+        show :: fn(@c_out buffer: u8[]) -> void {}
+        """
+    decls :: parse_source(source, "src/app.vader").program.decls.filter(crosses).collect()
+    show :: decls[1]
+    if show !is AST.FnDecl {
+        assert(false, "the second declaration is `show`")
+        return
+    }
+    show.decorators[0].module_name = "http"
+    back :: decode_declarations(encode_declarations([show])) else panic("decodes")
+    crossed :: back[0]
+    if crossed !is AST.FnDecl {
+        assert(false, "`show` comes back a function")
+        return
+    }
+    route :: crossed.decorators[0]
+    assert_eq(route.name, "Route")
+    assert_eq(route.module_name, "http")
+    assert_eq((route.qualifier else panic("`H.`")).name, "H")
+    assert_eq(route.args[1].name else "", "path")
+    assert(route.args[1].value is AST.CallExpr, "`prefix(\"a\")`, not its hidden constant")
+    assert_eq(crossed.params[0].decorators[0].name, "c_out")
+}
+
+// One declaration of each kind, a field and a parameter, each under a decorator:
+// what is read back writes the same bytes, so no kind reads its decorators at
+// another place than it wrote them.
+@test
+test_the_decorators_of_every_kind_of_declaration_cross :: fn() -> void {
+    source :: """
+        module "app"
+
+        @Mark
+        import "std/console"
+
+        @Mark
+        Point :: struct {
+            @Mark
+            x: i32
+        }
+
+        @Mark
+        Colour :: enum { Red }
+
+        @Mark
+        Shape :: trait {
+            @Mark
+            area :: fn(self) -> f64
+        }
+
+        @Mark
+        Point implements Shape {
+            area :: fn(self) -> f64 = 0.0
+        }
+
+        @Mark
+        Size :: i32
+
+        @Mark
+        LIMIT :: 4
+
+        @Mark
+        show :: fn(@Mark p: Point) -> void {}
+        """
+    decls :: parse_source(source, "src/app.vader").program.decls
+    sent :: encode_declarations(decls)
+    back :: decode_declarations(sent) else panic("decodes")
+    assert_eq(encode_declarations(back), sent)
+    for d in back {
+        assert_eq(AST.decl_decorators(d).len(), 1)
+    }
 }
 
 @test
