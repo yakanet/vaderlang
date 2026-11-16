@@ -1,11 +1,11 @@
-// toolchain/ast/intrinsic: the compiler intrinsics, `@name(...)` in expression
+// toolchain/ast/compiler_intrinsic: the compiler intrinsics, `@name(...)` in expression
 // position.
 //
-// `Intrinsic` is both the identity an `IntrinsicCallExpr` carries and what the
+// `CompilerIntrinsic` is both the identity an `IntrinsicCallExpr` carries and what the
 // compiler knows of each one: the parser finds it by name (`intrinsic_named`),
 // every pass matches on it, and the language server lists it for completion and
 // hover. A new intrinsic is one more variant here, and every exhaustive match
-// over `Intrinsic` asks for its answer.
+// over `CompilerIntrinsic` asks for its answer.
 
 module "toolchain/ast"
 
@@ -28,7 +28,7 @@ export is_evaluated :: fn(kind: IntrinsicArgKind) -> bool = match kind {
     .Type | .Unevaluated -> false
 }
 
-/// What the compiler knows of an intrinsic: the data each `Intrinsic` carries.
+/// What the compiler knows of an intrinsic: the data each `CompilerIntrinsic` carries.
 export IntrinsicInfo :: struct {
     /// The name written after `@`.
     name:      string
@@ -43,7 +43,7 @@ export IntrinsicInfo :: struct {
 
 /// Every intrinsic the compiler knows, with its spelling, its arguments and its
 /// documentation.
-export Intrinsic :: enum(IntrinsicInfo) {
+export CompilerIntrinsic :: enum(IntrinsicInfo) {
     // `@size_of(t)`: the lowerer folds a written type to a literal and routes a
     // run-time `type` value through the `size_of.type` intrinsic.
     SizeOf {
@@ -146,8 +146,8 @@ export Intrinsic :: enum(IntrinsicInfo) {
 /// The intrinsic written `@name`, or null when the compiler knows none.
 ///
 /// @param name  the name after `@`.
-export intrinsic_named :: fn(name: string) -> Intrinsic | null {
-    for intrinsic in Intrinsic {
+export intrinsic_named :: fn(name: string) -> CompilerIntrinsic | null {
+    for intrinsic in CompilerIntrinsic {
         if intrinsic_name(intrinsic) == name {
             return intrinsic
         }
@@ -158,17 +158,17 @@ export intrinsic_named :: fn(name: string) -> Intrinsic | null {
 /// What the compiler knows of `intrinsic`: its name, result, signature and doc.
 ///
 /// @param intrinsic  the intrinsic.
-export intrinsic_info :: fn(intrinsic: Intrinsic) -> IntrinsicInfo = IntrinsicInfo(intrinsic)
+export intrinsic_info :: fn(intrinsic: CompilerIntrinsic) -> IntrinsicInfo = IntrinsicInfo(intrinsic)
 
 /// The name `intrinsic` is written with, after `@`.
 ///
 /// @param intrinsic  the intrinsic.
-export intrinsic_name :: fn(intrinsic: Intrinsic) -> string = IntrinsicInfo(intrinsic).name
+export intrinsic_name :: fn(intrinsic: CompilerIntrinsic) -> string = IntrinsicInfo(intrinsic).name
 
 /// What `intrinsic` does with each of its arguments, in order.
 ///
 /// @param intrinsic  the intrinsic called.
-export intrinsic_args :: fn(intrinsic: Intrinsic) -> IntrinsicArgKind[] = match intrinsic {
+export intrinsic_args :: fn(intrinsic: CompilerIntrinsic) -> IntrinsicArgKind[] = match intrinsic {
     .SizeOf       -> [.TypeValue]
     .AlignOf      -> [.Type]
     .TypeName     -> [.Type]
@@ -190,7 +190,7 @@ export intrinsic_args :: fn(intrinsic: Intrinsic) -> IntrinsicArgKind[] = match 
 ///
 /// @param intrinsic  the intrinsic called.
 /// @param i          the argument's position.
-export arg_kind :: fn(intrinsic: Intrinsic, i: i64) -> IntrinsicArgKind {
+export arg_kind :: fn(intrinsic: CompilerIntrinsic, i: i64) -> IntrinsicArgKind {
     args :: intrinsic_args(intrinsic)
     if i < args.len() {
         return args[i]
@@ -204,7 +204,7 @@ import "std/testing"
 
 @test
 test_intrinsic_named_finds_each_spelling :: fn() -> void {
-    for intrinsic in Intrinsic {
+    for intrinsic in CompilerIntrinsic {
         assert(intrinsic_named(intrinsic_name(intrinsic)) == intrinsic, intrinsic_name(intrinsic))
     }
 }

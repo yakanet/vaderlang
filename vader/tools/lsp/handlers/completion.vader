@@ -762,7 +762,7 @@ follows_at_sign :: fn(source: string, offset: i64) -> bool {
 // The intrinsics, each with its signature and its documentation.
 builtin_items :: fn() -> JsonValue[] {
     out: JsonValue[]: []
-    for intrinsic in AST.Intrinsic {
+    for intrinsic in AST.CompilerIntrinsic {
         info :: AST.intrinsic_info(intrinsic)
         out.push(documented_item(info.name, .Function, info.signature, info.doc))
     }

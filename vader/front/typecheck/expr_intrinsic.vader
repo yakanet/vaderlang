@@ -2,7 +2,7 @@
 // etc. typing.
 //
 // Each intrinsic's static return type comes from its `IntrinsicInfo.result`
-// (`toolchain/ast/intrinsic.vader`). The result
+// (`toolchain/ast/compiler_intrinsic.vader`). The result
 // string is one of "i64", "bool", "string", "type", "field_array",
 // "type_array" (`type_for_result`) : a primitive, `type`, `type[]`, or
 // `std/core`'s `Field[]`. `@field` and `@min` / `@max` take theirs from their

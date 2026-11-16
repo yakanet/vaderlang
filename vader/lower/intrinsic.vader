@@ -76,7 +76,7 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
 /// see). Returns null when the pattern doesn't match ; caller falls
 /// through to the runtime `LoweredIntrinsicCall`.
 try_late_fold_type_arg :: fn(
-    intrinsic: Intrinsic, args: LoweredExpr[], span: Span, type: Type,
+    intrinsic: CompilerIntrinsic, args: LoweredExpr[], span: Span, type: Type,
 ) -> LoweredExpr | null {
     if args.len() != 1 {
         return null
@@ -90,7 +90,7 @@ try_late_fold_type_arg :: fn(
 
 // The name of the runtime intrinsic a call to `intrinsic` lowers to: `@size_of`
 // over a `type` value has its own.
-runtime_intrinsic_name :: fn(intrinsic: Intrinsic, args: LoweredExpr[]) -> string {
+runtime_intrinsic_name :: fn(intrinsic: CompilerIntrinsic, args: LoweredExpr[]) -> string {
     if intrinsic == .SizeOf && args.len() == 1 {
         return INTRINSIC_SIZE_OF_TYPE
     }
@@ -153,7 +153,7 @@ single_type_argument :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr) -> Typ
 // The literal answer of `@size_of`, `@align_of`, `@type_name` or `@type_kind`
 // about `ty`, typed `type` ; null for any other intrinsic, which a type alone does
 // not answer.
-type_query :: fn(intrinsic: Intrinsic, ty: Type, span: Span, type: Type) -> LoweredExpr | null =
+type_query :: fn(intrinsic: CompilerIntrinsic, ty: Type, span: Span, type: Type) -> LoweredExpr | null =
     match intrinsic {
         .SizeOf   -> LoweredIntLit {
             .span = span,

@@ -4,17 +4,17 @@
 // (both 0-based). A hover on a declaration reads like an IDE's quick
 // documentation :
 //
-//     toolchain/ast › Intrinsic             the module, and the owning type
+//     toolchain/ast › CompilerIntrinsic     the module, and the owning type
 //     ```
 //     @intrinsic                            decorators, `export`, the head :
 //     export arg_kind :: fn(                a long parameter list one per line,
-//         intrinsic: Intrinsic,             a struct's fields, an enum's variants
+//         intrinsic: CompilerIntrinsic,     a struct's fields, an enum's variants
 //         i: i64,
 //     ) -> IntrinsicArgKind
 //     ```
 //     ---
 //     The vaderdoc, its tags as sections.
-//     *intrinsic.vader*                     the declaring file
+//     *compiler_intrinsic.vader*            the declaring file
 //
 // A value without a declaration of its own (a local, a sub-expression) shows its
 // inferred type, and `@name` the decorator's or the intrinsic's documentation.
