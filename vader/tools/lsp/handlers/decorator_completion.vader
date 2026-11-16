@@ -1,13 +1,12 @@
-// vader/tools/lsp/handlers/decorator_completion: the declared decorators a `@`
-// may name.
+// vader/tools/lsp/handlers/decorator_completion: the decorators a `@` may name.
 //
-// After `@`, completion offers the compiler's decorators and intrinsics
-// (`builtin_items`, `completion.vader`) and the declared decorators in scope: those
-// of the module and of its wildcard imports, or those of the module an alias names
-// after `@Alias.`. A declared decorator is offered where it may be written: the
-// declaration below the cursor is the document index's entry on that line, whose
-// place `AST.place_of` gives, and its place must be one the decorator
-// declares. One written above that declaration already is not offered again,
+// After `@`, completion offers the intrinsics (`builtin_items`,
+// `completion.vader`) and the decorators in scope: the compiler's, which
+// `std/core` declares, those of the module and of its wildcard imports, or those
+// of the module an alias names after `@Alias.`. A decorator is offered where it
+// may be written: the declaration below the cursor is the document index's entry
+// on that line, whose place `AST.place_of` gives, and its place must be one the
+// decorator declares. One written above that declaration already is not offered again,
 // unless it is repeatable. Inserting one writes its fields without a default as
 // snippet placeholders. Like the completion of names, it reads the typed project,
 // for the decorators of the imported modules.
@@ -58,7 +57,8 @@ declared_decorator_items :: fn(
 }
 
 // The decorators `@` may name: through `alias`, the public ones of its module ;
-// otherwise the module's own and those its wildcard imports expose.
+// otherwise the compiler's, the module's own and those its wildcard imports
+// expose.
 decorators_in_scope :: fn(cached: ProjectCache, idx: DocIndex, alias: string | null) -> Symbol[] {
     if alias != null {
         path :: idx.namespace_aliases[alias] else return []
@@ -66,7 +66,7 @@ decorators_in_scope :: fn(cached: ProjectCache, idx: DocIndex, alias: string | n
         exported :: target.collected.symbols.values()
         return exported.filter((sym: Symbol) -> sym.is_decorator && sym.visibility == .Public).collect()
     }
-    out: Symbol[]: []
+    out: Symbol[]: cached.result.typed.compiler_decorator_symbols.values().collect()
     for [_, sym] in cached.result.typed.resolved.declarations {
         if sym.is_decorator {
             out.push(sym)

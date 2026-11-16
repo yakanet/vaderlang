@@ -450,7 +450,7 @@ walk_struct_decl :: fn(self: ResolveState, d: AST.StructDecl) -> void {
     if args != null {
         // A name after `@` is looked up among decorators, where the compiler's
         // own would answer first: `std/core` alone declares them.
-        if decorator_spec(d.name) != null && !self.in_core {
+        if AST.compiler_decorator_named(d.name) != null && !self.in_core {
             self.diags.push(resolver_error(.CompilerDecoratorName, d.name_span, "`@${d.name}`"))
         }
         for a in args {
@@ -600,7 +600,7 @@ walk_decorators :: fn(self: ResolveState, decs: AST.Decorator[]) -> void {
             self.walk_decorator_args(d)
             continue
         }
-        if !is_known_decorator(d.name) {
+        if !is_compiler_decorator(d) {
             self.walk_declared_decorator(d)
             continue
         }
@@ -663,10 +663,6 @@ check_target_selectors :: fn(self: ResolveState, d: AST.Decorator) -> void {
 // Whether `d` states a contract over a fn's parameters.
 is_contract_decorator :: fn(d: AST.Decorator) -> bool =
     AST.is_compiler(d, .Returns) || AST.is_compiler(d, .Ensures)
-
-// Whether `name` is a decorator this walk may meet : one a declaration or a
-// parameter carries (`toolchain/parser/decorators.vader`).
-is_known_decorator :: fn(name: string) -> bool = decorator_on(name, .Declaration) || decorator_on(name, .Parameter)
 
 walk_opt_expr :: fn(self: ResolveState, e: AST.Expr | null) -> void {
     if e !is null {

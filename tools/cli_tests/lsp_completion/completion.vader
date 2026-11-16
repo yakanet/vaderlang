@@ -597,9 +597,11 @@ test_completion_after_an_at_sign_offers_the_declared_decorators_that_fit :: fn()
     list :: results[0]
     assert(offers(list, "Hidden"), shown(list))
     assert(offers(list, "test"), shown(list))
-    // `Caption` goes on a field, `Route` is written once above `show` already.
+    // `Caption` goes on a field, `Route` is written once above `show` already,
+    // and the compiler's `@displayable` goes on an enum.
     assert(!offers(list, "Caption"), shown(list))
     assert(!offers(list, "Route"), shown(list))
+    assert(!offers(list, "displayable"), shown(list))
     hidden :: item_named(list, "Hidden")
     assert_eq(string_at(hidden, ["documentation", "value"]) else "", "Hidden from the listing.")
     // Through the alias: the module's public decorators alone.
@@ -631,6 +633,7 @@ test_completion_above_a_variant_offers_the_decorators_of_a_variant :: fn() -> vo
     list :: results[0]
     assert(offers(list, "Reason"), shown(list))
     assert(!offers(list, "Route"), shown(list))
+    assert(!offers(list, "test"), shown(list))
 }
 
 PARAMETER_DECORATED_SOURCE :: r"""

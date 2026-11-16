@@ -16,12 +16,10 @@ import "std/collections"
 import "std/string"
 import "toolchain/parser"
 import "toolchain/span"
+import "vader/core/symbol"
 import "vader/front/resolver"
 import "vader/support/text"
 import "vader/tools/lsp/protocol"
-
-// The module every file sees without importing it.
-PRELUDE :: "std/core"
 
 /// What a find-usages read : the sites of its target, and the index they come
 /// from, whose keys and spans a caller may look up further.
@@ -113,7 +111,7 @@ sites_of :: fn(index: ReferenceIndex, key: i64) -> RefSite[] {
 // or a prelude export.
 import_spelling :: fn(index: ReferenceIndex, key: i64) -> string {
     module :: index.exports[key] else return ""
-    if module == PRELUDE {
+    if module == CORE_MODULE {
         return ""
     }
     return "\"" + module + "\""

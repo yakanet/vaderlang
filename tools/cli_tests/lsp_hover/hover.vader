@@ -98,7 +98,7 @@ QUICK_DOC_SOURCE :: r"""
 // A hover reads like an IDE's quick documentation: the module, the declaration
 // with its decorators, `export` and members, a long parameter list one per line,
 // the vaderdoc tags as sections, the declaring file. `@name` documents the
-// decorator or the intrinsic.
+// decorator, by its declaration, or the intrinsic.
 @test
 test_hover_renders_a_declaration_as_quick_documentation :: fn() -> void {
     results :: drive(
@@ -147,10 +147,10 @@ test_hover_renders_a_declaration_as_quick_documentation :: fn() -> void {
         **Returns** the product.
         """
     assert(params in area, area)
-    // A decorator.
+    // A decorator of the compiler: its declaration in `std/core`.
     shown :: hover_value(results[2])
-    assert(shown.starts_with("decorator\n\n```\n@allow_unused\n```"), shown)
-    assert("W0007" in shown, shown)
+    assert("export allow_unused :: decorator(" in shown, shown)
+    assert("dead-code warning" in shown, shown)
     // An intrinsic.
     intrinsic :: hover_value(results[3])
     assert(intrinsic.starts_with("intrinsic\n\n```\n@size_of(T: type) -> i64\n```"), intrinsic)

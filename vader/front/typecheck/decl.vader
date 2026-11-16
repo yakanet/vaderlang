@@ -494,9 +494,12 @@ validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagno
     }
 }
 
-// Whether `d` is a decorator of the compiler a parameter may carry.
-is_parameter_decorator :: fn(d: AST.Decorator) -> bool =
-    is_compiler_decorator(d) && decorator_on(d.name, .Parameter)
+// Whether `d` is one of the decorators of the compiler an `@extern` parameter
+// carries for C.
+is_parameter_decorator :: fn(d: AST.Decorator) -> bool {
+    which :: AST.compiler_decorator_of(d) else return false
+    return which == .CAddress || which == .COut || which == .CType || which == .CVariadic
+}
 
 // `@main_thread` binds a C function to the main thread: the compiler sees what a
 // Vader body calls, so the decorator means something on an `@extern` only.

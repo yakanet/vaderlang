@@ -14,6 +14,7 @@ import "std/collections"
 import "std/string"
 import "std/uri"
 import "toolchain/diagnostics"
+import "vader/core/symbol"
 import "vader/front/resolver"
 import "vader/tools/lsp/protocol"
 
@@ -66,7 +67,7 @@ export resolve :: fn(
     }
     // The prelude answers where nothing of the file does, ahead of any wildcard,
     // but for its decorators: the compiler's, never a value (`build_core_seed`).
-    prelude :: find_in_module(state, roots.paths, PRELUDE_MODULE, name, true)
+    prelude :: find_in_module(state, roots.paths, CORE_MODULE, name, true)
     if prelude != null && prelude.target.kind != .Decorator { return prelude }
     // A wildcard import binds no `ImportEntry`: search each wildcard-imported
     // module for an export of this name. First hit wins : a type or a constant
@@ -90,8 +91,22 @@ export resolve :: fn(
     return resolve_member(state, roots.paths, idx, name)
 }
 
-// The module every file sees without importing it.
-PRELUDE_MODULE :: "std/core"
+/// The declaration in `std/core` of the compiler's decorator `name`, which every
+/// file sees after `@` but no lookup of a value reaches (`resolve`).
+///
+/// @param state  the server state.
+/// @param idx    the document the decorator is written in.
+/// @param name   what follows `@`.
+export resolve_compiler_decorator :: fn(
+    state: ServerState, idx: DocIndex, name: string,
+) -> ExternalHit | null {
+    roots :: document_roots(state, idx.uri) else return null
+    hit :: find_in_module(state, roots.paths, CORE_MODULE, name, true) else return null
+    if hit.target.kind != .Decorator {
+        return null
+    }
+    return hit
+}
 
 // Search for a member named `name`: first the wildcard-imported modules, then
 // the prelude.
@@ -119,7 +134,7 @@ resolve_member :: fn(
             return hit
         }
     }
-    return member_in_module(state, paths, PRELUDE_MODULE, name)
+    return member_in_module(state, paths, CORE_MODULE, name)
 }
 
 // `find_in_module`'s shape, looking for a member instead of a top-level decl.

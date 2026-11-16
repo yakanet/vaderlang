@@ -19,9 +19,9 @@
 //     program holds whether it is. Not in the lowering the comptime VM runs, which
 //     refuses global slots: there a cycle is a run past its frame limit, which its
 //     driver reports (ADR 0118).
-//   - fn-wrap : an array literal of `FN_WRAP_MIN_ELEMENTS`+ elements (struct /
-//     string elements that the data pool can't hold, e.g. `DECORATORS`). The
-//     const decl is REPLACED IN PLACE by a synthetic 0-arg accessor fn
+//   - fn-wrap : an array literal of `FN_WRAP_MIN_ELEMENTS`+ elements, struct or
+//     string ones the data pool can't hold. The const decl is REPLACED IN PLACE
+//     by a synthetic 0-arg accessor fn
 //     `__const_<name>` returning the literal ; each reference lowers to one
 //     `call` instead of re-emitting the whole literal. In-place replacement
 //     keeps the accessor at the const's fn-table position so emission order

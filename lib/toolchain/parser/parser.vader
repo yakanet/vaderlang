@@ -680,8 +680,15 @@ parse_decorators :: fn(p: Parser) -> Decorator[] {
     return out
 }
 
+// Whether `@name` opts a `match` out of its exhaustiveness: `@partial`,
+// `@unreachable`.
+is_match_decorator :: fn(name: string) -> bool {
+    which :: compiler_decorator_named(name) else return false
+    return which == .Partial || which == .Unreachable
+}
+
 /// Whether `d` is one of the compiler's decorators rather than one a program
-/// declares: an unqualified name the compiler's table holds.
+/// declares: an unqualified name `std/core` declares one under.
 ///
 /// @param d  a decorator as written.
 export is_compiler_decorator :: fn(d: Decorator) -> bool = compiler_decorator_of(d) != null
@@ -702,7 +709,7 @@ parse_decorator :: fn(p: Parser) -> Decorator {
     }
     args: CallArg[] = []
     if p.match_kind(.LParen) != null {
-        declared :: qualifier != null || decorator_spec(name_tok.text) == null
+        declared :: qualifier != null || compiler_decorator_named(name_tok.text) == null
         args = p.parse_arguments(declared).items
         p.expect(.RParen, "`)` after decorator arguments")
     }
@@ -3134,7 +3141,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
     if t.kind == .At {
         at_tok :: p.advance()
         name_tok :: p.expect(.Ident, "decorator name after `@`")
-        if decorator_on(name_tok.text, .Match) {
+        if is_match_decorator(name_tok.text) {
             if !p.check(.KwMatch) {
                 p.error(.UnknownDecoratorPlacement, name_tok.span,
                     "`@${name_tok.text}` must precede a `match` expression")

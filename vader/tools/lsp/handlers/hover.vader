@@ -41,7 +41,6 @@ import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
 import "vader/core/types"
 AST :: import "toolchain/ast"
-Parser :: import "toolchain/parser"
 
 /// Column past which a hover breaks a fn's parameter list, one per line.
 DISPLAY_WIDTH: i64: 60
@@ -55,9 +54,14 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     character :: position_character(params)
 
     idx :: state.index_for(uri) else return JsonNull {}
-    builtin :: builtin_hover(idx.decorator_name_at(line, character))
-    if builtin != null {
-        return builtin
+    after_at :: idx.decorator_name_at(line, character)
+    declared :: compiler_decorator_hover(state, idx, after_at)
+    if declared != null {
+        return declared
+    }
+    intrinsic :: intrinsic_hover(after_at)
+    if intrinsic != null {
+        return intrinsic
     }
 
     // A declaration shows itself : its parameters' names, its members, its
@@ -207,16 +211,21 @@ markup_json :: fn(body: string) -> JsonValue {
 
 // ---- decorators and intrinsics ------------------------------------------
 
-// The hover of the decorator or intrinsic called `name`, or null when the
-// compiler knows neither (or `name` is empty : the cursor is on no `@name`).
-builtin_hover :: fn(name: string) -> JsonValue | null {
-    if name.byte_len() == 0 {
+// The hover of the compiler's decorator `@name`: its declaration in `std/core`,
+// as a declared decorator shows ; null for any other name.
+compiler_decorator_hover :: fn(
+    state: ServerState, idx: DocIndex, name: string,
+) -> JsonValue | null {
+    if AST.compiler_decorator_named(name) == null {
         return null
     }
-    deco :: Parser.decorator_spec(name)
-    if deco != null {
-        return markdown_hover(["decorator", code_fence(deco.usage), "---", deco.doc].join("\n\n"))
-    }
+    hit :: resolve_compiler_decorator(state, idx, name) else return null
+    return decl_hover(hit, "")
+}
+
+// The hover of the intrinsic `@name`, or null when the compiler knows none (or
+// `name` is empty : the cursor is on no `@name`).
+intrinsic_hover :: fn(name: string) -> JsonValue | null {
     intrinsic :: AST.intrinsic_named(name) else return null
     info :: AST.intrinsic_info(intrinsic)
     return markdown_hover(["intrinsic", code_fence(info.signature), "---", info.doc].join("\n\n"))
