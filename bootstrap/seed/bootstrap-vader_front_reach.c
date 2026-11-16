@@ -175,7 +175,7 @@ bool vader_front_reach$is_wired_root(void* l0, vader_string_t l1) {
     void* l5;
     int64_t l3, l4;
     vader_string_t t0;
-    if (l1 == 2571u) {
+    if (l1 == 2572u) {
         return true;
     }
     l2 = l0;
@@ -186,19 +186,19 @@ bool vader_front_reach$is_wired_root(void* l0, vader_string_t l1) {
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         l5 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) l4);
         t0 = ((vader_struct_toolchain_ast$Decorator_t*) l5)->f_name;
-        if (t0 == 3060u) {
+        if (t0 == 3061u) {
             return true;
         }
         t0 = ((vader_struct_toolchain_ast$Decorator_t*) l5)->f_name;
-        if (t0 == 2232u) {
+        if (t0 == 2233u) {
             return true;
         }
         t0 = ((vader_struct_toolchain_ast$Decorator_t*) l5)->f_name;
-        if (t0 == 2473u) {
+        if (t0 == 2474u) {
             return true;
         }
         t0 = ((vader_struct_toolchain_ast$Decorator_t*) l5)->f_name;
-        if (t0 == 1789u) {
+        if (t0 == 1790u) {
             return true;
         }
         l4 = (l4 + INT64_C(1));

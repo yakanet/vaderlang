@@ -125,13 +125,13 @@ bool __lambda_toolchain_parser_4(uint32_t l0) {
 
 vader_string_t __lambda_toolchain_parser_5(vader_string_t l0) {
     vader_string_t t0;
-    t0 = concat_3(2636u, l0, 73u);
+    t0 = concat_3(2637u, l0, 73u);
     return t0;
 }
 
 vader_string_t __lambda_toolchain_parser_6(vader_string_t l0) {
     vader_string_t t0;
-    t0 = concat_3(2637u, l0, 73u);
+    t0 = concat_3(2638u, l0, 73u);
     return t0;
 }
 
@@ -2034,13 +2034,13 @@ vader_string_t __lambda_vader_front_typecheck_37(vader_box_t l0) {
     };
     vader_gc_top = &gc_frame;
     l1 = vader_core_types$display_type(l0);
-    t0 = concat_3(1220u, l1, 1220u);
+    t0 = concat_3(1221u, l1, 1221u);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 vader_string_t __lambda_vader_front_typecheck_38(vader_string_t l0) {
     vader_string_t t0;
-    t0 = concat_3(1534u, l0, 1220u);
+    t0 = concat_3(1535u, l0, 1221u);
     return t0;
 }
 
@@ -2107,12 +2107,12 @@ uint8_t __lambda_vader_front_typecheck_41(void* l0, vader_box_t l1) {
         l4 = vader_front_typecheck$recorded_decl(l2, l3);
         if (!(l4.tag == 0u)) {
             t0 = l4.payload.obj;
-            t1 = toolchain_ast$decorators_have(((vader_struct_toolchain_ast$FnDecl_t*) t0)->f_decorators, 2825u);
+            t1 = toolchain_ast$decorators_have(((vader_struct_toolchain_ast$FnDecl_t*) t0)->f_decorators, 2826u);
             if (t1) {
                 l5 = ((vader_struct_toolchain_ast$ConstDecl_t*) ((vader_struct___lambda_env_vader_front_typecheck_42_t*) l0)->f_cap_1)->f_name;
                 t0 = l4.payload.obj;
                 l6 = ((vader_struct_toolchain_ast$FnDecl_t*) t0)->f_name;
-                l5 = concat_5(1220u, l5, 1260u, l6, 1220u);
+                l5 = concat_5(1221u, l5, 1261u, l6, 1221u);
                 l2 = ((vader_struct___lambda_env_vader_front_typecheck_42_t*) l0)->f_cap_2;
                 t0 = l1.payload.obj;
                 l3 = ((vader_struct_toolchain_ast$CallExpr_t*) t0)->f_span;
@@ -2646,7 +2646,7 @@ vader_string_t __lambda_vader_lower_8(void* l0) {
     vader_gc_top = &gc_frame;
     l2 = (void*) vader_buffer_new((size_t) INT64_C(21));
     l3 = INT64_C(0);
-    l3 = std_core$write_string_at(l2, l3, 2803u);
+    l3 = std_core$write_string_at(l2, l3, 2804u);
     l4 = vader_array_length(((vader_array_t*) ((vader_struct_vader_lower$GenBuild_t*) ((vader_struct___lambda_env_vader_lower_9_t*) l0)->f_cap_0)->f_fields));
     l3 = std_core$write_int(l2, l3, l4);
     l1 = std_core$finish_buffer(l2, l3);
@@ -2744,7 +2744,7 @@ void __lambda_vader_lower_dce_5(void* l0, vader_string_t l1, vader_string_t l2) 
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l3 = concat_3(l1, 3485u, l2);
+    l3 = concat_3(l1, 3486u, l2);
     t0 = std_collections$add__string(((vader_struct___lambda_env_vader_lower_dce_6_t*) l0)->f_cap_0, l3);
     if (t0) {
         vader_array_push_scalar((vader_array_t*) ((vader_struct___lambda_env_vader_lower_dce_6_t*) l0)->f_cap_1, vader_box_string(507u, l3));
@@ -2783,7 +2783,7 @@ void __lambda_vader_lower_ir_0(void* l0, vader_box_t l1) {
         l3 = ((vader_struct_vader_lower_ir$LoweredYield_t*) t0)->f_span;
         l4 = ((vader_struct___lambda_env_vader_lower_ir_1_t*) l0)->f_cap_1;
         l5 = ((vader_struct___lambda_env_vader_lower_ir_1_t*) l0)->f_cap_2;
-        l4 = concat_5(1784u, l4, 1540u, l5, 1522u);
+        l4 = concat_5(1785u, l4, 1541u, l5, 1523u);
         l3 = toolchain_diagnostics$internal_error((uint8_t) 0, l3, l4);
         vader_array_push_ref((vader_array_t*) l2, l3);
         { vader_gc_top = gc_frame.prev; return; }
@@ -3041,7 +3041,7 @@ void __lambda_vader_midir_14(void* l0, int32_t l1, void* l2, vader_string_t l3) 
     l10 = std_core$write_int(l12, l10, l11);
     l10 = std_core$write_string_at(l12, l10, 89u);
     l10 = std_core$write_string_at(l12, l10, l9);
-    l10 = std_core$write_string_at(l12, l10, 1393u);
+    l10 = std_core$write_string_at(l12, l10, 1394u);
     l10 = std_core$write_string_at(l12, l10, l13);
     l10 = std_core$write_string_at(l12, l10, 108u);
     l8 = std_core$finish_buffer(l12, l10);
@@ -3066,7 +3066,7 @@ void __lambda_vader_midir_16(void* l0, int32_t l1) {
     l3 = VADER_UNION_FIELD(void*, vader_struct_vader_midir$InstrArrayGet_t, f_span, ((vader_struct___lambda_env_vader_midir_17_t*) l0)->f_cap_1.payload.obj);
     l4 = (void*) vader_buffer_new((size_t) INT64_C(22));
     l5 = INT64_C(0);
-    l5 = std_core$write_string_at(l4, l5, 1883u);
+    l5 = std_core$write_string_at(l4, l5, 1884u);
     l6 = ((int64_t) (int32_t) ((vader_struct_vader_midir$BasicBlock_t*) ((vader_struct___lambda_env_vader_midir_17_t*) l0)->f_cap_2)->f_id);
     l5 = std_core$write_int(l4, l5, l6);
     l7 = std_core$finish_buffer(l4, l5);
@@ -3091,7 +3091,7 @@ void __lambda_vader_midir_18(void* l0, int32_t l1) {
     l3 = ((vader_struct_vader_midir$BasicBlock_t*) ((vader_struct___lambda_env_vader_midir_19_t*) l0)->f_cap_1)->f_span;
     l4 = (void*) vader_buffer_new((size_t) INT64_C(35));
     l5 = INT64_C(0);
-    l5 = std_core$write_string_at(l4, l5, 1883u);
+    l5 = std_core$write_string_at(l4, l5, 1884u);
     l6 = ((int64_t) (int32_t) ((vader_struct_vader_midir$BasicBlock_t*) ((vader_struct___lambda_env_vader_midir_19_t*) l0)->f_cap_1)->f_id);
     l5 = std_core$write_int(l4, l5, l6);
     l5 = std_core$write_string_at(l4, l5, 327u);
@@ -3585,7 +3585,7 @@ vader_string_t __lambda_vader_vm_5(int64_t l0) {
     vader_gc_top = &gc_frame;
     l1 = (void*) vader_buffer_new((size_t) INT64_C(26));
     l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l1, l2, 3057u);
+    l2 = std_core$write_string_at(l1, l2, 3058u);
     l2 = std_core$write_int(l1, l2, l0);
     t0 = std_core$finish_buffer(l1, l2);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }

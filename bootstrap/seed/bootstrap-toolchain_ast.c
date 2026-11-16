@@ -108,7 +108,7 @@ vader_box_t toolchain_ast$$genstate_decorator_sites$Iterator$next(void* l0) {
                                     l4 = ((vader_struct_toolchain_ast$StructField_t*) ((vader_struct_toolchain_ast$$genstate_decorator_sites_t*) l0)->f_s4)->f_decorators;
                                     vader_struct_toolchain_ast$DecoratorSite_t* _a0_obj = (vader_struct_toolchain_ast$DecoratorSite_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_ast$DecoratorSite_t));
                                     vader_obj_header_init(_a0_obj, 924u);
-                                    _a0_obj->f_place = 718u;
+                                    _a0_obj->f_place = 719u;
                                     _a0_obj->f_decorators = l4;
                                     t2 = (void*) _a0_obj;
                                     { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -175,7 +175,7 @@ vader_box_t toolchain_ast$$genstate_decorator_sites$Iterator$next(void* l0) {
                                                                     l13 = ((vader_struct_toolchain_ast$EnumVariant_t*) ((vader_struct_toolchain_ast$$genstate_decorator_sites_t*) l0)->f_s8)->f_decorators;
                                                                     vader_struct_toolchain_ast$DecoratorSite_t* _a2_obj = (vader_struct_toolchain_ast$DecoratorSite_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_ast$DecoratorSite_t));
                                                                     vader_obj_header_init(_a2_obj, 924u);
-                                                                    _a2_obj->f_place = 1123u;
+                                                                    _a2_obj->f_place = 1124u;
                                                                     _a2_obj->f_decorators = l13;
                                                                     t2 = (void*) _a2_obj;
                                                                     { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -242,7 +242,7 @@ vader_box_t toolchain_ast$$genstate_decorator_sites$Iterator$next(void* l0) {
                                                                                                     l22 = ((vader_struct_toolchain_ast$FnParam_t*) ((vader_struct_toolchain_ast$$genstate_decorator_sites_t*) l0)->f_s12)->f_decorators;
                                                                                                     vader_struct_toolchain_ast$DecoratorSite_t* _a4_obj = (vader_struct_toolchain_ast$DecoratorSite_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_ast$DecoratorSite_t));
                                                                                                     vader_obj_header_init(_a4_obj, 924u);
-                                                                                                    _a4_obj->f_place = 878u;
+                                                                                                    _a4_obj->f_place = 879u;
                                                                                                     _a4_obj->f_decorators = l22;
                                                                                                     t2 = (void*) _a4_obj;
                                                                                                     { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -449,13 +449,13 @@ vader_string_t toolchain_ast$binary_op_symbol(uint8_t l0) {
     } else if (l0 == INT32_C(7)) {
         l1 = 308u;
     } else if (l0 == INT32_C(8)) {
-        l1 = 3485u;
+        l1 = 3486u;
     } else if (l0 == INT32_C(9)) {
-        l1 = 1161u;
+        l1 = 1162u;
     } else if (l0 == INT32_C(10)) {
         l1 = 309u;
     } else if (l0 == INT32_C(11)) {
-        l1 = 3486u;
+        l1 = 3487u;
     } else if (l0 == INT32_C(12)) {
         l1 = 570u;
     } else if (l0 == INT32_C(13)) {
@@ -469,9 +469,9 @@ vader_string_t toolchain_ast$binary_op_symbol(uint8_t l0) {
     } else if (l0 == INT32_C(17)) {
         l1 = 574u;
     } else if (l0 == INT32_C(18)) {
-        l1 = 2491u;
+        l1 = 2492u;
     } else if (l0 == INT32_C(19)) {
-        l1 = 2433u;
+        l1 = 2434u;
     } else if (l0 == INT32_C(20)) {
         l1 = 272u;
     } else if (l0 == INT32_C(21)) {
@@ -513,7 +513,7 @@ static vader_string_t toolchain_ast$c_header_of(void* l0) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l1 = toolchain_ast$find_decorator(((vader_struct_toolchain_ast$FnDecl_t*) l0)->f_decorators, 1971u);
+    l1 = toolchain_ast$find_decorator(((vader_struct_toolchain_ast$FnDecl_t*) l0)->f_decorators, 1972u);
     if (l1.tag == 0u) {
         { vader_gc_top = gc_frame.prev; return 0u; }
     }
@@ -534,7 +534,7 @@ vader_string_t toolchain_ast$c_struct_spelling(void* l0, vader_string_t l1) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l3 = toolchain_ast$find_decorator(l0, 1973u);
+    l3 = toolchain_ast$find_decorator(l0, 1974u);
     if (l3.tag == 0u) {
         { vader_gc_top = gc_frame.prev; return 0u; }
     }
@@ -558,7 +558,7 @@ vader_string_t toolchain_ast$c_type_of(void* l0) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l1 = toolchain_ast$find_decorator(l0, 1974u);
+    l1 = toolchain_ast$find_decorator(l0, 1975u);
     if (l1.tag == 0u) {
         { vader_gc_top = gc_frame.prev; return 0u; }
     }
@@ -581,7 +581,7 @@ int64_t toolchain_ast$c_variadic_start(void* l0) {
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l1)
         t0 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) l1);
-        t1 = toolchain_ast$decorators_have(((vader_struct_toolchain_ast$FnParam_t*) t0)->f_decorators, 1975u);
+        t1 = toolchain_ast$decorators_have(((vader_struct_toolchain_ast$FnParam_t*) t0)->f_decorators, 1976u);
         if (t1) {
             { int64_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -871,7 +871,7 @@ vader_string_t toolchain_ast$extern_symbol_of(void* l0) {
         vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l1 = toolchain_ast$find_decorator(((vader_struct_toolchain_ast$FnDecl_t*) l0)->f_decorators, 2232u);
+    l1 = toolchain_ast$find_decorator(((vader_struct_toolchain_ast$FnDecl_t*) l0)->f_decorators, 2233u);
     if (l1.tag == 0u) {
         t0 = ((vader_struct_toolchain_ast$FnDecl_t*) l0)->f_name;
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -2512,23 +2512,23 @@ static vader_box_t toolchain_ast$own_const_type(void* l0) {
 static vader_string_t toolchain_ast$place_of(vader_box_t l0) {
     vader_string_t l1;
     if (l0.tag == 944u) {
-        l1 = 726u;
+        l1 = 727u;
         return l1;
     }
     if (l0.tag == 987u) {
-        l1 = 955u;
+        l1 = 956u;
     } else if (l0.tag == 935u) {
-        l1 = 704u;
+        l1 = 705u;
     } else if (l0.tag == 995u) {
-        l1 = 1091u;
+        l1 = 1092u;
     } else if (l0.tag == 953u) {
-        l1 = 760u;
+        l1 = 761u;
     } else if (l0.tag == 921u) {
-        l1 = 688u;
+        l1 = 689u;
     } else if (l0.tag == 997u) {
         l1 = 625u;
     } else if (l0.tag == 954u) {
-        l1 = 761u;
+        l1 = 762u;
     } else {
         if (!(l0.tag == 911u)) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");

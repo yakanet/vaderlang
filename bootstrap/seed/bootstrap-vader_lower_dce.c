@@ -84,12 +84,12 @@ static bool vader_lower_dce$is_fn_root(void* l0, bool l1, bool l2, bool l3, void
             VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
             l9 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) l8);
             t2 = ((vader_struct_toolchain_ast$Decorator_t*) l9)->f_name;
-            if (t2 == 2232u) {
+            if (t2 == 2233u) {
                 return true;
             }
             if (l3) {
                 t2 = ((vader_struct_toolchain_ast$Decorator_t*) l9)->f_name;
-                if (t2 == 3060u) {
+                if (t2 == 3061u) {
                     return true;
                 }
             }
@@ -456,7 +456,7 @@ void* vader_lower_dce$prune_unreachable_fns(void* l0, bool l1, void* l2) {
         l13 = vader_array_ref_load_obj(_a36_slotarr->buf, vader_array_offset(_a36_slotarr) + (size_t) l15);
         l16 = ((vader_struct_vader_lower_ir$LoweredVtableEntry_t*) l13)->f_trait_name;
         l17 = ((vader_struct_vader_lower_ir$LoweredVtableEntry_t*) l13)->f_method_name;
-        l19 = concat_3(l16, 3485u, l17);
+        l19 = concat_3(l16, 3486u, l17);
         l18 = (void*) &vader_fn_static___lambda_vader_lower_dce_2;
         t0 = std_collections$get_or_put_with__string__vader_lower_ir_LoweredVtableEntry__(l10, l19, l18);
         vader_array_push_ref((vader_array_t*) t0, l13);
