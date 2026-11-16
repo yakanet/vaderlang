@@ -14,6 +14,7 @@ module "tools/testrunner/src"
 import "std/collections"
 import "std/console"
 import "std/iter"
+import "std/sort"
 import "std/string"
 import "std/task"
 import "std/time"
@@ -73,6 +74,10 @@ Tally :: struct {
     /// The line of each case that failed and of each problem of the discovery,
     /// which the tally prints again at the end.
     failed: string[] = []
+    /// The stages that failed, crashed or could not run, for `--failed`.
+    failing: string[] = []
+    /// The time the stages of each phase took, summed over the workers.
+    phase_micros: Map<string, i64> = Map<string, i64> {}
 }
 
 // What the reporter knows of a case that runs.
@@ -97,10 +102,12 @@ report :: fn(events: Channel<Progress>, only_failures: bool) -> Tally {
             is StageNoted  -> tally.note(running.run_of(event.case), event.case, event.report)
             is Crash       -> {
                 tally.crashes += 1
+                tally.failing.push(record_line(event.case, event.phase))
                 running.run_of(event.case).problems.push(crash_problem(event))
             }
             is CaseError   -> {
                 tally.errors += 1
+                tally.failing.push(record_line(event.case, ANY_PHASE))
                 running.run_of(event.case).problems.push("error: ${event.message}")
             }
             is RunError    -> {
@@ -137,6 +144,8 @@ run_of :: fn(running: Map<string, CaseRun>, case: string) -> CaseRun =
     running.get_or_put_with(case, () -> CaseRun { .began = monotonic() })
 
 note :: fn(tally: Tally, run: CaseRun, case: string, report: StageReport) -> void {
+    spent :: tally.phase_micros.get_or_put(report.phase, 0)
+    tally.phase_micros[report.phase] = spent + report.duration_us
     match report.result {
         .Same                        -> {
             tally.same += 1
@@ -148,6 +157,7 @@ note :: fn(tally: Tally, run: CaseRun, case: string, report: StageReport) -> voi
         }
         .Differ | .Missing | .Failed -> {
             tally.failures += 1
+            tally.failing.push(record_line(case, report.phase))
             label :: "${failure_label(report.result)}: ${report.phase}"
             run.problems.push("${label}\n${report.detail else ""}")
         }
@@ -225,6 +235,30 @@ print_tally :: fn(total: Tally, cases: i64, k: i32, took: Duration) -> void {
     }
     stages :: total.same + total.written.len() + total.failures + total.crashes
     println("Ran ${stages} stages across ${cases} cases on ${k} workers. [${took.format()}]")
+    times :: phase_times_line(total.phase_micros)
+    if times != null {
+        println(times)
+    }
+}
+
+PhaseTime :: struct {
+    phase: string
+    micros: i64
+}
+
+// The time the stages of each phase took, summed over the workers, the longest
+// first; null when no stage ran.
+phase_times_line :: fn(phase_micros: Map<string, i64>) -> string | null {
+    times: PhaseTime[]: []
+    for [phase, spent] in phase_micros {
+        times.push(PhaseTime { .phase = phase, .micros = spent })
+    }
+    if times.len() == 0 {
+        return null
+    }
+    longest :: sort(times, (a, b) -> a.micros > b.micros)
+    parts :: longest.map((t) -> "${t.phase} ${micros(t.micros).format()}").collect()
+    return "Time by phase, summed over the workers: ${parts.join(", ")}"
 }
 
 // Why the worker of a case stopped on a stage, and what it wrote on its stderr.
@@ -252,6 +286,18 @@ test_what_failed_is_indented_below_its_case :: fn() -> void {
         indented("!= snapshot: vm\n--- a\n+++ actual"),
         "  != snapshot: vm\n  --- a\n  +++ actual",
     )
+}
+
+@test
+test_the_phases_are_timed_longest_first :: fn() -> void {
+    spent :: Map<string, i64> {}
+    spent["lexer"] = 2_000
+    spent["vm"] = 3_000_000
+    assert_eq(
+        phase_times_line(spent) else "",
+        "Time by phase, summed over the workers: vm 3 s, lexer 2 ms",
+    )
+    assert(phase_times_line(Map<string, i64> {}) == null, "no stage ran")
 }
 
 @test

@@ -1,0 +1,102 @@
+// tools/testrunner/src/failed: the record of the stages that fail, which
+// `--failed` runs again.
+//
+// A run writes `FAILED_FILE` at its end, one `<case>\t<phase>` line per stage
+// that differs from its snapshot, crashes or cannot run: what it found failing,
+// and of the previous record what it did not run again. `--failed` keeps of the
+// cases it finds those the record names, each narrowed to its recorded stages,
+// so that the run after a full one costs only what failed.
+
+module "tools/testrunner/src"
+
+import "std/collections"
+import "std/console"
+import "std/fs"
+import "std/io"
+import "std/iter"
+import "std/string"
+
+// Outside `SCRATCH`, which a run empties first.
+FAILED_FILE :: "build/testrunner-failed"
+
+// The phase of a problem of a case that no stage owns, a request its worker
+// could not run: every stage of the case runs again.
+ANY_PHASE :: "*"
+
+// The line of the record that names the stage `phase` of `case`, `case` being
+// the path that names it in the report.
+record_line :: fn(case: string, phase: string) -> string = "${case}\t${phase}"
+
+// The lines the last runs left failing; none when no run left a record.
+read_record :: fn() -> string[] {
+    text :: read_file_string(FAILED_FILE) else return []
+    return text.lines().filter((line) -> line != "").collect()
+}
+
+write_record :: fn(lines: string[]) -> void {
+    written :: write_file(FAILED_FILE, lines.map((line) -> "${line}\n").collect().join(""))
+    if written is IOError {
+        eprintln("testrunner: ${FAILED_FILE}: ${written.msg}")
+    }
+}
+
+// The record after a run of `cases` that found `failing`: those lines, and of
+// the `previous` record the stages the run did not run again.
+next_record :: fn(previous: string[], cases: Case[], failing: string[]) -> string[] {
+    if previous.len() == 0 {
+        return failing
+    }
+    ran :: Set<string> {}
+    for case in cases {
+        path :: case_path(case)
+        ran.add(record_line(path, ANY_PHASE))
+        for phase in case.phases {
+            ran.add(record_line(path, phase))
+        }
+    }
+    return previous.filter((line) -> line !in ran).collect() + failing
+}
+
+// The cases of `cases` that `record` names, each narrowed to its recorded stages.
+recorded_cases :: fn(cases: Case[], record: string[]) -> Case[] {
+    named :: Set<string> {}
+    named.add_all(record)
+    out: Case[]: []
+    for case in cases {
+        path :: case_path(case)
+        whole :: record_line(path, ANY_PHASE) in named
+        phases :: case.phases.filter((phase) -> whole || record_line(path, phase) in named)
+        kept :: phases.collect()
+        if kept.len() > 0 {
+            out.push(Case { ...case, .phases = kept })
+        }
+    }
+    return out
+}
+
+// ---- tests ------------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_run_forgets_only_the_stages_it_ran_again :: fn() -> void {
+    previous :: ["s/a\tvm", "s/a\tlexer", "s/b\t${ANY_PHASE}", "s/c\tvm"]
+    cases :: [
+        Case { .name = "a", .dir = "s/a", .phases = ["vm"] },
+        Case { .name = "b", .dir = "s/b", .phases = ["lexer"] },
+    ]
+    kept :: next_record(previous, cases, ["s/b\tlexer"])
+    assert_eq(kept.join(" "), "s/a\tlexer s/c\tvm s/b\tlexer")
+}
+
+@test
+test_the_failed_cases_narrow_to_their_recorded_stages :: fn() -> void {
+    cases :: [
+        Case { .name = "a", .dir = "s/a", .phases = ["lexer", "parser", "vm"] },
+        Case { .name = "b", .dir = "s/b", .phases = ["lexer", "vm"] },
+        Case { .name = "c", .dir = "s/c", .phases = ["vm"] },
+    ]
+    record :: ["s/a\tvm", "s/a\tlexer", "s/b\t${ANY_PHASE}"]
+    found :: recorded_cases(cases, record).map((case) -> "${case.dir}:${case.phases.join(",")}")
+    assert_eq(found.collect().join(" "), "s/a:lexer,vm s/b:lexer,vm")
+}

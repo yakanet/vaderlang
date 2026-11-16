@@ -20,7 +20,7 @@
 // `vader build --release` in `tools/testrunner` builds it. Run it from the
 // repository root:
 //
-//   testrunner [--update] [--only-failures] [--jobs=N] [--phases=lexer,parser,...]
+//   testrunner [--update] [--only-failures] [--failed] [--jobs=N] [--phases=lexer,parser,...]
 
 module "tools/testrunner/src"
 
@@ -50,6 +50,11 @@ FLAGS: FlagSpec[]: [
     FlagSpec {
         .name = "only-failures",
         .help = "Print the cases that fail, not those that pass",
+        .kind = .Bool,
+    },
+    FlagSpec {
+        .name = "failed",
+        .help = "Run again only the stages that failed on the last runs",
         .kind = .Bool,
     },
     FlagSpec {
@@ -116,7 +121,14 @@ main :: fn(argv: string[]) -> i32 {
     command :: worker_command(update)
     k :: worker_count(parsed.int_flag("jobs", 0))
     found :: find_cases(phases)
-    if found.cases.any_match(runs_vader) {
+    record :: read_record()
+    failed_only :: parsed.bool_flag("failed")
+    if failed_only && record.len() == 0 {
+        println("testrunner: no stage failed on the last runs")
+        return 0
+    }
+    cases :: if failed_only { recorded_cases(found.cases, record) } else { found.cases }
+    if cases.any_match(runs_vader) {
         stale :: stale_vader()
         if stale != null {
             eprintln("testrunner: ${stale}")
@@ -124,12 +136,18 @@ main :: fn(argv: string[]) -> i32 {
         }
     }
     only_failures :: parsed.bool_flag("only-failures")
-    return run_all(found.cases, found.problems, command, update, only_failures, k)
+    total :: run_all(cases, found.problems, command, update, only_failures, k) else return 1
+    write_record(next_record(record, cases, total.failing))
+    if total.failed.len() > 0 {
+        return 1
+    }
+    return 0
 }
 
 // Run `cases` on `k` workers started with `command`, which `update` the snapshots
 // that differ, and print what they found with the `problems` of the discovery,
-// the cases that pass left out when `only_failures`.
+// the cases that pass left out when `only_failures`: the tally of the run, null
+// when the reporter died.
 run_all :: fn(
     cases: Case[],
     problems: string[],
@@ -137,7 +155,7 @@ run_all :: fn(
     update: bool,
     only_failures: bool,
     k: i32,
-) -> i32 {
+) -> Tally | null {
     // The workers inherit this environment, and a `VADER_HOME` moves the modules
     // of the toolchain in the dumps: the snapshots are taken without one.
     unset_env("VADER_HOME")
@@ -170,12 +188,9 @@ run_all :: fn(
     ticker.cancel()
     ticker.join()
     events.close()
-    total :: reporter.join() else return 1
+    total :: reporter.join() else return null
     print_tally(total, count, k, began.since())
-    if total.failed.len() > 0 {
-        return 1
-    }
-    return 0
+    return total
 }
 
 // The phases that run the `vader` the repository builds.

@@ -252,6 +252,8 @@ Two editor plugins share one syntax grammar ([`editors/common/`](./editors/commo
 tools/testrunner/build/release-<host>/testrunner            # snippets, corpora, examples, driven projects and the @test of lib/, vader/, tools/
 tools/testrunner/build/release-<host>/testrunner --update   # refresh their snapshots after intentional output changes
 tools/testrunner/build/release-<host>/testrunner --only-failures   # print the cases that fail, not those that pass
+tools/testrunner/build/release-<host>/testrunner --phases=vm,native   # check these phases only
+tools/testrunner/build/release-<host>/testrunner --failed   # run again only the stages that failed on the last runs
 bun run bench                              # measure + compare to bench/baseline.json (exits non-zero on >15% regression)
 ```
 
