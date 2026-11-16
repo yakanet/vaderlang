@@ -196,7 +196,6 @@ static bool std_collections$put__i32__bool(void* l0, int32_t l1, bool l2);
 static bool std_collections$put__string__bool(void* l0, vader_string_t l1, bool l2);
 static bool std_collections$add__i32(void* l0, int32_t l1);
 static bool std_collections$add__string(void* l0, vader_string_t l1);
-static uint64_t std_core$string$Hash$hash$$wrapper(vader_string_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -336,7 +335,7 @@ static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
     return (void*) vader_string_bytes_view(a0, 20u, 21u);
 }
 
-static uint64_t vader_host_std_core$string$Hash$hash(vader_string_t a0) {
+static uint64_t vader_host_std_core$Intrinsic$string_hash(vader_string_t a0) {
     return vader_string_hash(a0);
 }
 
@@ -1785,7 +1784,7 @@ static void std_collections$rehash__string__bool(void* l0, int64_t l1) {
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[vader_array_offset(_a1_slotarr) + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash$$wrapper(t1);
+        l6 = vader_host_std_core$Intrinsic$string_hash(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -1975,7 +1974,7 @@ static bool std_collections$put__string__bool(void* l0, vader_string_t l1, bool 
     l4 = INT64_C(-1);
     t0 = vader_array_length(((vader_array_t*) ((vader_struct_std_collections$Map__string__bool_t*) l0)->f_index));
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash$$wrapper(l1);
+        l5 = vader_host_std_core$Intrinsic$string_hash(l1);
         l6 = ((vader_struct_std_collections$Map__string__bool_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -2068,12 +2067,6 @@ static bool std_collections$add__i32(void* l0, int32_t l1) {
 static bool std_collections$add__string(void* l0, vader_string_t l1) {
     bool t0;
     t0 = std_collections$put__string__bool(((vader_struct_std_collections$Set__string_t*) l0)->f_inner, l1, true);
-    return t0;
-}
-
-static uint64_t std_core$string$Hash$hash$$wrapper(vader_string_t l0) {
-    uint64_t t0;
-    t0 = vader_host_std_core$string$Hash$hash(l0);
     return t0;
 }
 

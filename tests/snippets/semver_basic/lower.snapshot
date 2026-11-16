@@ -138,7 +138,6 @@
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.is_empty  // std_core$is_empty_1
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
-    fn std.core.string.compare  // std_core$string$Comparable$compare
     fn std.core.utf8_encode  // std_core$utf8_encode
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int

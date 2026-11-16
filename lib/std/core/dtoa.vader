@@ -410,15 +410,3 @@ format_f64 :: fn(x: f64) -> string {
     d :: d2d(mantissa, exponent)
     return render(d.mantissa, d.exp, sign)
 }
-
-// ---- tests ----------------------------------------------------------------
-//
-// No colocated `@test` here: std/core can't be a `vader test` entry (a
-// primitive `@intrinsic` trait member like `f64.to_bits`, reached through
-// `format_f64`, doesn't resolve when std/core itself is the entry module).
-// The formatter is validated end-to-end instead by:
-//   - `tests/snippets/float_to_string`: a run-output snapshot guarding
-//     against regressions through the normal build/run path ;
-//   - `dtoa_tables.vader`'s reference-row `@test`s, pinning the Ryu power-of-5
-//     tables against ulfjack/ryu ground truth (historically also cross-checked
-//     against CPython's dtoa over ~18k full-bit-space + edge-case doubles).

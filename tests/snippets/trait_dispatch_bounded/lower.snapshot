@@ -72,7 +72,7 @@
           __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               x: string = __for_arr_0[__for_i_2]
-              if (std.core.string.hash(x) == std.core.string.hash(target)) && (x == target) {
+              if (std_core$Intrinsic$string_hash(x) == std_core$Intrinsic$string_hash(target)) && (x == target) {
                   n = n + 1
               }
           } @step {
@@ -103,7 +103,6 @@
   std/core
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32.hash  // std_core$i32$Hash$hash
-    fn std.core.string.hash  // std_core$string$Hash$hash
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at

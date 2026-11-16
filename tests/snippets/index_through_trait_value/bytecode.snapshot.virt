@@ -34,7 +34,7 @@ string 8 "q"
 string 9 "\n"
 import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=12 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=19 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 hash std_core$string$Hash$hash host=string_hash result_type=13 param_types=2 param_c_out= param_by_address= (string) -> u64
+import 2 string_hash std_core$Intrinsic$string_hash host=string_hash result_type=13 param_types=2 param_c_out= param_by_address= (string) -> u64
 import 3 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=16 param_types=2,12 param_c_out= param_by_address= (string,i64) -> u8
 import 4 byte_slice std_core$Intrinsic$byte_slice host=byte_slice result_type=2 param_types=2,12,12 param_c_out= param_by_address= (string,i64,i64) -> string
 import 5 is_ascii std_core$Intrinsic$is_ascii host=is_ascii result_type=18 param_types=2 param_c_out= param_by_address= (string) -> bool
@@ -1369,7 +1369,7 @@ fn 26 std_collections$rehash__string__i32 (ref,i64) -> void
       local.get 4   ; e
       array.get 10   ; string[]
       ref.cast 2   ; string
-      call 38   ; std_core$string$Hash$hash$$wrapper
+      call.import 2   ; std_core$Intrinsic$string_hash
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 23   ; std_collections$first_slot
@@ -1690,7 +1690,7 @@ fn 30 std_collections$put__string__i32 (ref,string,i32) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 38   ; std_core$string$Hash$hash$$wrapper
+    call.import 2   ; std_core$Intrinsic$string_hash
     local.set 5   ; perturb
     local.field 0 8 3   ; arg 0 std_collections$Map__string__i32.mask
     ref.cast 12   ; i64
@@ -1933,7 +1933,7 @@ fn 32 std_collections$get__string__i32 (ref,string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 38   ; std_core$string$Hash$hash$$wrapper
+  call.import 2   ; std_core$Intrinsic$string_hash
   local.set 2   ; perturb
   local.field 0 8 3   ; arg 0 std_collections$Map__string__i32.mask
   ref.cast 12   ; i64
@@ -2112,11 +2112,5 @@ fn 37 std_console$println__string (string) -> void
   i32.const 0
   local.get 1   ; $call_3
   call 34   ; std_console$write
-  return
-end
-
-fn 38 std_core$string$Hash$hash$$wrapper (string) -> u64
-  local.get 0   ; arg 0
-  call.import 2   ; std_core$string$Hash$hash
   return
 end

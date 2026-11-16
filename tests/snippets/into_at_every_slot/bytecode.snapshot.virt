@@ -13,8 +13,8 @@ type 10 struct std_core$Buffer {  }
 type 11 scalar i64
 type 12 scalar u8
 type 13 array 12
-type 14 scalar void
-type 15 scalar u64
+type 14 scalar u64
+type 15 scalar void
 type 16 struct std_collections$Map__string__Any { ekeys:21,evals:22,index:23,mask:11,grow_at:11,size:11,tombs:11 }
 type 17 union 18,0
 type 18 ref _
@@ -50,10 +50,10 @@ import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=11 param
 import 1 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=12 param_types=3,11 param_c_out= param_by_address= (string,i64) -> u8
 import 2 byte_slice std_core$Intrinsic$byte_slice host=byte_slice result_type=3 param_types=3,11,11 param_c_out= param_by_address= (string,i64,i64) -> string
 import 3 bytes std_core$Intrinsic$bytes host=bytes result_type=13 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 4 hash std_core$string$Hash$hash host=string_hash result_type=15 param_types=3 param_c_out= param_by_address= (string) -> u64
+import 4 string_hash std_core$Intrinsic$string_hash host=string_hash result_type=14 param_types=3 param_c_out= param_by_address= (string) -> u64
 import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=11 param_types=8,13,11 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 6 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=8 () -> i32
-import 7 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=14 () -> void
+import 7 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=15 () -> void
 impl 1 std_core$Into
 impl 6 snippet$Shower
 impl 16 std_core$Index
@@ -766,7 +766,7 @@ fn 20 std_collections$rehash__string__Any (ref,i64) -> void
       local.get 4   ; e
       array.get 21   ; string[]
       ref.cast 3   ; string
-      call 30   ; std_core$string$Hash$hash$$wrapper
+      call.import 4   ; std_core$Intrinsic$string_hash
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 18   ; std_collections$first_slot
@@ -879,7 +879,7 @@ fn 22 std_collections$put__string__Any (ref,string,any) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 30   ; std_core$string$Hash$hash$$wrapper
+    call.import 4   ; std_core$Intrinsic$string_hash
     local.set 5   ; perturb
     local.field 0 16 3   ; arg 0 std_collections$Map__string__Any.mask
     ref.cast 11   ; i64
@@ -1050,7 +1050,7 @@ fn 23 std_collections$get__string__Any (ref,string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 30   ; std_core$string$Hash$hash$$wrapper
+  call.import 4   ; std_core$Intrinsic$string_hash
   local.set 2   ; perturb
   local.field 0 16 3   ; arg 0 std_collections$Map__string__Any.mask
   ref.cast 11   ; i64
@@ -1320,11 +1320,5 @@ fn 29 std_string$is_white_byte (u8) -> bool
   local.get 0   ; arg 0
   i32.const 13
   i32.eq
-  return
-end
-
-fn 30 std_core$string$Hash$hash$$wrapper (string) -> u64
-  local.get 0   ; arg 0
-  call.import 4   ; std_core$string$Hash$hash
   return
 end

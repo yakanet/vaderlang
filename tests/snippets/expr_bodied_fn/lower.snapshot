@@ -69,7 +69,6 @@
     fn std.core.b2u  // std_core$b2u
     fn std.core.d2d  // std_core$d2d
     fn std.core.decimal_width  // std_core$decimal_width
-    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
     fn std.core.f64.to_string  // std_core$f64$Display$to_string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.format_f64  // std_core$format_f64

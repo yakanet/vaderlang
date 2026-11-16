@@ -85,7 +85,6 @@ static void std_console$write(uint8_t l0, vader_string_t l1);
 static bool std_console$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_console$println__string(vader_string_t l0);
-static uint64_t std_core$string$Hash$hash$$wrapper(vader_string_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -105,7 +104,7 @@ const vader_type_info_t vader_type_info_table[17] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 6u,
     },
-    [9] = { .slot_size = 8 },
+    [8] = { .slot_size = 8 },
     [10] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections$Map__string__bool_t), .slot_size = 8,
@@ -156,16 +155,16 @@ static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
     return (void*) vader_string_bytes_view(a0, 7u, 6u);
 }
 
+static uint64_t vader_host_std_core$Intrinsic$string_hash(vader_string_t a0) {
+    return vader_string_hash(a0);
+}
+
 static void vader_host_std_core$Intrinsic$collect(void) {
     vader_gc_collect();
 }
 
 static int64_t vader_host_std_core$Intrinsic$collections(void) {
     return (int64_t) vader_gc_get_stats().total_collections;
-}
-
-static uint64_t vader_host_std_core$string$Hash$hash(vader_string_t a0) {
-    return vader_string_hash(a0);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -521,7 +520,7 @@ static void std_collections$rehash__string__bool(void* l0, int64_t l1) {
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[vader_array_offset(_a1_slotarr) + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash$$wrapper(t1);
+        l6 = vader_host_std_core$Intrinsic$string_hash(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -615,7 +614,7 @@ static void std_collections$rehash__string__i32(void* l0, int64_t l1) {
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[vader_array_offset(_a1_slotarr) + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash$$wrapper(t1);
+        l6 = vader_host_std_core$Intrinsic$string_hash(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -708,7 +707,7 @@ static bool std_collections$put__string__bool(void* l0, vader_string_t l1, bool 
     l4 = INT64_C(-1);
     t0 = vader_array_length(((vader_array_t*) ((vader_struct_std_collections$Map__string__bool_t*) l0)->f_index));
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash$$wrapper(l1);
+        l5 = vader_host_std_core$Intrinsic$string_hash(l1);
         l6 = ((vader_struct_std_collections$Map__string__bool_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -811,7 +810,7 @@ static bool std_collections$put__string__i32(void* l0, vader_string_t l1, int32_
     l4 = INT64_C(-1);
     t0 = vader_array_length(((vader_array_t*) ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_index));
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash$$wrapper(l1);
+        l5 = vader_host_std_core$Intrinsic$string_hash(l1);
         l6 = ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -907,7 +906,7 @@ static vader_box_t std_collections$get__string__i32(void* l0, vader_string_t l1)
     if (t0 == INT64_C(0)) {
         return vader_box_obj(0u, NULL);
     }
-    l2 = std_core$string$Hash$hash$$wrapper(l1);
+    l2 = vader_host_std_core$Intrinsic$string_hash(l1);
     l3 = ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -952,7 +951,7 @@ static bool std_collections$contains_key__string__bool(void* l0, vader_string_t 
     if (t0 == INT64_C(0)) {
         return false;
     }
-    l2 = std_core$string$Hash$hash$$wrapper(l1);
+    l2 = vader_host_std_core$Intrinsic$string_hash(l1);
     l3 = ((vader_struct_std_collections$Map__string__bool_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1068,12 +1067,6 @@ static void std_console$println__string(vader_string_t l0) {
     l1 = concat_2(l0, 7u);
     std_console$write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
-}
-
-static uint64_t std_core$string$Hash$hash$$wrapper(vader_string_t l0) {
-    uint64_t t0;
-    t0 = vader_host_std_core$string$Hash$hash(l0);
-    return t0;
 }
 
 int main(int argc, char** argv) {

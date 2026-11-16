@@ -9,10 +9,9 @@
 module "std/core"
 
 //
-// `@intrinsic` impls route the call directly to the matching bytecode op
-// via `intrinsic_op_for_mangled` (`vader/midir/select/intrinsics.vader`): no fn-call
-// indirection, identical performance to the operator form. `s1 + s2` and
-// `(s1).add(s2)` share a single runtime path.
+// An impl whose body is a single native operator or member of `Intrinsic` on
+// its parameters is lowered as that operation wherever it is called:
+// `(5).add(7)` and `5 + 7` share one runtime path.
 
 // ---- Display --------------------------------------------------------------
 //
@@ -221,36 +220,34 @@ f64 implements Display -> format_f64(self)
 
 // ---- bit reinterpret (float <-> raw IEEE bits) ------------------------------
 //
-// Distinct from the numeric `u64(x)` / `f64(b)` casts (which convert the VALUE).
-// `@intrinsic` -> the `F64ToBits` / `BitsToF64` opcodes (a `union` cast in C, no
-// runtime symbol). Foundation for the pure-Vader shortest-double formatter
-// and the VM's `LoadF64` byte codec.
+// Distinct from the numeric `u64(x)` / `f64(b)` casts, which convert the value:
+// these keep the exact IEEE 754 bit pattern.
 
-@intrinsic f64 implements FloatBits     // -> F64ToBits
-@intrinsic u64 implements BitsFloat     // -> BitsToF64
-@intrinsic f32 implements Float32Bits   // -> F32ToBits
-@intrinsic u32 implements Bits32Float   // -> BitsToF32
+f64 implements FloatBits   -> Intrinsic.f64_to_bits(self)
+u64 implements BitsFloat   -> Intrinsic.bits_to_f64(self)
+f32 implements Float32Bits -> Intrinsic.f32_to_bits(self)
+u32 implements Bits32Float -> Intrinsic.bits_to_f32(self)
 
 // ---- Equals ---------------------------------------------------------------
 
-@intrinsic i8     implements Equals
-@intrinsic i16    implements Equals
-@intrinsic i32    implements Equals
-@intrinsic i64    implements Equals
-@intrinsic u8     implements Equals
-@intrinsic u16    implements Equals
-@intrinsic u32    implements Equals
-@intrinsic u64    implements Equals
-@intrinsic f32    implements Equals
-@intrinsic f64    implements Equals
-@intrinsic bool   implements Equals
-@intrinsic char   implements Equals
-@intrinsic string implements Equals
+i8     implements Equals -> self == other
+i16    implements Equals -> self == other
+i32    implements Equals -> self == other
+i64    implements Equals -> self == other
+u8     implements Equals -> self == other
+u16    implements Equals -> self == other
+u32    implements Equals -> self == other
+u64    implements Equals -> self == other
+f32    implements Equals -> self == other
+f64    implements Equals -> self == other
+bool   implements Equals -> self == other
+char   implements Equals -> self == other
+string implements Equals -> self == other
 
 // ---- Hash -----------------------------------------------------------------
 //
 // Integer Hash impls cast through u64 ; `string` reads the hash cached on
-// its interned atom (see the `@intrinsic` impl below).
+// its interned atom (below).
 
 i8    implements Hash -> u64(self)
 i16   implements Hash -> u64(self)
@@ -262,11 +259,9 @@ u32   implements Hash -> u64(self)
 u64   implements Hash -> u64(self)
 char  implements Hash -> u64(self)
 
-// `string` reads the hash cached on its interned atom (computed once at
-// intern): O(1), no per-call byte walk, no `bytes()` view allocation. Backed by
-// `vader_string_hash` (vader.h); the host shims map the mangle. Content-based, so
-// map iteration order stays GC-stable.
-@intrinsic string implements Hash
+// `string` reads the hash cached on its interned atom, computed once at intern
+// from its bytes: content-based, so map iteration order stays GC-stable.
+string implements Hash -> Intrinsic.string_hash(self)
 
 // ---- Comparable -----------------------------------------------------------
 //
@@ -290,9 +285,8 @@ u32   implements Comparable -> three_way(self < other, self > other)
 u64   implements Comparable -> three_way(self < other, self > other)
 char  implements Comparable -> three_way(self < other, self > other)
 
-// Byte order, through the `string.compare` op : `"a" < "b"` lowers to
-// `compare("a", "b") < 0`.
-@intrinsic string implements Comparable
+// Byte order: `"a" < "b"` lowers to `compare("a", "b") < 0`.
+string implements Comparable -> Intrinsic.string_compare(self, other)
 
 // ---- Step -----------------------------------------------------------------
 //
@@ -325,55 +319,55 @@ next_scalar :: fn(c: char) -> char {
 // friends usable on every numeric primitive: `5 + 7` and `(5).add(7)`
 // share one path.
 
-@intrinsic i8 implements Add
-@intrinsic i8 implements Sub
-@intrinsic i8 implements Mul
-@intrinsic i8 implements Div
+i8 implements Add -> self + other
+i8 implements Sub -> self - other
+i8 implements Mul -> self * other
+i8 implements Div -> self / other
 
-@intrinsic i16 implements Add
-@intrinsic i16 implements Sub
-@intrinsic i16 implements Mul
-@intrinsic i16 implements Div
+i16 implements Add -> self + other
+i16 implements Sub -> self - other
+i16 implements Mul -> self * other
+i16 implements Div -> self / other
 
-@intrinsic i32 implements Add
-@intrinsic i32 implements Sub
-@intrinsic i32 implements Mul
-@intrinsic i32 implements Div
+i32 implements Add -> self + other
+i32 implements Sub -> self - other
+i32 implements Mul -> self * other
+i32 implements Div -> self / other
 
-@intrinsic i64 implements Add
-@intrinsic i64 implements Sub
-@intrinsic i64 implements Mul
-@intrinsic i64 implements Div
+i64 implements Add -> self + other
+i64 implements Sub -> self - other
+i64 implements Mul -> self * other
+i64 implements Div -> self / other
 
-@intrinsic u8 implements Add
-@intrinsic u8 implements Sub
-@intrinsic u8 implements Mul
-@intrinsic u8 implements Div
+u8 implements Add -> self + other
+u8 implements Sub -> self - other
+u8 implements Mul -> self * other
+u8 implements Div -> self / other
 
-@intrinsic u16 implements Add
-@intrinsic u16 implements Sub
-@intrinsic u16 implements Mul
-@intrinsic u16 implements Div
+u16 implements Add -> self + other
+u16 implements Sub -> self - other
+u16 implements Mul -> self * other
+u16 implements Div -> self / other
 
-@intrinsic u32 implements Add
-@intrinsic u32 implements Sub
-@intrinsic u32 implements Mul
-@intrinsic u32 implements Div
+u32 implements Add -> self + other
+u32 implements Sub -> self - other
+u32 implements Mul -> self * other
+u32 implements Div -> self / other
 
-@intrinsic u64 implements Add
-@intrinsic u64 implements Sub
-@intrinsic u64 implements Mul
-@intrinsic u64 implements Div
+u64 implements Add -> self + other
+u64 implements Sub -> self - other
+u64 implements Mul -> self * other
+u64 implements Div -> self / other
 
-@intrinsic f32 implements Add
-@intrinsic f32 implements Sub
-@intrinsic f32 implements Mul
-@intrinsic f32 implements Div
+f32 implements Add -> self + other
+f32 implements Sub -> self - other
+f32 implements Mul -> self * other
+f32 implements Div -> self / other
 
-@intrinsic f64 implements Add
-@intrinsic f64 implements Sub
-@intrinsic f64 implements Mul
-@intrinsic f64 implements Div
+f64 implements Add -> self + other
+f64 implements Sub -> self - other
+f64 implements Mul -> self * other
+f64 implements Div -> self / other
 
 // ---- Additive identity ----------------------------------------------------
 

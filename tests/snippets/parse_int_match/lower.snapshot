@@ -90,7 +90,6 @@
     fn std.core.sd_round_at  // std_core$sd_round_at
     fn std.core.sd_scan  // std_core$sd_scan
     fn std.core.shl  // std_core$shl
-    fn std.core.u64.from_bits  // std_core$u64$BitsFloat$from_bits
     fn std.core.umul128  // std_core$umul128
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.DecimalParts  // std_core$DecimalParts

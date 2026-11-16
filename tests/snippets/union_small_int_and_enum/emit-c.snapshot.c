@@ -98,6 +98,7 @@ static uint64_t std_core$u16$Hash$hash(uint16_t l0);
 static uint64_t std_core$u32$Hash$hash(uint32_t l0);
 static uint64_t std_core$u64$Hash$hash(uint64_t l0);
 static uint64_t std_core$char$Hash$hash(uint32_t l0);
+static uint64_t std_core$string$Hash$hash(vader_string_t l0);
 static bool std_core$i8$Equals$equals$guard(int8_t l0, vader_box_t l1);
 static bool std_core$i16$Equals$equals$guard(int16_t l0, vader_box_t l1);
 static bool std_core$i32$Equals$equals$guard(int32_t l0, vader_box_t l1);
@@ -123,7 +124,6 @@ static bool std_console$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_console$println__string(vader_string_t l0);
 static vader_string_t snippet_bytes$describe(vader_box_t l0);
-static uint64_t std_core$string$Hash$hash$$wrapper(vader_string_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -225,7 +225,7 @@ static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
     return (void*) vader_string_bytes_view(a0, 25u, 3u);
 }
 
-static uint64_t vader_host_std_core$string$Hash$hash(vader_string_t a0) {
+static uint64_t vader_host_std_core$Intrinsic$string_hash(vader_string_t a0) {
     return vader_string_hash(a0);
 }
 
@@ -657,6 +657,12 @@ static uint64_t std_core$u64$Hash$hash(uint64_t l0) {
 
 static uint64_t std_core$char$Hash$hash(uint32_t l0) {
     return (uint64_t) (int64_t) ((int64_t) (uint32_t) l0);
+}
+
+static uint64_t std_core$string$Hash$hash(vader_string_t l0) {
+    uint64_t t0;
+    t0 = vader_host_std_core$Intrinsic$string_hash(l0);
+    return t0;
 }
 
 static bool std_core$i8$Equals$equals$guard(int8_t l0, vader_box_t l1) {
@@ -1114,12 +1120,6 @@ static vader_string_t snippet_bytes$describe(vader_box_t l0) {
     { vader_gc_top = gc_frame.prev; return 11u; }
 }
 
-static uint64_t std_core$string$Hash$hash$$wrapper(vader_string_t l0) {
-    uint64_t t0;
-    t0 = vader_host_std_core$string$Hash$hash(l0);
-    return t0;
-}
-
 /* vtable dispatchers */
 static vader_string_t snippet$Shower$shown$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
@@ -1140,7 +1140,7 @@ static uint64_t std_core$Hash$hash$$dispatch(vader_box_t recv) {
         case 5u: return std_core$u32$Hash$hash(((uint32_t) recv.payload.i));
         case 16u: return std_core$u64$Hash$hash(((uint64_t) recv.payload.i));
         case 20u: return std_core$char$Hash$hash(((uint32_t) recv.payload.i));
-        case 2u: return std_core$string$Hash$hash$$wrapper(recv.payload.s);
+        case 2u: return std_core$string$Hash$hash(recv.payload.s);
         default: vader_unreachable("vtable miss in std_core$Hash.hash");
     }
     vader_unreachable("vtable miss in std_core$Hash.hash");

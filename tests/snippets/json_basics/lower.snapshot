@@ -124,7 +124,6 @@
     fn std.core.decimal_width  // std_core$decimal_width
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.eisel_lemire  // std_core$eisel_lemire
-    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
     fn std.core.f64.to_string  // std_core$f64$Display$to_string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.format_f64  // std_core$format_f64
@@ -152,9 +151,7 @@
     fn std.core.sd_scan  // std_core$sd_scan
     fn std.core.shiftright128  // std_core$shiftright128
     fn std.core.shl  // std_core$shl
-    fn std.core.string.hash  // std_core$string$Hash$hash
     fn std.core.string.mul  // std_core$string$Mul$mul
-    fn std.core.u64.from_bits  // std_core$u64$BitsFloat$from_bits
     fn std.core.umul128  // std_core$umul128
     fn std.core.utf8_encode  // std_core$utf8_encode
     fn std.core.write_bool  // std_core$write_bool

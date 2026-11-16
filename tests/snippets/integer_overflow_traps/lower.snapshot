@@ -15,7 +15,7 @@
           __buf_2: Buffer = std_core$Intrinsic$new_byte_buffer(i64(40))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "u8 method in range: ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, std.core.u8.add(byte, u8(one)))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, byte + u8(one))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       index: u64 = 0
@@ -76,7 +76,6 @@
     fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.finish_buffer  // std_core$finish_buffer
-    fn std.core.u8.add  // std_core$u8$Add$add
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at

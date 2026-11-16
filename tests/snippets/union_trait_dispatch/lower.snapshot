@@ -248,10 +248,8 @@
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.f2d  // std_core$f2d
     fn std.core.f32.add  // std_core$f32$Add$add
-    fn std.core.f32.to_bits  // std_core$f32$Float32Bits$to_bits
     fn std.core.f32.to_string  // std_core$f32$Display$to_string
     fn std.core.f64.add  // std_core$f64$Add$add
-    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
     fn std.core.f64.to_string  // std_core$f64$Display$to_string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.format_f32  // std_core$format_f32
@@ -286,7 +284,6 @@
     fn std.core.render  // std_core$render
     fn std.core.shiftright128  // std_core$shiftright128
     fn std.core.string.add  // std_core$string$Add$add
-    fn std.core.string.hash  // std_core$string$Hash$hash
     fn std.core.string.to_string  // std_core$string$Display$to_string
     fn std.core.u16.add  // std_core$u16$Add$add
     fn std.core.u16.to_string  // std_core$u16$Display$to_string

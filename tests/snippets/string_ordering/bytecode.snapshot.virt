@@ -57,7 +57,7 @@ vtable std_core$Comparable.compare 10 14
 vtable std_core$Comparable.compare 11 15
 vtable std_core$Comparable.compare 12 16
 vtable std_core$Comparable.compare 13 17
-vtable std_core$Comparable.compare 3 24
+vtable std_core$Comparable.compare 3 18
 export main 1
 
 fn 0 snippet$order (any,any) -> i32
@@ -160,7 +160,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 5   ; std_core$finish_buffer
-  call 22   ; std_console$println__string
+  call 23   ; std_console$println__string
   i64.const 35
   buffer.new
   local.set 0   ; __buf_0
@@ -233,7 +233,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 5   ; std_core$finish_buffer
-  call 22   ; std_console$println__string
+  call 23   ; std_console$println__string
   i64.const 29
   buffer.new
   local.set 0   ; __buf_0
@@ -290,7 +290,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 5   ; std_core$finish_buffer
-  call 22   ; std_console$println__string
+  call 23   ; std_console$println__string
   i64.const 74
   buffer.new
   local.set 0   ; __buf_0
@@ -344,7 +344,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 5   ; std_core$finish_buffer
-  call 22   ; std_console$println__string
+  call 23   ; std_console$println__string
   i64.const 23
   buffer.new
   local.set 0   ; __buf_0
@@ -381,7 +381,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 5   ; std_core$finish_buffer
-  call 22   ; std_console$println__string
+  call 23   ; std_console$println__string
   i64.const 53
   buffer.new
   local.set 0   ; __buf_0
@@ -424,7 +424,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 5   ; std_core$finish_buffer
-  call 22   ; std_console$println__string
+  call 23   ; std_console$println__string
   i64.const 17
   buffer.new
   local.set 0   ; __buf_0
@@ -443,10 +443,10 @@ fn 1 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 5   ; std_core$finish_buffer
-  call 22   ; std_console$println__string
+  call 23   ; std_console$println__string
   string.const 17   ; "ant"
   string.const 18   ; "bee"
-  call 23   ; std_testing$assert_lt__string
+  call 24   ; std_testing$assert_lt__string
   return.lit i32.const 0
 end
 
@@ -707,7 +707,7 @@ fn 9 std_core$i8$Comparable$compare (i8,i8) -> i32
   local.set 3   ; $gt_3
   local.get 2   ; $lt_2
   local.get 3   ; $gt_3
-  call 18   ; std_core$three_way
+  call 19   ; std_core$three_way
   return
 end
 
@@ -724,7 +724,7 @@ fn 10 std_core$i16$Comparable$compare (i16,i16) -> i32
   local.set 3   ; $gt_3
   local.get 2   ; $lt_2
   local.get 3   ; $gt_3
-  call 18   ; std_core$three_way
+  call 19   ; std_core$three_way
   return
 end
 
@@ -741,7 +741,7 @@ fn 11 std_core$i32$Comparable$compare (i32,i32) -> i32
   local.set 3   ; $gt_3
   local.get 2   ; $lt_2
   local.get 3   ; $gt_3
-  call 18   ; std_core$three_way
+  call 19   ; std_core$three_way
   return
 end
 
@@ -758,7 +758,7 @@ fn 12 std_core$i64$Comparable$compare (i64,i64) -> i32
   local.set 3   ; $gt_3
   local.get 2   ; $lt_2
   local.get 3   ; $gt_3
-  call 18   ; std_core$three_way
+  call 19   ; std_core$three_way
   return
 end
 
@@ -775,7 +775,7 @@ fn 13 std_core$u8$Comparable$compare (u8,u8) -> i32
   local.set 3   ; $gt_3
   local.get 2   ; $lt_2
   local.get 3   ; $gt_3
-  call 18   ; std_core$three_way
+  call 19   ; std_core$three_way
   return
 end
 
@@ -792,7 +792,7 @@ fn 14 std_core$u16$Comparable$compare (u16,u16) -> i32
   local.set 3   ; $gt_3
   local.get 2   ; $lt_2
   local.get 3   ; $gt_3
-  call 18   ; std_core$three_way
+  call 19   ; std_core$three_way
   return
 end
 
@@ -809,7 +809,7 @@ fn 15 std_core$u32$Comparable$compare (u32,u32) -> i32
   local.set 3   ; $gt_3
   local.get 2   ; $lt_2
   local.get 3   ; $gt_3
-  call 18   ; std_core$three_way
+  call 19   ; std_core$three_way
   return
 end
 
@@ -826,7 +826,7 @@ fn 16 std_core$u64$Comparable$compare (u64,u64) -> i32
   local.set 3   ; $gt_3
   local.get 2   ; $lt_2
   local.get 3   ; $gt_3
-  call 18   ; std_core$three_way
+  call 19   ; std_core$three_way
   return
 end
 
@@ -843,11 +843,18 @@ fn 17 std_core$char$Comparable$compare (char,char) -> i32
   local.set 3   ; $gt_3
   local.get 2   ; $lt_2
   local.get 3   ; $gt_3
-  call 18   ; std_core$three_way
+  call 19   ; std_core$three_way
   return
 end
 
-fn 18 std_core$three_way (bool,bool) -> i32
+fn 18 std_core$string$Comparable$compare (string,string) -> i32
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  string.compare
+  return
+end
+
+fn 19 std_core$three_way (bool,bool) -> i32
   local if_res i32
   local.get 0   ; arg 0
   if $L0 void
@@ -867,7 +874,7 @@ fn 18 std_core$three_way (bool,bool) -> i32
   return
 end
 
-fn 19 std_console$write (u8,string) -> void
+fn 20 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -878,7 +885,7 @@ fn 19 std_console$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 20   ; std_console$write_text
+  call 21   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -909,7 +916,7 @@ fn 19 std_console$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 21   ; std_console$write_bytes
+      call 22   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -929,11 +936,11 @@ fn 19 std_console$write (u8,string) -> void
   return
 end
 
-fn 20 std_console$write_text (u8,string) -> bool
+fn 21 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 21 std_console$write_bytes (u8,ref,i64) -> i32
+fn 22 std_console$write_bytes (u8,ref,i64) -> i32
   local fd i32
   local written i64
   local.get 0   ; arg 0
@@ -972,7 +979,7 @@ fn 21 std_console$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 22 std_console$println__string (string) -> void
+fn 23 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 23   ; "\n"
@@ -980,11 +987,11 @@ fn 22 std_console$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 19   ; std_console$write
+  call 20   ; std_console$write
   return
 end
 
-fn 23 std_testing$assert_lt__string (string,string) -> void
+fn 24 std_testing$assert_lt__string (string,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   string.compare
@@ -1001,11 +1008,4 @@ fn 23 std_testing$assert_lt__string (string,string) -> void
   call 4   ; concat_4
   call.import 2   ; std_core$Intrinsic$panic
   unreachable
-end
-
-fn 24 std_core$string$Comparable$compare$$wrapper (string,string) -> i32
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  string.compare
-  return
 end

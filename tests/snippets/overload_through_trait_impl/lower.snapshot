@@ -182,9 +182,7 @@
     fn std.core.d2d  // std_core$d2d
     fn std.core.decimal_width  // std_core$decimal_width
     fn std.core.f2d  // std_core$f2d
-    fn std.core.f32.to_bits  // std_core$f32$Float32Bits$to_bits
     fn std.core.f32.to_string  // std_core$f32$Display$to_string
-    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
     fn std.core.f64.to_string  // std_core$f64$Display$to_string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.format_f32  // std_core$format_f32

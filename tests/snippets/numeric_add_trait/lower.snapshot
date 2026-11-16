@@ -8,12 +8,8 @@
       return (a + b) + c
   }
   snippet.double<i32> :: fn(x: i32) -> i32 {  // snippet$double__i32
-      std.core.i32.add(x, x)
+      x + x
   }
   snippet.triple<i32> :: fn(x: i32) -> i32 {  // snippet$triple__i32
-      std.core.i32.add(std.core.i32.add(x, x), x)
+      (x + x) + x
   }
-
-## lowered in dependencies
-  std/core
-    fn std.core.i32.add  // std_core$i32$Add$add

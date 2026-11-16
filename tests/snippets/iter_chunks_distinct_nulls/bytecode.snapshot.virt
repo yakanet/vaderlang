@@ -63,7 +63,7 @@ string 20 ""
 data 0 structs 15 0 1
 import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=20 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 hash std_core$string$Hash$hash host=string_hash result_type=12 param_types=2 param_c_out= param_by_address= (string) -> u64
+import 2 string_hash std_core$Intrinsic$string_hash host=string_hash result_type=12 param_types=2 param_c_out= param_by_address= (string) -> u64
 import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,20,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=22 () -> void
@@ -2402,7 +2402,7 @@ fn 28 std_collections$rehash__string__bool (ref,i64) -> void
       local.get 4   ; e
       array.get 7   ; string[]
       ref.cast 2   ; string
-      call 35   ; std_core$string$Hash$hash$$wrapper
+      call.import 2   ; std_core$Intrinsic$string_hash
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 25   ; std_collections$first_slot
@@ -2723,7 +2723,7 @@ fn 32 std_collections$put__string__bool (ref,string,bool) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 35   ; std_core$string$Hash$hash$$wrapper
+    call.import 2   ; std_core$Intrinsic$string_hash
     local.set 5   ; perturb
     local.field 0 31 3   ; arg 0 std_collections$Map__string__bool.mask
     ref.cast 4   ; i64
@@ -2893,11 +2893,5 @@ fn 34 std_collections$add__string (ref,string) -> bool
   local.get 1   ; arg 1
   bool.const true
   call 32   ; std_collections$put__string__bool
-  return
-end
-
-fn 35 std_core$string$Hash$hash$$wrapper (string) -> u64
-  local.get 0   ; arg 0
-  call.import 2   ; std_core$string$Hash$hash
   return
 end

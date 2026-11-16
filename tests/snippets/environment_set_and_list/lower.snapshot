@@ -71,7 +71,6 @@
   std/core
     fn std.core.clone<EnvVar>  // std_core$clone__std_env_EnvVar
     fn std.core.index_of<u8>  // std_core$index_of__u8
-    fn std.core.string.compare  // std_core$string$Comparable$compare
     struct std.core.Buffer  // std_core$Buffer
   std/env
     fn std.env.by_name  // std_env$by_name

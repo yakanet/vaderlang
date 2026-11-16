@@ -86,13 +86,13 @@ static int32_t std_core$u16$Comparable$compare(uint16_t l0, uint16_t l1);
 static int32_t std_core$u32$Comparable$compare(uint32_t l0, uint32_t l1);
 static int32_t std_core$u64$Comparable$compare(uint64_t l0, uint64_t l1);
 static int32_t std_core$char$Comparable$compare(uint32_t l0, uint32_t l1);
+static int32_t std_core$string$Comparable$compare(vader_string_t l0, vader_string_t l1);
 static int32_t std_core$three_way(bool l0, bool l1);
 static void std_console$write(uint8_t l0, vader_string_t l1);
 static bool std_console$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_console$println__string(vader_string_t l0);
 static void std_testing$assert_lt__string(vader_string_t l0, vader_string_t l1);
-static int32_t std_core$string$Comparable$compare$$wrapper(vader_string_t l0, vader_string_t l1);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -486,6 +486,10 @@ static int32_t std_core$char$Comparable$compare(uint32_t l0, uint32_t l1) {
     return t0;
 }
 
+static int32_t std_core$string$Comparable$compare(vader_string_t l0, vader_string_t l1) {
+    return vader_string_compare(l0, l1);
+}
+
 static int32_t std_core$three_way(bool l0, bool l1) {
     int32_t l2;
     if (l0) {
@@ -590,10 +594,6 @@ static void std_testing$assert_lt__string(vader_string_t l0, vader_string_t l1) 
     vader_gc_top = gc_frame.prev;
 }
 
-static int32_t std_core$string$Comparable$compare$$wrapper(vader_string_t l0, vader_string_t l1) {
-    return vader_string_compare(l0, l1);
-}
-
 /* vtable dispatchers */
 static int32_t std_core$Comparable$compare$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
@@ -606,7 +606,7 @@ static int32_t std_core$Comparable$compare$$dispatch(vader_box_t recv, vader_box
         case 11u: return std_core$u32$Comparable$compare(((uint32_t) recv.payload.i), ((uint32_t) a0.payload.i));
         case 12u: return std_core$u64$Comparable$compare(((uint64_t) recv.payload.i), ((uint64_t) a0.payload.i));
         case 13u: return std_core$char$Comparable$compare(((uint32_t) recv.payload.i), ((uint32_t) a0.payload.i));
-        case 3u: return std_core$string$Comparable$compare$$wrapper(recv.payload.s, a0.payload.s);
+        case 3u: return std_core$string$Comparable$compare(recv.payload.s, a0.payload.s);
         default: vader_unreachable("vtable miss in std_core$Comparable.compare");
     }
     vader_unreachable("vtable miss in std_core$Comparable.compare");

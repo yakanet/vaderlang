@@ -115,16 +115,29 @@
   std/core
     fn std.core.(Label | Point)[].contains  // std_core$$array$Contains$contains__snippet_Label___snippet_Point
     fn std.core.(f64 | string)[].contains  // std_core$$array$Contains$contains__f64___string
+    fn std.core.bool.equals  // std_core$bool$Equals$equals
+    fn std.core.char.equals  // std_core$char$Equals$equals
     fn std.core.char.hash  // std_core$char$Hash$hash
+    fn std.core.f32.equals  // std_core$f32$Equals$equals
+    fn std.core.f64.equals  // std_core$f64$Equals$equals
     fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i16.equals  // std_core$i16$Equals$equals
     fn std.core.i16.hash  // std_core$i16$Hash$hash
+    fn std.core.i32.equals  // std_core$i32$Equals$equals
     fn std.core.i32.hash  // std_core$i32$Hash$hash
+    fn std.core.i64.equals  // std_core$i64$Equals$equals
     fn std.core.i64.hash  // std_core$i64$Hash$hash
+    fn std.core.i8.equals  // std_core$i8$Equals$equals
     fn std.core.i8.hash  // std_core$i8$Hash$hash
+    fn std.core.string.equals  // std_core$string$Equals$equals
     fn std.core.string.hash  // std_core$string$Hash$hash
+    fn std.core.u16.equals  // std_core$u16$Equals$equals
     fn std.core.u16.hash  // std_core$u16$Hash$hash
+    fn std.core.u32.equals  // std_core$u32$Equals$equals
     fn std.core.u32.hash  // std_core$u32$Hash$hash
+    fn std.core.u64.equals  // std_core$u64$Equals$equals
     fn std.core.u64.hash  // std_core$u64$Hash$hash
+    fn std.core.u8.equals  // std_core$u8$Equals$equals
     fn std.core.u8.hash  // std_core$u8$Hash$hash
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int

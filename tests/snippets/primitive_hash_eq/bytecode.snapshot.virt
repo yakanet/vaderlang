@@ -29,7 +29,7 @@ fn 0 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 i64
   local $call_13 u64
-  local $call_23 bool
+  local $eq_23 bool
   i32.const 42
   local.set 0   ; a
   i64.const 30
@@ -67,10 +67,10 @@ fn 0 snippet$main () -> i32
   local.get 0   ; a
   i32.const 42
   i32.eq
-  local.set 4   ; $call_23
+  local.set 4   ; $eq_23
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  local.get 4   ; $call_23
+  local.get 4   ; $eq_23
   call 5   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
@@ -90,10 +90,10 @@ fn 0 snippet$main () -> i32
   local.get 0   ; a
   i32.const 7
   i32.eq
-  local.set 4   ; $call_23
+  local.set 4   ; $eq_23
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  local.get 4   ; $call_23
+  local.get 4   ; $eq_23
   call 5   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0

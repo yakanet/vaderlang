@@ -168,7 +168,6 @@
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i64.hash  // std_core$i64$Hash$hash
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
-    fn std.core.string.hash  // std_core$string$Hash$hash
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at

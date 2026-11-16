@@ -220,7 +220,6 @@
     fn std.core.i32.to_string  // std_core$i32$Display$to_string
     fn std.core.i32[].into  // std_core$$array$Into$into__i32
     fn std.core.i32[].to_string  // std_core$$array$Display$to_string__i32
-    fn std.core.string.hash  // std_core$string$Hash$hash
     fn std.core.string[].into  // std_core$$array$Into$into__string
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int

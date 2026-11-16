@@ -7,7 +7,7 @@
       @vcall(std.core.Comparable.compare, c, d)
   }
   snippet.__comptime_BAKED :: fn() -> bool {  // snippet$__comptime_BAKED
-      std.core.string.compare("apple", "banana") < 0
+      std_core$Intrinsic$string_compare("apple", "banana") < 0
   }
   snippet.BAKED: bool: true  // snippet$BAKED
   snippet.main :: fn() -> i32 {  // snippet$main
@@ -15,50 +15,50 @@
           __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(41))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "operators : ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, std.core.string.compare("a", "b") < 0)
+          __off_1 = std.core.write_bool(__buf_0, __off_1, std_core$Intrinsic$string_compare("a", "b") < 0)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, std.core.string.compare("b", "a") < 0)
+          __off_1 = std.core.write_bool(__buf_0, __off_1, std_core$Intrinsic$string_compare("b", "a") < 0)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, std.core.string.compare("a", "a") <= 0)
+          __off_1 = std.core.write_bool(__buf_0, __off_1, std_core$Intrinsic$string_compare("a", "a") <= 0)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, std.core.string.compare("a", "b") >= 0)
+          __off_1 = std.core.write_bool(__buf_0, __off_1, std_core$Intrinsic$string_compare("a", "b") >= 0)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, std.core.string.compare("b", "a") > 0)
+          __off_1 = std.core.write_bool(__buf_0, __off_1, std_core$Intrinsic$string_compare("b", "a") > 0)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.console.println<string>({
           __buf_2: Buffer = std_core$Intrinsic$new_byte_buffer(i64(35))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "prefix    : ")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, std.core.string.compare("", "a") < 0)
+          __off_3 = std.core.write_bool(__buf_2, __off_3, std_core$Intrinsic$string_compare("", "a") < 0)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, std.core.string.compare("ab", "abc") < 0)
+          __off_3 = std.core.write_bool(__buf_2, __off_3, std_core$Intrinsic$string_compare("ab", "abc") < 0)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, std.core.string.compare("abc", "ab") > 0)
+          __off_3 = std.core.write_bool(__buf_2, __off_3, std_core$Intrinsic$string_compare("abc", "ab") > 0)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, std.core.string.compare("", "") <= 0)
+          __off_3 = std.core.write_bool(__buf_2, __off_3, std_core$Intrinsic$string_compare("", "") <= 0)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.console.println<string>({
           __buf_4: Buffer = std_core$Intrinsic$new_byte_buffer(i64(29))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "bytes     : ")
-          __off_5 = std.core.write_bool(__buf_4, __off_5, std.core.string.compare("Z", "a") < 0)
+          __off_5 = std.core.write_bool(__buf_4, __off_5, std_core$Intrinsic$string_compare("Z", "a") < 0)
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_bool(__buf_4, __off_5, std.core.string.compare("zz", "zèbre") < 0)
+          __off_5 = std.core.write_bool(__buf_4, __off_5, std_core$Intrinsic$string_compare("zz", "zèbre") < 0)
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_bool(__buf_4, __off_5, std.core.string.compare("é", "z") > 0)
+          __off_5 = std.core.write_bool(__buf_4, __off_5, std_core$Intrinsic$string_compare("é", "z") > 0)
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       std.console.println<string>({
           __buf_6: Buffer = std_core$Intrinsic$new_byte_buffer(i64(74))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "compare   : ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, std.core.string.compare("a", "b"))
+          __off_7 = std.core.write_int(__buf_6, __off_7, std_core$Intrinsic$string_compare("a", "b"))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, std.core.string.compare("b", "a"))
+          __off_7 = std.core.write_int(__buf_6, __off_7, std_core$Intrinsic$string_compare("b", "a"))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, std.core.string.compare("x", "x"))
+          __off_7 = std.core.write_int(__buf_6, __off_7, std_core$Intrinsic$string_compare("x", "x"))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.console.println<string>({
@@ -90,7 +90,7 @@
       return 0
   }
   snippet.less<string> :: fn(a: string, b: string) -> bool {  // snippet$less__string
-      std.core.string.compare(a, b) < 0
+      std_core$Intrinsic$string_compare(a, b) < 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
