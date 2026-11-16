@@ -221,6 +221,10 @@ static void* vader_host_std_core$bytes(vader_string_t a0) {
     return (void*) vader_string_bytes_view(a0, 11u, 8u);
 }
 
+static uint8_t vader_host_std_target$current_os(void) {
+    return vader_current_os();
+}
+
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
     vader_foreign_depth += 1;
@@ -241,10 +245,6 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
     vader_end_on_broken_pipe();
     vader_foreign_depth -= 1;
     return;
-}
-
-static uint8_t vader_host_std_target$current_os(void) {
-    return vader_current_os();
 }
 
 static void snippet$show_path(vader_string_t l0, vader_string_t l1) {

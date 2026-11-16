@@ -1,10 +1,166 @@
-// std/core/compiler_decorators: what the decorators of the compiler take.
+// std/core/compiler_decorators: the decorators of the compiler, declared.
 //
-// The compiler reads what its decorators are written with and evaluates none of
-// it: a `Condition` holds an expression typed where it stands.
+// Each is declared like a program's own decorator: where it may be written, and
+// what it takes. The compiler reads what they are written with and evaluates
+// none of it. Their names are the compiler's: no other decorator may take one,
+// and none of them is a value.
 
 module "std/core"
+
+import "std/target"
 
 /// An expression a compiler decorator reads as written, typed `bool` where it
 /// stands and never evaluated as the decorator's value.
 export Condition :: struct {}
+
+/// Declares a transparent alias of the type on the right: `@alias Real :: f64`
+/// names `f64` itself, where `Real :: f64` declares a distinct type.
+export alias :: decorator(.Constant) {}
+
+/// Computes at compile time the value of a constant or an argument of a
+/// declared decorator, or copies a `for` body once per element.
+///
+/// Written before the value, never above the declaration. Everything it touches
+/// must be computable at compile time.
+export comptime :: decorator(.Expression) {}
+
+/// Declares a bodyless function supplied across the FFI, by a C library or the
+/// running process.
+///
+/// Pair it with `@c_header`, or a header of its library, so `cc` checks the call
+/// against the real prototype.
+export extern :: decorator(.Function) {
+    /// The library the function comes from, whose headers, archives and platform
+    /// libraries a native build adds: the running process when left out.
+    library: CLibrary = CLibrary { .name = "" }
+    /// The C symbol, the function's own name when left out.
+    symbol:  string = ""
+}
+
+/// Marks a `fn() -> void` as a test, run by `vader test`.
+export test :: decorator(.Function) {}
+
+/// Marks a bodyless function of the standard library, or a bodyless
+/// `implements` block, as provided by the host runtime.
+///
+/// Every bodyless free function carries it or `@extern`; the build fails when the
+/// host does not provide it.
+export intrinsic :: decorator(.Function, .Implementation) {}
+
+/// Reports a warning at every reference to the declaration; the code still
+/// compiles.
+export deprecated :: decorator(.Function, .Struct, .Enum, .Trait, .Constant, .Alias) {
+    /// What to use instead, shown with the warning.
+    reason: string
+}
+
+/// A compile-time assertion among the declarations: the build fails when
+/// `condition` is not `true`.
+export assert :: decorator(.Assertion) {
+    /// What must hold, computed at compile time.
+    condition: Condition
+    /// What the failure says, a string literal.
+    message:   string = ""
+}
+
+/// Marks a function that never returns: it panics, aborts or loops forever. A
+/// call to it types as `never`, so it fits any slot and ends control flow.
+export no_return :: decorator(.Function) {}
+
+/// Exempts a declaration from the dead-code warning and keeps live what it
+/// references; on an import, exempts it from the unused-import warning.
+///
+/// Say why in a comment.
+export allow_unused :: decorator(.Function, .Struct, .Enum, .Trait, .Constant, .Alias, .Import) {}
+
+/// Selects which body of a top-level function the build uses.
+///
+/// Written bare, it marks the declaration: signature, `export`, vaderdoc and
+/// optionally the general body. With operating systems, it marks a body for them.
+export target :: decorator(.Function) {
+    /// The operating systems the body is for; none marks the declaration.
+    ...oses: Os[]
+}
+
+/// Includes `header` instead of synthesising a prototype for an `@extern`
+/// function, so `cc` checks the call against the real declaration.
+export c_header :: decorator(.Function) {
+    /// Written as `#include` takes it: `"<math.h>"` or `"raylib.h"`.
+    header: string
+}
+
+/// On a parameter of an `@extern` function: the callee receives the address of a
+/// copy of the argument, a scalar or a `@c_struct` mirror, and only reads it.
+export c_address :: decorator(.Parameter) {}
+
+/// On a parameter of an `@extern` function: C writes through it, an array or a
+/// `@c_struct` mirror, which then crosses by address.
+export c_out :: decorator(.Parameter) {}
+
+/// The C type the callee declares for an integer parameter, for what an array
+/// parameter points to, or for the result when written on the function.
+///
+/// It is as wide as the Vader type, or as one element of the array.
+export c_type :: decorator(.Function, .Parameter) {
+    /// The C spelling: `"size_t"`, `"unsigned char"`.
+    name: string
+}
+
+/// Declares the C struct this struct mirrors, so it may cross an `@extern` call:
+/// by address with `@c_address` or `@c_out`, by value otherwise.
+///
+/// Fields are copied by name; a mirror lent by address may stop early, one copied
+/// by value names every member.
+export c_struct :: decorator(.Struct) {
+    /// The C type, the struct's own name when left out.
+    name: string = ""
+}
+
+/// On a parameter of an `@extern` function: C receives it through the `...` of
+/// its prototype. Every parameter after it carries the mark too, and a header
+/// declares the function.
+export c_variadic :: decorator(.Parameter) {}
+
+/// Generates the enum's `Display`: each variant renders as its own name. An
+/// `implements Display` written beside it is an error.
+export displayable :: decorator(.Enum) {}
+
+/// Runs the body of a parameterless top-level function once per program and
+/// hands every call the instance it built: how a module keeps state.
+///
+/// Not generic, no `yield`, and it cannot run at compile time.
+export singleton :: decorator(.Function) {}
+
+/// Declares that a `bool` predicate returns the value of `condition` over its
+/// parameters: a call narrows its arguments as `condition` would, and the body is
+/// checked against it.
+export returns :: decorator(.Function) {
+    /// The value the predicate returns, over its parameters.
+    condition: Condition
+}
+
+/// Declares that `condition` over the parameters holds once the function has
+/// returned: a call written as a statement narrows its arguments for the rest of
+/// the block, and the body is checked against it.
+export ensures :: decorator(.Function) {
+    /// What holds over the parameters once the function has returned.
+    condition: Condition
+}
+
+/// Opts the `match` out of exhaustiveness checking, for a deliberate "everything
+/// else does X" `_` arm. Precede it with a `// @partial: <reason>` line.
+export partial :: decorator(.Match) {}
+
+/// Opts the `match` out of exhaustiveness checking and asserts the uncovered
+/// variants never occur: one reaching the `match` traps at run time. Never
+/// written beside `@partial`.
+export unreachable :: decorator(.Match) {}
+
+/// On an `@extern`: the C function runs on the main thread only, so no task may
+/// reach it.
+export main_thread :: decorator(.Function) {}
+
+/// Restricts a struct field to its declaring module: reading, writing or
+/// constructing with it elsewhere is an error. Give the field a default so the
+/// struct stays constructible.
+export internal :: decorator(.Field) {}

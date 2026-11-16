@@ -108,6 +108,12 @@ export resolve_program :: fn(
     return resolve_module_programs([program], scopes, module_path, factory)
 }
 
+// Whether `program` is a file of `std/core`.
+is_core_file :: fn(program: AST.Program) -> bool {
+    module :: program.module else return false
+    return module.name == CORE_MODULE
+}
+
 /// Resolve the files of one module, each against its own scope, since imports
 /// are file-scoped. A fn body written in another file (a `@target` body grafted
 /// onto a declaration) resolves in the scope of the file it was written in ; its
@@ -131,6 +137,7 @@ export resolve_module_programs :: fn(
         .diags = [],
         .scope = new_scope(Map<string, Symbol> {}),
         .module_path = module_path,
+        .in_core = programs.any_match(is_core_file),
         .factory = factory,
         .ambiguous = Map<string, string[]> {},
     }
@@ -185,6 +192,9 @@ ResolveState :: struct {
     diags:            Diagnostic[]
     scope:            Scope
     module_path:      string
+    /// Whether the file being walked is one of `std/core`, which declares the
+    /// compiler's decorators.
+    in_core:          bool = false
     factory:          SymbolFactory
     /// Names two+ wildcard imports of the file being walked both export
     /// (`name -> modules`). Consulted by `walk_expr` to fire R2031 on an
@@ -434,21 +444,13 @@ walk_body :: fn(self: ResolveState, body: AST.BlockExpr) -> void {
     self.enter_file(outer)
 }
 
-// Whether the declaration `name` of the module being walked belongs to `std/core`.
-// At the top level, a name finds the module's own declaration before any import
-// or the prelude (`file_root_scope`).
-declares_in_core :: fn(self: ResolveState, name: string) -> bool {
-    sym :: self.scope.lookup(name) else return false
-    return sym.module_name == CORE_MODULE
-}
-
 walk_struct_decl :: fn(self: ResolveState, d: AST.StructDecl) -> void {
     self.walk_decorators(d.decorators)
     args :: d.decorator_args
     if args != null {
         // A name after `@` is looked up among decorators, where the compiler's
         // own would answer first: `std/core` alone declares them.
-        if decorator_spec(d.name) != null && !self.declares_in_core(d.name) {
+        if decorator_spec(d.name) != null && !self.in_core {
             self.diags.push(resolver_error(.CompilerDecoratorName, d.name_span, "`@${d.name}`"))
         }
         for a in args {

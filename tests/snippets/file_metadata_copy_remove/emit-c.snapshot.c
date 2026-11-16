@@ -505,6 +505,10 @@ static void* vader_host_std_core$bytes(vader_string_t a0) {
     return (void*) vader_string_bytes_view(a0, 6u, 7u);
 }
 
+static uint8_t vader_host_std_target$current_os(void) {
+    return vader_current_os();
+}
+
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
     vader_foreign_depth += 1;
@@ -689,10 +693,6 @@ static int32_t vader_host_system_libc$sys_rename(vader_string_t a0, vader_string
     vader_cstr_free_for(a0, c0);
     vader_cstr_free_for(a1, c1);
     return r;
-}
-
-static uint8_t vader_host_std_target$current_os(void) {
-    return vader_current_os();
 }
 
 static int32_t snippet$main(void) {

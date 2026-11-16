@@ -296,7 +296,13 @@ export file_root_scope :: fn(
     root :: Map<string, Symbol> {}
     for [name, sym] in builtins { root[name] = sym }
     for [name, sym] in imports.bindings { root[name] = sym }
-    for [name, sym] in collected.symbols { root[name] = sym }
+    for [name, sym] in collected.symbols {
+        // The compiler's decorators are never values, not even in `std/core`: they
+        // must not hide a name such as the `assert` of `std/testing`.
+        if !is_compiler_decorator_symbol(sym) {
+            root[name] = sym
+        }
+    }
     for [name, sym] in core_seed {
         root.get_or_put(name, sym)
     }

@@ -1,0 +1,27 @@
+# Typecheck
+
+## tests/snippets/function_named_like_a_decorator
+  FnDecl         alias                :: fn(string) -> string
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         partial              :: fn(i32, i32) -> bool
+  FnDecl         target               :: fn() -> string
+  expr 10:39    StringLitExpr  :: string
+  expr 10:43    IdentExpr      :: string
+  expr 12:48    BinaryExpr     :: bool
+  expr 12:48    IdentExpr      :: i32
+  expr 12:55    IdentExpr      :: i32
+  expr 15:13    CallExpr       :: string
+  expr 15:13    IdentExpr      :: fn() -> string
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 16:13    CallExpr       :: string
+  expr 16:13    IdentExpr      :: fn(string) -> string
+  expr 16:19    StringLitExpr  :: string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 17:13    StringLitExpr  :: string
+  expr 17:16    CallExpr       :: bool
+  expr 17:16    IdentExpr      :: fn(i32, i32) -> bool
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
+  expr 8:28     StringLitExpr  :: string

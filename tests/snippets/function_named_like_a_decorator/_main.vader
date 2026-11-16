@@ -1,0 +1,19 @@
+// The compiler's decorators are declared in `std/core`, but none of them is a
+// value: a program keeps `target`, `alias` and `partial` for its own functions.
+
+module "snippet"
+
+import "std/console"
+
+target :: fn() -> string = "darwin-arm64"
+
+alias :: fn(name: string) -> string = "@${name}"
+
+partial :: fn(done: i32, total: i32) -> bool = done < total
+
+main :: fn() -> i32 {
+    println(target())
+    println(alias("vader"))
+    println("${partial(1, 3)}")
+    return 0
+}
