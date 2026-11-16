@@ -120,30 +120,30 @@ typedef struct vader_struct___lambda_env_vader_front_typecheck_10_t vader_struct
 typedef struct vader_struct___lambda_env_vader_front_typecheck_17_t vader_struct___lambda_env_vader_front_typecheck_17_t;
 typedef struct vader_struct___lambda_env_vader_front_typecheck_20_t vader_struct___lambda_env_vader_front_typecheck_20_t;
 typedef struct vader_struct___lambda_env_vader_front_typecheck_23_t vader_struct___lambda_env_vader_front_typecheck_23_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_26_t vader_struct___lambda_env_vader_front_typecheck_26_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_29_t vader_struct___lambda_env_vader_front_typecheck_29_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_25_t vader_struct___lambda_env_vader_front_typecheck_25_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_28_t vader_struct___lambda_env_vader_front_typecheck_28_t;
 typedef struct vader_struct___lambda_env_vader_front_typecheck_3_t vader_struct___lambda_env_vader_front_typecheck_3_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_31_t vader_struct___lambda_env_vader_front_typecheck_31_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_35_t vader_struct___lambda_env_vader_front_typecheck_35_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_37_t vader_struct___lambda_env_vader_front_typecheck_37_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_41_t vader_struct___lambda_env_vader_front_typecheck_41_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_43_t vader_struct___lambda_env_vader_front_typecheck_43_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_45_t vader_struct___lambda_env_vader_front_typecheck_45_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_48_t vader_struct___lambda_env_vader_front_typecheck_48_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_50_t vader_struct___lambda_env_vader_front_typecheck_50_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_52_t vader_struct___lambda_env_vader_front_typecheck_52_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_54_t vader_struct___lambda_env_vader_front_typecheck_54_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_56_t vader_struct___lambda_env_vader_front_typecheck_56_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_58_t vader_struct___lambda_env_vader_front_typecheck_58_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_30_t vader_struct___lambda_env_vader_front_typecheck_30_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_34_t vader_struct___lambda_env_vader_front_typecheck_34_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_36_t vader_struct___lambda_env_vader_front_typecheck_36_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_40_t vader_struct___lambda_env_vader_front_typecheck_40_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_42_t vader_struct___lambda_env_vader_front_typecheck_42_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_44_t vader_struct___lambda_env_vader_front_typecheck_44_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_47_t vader_struct___lambda_env_vader_front_typecheck_47_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_49_t vader_struct___lambda_env_vader_front_typecheck_49_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_51_t vader_struct___lambda_env_vader_front_typecheck_51_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_53_t vader_struct___lambda_env_vader_front_typecheck_53_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_55_t vader_struct___lambda_env_vader_front_typecheck_55_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_57_t vader_struct___lambda_env_vader_front_typecheck_57_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_59_t vader_struct___lambda_env_vader_front_typecheck_59_t;
 typedef struct vader_struct___lambda_env_vader_front_typecheck_6_t vader_struct___lambda_env_vader_front_typecheck_6_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_60_t vader_struct___lambda_env_vader_front_typecheck_60_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_63_t vader_struct___lambda_env_vader_front_typecheck_63_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_65_t vader_struct___lambda_env_vader_front_typecheck_65_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_68_t vader_struct___lambda_env_vader_front_typecheck_68_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_70_t vader_struct___lambda_env_vader_front_typecheck_70_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_72_t vader_struct___lambda_env_vader_front_typecheck_72_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_74_t vader_struct___lambda_env_vader_front_typecheck_74_t;
-typedef struct vader_struct___lambda_env_vader_front_typecheck_76_t vader_struct___lambda_env_vader_front_typecheck_76_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_62_t vader_struct___lambda_env_vader_front_typecheck_62_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_64_t vader_struct___lambda_env_vader_front_typecheck_64_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_67_t vader_struct___lambda_env_vader_front_typecheck_67_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_69_t vader_struct___lambda_env_vader_front_typecheck_69_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_71_t vader_struct___lambda_env_vader_front_typecheck_71_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_73_t vader_struct___lambda_env_vader_front_typecheck_73_t;
+typedef struct vader_struct___lambda_env_vader_front_typecheck_75_t vader_struct___lambda_env_vader_front_typecheck_75_t;
 typedef struct vader_struct___lambda_env_vader_front_typecheck_8_t vader_struct___lambda_env_vader_front_typecheck_8_t;
 typedef struct vader_struct___lambda_env_vader_lower_1_t vader_struct___lambda_env_vader_lower_1_t;
 typedef struct vader_struct___lambda_env_vader_lower_11_t vader_struct___lambda_env_vader_lower_11_t;
@@ -422,6 +422,7 @@ typedef struct vader_struct_toolchain_ast$EnumDecl_t vader_struct_toolchain_ast$
 typedef struct vader_struct_toolchain_ast$EnumVariant_t vader_struct_toolchain_ast$EnumVariant_t;
 typedef struct vader_struct_toolchain_ast$EnumVariantPattern_t vader_struct_toolchain_ast$EnumVariantPattern_t;
 typedef struct vader_struct_toolchain_ast$ExprStmt_t vader_struct_toolchain_ast$ExprStmt_t;
+typedef struct vader_struct_toolchain_ast$ExternArguments_t vader_struct_toolchain_ast$ExternArguments_t;
 typedef struct vader_struct_toolchain_ast$FallbackClause_t vader_struct_toolchain_ast$FallbackClause_t;
 typedef struct vader_struct_toolchain_ast$FallbackExpr_t vader_struct_toolchain_ast$FallbackExpr_t;
 typedef struct vader_struct_toolchain_ast$FieldExpr_t vader_struct_toolchain_ast$FieldExpr_t;
@@ -996,6 +997,7 @@ typedef struct vader_struct_vader_front_typecheck$UfcsResult_t vader_struct_vade
 typedef struct vader_struct_vader_front_typecheck$UnmetBound_t vader_struct_vader_front_typecheck$UnmetBound_t;
 typedef struct vader_struct_vader_front_typecheck$UnsettledCallee_t vader_struct_vader_front_typecheck$UnsettledCallee_t;
 typedef struct vader_struct_vader_front_typecheck$ValueReads_t vader_struct_vader_front_typecheck$ValueReads_t;
+typedef struct vader_struct_vader_front_typecheck$VariadicArguments_t vader_struct_vader_front_typecheck$VariadicArguments_t;
 typedef struct vader_struct_vader_front_typecheck$WalkPosition_t vader_struct_vader_front_typecheck$WalkPosition_t;
 typedef struct vader_struct_vader_front_typecheck$WidenedArgument_t vader_struct_vader_front_typecheck$WidenedArgument_t;
 typedef struct vader_struct_vader_lower$ArrayMemberUse_t vader_struct_vader_lower$ArrayMemberUse_t;
@@ -1788,11 +1790,11 @@ struct vader_struct___lambda_env_vader_front_typecheck_23_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_26_t {
+struct vader_struct___lambda_env_vader_front_typecheck_25_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_29_t {
+struct vader_struct___lambda_env_vader_front_typecheck_28_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
@@ -1802,65 +1804,70 @@ struct vader_struct___lambda_env_vader_front_typecheck_3_t {
     void* f_cap_1;
     void* f_cap_2;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_31_t {
+struct vader_struct___lambda_env_vader_front_typecheck_30_t {
     vader_obj_header_t header;
     void* f_cap_0;
     void* f_cap_1;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_35_t {
+struct vader_struct___lambda_env_vader_front_typecheck_34_t {
     vader_obj_header_t header;
     void* f_cap_0;
     void* f_cap_1;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_37_t {
+struct vader_struct___lambda_env_vader_front_typecheck_36_t {
     vader_obj_header_t header;
     void* f_cap_0;
     void* f_cap_1;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_41_t {
+struct vader_struct___lambda_env_vader_front_typecheck_40_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_43_t {
+struct vader_struct___lambda_env_vader_front_typecheck_42_t {
     vader_obj_header_t header;
     void* f_cap_0;
     void* f_cap_1;
     void* f_cap_2;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_45_t {
+struct vader_struct___lambda_env_vader_front_typecheck_44_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_48_t {
-    vader_obj_header_t header;
-    void* f_cap_0;
-    void* f_cap_1;
-};
-struct vader_struct___lambda_env_vader_front_typecheck_50_t {
+struct vader_struct___lambda_env_vader_front_typecheck_47_t {
     vader_obj_header_t header;
     void* f_cap_0;
     void* f_cap_1;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_52_t {
+struct vader_struct___lambda_env_vader_front_typecheck_49_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+    void* f_cap_1;
+};
+struct vader_struct___lambda_env_vader_front_typecheck_51_t {
     vader_obj_header_t header;
     vader_string_t f_cap_0;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_54_t {
+struct vader_struct___lambda_env_vader_front_typecheck_53_t {
     vader_obj_header_t header;
     void* f_cap_0;
     void* f_cap_1;
     void* f_cap_2;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_56_t {
+struct vader_struct___lambda_env_vader_front_typecheck_55_t {
     vader_obj_header_t header;
     void* f_cap_0;
     vader_string_t f_cap_1;
     void* f_cap_2;
     void* f_cap_3;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_58_t {
+struct vader_struct___lambda_env_vader_front_typecheck_57_t {
     vader_obj_header_t header;
     void* f_cap_0;
+};
+struct vader_struct___lambda_env_vader_front_typecheck_59_t {
+    vader_obj_header_t header;
+    vader_string_t f_cap_0;
+    void* f_cap_1;
 };
 struct vader_struct___lambda_env_vader_front_typecheck_6_t {
     vader_obj_header_t header;
@@ -1868,36 +1875,31 @@ struct vader_struct___lambda_env_vader_front_typecheck_6_t {
     void* f_cap_1;
     void* f_cap_2;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_60_t {
-    vader_obj_header_t header;
-    vader_string_t f_cap_0;
-    void* f_cap_1;
-};
-struct vader_struct___lambda_env_vader_front_typecheck_63_t {
+struct vader_struct___lambda_env_vader_front_typecheck_62_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_65_t {
+struct vader_struct___lambda_env_vader_front_typecheck_64_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_68_t {
+struct vader_struct___lambda_env_vader_front_typecheck_67_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_70_t {
+struct vader_struct___lambda_env_vader_front_typecheck_69_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_72_t {
+struct vader_struct___lambda_env_vader_front_typecheck_71_t {
     vader_obj_header_t header;
     vader_box_t f_cap_0;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_74_t {
+struct vader_struct___lambda_env_vader_front_typecheck_73_t {
     vader_obj_header_t header;
     vader_string_t f_cap_0;
 };
-struct vader_struct___lambda_env_vader_front_typecheck_76_t {
+struct vader_struct___lambda_env_vader_front_typecheck_75_t {
     vader_obj_header_t header;
     vader_string_t f_cap_0;
     void* f_cap_1;
@@ -4173,6 +4175,11 @@ struct vader_struct_toolchain_ast$ExprStmt_t {
     int64_t f_id;
     vader_box_t f_expr;
 };
+struct vader_struct_toolchain_ast$ExternArguments_t {
+    vader_obj_header_t header;
+    vader_box_t f_library;
+    vader_box_t f_symbol;
+};
 struct vader_struct_toolchain_ast$FallbackClause_t {
     vader_obj_header_t header;
     void* f_span;
@@ -4540,6 +4547,7 @@ struct vader_struct_toolchain_ast$StructField_t {
     vader_box_t f_default;
     vader_box_t f_doc;
     void* f_decorators;
+    bool f_variadic;
 };
 struct vader_struct_toolchain_ast$StructLitExpr_t {
     vader_obj_header_t header;
@@ -7131,6 +7139,7 @@ struct vader_struct_vader_front_typecheck$DecoratorUse_t {
     void* f_written;
     void* f_symbol;
     void* f_arguments;
+    vader_box_t f_variadic;
 };
 struct vader_struct_vader_front_typecheck$DefaultFill_t {
     vader_obj_header_t header;
@@ -7559,6 +7568,12 @@ struct vader_struct_vader_front_typecheck$ValueReads_t {
     vader_obj_header_t header;
     void* f_consts;
     void* f_literals;
+};
+struct vader_struct_vader_front_typecheck$VariadicArguments_t {
+    vader_obj_header_t header;
+    vader_string_t f_field;
+    vader_box_t f_type;
+    void* f_elements;
 };
 struct vader_struct_vader_front_typecheck$WalkPosition_t {
     vader_obj_header_t header;
@@ -9732,13 +9747,12 @@ bool __lambda_vader_front_typecheck_22(void* l0, void* l1);
 void* vader_front_typecheck$trait_param_bindings(void* l0, void* l1, vader_box_t l2, void* l3);
 uint8_t vader_front_typecheck$collect_tested_type(vader_box_t l0, void* l1);
 vader_box_t vader_front_typecheck$struct_field_info(void* l0, int32_t l1, vader_string_t l2);
-vader_box_t __lambda_vader_front_typecheck_24(void* l0);
 void* vader_front_typecheck$declared_symbol(void* l0, void* l1);
 vader_box_t vader_front_typecheck$type_of_symbol(void* l0, void* l1);
-void __lambda_vader_front_typecheck_25(void* l0, vader_box_t l1);
+void __lambda_vader_front_typecheck_24(void* l0, vader_box_t l1);
 void* vader_front_typecheck$impls_of(void* l0, vader_string_t l1, vader_string_t l2);
-void* __lambda_vader_front_typecheck_27(void);
-void __lambda_vader_front_typecheck_28(void* l0, vader_box_t l1);
+void* __lambda_vader_front_typecheck_26(void);
+void __lambda_vader_front_typecheck_27(void* l0, vader_box_t l1);
 vader_box_t vader_front_typecheck$member_entry(void* l0, void* l1);
 vader_box_t vader_front_typecheck$union_common_field_type(void* l0, vader_string_t l1, void* l2);
 vader_box_t vader_front_typecheck$lift_enum_placeholder(vader_box_t l0, void* l1);
@@ -9747,14 +9761,14 @@ bool vader_front_typecheck$impl_covers(void* l0, vader_box_t l1);
 void* vader_front_typecheck$impls_for(void* l0, vader_box_t l1, vader_string_t l2);
 bool vader_front_typecheck$names_a_type(void* l0, void* l1);
 void* vader_front_typecheck$owner_in_instance(void* l0, void* l1, void* l2);
-uint8_t __lambda_vader_front_typecheck_30(void* l0, vader_box_t l1);
+uint8_t __lambda_vader_front_typecheck_29(void* l0, vader_box_t l1);
+void* __lambda_vader_front_typecheck_31(void);
 void* __lambda_vader_front_typecheck_32(void);
-void* __lambda_vader_front_typecheck_33(void);
 bool vader_front_typecheck$has_yield(vader_box_t l0);
-vader_box_t __lambda_vader_front_typecheck_34(void* l0);
-vader_box_t __lambda_vader_front_typecheck_36(void* l0);
-vader_string_t __lambda_vader_front_typecheck_38(vader_box_t l0);
-vader_string_t __lambda_vader_front_typecheck_39(vader_string_t l0);
+vader_box_t __lambda_vader_front_typecheck_33(void* l0);
+vader_box_t __lambda_vader_front_typecheck_35(void* l0);
+vader_string_t __lambda_vader_front_typecheck_37(vader_box_t l0);
+vader_string_t __lambda_vader_front_typecheck_38(vader_string_t l0);
 vader_box_t vader_front_typecheck$namespace_member_symbol(void* l0, void* l1, void* l2);
 bool vader_front_typecheck$satisfies_trait(vader_box_t l0, vader_box_t l1, void* l2);
 int64_t vader_front_typecheck$struct_field_index(void* l0, int32_t l1, vader_string_t l2);
@@ -9763,7 +9777,7 @@ void* vader_front_typecheck$covering_first(void* l0, vader_box_t l1);
 bool vader_front_typecheck$has_self_param(void* l0);
 void* vader_front_typecheck$impl_bindings_at(void* l0, vader_box_t l1);
 uint8_t vader_front_typecheck$copy_node_resolutions(vader_box_t l0, void* l1, void* l2);
-uint8_t __lambda_vader_front_typecheck_40(void* l0, vader_box_t l1);
+uint8_t __lambda_vader_front_typecheck_39(void* l0, vader_box_t l1);
 vader_box_t vader_front_typecheck$contract_of(void* l0, void* l1);
 vader_box_t vader_front_typecheck$ensures_of(void* l0, void* l1);
 uint8_t vader_front_typecheck$index_route(vader_box_t l0, vader_string_t l1, void* l2);
@@ -9772,55 +9786,55 @@ vader_box_t vader_front_typecheck$check_in(void* l0, vader_box_t l1, vader_box_t
 vader_box_t vader_front_typecheck$check_integral(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4);
 vader_box_t vader_front_typecheck$check_compare(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4);
 vader_box_t vader_front_typecheck$check_arith(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4);
-uint8_t __lambda_vader_front_typecheck_42(void* l0, vader_box_t l1);
+uint8_t __lambda_vader_front_typecheck_41(void* l0, vader_box_t l1);
 bool vader_front_typecheck$is_specialized_arg(void* l0, vader_box_t l1);
-bool __lambda_vader_front_typecheck_44(void* l0, vader_box_t l1);
+bool __lambda_vader_front_typecheck_43(void* l0, vader_box_t l1);
 uint8_t vader_front_typecheck$probe_step(vader_box_t l0, void* l1);
 bool vader_front_typecheck$field_hidden_here(void* l0, void* l1);
 void vader_front_typecheck$check_guard_return(void* l0, vader_box_t l1, void* l2, void* l3);
-vader_box_t __lambda_vader_front_typecheck_46(vader_box_t l0);
-bool __lambda_vader_front_typecheck_47(void* l0, vader_string_t l1);
+vader_box_t __lambda_vader_front_typecheck_45(vader_box_t l0);
+bool __lambda_vader_front_typecheck_46(void* l0, vader_string_t l1);
 void* vader_front_typecheck$impl_candidates(void* l0, vader_box_t l1, vader_string_t l2);
 bool vader_front_typecheck$is_gen_state_struct(vader_box_t l0);
-bool __lambda_vader_front_typecheck_49(void* l0, void* l1);
+bool __lambda_vader_front_typecheck_48(void* l0, void* l1);
 bool vader_front_typecheck$trait_test_admits(vader_box_t l0, void* l1, void* l2);
-bool __lambda_vader_front_typecheck_51(void* l0, void* l1);
+bool __lambda_vader_front_typecheck_50(void* l0, void* l1);
 bool vader_front_typecheck$struct_implements_trait(vader_box_t l0, vader_string_t l1, void* l2);
 vader_box_t vader_front_typecheck$recorded_decl(void* l0, void* l1);
 int64_t vader_front_typecheck$receiver_offset(void* l0, void* l1, void* l2);
 bool vader_front_typecheck$keeps_concrete(void* l0, vader_box_t l1);
-void __lambda_vader_front_typecheck_53(void* l0, vader_box_t l1);
+void __lambda_vader_front_typecheck_52(void* l0, vader_box_t l1);
 void vader_front_typecheck$check_ensured_value(void* l0, vader_box_t l1, vader_string_t l2, void* l3, void* l4);
-void __lambda_vader_front_typecheck_55(void* l0, vader_box_t l1);
-bool __lambda_vader_front_typecheck_57(void* l0, void* l1);
-bool __lambda_vader_front_typecheck_59(void* l0, void* l1);
+void __lambda_vader_front_typecheck_54(void* l0, vader_box_t l1);
+bool __lambda_vader_front_typecheck_56(void* l0, void* l1);
+bool __lambda_vader_front_typecheck_58(void* l0, void* l1);
 bool vader_front_typecheck$sees_trait_key(vader_string_t l0, vader_string_t l1, void* l2);
-bool __lambda_vader_front_typecheck_61(void* l0);
-void* __lambda_vader_front_typecheck_62(void* l0, void* l1);
+bool __lambda_vader_front_typecheck_60(void* l0);
+void* __lambda_vader_front_typecheck_61(void* l0, void* l1);
 vader_box_t vader_front_typecheck$trait_member_decl(void* l0, vader_string_t l1, void* l2);
-bool __lambda_vader_front_typecheck_64(void* l0, void* l1);
+bool __lambda_vader_front_typecheck_63(void* l0, void* l1);
 bool vader_front_typecheck$sees_trait(void* l0, vader_string_t l1, void* l2);
-bool __lambda_vader_front_typecheck_66(vader_box_t l0);
-bool __lambda_vader_front_typecheck_67(void* l0, void* l1);
-bool __lambda_vader_front_typecheck_69(void* l0, vader_box_t l1);
+bool __lambda_vader_front_typecheck_65(vader_box_t l0);
+bool __lambda_vader_front_typecheck_66(void* l0, void* l1);
+bool __lambda_vader_front_typecheck_68(void* l0, vader_box_t l1);
 vader_box_t vader_front_typecheck$lookup_struct_trait_args(vader_box_t l0, vader_string_t l1, void* l2);
 vader_box_t vader_front_typecheck$for_in_element(vader_box_t l0, void* l1);
-bool __lambda_vader_front_typecheck_73(void* l0, vader_string_t l1);
+bool __lambda_vader_front_typecheck_72(void* l0, vader_string_t l1);
 void* vader_front_typecheck$settled_member(void* l0, void* l1);
-bool __lambda_vader_front_typecheck_75(void* l0, vader_box_t l1);
-bool __lambda_vader_front_typecheck_78(vader_box_t l0);
+bool __lambda_vader_front_typecheck_74(void* l0, vader_box_t l1);
 bool __lambda_vader_front_typecheck_77(vader_box_t l0);
+bool __lambda_vader_front_typecheck_76(vader_box_t l0);
 void* vader_front_typecheck$serving_impl(void* l0, void* l1, vader_box_t l2);
 bool vader_front_typecheck$nests_self(vader_box_t l0);
+bool __lambda_vader_front_typecheck_78(vader_box_t l0);
 bool __lambda_vader_front_typecheck_79(vader_box_t l0);
-bool __lambda_vader_front_typecheck_80(vader_box_t l0);
 vader_box_t vader_front_typecheck$impl_at_args(void* l0, vader_box_t l1, vader_string_t l2, void* l3);
 void* __const_vader_front_typecheck$NO_IMPLS(void);
 void* __const_vader_front_typecheck$NO_IMPL_METHODS(void);
 void* __const_vader_front_typecheck$NO_ARG_LISTS(void);
 void* __const_vader_front_typecheck$NO_TYPES(void);
+void* __lambda_vader_front_typecheck_80(void);
 void* __lambda_vader_front_typecheck_81(void);
-void* __lambda_vader_front_typecheck_82(void);
 void* vader_lower$begin_lowering(void* l0, void* l1, void* l2, void* l3);
 void* vader_lower$finish_lowering(void* l0, void* l1);
 void __lambda_vader_lower_0(void* l0, vader_box_t l1);
@@ -10287,6 +10301,7 @@ void* toolchain_ast$module_decorators(void* l0);
 vader_box_t toolchain_ast$impl_trait_head(void* l0);
 vader_string_t toolchain_ast$impl_trait_written_name(void* l0);
 bool toolchain_ast$is_comptime_made(vader_box_t l0);
+void* toolchain_ast$extern_arguments(void* l0);
 vader_box_t toolchain_ast$string_literal_text(vader_box_t l0);
 void* toolchain_ast$body_source(void* l0);
 bool toolchain_ast$decl_is_public(vader_box_t l0);
@@ -10846,12 +10861,12 @@ vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_18(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_front_typecheck_18;
 vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_21(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_front_typecheck_21;
-vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_27(void* env);
-extern vader_fn_t vader_fn_static___lambda_vader_front_typecheck_27;
+vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_26(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_front_typecheck_26;
+vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_31(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_front_typecheck_31;
 vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_32(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_front_typecheck_32;
-vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_33(void* env);
-extern vader_fn_t vader_fn_static___lambda_vader_front_typecheck_33;
 vader_box_t vader_fn_tramp_vader_front_typecheck$check_in(void* env, vader_box_t a0, vader_box_t a1, vader_box_t a2, vader_box_t a3, vader_box_t a4);
 extern vader_fn_t vader_fn_static_vader_front_typecheck$check_in;
 vader_box_t vader_fn_tramp_vader_front_typecheck$check_integral(void* env, vader_box_t a0, vader_box_t a1, vader_box_t a2, vader_box_t a3, vader_box_t a4);
@@ -10860,14 +10875,14 @@ vader_box_t vader_fn_tramp_vader_front_typecheck$check_compare(void* env, vader_
 extern vader_fn_t vader_fn_static_vader_front_typecheck$check_compare;
 vader_box_t vader_fn_tramp_vader_front_typecheck$check_arith(void* env, vader_box_t a0, vader_box_t a1, vader_box_t a2, vader_box_t a3, vader_box_t a4);
 extern vader_fn_t vader_fn_static_vader_front_typecheck$check_arith;
-vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_78(void* env, vader_box_t a0);
-extern vader_fn_t vader_fn_static___lambda_vader_front_typecheck_78;
-vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_80(void* env, vader_box_t a0);
+vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_77(void* env, vader_box_t a0);
+extern vader_fn_t vader_fn_static___lambda_vader_front_typecheck_77;
+vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_79(void* env, vader_box_t a0);
+extern vader_fn_t vader_fn_static___lambda_vader_front_typecheck_79;
+vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_80(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_front_typecheck_80;
 vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_81(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_front_typecheck_81;
-vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_82(void* env);
-extern vader_fn_t vader_fn_static___lambda_vader_front_typecheck_82;
 vader_box_t vader_fn_tramp___lambda_vader_lower_2(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_lower_2;
 vader_box_t vader_fn_tramp_vader_lower$pending_fn_instance_less(void* env, vader_box_t a0, vader_box_t a1);
@@ -11030,17 +11045,17 @@ vader_box_t vader_fn_lift___lambda_vader_front_typecheck_5(void* env);
 vader_box_t vader_fn_lift___lambda_vader_front_typecheck_7(void* env);
 vader_box_t vader_fn_lift___lambda_vader_front_typecheck_9(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_front_typecheck_16(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_25(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_28(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_30(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_34(void* env);
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_36(void* env);
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_40(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_42(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_44(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_53(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_55(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_69(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_24(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_27(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_29(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_33(void* env);
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_35(void* env);
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_39(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_41(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_43(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_52(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_54(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_68(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_lower_0(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_lower_8(void* env);
 vader_box_t vader_fn_lift___lambda_vader_lower_10(void* env, vader_box_t a0);
@@ -11107,7 +11122,7 @@ bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0);
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3485u
+#define VADER_COMPTIME_ATOM_COUNT 3492u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;

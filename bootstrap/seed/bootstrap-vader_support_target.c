@@ -35,7 +35,7 @@ static bool vader_support_target$Target$std_core$Equals$equals(void* l0, void* l
 bool vader_support_target$Target$std_core$Equals$equals$guard(void* l0, vader_box_t l1) {
     void* l2;
     bool t0;
-    if (l1.tag == 1748u) {
+    if (l1.tag == 1750u) {
         l2 = l1.payload.obj;
         t0 = vader_support_target$Target$std_core$Equals$equals(l0, l2);
         return t0;
@@ -46,7 +46,7 @@ bool vader_support_target$Target$std_core$Equals$equals$guard(void* l0, vader_bo
 static vader_string_t vader_support_target$arch_variant(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        l1 = 1147u;
+        l1 = 1148u;
         return l1;
     }
     if (l0 == INT32_C(1)) {
@@ -55,7 +55,7 @@ static vader_string_t vader_support_target$arch_variant(uint8_t l0) {
         if (!(l0 == INT32_C(2))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 1143u;
+        l1 = 1144u;
     }
     return l1;
 }
@@ -72,9 +72,9 @@ vader_string_t vader_support_target$baked_module_source(void* l0) {
     };
     vader_gc_top = &gc_frame;
     l1 = vader_support_target$os_variant(((vader_struct_vader_support_target$Target_t*) l0)->f_os);
-    l1 = concat_2(2215u, l1);
+    l1 = concat_2(2221u, l1);
     l2 = vader_support_target$arch_variant(((vader_struct_vader_support_target$Target_t*) l0)->f_arch);
-    l2 = concat_2(2214u, l2);
+    l2 = concat_2(2220u, l2);
     vader_array_t* _a0_arr = vader_array_new(26u, 14u, 0u, 507u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 13u] = vader_box_string(507u, 0u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 12u] = vader_box_string(507u, l2);
@@ -83,9 +83,9 @@ vader_string_t vader_support_target$baked_module_source(void* l0) {
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 9u] = vader_box_string(507u, l1);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 8u] = vader_box_string(507u, 493u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 7u] = vader_box_string(507u, 0u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 6u] = vader_box_string(507u, 2419u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 6u] = vader_box_string(507u, 2425u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 5u] = vader_box_string(507u, 0u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 4u] = vader_box_string(507u, 2618u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 4u] = vader_box_string(507u, 2624u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 3u] = vader_box_string(507u, 0u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 2u] = vader_box_string(507u, 490u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 1u] = vader_box_string(507u, 489u);
@@ -104,7 +104,7 @@ void* vader_support_target$host_target(void) {
     l0 = vader_host_std_target$current_os();
     l1 = vader_host_std_target$current_arch();
     vader_struct_vader_support_target$Target_t* _a0_obj = (vader_struct_vader_support_target$Target_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_target$Target_t));
-    vader_obj_header_init(_a0_obj, 1748u);
+    vader_obj_header_init(_a0_obj, 1750u);
     _a0_obj->f_os = l0;
     _a0_obj->f_arch = l1;
     t0 = (void*) _a0_obj;
@@ -114,7 +114,7 @@ void* vader_support_target$host_target(void) {
 static vader_string_t vader_support_target$os_variant(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        l1 = 1145u;
+        l1 = 1146u;
         return l1;
     }
     if (l0 == INT32_C(1)) {
@@ -122,7 +122,7 @@ static vader_string_t vader_support_target$os_variant(uint8_t l0) {
     } else if (l0 == INT32_C(2)) {
         l1 = 690u;
     } else if (l0 == INT32_C(3)) {
-        l1 = 1142u;
+        l1 = 1143u;
     } else {
         if (!(l0 == INT32_C(4))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
@@ -134,17 +134,17 @@ static vader_string_t vader_support_target$os_variant(uint8_t l0) {
 
 vader_box_t vader_support_target$parse_os(vader_string_t l0) {
     vader_box_t l1;
-    if (l0 == 3435u) {
+    if (l0 == 3442u) {
         l1 = vader_box_i32(512u, INT32_C(0));
         return l1;
     }
-    if (l0 == 2528u) {
+    if (l0 == 2534u) {
         l1 = vader_box_i32(512u, INT32_C(1));
-    } else if (l0 == 2083u) {
+    } else if (l0 == 2089u) {
         l1 = vader_box_i32(512u, INT32_C(2));
-    } else if (l0 == 3420u) {
+    } else if (l0 == 3427u) {
         l1 = vader_box_i32(512u, INT32_C(3));
-    } else if (l0 == 1909u) {
+    } else if (l0 == 1915u) {
         l1 = vader_box_i32(512u, INT32_C(4));
     } else {
         l1 = vader_box_obj(0u, NULL);

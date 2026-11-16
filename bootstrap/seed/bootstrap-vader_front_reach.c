@@ -175,7 +175,7 @@ bool vader_front_reach$is_wired_root(void* l0, vader_string_t l1) {
     void* l5;
     int64_t l3, l4;
     vader_string_t t0;
-    if (l1 == 2565u) {
+    if (l1 == 2571u) {
         return true;
     }
     l2 = l0;
@@ -186,19 +186,19 @@ bool vader_front_reach$is_wired_root(void* l0, vader_string_t l1) {
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         l5 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) l4);
         t0 = ((vader_struct_toolchain_ast$Decorator_t*) l5)->f_name;
-        if (t0 == 3053u) {
+        if (t0 == 3060u) {
             return true;
         }
         t0 = ((vader_struct_toolchain_ast$Decorator_t*) l5)->f_name;
-        if (t0 == 2226u) {
+        if (t0 == 2232u) {
             return true;
         }
         t0 = ((vader_struct_toolchain_ast$Decorator_t*) l5)->f_name;
-        if (t0 == 2467u) {
+        if (t0 == 2473u) {
             return true;
         }
         t0 = ((vader_struct_toolchain_ast$Decorator_t*) l5)->f_name;
-        if (t0 == 1783u) {
+        if (t0 == 1789u) {
             return true;
         }
         l4 = (l4 + INT64_C(1));
@@ -219,17 +219,17 @@ uint8_t vader_front_reach$referenced_name(vader_box_t l0, void* l1) {
         vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (l0.tag == 948u) {
+    if (l0.tag == 949u) {
         t0 = l0.payload.obj;
         l2 = ((vader_struct_toolchain_ast$IdentExpr_t*) t0)->f_name;
         vader_array_push_scalar((vader_array_t*) l1, vader_box_string(507u, l2));
         { vader_gc_top = gc_frame.prev; return (uint8_t) 0; }
     }
-    if (l0.tag == 941u) {
+    if (l0.tag == 942u) {
         t0 = l0.payload.obj;
         l2 = ((vader_struct_toolchain_ast$FieldExpr_t*) t0)->f_field;
         vader_array_push_scalar((vader_array_t*) l1, vader_box_string(507u, l2));
-    } else if ((l0.tag == 911u || l0.tag == 921u || l0.tag == 935u || l0.tag == 943u || l0.tag == 952u || l0.tag == 953u || l0.tag == 986u || l0.tag == 994u || l0.tag == 996u)) {
+    } else if ((l0.tag == 911u || l0.tag == 921u || l0.tag == 935u || l0.tag == 944u || l0.tag == 953u || l0.tag == 954u || l0.tag == 987u || l0.tag == 995u || l0.tag == 997u)) {
         l3 = toolchain_ast$decorator_sites(l0);
         for (;;) {
             l4 = std_core$Iterator$next$$dispatch(l3);
