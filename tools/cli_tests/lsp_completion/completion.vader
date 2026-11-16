@@ -667,5 +667,41 @@ test_completion_inside_decorator_arguments_offers_variants_and_fields :: fn() ->
     assert_eq(string_member(item_named(fields, "tags"), "insertText") else "", "tags = ")
 }
 
+DECLARATION_ARGUMENTS_SOURCE :: r"""
+    module "demo"
+
+    Route :: decorator(.Function, .Struct, .) {
+        path: string
+    }
+
+    Tag :: decorator(.Struct, rep) {}
+
+    Seen :: decorator(repeatable = true, re) {}
+    """
+
+// Inside the parentheses of a decorator declaration: the places not written yet
+// after `.`, and the `repeatable` option until it is written.
+@test
+test_completion_inside_decorator_declaration_offers_places_and_the_option :: fn() -> void {
+    src :: DECLARATION_ARGUMENTS_SOURCE
+    results :: drive(
+        "decorator_declaration",
+        src,
+        [
+            complete_at(position_of(src, ".Struct, .", 10)),
+            complete_at(position_of(src, ", rep", 5)),
+            complete_at(position_of(src, "true, re", 8)),
+        ],
+    )
+    places :: results[0]
+    assert(offers(places, "Enum"), shown(places))
+    assert(!offers(places, "Function"), shown(places))
+    assert(!offers(places, "Struct"), shown(places))
+    options :: results[1]
+    assert_eq(string_member(item_named(options, "repeatable"), "insertText") else "", "repeatable = ")
+    written :: results[2]
+    assert(!offers(written, "repeatable"), shown(written))
+}
+
 // The labels of `result`, sorted, apart by a space.
 sorted_labels :: fn(result: JsonValue) -> string = sort(labels_of(result), compare_ascending).join(" ")

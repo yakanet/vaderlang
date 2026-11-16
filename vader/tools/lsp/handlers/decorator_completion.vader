@@ -116,8 +116,12 @@ fits :: fn(places: string[], place: string) -> bool =
 
 // ---- inside the arguments ---------------------------------------------------
 
-// The declared decorator whose arguments `args` reads, among those in scope.
+// The declared decorator whose arguments `args` reads, among those in scope ; null
+// in the parentheses of a declaration, which name none.
 decorator_named :: fn(cached: ProjectCache, idx: DocIndex, args: DecoratorArguments) -> Symbol | null {
+    if args.declaration {
+        return null
+    }
     in_scope :: decorators_in_scope(cached, idx, alias_of(args))
     return in_scope.find((sym) -> sym.name == args.name)
 }
@@ -154,18 +158,25 @@ active_field :: fn(fields: [string, StructFieldInfo][], args: DecoratorArguments
     return args.position
 }
 
-/// The names of the fields the argument at the cursor at `offset` may still give,
-/// written `name = ` : an empty list outside a decorator's arguments, or past an
-/// argument's own `=`.
+/// The names the argument at the cursor at `offset` may still give, written
+/// `name = `: the fields of the decorator not given yet, past the positional ones ;
+/// in the parentheses of a declaration, `repeatable` until it is written. An empty
+/// list elsewhere, or past an argument's own `=`.
 ///
 /// @param state   the server state, for the typed project.
 /// @param uri     the document.
 /// @param idx     the document's index.
 /// @param offset  the byte offset of the cursor.
-decorator_field_items :: fn(state: ServerState, uri: string, idx: DocIndex, offset: i64) -> JsonValue[] {
+decorator_argument_items :: fn(state: ServerState, uri: string, idx: DocIndex, offset: i64) -> JsonValue[] {
     args :: idx.decorator_arguments_at(offset) else return []
     if args.named != "" {
         return []
+    }
+    if args.declaration {
+        if REPEATABLE_OPTION in args.given {
+            return []
+        }
+        return [named_argument_item(REPEATABLE_OPTION, "bool")]
     }
     file_path :: path_of_uri(uri) else return []
     cached :: typed_project_for(state, file_path)
@@ -176,18 +187,23 @@ decorator_field_items :: fn(state: ServerState, uri: string, idx: DocIndex, offs
     out: JsonValue[]: []
     for i in 0..<fields.len() {
         [name, info] :: fields[i]
-        if i < positional || name in args.given {
-            continue
+        if i >= positional && !(name in args.given) {
+            out.push(named_argument_item(name, display_type(info.ty)))
         }
-        item :: completion_item(name, .Field, display_type(info.ty))
-        item.entries["insertText"] = JsonString { .value = "${name} = " }
-        out.push(item)
     }
     return out
 }
 
-/// The variants of the enum the argument at the leading dot at `dot` fills, as
-/// completion items ; null outside a decorator's arguments, or for a field of
+// The item that writes the argument `name = `.
+named_argument_item :: fn(name: string, detail: string) -> JsonValue {
+    item :: completion_item(name, .Field, detail)
+    item.entries["insertText"] = JsonString { .value = "${name} = " }
+    return item
+}
+
+/// The variants an argument may write after the leading dot at `dot`: in
+/// `@Route(.|`, those of the enum the field it fills holds ; in `decorator(.|`, the
+/// places the other arguments do not name yet. Null elsewhere, or for a field of
 /// another type.
 ///
 /// @param state  the server state, for the typed project.
@@ -198,9 +214,17 @@ decorator_variant_items :: fn(
     state: ServerState, uri: string, idx: DocIndex, dot: i64,
 ) -> JsonValue[] | null {
     args :: idx.decorator_arguments_at(dot) else return null
+    if args.named != "" && args.declaration {
+        return null
+    }
     file_path :: path_of_uri(uri) else return null
     cached :: typed_project_for(state, file_path)
     typed :: cached.result.typed
+    if args.declaration {
+        places :: decorator_target_type(typed) else return null
+        targets :: as_enum_type(places, typed) else return null
+        return enum_variant_items(targets, args.variants)
+    }
     sym :: decorator_named(cached, idx, args) else return null
     fields :: decorator_fields(typed, sym)
     active :: active_field(fields, args)

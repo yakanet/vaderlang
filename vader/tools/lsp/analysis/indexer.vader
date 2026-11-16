@@ -427,43 +427,71 @@ enclosing_open :: fn(tokens: Token[], at: i64) -> i64 {
     return -1
 }
 
-/// The argument list of a decorator the cursor is in: `@Route(.Get, |`.
+/// The argument list the cursor is in, of a decorator written (`@Route(.Get, |`)
+/// or declared (`decorator(.Function, |`).
 export DecoratorArguments :: struct {
+    /// In the parentheses of a declaration, which name no decorator.
+    declaration: bool = false
     /// The alias of `@H.Route(`, "" when the name stands alone.
-    alias:    string = ""
-    name:     string
+    alias:       string = ""
+    /// The decorator's name, "" in a declaration.
+    name:        string = ""
     /// The rank of the argument the cursor is in, from 0.
-    position: i64 = 0
+    position:    i64 = 0
     /// The name the argument the cursor is in gives, past its `=` ; "" when it
     /// gives none, or the cursor is before the `=`.
-    named:    string = ""
+    named:       string = ""
     /// The names the other arguments give, `name = ...`.
-    given:    string[] = []
+    given:       string[] = []
+    /// The variants the other arguments write alone, `.Function`.
+    variants:    string[] = []
 }
 
-/// The decorator whose argument list holds the cursor at byte `offset`, read off
-/// the tokens: the text being typed need not parse. Null outside one.
+/// The argument list of a decorator, written or declared, that holds the cursor
+/// at byte `offset`, read off the tokens: the text being typed need not parse.
+/// Null outside one.
 ///
 /// @param idx     the document's index.
 /// @param offset  the byte offset of the cursor.
 export decorator_arguments_at :: fn(idx: DocIndex, offset: i64) -> DecoratorArguments | null {
     tokens :: idx.tokens
-    // The tokens wholly before the cursor: the argument being typed is past them.
     end :: tokens_before(tokens, offset)
-    // Out through the brackets and braces of a value (`tags = [|]`), up to the
-    // first parenthesis: a call's own arguments are its, not the decorator's.
-    open := enclosing_open(tokens, end)
-    for open >= 0 && tokens[open].kind != .LParen {
-        open = enclosing_open(tokens, open)
+    open :: enclosing_parenthesis(tokens, end)
+    out :: written_or_declared(tokens, open) else return null
+    read_arguments(tokens, open, end, out)
+    return out
+}
+
+// What the `(` at `open` opens: the arguments of `@Name(` or `@Alias.Name(`, the
+// places of `decorator(` ; null for anything else.
+written_or_declared :: fn(tokens: Token[], open: i64) -> DecoratorArguments | null {
+    if open >= 1 && tokens[open - 1].kind == .KwDecorator {
+        return DecoratorArguments { .declaration = true }
     }
     if !opens_decorator_arguments(tokens, open) {
         return null
     }
     qualified :: tokens[open - 2].kind == .Dot
-    out :: DecoratorArguments {
+    return DecoratorArguments {
         .alias = if qualified { tokens[open - 3].text } else { "" },
         .name = tokens[open - 1].text,
     }
+}
+
+// The parenthesis around the tokens before `end`, out through the brackets and
+// braces of a value (`tags = [|]`) ; -1 outside any. A call inside a value is
+// its own: its parenthesis is the one found.
+enclosing_parenthesis :: fn(tokens: Token[], end: i64) -> i64 {
+    open := enclosing_open(tokens, end)
+    for open >= 0 && tokens[open].kind != .LParen {
+        open = enclosing_open(tokens, open)
+    }
+    return open
+}
+
+// Fill `out` from the arguments between the `(` at `open` and the cursor, past the
+// tokens before `end`.
+read_arguments :: fn(tokens: Token[], open: i64, end: i64, out: DecoratorArguments) -> void {
     depth := 0
     argument_start := open + 1
     for i in open + 1..<end {
@@ -477,12 +505,15 @@ export decorator_arguments_at :: fn(idx: DocIndex, offset: i64) -> DecoratorArgu
             if given != null {
                 out.given.push(given)
             }
+            variant :: argument_variant(tokens, argument_start, i)
+            if variant != null {
+                out.variants.push(variant)
+            }
             out.position += 1
             argument_start = i + 1
         }
     }
     out.named = argument_name(tokens, argument_start, end) else ""
-    return out
 }
 
 // The name the argument starting at `tokens[start]` gives, when it writes
@@ -490,6 +521,15 @@ export decorator_arguments_at :: fn(idx: DocIndex, offset: i64) -> DecoratorArgu
 argument_name :: fn(tokens: Token[], start: i64, end: i64) -> string | null {
     if start + 1 < end && tokens[start].kind == .Ident && tokens[start + 1].kind == .Assign {
         return tokens[start].text
+    }
+    return null
+}
+
+// The variant the argument from `tokens[start]` to `tokens[end]` writes alone,
+// `.Function`.
+argument_variant :: fn(tokens: Token[], start: i64, end: i64) -> string | null {
+    if end == start + 2 && tokens[start].kind == .Dot && tokens[start + 1].kind == .Ident {
+        return tokens[start + 1].text
     }
     return null
 }
@@ -1312,5 +1352,22 @@ show :: fn() -> void {
     assert_eq(named.given.join(" "), "tags")
     in_brackets :: arguments_after(src, "[\"a") else panic("in `tags = [`")
     assert_eq(in_brackets.named, "tags")
+    assert_eq(in_brackets.variants.join(" "), "Get")
     assert(arguments_after(src, "f(1") == null, "a call is no decorator")
+}
+
+@test
+test_the_arguments_of_a_decorator_declaration_are_read_off_the_tokens :: fn() -> void {
+    src :: """
+Route :: decorator(.Function, .Struct, rep) {
+    path: string
+}
+"""
+    idx :: build_index("t.vader", src, .Utf16)
+    parts :: src.split_first("rep") else panic("no `rep`")
+    args :: idx.decorator_arguments_at(parts.0.byte_len() + 3) else panic("in `decorator(`")
+    assert(args.declaration, "a declaration")
+    assert_eq(args.position, 2)
+    assert_eq(args.variants.join(" "), "Function Struct")
+    assert(idx.decorator_arguments_at(src.byte_len() - 4) == null, "in the body")
 }

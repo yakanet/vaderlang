@@ -13,8 +13,8 @@ import "toolchain/diagnostics"
 import "vader/core/types"
 import "vader/front/resolver"
 
-// The one named option a decorator declaration takes.
-REPEATABLE_OPTION :: "repeatable"
+/// The one named option a decorator declaration takes.
+export REPEATABLE_OPTION :: "repeatable"
 
 /// Check what a decorator declaration writes besides an ordinary struct: the type
 /// of each field, then the places and the options in its parentheses.
@@ -119,9 +119,13 @@ check_decorator_value :: fn(
     }
 }
 
-// `std/core`'s `DecoratorTarget`; null while `std/core` itself is checked before
-// the enum is declared.
-decorator_target_type :: fn(typed: TypedProgram) -> Type | null {
+/// `std/core`'s `DecoratorTarget`, the type of the places a decorator declaration
+/// names.
+///
+/// @param typed  the typed program of any module.
+/// @return       null while `std/core` itself is checked, before the enum is
+///               declared.
+export decorator_target_type :: fn(typed: TypedProgram) -> Type | null {
     sym :: typed.decorator_target_symbol else return null
     return type_of_symbol(sym, typed)
 }
