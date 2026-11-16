@@ -73,7 +73,7 @@ export IntrinsicId :: enum(HostMember) {
     IsAscii                 { .member = "is_ascii" },
     Bytes                   { .member = "bytes" },
     BytesToString           { .member = "bytes_to_string" },
-    StringHash              { .member = "" },
+    StringHash              { .member = "string_hash" },
     StringEquals            { .member = "" },
     // std/core values
     DeepCopy                { .member = "" },

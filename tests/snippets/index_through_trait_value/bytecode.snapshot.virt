@@ -34,7 +34,7 @@ string 8 "q"
 string 9 "\n"
 import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=12 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=19 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 hash std_core$string$Hash$hash result_type=13 param_types=2 param_c_out= param_by_address= (string) -> u64
+import 2 hash std_core$string$Hash$hash host=string_hash result_type=13 param_types=2 param_c_out= param_by_address= (string) -> u64
 import 3 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=16 param_types=2,12 param_c_out= param_by_address= (string,i64) -> u8
 import 4 byte_slice std_core$Intrinsic$byte_slice host=byte_slice result_type=2 param_types=2,12,12 param_c_out= param_by_address= (string,i64,i64) -> string
 import 5 is_ascii std_core$Intrinsic$is_ascii host=is_ascii result_type=18 param_types=2 param_c_out= param_by_address= (string) -> bool

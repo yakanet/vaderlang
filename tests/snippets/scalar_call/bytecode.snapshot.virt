@@ -4,8 +4,8 @@ type 1 scalar i32
 export main 2
 
 fn 0 snippet$add (i32,i32) -> i32
-  local.get 0   ; arg 0
   local.get 1   ; arg 1
+  local.get 0   ; arg 0
   i32.checked_add
   return
 end

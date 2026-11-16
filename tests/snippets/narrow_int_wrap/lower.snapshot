@@ -56,7 +56,7 @@
           __buf_12: Buffer = std_core$Intrinsic$new_byte_buffer(i64(30))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "returned: ")
-          __off_13 = std.core.write_unsigned(__buf_12, __off_13, snippet.add_u8(a, b))
+          __off_13 = std.core.write_unsigned(__buf_12, __off_13, a +% b)
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       s: i8 = i8(@array.len(argv) + i64(126))

@@ -219,15 +219,18 @@ register :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> voi
 }
 
 // What `decl` does when it only forwards its parameters to a member of
-// `Intrinsic` the table lists (`forwarded_intrinsic`): the member's effects, so a
-// diagnostic names `decl` and the value it was handed, never the member. Null for
-// any other function.
+// `Intrinsic` (`forwarded_operation`): the member's effects, so a diagnostic
+// names `decl` and the value it was handed, never the member. Null for any other
+// function, a native operator's included: its body says what it does.
 forwarded_effects :: fn(
     index: CalleeIndex,
     decl: AST.FnDecl,
     typed: TypedProgram,
 ) -> ParamEffects[] | null {
-    member :: forwarded_intrinsic(decl, typed) else return null
+    member :: forwarded_operation(decl, typed) else return null
+    if member is ForwardedOperator {
+        return null
+    }
     return intrinsic_member_effects(member.name, index.paths.path_to(ELEMENT))
 }
 

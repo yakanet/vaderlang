@@ -56,7 +56,6 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 #define VADER_COMPTIME_ATOM_COUNT 13u
 
 static int32_t snippet$total(void* l0);
-static int32_t snippet$offset(uint8_t l0, int32_t l1);
 static int32_t snippet$louder(uint8_t l0, int32_t l1, bool l2);
 static vader_box_t snippet$last_seen(void* l0);
 static void* snippet$Tally$std_core$Add$add(void* l0, int64_t l1);
@@ -167,12 +166,6 @@ static int32_t snippet$total(void* l0) {
     return l1;
 }
 
-static int32_t snippet$offset(uint8_t l0, int32_t l1) {
-    int32_t t0;
-    t0 = vader_chk_sub(i32, ((int32_t) (uint8_t) l0), l1);
-    return t0;
-}
-
 static int32_t snippet$louder(uint8_t l0, int32_t l1, bool l2) {
     if (l2) {
         return ((int32_t) (uint8_t) l0);
@@ -269,7 +262,7 @@ static int32_t snippet$main(void* l0) {
     VADER_ARRAY_CHECK_INDEX(_a1_slotarr, INT32_C(1))
     t1 = vader_array_read_u8(_a1_slotarr, vader_array_offset(_a1_slotarr) + (size_t) INT32_C(1), 2u);
     t2 = ((uint8_t) t1.payload.i);
-    t0 = snippet$offset(t2, INT32_C(300));
+    t0 = vader_chk_sub(i32, ((int32_t) (uint8_t) t2), INT32_C(300));
     l5 = ((int64_t) (int32_t) t0);
     l4 = std_core$write_int(l3, l4, l5);
     t3 = std_core$finish_buffer(l3, l4);

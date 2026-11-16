@@ -43,11 +43,11 @@
             "op": "add",
             "left": {
               "kind": "IdentExpr",
-              "name": "a"
+              "name": "b"
             },
             "right": {
               "kind": "IdentExpr",
-              "name": "b"
+              "name": "a"
             }
           }
         },

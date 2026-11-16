@@ -1,12 +1,14 @@
 // vader/front/typecheck/intrinsic_forwarder: a function that only forwards its
-// parameters to a member of `std/core`'s `Intrinsic`.
+// parameters to a primitive operation: a member of `std/core`'s `Intrinsic`, or
+// a native operator.
 //
 // The standard library wraps the members of `Intrinsic` in functions of its own
-// (`byte_len :: fn(s: string) -> i64 = Intrinsic.byte_len(s)`), free functions
-// and impl members alike. What such a function does is what its member does: the
-// lowering lowers a call to it as the member's (`vader/lower/intrinsic_forwarders`),
-// and the effects summarise it by the member's. The rule reads the shape alone,
-// never a name of the library.
+// (`byte_len :: fn(s: string) -> i64 = Intrinsic.byte_len(s)`), and implements
+// the traits of the primitives with their native operators
+// (`add :: fn(self, other: i32) -> i32 = self + other`). What such a function
+// does is what its operation does: the lowering lowers a call to it as the
+// operation (`vader/lower/intrinsic_forwarders`), and the effects summarise it by
+// the operation's. The rule reads the shape alone, never a name of the library.
 
 module "vader/front/typecheck"
 
@@ -14,14 +16,49 @@ AST :: import "toolchain/ast"
 import "vader/core/symbol"
 import "vader/core/types"
 
-/// The member of `Intrinsic` `decl` calls when its body is that call alone, on its
-/// parameters in order, and it takes and returns what the member does ; null for
-/// any other function.
+/// A native operator a function applies to its two parameters, in order
+/// (`forwarded_operation`).
+export ForwardedOperator :: struct {
+    op: AST.BinaryOp
+    /// The function's signature, which is the operator's: its operands' types,
+    /// then its result.
+    signature: FnType
+}
+
+/// What a function that only forwards its parameters runs : a member of
+/// `Intrinsic`, or a native operator on two primitives.
+export Forwarding :: AST.FnDecl | ForwardedOperator
+
+/// What `decl` runs when its body is a single primitive operation on its
+/// parameters in order : a call to a member of `Intrinsic`, taking and returning
+/// what the member does, or a native operator on two primitives
+/// (`add :: fn(self, other: i32) -> i32 = self + other`) ; null for any other
+/// function.
 ///
 /// @param decl   a function, free or an impl member.
 /// @param typed  the module that checked `decl`.
-export forwarded_intrinsic :: fn(decl: AST.FnDecl, typed: TypedProgram) -> AST.FnDecl | null {
-    call :: single_call(decl) else return null
+export forwarded_operation :: fn(decl: AST.FnDecl, typed: TypedProgram) -> Forwarding | null {
+    body :: decl.body else return null
+    if !body.stmts.is_empty() {
+        return null
+    }
+    trailing :: body.trailing else return null
+    if trailing is AST.CallExpr {
+        return forwarded_intrinsic(trailing, decl, typed)
+    }
+    if trailing is AST.BinaryExpr {
+        return forwarded_operator(trailing, decl, typed)
+    }
+    return null
+}
+
+// The member of `Intrinsic` `call`, the whole body of `decl`, calls on the
+// parameters of `decl` ; null when it calls anything else.
+forwarded_intrinsic :: fn(
+    call: AST.CallExpr,
+    decl: AST.FnDecl,
+    typed: TypedProgram,
+) -> AST.FnDecl | null {
     intrinsic :: typed.intrinsic_symbol else return null
     trait_decl :: typed.trait_decls[intrinsic.id] else return null
     member :: recorded_decl(typed, call) else return null
@@ -34,6 +71,46 @@ export forwarded_intrinsic :: fn(decl: AST.FnDecl, typed: TypedProgram) -> AST.F
     return member
 }
 
+// The native operator `binary`, the whole body of `decl`, applies to the two
+// parameters of `decl` ; null for an operator a trait serves, one the lowering
+// rewrites (a string `+` concatenates, `&&` short-circuits, `in` and `is` test),
+// operands that are not the parameters or not scalars, or a function whose types
+// are not the operator's (a widened result), whose call would convert.
+forwarded_operator :: fn(
+    binary: AST.BinaryExpr,
+    decl: AST.FnDecl,
+    typed: TypedProgram,
+) -> ForwardedOperator | null {
+    if decl.params.len() != 2 || !is_ident_named(binary.left, decl.params[0].name) {
+        return null
+    }
+    if !is_ident_named(binary.right, decl.params[1].name) || is_lowered_apart(binary.op) {
+        return null
+    }
+    if sites_of(typed.call_sites, .Operator)[binary.id] !is Builtin {
+        return null
+    }
+    left :: typed.expr_types[binary.left.id] else return null
+    right :: typed.expr_types[binary.right.id] else return null
+    result :: typed.expr_types[binary.id] else return null
+    if scalar_backing(left) == null || scalar_backing(result) == null {
+        return null
+    }
+    if equals_type(result, TY_STRING) {
+        return null
+    }
+    own :: declared_fn_type(typed, decl)
+    if own !is FnType || !equals_type(own, mk_fn([left, right], result)) {
+        return null
+    }
+    return ForwardedOperator { .op = binary.op, .signature = own }
+}
+
+// Whether the lowering rewrites `op` rather than applying it to its two evaluated
+// operands: `&&` and `||` short-circuit, `is`, `in` and `!in` test.
+is_lowered_apart :: fn(op: AST.BinaryOp) =
+    op == .And || op == .Or || op == .Is || op == .In || op == .NotIn
+
 // Whether `member` is one of the members of `trait_decl`.
 declares :: fn(trait_decl: AST.TraitDecl, member: AST.FnDecl) -> bool {
     for m in trait_decl.members {
@@ -44,27 +121,13 @@ declares :: fn(trait_decl: AST.TraitDecl, member: AST.FnDecl) -> bool {
     return false
 }
 
-// The call that is the whole body of `decl` ; null for any other body.
-single_call :: fn(decl: AST.FnDecl) -> AST.CallExpr | null {
-    body :: decl.body else return null
-    if !body.stmts.is_empty() {
-        return null
-    }
-    trailing :: body.trailing else return null
-    if trailing is AST.CallExpr {
-        return trailing
-    }
-    return null
-}
-
 // Whether `call` passes the parameters of `decl`, in order, and nothing else.
 passes_parameters :: fn(call: AST.CallExpr, decl: AST.FnDecl) -> bool {
     if call.args.len() != decl.params.len() {
         return false
     }
     for i in 0..<decl.params.len() {
-        value :: call.args[i].value
-        if value !is AST.IdentExpr || value.name != decl.params[i].name {
+        if !is_ident_named(call.args[i].value, decl.params[i].name) {
             return false
         }
     }

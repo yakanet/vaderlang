@@ -1,12 +1,14 @@
 // vader/lower/intrinsic_forwarders: the functions that only forward their
-// parameters to a member of `std/core`'s `Intrinsic`.
+// parameters to a primitive operation.
 //
 // The standard library wraps the members of `Intrinsic` in functions of its own
-// (`byte_len :: fn(s: string) -> i64 = Intrinsic.byte_len(s)`), free functions
-// and impl members alike. A call to such a function is lowered as a call to the
-// member: no frame for the wrapper, and an array member stays the node the
-// lowering's own passes read (`LoweredArrayPush`). Which function forwards is
-// the typecheck's to say (`forwarded_intrinsic`).
+// (`byte_len :: fn(s: string) -> i64 = Intrinsic.byte_len(s)`), and implements
+// the traits of the primitives with their native operators (`add :: fn(self,
+// other: i32) -> i32 = self + other`). A call to such a function is lowered as
+// the operation: no frame for the wrapper, an operator stays the operator the
+// later passes read, and an array member stays the node the lowering's own
+// passes read (`LoweredArrayPush`). Which function forwards is the typecheck's
+// to say (`forwarded_operation`).
 
 module "vader/lower"
 
@@ -18,17 +20,73 @@ import "vader/core/types"
 import "vader/front/typecheck"
 import "vader/lower/ir"
 
-/// The member of `Intrinsic` `decl` calls when its body is that call alone, on its
+/// What `decl` runs when its body is a single primitive operation on its
 /// parameters in order ; null for any other body.
 ///
 /// @param project  holds the table (`find_forwarders`).
 /// @param decl     a function, free or an impl member.
-forwarded_member :: fn(project: LowerProjectCtx, decl: FnDecl) -> FnDecl | null =
-    project.intrinsic_forwarders[decl.id]
+forwarding_of :: fn(project: LowerProjectCtx, decl: FnDecl) -> Forwarding | null =
+    project.forwarders[decl.id]
 
-/// A call the lowering makes itself to the library's function `sym` : a call to the
-/// member of `Intrinsic` it forwards to, else to `sym`, harvested for
-/// materialisation (a call to a function nothing harvested names no callee).
+/// The signature of the operation `forwarding` at a call whose first argument has
+/// the type `first` : its parameters are the types the arguments go in as.
+///
+/// @param forwarding  what the forwarder runs.
+/// @param first       the type of the call's first argument ; null when it has none.
+forwarding_signature :: fn(ctx: FnLowerCtx, forwarding: Forwarding, first: Type | null) -> FnType {
+    if forwarding is ForwardedOperator {
+        return forwarding.signature
+    }
+    return intrinsic_signature(ctx, forwarding, first)
+}
+
+/// The operation `forwarding` on `operands`, each lowered for its parameter.
+///
+/// @param forwarding   what the forwarder runs.
+/// @param signature    its signature at the call (`forwarding_signature`).
+/// @param operands     its arguments.
+/// @param type         the call's result type.
+/// @param span         the call.
+/// @param callee_span  what names the callee.
+lower_forwarding :: fn(
+    ctx: FnLowerCtx,
+    forwarding: Forwarding,
+    signature: FnType,
+    operands: LoweredExpr[],
+    type: Type,
+    span: Span,
+    callee_span: Span,
+) -> LoweredExpr {
+    if forwarding is ForwardedOperator {
+        return LoweredBinary {
+            .span = span,
+            .type = type,
+            .op = lower_binary_op(forwarding.op),
+            .left = operands[0],
+            .right = operands[1],
+        }
+    }
+    return lower_intrinsic_member(ctx, forwarding, signature, operands, type, span, callee_span)
+}
+
+/// The operation `forwarding` on `operands`, already lowered, at a call the
+/// lowering makes itself.
+///
+/// @param operands  the arguments, each of its parameter's type.
+lower_forwarding_on :: fn(
+    ctx: FnLowerCtx,
+    forwarding: Forwarding,
+    operands: LoweredExpr[],
+    type: Type,
+    span: Span,
+) -> LoweredExpr {
+    signature :: forwarding_signature(ctx, forwarding, first_operand_type(operands))
+    return lower_forwarding(ctx, forwarding, signature, operands, type, span, span)
+}
+
+/// A call the lowering makes itself to the library's function `sym` : the
+/// operation it forwards to, else a call to `sym`, harvested for materialisation
+/// (a call to a function nothing harvested names no callee).
 ///
 /// @param sym       a non-generic function of the library.
 /// @param operands  its arguments, each of its parameter's type.
@@ -42,42 +100,21 @@ library_call :: fn(
 ) -> LoweredExpr {
     decl :: ctx.typed.fn_decls[sym.id]
     if decl != null {
-        member :: forwarded_member(ctx.project, decl)
-        if member != null {
-            return forwarded_call(ctx, member, operands, type, span)
+        forwarding :: forwarding_of(ctx.project, decl)
+        if forwarding != null {
+            return lower_forwarding_on(ctx, forwarding, operands, type, span)
         }
     }
     register_nongeneric_imported_fn(ctx, sym)
     return mk_lowered_call(sym, operands, type, span)
 }
 
-/// The call of a forwarder already lowered on `operands` : the member `member` of
-/// `Intrinsic` called on them.
-///
-/// @param member    the member the forwarder calls.
-/// @param operands  its arguments, each of its parameter's type.
-/// @param type      the call's result type.
-forwarded_call :: fn(
-    ctx: FnLowerCtx,
-    member: FnDecl,
-    operands: LoweredExpr[],
-    type: Type,
-    span: Span,
-) -> LoweredExpr {
-    signature :: intrinsic_signature(ctx, member, first_operand_type(operands))
-    return lower_intrinsic_member(ctx, member, signature, operands, type, span, span)
-}
-
 // The type of the first of `operands` ; null when there is none.
-first_operand_type :: fn(operands: LoweredExpr[]) -> Type | null {
-    if operands.is_empty() {
-        return null
-    }
-    return operands[0].type
-}
+first_operand_type :: fn(operands: LoweredExpr[]) -> Type | null =
+    if operands.is_empty() { null } else { operands[0].type }
 
-/// Note every function of the project that forwards to a member of `Intrinsic`
-/// (`forwarded_intrinsic`), before anything is lowered.
+/// Note every function of the project that forwards to a primitive operation
+/// (`forwarded_operation`), before anything is lowered.
 ///
 /// @param project  the project's context, whose table it fills.
 find_forwarders :: fn(project: LowerProjectCtx) -> void {
@@ -95,9 +132,9 @@ find_forwarders :: fn(project: LowerProjectCtx) -> void {
     }
 }
 
-// Note `decl`, checked in the module `typed`, when it forwards to a member of
-// `Intrinsic`.
+// Note `decl`, checked in the module `typed`, when it forwards to a primitive
+// operation.
 note_forwarder :: fn(project: LowerProjectCtx, decl: FnDecl, typed: TypedProgram) -> void {
-    member :: forwarded_intrinsic(decl, typed) else return
-    project.intrinsic_forwarders[decl.id] = member
+    forwarding :: forwarded_operation(decl, typed) else return
+    project.forwarders[decl.id] = forwarding
 }

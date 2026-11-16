@@ -29,6 +29,22 @@ export Intrinsic :: trait {
     bytes :: fn(s: string) -> u8[]
     /// The string that holds the bytes `bs`.
     bytes_to_string :: fn(bs: u8[]) -> string
+    /// The hash of `s`, computed once when it is interned.
+    string_hash :: fn(s: string) -> u64
+    /// `a` against `b`, byte by byte: negative when `a` sorts first, 0 when they
+    /// are equal, positive otherwise.
+    string_compare :: fn(a: string, b: string) -> i32
+
+    // ---- floats ---------------------------------------------------------
+
+    /// The IEEE 754 bit pattern of `x`.
+    f64_to_bits :: fn(x: f64) -> u64
+    /// The `f64` whose IEEE 754 bit pattern is `bits`.
+    bits_to_f64 :: fn(bits: u64) -> f64
+    /// The IEEE 754 bit pattern of `x`.
+    f32_to_bits :: fn(x: f32) -> u32
+    /// The `f32` whose IEEE 754 bit pattern is `bits`.
+    bits_to_f32 :: fn(bits: u32) -> f32
 
     // ---- arrays ---------------------------------------------------------
 

@@ -9,7 +9,9 @@ target :: fn() -> string = "darwin-arm64"
 
 alias :: fn(name: string) -> string = "@${name}"
 
-partial :: fn(done: i32, total: i32) -> bool = done < total
+// `total > done` keeps the call to `partial` in the output: a body that applies an
+// operator to the parameters in their order is lowered as the operator.
+partial :: fn(done: i32, total: i32) -> bool = total > done
 
 main :: fn() -> i32 {
     println(target())

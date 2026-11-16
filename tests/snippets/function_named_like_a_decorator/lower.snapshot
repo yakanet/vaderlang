@@ -8,7 +8,7 @@
       concat_2("@", name)
   }
   snippet.partial :: fn(done: i32, total: i32) -> bool {  // snippet$partial
-      done < total
+      total > done
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       std.console.println<string>(snippet.target())

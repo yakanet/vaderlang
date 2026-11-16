@@ -195,8 +195,14 @@ export LoweredEntry :: struct {
 /// CFG -> bytecode tail. This is the live-set lever for `vader run` and
 /// `dump --stage=bytecode|c` : the typecheck-era maps no longer coexist with
 /// the emitter's own tables at the memory peak.
-export lower_to_entry :: fn(file: Path, project_root: string | null) -> LoweredEntry =
-    lower_to_entry_with(file, [], project_root)
+///
+/// @param keep_frames  a call to a function that only forwards to a primitive
+///                     operation stays a call (`begin_lowering`): the debugger's.
+export lower_to_entry :: fn(
+    file: Path,
+    project_root: string | null,
+    keep_frames: bool = false,
+) -> LoweredEntry = lower_to_entry_with(file, [], project_root, keep_frames = keep_frames)
 
 /// Front end + lower, in one call.
 ///
@@ -211,13 +217,17 @@ export lower_to_entry :: fn(file: Path, project_root: string | null) -> LoweredE
 /// @param verify              run the IR verifiers between passes (`--verify`).
 /// @param under_test          the entry is lowered to run its tests: every other
 ///                            module is loaded without its own.
+/// @param keep_frames         a call to a function that only forwards to a
+///                            primitive operation stays a call (`begin_lowering`).
 export lower_to_entry_with :: fn(
     file: Path, include_path_flags: string[], project_root: string | null,
     target: Target | null = null, verify: bool = false, under_test: bool = false,
+    keep_frames: bool = false,
 ) -> LoweredEntry =
     lower_to_entry_from(
         prepare_evaluated_project_with(file, include_path_flags, project_root, target, under_test),
         verify,
+        keep_frames,
     )
 
 /// Lower an ALREADY-EVALUATED pipeline.
@@ -226,9 +236,15 @@ export lower_to_entry_with :: fn(
 /// which is ~45% of a build. `lower_to_entry_with` is this, preceded by the
 /// front end.
 ///
-/// @param pipeline  the evaluated project to lower.
-/// @param verify    run the IR verifiers between passes (`--verify`).
-export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline, verify: bool = false) -> LoweredEntry {
+/// @param pipeline     the evaluated project to lower.
+/// @param verify       run the IR verifiers between passes (`--verify`).
+/// @param keep_frames  a call to a function that only forwards to a primitive
+///                     operation stays a call (`begin_lowering`).
+export lower_to_entry_from :: fn(
+    pipeline: EvaluatedPipeline,
+    verify: bool = false,
+    keep_frames: bool = false,
+) -> LoweredEntry {
     entry :: entry_main_name(pipeline.typed, pipeline.loaded.entry)
     // Don't lower a program the front end rejected : feeding the bytecode
     // emitter an ill-typed shape (e.g. a UFCS method on an unimported
@@ -240,7 +256,7 @@ export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline, verify: bool = fal
     lowered :: if any_error_diag(gather_pipeline_diags(pipeline)) {
         new_lowered_project()
     } else {
-        lower_evaluated(pipeline, lower_diags)
+        lower_evaluated(pipeline, lower_diags, keep_frames)
     }
     Prof.prof_end(.Lower)
     // Gathered once lowered: a value baked for the lowering reports there.
@@ -259,8 +275,12 @@ export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline, verify: bool = fal
 // values of a dependency the program reads. A value that fails leaves nothing to
 // lower: its error is in the pipeline's comptime diagnostics. Called inside the
 // `.Lower` profile bracket, which it leaves for the bake.
-lower_evaluated :: fn(pipeline: EvaluatedPipeline, diags: Diagnostic[]) -> LoweredProject {
-    lowering :: begin_lowering(pipeline.loaded, pipeline.typed, pipeline.evaluated, diags)
+lower_evaluated :: fn(
+    pipeline: EvaluatedPipeline,
+    diags: Diagnostic[],
+    keep_frames: bool,
+) -> LoweredProject {
+    lowering :: begin_lowering(pipeline.loaded, pipeline.typed, pipeline.evaluated, diags, keep_frames)
     if lowering.awaited.len() > 0 {
         owners :: lowering.awaited.map((constant) -> constant.module).distinct().collect()
         Prof.prof_end(.Lower)

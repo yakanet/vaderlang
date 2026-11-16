@@ -305,9 +305,9 @@ LowerProjectCtx :: struct {
     /// to bodyless declarations (`surface_intrinsic_members`).
     referenced_intrinsics: Map<string, FnType> = Map<string, FnType> {}
 
-    /// The member of `Intrinsic` each function that only forwards its parameters
-    /// to one calls, by the function's node id (`find_forwarders`).
-    intrinsic_forwarders: Map<i64, FnDecl> = Map<i64, FnDecl> {}
+    /// What each function that only forwards its parameters to a primitive
+    /// operation runs, by the function's node id (`find_forwarders`).
+    forwarders: Map<i64, Forwarding> = Map<i64, Forwarding> {}
 
     /// Trait names reached by an ERASED virtual dispatch (op-overload on a
     /// `T`/`Any` operand, a bounded-trait method call on an erased receiver,

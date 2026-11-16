@@ -109,7 +109,7 @@ static vader_string_t snippet$alias(vader_string_t l0) {
 }
 
 static bool snippet$partial(int32_t l0, int32_t l1) {
-    return (l0 < l1);
+    return (l1 > l0);
 }
 
 static int32_t snippet$main(void) {

@@ -19,7 +19,7 @@ const size_t vader_type_info_count = 2;
 
 static int32_t snippet$add(int32_t l0, int32_t l1) {
     int32_t t0;
-    t0 = vader_chk_add(i32, l0, l1);
+    t0 = vader_chk_add(i32, l1, l0);
     return t0;
 }
 

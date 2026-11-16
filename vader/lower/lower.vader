@@ -62,12 +62,19 @@ export Lowering :: struct {
 /// @param loaded     the loaded project (for source decls per module).
 /// @param typed      the typed project (for side-tables).
 /// @param evaluated  the comptime engine's output.
-/// @param diags      diagnostics emitted by the lowerer (M5xxx codes).
-/// @return           the lowering to hand to `finish_lowering`, once the
-///                   constants of its `awaited` have their value.
+/// @param diags        diagnostics emitted by the lowerer (M5xxx codes).
+/// @param keep_frames  lower a call to a function that only forwards to a primitive
+///                     operation as a call, not as the operation : a debugged
+///                     program keeps every frame its source writes.
+/// @return             the lowering to hand to `finish_lowering`, once the
+///                     constants of its `awaited` have their value.
 export begin_lowering :: fn(
-    loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject, diags: Diagnostic[],
-) -> Lowering = begin_lowering_of(loaded, typed, evaluated, [], diags)
+    loaded: LoadedProject,
+    typed: TypedProject,
+    evaluated: EvaluatedProject,
+    diags: Diagnostic[],
+    keep_frames: bool = false,
+) -> Lowering = begin_lowering_of(loaded, typed, evaluated, [], diags, keep_frames)
 
 /// VM-backed-comptime staging variant : lower ONLY the closure reachable from
 /// `eager_modules` (the modules owning `vm_required` @comptime consts) instead
@@ -88,14 +95,16 @@ export lower_project_staged :: fn(
 
 begin_lowering_of :: fn(
     loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject,
-    eager_modules: string[], diags: Diagnostic[],
+    eager_modules: string[], diags: Diagnostic[], keep_frames: bool = false,
 ) -> Lowering {
     // Staging mode narrows the eager (with-body) set from the single entry to
     // `eager_modules`; the whole-project generic-struct materialization is
     // skipped since the comptime callee closure (bigint kernels) needs none.
     is_staging :: eager_modules.len() > 0
     project_ctx :: new_lower_project_ctx(evaluated, loaded, typed)
-    find_forwarders(project_ctx)
+    if !keep_frames {
+        find_forwarders(project_ctx)
+    }
     // Populate the lowerer's core-symbol cache directly from the std/core
     // module (one seed). Lookups like `find_core_type("Yield", [T])` go
     // through this cache.

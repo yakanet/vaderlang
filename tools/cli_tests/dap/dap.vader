@@ -213,6 +213,38 @@ test_a_breakpoint_stops_the_program_and_continue_resumes_it :: fn() -> void {
     assert_eq(written(frames, "stdout"), "hello\n42\n")
 }
 
+// A program that calls a function whose body is one operator on its parameters,
+// which a build lowers as the operator at the call.
+ADD :: r"""
+    module "snippet"
+
+    import "std/console"
+
+    add :: fn(a: i32, b: i32) -> i32 = a + b
+
+    main :: fn() -> i32 {
+        println(add(2, 3))
+        return 0
+    }
+    """
+
+// The line of `add` in `ADD`.
+ADD_BODY :: 5
+
+@test
+test_a_breakpoint_in_a_function_of_one_operator_stops_in_its_frame :: fn() -> void {
+    frames :: debug(
+        "one_operator",
+        ADD,
+        [ADD_BODY],
+        [["stackTrace", on_thread(1)], ["continue", on_thread(1)]],
+    )
+    assert_eq(body_text(event_named(frames, "stopped"), "reason"), "breakpoint")
+    stack :: stack_of(response_to(frames, "stackTrace"))
+    assert_eq(stack.map((f) -> name_of(f)).collect().join(" "), "add main")
+    assert_eq(written(frames, "stdout"), "5\n")
+}
+
 // A program whose locals come one after the other.
 SLICES :: r"""
     module "snippet"

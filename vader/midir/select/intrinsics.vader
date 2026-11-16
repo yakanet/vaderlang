@@ -63,6 +63,11 @@ OPS_BY_HOST: Map<string, Op>: @comptime {
     out[intrinsic("buffer_memory_copy")] = MemoryCopy {}
     out[intrinsic("buffer_intern_string")] = BufferToString {}
     out[intrinsic("buffer_write_string")] = BufferWriteString {}
+    out[intrinsic("string_compare")] = StringCompare {}
+    out[intrinsic("f64_to_bits")] = F64ToBits {}
+    out[intrinsic("bits_to_f64")] = BitsToF64 {}
+    out[intrinsic("f32_to_bits")] = F32ToBits {}
+    out[intrinsic("bits_to_f32")] = BitsToF32 {}
     return out
 }
 
@@ -114,6 +119,15 @@ import "std/testing"
     assert(load is LoadU8, "load_u8")
     compare :: intrinsic_op_for_mangled(r"std_core$string$Comparable$compare")
     assert(compare is StringCompare, "compare")
+}
+
+@test test_intrinsic_members_have_their_op :: fn() -> void {
+    compare :: intrinsic_op_for_mangled(r"std_core$Intrinsic$string_compare")
+    assert(compare is StringCompare, "string_compare")
+    assert(intrinsic_op_for_mangled(r"std_core$Intrinsic$f64_to_bits") is F64ToBits, "f64_to_bits")
+    assert(intrinsic_op_for_mangled(r"std_core$Intrinsic$bits_to_f64") is BitsToF64, "bits_to_f64")
+    assert(intrinsic_op_for_mangled(r"std_core$Intrinsic$f32_to_bits") is F32ToBits, "f32_to_bits")
+    assert(intrinsic_op_for_mangled(r"std_core$Intrinsic$bits_to_f32") is BitsToF32, "bits_to_f32")
 }
 
 @test test_intrinsic_op_for_mangled_i32_add :: fn() -> void {

@@ -56,7 +56,7 @@ compile_for_dap :: fn(program: string, no_hooks: bool) -> DapProgram {
                 + "the adapter's log says why",
         }
     }
-    le :: lower_to_entry(path, project_root)
+    le :: lower_to_entry(path, project_root, keep_frames = true)
     pruned :: prune_unreachable_fns(le.lowered, false)
     cfg_diags: Diagnostic[]: []
     opts :: EmitOptions { .optimize = false, .keep_mangles = [], .want_debug = true }

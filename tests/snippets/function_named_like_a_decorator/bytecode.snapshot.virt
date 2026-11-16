@@ -34,9 +34,9 @@ fn 1 snippet$alias (string) -> string
 end
 
 fn 2 snippet$partial (i32,i32) -> bool
-  local.get 0   ; arg 0
   local.get 1   ; arg 1
-  i32.lt
+  local.get 0   ; arg 0
+  i32.gt
   return
 end
 

@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.add :: fn(a: i32, b: i32) -> i32 {  // snippet$add
-      a + b
+      b + a
   }
   snippet.square :: fn(x: i32) -> i32 {  // snippet$square
       x * x

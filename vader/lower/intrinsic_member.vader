@@ -33,12 +33,12 @@ try_lower_intrinsic_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
     }
     member :: recorded_decl(ctx.typed, call) else return null
     observe_inlined(ctx, call, member, member.name)
-    return lower_member_on_arguments(ctx, member, call, type)
+    return lower_forwarding_on_arguments(ctx, member, call, type)
 }
 
-/// A call to a function that only forwards its parameters to a member of
-/// `Intrinsic` (`forwarded_member`), but a method-form one, which
-/// `method_target` decides : the member called on the call's arguments.
+/// A call to a function that only forwards its parameters to a primitive
+/// operation (`forwarding_of`), but a method-form one, which `method_target`
+/// decides : the operation on the call's arguments.
 ///
 /// @param call  the call.
 /// @param type  its result type.
@@ -49,30 +49,27 @@ try_lower_forwarded_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
         return null
     }
     decl :: recorded_decl(ctx.typed, call) else return null
-    member :: forwarded_member(ctx.project, decl) else return null
+    forwarding :: forwarding_of(ctx.project, decl) else return null
     observe_inlined(ctx, call, decl, decl.name)
-    return lower_member_on_arguments(ctx, member, call, type)
+    return lower_forwarding_on_arguments(ctx, forwarding, call, type)
 }
 
-// `member` called on the arguments of `call`, each lowered for its parameter.
-lower_member_on_arguments :: fn(
+// The operation `forwarding` on the arguments of `call`, each lowered for its
+// parameter.
+lower_forwarding_on_arguments :: fn(
     ctx: FnLowerCtx,
-    member: FnDecl,
+    forwarding: Forwarding,
     call: CallExpr,
     type: Type,
 ) -> LoweredExpr {
-    signature :: intrinsic_signature(ctx, member, first_argument_type(ctx, call))
+    signature :: forwarding_signature(ctx, forwarding, first_argument_type(ctx, call))
     operands :: lower_call_args(ctx, call.args, signature.params, 0)
-    return lower_intrinsic_member(ctx, member, signature, operands, type, call.span, call.callee.span)
+    return lower_forwarding(ctx, forwarding, signature, operands, type, call.span, call.callee.span)
 }
 
 // The type of the first argument of `call` ; null when it has none.
-first_argument_type :: fn(ctx: FnLowerCtx, call: CallExpr) -> Type | null {
-    if call.args.is_empty() {
-        return null
-    }
-    return ctx.types.expr_type(call.args[0].value)
-}
+first_argument_type :: fn(ctx: FnLowerCtx, call: CallExpr) -> Type | null =
+    if call.args.is_empty() { null } else { ctx.types.expr_type(call.args[0].value) }
 
 /// The signature of `member` of `Intrinsic` at a call whose first argument has the
 /// type `first` : a generic member's parameters bound by that argument, as every

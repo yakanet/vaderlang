@@ -8,7 +8,9 @@
 
 module "snippet"
 
-add :: fn(a: i32, b: i32) -> i32 = a + b
+// `b + a` keeps the call: a body that applies an operator to the parameters in
+// their order is lowered as the operator.
+add :: fn(a: i32, b: i32) -> i32 = b + a
 
 square :: fn(x: i32) -> i32 = x * x
 

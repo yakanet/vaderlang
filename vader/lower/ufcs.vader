@@ -59,14 +59,15 @@ FreeFnTarget :: struct {
     params: Type[]
 }
 
-/// A function that only forwards to a member of `Intrinsic` (`forwarded_member`):
-/// the member, called on the receiver and the arguments.
+/// A function that only forwards to a primitive operation (`forwarding_of`): the
+/// operation, on the receiver and the arguments.
 IntrinsicTarget :: struct {
     /// The function the site recorded.
     forwarder: FnDecl
-    /// The member of `Intrinsic` it forwards to.
-    member: FnDecl
-    /// The member's signature at the site, the receiver's parameter first.
+    /// What it runs.
+    forwarding: Forwarding
+    /// Its signature at the site, the receiver's parameter first
+    /// (`forwarding_signature`).
     signature: FnType
 }
 
@@ -106,12 +107,12 @@ method_target :: fn(
     // file can see. In a generic body it chose against the type parameters, and
     // every instance holds to that choice.
     if callee is DirectFn {
-        member :: forwarded_member(ctx.project, callee.decl)
-        if member != null {
+        forwarding :: forwarding_of(ctx.project, callee.decl)
+        if forwarding != null {
             return IntrinsicTarget {
                 .forwarder = callee.decl,
-                .member = member,
-                .signature = intrinsic_signature(ctx, member, receiver.type),
+                .forwarding = forwarding,
+                .signature = forwarding_signature(ctx, forwarding, receiver.type),
             }
         }
         free :: ctx.project.fn_symbols[callee.decl.id]
@@ -193,9 +194,9 @@ build_method_call :: fn(
 ) -> LoweredExpr {
     span :: node.span
     return match target {
-        is IntrinsicTarget -> lower_intrinsic_member(
+        is IntrinsicTarget -> lower_forwarding(
             ctx,
-            target.member,
+            target.forwarding,
             target.signature,
             operands,
             ret,

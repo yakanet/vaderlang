@@ -117,14 +117,14 @@
           "stmts": [],
           "trailing": {
             "kind": "BinaryExpr",
-            "op": "lt",
+            "op": "gt",
             "left": {
               "kind": "IdentExpr",
-              "name": "done"
+              "name": "total"
             },
             "right": {
               "kind": "IdentExpr",
-              "name": "total"
+              "name": "done"
             }
           }
         },
