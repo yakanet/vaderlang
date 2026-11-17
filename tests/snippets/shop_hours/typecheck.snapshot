@@ -7,11 +7,12 @@
   ConstDecl      Opening              :: type
   EnumDecl       Weekday              :: Weekday
   expr 10:17    StringLitExpr  :: string
-  expr 14:39    MatchExpr      :: string
-  expr 14:45    IdentExpr      :: Discount
-  expr 15:18    StringLitExpr  :: string
+  expr 11:17    StringLitExpr  :: string
+  expr 15:39    MatchExpr      :: string
+  expr 15:45    IdentExpr      :: Discount
   expr 16:18    StringLitExpr  :: string
   expr 17:18    StringLitExpr  :: string
+  expr 18:18    StringLitExpr  :: string
   expr 21:14    IdentExpr      :: Weekday
   expr 21:5     IfExpr         :: void
   expr 21:8     BinaryExpr     :: bool
@@ -55,8 +56,6 @@
   expr 38:13    StringLitExpr  :: string
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(T) -> void
-  expr 3:39     MatchExpr      :: string
-  expr 3:45     IdentExpr      :: Weekday
   expr 40:13    StringLitExpr  :: string
   expr 40:16    BinaryExpr     :: bool
   expr 40:16    IdentExpr      :: i64
@@ -80,7 +79,8 @@
   expr 49:25    IdentExpr      :: i32
   expr 49:5     CallExpr       :: void
   expr 49:5     IdentExpr      :: fn(T) -> void
-  expr 4:17     StringLitExpr  :: string
+  expr 4:39     MatchExpr      :: string
+  expr 4:45     IdentExpr      :: Weekday
   expr 5:17     StringLitExpr  :: string
   expr 6:17     StringLitExpr  :: string
   expr 7:17     StringLitExpr  :: string

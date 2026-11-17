@@ -13,28 +13,29 @@
   StructDecl     Logged               :: Logged
   FnDecl         logged               :: fn(Log<A, R>, Site<Logged>, A, fn(A) -> R) -> R
   FnDecl         main                 :: fn() -> i32
-  expr 10:14    StructLitExpr  :: Count<i64, i64>
-  expr 11:13    StructLitExpr  :: Site<Counted>
-  expr 12:21    StringLitExpr  :: string
-  expr 13:19    StringLitExpr  :: string
-  expr 14:21    StringLitExpr  :: string
-  expr 15:19    IntrinsicCallExpr :: Counted
+  expr 10:22    StructLitExpr  :: fib$$Layer
+  expr 11:14    StructLitExpr  :: Count<i64, i64>
+  expr 12:13    StructLitExpr  :: Site<Counted>
+  expr 13:21    StringLitExpr  :: string
+  expr 14:19    StringLitExpr  :: string
   expr 15:21    DotVariantExpr :: DecoratorTarget
-  expr 15:30    IdentExpr      :: fn(i64) -> i64
+  expr 15:21    StringLitExpr  :: string
+  expr 16:19    IntrinsicCallExpr :: Counted
   expr 16:21    StringLitExpr  :: string
-  expr 19:14    CallExpr       :: fib$$Layer
-  expr 19:14    IdentExpr      :: fn() -> fib$$Layer
-  expr 20:12    CallExpr       :: i64
-  expr 20:12    FieldExpr      :: fn(Count<A, R>, Site<Counted>, A, fn(A) -> R) -> R
-  expr 20:22    FieldExpr      :: Count<i64, i64>
-  expr 20:22    IdentExpr      :: fib$$Layer
-  expr 20:35    FieldExpr      :: Site<Counted>
-  expr 20:35    IdentExpr      :: fib$$Layer
-  expr 20:47    IdentExpr      :: i64
-  expr 20:50    LambdaExpr     :: fn(i64) -> i64
-  expr 20:60    CallExpr       :: i64
-  expr 20:60    IdentExpr      :: fn(i64) -> i64
-  expr 20:77    IdentExpr      :: i64
+  expr 16:30    IdentExpr      :: fn(i64) -> i64
+  expr 20:14    CallExpr       :: fib$$Layer
+  expr 20:14    IdentExpr      :: fn() -> fib$$Layer
+  expr 21:12    CallExpr       :: i64
+  expr 21:12    FieldExpr      :: fn(Count<A, R>, Site<Counted>, A, fn(A) -> R) -> R
+  expr 21:22    FieldExpr      :: Count<i64, i64>
+  expr 21:22    IdentExpr      :: fib$$Layer
+  expr 21:35    FieldExpr      :: Site<Counted>
+  expr 21:35    IdentExpr      :: fib$$Layer
+  expr 21:47    IdentExpr      :: i64
+  expr 21:50    LambdaExpr     :: fn(i64) -> i64
+  expr 21:60    CallExpr       :: i64
+  expr 21:60    IdentExpr      :: fn(i64) -> i64
+  expr 21:77    IdentExpr      :: i64
   expr 25:15    CallExpr       :: R
   expr 25:15    IdentExpr      :: fn(A) -> R
   expr 25:23    IdentExpr      :: A
@@ -49,23 +50,23 @@
   expr 27:16    FieldExpr      :: Logged
   expr 27:16    FieldExpr      :: string
   expr 27:16    IdentExpr      :: Site<Logged>
-  expr 27:22    StructLitExpr  :: add$$Layer
   expr 27:38    IdentExpr      :: string
   expr 27:5     CallExpr       :: void
   expr 27:5     IdentExpr      :: fn(T) -> void
   expr 27:51    IdentExpr      :: R
   expr 28:12    IdentExpr      :: R
-  expr 28:14    StructLitExpr  :: Log<[i32, i32], i32>
-  expr 29:13    StructLitExpr  :: Site<Logged>
-  expr 30:21    StringLitExpr  :: string
-  expr 31:19    StringLitExpr  :: string
-  expr 32:21    StringLitExpr  :: string
-  expr 33:19    IntrinsicCallExpr :: Logged
-  expr 33:30    IdentExpr      :: fn(i32, i32) -> i32
+  expr 28:22    StructLitExpr  :: add$$Layer
+  expr 29:14    StructLitExpr  :: Log<[i32, i32], i32>
+  expr 30:13    StructLitExpr  :: Site<Logged>
+  expr 31:21    StringLitExpr  :: string
+  expr 32:19    StringLitExpr  :: string
+  expr 33:21    StringLitExpr  :: string
   expr 33:5     IfExpr         :: void
   expr 33:8     BinaryExpr     :: bool
   expr 33:8     IdentExpr      :: i64
   expr 34:16    IdentExpr      :: i64
+  expr 34:19    IntrinsicCallExpr :: Logged
+  expr 34:30    IdentExpr      :: fn(i32, i32) -> i32
   expr 36:12    BinaryExpr     :: i64
   expr 36:12    CallExpr       :: i64
   expr 36:12    IdentExpr      :: fn(i64) -> i64
@@ -75,25 +76,25 @@
   expr 36:25    IdentExpr      :: fn(i64) -> i64
   expr 36:29    BinaryExpr     :: i64
   expr 36:29    IdentExpr      :: i64
-  expr 37:14    CallExpr       :: add$$Layer
-  expr 37:14    IdentExpr      :: fn() -> add$$Layer
-  expr 38:12    CallExpr       :: i32
-  expr 38:12    IdentExpr      :: fn(Log<A, R>, Site<Logged>, A, fn(A) -> R) -> R
-  expr 38:19    FieldExpr      :: Log<[i32, i32], i32>
-  expr 38:19    IdentExpr      :: add$$Layer
-  expr 38:32    FieldExpr      :: Site<Logged>
-  expr 38:32    IdentExpr      :: add$$Layer
-  expr 38:44    SeqLitExpr     :: [i32, i32]
-  expr 38:45    IdentExpr      :: i32
-  expr 38:48    IdentExpr      :: i32
-  expr 38:52    LambdaExpr     :: fn([i32, i32]) -> i32
-  expr 38:62    CallExpr       :: i32
-  expr 38:62    IdentExpr      :: fn(i32, i32) -> i32
-  expr 38:79    FieldExpr      :: i32
-  expr 38:79    IdentExpr      :: [i32, i32]
-  expr 38:87    FieldExpr      :: i32
-  expr 38:87    IdentExpr      :: [i32, i32]
+  expr 38:14    CallExpr       :: add$$Layer
+  expr 38:14    IdentExpr      :: fn() -> add$$Layer
+  expr 39:12    CallExpr       :: i32
+  expr 39:12    IdentExpr      :: fn(Log<A, R>, Site<Logged>, A, fn(A) -> R) -> R
   expr 39:17    StringLitExpr  :: string
+  expr 39:19    FieldExpr      :: Log<[i32, i32], i32>
+  expr 39:19    IdentExpr      :: add$$Layer
+  expr 39:32    FieldExpr      :: Site<Logged>
+  expr 39:32    IdentExpr      :: add$$Layer
+  expr 39:44    SeqLitExpr     :: [i32, i32]
+  expr 39:45    IdentExpr      :: i32
+  expr 39:48    IdentExpr      :: i32
+  expr 39:52    LambdaExpr     :: fn([i32, i32]) -> i32
+  expr 39:62    CallExpr       :: i32
+  expr 39:62    IdentExpr      :: fn(i32, i32) -> i32
+  expr 39:79    FieldExpr      :: i32
+  expr 39:79    IdentExpr      :: [i32, i32]
+  expr 39:87    FieldExpr      :: i32
+  expr 39:87    IdentExpr      :: [i32, i32]
   expr 40:36    BinaryExpr     :: i32
   expr 40:36    IdentExpr      :: i32
   expr 40:40    IdentExpr      :: i32
@@ -105,7 +106,6 @@
   expr 44:13    IdentExpr      :: fn(i32, i32) -> i32
   expr 44:5     CallExpr       :: void
   expr 44:5     IdentExpr      :: fn(T) -> void
-  expr 9:22     StructLitExpr  :: fib$$Layer
 
 ## tests/snippets/interceptor_counts_calls/counter
   StructDecl     Count                :: Count<A, R>

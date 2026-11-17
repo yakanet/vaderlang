@@ -189,7 +189,7 @@ export LoweredEntry :: struct {
     /// `LoadedProject` is released. `build` ignores it (it surfaces all modules).
     in_scope_files: string[]
     /// The code the compiler wrote as source, which a build writes out.
-    generated: GeneratedSource[] = []
+    generated: GeneratedCode = GeneratedCode {}
 }
 
 /// Run load -> typecheck -> comptime -> lower, resolve the entry-fn name and
@@ -272,7 +272,7 @@ export lower_to_entry_from :: fn(
         .pre_diags   = pre_diags,
         .lower_diags = lower_diags,
         .in_scope_files = in_scope_diag_files(pipeline.loaded, dump_scope([], pipeline.loaded)),
-        .generated   = generated_sources(pipeline.loaded),
+        .generated   = generated_code(pipeline.loaded),
     }
 }
 
@@ -309,7 +309,7 @@ export CfgBytecode :: struct {
     /// Entry-subtree file set for the dump diagnostic filter (see `LoweredEntry`).
     in_scope_files: string[]
     /// The code the compiler wrote as source (see `LoweredEntry`).
-    generated: GeneratedSource[] = []
+    generated: GeneratedCode = GeneratedCode {}
     module:      BytecodeModule
     /// The accesses proven in bounds keep their check, under a message of its
     /// own (`BuildRequest.verify_bounds`): the C emit reads it.

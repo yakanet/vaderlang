@@ -13,6 +13,7 @@ import "std/console"
 import "std/fs"
 import "std/io"
 import "std/path"
+import "std/string"
 import "toolchain/diagnostics"
 import "toolchain/span"
 import "vader/front/resolver"
@@ -95,24 +96,71 @@ export EXPANDED_DIR :: "build/expanded"
 /// Write the code the compiler wrote as source for `b` under the `EXPANDED_DIR`
 /// of its project, or else of the folder of `file`, and point each of its
 /// diagnostics in that code at the file written. A file already holding the code
-/// is left alone.
+/// is left alone; one written for the same load that it no longer writes is
+/// removed.
 ///
 /// @param b             the prepared program; its diagnostics are repointed.
 /// @param file          the entry.
 /// @param project_root  the project of the entry, null for a file on its own.
 export write_expanded :: fn(b: CfgBytecode, file: Path, project_root: string | null) -> void {
     root :: expansion_root(file, project_root)
+    dir :: root.to_path().join(EXPANDED_DIR).normalize().as_string()
     written :: Map<string, string> {}
-    for source in b.generated {
+    names :: Set<string> {}
+    for source in b.generated.sources {
         name :: expanded_name(source.file, root) else continue
-        path :: root.to_path().join(EXPANDED_DIR).join(name).normalize().as_string()
+        names.add(name)
+        path :: dir.to_path().join(name).as_string()
         if !holds(path, source.content) && !write_text(path, source.content) {
             continue
         }
         written[source.file] = path
     }
+    remove_stale(dir, names, expanded_origin_names(b.generated.origins, root))
     repoint(b.pre_diags, written)
     repoint(b.lower_diags, written)
+}
+
+// Remove each file of `dir` the compiler wrote, under a name of `owned` once its
+// kind's folder is left out, that `names` no longer holds, then the folders that
+// leaves empty. A file of another load, or that the compiler did not write, stays.
+remove_stale :: fn(dir: string, names: Set<string>, owned: Set<string>) -> void {
+    walker :: walk(dir) else return
+    stale: string[]: []
+    folders: string[]: []
+    for e in walker {
+        if e.kind == .Directory {
+            folders.push(e.path)
+            continue
+        }
+        if e.kind != .File || e.depth < 2 || e.relative in names {
+            continue
+        }
+        slash :: e.relative.index_of('/') else continue
+        if e.relative.byte_slice(slash + 1, e.relative.byte_len()) in owned && is_generated(e.path) {
+            stale.push(e.path)
+        }
+    }
+    if stale.is_empty() {
+        return
+    }
+    for path in stale {
+        failed :: remove(path) else is IOError {
+            eprintln("vader build: cannot remove `${path.to_native()}`: ${failed.message()}")
+            continue
+        }
+    }
+    // Deepest first, as the walk lists a folder before what it holds: a folder
+    // that still holds an entry is not removed.
+    for i in 0..<folders.len() {
+        remove(folders[folders.len() - 1 - i])
+    }
+}
+
+// Whether the file `path` opens with the line the compiler writes first.
+is_generated :: fn(path: string) -> bool {
+    text :: read_file_string(path) else return false
+    return text.starts_with(GENERATED_HEADER)
 }
 
 /// The folder whose `EXPANDED_DIR` holds the code the compiler writes for the

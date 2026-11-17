@@ -127,7 +127,7 @@ wrap_file :: fn(
     diags: Diagnostic[],
 ) -> SourceFile | null {
     program :: source.program
-    header :: "module \"${module_name}\"\n${imports_text(source)}"
+    header :: framed_source(INTERCEPT_KIND, source.path, module_name, imports_text(source))
     glue :: StringBuilder {}
     origins: CodeOrigin[]: []
     wrapped: FnDecl[]: []

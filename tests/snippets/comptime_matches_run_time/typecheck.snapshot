@@ -94,8 +94,6 @@
   expr 39:5     IdentExpr      :: fn(T) -> void
   expr 39:58    CallExpr       :: string
   expr 39:58    IdentExpr      :: fn(i32) -> string
-  expr 3:39     MatchExpr      :: string
-  expr 3:45     IdentExpr      :: Color
   expr 40:13    StringLitExpr  :: string
   expr 40:16    IdentExpr      :: string
   expr 40:25    IdentExpr      :: string
@@ -150,6 +148,8 @@
   expr 45:39    IdentExpr      :: type
   expr 45:5     CallExpr       :: void
   expr 45:5     IdentExpr      :: fn(T) -> void
-  expr 4:17     StringLitExpr  :: string
-  expr 5:19     StringLitExpr  :: string
-  expr 6:18     StringLitExpr  :: string
+  expr 4:39     MatchExpr      :: string
+  expr 4:45     IdentExpr      :: Color
+  expr 5:17     StringLitExpr  :: string
+  expr 6:19     StringLitExpr  :: string
+  expr 7:18     StringLitExpr  :: string

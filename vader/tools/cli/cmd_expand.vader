@@ -46,7 +46,7 @@ cmd_expand :: fn(args: string[]) -> i32 {
         return 1
     }
     root :: expansion_root(entry.file, entry.project_root)
-    written :: expanded_text(generated_sources(loaded), root)
+    written :: expanded_text(generated_code(loaded).sources, root)
     if written == "" {
         eprintln("vader expand: the compiler writes no code for `${file.to_native()}`")
         return 0
