@@ -8,10 +8,10 @@ Count :: struct<A, R> {
     calls: i64 = 0
 }
 
-@interceptor(around = "counted")
+@interceptor(around = counted)
 Counted :: decorator(.Function) {}
 
-@interceptor(around = "counted")
+@interceptor(around = timed)
 Timed :: decorator(.Function) {}
 
 counted :: fn<A, R>(
@@ -23,6 +23,9 @@ counted :: fn<A, R>(
     state.calls += 1
     return proceed(args)
 }
+
+timed :: fn<A, R>(state: Count<A, R>, site: Site<Timed>, args: A, proceed: fn(A) -> R) -> R =
+    proceed(args)
 
 @Counted
 identity :: fn<T>(x: T) -> T = x

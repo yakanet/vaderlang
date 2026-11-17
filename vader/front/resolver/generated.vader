@@ -26,3 +26,14 @@ export is_generated_file :: fn(file: string) -> bool = file.starts_with(GENERATE
 // Whether `file` is a name the code `kind` writes is parsed under.
 is_generated_by :: fn(file: string, kind: string) -> bool =
     file.starts_with("${GENERATED_FILE_PREFIX}${kind}:")
+
+/// The file the code parsed under `file` was written for: the written file a glue
+/// of interceptors wraps the functions of, `file` itself for any other.
+///
+/// @param file  the file a span names.
+export written_file_of :: fn(file: string) -> string {
+    if !is_generated_by(file, INTERCEPT_KIND) {
+        return file
+    }
+    return file.byte_slice(generated_file(INTERCEPT_KIND, "").byte_len(), file.byte_len())
+}

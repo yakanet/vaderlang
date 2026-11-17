@@ -3409,7 +3409,7 @@ Decorators are written with `@`. The compiler's own, in the table below, are ins
 | `@target`, `@target(.Os, ...)` | top-level fn | Selects the body for the target OS (§17 *Target selection*) |
 | `@displayable` | enum | Generates `Display`: each variant renders as its name (§4 *Enums*) |
 | `@singleton` | top-level fn without parameters | Runs the body once and returns the same instance to every call (below) |
-| `@interceptor(around = "f")` | decorator declaration | Routes every call of a function the decorator marks through `f` (*Interceptors*, below) |
+| `@interceptor(around = f)` | decorator declaration | Routes every call of a function the decorator marks through `f` (*Interceptors*, below) |
 | `@returns(cond)` | top-level fn returning `bool` | The function returns the value of `cond` (§3 *Declared guards*) |
 | `@ensures(cond)` | top-level fn | `cond` holds when the function returns (§3 *Declared postconditions*) |
 | `@allow_unused` | any top-level declaration, an import | Exempts the declaration from the dead-code warning, or the import from the unused-import warning (below) |
@@ -3470,14 +3470,14 @@ A decorator is written above a struct field as above a declaration, beside `@int
 
 ### Interceptors
 
-A decorator declared with `@interceptor(around = "f")` routes every call of a function it marks through `f`, a function of the decorator's module:
+A decorator declared with `@interceptor(around = f)` routes every call of a function it marks through `f`, a function of the decorator's module:
 
 ```vader
 export Count :: struct<A, R> {
     calls: i64 = 0
 }
 
-@interceptor(around = "counted")
+@interceptor(around = counted)
 export Counted :: decorator(.Function) {
     label: string = "calls"
 }
@@ -3503,7 +3503,8 @@ fib :: fn(n: i64) -> i64 = if n < 2 { n } else { fib(n - 1) + fib(n - 2) }
 - The state is a struct `S<A, R>` of the decorator's module, whose fields all have a default. Each marked function keeps one for the whole program, built on its first call.
 - Every call goes through `around`, the recursive calls of the function included: `fib(4)` above counts nine calls.
 - The decorator is written `@D` or `@Alias.D`. Used from another module, the decorator, the function and the state are all exported.
-- `around` names a function of the decorator's module that takes the state first and four parameters in all; otherwise it is an error. So is a marked function that is generic, takes no parameter, has no body, does not write its result, or is marked by two interceptors.
+- `around` names, unquoted, a function of the decorator's module written `fn<A, R>(state: S<A, R>, site: Site<D>, args: A, proceed: fn(A) -> R) -> R`, `S` being a struct of the module and `D` the decorator; anything else is an error, reported at the part of the function that differs.
+- A marked function that is generic, takes no parameter, has no body, does not write its result, or is marked by two interceptors is an error.
 
 ### `@assert`
 

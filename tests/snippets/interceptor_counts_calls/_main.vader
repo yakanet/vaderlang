@@ -11,7 +11,7 @@ C :: import "snippet/counter"
 
 Log :: struct<A, R> {}
 
-@interceptor(around = "logged")
+@interceptor(around = logged)
 Logged :: decorator(.Function) {
     label: string = "log"
 }

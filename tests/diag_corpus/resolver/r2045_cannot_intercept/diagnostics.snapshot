@@ -1,6 +1,4 @@
-[17:1] warning[W0007] declaration is never used in its module: `counted` is never used
-[28:1] error[R2045] this function cannot be intercepted: `identity` is generic, and a state is kept per function
-[31:1] error[R2045] this function cannot be intercepted: `zero` takes no parameter to pass on
-[34:1] error[R2045] this function cannot be intercepted: the result of `twice` must be written
-[38:1] error[R2045] this function cannot be intercepted: `both` is marked by `Counted` and `Timed`, and a call goes through one
-[7:1] warning[W0007] declaration is never used in its module: `Count` is never used
+[31:1] error[R2045] this function cannot be intercepted: `identity` is generic, and a state is kept per function
+[34:1] error[R2045] this function cannot be intercepted: `zero` takes no parameter to pass on
+[37:1] error[R2045] this function cannot be intercepted: the result of `twice` must be written
+[41:1] error[R2045] this function cannot be intercepted: `both` is marked by `Counted` and `Timed`, and a call goes through one

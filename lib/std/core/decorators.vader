@@ -58,7 +58,7 @@ export DecoratorTarget :: enum {
 ///
 /// @example
 ///   # import "std/console"
-///   # @interceptor(around = "traced")
+///   # @interceptor(around = traced)
 ///   # Traced :: decorator(.Function) { label: string = "" }
 ///   # Log :: struct<A, R> {}
 ///   traced :: fn<A, R>(state: Log<A, R>, site: Site<Traced>, args: A, proceed: fn(A) -> R) -> R {

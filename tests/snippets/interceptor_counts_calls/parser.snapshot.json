@@ -81,13 +81,8 @@
               {
                 "name": "around",
                 "value": {
-                  "kind": "StringLitExpr",
-                  "parts": [
-                    {
-                      "kind": "text",
-                      "value": "logged"
-                    }
-                  ]
+                  "kind": "IdentExpr",
+                  "name": "logged"
                 },
                 "spread": false
               }

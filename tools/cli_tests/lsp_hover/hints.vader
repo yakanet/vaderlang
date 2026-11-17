@@ -391,3 +391,46 @@ test_an_annotated_dump_gets_no_inlay_hint :: fn() -> void {
     )
     assert_eq(array_at(results[0], []).len(), 0)
 }
+
+INTERCEPTED_SOURCE :: r"""
+    module "demo"
+
+    Count :: struct<A, R> {
+        calls: i64 = 0
+    }
+
+    @interceptor(around = counted)
+    Counted :: decorator(.Function) {}
+
+    counted :: fn<A, R>(
+        state: Count<A, R>,
+        site: Site<Counted>,
+        args: A,
+        proceed: fn(A) -> R,
+    ) -> R {
+        state.calls += 1
+        return proceed(args)
+    }
+
+    @Counted
+    twice :: fn(n: i64) -> i64 {
+        doubled :: n * 2
+        return doubled
+    }
+    """
+
+@test
+test_an_intercepted_function_shows_none_of_the_code_the_compiler_wrote :: fn() -> void {
+    results :: drive(
+        "hints_intercepted",
+        INTERCEPTED_SOURCE,
+        [
+            whole_document(INTERCEPTED_SOURCE),
+            ask_at("textDocument/hover", position_of(INTERCEPTED_SOURCE, "around")),
+        ],
+    )
+    labels :: labelled(array_at(results[0], []))
+    assert(!labels.any_match((label) -> "\$\$" in label), labels.join(", "))
+    around :: string_at(results[1], ["contents", "value"]) else ""
+    assert("proceed(args)" in around, around)
+}

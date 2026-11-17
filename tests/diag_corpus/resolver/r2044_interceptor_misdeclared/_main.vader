@@ -1,16 +1,42 @@
-// An interceptor names the function its calls go through, which takes the state
-// of each function, its site, its arguments and `proceed`: a name that leads to
-// no function of that shape is R2044.
+// An interceptor names, unquoted, a function of its module written
+// `fn<A, R>(state: S<A, R>, site: Site<D>, args: A, proceed: fn(A) -> R) -> R`:
+// a quoted name, a name of no function, and each part of the function that
+// differs are R2044, reported where they are written.
 module "snippet"
-
-@interceptor(around = "missing")
-Traced :: decorator(.Function) {}
 
 Count :: struct<A, R> {}
 
 @interceptor(around = "counted")
-Counted :: decorator(.Function) {}
+Quoted :: decorator(.Function) {}
 
-counted :: fn<A, R>(state: Count<A, R>, args: A, proceed: fn(A) -> R) -> R = proceed(args)
+@interceptor(around = missing)
+Missing :: decorator(.Function) {}
+
+@interceptor(around = three)
+Three :: decorator(.Function) {}
+
+three :: fn<A, R>(state: Count<A, R>, args: A, proceed: fn(A) -> R) -> R = proceed(args)
+
+@interceptor(around = elsewhere)
+Elsewhere :: decorator(.Function) {}
+
+elsewhere :: fn<A, R>(state: Count<A, R>, site: Site<Three>, args: A, proceed: fn(A) -> R) -> R =
+    proceed(args)
+
+@interceptor(around = swapped)
+Swapped :: decorator(.Function) {}
+
+swapped :: fn<A, R>(state: Count<R, A>, site: Site<Swapped>, args: A, proceed: fn(A) -> R) -> R =
+    proceed(args)
+
+@interceptor(around = unwrapped)
+Unwrapped :: decorator(.Function) {}
+
+unwrapped :: fn<A, R>(
+    state: Count<A, R>,
+    site: Site<Unwrapped>,
+    args: A,
+    proceed: fn(A) -> R,
+) -> A = args
 
 main :: fn() -> i32 = 0

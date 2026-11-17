@@ -1,0 +1,191 @@
+// vader/front/resolver/around: the function an interceptor routes calls through.
+//
+// `@interceptor(around = f)` names `f`, a function of the interceptor's module,
+// which every intercepted call reaches as `f(state, site, args, proceed)`. Its
+// shape is read from its declaration before any glue is written, so a wrong one is
+// reported at the part of `f` that is wrong, and no wrapper is written that would
+// fail in code the user never wrote:
+//
+//     f :: fn<A, R>(state: S<A, R>, site: Site<D>, args: A, proceed: fn(A) -> R) -> R
+//
+// `S` is a struct of the module, `D` the interceptor itself. Each part is read by
+// its name as written: a type alias of `Site<D>` or of the state is not followed.
+
+module "vader/front/resolver"
+
+import "std/iter"
+import "toolchain/ast"
+import "toolchain/diagnostics"
+import "toolchain/span"
+
+// The function an interceptor names, and the struct of the state it keeps.
+AroundFunction :: struct {
+    name: string
+    state: string
+}
+
+// The function the interceptor `interceptor`, a declaration of `sources` marked by
+// `marker`, routes calls through; null, reported, when it names none of the right
+// shape.
+around_of :: fn(
+    sources: SourceFile[],
+    interceptor: StructDecl,
+    marker: Decorator,
+    diags: Diagnostic[],
+) -> AroundFunction | null {
+    // A missing `around` is the typecheck's to report, as any missing field.
+    written :: argument_named(marker, "around", 0) else return null
+    if written !is IdentExpr {
+        diags.push(resolver_error(.InterceptorMisdeclared, written.span,
+            "write the name of a function of this module: `around = f`"))
+        return null
+    }
+    f :: function_named(sources, written.name) else {
+        diags.push(resolver_error(.InterceptorMisdeclared, written.span,
+            "`${written.name}` is no function of this module"))
+        return null
+    }
+    state :: state_struct(f, interceptor.name, diags) else return null
+    return AroundFunction { .name = f.name, .state = state }
+}
+
+// The function `name` among the declarations of `sources`.
+function_named :: fn(sources: SourceFile[], name: string) -> FnDecl | null {
+    for source in sources {
+        for f in source.program.decls.filter_is<FnDecl>() {
+            if f.name == name {
+                return f
+            }
+        }
+    }
+    return null
+}
+
+// The struct the state parameter of `f` names, when `f` has the shape the
+// interceptor `interceptor` calls: null, with the part of `f` that is wrong
+// reported, otherwise.
+state_struct :: fn(f: FnDecl, interceptor: string, diags: Diagnostic[]) -> string | null {
+    if f.type_params.len() != 2 || f.params.len() != 4 {
+        return refused(diags, f.name_span,
+            "`${f.name}` is `fn<A, R>(state: S<A, R>, site: Site<${interceptor}>, args: A, "
+                + "proceed: fn(A) -> R) -> R`")
+    }
+    a :: f.type_params[0].name
+    r :: f.type_params[1].name
+    p :: f.params
+    state :: state_name(p[0].ty, a, r) else return refused(diags, type_span(p[0]),
+        "the state is a struct of this module over `<${a}, ${r}>`: `S<${a}, ${r}>`")
+    if !is_instance_of(p[1].ty, "Site", [interceptor]) {
+        return refused(diags, type_span(p[1]), "the site is `Site<${interceptor}>`")
+    }
+    if !is_named(p[2].ty, a) {
+        return refused(diags, type_span(p[2]), "the arguments are `${a}`")
+    }
+    if !is_proceed(p[3].ty, a, r) {
+        return refused(diags, type_span(p[3]), "`proceed` is `fn(${a}) -> ${r}`")
+    }
+    result :: f.return_type
+    if !is_named(result, r) {
+        span :: if result == null { f.name_span } else { result.span }
+        return refused(diags, span, "`${f.name}` returns `${r}`")
+    }
+    return state
+}
+
+// `S` when `written` is `S<a, r>`.
+state_name :: fn(written: TypeExpr | null, a: string, r: string) -> string | null {
+    if written !is GenericInstExpr {
+        return null
+    }
+    callee :: written.callee
+    if callee !is IdentExpr || !is_instance_of(written, callee.name, [a, r]) {
+        return null
+    }
+    return callee.name
+}
+
+// Whether `written` is `name<args...>`, each argument a bare name.
+is_instance_of :: fn(written: TypeExpr | null, name: string, args: string[]) -> bool {
+    if written !is GenericInstExpr || !is_named(written.callee, name) {
+        return false
+    }
+    if written.type_args.len() != args.len() {
+        return false
+    }
+    for i in 0..<args.len() {
+        if !is_named(written.type_args[i], args[i]) {
+            return false
+        }
+    }
+    return true
+}
+
+// Whether `written` is `fn(a) -> r`.
+is_proceed :: fn(written: TypeExpr | null, a: string, r: string) -> bool {
+    if written !is FnTypeExpr || written.params.len() != 1 {
+        return false
+    }
+    return is_named(written.params[0], a) && is_named(written.return_type, r)
+}
+
+// Whether `written` is the bare name `name`.
+is_named :: fn(written: Expr | null, name: string) -> bool =
+    written is IdentExpr && written.name == name
+
+// Where the type of `param` is written, the parameter itself when it is not.
+type_span :: fn(param: FnParam) -> Span {
+    written :: param.ty else return param.span
+    return written.span
+}
+
+// Report R2044 at `span`, saying what the part there must be: no state.
+refused :: fn(diags: Diagnostic[], span: Span, detail: string) -> string | null {
+    diags.push(resolver_error(.InterceptorMisdeclared, span, detail))
+    return null
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "toolchain/parser"
+
+// What `around_of` reports for the function `counted` of `source`, the
+// interceptor being `Counted`: its state struct, else its first detail.
+around_report :: fn(source: string) -> string {
+    program :: parse_source(source, "app.vader").program
+    sources :: [SourceFile { .path = "app.vader", .content = source, .program = program }]
+    interceptor :: program.decls.filter_is<StructDecl>().collect()[0]
+    marker :: find_compiler_decorator(interceptor.decorators, .Interceptor) else return "no marker"
+    diags: Diagnostic[]: []
+    found :: around_of(sources, interceptor, marker, diags) else return diags[0].detail
+    return found.state
+}
+
+// An interceptor `Counted` whose function `counted` takes the site `site`.
+counted_with_site :: fn(site: string) -> string = """
+    module "app"
+    @interceptor(around = counted)
+    Counted :: decorator(.Function) {}
+    counted :: fn<A, R>(s: Count<A, R>, site: ${site}, args: A, proceed: fn(A) -> R) -> R =
+        proceed(args)
+    """
+
+@test
+test_around_reads_the_state_struct :: fn() -> void {
+    assert_eq(around_report(counted_with_site("Site<Counted>")), "Count")
+}
+
+@test
+test_around_reports_a_site_of_another_decorator :: fn() -> void {
+    assert_eq(around_report(counted_with_site("Site<Timed>")), "the site is `Site<Counted>`")
+}
+
+@test
+test_around_reports_a_name_of_no_function :: fn() -> void {
+    source :: """
+        module "app"
+        @interceptor(around = counted)
+        Counted :: decorator(.Function) {}
+        """
+    assert_eq(around_report(source), "`counted` is no function of this module")
+}

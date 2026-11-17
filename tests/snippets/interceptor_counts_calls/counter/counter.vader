@@ -10,7 +10,7 @@ export Count :: struct<A, R> {
 }
 
 /// Counts every call of the function it decorates.
-@interceptor(around = "counted")
+@interceptor(around = counted)
 export Counted :: decorator(.Function) {}
 
 /// Count the call, then make it.

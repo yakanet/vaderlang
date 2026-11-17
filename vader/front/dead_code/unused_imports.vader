@@ -57,6 +57,10 @@ export check_unused_imports :: fn(
         }
         typed :: checked.all_modules[id]
         for file in loaded.module.files {
+            // A file the compiler wrote repeats imports it may not need.
+            if is_generated_file(file.path) {
+                continue
+            }
             // Walked for the first import no name serves: most files have none.
             run: ImplsRun | null = null
             names :: names_written(file.program.decls)

@@ -1,6 +1,6 @@
 // vader/front/resolver/intercept: the functions a declared interceptor wraps.
 //
-// A decorator `D` declared under `@interceptor(around = "f")` routes every call of
+// A decorator `D` declared under `@interceptor(around = f)` routes every call of
 // a function it decorates through `f`. Once every module is parsed and before any
 // is collected, each such function `g` is renamed `g$$intercepted` and loses its
 // `export`, and its file gains:
@@ -68,9 +68,14 @@ intercept_functions :: fn(
     }
     declared :: declared_decorators(modules)
     for m in modules {
+        glue_files: SourceFile[]: []
         for source in m.sources {
-            wrap_file(source, m.found.name, interceptors, declared, ids, diags)
+            glue :: wrap_file(source, m.found.name, interceptors, declared, ids, diags)
+            if glue != null {
+                glue_files.push(glue)
+            }
         }
+        m.sources.push_all(glue_files)
     }
 }
 
@@ -81,42 +86,16 @@ declared_interceptors :: fn(modules: DeferredModule[], diags: Diagnostic[]) -> I
         for source in m.sources {
             for d in source.program.decls.filter_is<StructDecl>() {
                 marker :: find_compiler_decorator(d.decorators, .Interceptor) else continue
-                around :: string_field(marker, "around", 0)
-                state :: state_of(m.sources, around) else {
-                    diags.push(resolver_error(
-                        .InterceptorMisdeclared,
-                        marker.span,
-                        "`${around}` is no function of this module taking the state `S<A, R>`, "
-                            + "the `Site`, the arguments and `proceed`",
-                    ))
-                    continue
-                }
+                around :: around_of(m.sources, d, marker, diags) else continue
                 out.push(Interceptor {
                     .origin = DecoratorOrigin { .module = m.found.name, .name = d.name },
-                    .around = around,
-                    .state = state,
+                    .around = around.name,
+                    .state = around.state,
                 })
             }
         }
     }
     return out
-}
-
-// The struct the first parameter of the function `around` names, among the
-// declarations of `sources`: `S` for `fn<A, R>(state: S<A, R>, site, args, proceed)`.
-state_of :: fn(sources: SourceFile[], around: string) -> string | null {
-    for source in sources {
-        for f in source.program.decls.filter_is<FnDecl>() {
-            if f.name != around || f.params.len() != 4 {
-                continue
-            }
-            written :: f.params[0].ty
-            if written is GenericInstExpr && written.callee is IdentExpr {
-                return written.callee.name
-            }
-        }
-    }
-    return null
 }
 
 // An interceptor of a function, and how the wrapper names what it declares.
@@ -129,8 +108,11 @@ Interception :: struct {
     name: string
 }
 
-// Wrap the functions of `source` an interceptor decorates. The wrappers are
-// written from the names as written, so the functions are renamed after.
+// The file of glue that wraps the functions of `source` an interceptor decorates,
+// null when it wraps none. The glue is a file of its own, so a walk over the
+// declarations `source` writes never meets it: it opens with the imports of
+// `source`, which its names are written under. The wrappers are written from the
+// names as written, so the functions are renamed after.
 wrap_file :: fn(
     source: SourceFile,
     module_name: string,
@@ -138,7 +120,7 @@ wrap_file :: fn(
     declared: Map<string, Set<string>>,
     ids: NodeIdFactory,
     diags: Diagnostic[],
-) -> void {
+) -> SourceFile | null {
     program :: source.program
     glue :: StringBuilder {}
     wrapped: FnDecl[]: []
@@ -157,20 +139,16 @@ wrap_file :: fn(
         wrapped.push(f)
     }
     if wrapped.is_empty() {
-        return
+        return null
     }
-    parsed :: parse_compiler_written(
-        "module \"${module_name}\"\n${glue.to_string()}",
-        generated_file(INTERCEPT_KIND, source.path),
-    )
+    path :: generated_file(INTERCEPT_KIND, source.path)
+    content :: "module \"${module_name}\"\n${imports_text(source)}${glue.to_string()}"
+    parsed :: parse_compiler_written(content, path)
     diags.push_all(parsed.errors)
     assign_program_ids(parsed.program, ids)
     wrappers :: Map<string, FnDecl> {}
-    for d in parsed.program.decls {
-        program.decls.push(d)
-        if d is FnDecl {
-            wrappers[d.name] = d
-        }
+    for d in parsed.program.decls.filter_is<FnDecl>() {
+        wrappers[d.name] = d
     }
     for f in wrapped {
         wrapper :: wrappers[f.name]
@@ -181,6 +159,18 @@ wrap_file :: fn(
         f.visibility = .Private
         f.doc = null
     }
+    return SourceFile { .path = path, .content = content, .program = parsed.program }
+}
+
+// The imports of `source`, as written, decorators included, one per line.
+imports_text :: fn(source: SourceFile) -> string {
+    out :: StringBuilder {}
+    for i in source.program.decls.filter_is<ImportDecl>() {
+        start :: if i.decorators.is_empty() { i.span.start } else { i.decorators[0].span.start }
+        out.append(source.content.byte_slice(start.offset, i.span.end.offset))
+        out.append("\n")
+    }
+    return out.to_string()
 }
 
 // The interceptors the decorators of `f` name, written in `program`, a file of

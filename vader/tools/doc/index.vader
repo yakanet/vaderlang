@@ -183,12 +183,13 @@ index_module :: fn(checked: DocCheck, loaded: LoadedModule, base: string) -> Doc
 }
 
 // The file `d`, a declaration of `file`, is reported in: an impl the compiler
-// wrote reports at the code that asked for it (`source_stages.vader`).
+// wrote reports at the code that asked for it (`source_stages.vader`), a wrapper
+// of interceptors at the file of the function it wraps.
 reported_file :: fn(file: SourceFile, d: Decl) -> string {
     if d is ImplDecl && is_generated_file(file.path) {
         return d.span.start.file
     }
-    return file.path
+    return written_file_of(file.path)
 }
 
 // The entry of `d`; null when `d` is neither an export nor an impl a caller can

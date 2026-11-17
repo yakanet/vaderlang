@@ -143,9 +143,25 @@ export displayable :: decorator(.Enum) {}
 /// function, or the tuple of its parameters, `R` its result, `S<A, R> {}` the
 /// state the function keeps for the whole program, and `site` the function
 /// itself, `D` being the decorator.
+///
+/// @example
+///   # Count :: struct<A, R> { calls: i64 = 0 }
+///   # counted :: fn<A, R>(
+///   #     state: Count<A, R>, site: Site<Counted>, args: A, proceed: fn(A) -> R,
+///   # ) -> R = proceed(args)
+///   @interceptor(around = counted)
+///   Counted :: decorator(.Function) {}
 export interceptor :: decorator(.Struct) {
-    /// The name of the function the calls go through.
-    around: string
+    /// The function every call goes through, named unquoted: a function of this
+    /// module written
+    ///
+    /// ```
+    /// fn<A, R>(state: S<A, R>, site: Site<D>, args: A, proceed: fn(A) -> R) -> R
+    /// ```
+    ///
+    /// `S` is a struct of this module, the state each decorated function keeps;
+    /// `D` is the decorator; `proceed(args)` makes the call.
+    around: Around
 }
 
 /// Runs the body of a parameterless top-level function once per program and

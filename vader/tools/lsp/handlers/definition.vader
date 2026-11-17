@@ -196,7 +196,23 @@ decorator_field_at :: fn(
             }
         }
     }
-    return null
+    return compiler_decorator_field_at(state, index, typed, line, character)
+}
+
+// The field of a decorator of the compiler the cursor names, which no use records:
+// those are read as written, never evaluated.
+compiler_decorator_field_at :: fn(
+    state: ServerState, index: DocIndex, typed: TypedProgram, line: i32, character: i32,
+) -> ExternalHit | null {
+    name_span :: index.span_at(line, character) else return null
+    arguments :: decorator_arguments_at(index, name_span.start.offset) else return null
+    if arguments.alias != "" || AST.compiler_decorator_named(arguments.name) == null {
+        return null
+    }
+    sym :: typed.compiler_decorator_symbols[arguments.name] else return null
+    declared :: sym.defined_at else return null
+    field :: index.name_at(line, character)
+    return member_in_declaring_module(state, declared.start.file, sym.name, field)
 }
 
 // The type that declares the member `name` of `sym` : for a field a struct receives

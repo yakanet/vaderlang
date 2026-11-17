@@ -1,6 +1,18 @@
-[11:1] error[R2044] an interceptor names no `around` function it can call: `counted` is no function of this module taking the state `S<A, R>`, the `Site`, the arguments and `proceed`
-[12:1] warning[W0007] declaration is never used in its module: `Counted` is never used
-[14:1] warning[W0007] declaration is never used in its module: `counted` is never used
-[6:1] error[R2044] an interceptor names no `around` function it can call: `missing` is no function of this module taking the state `S<A, R>`, the `Site`, the arguments and `proceed`
-[7:1] warning[W0007] declaration is never used in its module: `Traced` is never used
-[9:1] warning[W0007] declaration is never used in its module: `Count` is never used
+[10:1] warning[W0007] declaration is never used in its module: `Quoted` is never used
+[12:23] error[R2006] unresolved identifier: `missing`
+[12:23] error[R2044] an interceptor names no `around` function it can call: `missing` is no function of this module
+[13:1] warning[W0007] declaration is never used in its module: `Missing` is never used
+[16:1] warning[W0007] declaration is never used in its module: `Three` is never used
+[18:1] error[R2044] an interceptor names no `around` function it can call: `three` is `fn<A, R>(state: S<A, R>, site: Site<Three>, args: A, proceed: fn(A) -> R) -> R`
+[18:1] warning[W0007] declaration is never used in its module: `three` is never used
+[21:1] warning[W0007] declaration is never used in its module: `Elsewhere` is never used
+[23:1] warning[W0007] declaration is never used in its module: `elsewhere` is never used
+[23:49] error[R2044] an interceptor names no `around` function it can call: the site is `Site<Elsewhere>`
+[27:1] warning[W0007] declaration is never used in its module: `Swapped` is never used
+[29:1] warning[W0007] declaration is never used in its module: `swapped` is never used
+[29:28] error[R2044] an interceptor names no `around` function it can call: the state is a struct of this module over `<A, R>`: `S<A, R>`
+[33:1] warning[W0007] declaration is never used in its module: `Unwrapped` is never used
+[35:1] warning[W0007] declaration is never used in its module: `unwrapped` is never used
+[40:6] error[R2044] an interceptor names no `around` function it can call: `unwrapped` returns `R`
+[7:1] warning[W0007] declaration is never used in its module: `Count` is never used
+[9:23] error[R2044] an interceptor names no `around` function it can call: write the name of a function of this module: `around = f`
