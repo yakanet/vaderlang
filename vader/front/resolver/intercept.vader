@@ -39,6 +39,7 @@ import "toolchain/diagnostics"
 import "toolchain/lexer"
 import "toolchain/parser"
 import "toolchain/span"
+import "toolchain/stage"
 import "vader/core/mangle"
 
 // The kind of the files the wrappers are parsed under (`generated_file`): no

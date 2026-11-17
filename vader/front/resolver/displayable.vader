@@ -12,6 +12,7 @@ module "vader/front/resolver"
 import "std/iter"
 import "std/string_builder"
 import "toolchain/span"
+import "toolchain/stage"
 AST :: import "toolchain/ast"
 
 // The name `DisplayableStage` describes itself under, and generates under.

@@ -1,0 +1,88 @@
+// toolchain/stage/sources: the stages that write source into a module once every
+// module is parsed, as a library or a driver implements them.
+//
+// A source stage reads parsed files of one module and returns source the module
+// gains: nothing typed, nothing of another module. It reads only the files its
+// description gives it (`given`), those with a top-level declaration under one of
+// the decorators it names. A stage that reads what another generates says so
+// (`generates`), and the plan runs that one first.
+
+module "toolchain/stage"
+
+import "std/iter"
+import "toolchain/ast"
+import "toolchain/diagnostics"
+import "toolchain/span"
+
+/// A decorator a source stage reads the declarations of: one of the compiler, or
+/// one a module declares.
+export Given :: DecoratedWith | DecoratorOrigin
+
+/// A decorator of the compiler.
+export DecoratedWith :: struct {
+    marker: CompilerDecorator
+}
+
+/// A decorator a module declares: the module and its name there.
+export DecoratorOrigin :: struct {
+    module: string
+    name: string
+}
+
+/// Whether `a` and `b` name the same declaration.
+///
+/// @param a  a decorator declaration.
+/// @param b  another.
+export same_origin :: fn(a: DecoratorOrigin, b: DecoratorOrigin) -> bool =
+    a.module == b.module && a.name == b.name
+
+// Whether `written` and `read` name the same decorator.
+same_given :: fn(written: Given, read: Given) -> bool = match written {
+    is DecoratedWith   -> read is DecoratedWith && read.marker == written.marker
+    is DecoratorOrigin -> read is DecoratorOrigin && same_origin(read, written)
+}
+
+/// The files of a module a source stage reads.
+export Sources :: struct {
+    module_name: string
+    /// The files its description gives it, at least one.
+    files: Program[]
+}
+
+/// What a source stage adds to a module.
+export Generated :: struct {
+    /// Source, without its `module` line ; "" for nothing.
+    text: string = ""
+    /// The span each impl of `text` reports at, in their order: the code that
+    /// asked for it, since its own spans name no file on disk. Shorter than the
+    /// impls when the rest keep their own.
+    anchors: Span[] = []
+    /// What the stage reports.
+    diagnostics: Diagnostic[] = []
+}
+
+/// What a source stage describes of itself.
+export SourceSpec :: struct {
+    name: string
+    /// The decorators whose declarations it reads.
+    given: Given[] = []
+    /// The decorators what it writes may hold: a stage given one of them runs
+    /// after it and reads its file.
+    generates: Given[] = []
+}
+
+SourceSpec implements Placed {
+    stage_name :: fn(self) -> string = self.name
+
+    precedes :: fn(self, later: SourceSpec) -> string {
+        for written in self.generates {
+            if later.given.any_match((read) -> same_given(written, read)) {
+                return "`${later.name}` reads what `${self.name}` generates"
+            }
+        }
+        return ""
+    }
+}
+
+/// A stage that writes source into a module, once every module is parsed.
+export SourceStage :: trait = Stage<Sources, Generated, SourceSpec>

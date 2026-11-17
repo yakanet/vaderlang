@@ -21,60 +21,6 @@ import "toolchain/parser"
 import "toolchain/span"
 import "toolchain/stage"
 
-/// A decorator a source stage reads the declarations of: one of the compiler, or
-/// one a module declares.
-Given :: DecoratedWith | DecoratorOrigin
-
-/// A decorator of the compiler.
-DecoratedWith :: struct {
-    marker: CompilerDecorator
-}
-
-/// The files of a module a source stage reads.
-Sources :: struct {
-    module_name: string
-    /// The files its description gives it, at least one.
-    files: Program[]
-}
-
-/// What a source stage adds to a module.
-Generated :: struct {
-    /// Source, without its `module` line ; "" for nothing.
-    text: string = ""
-    /// The span each impl of `text` reports at, in their order: the code that
-    /// asked for it, since its own spans name no file on disk. Shorter than the
-    /// impls when the rest keep their own.
-    anchors: Span[] = []
-    /// What the stage reports.
-    diagnostics: Diagnostic[] = []
-}
-
-/// What a source stage describes of itself.
-SourceSpec :: struct {
-    name: string
-    /// The decorators whose declarations it reads.
-    given: Given[] = []
-    /// The decorators what it writes may hold: a stage given one of them runs
-    /// after it and reads its file.
-    generates: Given[] = []
-}
-
-SourceSpec implements Placed {
-    stage_name :: fn(self) -> string = self.name
-
-    precedes :: fn(self, later: SourceSpec) -> string {
-        for written in self.generates {
-            if later.given.any_match((read) -> same_given(written, read)) {
-                return "`${later.name}` reads what `${self.name}` generates"
-            }
-        }
-        return ""
-    }
-}
-
-/// A stage that writes source into a module, once every module is parsed.
-SourceStage :: trait = Stage<Sources, Generated, SourceSpec>
-
 /// The source stages of a build, in the order they are registered.
 source_stages :: fn() -> SourceStage[] = [DisplayableStage {}]
 
@@ -177,12 +123,6 @@ names_given :: fn(
     }
     origin :: written_origin(program, module_name, written, declared) else return false
     return same_origin(origin, given)
-}
-
-// Whether `written` and `read` name the same decorator.
-same_given :: fn(written: Given, read: Given) -> bool = match written {
-    is DecoratedWith   -> read is DecoratedWith && read.marker == written.marker
-    is DecoratorOrigin -> read is DecoratorOrigin && same_origin(read, written)
 }
 
 // Give each impl of `program`, which the stage `stage` wrote, the span of its
