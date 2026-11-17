@@ -13,7 +13,7 @@ vader_string_t vader_core_mangle$declaration_mangle(vader_string_t l0, vader_str
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 5u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     t0 = vader_core_mangle$mangle_module_id(l0);
-    t1 = concat_4(t0, 283u, l1, l2);
+    t1 = concat_4(t0, 284u, l1, l2);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -38,13 +38,11 @@ vader_string_t vader_core_mangle$derived_mangle(vader_string_t l0, uint8_t l1) {
         l2 = concat_2(l0, 289u);
     } else if (l1 == INT32_C(6)) {
         l2 = concat_2(l0, 304u);
-    } else if (l1 == INT32_C(7)) {
-        l2 = concat_2(l0, 285u);
     } else {
-        if (!(l1 == INT32_C(8))) {
+        if (!(l1 == INT32_C(7))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l2 = concat_2(l0, 284u);
+        l2 = concat_2(l0, 285u);
     }
     { vader_string_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -70,7 +68,7 @@ vader_string_t vader_core_mangle$fn_overload_suffix(int64_t l0) {
     }
     l1 = (void*) vader_buffer_new((size_t) INT64_C(21));
     l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l1, l2, 1109u);
+    l2 = std_core$write_string_at(l1, l2, 1116u);
     l2 = std_core$write_int(l1, l2, l0);
     t0 = std_core$finish_buffer(l1, l2);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -89,7 +87,7 @@ vader_string_t vader_core_mangle$impl_member_mangle(vader_string_t l0, vader_str
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 7u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     t0 = vader_core_mangle$mangle_module_id(l0);
-    t1 = concat_8(t0, 283u, l1, 283u, l2, 283u, l3, l4);
+    t1 = concat_8(t0, 284u, l1, 284u, l2, 284u, l3, l4);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -108,7 +106,7 @@ vader_string_t vader_core_mangle$impl_overload_suffix(int64_t l0) {
     }
     l1 = (void*) vader_buffer_new((size_t) INT64_C(21));
     l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l1, l2, 283u);
+    l2 = std_core$write_string_at(l1, l2, 284u);
     l2 = std_core$write_int(l1, l2, l0);
     t0 = std_core$finish_buffer(l1, l2);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -129,10 +127,10 @@ vader_string_t vader_core_mangle$instance_suffix(void* l0) {
         vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(26u, 0u, 0u, 509u);
+    vader_array_t* _a0_arr = vader_array_new(26u, 0u, 0u, 511u);
     t0 = (void*) _a0_arr;
     vader_struct_std_string__builder$StringBuilder_t* _a1_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
-    vader_obj_header_init(_a1_obj, 913u);
+    vader_obj_header_init(_a1_obj, 915u);
     _a1_obj->f_parts = t0;
     l1 = (void*) _a1_obj;
     l2 = l0;
@@ -143,7 +141,7 @@ vader_string_t vader_core_mangle$instance_suffix(void* l0) {
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
         t1 = vader_array_box_slots(_a2_slotarr->buf)[vader_array_offset(_a2_slotarr) + (size_t) l4];
         l5 = t1.payload.s;
-        std_string__builder$append(l1, 1122u);
+        std_string__builder$append(l1, 1129u);
         std_string__builder$append(l1, l5);
         l4 = (l4 + INT64_C(1));
     }
@@ -153,7 +151,7 @@ vader_string_t vader_core_mangle$instance_suffix(void* l0) {
 
 bool vader_core_mangle$is_tuple_struct_name(vader_string_t l0) {
     bool t0;
-    t0 = std_string$string$std_core$Contains$contains(l0, 1123u);
+    t0 = std_string$string$std_core$Contains$contains(l0, 1130u);
     return t0;
 }
 
@@ -171,30 +169,30 @@ vader_string_t vader_core_mangle$lifted_mangle(uint8_t l0, bool l1, vader_string
     vader_gc_top = &gc_frame;
     if (l0 == INT32_C(0)) {
         if (l1) {
-            l4 = 1138u;
+            l4 = 1145u;
         } else {
-            l4 = 1137u;
+            l4 = 1144u;
         }
     } else if (l0 == INT32_C(1)) {
         if (l1) {
-            l4 = 1134u;
+            l4 = 1141u;
         } else {
-            l4 = 1133u;
+            l4 = 1140u;
         }
     } else if (l0 == INT32_C(2)) {
         if (l1) {
-            l4 = 1136u;
+            l4 = 1143u;
         } else {
-            l4 = 1135u;
+            l4 = 1142u;
         }
     } else {
         if (!(l0 == INT32_C(3))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
         if (l1) {
-            l4 = 1140u;
+            l4 = 1147u;
         } else {
-            l4 = 1139u;
+            l4 = 1146u;
         }
     }
     l5 = vader_core_mangle$mangle_module_id(l2);
@@ -205,7 +203,7 @@ vader_string_t vader_core_mangle$lifted_mangle(uint8_t l0, bool l1, vader_string
     l6 = INT64_C(0);
     l6 = std_core$write_string_at(l8, l6, l4);
     l6 = std_core$write_string_at(l8, l6, l5);
-    l6 = std_core$write_string_at(l8, l6, 1109u);
+    l6 = std_core$write_string_at(l8, l6, 1116u);
     l6 = std_core$write_int(l8, l6, l3);
     t0 = std_core$finish_buffer(l8, l6);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -241,7 +239,7 @@ vader_string_t vader_core_mangle$mangle_module_id(vader_string_t l0) {
     };
     vader_gc_top = &gc_frame;
     t0 = vader_host_std_core$Intrinsic$byte_len(l0);
-    vader_array_t* _a0_arr = vader_array_reserve(29u, (int64_t) t0, 1u, 514u);
+    vader_array_t* _a0_arr = vader_array_reserve(29u, (int64_t) t0, 1u, 516u);
     l1 = (void*) _a0_arr;
     l2 = INT64_C(0);
     l3 = vader_host_std_core$Intrinsic$byte_len(l0);
@@ -303,13 +301,13 @@ vader_string_t vader_core_mangle$trait_member_mangle(vader_string_t l0, vader_st
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 5u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     t0 = vader_core_mangle$mangle_module_id(l0);
-    t1 = concat_5(t0, 283u, l1, 283u, l2);
+    t1 = concat_5(t0, 284u, l1, 284u, l2);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 vader_string_t vader_core_mangle$tuple_struct_name(vader_string_t l0) {
     vader_string_t t0;
-    t0 = concat_2(1124u, l0);
+    t0 = concat_2(1131u, l0);
     return t0;
 }
 
@@ -337,7 +335,7 @@ vader_string_t vader_core_mangle$uniq(void* l0, vader_string_t l1) {
         l5 = (void*) vader_buffer_new((size_t) (INT64_C(21) + l4));
         l6 = INT64_C(0);
         l6 = std_core$write_string_at(l5, l6, l3);
-        l6 = std_core$write_string_at(l5, l6, 1109u);
+        l6 = std_core$write_string_at(l5, l6, 1116u);
         l6 = std_core$write_int(l5, l6, l2);
         l7 = std_core$finish_buffer(l5, l6);
         t0 = std_collections$add__string(l0, l7);
@@ -352,7 +350,7 @@ vader_string_t vader_core_mangle$uniq(void* l0, vader_string_t l1) {
     l5 = (void*) vader_buffer_new((size_t) (INT64_C(21) + l4));
     l4 = INT64_C(0);
     l4 = std_core$write_string_at(l5, l4, l3);
-    l4 = std_core$write_string_at(l5, l4, 1109u);
+    l4 = std_core$write_string_at(l5, l4, 1116u);
     l4 = std_core$write_int(l5, l4, l2);
     t1 = std_core$finish_buffer(l5, l4);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -369,8 +367,8 @@ vader_string_t vader_core_mangle$vtable_dispatcher_mangle(vader_string_t l0) {
     };
     vader_gc_top = &gc_frame;
     t0 = std_string$split(l0, 433u);
-    t1 = std_string$join(t0, 283u);
-    t2 = vader_core_mangle$derived_mangle(t1, (uint8_t) 8);
+    t1 = std_string$join(t0, 284u);
+    t2 = vader_core_mangle$derived_mangle(t1, (uint8_t) 7);
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 

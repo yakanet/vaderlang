@@ -31,7 +31,7 @@ static inline bool vader_host_std_core$Intrinsic$is_ascii(vader_string_t a0) {
 }
 
 static inline void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 29u, 514u);
+    return (void*) vader_string_bytes_view(a0, 29u, 516u);
 }
 
 static inline vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
@@ -177,7 +177,7 @@ static inline vader_box_t vader_host_system_posix$sys_opendir(vader_string_t a0)
     void* r = opendir(c0);
     vader_foreign_depth -= 1;
     vader_cstr_free_for(a0, c0);
-    return r == NULL ? vader_box_null() : vader_box_i64(511u, (int64_t) (intptr_t) r);
+    return r == NULL ? vader_box_null() : vader_box_i64(513u, (int64_t) (intptr_t) r);
 }
 
 static inline int32_t vader_host_system_posix$sys_closedir(void* a0) {
@@ -224,7 +224,7 @@ static inline vader_box_t vader_host_system_posix$sys_readdir(void* a0) {
     vader_foreign_depth += 1;
     void* r = readdir(a0);
     vader_foreign_depth -= 1;
-    return r == NULL ? vader_box_null() : vader_box_i64(511u, (int64_t) (intptr_t) r);
+    return r == NULL ? vader_box_null() : vader_box_i64(513u, (int64_t) (intptr_t) r);
 }
 
 static inline vader_string_t vader_host_system_posix$dirent_name(void* a0) {
@@ -271,7 +271,7 @@ static inline vader_box_t vader_host_system_posix$sys_realpath(vader_string_t a0
     void* r = realpath(c0, (void*) s1.ptr);
     vader_foreign_depth -= 1;
     vader_cstr_free_for(a0, c0);
-    return r == NULL ? vader_box_null() : vader_box_i64(511u, (int64_t) (intptr_t) r);
+    return r == NULL ? vader_box_null() : vader_box_i64(513u, (int64_t) (intptr_t) r);
 }
 
 static inline vader_box_t vader_host_system_posix$sys_getcwd(void* a0, int64_t a1) {
@@ -279,7 +279,7 @@ static inline vader_box_t vader_host_system_posix$sys_getcwd(void* a0, int64_t a
     vader_foreign_depth += 1;
     void* r = getcwd((void*) s0.ptr, a1);
     vader_foreign_depth -= 1;
-    return r == NULL ? vader_box_null() : vader_box_i64(511u, (int64_t) (intptr_t) r);
+    return r == NULL ? vader_box_null() : vader_box_i64(513u, (int64_t) (intptr_t) r);
 }
 
 static inline int32_t vader_host_system_posix$sys_chdir(vader_string_t a0) {
@@ -353,7 +353,7 @@ static inline vader_box_t vader_host_system_libc$sys_getenv(vader_string_t a0) {
     vader_foreign_depth += 1;
     const char* r = getenv(c0);
     vader_foreign_depth -= 1;
-    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(509u, (int64_t) vader_atom_intern(r, strlen(r)));
+    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(511u, (int64_t) vader_atom_intern(r, strlen(r)));
     vader_cstr_free_for(a0, c0);
     return out;
 }
