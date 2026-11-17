@@ -2204,49 +2204,49 @@ static void* std_core$utf8_encode(uint32_t l0) {
     l2 = (void*) _a1_arr;
     if ((l1 < INT32_C(2048))) {
         l3 = (l1 >> INT32_C(6));
-        t0 = ((INT32_C(192) | l3) & INT32_C(255));
+        t0 = (((int32_t) (INT32_C(192) | l3)) & INT32_C(255));
         l4 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l4);
         t0 = (l1 & INT32_C(63));
         l3 = (uint32_t) (int32_t) t0;
-        t0 = ((INT32_C(128) | l3) & INT32_C(255));
+        t0 = (((int32_t) (INT32_C(128) | l3)) & INT32_C(255));
         l4 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l4);
         { void* __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if ((l1 < INT32_C(65536))) {
         l3 = (l1 >> INT32_C(12));
-        t0 = ((INT32_C(224) | l3) & INT32_C(255));
+        t0 = (((int32_t) (INT32_C(224) | l3)) & INT32_C(255));
         l4 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l4);
         t0 = ((l1 >> INT32_C(6)) & INT32_C(63));
         l3 = (uint32_t) (int32_t) t0;
-        t0 = ((INT32_C(128) | l3) & INT32_C(255));
+        t0 = (((int32_t) (INT32_C(128) | l3)) & INT32_C(255));
         l4 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l4);
         t0 = (l1 & INT32_C(63));
         l3 = (uint32_t) (int32_t) t0;
-        t0 = ((INT32_C(128) | l3) & INT32_C(255));
+        t0 = (((int32_t) (INT32_C(128) | l3)) & INT32_C(255));
         l4 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l4);
     } else {
         l3 = (l1 >> INT32_C(18));
-        t0 = ((INT32_C(240) | l3) & INT32_C(255));
+        t0 = (((int32_t) (INT32_C(240) | l3)) & INT32_C(255));
         l4 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l4);
         t0 = ((l1 >> INT32_C(12)) & INT32_C(63));
         l3 = (uint32_t) (int32_t) t0;
-        t0 = ((INT32_C(128) | l3) & INT32_C(255));
+        t0 = (((int32_t) (INT32_C(128) | l3)) & INT32_C(255));
         l4 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l4);
         t0 = ((l1 >> INT32_C(6)) & INT32_C(63));
         l3 = (uint32_t) (int32_t) t0;
-        t0 = ((INT32_C(128) | l3) & INT32_C(255));
+        t0 = (((int32_t) (INT32_C(128) | l3)) & INT32_C(255));
         l4 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l4);
         t0 = (l1 & INT32_C(63));
         l1 = (uint32_t) (int32_t) t0;
-        t0 = ((INT32_C(128) | l1) & INT32_C(255));
+        t0 = (((int32_t) (INT32_C(128) | l1)) & INT32_C(255));
         l4 = (uint8_t) (int32_t) t0;
         vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l4);
     }
@@ -6275,7 +6275,7 @@ static vader_box_t std_numbers$hex_digit_value(uint32_t l0) {
     }
     if (l2) {
         t0 = vader_chk_sub(u32, ((int32_t) (uint32_t) l0), INT32_C(48));
-        l1 = vader_box_i32(3u, t0);
+        l1 = vader_box_i32(3u, ((int32_t) t0));
         return l1;
     }
     if ((l0 >= 97u)) {
@@ -6286,7 +6286,7 @@ static vader_box_t std_numbers$hex_digit_value(uint32_t l0) {
     if (l2) {
         t0 = vader_chk_sub(u32, ((int32_t) (uint32_t) l0), INT32_C(97));
         t1 = vader_chk_add(u32, t0, INT32_C(10));
-        l1 = vader_box_i32(3u, t1);
+        l1 = vader_box_i32(3u, ((int32_t) t1));
     } else {
         if ((l0 >= 65u)) {
             l2 = (l0 <= 70u);
@@ -6296,7 +6296,7 @@ static vader_box_t std_numbers$hex_digit_value(uint32_t l0) {
         if (l2) {
             t0 = vader_chk_sub(u32, ((int32_t) (uint32_t) l0), INT32_C(65));
             t1 = vader_chk_add(u32, t0, INT32_C(10));
-            l1 = vader_box_i32(3u, t1);
+            l1 = vader_box_i32(3u, ((int32_t) t1));
         } else {
             l1 = vader_box_obj(0u, NULL);
         }

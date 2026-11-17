@@ -183,6 +183,10 @@ export convert_value :: fn(v: Value, target: ConvertTarget, from_name: string, a
     }
     if target == .F64 {
         if nv is F64Val { return nv }
+        // A `u64` past `i64` holds its magnitude in the sign bit.
+        if nv is I64Val && is_unsigned_source(from_name) {
+            return F64Val(f64(u64(i64(nv))))
+        }
         n :: read_numeric_as_f64(nv, at_pc)
         if n is Trap { return n }
         return F64Val(n)

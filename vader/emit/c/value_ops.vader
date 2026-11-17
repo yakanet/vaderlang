@@ -330,41 +330,25 @@ div_mod_helper :: fn(op: CBinaryOperator, val: ValType) -> string | null = @part
 // ---- conversions ----------------------------------------------------------
 
 /// Reinterpret the top value into `target_val` (the `Convert` op, whatever its
-/// target width: `char` included). Same type -> pass-through ; else a `((to)(from) v)`
-/// double-cast where the inner cast pins the *source* signedness.
+/// target width: `char` included). Same class: the value passes, cast to the
+/// signed type when the source is unsigned (`signed_view`). Otherwise a
+/// `((to)(from) v)` double cast, the inner cast reading the source as
+/// `source_class` says.
 ///
-/// The bytecode collapses every integer <= 32 bits onto the `I32` stack
-/// class, so a `u32` source rides as `.I32` and `val_of(v)` alone would
-/// sign-extend it on a widen to 64 bits. When the op records an unsigned
-/// source (`from_name` starts with `"u"`) widening to `i64`, reinterpret
-/// through `uint32_t` so the bits zero-extend: a `u32` carries a magnitude,
-/// not a signed value.
-///
-/// Kept deliberately narrow to the `i32`-class unsigned source widening to
-/// `i64` OR `f64`: the two cases where an `I32`-class `u32` gets extended past
-/// its 32 bits. `f64` matters too : `f64(x)` on a `u32` >= 2^31 otherwise emits
-/// `((double)(int32_t) x)`, reinterpreting the magnitude as a negative int and
-/// landing a negative double (the VM zero-extends, so native diverged: CR-a).
-/// A BROADER rule (reinterpret *every* unsigned source through its stack-width
-/// unsigned type, incl. the `.I64` class -> `uint64_t`) regresses the
-/// bootstrap : it changes how the compiler's own 64-bit literal rendering
-/// compiles and miscompiles large `i64`/`u64` constants (fixed point breaks,
-/// `INT64_MAX` emits as `4294967295`). u8/u16 are always < 2^31, so sign- and
-/// zero-extension coincide ; u64 is already `.I64` and never widens.
+/// The bytecode collapses every integer of 32 bits or less onto the `I32` class,
+/// and an operator on a `u64` gives an `I64`-class value, so the class does not
+/// tell an unsigned source apart: `from_name` does. Only the cases where
+/// signedness changes the result read it. Reading every unsigned source through
+/// its unsigned C type changes how 64-bit constants render and breaks the
+/// bootstrap's fixed point.
 ///
 /// @param target_val  the result stack class (`I32`/`I64`/`F64`/`Char`).
 /// @param from_name   the op's recorded source type name (`"u32"`, `"i64"`,
-///                    ...) ; `""` when the target is not 64-bit.
+///                    ...).
 emit_convert :: fn(s: FnState, target_val: ValType, from_name: string) -> void {
     v :: pop(s)
     stack_val :: val_of(v)
-    from_val :: if (target_val == .I64 || target_val == .F64) && stack_val == .I32 && from_name.starts_with(
-        "u",
-    ) {
-        ValType.U32
-    } else {
-        stack_val
-    }
+    from_val :: source_class(stack_val, target_val, from_name)
     if is_ref_val(stack_val) {
         // The value is still BOXED (an erased `any`/`ref` slot, e.g. a
         // `Distinct | null` field narrowed to its raw member) flowing into a
@@ -372,10 +356,41 @@ emit_convert :: fn(s: FnState, target_val: ValType, from_name: string) -> void {
         // a plain `(int64_t)(vader_box_t)x` cast of a box is invalid C.
         push_expr(s, target_val, unbox_expr(expression_of(v), target_val))
     } else if from_val == target_val {
-        push_expr(s, target_val, expression_of(v))
+        push_expr(s, target_val, signed_view(expression_of(v), target_val, from_name))
     } else {
         push_expr(s, target_val, CParenthesized { .inner = scalar_cast(expression_of(v), from_val, target_val) })
     }
+}
+
+// The class a conversion reads its source as. An unsigned source of the `I32`
+// class widens with zeros, and a `u64` becomes a float as unsigned: its stack
+// class says signed, but an operator on an unsigned C value keeps it unsigned
+// (`l0 << n` on a `uint64_t` is one), so the class alone would sign it.
+source_class :: fn(stack_val: ValType, target_val: ValType, from_name: string) -> ValType {
+    if !from_name.starts_with("u") {
+        return stack_val
+    }
+    if stack_val == .I32 && (target_val == .I64 || target_val == .F64) {
+        return .U32
+    }
+    if stack_val == .I64 && target_val == .F64 {
+        return .U64
+    }
+    return stack_val
+}
+
+// `value`, of the class `target`, as the signed type that class is when the
+// source is a `u32` or a `u64`: a signed operator after the conversion (`>>`,
+// `<`) reads its operand's C type, which an unsigned operand would leave
+// unsigned. A narrower source is promoted to a signed `int` by C already.
+signed_view :: fn(value: CExpression, target: ValType, from_name: string) -> CExpression {
+    if (from_name != "u32" && from_name != "u64") || value is CIntegerLiteral {
+        return value
+    }
+    if target != .I32 && target != .I64 {
+        return value
+    }
+    return CParenthesized { .inner = cast(c_type_for_val_bare(target), value) }
 }
 
 /// `ConvertTarget` enum -> its `ValType`.

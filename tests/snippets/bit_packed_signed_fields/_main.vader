@@ -1,0 +1,29 @@
+// tests/snippets/bit_packed_signed_fields: signed fields read out of an unsigned word.
+//
+// A field is moved to the top of the word, converted to a signed integer, then
+// shifted back down, which copies its sign bit. The same word read as a float
+// is unsigned. Both engines must agree on every line.
+
+module "snippet"
+
+import "std/console"
+
+// The signed field of `width` bits at `offset` in `word`.
+field :: fn(word: u64, offset: i64, width: i64) -> i64 {
+    up :: 64 - offset - width
+    return i64(word << u64(up)) >> (64 - width)
+}
+
+// The same on a 32-bit word.
+field32 :: fn(word: u32, offset: i32, width: i32) -> i32 {
+    up :: 32 - offset - width
+    return i32(word << u32(up)) >> (32 - width)
+}
+
+main :: fn() -> i32 {
+    word: u64: 0xFFFF_FFFF_0000_0000
+    println("${field(word, 32, 32)} ${field(word, 0, 32)} ${field(0x7F, 0, 8)}")
+    println("${field32(0xFFFF, 0, 16)} ${field32(0x7FFF, 0, 16)}")
+    println("${i64(word << 1) < 0} ${f64(word)} ${f64(word << 8)}")
+    return 0
+}
