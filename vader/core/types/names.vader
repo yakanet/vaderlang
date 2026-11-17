@@ -257,6 +257,9 @@ export STRUCT_C_LIBRARY :: @type_name(CLibrary)
 /// `std/core::Condition`, an expression a compiler decorator reads as written.
 export STRUCT_CONDITION :: @type_name(Condition)
 
+/// `std/core::Around`, the function an `@interceptor` names.
+export STRUCT_AROUND :: @type_name(Around)
+
 /// `std/core::DecoratorTarget`, what the parentheses of a decorator declaration name.
 export ENUM_DECORATOR_TARGET :: @type_name(DecoratorTarget)
 

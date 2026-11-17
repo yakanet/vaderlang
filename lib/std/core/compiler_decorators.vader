@@ -17,6 +17,10 @@ import "std/target"
 /// stands and never evaluated as the decorator's value.
 export Condition :: struct {}
 
+/// The function an interceptor routes calls through, named as written: a function
+/// of the interceptor's module.
+export Around :: struct {}
+
 /// Declares a transparent alias of the type on the right: `@alias Real :: f64`
 /// names `f64` itself, where `Real :: f64` declares a distinct type.
 export alias :: decorator(.Constant) {}
