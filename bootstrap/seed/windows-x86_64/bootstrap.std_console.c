@@ -27,7 +27,7 @@ static bool std_console$has_console_mode(void* l0) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(31u, 1u, 3u, 518u);
+    vader_array_t* _a0_arr = vader_array_new(31u, 1u, 3u, 543u);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (int32_t) INT32_C(0);
     l1 = (void*) _a0_arr;
     t0 = vader_host_system_windows$get_console_mode(l0, l1);
@@ -35,18 +35,29 @@ static bool std_console$has_console_mode(void* l0) {
 }
 
 static bool std_console$is_console(uint8_t l0) {
-    bool t0;
+    bool l1;
+    int32_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l0 == INT32_C(0)) {
-        t0 = std_console$stdout_is_console();
-        { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+        t0 = vader_global_2;
+        if (t0 == INT32_C(2)) {
+            l1 = vader_global_3;
+        } else {
+            l1 = std_console$stdout_is_console();
+        }
+        { bool __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (!(l0 == INT32_C(1))) {
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
     }
-    t0 = std_console$stderr_is_console();
-    { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    t0 = vader_global_0;
+    if (t0 == INT32_C(2)) {
+        l1 = vader_global_1;
+    } else {
+        l1 = std_console$stderr_is_console();
+    }
+    { bool __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void* std_console$std_handle(uint8_t l0) {
@@ -79,9 +90,9 @@ static bool std_console$stderr_is_console(void) {
         t1 = vader_global_1;
         { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t2 = vader_global_2;
+    t2 = vader_global_8;
     l0 = std_runtime_scheduler$gate_or_new(t2);
-    vader_global_2 = vader_ref_box(l0);
+    vader_global_8 = vader_ref_box(l0);
     l1 = (void*) &vader_fn_static_std_console$stderr_is_console$keep;
     t1 = std_runtime_scheduler$run_gated(l0, l1);
     if (!(t1)) {
@@ -126,20 +137,20 @@ static bool std_console$stdout_is_console(void) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_3;
+    t0 = vader_global_2;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_4;
+        t1 = vader_global_3;
         { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t2 = vader_global_5;
+    t2 = vader_global_9;
     l0 = std_runtime_scheduler$gate_or_new(t2);
-    vader_global_5 = vader_ref_box(l0);
+    vader_global_9 = vader_ref_box(l0);
     l1 = (void*) &vader_fn_static_std_console$stdout_is_console$keep;
     t1 = std_runtime_scheduler$run_gated(l0, l1);
     if (!(t1)) {
         vader_unreachable("singleton `stdout_is_console` called while it initialises");
     }
-    t1 = vader_global_4;
+    t1 = vader_global_3;
     { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -148,11 +159,11 @@ void std_console$stdout_is_console$keep(void) {
     bool t1;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_3;
+    t0 = vader_global_2;
     if (!(t0 == INT32_C(2))) {
         t1 = std_console$stdout_is_console$singleton();
-        vader_global_4 = t1;
-        vader_global_3 = INT32_C(2);
+        vader_global_3 = t1;
+        vader_global_2 = INT32_C(2);
         { vader_gc_top = gc_frame.prev; return; }
     }
     { vader_gc_top = gc_frame.prev; return; }
@@ -215,7 +226,7 @@ static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2) {
     void** gc_raw_roots[2] = { &l1, &l3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(31u, 1u, 3u, 518u);
+    vader_array_t* _a0_arr = vader_array_new(31u, 1u, 3u, 543u);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (int32_t) INT32_C(0);
     l3 = (void*) _a0_arr;
     l4 = std_console$std_handle(l0);
@@ -251,7 +262,7 @@ static bool std_console$write_text(uint8_t l0, vader_string_t l1) {
     t0 = std_console$is_console(l0);
     if (t0) {
         l2 = vader_host_std_core$Intrinsic$byte_len(l1);
-        vader_array_t* _a0_arr = vader_array_new(30u, 1u, 2u, 517u);
+        vader_array_t* _a0_arr = vader_array_new(30u, 1u, 2u, 542u);
         ((uint16_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint16_t) INT32_C(0);
         t1 = (void*) _a0_arr;
         vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t1, (int64_t) l2);
@@ -260,7 +271,7 @@ static bool std_console$write_text(uint8_t l0, vader_string_t l1) {
         l5 = ((int32_t) (int64_t) l2);
         l4 = vader_host_system_windows$multi_byte_to_wide_char((uint32_t) 65001, (uint32_t) 0, l1, l4, l3, l5);
         if ((l4 > INT32_C(0))) {
-            vader_array_t* _a2_arr = vader_array_new(31u, 1u, 3u, 518u);
+            vader_array_t* _a2_arr = vader_array_new(31u, 1u, 3u, 543u);
             ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 0u] = (int32_t) INT32_C(0);
             l6 = (void*) _a2_arr;
             l7 = std_console$std_handle(l0);

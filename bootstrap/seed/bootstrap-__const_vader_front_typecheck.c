@@ -5,7 +5,7 @@ void* __const_vader_front_typecheck$NO_ARG_LISTS(void) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(22u, 0u, 13u, 410u);
+    vader_array_t* _a0_arr = vader_array_new(22u, 0u, 13u, 434u);
     t0 = (void*) _a0_arr;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -15,7 +15,7 @@ void* __const_vader_front_typecheck$NO_IMPLS(void) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(304u, 0u, 13u, 1490u);
+    vader_array_t* _a0_arr = vader_array_new(318u, 0u, 13u, 1544u);
     t0 = (void*) _a0_arr;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -25,7 +25,7 @@ void* __const_vader_front_typecheck$NO_IMPL_METHODS(void) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(305u, 0u, 13u, 1491u);
+    vader_array_t* _a0_arr = vader_array_new(319u, 0u, 13u, 1545u);
     t0 = (void*) _a0_arr;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -35,7 +35,7 @@ void* __const_vader_front_typecheck$NO_TYPES(void) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(410u, 0u, 13u, 2192u);
+    vader_array_t* _a0_arr = vader_array_new(434u, 0u, 13u, 2263u);
     t0 = (void*) _a0_arr;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
