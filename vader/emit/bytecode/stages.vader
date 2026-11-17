@@ -1,0 +1,224 @@
+// vader/emit/bytecode/stages: the rewrites of an emitted function, as planned stages.
+//
+// Each rewrite of a function's bytecode describes what it needs of the body
+// (`requires`), what it leaves false (`breaks`), what it makes true
+// (`establishes`), and the stages whose work it profits from (`after`), one file
+// each (`stage_*.vader`). The plan derives the order from those descriptions,
+// then checks it by walking the properties through it: a stage placed where what
+// it needs no longer holds stops the plan, rather than miscompiling in silence.
+
+module "vader/emit/bytecode"
+
+import "std/abort"
+import "std/collections"
+import "toolchain/stage"
+import "vader/core/bytecode"
+
+/// What a stage may need of a function's bytecode.
+@displayable
+BytecodeProperty :: enum {
+    /// One slot per value: the per-slot counts of sets and gets describe the
+    /// program's values, which no coalescing has merged yet.
+    SlotsDistinct,
+    /// The single-use constants are inlined, to fixpoint.
+    ConstsPropagated,
+    /// The table of locals is the one the emit built: no compaction has made two
+    /// pairs of ops adjacent that were not.
+    SlotsAsEmitted,
+    /// No op copies a slot onto itself (`lN = lN` in C).
+    NoSelfCopies,
+}
+
+/// A rewrite of one emitted function.
+BytecodeStage :: trait = Stage<BcFunction, BcFunction, BytecodeSpec>
+
+/// What a bytecode stage describes of itself.
+BytecodeSpec :: struct {
+    name: string
+    /// What must hold of the body before it runs.
+    requires: BytecodeProperty[] = []
+    /// What may no longer hold once it ran.
+    breaks: BytecodeProperty[] = []
+    /// What holds once it ran.
+    establishes: BytecodeProperty[] = []
+    /// The stages whose work it profits from: an opportunity, not a need, which
+    /// no property says.
+    after: BytecodeStage[] = []
+}
+
+// The order follows four kinds of edge: a stage in `after` runs before; a stage
+// establishing what another requires runs before it, when the emit does not
+// leave it true; a stage requiring what another breaks runs before it; a stage
+// breaking what another establishes runs before it, which restores it.
+BytecodeSpec implements Placed {
+    stage_name :: fn(self) -> string = self.name
+
+    precedes :: fn(self, later: BytecodeSpec) -> string {
+        if later.after.any_match((stage) -> stage.describe().name == self.name) {
+            return "`${later.name}` profits from it"
+        }
+        for p in later.requires {
+            if p !in EMITTED && p in self.establishes {
+                return "`${later.name}` requires `${p}`, which `${self.name}` establishes"
+            }
+        }
+        for p in self.requires {
+            if p in later.breaks {
+                return "`${self.name}` requires `${p}`, which `${later.name}` breaks"
+            }
+        }
+        for p in self.breaks {
+            if p in later.establishes {
+                return "`${later.name}` restores `${p}`, which `${self.name}` breaks"
+            }
+        }
+        return ""
+    }
+}
+
+// What holds of a function as the emit leaves it.
+EMITTED: BytecodeProperty[]: [.SlotsDistinct, .SlotsAsEmitted, .NoSelfCopies]
+
+// What the targets need of the bytecode they receive.
+DELIVERED: BytecodeProperty[]: [.NoSelfCopies]
+
+/// The rewrites of an emitted function, in the order they are registered.
+bytecode_stages :: fn() -> BytecodeStage[] = [
+    PropagateStage {},
+    PeepholeStage {},
+    ConstFoldStage {},
+    DeadStoresStage {},
+    ReturnLitStage {},
+    CoalesceStage {},
+    StripSelfCopiesStage {},
+]
+
+// ---- the plan -------------------------------------------------------------
+
+/// The stages in an order their descriptions allow (`BytecodeSpec`), the earliest
+/// registered first among those free to run, then checked: walking the
+/// properties through it, each stage must find what it requires, and the end
+/// must hold what the targets need.
+///
+/// @param stages  the stages, in the order they are registered.
+/// @return        the planned order.
+/// @error         `PlanError` naming the stages that wait on one another, the
+///                stage that finds what it requires broken, or the property the
+///                end lacks.
+plan_bytecode_stages :: fn(stages: BytecodeStage[]) -> BytecodeStage[] | PlanError {
+    planned :: plan_stages(stages) else return planned
+    return walk_properties(planned)
+}
+
+// Walk the properties through `planned`: `planned` itself when every stage finds
+// what it requires and the end holds what the targets need.
+walk_properties :: fn(planned: BytecodeStage[]) -> BytecodeStage[] | PlanError {
+    holds :: Set<BytecodeProperty> {}
+    for p in EMITTED {
+        holds.add(p)
+    }
+    for stage in planned {
+        spec :: stage.describe()
+        for p in spec.requires {
+            if p !in holds {
+                return PlanError {
+                    .message = "`${spec.name}` requires `${p}`, which no longer holds",
+                }
+            }
+        }
+        for p in spec.breaks {
+            holds.remove(p)
+        }
+        for p in spec.establishes {
+            holds.add(p)
+        }
+    }
+    for p in DELIVERED {
+        if p !in holds {
+            return PlanError { .message = "the targets need `${p}`, which no stage restores" }
+        }
+    }
+    return planned
+}
+
+/// Run `planned` on `function`, each stage on the result of the one before.
+///
+/// @param planned   the stages, in a planned order (`plan_bytecode_stages`).
+/// @param function  the emitted function.
+run_bytecode_stages :: fn(planned: BytecodeStage[], function: BcFunction) -> BcFunction {
+    current := function
+    for stage in planned {
+        current = stage.run(current)
+    }
+    return current
+}
+
+/// The planned stages, or a stop naming why none can run: an internal stage
+/// misplaced is a compiler bug.
+planned_bytecode_stages :: fn() -> BytecodeStage[] {
+    planned :: plan_bytecode_stages(bytecode_stages()) else {
+        panic("bytecode stages: ${planned.message}")
+    }
+    return planned
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/iter"
+import "std/string"
+import "std/testing"
+
+// A stage no order can place: it requires distinct slots after the coalescing.
+MisplacedStage :: struct {}
+
+MisplacedStage implements BytecodeStage {
+    describe :: fn(self) = BytecodeSpec {
+        .name = "misplaced",
+        .requires = [.SlotsDistinct],
+        .after = [StripSelfCopiesStage {}],
+    }
+    run :: fn(self, function: BcFunction) -> BcFunction = function
+}
+
+// The names of `stages` as planned, joined, or the plan's error.
+planned_names :: fn(stages: BytecodeStage[]) -> string {
+    planned :: plan_bytecode_stages(stages) else return planned.message
+    return planned.map((stage) -> stage.describe().name).collect().join(", ")
+}
+
+@test
+test_bytecode_plan_keeps_the_rewrites_in_their_order :: fn() -> void {
+    assert_eq(
+        planned_names(bytecode_stages()),
+        "propagate, peephole, const_fold, dead_stores, return_lit, coalesce, strip_self_copies",
+    )
+}
+
+// The order registered only settles the stages free to run in either order:
+// registered backwards, the rewrites still find what each requires.
+@test
+test_bytecode_plan_holds_whatever_the_registered_order :: fn() -> void {
+    reversed: BytecodeStage[]: []
+    stages :: bytecode_stages()
+    i := stages.len() - 1
+    for i >= 0 {
+        reversed.push(stages[i])
+        i -= 1
+    }
+    assert_eq(
+        planned_names(reversed),
+        "propagate, peephole, const_fold, dead_stores, coalesce, strip_self_copies, return_lit",
+    )
+}
+
+@test
+test_bytecode_plan_refuses_a_stage_it_cannot_place :: fn() -> void {
+    misplaced: BytecodeStage[]: [MisplacedStage {}]
+    assert_eq(
+        planned_names(bytecode_stages() + misplaced),
+        "no order holds: `coalesce` after `misplaced` (`misplaced` requires `SlotsDistinct`, "
+            + "which `coalesce` breaks) ; `strip_self_copies` after `coalesce` "
+            + "(`strip_self_copies` restores `NoSelfCopies`, which `coalesce` breaks) ; "
+            + "`misplaced` after `strip_self_copies` (`misplaced` profits from it)",
+    )
+}

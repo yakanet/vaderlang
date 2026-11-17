@@ -1,0 +1,178 @@
+// vader/emit/bytecode/stage_propagate: the `propagate` rewrite of a function.
+
+module "vader/emit/bytecode"
+
+import "std/collections"
+import "vader/core/bytecode"
+
+// Inline the single-use constants, to fixpoint: each run only removes ops.
+PropagateStage :: struct {}
+
+PropagateStage implements BytecodeStage {
+    describe :: fn(self) = BytecodeSpec {
+        .name = "propagate",
+        .requires = [.SlotsDistinct],
+        .establishes = [.ConstsPropagated],
+    }
+
+    run :: fn(self, function: BcFunction) -> BcFunction {
+        current := function
+        previous_len: i64 = current.body.len() + 1
+        for current.body.len() < previous_len {
+            previous_len = current.body.len()
+            current = propagated_once(current)
+        }
+        return current
+    }
+}
+
+// Propagate a constant op through a single-use primitive local.
+//
+// ```
+// Detects:                      Becomes:
+//   <T>.const K                   <ops between>          // const + set both gone
+//   local.set N                   <T>.const K            // pushed at the get site
+//   <ops between>                 <T>.const K
+//   local.get N
+// ```
+//
+// Conditions :
+//   - Slot N is a non-param local (params can't be eliminated).
+//   - Slot N has exactly 1 `local.set`, 1 `local.get`, 0 `local.tee`.
+//   - The op immediately preceding the `local.set N` is a const op
+//     whose val type matches the slot's val type.
+//   - The set's IP is strictly before the get's IP.
+//
+// After this pass the slot has 0 reads and 0 writes ; `dead_stores`
+// collects it.
+//
+// The numeric-narrowing case (emitting a `<from>.to_<slot>` convert at
+// the get site when the const's type differs from the slot's) is not
+// yet handled. Most CFG-emit cases use matching types, so this covers
+// the common path.
+propagated_once :: fn(function: BcFunction) -> BcFunction {
+    param_count :: function.signature.params.len()
+    total_slots :: param_count + function.locals.len()
+    if total_slots <= param_count { return function }
+
+    // Per-slot stats : how many sets / gets / tees ; index of the (only)
+    // set + (only) get when there's exactly one of each.
+    set_count: i32[]: [0] * total_slots
+    get_count: i32[]: [0] * total_slots
+    tee_count: i32[]: [0] * total_slots
+    set_idx:   i32[]: [-1] * total_slots
+    get_idx:   i32[]: [-1] * total_slots
+    body :: function.body
+    n :: body.len()
+    for i in 0..<n {
+        op :: body[i]
+        if op is LocalSet {
+            slot :: i64(op.slot)
+            set_count[slot] += 1
+            set_idx[slot] = i32(i)
+        }
+        if op is LocalTee { tee_count[op.slot] += 1 }
+        if op is LocalGet {
+            slot :: i64(op.slot)
+            get_count[slot] += 1
+            get_idx[slot] = i32(i)
+        }
+    }
+
+    // Decide which (set_pc, get_pc) pairs to rewrite.
+    to_delete_set :: Map<i32, bool> {}
+    replace_with :: Map<i32, Op> {}
+    for k in param_count..<total_slots {
+        valid := true
+        if tee_count[k] != 0 { valid = false }
+        if set_count[k] != 1 { valid = false }
+        if get_count[k] != 1 { valid = false }
+        si: i32 = -1
+        gi: i32 = -1
+        if valid {
+            si = set_idx[k]
+            gi = get_idx[k]
+            if si <= 0 { valid = false }
+            if gi <= si { valid = false }
+        }
+        if valid {
+            const_op :: body[si - 1]
+            cv :: const_op_of(const_op)
+            if cv is null {
+                valid = false
+            } else {
+                slot_val :: function.locals[k - param_count].val
+                if !const_fills_slot(cv, slot_val) {
+                    valid = false
+                } else {
+                    to_delete_set[si - 1] = true
+                    to_delete_set[si]     = true
+                    replace_with[gi] = const_op
+                }
+            }
+        }
+    }
+
+    if to_delete_set.is_empty() { return function }
+
+    // Rewrite the body : skip deleted indices, replace `local.get` sites.
+    new_body: Op[]: []
+    new_debug: (DebugPos | null)[]: []
+    old_to_new: i32[]: [-1] * n
+    j: i64 = 0
+    for j < n {
+        if to_delete_set[i32(j)] is bool {
+            j = j + 1
+            continue
+        }
+        repl :: replace_with[i32(j)]
+        if repl is null {
+            old_to_new[j] = i32(new_body.len())
+            new_body.push(body[j])
+            new_debug.push(function.debug[j])
+        } else {
+            old_to_new[j] = i32(new_body.len())
+            new_body.push(repl)
+            new_debug.push(function.debug[j])
+        }
+        j = j + 1
+    }
+    new_jt :: remap_jump_table(function.jump_table, old_to_new, new_body.len())
+    return BcFunction {
+        ...function,
+        .body = new_body,
+        .debug = new_debug,
+        .jump_table = new_jt,
+    }
+}
+
+// ValType for a `ConstOp` carrier: used by `const_fills_slot` for the
+// non-integer const kinds, where the const op and the slot share an exact
+// ValType.
+const_val_type :: fn(c: ConstOp) -> ValType = match c {
+    is I32Const    -> .I32
+    is I64Const    -> .I64
+    is F64Const    -> .F64
+    is BoolConst   -> .Bool
+    is CharConst   -> .Char
+    is StringConst -> .String
+    is NullConst   -> .Null
+}
+
+// True when constant `cv` can be inlined into a slot of ValType `slot`
+// with no representation change, i.e. both share the VM value class.
+//
+// Const ops are width-aliased : only `I32Const` / `I64Const` / `F64Const`
+// / `BoolConst` / `CharConst` / `StringConst` / `NullConst` exist, so an
+// exact `const_val_type == slot` compare wrongly rejects a `I64Const`
+// bound for a `u64` slot (and a `I32Const` for a `u8` / `u16` / `u32`
+// slot) even though the bits are identical and the
+// VM stores both as the same `I64Val` / `I32Val`. Comparing by class lets
+// those propagate : the emitter only ever emits a const whose class
+// matches the slot's class, so no `to_<width>` convert is ever needed.
+// The non-integer kinds keep the exact-ValType rule.
+const_fills_slot :: fn(cv: ConstOp, slot: ValType) -> bool {
+    if cv is I64Const { return is_64_bit_int_val(slot) }
+    if cv is I32Const { return is_integer_val(slot) && !is_64_bit_int_val(slot) }
+    return const_val_type(cv) == slot
+}

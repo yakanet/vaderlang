@@ -1,0 +1,97 @@
+// vader/emit/bytecode/stage_strip_self_copies: the `strip_self_copies` rewrite of a function.
+
+module "vader/emit/bytecode"
+
+import "vader/core/bytecode"
+
+// Strip the self-copies `coalesce` mints when it maps the source and
+// destination of a local-to-local move onto one physical slot. Two adjacent,
+// same-slot patterns are provable no-ops:
+//
+// ```
+// local.get N ; local.tee N  ->  local.get N   (the tee stores self)
+// local.get N ; local.set N  ->  (nothing)     (get pushes, set pops self)
+// ```
+//
+// Without this the C backend emits `lN = lN;` (a `-Wself-assign`) and the VM
+// runs a pointless get + self-store. A pair is folded only when the SECOND op is
+// not a branch target : a jump landing on a `tee` / `set` reaches it with a
+// foreign stack top where the store is real, not a self-copy (same guard as
+// `peephole`'s `is_jump_target`). Reuses the shared `remap_jump_table`
+// / `remap_debug` PC-space rewrite, so removed ops leave the jump + debug
+// tables consistent.
+StripSelfCopiesStage :: struct {}
+
+StripSelfCopiesStage implements BytecodeStage {
+    describe :: fn(self) = BytecodeSpec {
+        .name = "strip_self_copies",
+        .establishes = [.NoSelfCopies],
+    }
+
+    run :: fn(self, function: BcFunction) -> BcFunction {
+        body :: function.body
+        n :: body.len()
+        is_jump_target :: mark_jump_targets(function.jump_table, n)
+
+        // Identity fast-path : self-copies exist only where `coalesce` merged a
+        // move's endpoints, so most functions have none. Scan first ; with nothing to
+        // fold, return the original body / tables by reference: no rebuild, no remap.
+        any_fold := false
+        scan: i64 = 0
+        for scan < n {
+            if foldable_self_copy(body, scan, n, is_jump_target) { any_fold = true  break }
+            scan += 1
+        }
+        if !any_fold {
+            return function
+        }
+
+        out: Op[]: []
+        old_to_new: i32[]: [-1] * n
+        i: i64 = 0
+        for i < n {
+            op :: body[i]
+            if foldable_self_copy(body, i, n, is_jump_target) {
+                if body[i + 1] is LocalTee {
+                    // Keep the get, drop the self-tee (`get N ; tee N` ≡ `get N`).
+                    old_to_new[i] = i32(out.len())
+                    out.push(op)
+                } else {
+                    // `local.set` : drop both, `get N` pushes, `set N` pops-stores self.
+                    old_to_new[i] = -1
+                }
+                old_to_new[i + 1] = -1
+                i += 2
+                continue
+            }
+            old_to_new[i] = i32(out.len())
+            out.push(op)
+            i += 1
+        }
+
+        new_jt :: remap_jump_table(function.jump_table, old_to_new, out.len())
+        new_debug :: remap_debug(function.debug, old_to_new, out.len())
+        return BcFunction {
+            ...function,
+            .body = out,
+            .jump_table = new_jt,
+            .debug = new_debug,
+        }
+    }
+}
+
+// True when `body[i]`, `body[i+1]` are an adjacent same-slot self-copy
+// (`local.get N ; local.tee/set N`) safe to fold. The store op must NOT be a
+// branch target : a jump landing on it arrives with a foreign stack top, where
+// the store is a real write, not a self-copy.
+foldable_self_copy :: fn(body: Op[], i: i64, n: i64, is_jump_target: bool[]) -> bool {
+    if i + 1 >= n { return false }
+    if is_jump_target[i + 1] { return false }
+    g :: body[i]
+    if g is LocalGet {
+        next :: body[i + 1]
+        if next is LocalTee { return next.slot == g.slot }
+        if next is LocalSet  { return next.slot  == g.slot }
+    }
+    return false
+}

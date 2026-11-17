@@ -1,0 +1,131 @@
+// vader/emit/bytecode/stage_dead_stores: the `dead_stores` rewrite of a function.
+
+module "vader/emit/bytecode"
+
+import "vader/core/bytecode"
+
+// Eliminate locals whose only references are writes. After
+// `peephole` collapses every `set N ; get N` adjacency into a
+// tee, the CFG-emit path leaves long tails of dead `local.tee N` (the
+// value stays on stack for the next op, but the local itself is never
+// read). Drop those writes and shrink the locals table so the C-emit
+// (and the dump) stops mentioning slots no one consumes.
+DeadStoresStage :: struct {}
+
+DeadStoresStage implements BytecodeStage {
+    describe :: fn(self) = BytecodeSpec {
+        .name = "dead_stores",
+        .requires = [.SlotsDistinct],
+        .breaks = [.SlotsAsEmitted],
+        .after = [ConstFoldStage {}],
+    }
+
+    run :: fn(self, function: BcFunction) -> BcFunction {
+        param_count :: function.signature.params.len()
+        total_slots :: param_count + function.locals.len()
+        reads: i32[]: [0] * total_slots
+        // Count slot reads: `local.get` plus the fused composite
+        // `local.field` (emit/bytecode/emit.vader::try_fuse_local_field).
+        for op in function.body {
+            if op is LocalGet {
+                reads[op.slot] += 1
+            }
+            if op is LocalField {
+                reads[op.slot] += 1
+            }
+        }
+        // Mark dead = non-param local slots with zero reads.
+        dead: bool[]: [false] * total_slots
+        has_dead := false
+        for k in param_count..<total_slots {
+            if reads[k] == 0 {
+                dead[k] = true
+                has_dead = true
+            }
+        }
+        if !has_dead { return function }
+
+        // Build slot remap : surviving slots stay dense from 0 upward.
+        remap: i32[]: [-1] * total_slots
+        next: i32 = 0
+        for p in 0..<total_slots {
+            if !dead[p] {
+                remap[p] = next
+                next += 1
+            }
+        }
+
+        // Rewrite the body : drop dead writes, renumber surviving accesses.
+        // Dead `local.tee` ops are dropped entirely: track an old->new PC
+        // map so jump_table indices remap. Other ops keep a 1:1 mapping.
+        out: Op[]: []
+        body_len :: function.body.len()
+        old_to_new_pc: i32[]: [-1] * body_len
+        pc: i64 = 0
+        for pc < body_len {
+            op :: function.body[pc]
+            if op is LocalSet {
+                if dead[op.slot] {
+                    old_to_new_pc[pc] = i32(out.len())
+                    out.push(Drop {})
+                } else {
+                    old_to_new_pc[pc] = i32(out.len())
+                    out.push(LocalSet { .slot = remap[op.slot] })
+                }
+                pc = pc + 1
+                continue
+            }
+            if op is LocalTee {
+                if dead[op.slot] {
+                    // tee = set + push. With the set dead, just leave the
+                    // value on stack: the consumer reads it directly.
+                    pc = pc + 1
+                    continue
+                }
+                old_to_new_pc[pc] = i32(out.len())
+                out.push(LocalTee { .slot = remap[op.slot] })
+                pc = pc + 1
+                continue
+            }
+            if op is LocalGet {
+                old_to_new_pc[pc] = i32(out.len())
+                out.push(LocalGet { .slot = remap[op.slot] })
+                pc = pc + 1
+                continue
+            }
+            if op is LocalField {
+                old_to_new_pc[pc] = i32(out.len())
+                out.push(LocalField {
+                    .slot = remap[op.slot],
+                    .type_id = op.type_id,
+                    .field_index = op.field_index,
+                })
+                pc = pc + 1
+                continue
+            }
+            old_to_new_pc[pc] = i32(out.len())
+            // The push-cache hint NAMES a slot, so it has to move with the
+            // renumbering like any other slot reference. It is not a use (the
+            // array's own `local.get` is) so it stays out of the liveness tables
+            // and only the number is rewritten. Same in `coalesce`.
+            out.push(remap_push_cache_slot(op, remap))
+            pc = pc + 1
+        }
+        new_jt :: remap_jump_table(function.jump_table, old_to_new_pc, out.len())
+        new_debug :: remap_debug(function.debug, old_to_new_pc, out.len())
+        // Compact the locals list. Param slots aren't in `function.locals`
+        // (they live in `signature.params`), so we only filter the per-fn
+        // locals tail.
+        new_locals: BcLocal[]: []
+        for q in param_count..<total_slots {
+            if !dead[q] { new_locals.push(function.locals[q - param_count]) }
+        }
+        return BcFunction {
+            ...function,
+            .locals = new_locals,
+            .body = out,
+            .debug = new_debug,
+            .jump_table = new_jt,
+        }
+    }
+}

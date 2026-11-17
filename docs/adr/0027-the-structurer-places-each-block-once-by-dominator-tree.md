@@ -83,7 +83,7 @@ header that only forwards has no test of its own, so the C emitter cannot write
 the loop as a `while` when its body opens with `if c { break }`, and threading
 such a header instead merges it into a loop its body opens on.
 
-`drop_unbranched_blocks` (`vader/emit/bytecode/peephole.vader`) then removes every `block`
+`drop_unbranched_blocks` (`vader/emit/bytecode/emit.vader`) then removes every `block`
 no `br` leaves through: the structurer opens one per merge before it knows
 whether control will branch to the merge or fall into it.
 

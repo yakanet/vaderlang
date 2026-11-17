@@ -1,0 +1,210 @@
+// toolchain/stage: a step a plugin adds to the build, and the order of several.
+//
+// Every point of the build where a stage runs fixes the three parameters of
+// `Stage` through an alias of its own, next to the input it hands: the input type
+// says where a stage runs. What a stage describes of itself is a value the engine
+// reads without running it, to skip it, order it, check it and show it. The order
+// follows from those descriptions alone, never from the order stages are
+// registered in, except between stages free to run in any order.
+
+module "toolchain/stage"
+
+import "std/iter"
+import "std/string"
+
+/// A step of the build: it reads `In` and gives back `Out`, and describes itself
+/// with a `Spec` the engine reads before it runs.
+export Stage :: trait<In, Out, Spec> {
+    /// What the engine knows of the stage without running it: its name, what it
+    /// is given, where it runs.
+    describe :: fn(self) -> Spec
+    /// What the stage gives back for `input`. It writes nothing it is lent.
+    run :: fn(self, input: In) -> Out
+}
+
+/// What the planner reads of the description of a stage.
+export Placed :: trait {
+    /// The name of the stage, which diagnostics and listings show.
+    stage_name :: fn(self) -> string
+    /// Why the stage `self` describes must run before the one `later` describes,
+    /// "" when it need not: a point whose stages never wait on one another keeps
+    /// the default.
+    precedes :: fn(self, later: Self) -> string = ""
+}
+
+/// Why no order of the stages holds.
+export PlanError :: struct {
+    message: string
+}
+
+PlanError implements Error {
+    message :: fn(self) -> string = self.message
+}
+
+/// The stages in an order their descriptions allow, the earliest registered
+/// first among those free to run.
+///
+/// @param stages  the stages, in the order they are registered.
+/// @return        the planned order.
+/// @error         `PlanError` naming the stages that wait on one another.
+export plan_stages :: fn<In, Out, Spec: Placed>(
+    stages: Stage<In, Out, Spec>[],
+) -> Stage<In, Out, Spec>[] | PlanError {
+    specs: Spec[]: []
+    for stage in stages {
+        specs.push(stage.describe())
+    }
+    order :: plan_order(specs) else return order
+    planned: Stage<In, Out, Spec>[]: []
+    for i in order {
+        planned.push(stages[i])
+    }
+    return planned
+}
+
+/// The places of `specs` in an order they allow, the earliest first among those
+/// free to run.
+///
+/// @param specs  the descriptions, in the order their stages are registered.
+/// @return       the index of each description, in planned order.
+/// @error        `PlanError` naming the stages that wait on one another.
+plan_order :: fn<Spec: Placed>(specs: Spec[]) -> i64[] | PlanError {
+    n :: specs.len()
+    // `before[i]` holds the stages `i` runs after, `why[i]` the reason of each.
+    before: i64[][]: n.filled(() -> [])
+    why: string[][]: n.filled(() -> [])
+    for i in 0..<n {
+        for j in 0..<n {
+            if i == j {
+                continue
+            }
+            reason :: specs[j].precedes(specs[i])
+            if reason != "" {
+                before[i].push(j)
+                why[i].push(reason)
+            }
+        }
+    }
+    order: i64[]: []
+    placed: bool[]: [false] * n
+    for order.len() < n {
+        next :: first_free(before, placed) else {
+            return PlanError { .message = "no order holds: ${waits(specs, before, why, placed)}" }
+        }
+        placed[next] = true
+        order.push(next)
+    }
+    return order
+}
+
+// The earliest registered stage not placed whose predecessors all are.
+first_free :: fn(before: i64[][], placed: bool[]) -> i64 | null {
+    for i in 0..<before.len() {
+        if !placed[i] && before[i].all_match((j) -> placed[j]) {
+            return i
+        }
+    }
+    return null
+}
+
+// What the stages not placed wait on among themselves, and why.
+waits :: fn<Spec: Placed>(
+    specs: Spec[],
+    before: i64[][],
+    why: string[][],
+    placed: bool[],
+) -> string {
+    lines: string[]: []
+    for i in 0..<specs.len() {
+        if placed[i] {
+            continue
+        }
+        for k in 0..<before[i].len() {
+            j :: before[i][k]
+            if !placed[j] {
+                later :: specs[i].stage_name()
+                lines.push("`${later}` after `${specs[j].stage_name()}` (${why[i][k]})")
+            }
+        }
+    }
+    return lines.join(" ; ")
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// A stage of the tests: it generates what its `generates` names, and reads what
+// its `given` names.
+Probe :: struct {
+    name: string
+    given: string[] = []
+    generates: string[] = []
+}
+
+Probe implements Placed {
+    stage_name :: fn(self) -> string = self.name
+    precedes :: fn(self, later: Probe) -> string {
+        for g in self.generates {
+            if g in later.given {
+                return "`${later.name}` reads `${g}`"
+            }
+        }
+        return ""
+    }
+}
+
+ProbeStage :: struct {
+    spec: Probe
+}
+
+ProbeStage implements Stage<string, string, Probe> {
+    describe :: fn(self) = self.spec
+    run :: fn(self, input: string) = "${input}${self.spec.name}"
+}
+
+// The names of `stages` as planned, joined, or the plan's error.
+planned_names :: fn(stages: Stage<string, string, Probe>[]) -> string {
+    planned :: plan_stages(stages) else return planned.message
+    names: string[]: []
+    for stage in planned {
+        names.push(stage.describe().name)
+    }
+    return names.join(", ")
+}
+
+@test
+test_plan_runs_a_generator_before_its_reader :: fn() -> void {
+    reader :: ProbeStage { .spec = Probe { .name = "json", .given = ["json"] } }
+    generator :: ProbeStage { .spec = Probe { .name = "router", .generates = ["json"] } }
+    assert_eq(planned_names([reader, generator]), "router, json")
+}
+
+@test
+test_plan_keeps_the_registered_order_when_free :: fn() -> void {
+    first :: ProbeStage { .spec = Probe { .name = "a" } }
+    second :: ProbeStage { .spec = Probe { .name = "b" } }
+    assert_eq(planned_names([first, second]), "a, b")
+}
+
+@test
+test_plan_refuses_a_cycle :: fn() -> void {
+    a :: ProbeStage {
+        .spec = Probe {
+            .name = "a",
+            .given = ["x"],
+            .generates = ["y"],
+        },
+    }
+    b :: ProbeStage {
+        .spec = Probe {
+            .name = "b",
+            .given = ["y"],
+            .generates = ["x"],
+        },
+    }
+    assert_eq(
+        planned_names([a, b]),
+        "no order holds: `a` after `b` (`a` reads `x`) ; `b` after `a` (`b` reads `y`)",
+    )
+}

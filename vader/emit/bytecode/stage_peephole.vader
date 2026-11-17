@@ -1,0 +1,156 @@
+// vader/emit/bytecode/stage_peephole: the `peephole` rewrite of a function.
+
+module "vader/emit/bytecode"
+
+import "vader/core/bytecode"
+
+// Peephole over a fn's `body` :
+//   - Rule 1 : `LocalSet N ; LocalGet N` -> `LocalTee N`.
+//   - Rule 2 : `<num>.<cmp> ; BoolNot` -> `<num>.<inverse cmp>` (NYI).
+//   - Rule 3 : `BoolConst X ; BoolNot` -> `BoolConst !X`.
+//   - Rule 4 : `BoolNot ; BoolNot` -> ε.
+//
+// Branch-target safety holds because Vader's `br` / `br_if` use label-stack
+// relative depths, and `mark_jump_targets` keeps any op a branch lands on from
+// being folded away.
+//
+// Rule 1 leaves a `const ; set N ; get N` un-teed only because `propagate`
+// already inlined every such constant it could.
+PeepholeStage :: struct {}
+
+PeepholeStage implements BytecodeStage {
+    describe :: fn(self) = BytecodeSpec {
+        .name = "peephole",
+        .requires = [.SlotsDistinct, .ConstsPropagated, .SlotsAsEmitted],
+    }
+
+    run :: fn(self, function: BcFunction) -> BcFunction {
+        multi_value :: bc_result_arity(function.signature) > 1
+        body :: function.body
+        n :: body.len()
+        // Per-slot set / get / tee counts over the original body, for the Rule-1
+        // const-skip. The result of a value-`match` or value-`if` is set in both
+        // branches (`set_count == 2`) and must fold to a tee, or its join read keeps
+        // one copy chain per arm alive that `dead_stores` cannot reclaim.
+        total_slots :: function.signature.params.len() + function.locals.len()
+        set_count: i32[]: [0] * total_slots
+        get_count: i32[]: [0] * total_slots
+        tee_count: i32[]: [0] * total_slots
+        for op in body {
+            if op is LocalSet { set_count[op.slot] += 1 }
+            if op is LocalGet { get_count[op.slot] += 1 }
+            if op is LocalTee { tee_count[op.slot] += 1 }
+        }
+        // Mark every op that is a jump TARGET (a non-negative value in the jump
+        // table). Rule 1 must NOT fold a `LocalGet` that a branch lands on :
+        // coalescing `LocalSet N ; LocalGet N` into `LocalTee N` there makes the
+        // jump reach the tee with nothing on the stack (`local.tee on empty
+        // stack`): the set never ran on the jumped-in path. A value-`match`'s
+        // arm-join read is exactly such a target (the discriminant jump lands on
+        // the join `get`). The structured `br`-depth claim above holds for block
+        // exits ; the `jump_table` carries the non-structured match/loop edges
+        // that this guards.
+        is_jump_target :: mark_jump_targets(function.jump_table, n)
+        out: Op[]: []
+        out_len: i64 = 0
+        // Per-old-PC : new PC in `out` (or -1 when the op was dropped).
+        old_to_new: i32[]: [-1] * n
+        i: i64 = 0
+        for i < n {
+            op :: body[i]
+
+            // Rule 1: `LocalSet N ; LocalGet N` -> `LocalTee N`. A const before the
+            // set of a slot with no tee is a narrowing const `propagate` declined:
+            // leave it un-teed. Any other pair folds, the per-arm result of a
+            // value-`match` included.
+            if op is LocalSet {
+                if i + 1 < n {
+                    next :: body[i + 1]
+                    if next is LocalGet {
+                        if next.slot == op.slot {
+                            prev_is_const := false
+                            if out_len > 0 {
+                                prev :: out[out_len - 1]
+                                cv :: const_op_of(prev)
+                                if cv !is null { prev_is_const = true }
+                            }
+                            slot_u :: i64(op.slot)
+                            propagate_eligible :: set_count[slot_u] == 1
+                                && get_count[slot_u] == 1
+                                && tee_count[slot_u] == 0
+                            // Never fold when the `get` is a branch target (see
+                            // `is_jump_target` above) : the tee would pop an empty
+                            // stack on the jumped-in path.
+                            skip_fold :: (prev_is_const && propagate_eligible)
+                                || is_jump_target[i + 1]
+                            if !skip_fold {
+                                push_or_assign(out, out_len, LocalTee { .slot = op.slot })
+                                old_to_new[i] = i32(out_len)
+                                old_to_new[i + 1] = i32(out_len)
+                                out_len += 1
+                                i += 2
+                                continue
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Return.lit fold: `<const>.const X ; Return` -> `ReturnLit X`.
+            // Branches don't target the collapsed Return op (terminator) so
+            // depth-safety holds. Skipped on a scalarised return: `ReturnLit` carries
+            // ONE literal and the fold would keep the last value and drop the rest.
+            if op is Return && !multi_value {
+                cur_len :: out.len()
+                if cur_len > 0 {
+                    prev :: out[cur_len - 1]
+                    cv :: const_op_of(prev)
+                    if cv !is null {
+                        out[cur_len - 1] = ReturnLit { .value = cv }
+                        old_to_new[i] = i32(out_len - 1)
+                        i += 1
+                        continue
+                    }
+                }
+            }
+
+            // Rules 3 / 4 on BoolNot fold.
+            if op is BoolNot {
+                if out_len > 0 {
+                    top_idx :: out_len - 1
+                    prev :: out[top_idx]
+                    if prev is BoolNot {
+                        // Both BoolNots cancel: drop the previous + skip
+                        // this one. The previous's old_to_new entry stays
+                        // pointing at its (now empty) slot ; mark both as
+                        // removed.
+                        old_to_new[i] = -1
+                        out_len -= 1
+                        i += 1
+                        continue
+                    }
+                    if prev is BoolConst {
+                        out[top_idx] = BoolConst { .value = !prev.value }
+                        old_to_new[i] = i32(top_idx)
+                        i += 1
+                        continue
+                    }
+                }
+            }
+
+            push_or_assign(out, out_len, op)
+            old_to_new[i] = i32(out_len)
+            out_len += 1
+            i += 1
+        }
+        new_body :: out[0..<out_len]
+        new_jt :: remap_jump_table(function.jump_table, old_to_new, out_len)
+        new_debug :: remap_debug(function.debug, old_to_new, out_len)
+        return BcFunction {
+            ...function,
+            .body = new_body,
+            .jump_table = new_jt,
+            .debug = new_debug,
+        }
+    }
+}

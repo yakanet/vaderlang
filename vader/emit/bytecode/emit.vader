@@ -279,17 +279,6 @@ build_cfg_signature :: fn(
 
 // ---- Project-level entry point --------------------------------------------
 
-/// Thread a peephole pass's `BcPeepholeOut` back onto `f`, replacing only the
-/// rewritten `body` / `debug` / `jump_table`: a pass can't mutate `f` in place
-/// (Vader structs are by-value). Collapses the identical field-by-field rebuild
-/// each `BcPeepholeOut`-returning pass in Pass 3 would otherwise repeat inline.
-with_peephole_out :: fn(f: BcFunction, out: BcPeepholeOut) -> BcFunction = BcFunction {
-    ...f,
-    .body = out.body,
-    .debug = out.debug,
-    .jump_table = out.jump_table,
-}
-
 // A `type_check` on an instance of a generic struct compares tags, which only
 // tells instances apart when every type argument is kept (`kept_type_argument`).
 // The typechecker refuses every such test in the source (T3087), so one reaching
@@ -364,64 +353,11 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             }
         }
     }
-    // Pass 3: bytecode peephole + DCE, gated by `opts.optimize`.
+    // Pass 3: the rewrites of each function (`stages.vader`), gated by `opts.optimize`.
     if opts.optimize {
+        planned :: planned_bytecode_stages()
         for i in 0..<ctx.functions.len() {
-            // The `BcPeepholeOut`-returning passes can't mutate the function in
-            // place (Vader structs are by-value), so each returns its rewrite
-            // and `with_peephole_out` threads it back onto `ctx.functions[i]`.
-            //
-            // Order : propagate_const_single_use -> run_bc_peephole (Rule 1)
-            // -> run_bc_const_fold_arith -> drop_dead_stores -> coalesce_slots.
-            //
-            // Propagate runs FIRST to inline single-use consts, removing the
-            // `const ; set` the CFG interleaves between a value's producer and
-            // its first read. That un-interleaving is what lets Rule 1's
-            // `LocalSet N ; LocalGet N -> LocalTee N` fold fire on pairs it would
-            // otherwise miss: notably the buffer / interpolation
-            // `set buf ; get buf`, where the first write's constant offset sat
-            // between the two. Running propagate before Rule 1 (rather than
-            // after) is safe *because* propagate is fixpointed here : every
-            // propagate-eligible `const ; set N ; get N` is inlined before Rule
-            // 1 runs, so no single-use slot survives for Rule 1 to over-fold.
-            //
-            // Iterate propagate to fixpoint : inlining slot N's const may expose
-            // slot M (whose set was preceded by `LocalGet N`, now an inlined
-            // const) as the next propagateable slot. Vader's emit pattern
-            // produces chained moves (`%2 = move %1 = move %0 = const`) that
-            // unwind one level per pass. Each firing only ever deletes ops
-            // (`const` + `set` gone, `get` -> `const`), so the body length
-            // strictly decreases until nothing more inlines: loop on that
-            // instead of a fixed unroll count.
-            prev_len: i64 = ctx.functions[i].body.len() + 1
-            for ctx.functions[i].body.len() < prev_len {
-                prev_len = ctx.functions[i].body.len()
-                ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
-            }
-            // Peephole AFTER propagate : LocalSet+LocalGet -> LocalTee, const+
-            // Return -> ReturnLit, BoolNot folds. Before drop_dead_stores so a
-            // value-`match`'s per-arm `if_res` set+get pairs still fold to tees
-            // that drop_dead_stores can then reclaim (avoids the O(N²) cascade).
-            ctx.functions[i] = with_peephole_out(ctx.functions[i], run_bc_peephole(ctx.functions[i]))
-            // Const-fold-arith runs after propagate so chains like
-            // `const ; set N ; get N ; const ; mul` (post-propagate :
-            // `const ; const ; mul`) collapse.
-            ctx.functions[i] = with_peephole_out(ctx.functions[i], run_bc_const_fold_arith(ctx.functions[i]))
-            ctx.functions[i] = drop_dead_stores(ctx.functions[i])
-            // Second pass : ONLY Rule 5 (`<Const> ; Return` -> ReturnLit).
-            // drop_dead_stores opens new const-before-return windows by removing
-            // dead tees / sets ; re-running the full peephole here would re-fold
-            // set+get pairs that slot-renumbering made adjacent, over-folding.
-            ctx.functions[i] = with_peephole_out(ctx.functions[i], run_bc_return_lit_fold(ctx.functions[i]))
-            // Final pass: same-ValType non-overlapping live ranges coalesce
-            // onto shared physical slots. Runs LAST so the peephole / propagate
-            // / DCE passes see the original slot identities ; their gates depend
-            // on per-slot set/get counts which coalescing would corrupt.
-            ctx.functions[i] = coalesce_slots(ctx.functions[i])
-            // Post-coalesce cleanup : coalescing a move's source + dest onto one
-            // slot leaves adjacent same-slot `get N ; tee/set N` no-ops. Strip
-            // them so neither backend emits a self-copy (`lN = lN`).
-            ctx.functions[i] = with_peephole_out(ctx.functions[i], strip_self_copies(ctx.functions[i]))
+            ctx.functions[i] = run_bytecode_stages(planned, ctx.functions[i])
         }
         // Pass 4: whole-program prunes on the EmitterCtx.
         // Order matters : functions -> imports -> data -> globals -> types so each pass's root
@@ -696,9 +632,59 @@ emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, 
         .want_debug = want_debug,
     }
     structure_function(fn_ctx)
-    ctx.functions[fn_idx] = with_peephole_out(
-        ctx.functions[fn_idx], drop_unbranched_blocks(ctx.functions[fn_idx]),
-    )
+    ctx.functions[fn_idx] = drop_unbranched_blocks(ctx.functions[fn_idx])
+}
+
+/// Drop every `block` no branch leaves through, with its `end`.
+///
+/// The structurer opens a `block` before each merge without knowing whether the
+/// code that reaches the merge will branch to it or fall into it. A `br` to a
+/// `block` resolves to the op after its `end`, and no other branch lands there,
+/// so a `block` whose after-`end` PC no `br` / `br_if` targets is never left
+/// early.
+///
+/// @param function  a function whose `jump_table` is fully resolved.
+/// @return          the body without those `block` / `end` pairs.
+drop_unbranched_blocks :: fn(function: BcFunction) -> BcFunction {
+    body :: function.body
+    jump_table :: function.jump_table
+    n :: body.len()
+    branched_to: bool[]: [false] * (n + 1)
+    for pc in 0..<n {
+        target :: jump_table[pc]
+        if body[pc] is Branch | BranchIf && target >= 0 && i64(target) <= n {
+            branched_to[target] = true
+        }
+    }
+    dropped: bool[]: [false] * n
+    any := false
+    for pc in 0..<n {
+        after_end :: jump_table[pc]
+        if body[pc] is Block && after_end > 0 && !branched_to[after_end] {
+            dropped[pc] = true
+            dropped[i64(after_end) - 1] = true
+            any = true
+        }
+    }
+    if !any {
+        return function
+    }
+    kept: Op[]: []
+    old_to_new: i32[]: []
+    for pc in 0..<n {
+        if dropped[pc] {
+            old_to_new.push(-1)
+        } else {
+            old_to_new.push(i32(kept.len()))
+            kept.push(body[pc])
+        }
+    }
+    return BcFunction {
+        ...function,
+        .body = kept,
+        .jump_table = remap_jump_table(jump_table, old_to_new, kept.len()),
+        .debug = remap_debug(function.debug, old_to_new, kept.len()),
+    }
 }
 
 // ---- Scope wiring ---------------------------------------------------------

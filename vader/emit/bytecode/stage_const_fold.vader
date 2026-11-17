@@ -1,0 +1,82 @@
+// vader/emit/bytecode/stage_const_fold: the `const_fold` rewrite of a function.
+
+module "vader/emit/bytecode"
+
+import "vader/core/bytecode"
+
+// Fold `const ; const ; <op>` into one const.
+ConstFoldStage :: struct {}
+
+ConstFoldStage implements BytecodeStage {
+    describe :: fn(self) = BytecodeSpec {
+        .name = "const_fold",
+        .after = [PropagateStage {}, PeepholeStage {}],
+    }
+
+    run :: fn(self, function: BcFunction) -> BcFunction {
+        body :: function.body
+        n :: body.len()
+        out: Op[]: []
+        out_len: i64 = 0
+        old_to_new: i32[]: [-1] * n
+        for i in 0..<n {
+            op :: body[i]
+            folded :: try_fold_arith(op, out, out_len)
+            if folded is null {
+                push_or_assign(out, out_len, op)
+                old_to_new[i] = i32(out_len)
+                out_len = out_len + 1
+            } else {
+                out_len = out_len - 2
+                push_or_assign(out, out_len, folded)
+                old_to_new[i] = i32(out_len)
+                out_len = out_len + 1
+            }
+        }
+        new_body :: out[0..<out_len]
+        new_jt :: remap_jump_table(function.jump_table, old_to_new, out_len)
+        new_debug :: remap_debug(function.debug, old_to_new, out_len)
+        return BcFunction {
+            ...function,
+            .body = new_body,
+            .jump_table = new_jt,
+            .debug = new_debug,
+        }
+    }
+}
+
+// Fold a `<const> ; <const> ; <op>` triple. Safe integer arith only (add / sub /
+// mul / bitwise) : div / rem would trap on rhs=0, shifts are UB past the width,
+// and floats carry NaN / signed-zero / precision drift. A checked op folds only
+// when it stays in range, and is otherwise left to stop the run. Returns the
+// folded `I32Const` / `I64Const` on a hit, null otherwise.
+try_fold_arith :: fn(op: Op, out: Op[], out_len: i64) -> Op | null {
+    if out_len < 2 { return null }
+    right :: out[out_len - 1]
+    left  :: out[out_len - 2]
+    if left is I32Const {
+        if right is I32Const {
+            if op is I32Add { return I32Const { .value = left.value +% right.value } }
+            if op is I32Sub { return I32Const { .value = left.value -% right.value } }
+            if op is I32Mul { return I32Const { .value = left.value *% right.value } }
+            if op is CheckedArith {
+                lhs :: i64(left.value)
+                rhs :: i64(right.value)
+                folded :: checked_arith(op.op, op.kind, lhs, rhs) else return null
+                return I32Const { .value = i32(folded) }
+            }
+        }
+    }
+    if left is I64Const {
+        if right is I64Const {
+            if op is I64Add { return I64Const { .value = left.value +% right.value } }
+            if op is I64Sub { return I64Const { .value = left.value -% right.value } }
+            if op is I64Mul { return I64Const { .value = left.value *% right.value } }
+            if op is CheckedArith {
+                folded :: checked_arith(op.op, op.kind, left.value, right.value) else return null
+                return I64Const { .value = folded }
+            }
+        }
+    }
+    return null
+}
