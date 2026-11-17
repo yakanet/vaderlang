@@ -282,6 +282,46 @@ test_code_lens_runs_each_test_and_the_module_through_the_client_command :: fn() 
     )
 }
 
+// An interceptor written on a function leads to the declaration of its decorator
+// and to its `around` function: the client runs `vader.goTo` with the URI of the
+// file and the range of the name.
+@test
+test_code_lens_leads_from_an_interceptor_to_its_decorator_and_its_around :: fn() -> void {
+    source :: r"""
+        module "t"
+
+        Log :: struct<A, R> {}
+
+        @interceptor(around = logged)
+        Logged :: decorator(.Function) {}
+
+        logged :: fn<A, R>(state: Log<A, R>, site: Site<Logged>, args: A, proceed: fn(A) -> R) -> R =
+            proceed(args)
+
+        @Logged
+        twice :: fn(x: i32) -> i32 = x * 2
+        """
+    files: [string, string][]: [["vader.json", "{ \"name\": \"lens\" }\n"]]
+    results :: drive(
+        "interceptor_lens",
+        source,
+        [ask("textDocument/codeLens", 0, 0)],
+        Project { .name = "t/lsp-test.vader", .files = files },
+    )
+    shown :: array_at(results[0], []).map(
+        fn(l) {
+            line :: int_at(l, ["range", "start", "line"])
+            title :: string_at(l, ["command", "title"]) else ""
+            arguments :: array_at(l, ["command", "arguments"])
+            uri :: text_of(arguments[0])
+            target :: int_at(arguments[1], ["start", "line"])
+            assert(uri.ends_with("/t/lsp-test.vader"), uri)
+            return "${line}:${title}:${target}"
+        },
+    ).collect()
+    assert_eq(sort(shown, compare_ascending).join("|"), "10:@Logged:5|10:around: logged:7")
+}
+
 // Since the library split, `json` / `cli` / `regex` / `semver` / `random` /
 // `crypto` / `base64` are ordinary top-level names a project may also declare,
 // and the compiler resolves such a name through the project root, which it

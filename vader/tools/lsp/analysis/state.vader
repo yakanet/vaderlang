@@ -527,6 +527,23 @@ export flush_dirty_diagnostics :: fn(self: ServerState) -> void {
 // drops it). Sent only when the client advertised `inlayHint.refreshSupport`.
 send_inlay_hint_refresh :: fn(self: ServerState) -> void = send_request(self, "workspace/inlayHint/refresh", JsonNull {})
 
+/// The command of the lenses that lead to a declaration: the server runs it
+/// (`workspace/executeCommand`), with a document URI and a range.
+export GO_TO_COMMAND :: "vader.goTo"
+
+/// Ask the client to open the document `uri` with `selection` selected
+/// (`window/showDocument`).
+///
+/// @param uri        the document.
+/// @param selection  the range to select, as the protocol writes it.
+export show_document :: fn(self: ServerState, uri: string, selection: JsonValue) -> void {
+    params :: Map<string, JsonValue> {}
+    params["uri"]       = JsonString { .value = uri }
+    params["selection"] = selection
+    params["takeFocus"] = JsonBool { .value = true }
+    send_request(self, "window/showDocument", JsonObject { .entries = params })
+}
+
 // Send the client a request whose response nothing waits on.
 send_request :: fn(self: ServerState, method: string, params: JsonValue) -> void {
     id :: self.next_request_id

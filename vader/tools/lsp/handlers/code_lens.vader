@@ -7,6 +7,10 @@
 // `vader test [--filter <name>] <file>`. The server must not run a test itself:
 // it answers one request at a time, and would hold every other until the test
 // ends.
+//
+// Above each interceptor written on a function, a lens leads to the declaration
+// of its decorator and one to its `around` function: the server runs their
+// command, `vader.goTo`, and asks the client to show the document.
 
 module "vader/tools/lsp/handlers"
 
@@ -15,7 +19,10 @@ import "std/collections"
 import "std/iter"
 import "std/uri"
 import "toolchain/ast"
+import "toolchain/diagnostics"
 import "toolchain/span"
+import "vader/core/symbol"
+import "vader/front/resolver"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
 
@@ -23,6 +30,7 @@ import "vader/tools/lsp/protocol"
 // folder to run from (`vader test` takes the project of its working directory),
 // then the name of the test; without a name, every test of the module runs.
 RUN_TEST_COMMAND :: "vader.runTest"
+
 
 /// Build the `CodeLens[]` response for the document named in `params`
 /// (`{ textDocument: { uri } }`).
@@ -36,7 +44,105 @@ export handle_code_lens :: fn(state: ServerState, params: JsonValue) -> JsonValu
     path :: path_of_uri(uri)
         else return JsonArray { .items = [] }
     folder :: project_or_folder_of_document(path)
-    return JsonArray { .items = test_lenses(idx.program, uri, folder, idx.line_index) }
+    lenses :: test_lenses(idx.program, uri, folder, idx.line_index)
+    if has_declared_decorator(idx.program) {
+        lenses.push_all(interceptor_lenses(state, path, idx.line_index))
+    }
+    return JsonArray { .items = lenses }
+}
+
+/// Run the command of a lens the server answers itself: `vader.goTo` opens its
+/// document at its range.
+///
+/// @param params  the request params: `command` and its `arguments`.
+export handle_execute_command :: fn(state: ServerState, params: JsonValue) -> void {
+    if get_string(params, "command") != GO_TO_COMMAND {
+        return
+    }
+    arguments :: get_field(params, "arguments")
+    if arguments !is JsonArray || arguments.items.len() != 2 {
+        return
+    }
+    uri :: arguments.items[0]
+    if uri is JsonString {
+        state.show_document(uri.value, arguments.items[1])
+    }
+}
+
+// Whether a function of `program` is written under a decorator a program
+// declares, which an interceptor is: the typed project is only asked for then.
+has_declared_decorator :: fn(program: Program) -> bool {
+    for f in program.decls.filter_is<FnDecl>() {
+        if f.decorators.any_match((d) -> d.qualifier != null || compiler_decorator_named(d.name) == null) {
+            return true
+        }
+    }
+    return false
+}
+
+// The lenses of the interceptors written on the functions of the file `path`: one
+// to the declaration of each one's decorator, one to its `around` function.
+interceptor_lenses :: fn(state: ServerState, path: string, li: LineIndex) -> JsonValue[] {
+    cached :: typed_project_for(state, path)
+    entry :: cached.project.modules[cached.project.entry] else return []
+    file :: source_file_for_path(entry.module.files, path) else return []
+    // Each interceptor is looked up once, however many functions it marks.
+    found :: Map<i64, Interceptor> {}
+    lenses: JsonValue[]: []
+    for [_, use] in cached.result.typed.decorator_uses {
+        at :: use.written.span
+        if at.start.file != file.program.file {
+            continue
+        }
+        if !found.contains(use.symbol.id) {
+            found[use.symbol.id] = interceptor_declared(cached.project, use.symbol)
+        }
+        interceptor :: found[use.symbol.id] else continue
+        if interceptor is NoInterceptor {
+            continue
+        }
+        declaration :: interceptor.declaration
+        around :: interceptor.around
+        lenses.push(go_to_lens(state, at, "@${declaration.name}", declaration.name_span, li))
+        lenses.push(go_to_lens(state, at, "around: ${around.name}", around.name_span, li))
+    }
+    return lenses
+}
+
+// The declaration of an interceptor's decorator, and its `around` function.
+DeclaredInterceptor :: struct {
+    declaration: StructDecl
+    around: FnDecl
+}
+
+// A decorator that declares no interceptor.
+NoInterceptor :: struct {}
+
+Interceptor :: DeclaredInterceptor | NoInterceptor
+
+// The interceptor the decorator `sym` declares, in the module that declares it.
+interceptor_declared :: fn(project: LoadedProject, sym: Symbol) -> Interceptor {
+    declared :: sym.defined_at else return NoInterceptor {}
+    for [_, lm] in project.modules {
+        files :: lm.module.files
+        if !files.any_match((f) -> f.program.file == declared.start.file) {
+            continue
+        }
+        declaration :: struct_named(files, sym.name) else return NoInterceptor {}
+        marker :: find_compiler_decorator(declaration.decorators, .Interceptor)
+            else return NoInterceptor {}
+        discard: Diagnostic[]: []
+        around :: around_of(files, declaration, marker, discard) else return NoInterceptor {}
+        return DeclaredInterceptor { .declaration = declaration, .around = around.function }
+    }
+    return NoInterceptor {}
+}
+
+go_to_lens :: fn(state: ServerState, at: Span, title: string, target: Span, li: LineIndex) -> JsonValue {
+    path :: target.start.file
+    range :: range_json(target.span_to_range_json(state.line_index_for_path(path)))
+    arguments :: JsonArray { .items = [JsonString { .value = path.to_uri().to_string() }, range] }
+    return lens_json(at, title, GO_TO_COMMAND, arguments, li)
 }
 
 test_lenses :: fn(program: Program, uri: string, folder: string, li: LineIndex) -> JsonValue[] {
@@ -53,11 +159,22 @@ test_lenses :: fn(program: Program, uri: string, folder: string, li: LineIndex) 
     return lenses
 }
 
-run_lens :: fn(span: Span, title: string, arguments: string[], li: LineIndex) -> JsonValue {
+run_lens :: fn(span: Span, title: string, arguments: string[], li: LineIndex) -> JsonValue =
+    lens_json(span, title, RUN_TEST_COMMAND, string_array(arguments), li)
+
+// A lens at `span`, titled `title`, that runs the client command `name` with
+// `arguments`, a JSON array.
+lens_json :: fn(
+    span: Span,
+    title: string,
+    name: string,
+    arguments: JsonValue,
+    li: LineIndex,
+) -> JsonValue {
     command :: Map<string, JsonValue> {}
     command["title"]     = JsonString { .value = title }
-    command["command"]   = JsonString { .value = RUN_TEST_COMMAND }
-    command["arguments"] = string_array(arguments)
+    command["command"]   = JsonString { .value = name }
+    command["arguments"] = arguments
     lens :: Map<string, JsonValue> {}
     lens["range"]   = range_json(span.span_to_range_json(li))
     lens["command"] = JsonObject { .entries = command }

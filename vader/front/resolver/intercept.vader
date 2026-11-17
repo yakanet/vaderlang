@@ -94,7 +94,7 @@ declared_interceptors :: fn(modules: DeferredModule[], diags: Diagnostic[]) -> I
                 around :: around_of(m.sources, d, marker, diags) else continue
                 out.push(Interceptor {
                     .origin = DecoratorOrigin { .module = m.found.name, .name = d.name },
-                    .around = around.name,
+                    .around = around.function.name,
                     .state = around.state,
                 })
             }

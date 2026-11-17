@@ -1,5 +1,6 @@
 // tools/cli_tests/lsp/generated_code: an error in code the compiler wrote, which
-// no editor opens, shows on the code that asked for it, and says so.
+// no editor opens, shows on the code that asked for it, and says so; and the
+// lens that leads from an interceptor to a declaration opens it from the server.
 
 module "tools/cli_tests/lsp"
 
@@ -50,5 +51,23 @@ test_an_error_in_an_interceptor_wrapper_shows_on_the_function_it_wraps :: fn() -
     assert_eq(error_places(found), "T3006@20")
     message :: string_member(found[0], "message") else ""
     assert("in the code `@Logged` writes for `make`" in message, message)
+    close_client(client)
+}
+
+@test
+test_the_command_of_a_lens_that_leads_to_a_declaration_asks_the_client_to_show_it :: fn() -> void {
+    dir :: project("go_to", [["main.vader", "module \"main\"\n"]])
+    client :: start_client(dir)
+    uri :: file_uri("${dir}/main.vader")
+    range :: """{"start":{"line":3,"character":0},"end":{"line":3,"character":6}}"""
+    arguments :: "[${quoted(uri)},${range}]"
+    params :: """{"command":"vader.goTo","arguments":${arguments}}"""
+    request(client, "workspace/executeCommand", params)
+    shown :: client.awaited(
+        (m) -> string_member(m, "method") == "window/showDocument",
+        "a request to show the document",
+    )
+    assert_eq(string_at(shown, ["params", "uri"]) else "", uri)
+    assert_eq(int_at(shown, ["params", "selection", "start", "line"]), 3)
     close_client(client)
 }

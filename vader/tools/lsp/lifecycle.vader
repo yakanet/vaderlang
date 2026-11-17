@@ -185,6 +185,11 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     lens_provider :: Map<string, JsonValue> {}
     lens_provider["resolveProvider"] = JsonBool { .value = false }
     caps["codeLensProvider"] = JsonObject { .entries = lens_provider }
+    // executeCommandProvider : the lenses that lead to a declaration, which the
+    // server opens (`window/showDocument`) so that no client needs code for them.
+    command_provider :: Map<string, JsonValue> {}
+    command_provider["commands"] = JsonArray { .items = [JsonString { .value = GO_TO_COMMAND }] }
+    caps["executeCommandProvider"] = JsonObject { .entries = command_provider }
     caps["typeDefinitionProvider"] = JsonBool { .value = true }
     caps["referencesProvider"] = JsonBool { .value = true }
     caps["callHierarchyProvider"] = JsonBool { .value = true }

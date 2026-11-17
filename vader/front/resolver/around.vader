@@ -18,16 +18,21 @@ import "toolchain/ast"
 import "toolchain/diagnostics"
 import "toolchain/span"
 
-// The function an interceptor names, and the struct of the state it keeps.
-AroundFunction :: struct {
-    name: string
+/// The function an interceptor names, and the struct of the state it keeps.
+export AroundFunction :: struct {
+    function: FnDecl
     state: string
 }
 
-// The function the interceptor `interceptor`, a declaration of `sources` marked by
-// `marker`, routes calls through; null, reported, when it names none of the right
-// shape.
-around_of :: fn(
+/// The function the interceptor `interceptor`, a declaration of `sources` marked
+/// by `marker`, routes calls through.
+///
+/// @param sources      the files of the module of the interceptor.
+/// @param interceptor  the declaration of the interceptor's decorator.
+/// @param marker       its `@interceptor`.
+/// @param diags        where a function of the wrong shape, or none, is reported.
+/// @return             null, reported, when it names none of the right shape.
+export around_of :: fn(
     sources: SourceFile[],
     interceptor: StructDecl,
     marker: Decorator,
@@ -46,11 +51,29 @@ around_of :: fn(
         return null
     }
     state :: state_struct(f, interceptor.name, diags) else return null
-    return AroundFunction { .name = f.name, .state = state }
+    return AroundFunction { .function = f, .state = state }
 }
 
-// The function `name` among the declarations of `sources`.
-function_named :: fn(sources: SourceFile[], name: string) -> FnDecl | null {
+/// The struct `name` among the declarations of `sources`.
+///
+/// @param sources  the files of a module.
+/// @param name     the name of the struct, as written.
+export struct_named :: fn(sources: SourceFile[], name: string) -> StructDecl | null {
+    for source in sources {
+        for d in source.program.decls.filter_is<StructDecl>() {
+            if d.name == name {
+                return d
+            }
+        }
+    }
+    return null
+}
+
+/// The function `name` among the declarations of `sources`.
+///
+/// @param sources  the files of a module.
+/// @param name     the name of the function, as written.
+export function_named :: fn(sources: SourceFile[], name: string) -> FnDecl | null {
     for source in sources {
         for f in source.program.decls.filter_is<FnDecl>() {
             if f.name == name {
