@@ -1,0 +1,28 @@
+// `@decorator(f, D)` reads the `@D` written once on `f`, a function of this
+// module, from a function body: a constant, a value that is no function, a
+// function without `@D` or with two of them is T3147.
+module "snippet"
+
+Route :: decorator(.Function, repeatable = true) {
+    path: string
+}
+
+Traced :: decorator(.Function) {}
+
+@Route("/a")
+@Route("/b")
+@Traced
+show :: fn() -> i32 = 0
+
+plain :: fn() -> i32 = 0
+
+EARLY :: @decorator(show, Traced)
+
+main :: fn() -> i32 {
+    n :: 1
+    a :: @decorator(n, Traced)
+    b :: @decorator(plain, Traced)
+    c :: @decorator(show, Route)
+    d :: @decorator(show, Traced)
+    return 0
+}

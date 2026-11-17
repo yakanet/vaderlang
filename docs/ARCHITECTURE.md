@@ -67,7 +67,10 @@ something under a decorator it names, and writes source the module gains as a
 file of its own, parsed like the others (`@displayable` is the first). It then
 wraps each function an interceptor marks (`vader/front/resolver/intercept.vader`): the
 function is renamed, and its file gains a wrapper under its name, which calls
-`around`, and a `@singleton` holding its state, both written as source and parsed.
+`around`, and two `@singleton`: its state, and its `Site`, whose decorator value
+`@decorator` reads once the comptime pass has computed it (the typecheck records
+which decorator a call reads, `decorator_reads`, and the lowerer builds the value
+as a literal). All of it is written as source and parsed.
 The decorator is matched to its declaration from the parsed files alone
 (`decorator_origin.vader`), the way the resolver later finds it. Every module is
 collected only then, in the order the modules were read, so symbol ids do not

@@ -1,0 +1,34 @@
+// A function body reads the decorator written on a function of its module: every
+// field filled, the defaults included, and an argument written `@comptime`
+// computed before the program runs.
+module "snippet"
+
+import "std/console"
+
+Route :: decorator(.Function) {
+    path: string
+    method: string = "GET"
+    tags: string[] = []
+}
+
+versioned :: fn(path: string) -> string {
+    out := ""
+    for part in ["/v2", path] {
+        out = out + part
+    }
+    return out
+}
+
+@Route("/users")
+list_users :: fn() -> string = "users"
+
+@Route(@comptime versioned("/orders"), method = "POST", tags = ["shop", "write"])
+create_order :: fn() -> string = "created"
+
+describe :: fn(route: Route) -> string = "${route.method} ${route.path} ${route.tags.len()}"
+
+main :: fn() -> i32 {
+    println(describe(@decorator(list_users, Route)))
+    println(describe(@decorator(create_order, Route)))
+    return 0
+}

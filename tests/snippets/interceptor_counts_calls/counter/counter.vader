@@ -16,10 +16,16 @@ export Counted :: decorator(.Function) {}
 /// Count the call, then make it.
 ///
 /// @param state    the count of the function.
+/// @param site     the function.
 /// @param args     its arguments.
 /// @param proceed  the function itself.
-export counted :: fn<A, R>(state: Count<A, R>, args: A, proceed: fn(A) -> R) -> R {
+export counted :: fn<A, R>(
+    state: Count<A, R>,
+    site: Site<Counted>,
+    args: A,
+    proceed: fn(A) -> R,
+) -> R {
     state.calls += 1
-    println("call ${state.calls}")
+    println("${site.function} call ${state.calls}")
     return proceed(args)
 }

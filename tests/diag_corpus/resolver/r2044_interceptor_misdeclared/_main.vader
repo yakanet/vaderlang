@@ -1,8 +1,16 @@
 // An interceptor names the function its calls go through, which takes the state
-// of each function first: a name that leads to no such function is R2044.
+// of each function, its site, its arguments and `proceed`: a name that leads to
+// no function of that shape is R2044.
 module "snippet"
 
 @interceptor(around = "missing")
 Traced :: decorator(.Function) {}
+
+Count :: struct<A, R> {}
+
+@interceptor(around = "counted")
+Counted :: decorator(.Function) {}
+
+counted :: fn<A, R>(state: Count<A, R>, args: A, proceed: fn(A) -> R) -> R = proceed(args)
 
 main :: fn() -> i32 = 0

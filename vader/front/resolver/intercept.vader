@@ -1,13 +1,16 @@
 // vader/front/resolver/intercept: the functions a declared interceptor wraps.
 //
-// A decorator declared under `@interceptor(around = "f")` routes every call of a
-// function it decorates through `f`. Once every module is parsed and before any
+// A decorator `D` declared under `@interceptor(around = "f")` routes every call of
+// a function it decorates through `f`. Once every module is parsed and before any
 // is collected, each such function `g` is renamed `__intercepted_g` and loses its
 // `export`, and its file gains:
 //
 //     @singleton
 //     __state_g :: fn() = S<A, R> {}
-//     g :: fn(<the parameters of g>) -> R = f(__state_g(), <args>, (args) -> __intercepted_g(...))
+//     @singleton
+//     __site_g :: fn() = Site<D> { ..., .marker = @decorator(__intercepted_g, D) }
+//     g :: fn(<the parameters of g>) -> R =
+//         f(__state_g(), __site_g(), <args>, (args) -> __intercepted_g(...))
 //
 // `S` is the struct the first parameter of `f` names, `A` the one parameter's
 // type or the tuple of them, `R` the written result. The wrapper takes the name,
@@ -19,10 +22,12 @@ module "vader/front/resolver"
 
 import "std/collections"
 import "std/iter"
+import "std/path"
 import "std/string"
 import "std/string_builder"
 import "toolchain/ast"
 import "toolchain/diagnostics"
+import "toolchain/lexer"
 import "toolchain/parser"
 import "toolchain/span"
 
@@ -76,8 +81,8 @@ declared_interceptors :: fn(modules: DeferredModule[], diags: Diagnostic[]) -> I
                     diags.push(resolver_error(
                         .InterceptorMisdeclared,
                         marker.span,
-                        "`${around}` is no function of this module taking its state first, "
-                            + "`S<A, R>`",
+                        "`${around}` is no function of this module taking the state `S<A, R>`, "
+                            + "the `Site`, the arguments and `proceed`",
                     ))
                     continue
                 }
@@ -93,11 +98,11 @@ declared_interceptors :: fn(modules: DeferredModule[], diags: Diagnostic[]) -> I
 }
 
 // The struct the first parameter of the function `around` names, among the
-// declarations of `sources`: `S` for `fn<A, R>(state: S<A, R>, ...)`.
+// declarations of `sources`: `S` for `fn<A, R>(state: S<A, R>, site, args, proceed)`.
 state_of :: fn(sources: SourceFile[], around: string) -> string | null {
     for source in sources {
         for f in source.program.decls.filter_is<FnDecl>() {
-            if f.name != around || f.params.is_empty() {
+            if f.name != around || f.params.len() != 4 {
                 continue
             }
             written :: f.params[0].ty
@@ -109,12 +114,14 @@ state_of :: fn(sources: SourceFile[], around: string) -> string | null {
     return null
 }
 
-// An interceptor of a function and the prefix its names take in the wrapper: the
-// namespace alias the decorator is written behind and its dot, "" when it is
-// written bare.
+// An interceptor of a function, and how the wrapper names what it declares.
 Interception :: struct {
     interceptor: Interceptor
+    /// The namespace alias the decorator is written behind and its dot, "" when it
+    /// is written bare.
     qualifier: string
+    /// The name the decorator is written under, after its qualifier.
+    name: string
 }
 
 // Wrap the functions of `source` an interceptor decorates. The wrappers are
@@ -141,7 +148,7 @@ wrap_file :: fn(
             continue
         }
         result :: f.return_type else continue
-        glue.append(wrapper_text(source.content, f, result, interceptions[0]))
+        glue.append(wrapper_text(source, module_name, f, result, interceptions[0]))
         wrapped.push(f)
     }
     if wrapped.is_empty() {
@@ -185,7 +192,11 @@ interceptions_of :: fn(
         origin :: written_origin(program, module_name, d, declared) else continue
         for i in interceptors {
             if same_origin(i.origin, origin) {
-                out.push(Interception { .interceptor = i, .qualifier = qualifier_of(d) })
+                out.push(Interception {
+                    .interceptor = i,
+                    .qualifier = qualifier_of(d),
+                    .name = d.name,
+                })
             }
         }
     }
@@ -221,28 +232,39 @@ refusal :: fn(f: FnDecl, interceptions: Interception[]) -> string | null {
     return null
 }
 
-// The state and the wrapper of `f`, whose written result is `result`, read from
-// `content`, the text of its file.
+// The state, the site and the wrapper of `f`, a function of `source` in the
+// module `module_name`, whose written result is `result`.
 wrapper_text :: fn(
-    content: string,
+    source: SourceFile,
+    module_name: string,
     f: FnDecl,
     result: TypeExpr,
     interception: Interception,
 ) -> string {
+    content :: source.content
     result_text :: result.span.text_in(content)
     names :: f.params.map((p) -> p.name).collect()
     qualifier :: interception.qualifier
     interceptor :: interception.interceptor
+    location :: "${source.path.to_path().filename()}:${f.name_span.start.line}"
+    decorator_name :: "${qualifier}${interception.name}"
     out :: StringBuilder {}
     out.append("@singleton\n")
     out.append("__state_${f.name} :: fn() = ${qualifier}${interceptor.state}")
     out.append("<${arguments_type(content, f)}, ${result_text}> {}\n")
+    out.append("@singleton\n")
+    out.append("__site_${f.name} :: fn() = Site<${decorator_name}> {\n")
+    out.append("    .function = ${quote_vader(f.name)},\n")
+    out.append("    .module = ${quote_vader(module_name)},\n")
+    out.append("    .location = ${quote_vader(location)},\n")
+    out.append("    .marker = @decorator(__intercepted_${f.name}, ${decorator_name}),\n")
+    out.append("}\n")
     if f.visibility == .Public {
         out.append("export ")
     }
     out.append("${f.name} :: fn${f.params_span.text_in(content)} -> ${result_text} = ")
-    out.append("${qualifier}${interceptor.around}(__state_${f.name}(), ${tupled(names)}, ")
-    out.append("(args) -> __intercepted_${f.name}(${spread(names.len())}))\n")
+    out.append("${qualifier}${interceptor.around}(__state_${f.name}(), __site_${f.name}(), ")
+    out.append("${tupled(names)}, (args) -> __intercepted_${f.name}(${spread(names.len())}))\n")
     return out.to_string()
 }
 

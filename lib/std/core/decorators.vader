@@ -1,9 +1,10 @@
-// std/core/decorators: the places a declared decorator may be written.
+// std/core/decorators: the places a declared decorator may be written, and what
+// an interceptor learns of the function it wraps.
 //
-// A decorator declaration names them in its parentheses
+// A decorator declaration names its places in its parentheses
 // (`Route :: decorator(.Function) { ... }`); the compiler types those
 // arguments against `DecoratorTarget`. Same `module "std/core"` as
-// `core.vader`, so every program sees the enum without an import.
+// `core.vader`, so every program sees these types without an import.
 
 module "std/core"
 
@@ -50,4 +51,27 @@ export DecoratorTarget :: enum {
     Expression
     /// Standing alone among the declarations: the compiler's `@assert`.
     Assertion
+}
+
+/// The function an interceptor wraps, as its `around` receives it: one value per
+/// function, built on its first call.
+///
+/// @example
+///   # import "std/console"
+///   # @interceptor(around = "traced")
+///   # Traced :: decorator(.Function) { label: string = "" }
+///   # Log :: struct<A, R> {}
+///   traced :: fn<A, R>(state: Log<A, R>, site: Site<Traced>, args: A, proceed: fn(A) -> R) -> R {
+///       println("${site.marker.label} ${site.function} at ${site.location}")
+///       return proceed(args)
+///   }
+export Site :: struct<D> {
+    /// The name of the function, as written.
+    function: string
+    /// The module that declares it.
+    module: string
+    /// The file and the line it is declared at: `main.vader:12`.
+    location: string
+    /// The decorator written on it, every field filled.
+    marker: D
 }

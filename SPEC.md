@@ -3478,23 +3478,32 @@ export Count :: struct<A, R> {
 }
 
 @interceptor(around = "counted")
-export Counted :: decorator(.Function) {}
+export Counted :: decorator(.Function) {
+    label: string = "calls"
+}
 
-export counted :: fn<A, R>(state: Count<A, R>, args: A, proceed: fn(A) -> R) -> R {
+export counted :: fn<A, R>(
+    state: Count<A, R>,
+    site: Site<Counted>,
+    args: A,
+    proceed: fn(A) -> R,
+) -> R {
     state.calls += 1
+    println("${site.marker.label} of ${site.function}: ${state.calls}")
     return proceed(args)
 }
 
-@Counted
+@Counted(label = "steps")
 fib :: fn(n: i64) -> i64 = if n < 2 { n } else { fib(n - 1) + fib(n - 2) }
 ```
 
-- The function `around` names takes three parameters: the state of the marked function, its arguments, and `proceed`, which calls the marked function itself. It returns what the call returns.
+- The function `around` names takes four parameters: the state of the marked function, its site, its arguments, and `proceed`, which calls the marked function itself. It returns what the call returns.
+- The site is a `Site<D>` of `std/core`, `D` being the decorator: the name of the marked function (`function`), its module (`module`), the file and line it is declared at (`location`, `main.vader:12`) and the decorator written on it, every field filled (`marker`). Each marked function has one, built on its first call.
 - `A` is the type of the one parameter of the marked function, or the tuple of the types of its parameters: `fn(a: i32, b: i32) -> i32` passes `[i32, i32]`, which `proceed` takes back. `R` is its result.
 - The state is a struct `S<A, R>` of the decorator's module, whose fields all have a default. Each marked function keeps one for the whole program, built on its first call.
 - Every call goes through `around`, the recursive calls of the function included: `fib(4)` above counts nine calls.
 - The decorator is written `@D` or `@Alias.D`. Used from another module, the decorator, the function and the state are all exported.
-- `around` names a function of the decorator's module whose first parameter is the state; otherwise it is an error. So is a marked function that is generic, takes no parameter, has no body, does not write its result, or is marked by two interceptors.
+- `around` names a function of the decorator's module that takes the state first and four parameters in all; otherwise it is an error. So is a marked function that is generic, takes no parameter, has no body, does not write its result, or is marked by two interceptors.
 
 ### `@assert`
 
@@ -3979,6 +3988,7 @@ An argument `T: type` is a type, a value of the metatype `type` (§4), fixed at 
 | `@fields(T: type) -> Field[]` | Fields of the struct `T`. |
 | `@type_args(T: type) -> type[]` | Type arguments of a generic struct or trait instance, else `[]`. |
 | `@field(x, name: string) -> <field type>` | Field `name` of `x`. |
+| `@decorator(f, D: type) -> D` | The decorator `D` written on the function `f`, every field filled (*`@decorator`*, below). |
 
 `@assert` checks them at build time:
 
@@ -4004,6 +4014,29 @@ An argument `T: type` is a type, a value of the metatype `type` (§4), fixed at 
 #### `@type_kind`
 
 `@type_kind(T)` is one of `"primitive"`, `"struct"`, `"enum"`, `"union"`, `"array"`, `"tuple"`, `"fn"`, `"trait"`, `"type"`, `"any"` and `"unknown"`, a fixed set compared as a whole. A range type is `"primitive"`, and a distinct type has the kind of its backing type (§4 *Distinct types*).
+
+#### `@decorator`
+
+`@decorator(f, D)` is the value the decorator `D` written on `f` builds: its arguments computed where they are written, its other fields at their defaults.
+
+```vader
+Route :: decorator(.Function) {
+    path: string
+    method: string = "GET"
+}
+
+@Route("/users")
+list_users :: fn() -> string = "users"
+
+main :: fn() -> i32 {
+    route :: @decorator(list_users, Route)
+    println("${route.method} ${route.path}")   // GET /users
+    return 0
+}
+```
+
+- `f` names a function of the module, and `D` is written on it once; anything else is an error.
+- It is read in a function body. A constant cannot read it: the value of a decorator may be computed after the constants are.
 
 #### `@min` and `@max`
 

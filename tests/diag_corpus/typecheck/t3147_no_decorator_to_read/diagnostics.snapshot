@@ -1,0 +1,5 @@
+[19:10] error[T3147] `@decorator` finds no decorator to read here: it is read in a function body, where the value is computed
+[19:1] warning[W0007] declaration is never used in its module: `EARLY` is never used
+[23:21] error[T3147] `@decorator` finds no decorator to read here: the first argument names no function of this module
+[24:21] error[T3147] `@decorator` finds no decorator to read here: `plain` carries no `@Traced`
+[25:21] error[T3147] `@decorator` finds no decorator to read here: `show` carries more than one `@Route`

@@ -45,7 +45,25 @@
         "name": "Logged",
         "visibility": "private",
         "typeParams": [],
-        "fields": [],
+        "fields": [
+          {
+            "name": "label",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            "visibility": "public",
+            "default": {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "log"
+                }
+              ]
+            }
+          }
+        ],
         "decoratorArgs": [
           {
             "name": null,
@@ -118,6 +136,24 @@
             "variadic": false
           },
           {
+            "name": "site",
+            "type": {
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Site"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "Logged"
+                }
+              ]
+            },
+            "defaultValue": null,
+            "variadic": false
+          },
+          {
             "name": "args",
             "type": {
               "kind": "IdentExpr",
@@ -179,6 +215,61 @@
               }
             },
             {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "called"
+              },
+              "type": null,
+              "value": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "interpolation",
+                    "expr": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "site"
+                      },
+                      "field": "module"
+                    }
+                  },
+                  {
+                    "kind": "text",
+                    "value": "."
+                  },
+                  {
+                    "kind": "interpolation",
+                    "expr": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "site"
+                      },
+                      "field": "function"
+                    }
+                  },
+                  {
+                    "kind": "text",
+                    "value": " at "
+                  },
+                  {
+                    "kind": "interpolation",
+                    "expr": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "site"
+                      },
+                      "field": "location"
+                    }
+                  }
+                ]
+              }
+            },
+            {
               "kind": "ExprStmt",
               "expr": {
                 "kind": "CallExpr",
@@ -193,8 +284,34 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
+                          "kind": "interpolation",
+                          "expr": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "site"
+                              },
+                              "field": "marker"
+                            },
+                            "field": "label"
+                          }
+                        },
+                        {
                           "kind": "text",
-                          "value": "-> "
+                          "value": ": "
+                        },
+                        {
+                          "kind": "interpolation",
+                          "expr": {
+                            "kind": "IdentExpr",
+                            "name": "called"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " -> "
                         },
                         {
                           "kind": "interpolation",
@@ -393,7 +510,21 @@
         "decorators": [
           {
             "name": "Logged",
-            "args": []
+            "args": [
+              {
+                "name": "label",
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "sum"
+                    }
+                  ]
+                },
+                "spread": false
+              }
+            ]
           }
         ],
         "isExpressionBodied": true

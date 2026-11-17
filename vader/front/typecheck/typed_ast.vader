@@ -712,6 +712,10 @@ export TypedProgram :: struct {
     /// the comptime pass evaluates each into a value of the decorator.
     decorator_uses: Map<i64, DecoratorUse> = Map<i64, DecoratorUse> {}
 
+    /// `@decorator(f, D)` span key -> the node id of the `@D` written on `f`, whose
+    /// value the comptime pass computed (`decorator_values`) and the lowerer builds.
+    decorator_reads: Map<u64, i64> = Map<u64, i64> {}
+
     /// Enum Symbol.id -> its declaration, from which the lowerer builds the enum's
     /// variant data and value tables.
     enum_decls: Map<i32, AST.EnumDecl>

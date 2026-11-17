@@ -14,7 +14,12 @@ Counted :: decorator(.Function) {}
 @interceptor(around = "counted")
 Timed :: decorator(.Function) {}
 
-counted :: fn<A, R>(state: Count<A, R>, args: A, proceed: fn(A) -> R) -> R {
+counted :: fn<A, R>(
+    state: Count<A, R>,
+    site: Site<Counted>,
+    args: A,
+    proceed: fn(A) -> R,
+) -> R {
     state.calls += 1
     return proceed(args)
 }

@@ -2,7 +2,8 @@
 // `around` function, the recursive calls included: `fib(4)` is called nine times.
 // One declared in another module is written behind its namespace alias; one
 // declared here is written bare, over a function whose two parameters travel as a
-// tuple.
+// tuple. Each learns the function it wraps and the decorator written on it from
+// its `Site`.
 module "snippet"
 
 import "std/console"
@@ -11,11 +12,19 @@ C :: import "snippet/counter"
 Log :: struct<A, R> {}
 
 @interceptor(around = "logged")
-Logged :: decorator(.Function) {}
+Logged :: decorator(.Function) {
+    label: string = "log"
+}
 
-logged :: fn<A, R: Display>(state: Log<A, R>, args: A, proceed: fn(A) -> R) -> R {
+logged :: fn<A, R: Display>(
+    state: Log<A, R>,
+    site: Site<Logged>,
+    args: A,
+    proceed: fn(A) -> R,
+) -> R {
     result :: proceed(args)
-    println("-> ${result}")
+    called :: "${site.module}.${site.function} at ${site.location}"
+    println("${site.marker.label}: ${called} -> ${result}")
     return result
 }
 
@@ -27,7 +36,7 @@ fib :: fn(n: i64) -> i64 {
     return fib(n - 1) + fib(n - 2)
 }
 
-@Logged
+@Logged(label = "sum")
 add :: fn(a: i32, b: i32) -> i32 = a + b
 
 main :: fn() -> i32 {

@@ -2,7 +2,7 @@
 
 ## tests/snippets/interceptor_counts_calls
 
-- `@Counted = Counted {  }`, 22:1
-- `@Logged = Logged {  }`, 30:1
+- `@Counted = Counted {  }`, 31:1
+- `@Logged = Logged { .label = "sum" }`, 39:1
 
 ## tests/snippets/interceptor_counts_calls/counter

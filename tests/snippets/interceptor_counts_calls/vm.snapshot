@@ -1,15 +1,15 @@
 # stdout
-call 1
-call 2
-call 3
-call 4
-call 5
-call 6
-call 7
-call 8
-call 9
+fib call 1
+fib call 2
+fib call 3
+fib call 4
+fib call 5
+fib call 6
+fib call 7
+fib call 8
+fib call 9
 3
--> 5
+sum: snippet.add at _main.vader:40 -> 5
 5
 # exit
 0

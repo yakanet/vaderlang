@@ -141,6 +141,14 @@ export CompilerIntrinsic :: enum(IntrinsicInfo) {
         .signature = "@field(x, name: string) -> <field type>",
         .doc       = "The field `name` of `x`. `name` is a static string literal, or `f.name` inside `@comptime for f in @fields(T)`, where it folds to a direct field access.",
     },
+    // `@decorator(f, D)`: the value the decorator `D` written on `f` builds, which
+    // the comptime pass computed. The result type is `D`, per call.
+    Decorator {
+        .name      = "decorator",
+        .result    = "decorator",
+        .signature = "@decorator(f, D: type) -> D",
+        .doc       = "The value of the decorator `D` written once on `f`, a function of this module, every field filled. Read in a function body.",
+    },
 }
 
 /// The intrinsic written `@name`, or null when the compiler knows none.
@@ -183,6 +191,7 @@ export intrinsic_args :: fn(intrinsic: CompilerIntrinsic) -> IntrinsicArgKind[] 
     .Fields       -> [.Type]
     .TypeArgs     -> [.Type]
     .Field        -> [.Value, .Value]
+    .Decorator    -> [.Unevaluated, .Type]
 }
 
 /// The kind of argument `i` of `intrinsic`. One past those it declares is a

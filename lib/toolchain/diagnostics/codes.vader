@@ -169,6 +169,7 @@ export TypecheckCode :: enum(CodeInfo) {
     DecoratorDeclarationNotLiteral  { .id = "T3144", .message = "a decorator declaration writes its places and options as literals" },
     CompilerDecoratorNotLiteral     { .id = "T3145", .message = "a decorator of the compiler takes its arguments as literals" },
     IntrinsicImplemented            { .id = "T3146", .message = "`Intrinsic` is implemented by the toolchain alone" },
+    NoDecoratorToRead               { .id = "T3147", .message = "`@decorator` finds no decorator to read here" },
 }
 
 // Parser-pass codes.

@@ -465,7 +465,7 @@ export decorator_arguments_at :: fn(idx: DocIndex, offset: i64) -> DecoratorArgu
 // What the `(` at `open` opens: the arguments of `@Name(` or `@Alias.Name(`, the
 // places of `decorator(` ; null for anything else.
 written_or_declared :: fn(tokens: Token[], open: i64) -> DecoratorArguments | null {
-    if open >= 1 && tokens[open - 1].kind == .KwDecorator {
+    if open >= 1 && tokens[open - 1].kind == .KwDecorator && !follows_at(tokens, open - 1) {
         return DecoratorArguments { .declaration = true }
     }
     if !opens_decorator_arguments(tokens, open) {
@@ -584,6 +584,10 @@ export in_parameter_list :: fn(idx: DocIndex, offset: i64) -> bool {
 }
 
 // Whether `tokens[open]` is the `(` of `@Name(` or `@Alias.Name(`.
+// Whether the token at `i` comes right after an `@`: `@decorator(` is the
+// intrinsic, not a decorator declaration.
+follows_at :: fn(tokens: Token[], i: i64) -> bool = i >= 1 && tokens[i - 1].kind == .At
+
 opens_decorator_arguments :: fn(tokens: Token[], open: i64) -> bool {
     if open < 2 || tokens[open].kind != .LParen || tokens[open - 1].kind != .Ident {
         return false

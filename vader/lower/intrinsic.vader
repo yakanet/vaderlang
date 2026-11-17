@@ -113,6 +113,19 @@ try_fold_static_intrinsic :: fn(
     .SizeOf | .AlignOf | .TypeName | .TypeKind -> try_fold_type_query(ctx, intrinsic, type)
     // Folded once its name argument is known, by `lower_intrinsic`.
     .Field                       -> null
+    .Decorator                   -> fold_decorator(ctx, intrinsic, type)
+}
+
+// `@decorator(f, D)`: the value the comptime pass computed for the `@D` the
+// typecheck found on `f`, built as a literal of `D`. A body lowered for the
+// comptime VM may run before a decorator whose argument the VM computes.
+fold_decorator :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr {
+    missing :: "@decorator read before the comptime pass computed the decorator"
+    read :: ctx.typed.decorator_reads[intrinsic.span.hash()] else return stub(intrinsic.span, type, missing)
+    program :: ctx.project.evaluated.modules[ctx.typed.resolved.path]
+        else return stub(intrinsic.span, type, missing)
+    built :: program.decorator_values[read] else return stub(intrinsic.span, type, missing)
+    return baked_struct(ctx, built.value, intrinsic.span)
 }
 
 // `@field_count(T)` or `@variant_count(T)` of a type known at lower time.
@@ -176,7 +189,7 @@ type_query :: fn(intrinsic: CompilerIntrinsic, ty: Type, span: Span, type: Type)
             .value = type_kind_label(ty),
         }
         .FieldCount | .VariantCount | .FieldIndex | .Satisfies | .Min | .Max | .TypeOf
-            | .Fields | .TypeArgs | .Field -> null
+            | .Fields | .TypeArgs | .Field | .Decorator -> null
     }
 
 // `@min(T)` or `@max(T)`, a literal of `type`, the integer `T` is held in ; of an

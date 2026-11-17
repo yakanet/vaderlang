@@ -680,6 +680,15 @@ parse_decorators :: fn(p: Parser) -> Decorator[] {
     return out
 }
 
+// The name after the `@` of an expression: an identifier, or the keyword
+// `decorator`, which names the intrinsic `@decorator`.
+intrinsic_name_token :: fn(p: Parser) -> Token {
+    if p.check(.KwDecorator) {
+        return p.advance()
+    }
+    return p.expect(.Ident, "decorator name after `@`")
+}
+
 // Whether `@name` opts a `match` out of its exhaustiveness: `@partial`,
 // `@unreachable`.
 is_match_decorator :: fn(name: string) -> bool {
@@ -3138,7 +3147,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
     // Anything else is P1014.
     if t.kind == .At {
         at_tok :: p.advance()
-        name_tok :: p.expect(.Ident, "decorator name after `@`")
+        name_tok :: p.intrinsic_name_token()
         if is_match_decorator(name_tok.text) {
             if !p.check(.KwMatch) {
                 p.error(.UnknownDecoratorPlacement, name_tok.span,

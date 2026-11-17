@@ -1,0 +1,5 @@
+# stdout
+GET /users 0
+POST /v2/orders 2
+# exit
+0

@@ -1,0 +1,80 @@
+# Lower
+
+## snippet
+  storage
+    const __decorator_argument__main_0: string  inline
+  snippet.Route :: struct { path: string, method: string, tags: string[] }  // snippet$Route
+  snippet.versioned :: fn(path: string) -> string {  // snippet$versioned
+      out: string = ""
+      {
+          __for_arr_0: string[] = ["/v2", path] :string[]
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
+          for __for_i_2 < __for_len_1 {
+              part: string = __for_arr_0[__for_i_2]
+              out = concat_2(out, part)
+          } @step {
+              __for_i_2 = __for_i_2 +% i64(1)
+          }
+      }
+      return out
+  }
+  snippet.list_users :: fn() -> string {  // snippet$list_users
+      "users"
+  }
+  snippet.__comptime___decorator_argument__main_0 :: fn() -> string {  // snippet$__comptime___decorator_argument__main_0
+      snippet.versioned("/orders")
+  }
+  snippet.__decorator_argument__main_0: string: "/v2/orders"  // snippet$__decorator_argument__main_0
+  snippet.create_order :: fn() -> string {  // snippet$create_order
+      "created"
+  }
+  snippet.describe :: fn(route: Route) -> string {  // snippet$describe
+      {
+          __p_0: string = route.method
+          __p_1: string = route.path
+          __buf_2: Buffer = std_core$Intrinsic$new_byte_buffer(i64(22) +% (std_core$Intrinsic$byte_len(__p_0) +% std_core$Intrinsic$byte_len(__p_1)))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_0)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, @array.len(route.tags))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.console.println<string>(snippet.describe(Route {
+          .path = "/users",
+          .method = "GET",
+          .tags = [] :string[],
+      }))
+      std.console.println<string>(snippet.describe(Route {
+          .path = "/v2/orders",
+          .method = "POST",
+          .tags = ["shop", "write"] :string[],
+      }))
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer

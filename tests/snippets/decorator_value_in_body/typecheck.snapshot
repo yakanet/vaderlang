@@ -1,0 +1,57 @@
+# Typecheck
+
+## tests/snippets/decorator_value_in_body
+  FnDecl         __comptime___decorator_argument__main_0 :: fn() -> string
+  ConstDecl      __decorator_argument__main_0 :: string
+  FnDecl         create_order         :: fn() -> string
+  FnDecl         describe             :: fn(Route) -> string
+  FnDecl         list_users           :: fn() -> string
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Route                :: Route
+  FnDecl         versioned            :: fn(string) -> string
+  expr 10:22    StringLitExpr  :: string
+  expr 11:22    SeqLitExpr     :: string[]
+  expr 15:12    StringLitExpr  :: string
+  expr 16:17    SeqLitExpr     :: string[]
+  expr 16:18    StringLitExpr  :: string
+  expr 16:25    IdentExpr      :: string
+  expr 17:15    BinaryExpr     :: string
+  expr 17:15    IdentExpr      :: string
+  expr 17:21    IdentExpr      :: string
+  expr 17:9     IdentExpr      :: string
+  expr 19:12    IdentExpr      :: string
+  expr 22:8     StringLitExpr  :: string
+  expr 23:32    StringLitExpr  :: string
+  expr 25:18    CallExpr       :: string
+  expr 25:18    IdentExpr      :: fn(string) -> string
+  expr 25:28    StringLitExpr  :: string
+  expr 25:49    StringLitExpr  :: string
+  expr 25:64    SeqLitExpr     :: string[]
+  expr 25:65    StringLitExpr  :: string
+  expr 25:73    StringLitExpr  :: string
+  expr 25:8     CallExpr       :: string
+  expr 25:8     IdentExpr      :: string
+  expr 25:9     IdentExpr      :: fn() -> string
+  expr 26:34    StringLitExpr  :: string
+  expr 28:42    StringLitExpr  :: string
+  expr 28:45    FieldExpr      :: string
+  expr 28:45    IdentExpr      :: Route
+  expr 28:61    FieldExpr      :: string
+  expr 28:61    IdentExpr      :: Route
+  expr 28:75    CallExpr       :: i64
+  expr 28:75    FieldExpr      :: fn() -> i64
+  expr 28:75    FieldExpr      :: string[]
+  expr 28:75    IdentExpr      :: Route
+  expr 31:13    CallExpr       :: string
+  expr 31:13    IdentExpr      :: fn(Route) -> string
+  expr 31:22    IntrinsicCallExpr :: Route
+  expr 31:33    IdentExpr      :: fn() -> string
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void
+  expr 32:13    CallExpr       :: string
+  expr 32:13    IdentExpr      :: fn(Route) -> string
+  expr 32:22    IntrinsicCallExpr :: Route
+  expr 32:33    IdentExpr      :: fn() -> string
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 8:20     DotVariantExpr :: DecoratorTarget

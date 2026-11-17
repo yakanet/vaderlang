@@ -55,10 +55,66 @@ infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diag
             type_for_result(info.result, typed)
         }
         .Field       -> infer_field_intrinsic(e, typed, diags)
+        .Decorator   -> infer_decorator_intrinsic(e, typed, diags)
         .Min | .Max  -> integer_bound_type(e, typed, diags)
         .SizeOf | .AlignOf | .TypeName | .TypeKind | .FieldCount | .VariantCount
             | .Satisfies | .TypeOf | .TypeArgs -> type_for_result(info.result, typed)
     }
+}
+
+// `@decorator(f, D)`: a `D` when `f`, a function of this module, carries one `@D`
+// and the call sits in a function body, where the value is computed by the time
+// it runs. The decorator it reads is recorded for the lowerer (`decorator_reads`).
+infer_decorator_intrinsic :: fn(
+    e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    wanted :: typed.type_expr_types[e.args[1].span.hash()] else return TY_UNRESOLVED
+    if wanted !is StructType || !wanted.symbol.is_decorator {
+        if wanted !is UnresolvedType {
+            diags.push(typecheck_error(.NotADecorator, e.args[1].span,
+                "`${display_type(wanted)}` is no decorator"))
+        }
+        return TY_UNRESOLVED
+    }
+    if typed.current_fn_ctx == null {
+        diags.push(typecheck_error(.NoDecoratorToRead, e.span,
+            "it is read in a function body, where the value is computed"))
+        return wanted
+    }
+    target :: e.args[0]
+    written :: decorated_function(target, typed) else {
+        diags.push(typecheck_error(.NoDecoratorToRead, target.span,
+            "the first argument names no function of this module"))
+        return wanted
+    }
+    sink: Diagnostic[]: []
+    matching: AST.Decorator[]: []
+    for d in written.decorators {
+        sym :: decorator_symbol(d, typed, sink) else continue
+        if sym.id == wanted.symbol.id {
+            matching.push(d)
+        }
+    }
+    if matching.len() != 1 {
+        how :: if matching.is_empty() { "no" } else { "more than one" }
+        diags.push(typecheck_error(.NoDecoratorToRead, target.span,
+            "`${written.name}` carries ${how} `@${wanted.symbol.name}`"))
+        return wanted
+    }
+    typed.decorator_reads[e.span.hash()] = matching[0].id
+    return wanted
+}
+
+// The function of this module `target` names, null for anything else.
+decorated_function :: fn(target: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {
+    if target !is AST.IdentExpr {
+        return null
+    }
+    sym :: typed.resolved.idents[target.span.hash()] else return null
+    if sym.module != typed.resolved.path {
+        return null
+    }
+    return typed.fn_decls[sym.id]
 }
 
 // Type-check a value argument. One that names a type (`@size_of(i32)`,
