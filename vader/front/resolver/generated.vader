@@ -10,6 +10,8 @@
 
 module "vader/front/resolver"
 
+import "std/collections"
+import "std/iter"
 import "std/path"
 import "std/string"
 import "toolchain/diagnostics"
@@ -86,6 +88,36 @@ origin_name :: fn(origin: string, root: string) -> string {
         return origin.to_path().filename()
     }
     return within
+}
+
+/// Lead each diagnostic of `diags` in code the compiler wrote to the code a user
+/// wrote that asked for it (`Diagnostic.related`).
+///
+/// @param diags   the diagnostics, linked in place.
+/// @param loaded  the project they were found in.
+export link_generated_origins :: fn(diags: Diagnostic[], loaded: LoadedProject) -> void {
+    if !diags.any_match((d) -> is_generated_file(d.primary.start.file)) {
+        return
+    }
+    origins :: Map<string, CodeOrigin[]> {}
+    for [_, lm] in loaded.modules {
+        for f in lm.module.files {
+            if !f.origins.is_empty() {
+                origins[f.path] = f.origins
+            }
+        }
+    }
+    for i in 0..<diags.len() {
+        d :: diags[i]
+        ranges :: origins[d.primary.start.file] else continue
+        offset :: d.primary.start.offset
+        for o in ranges {
+            if o.start <= offset && offset < o.end {
+                diags[i] = Diagnostic { ...d, .related = d.related + [o.origin] }
+                break
+            }
+        }
+    }
 }
 
 /// The file the code parsed under `file` was written for: the written file a glue

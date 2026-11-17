@@ -1,0 +1,54 @@
+// tools/cli_tests/lsp/generated_code: an error in code the compiler wrote, which
+// no editor opens, shows on the code that asked for it, and says so.
+
+module "tools/cli_tests/lsp"
+
+import "json"
+import "std/string"
+import "tools/cli_tests/cli"
+import "tools/cli_tests/rpc"
+
+// A program whose interceptor's wrapper does not type-check: the wrapper hands
+// `Opaque`, which has no `Display`, to `logged`. `make` is on line 20.
+WRAPPED_ILL_TYPED :: """
+    module "main"
+
+    import "std/console"
+
+    Log :: struct<A, R> {}
+
+    @interceptor(around = logged)
+    Logged :: decorator(.Function) {}
+
+    logged :: fn<A, R: Display>(state: Log<A, R>, site: Site<Logged>, args: A, proceed: fn(A) -> R) -> R {
+        result :: proceed(args)
+        println("\${result}")
+        return result
+    }
+
+    Opaque :: struct {
+        x: i32
+    }
+
+    @Logged
+    make :: fn(x: i32) -> Opaque = Opaque { .x = x }
+
+    main :: fn() -> i32 = make(1).x
+    """
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_an_error_in_an_interceptor_wrapper_shows_on_the_function_it_wraps :: fn() -> void {
+    dir :: project("generated", [["main.vader", WRAPPED_ILL_TYPED]])
+    client :: start_client(dir)
+    uri :: file_uri("${dir}/main.vader")
+    client.send(did_open(uri, WRAPPED_ILL_TYPED))
+    found :: coded(diagnostics_of(client, uri), "T3006")
+    assert_eq(error_places(found), "T3006@20")
+    message :: string_member(found[0], "message") else ""
+    assert("in the code `@Logged` writes for `make`" in message, message)
+    close_client(client)
+}

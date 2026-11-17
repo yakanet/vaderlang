@@ -48,6 +48,7 @@ export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void
     checked :: CheckedProject { .result = cached.result, .effects = cached.effects }
     evaluate_checked(cached.project, checked, diags)
     diags.push_all(lint_project(cached.project))
+    link_generated_origins(diags, cached.project)
     publish(self, uri, file_path, diags)
 }
 
@@ -59,8 +60,10 @@ export clear_diagnostics_for_uri :: fn(uri: string) -> void =
 /// Push a `publishDiagnostics` notification carrying `diags` filtered to
 /// those whose primary span lies in `file_path`, the file `uri` names (we don't
 /// squiggle another file's errors on the open document), each exact duplicate
-/// once, as the CLI renders them. Everything else is published as is so the
-/// editor reports exactly what the compiler detects, cascade noise included :
+/// once, as the CLI renders them. One in code the compiler wrote, which no
+/// editor opens, is shown at the code of `file_path` that asked for it.
+/// Everything else is published as is so the editor reports exactly what the
+/// compiler detects, cascade noise included :
 /// the diagnostics come straight from the shared `check_file`, the same path
 /// `vader dump --stage=typed-ast` uses.
 publish :: fn(self: ServerState, uri: string, file_path: string, diags: Diagnostic[]) -> void {
@@ -71,6 +74,13 @@ publish :: fn(self: ServerState, uri: string, file_path: string, diags: Diagnost
     for d in diags {
         if d.primary.start.file == file_path {
             shown.push(d)
+            continue
+        }
+        for r in d.related {
+            if r.span.start.file == file_path {
+                shown.push(shown_at_origin(d, r))
+                break
+            }
         }
     }
     items: JsonValue[]: []
@@ -78,6 +88,19 @@ publish :: fn(self: ServerState, uri: string, file_path: string, diags: Diagnost
         items.push(encode_diagnostic(d, li))
     }
     send_diagnostics(uri, items)
+}
+
+// `d`, found in code the compiler wrote, shown at `origin`, the code that asked
+// for it, which its detail names.
+shown_at_origin :: fn(d: Diagnostic, origin: Related) -> Diagnostic {
+    where :: "in ${origin.message}"
+    detail :: if d.detail.is_empty() { where } else { "${d.detail}, ${where}" }
+    return Diagnostic {
+        ...d,
+        .detail = detail,
+        .primary = origin.span,
+        .related = [],
+    }
 }
 
 send_diagnostics :: fn(uri: string, items: JsonValue[]) -> void {

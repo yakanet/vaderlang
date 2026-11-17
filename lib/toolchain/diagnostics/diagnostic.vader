@@ -26,6 +26,16 @@ export Diagnostic :: struct {
     // Optional detail appended to the canonical message at render time.
     detail:   string
     primary:  Span
+    /// The places the diagnostic leads to beside its own: the code a user wrote
+    /// that asked for the code the compiler wrote it points into.
+    related:  Related[] = []
+}
+
+/// A place a diagnostic leads to, and why.
+export Related :: struct {
+    span:    Span
+    /// What the place is to the diagnostic, said to the user.
+    message: string
 }
 
 /// True when any diagnostic in `diags` is error-severity.

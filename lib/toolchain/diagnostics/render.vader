@@ -242,6 +242,10 @@ format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic, channel: Channel) -> v
         "${p.line}:${p.column}"
     }
     sb.append("[${loc}] ${sev}[${d.code.id}] ${d.code.message}${detail}")
+    for r in d.related {
+        s :: r.span.start
+        sb.append("\n    [${shown_file(s.file, channel)}:${s.line}:${s.column}] ${r.message}")
+    }
 }
 
 // ---- tests ----------------------------------------------------------------

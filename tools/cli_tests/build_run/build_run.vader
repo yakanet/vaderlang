@@ -94,12 +94,13 @@ test_a_build_that_fails_runs_nothing :: fn() -> void {
 }
 
 @test
-test_an_error_in_the_code_the_compiler_wrote_names_the_file_the_build_wrote_it_to :: fn() -> void {
+test_an_error_in_the_code_the_compiler_wrote_names_where_it_is_and_what_asked_for_it :: fn() -> void {
     dir :: staged("expanded", INTERCEPTED_ILL_TYPED)
     ran :: vader_in(dir, ["build", "main.vader"])
     assert_eq(ran.exit, 1)
     written :: "build/expanded/intercept/main.vader"
     assert("[${written.to_native()}:" in ran.stderr, ran.stderr)
+    assert("main.vader:21:1] the code `@Logged` writes for `make`" in ran.stderr, ran.stderr)
     wrapper :: read_file_string("${dir}/${written}") else ""
     assert("make :: fn(x: i32) -> Opaque" in wrapper, wrapper)
 }

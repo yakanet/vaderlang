@@ -81,7 +81,10 @@ outermost: the layers under the first are `g$$proceed2`, `g$$proceed3`... each w
 its numbered singleton. A walk over the declarations of a written file never meets
 it. A build writes each such file under `build/expanded/` (`write_expanded` in
 `vader/pipeline/layout.vader`) and points the diagnostics in it there; the file
-keeps its `<generated>:` name inside the compiler.
+keeps its `<generated>:` name inside the compiler. Each such file records the code
+a user wrote that asked for each of its parts (`SourceFile.origins`), and
+`link_generated_origins` adds it to a diagnostic found in the part
+(`Diagnostic.related`).
 The decorator is matched to its declaration from the parsed files alone
 (`decorator_origin.vader`), the way the resolver later finds it. Every module is
 collected only then, in the order the modules were read, so symbol ids do not

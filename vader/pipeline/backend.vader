@@ -120,6 +120,7 @@ export gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] 
     for d in pipeline.resolver_diags  { out.push(d) }
     for d in pipeline.typecheck_diags { out.push(d) }
     for d in pipeline.comptime_diags  { out.push(d) }
+    link_generated_origins(out, pipeline.loaded)
     return out
 }
 
@@ -264,6 +265,7 @@ export lower_to_entry_from :: fn(
     // Gathered once lowered: a value baked for the lowering reports there.
     pre_diags :: gather_pipeline_diags(pipeline)
     if verify { verify_lowered(lowered, "lower_project", lower_diags) }
+    link_generated_origins(lower_diags, pipeline.loaded)
     return LoweredEntry {
         .lowered     = lowered,
         .entry       = entry,

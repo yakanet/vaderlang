@@ -25,6 +25,7 @@ import "std/fs"
 import "std/path"
 import "std/string"
 import "toolchain/ast"
+import "toolchain/diagnostics"
 import "toolchain/parser"
 import "toolchain/project"
 
@@ -33,6 +34,20 @@ export SourceFile :: struct {
     path: string
     content: string
     program: Program
+    /// For code the compiler wrote, the code a user wrote that asked for each
+    /// part of it.
+    origins: CodeOrigin[] = []
+}
+
+/// A part of the code the compiler wrote, and the code a user wrote that asked
+/// for it.
+export CodeOrigin :: struct {
+    /// Where the part starts in its file, as a byte offset.
+    start: i64
+    /// Where it ends, excluded.
+    end: i64
+    /// The code that asked for it, and what the part is to it.
+    origin: Related
 }
 
 /// Concatenate every file's top-level decls of a (possibly multi-file) module

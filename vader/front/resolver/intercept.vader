@@ -127,7 +127,9 @@ wrap_file :: fn(
     diags: Diagnostic[],
 ) -> SourceFile | null {
     program :: source.program
+    header :: "module \"${module_name}\"\n${imports_text(source)}"
     glue :: StringBuilder {}
+    origins: CodeOrigin[]: []
     wrapped: FnDecl[]: []
     for f in program.decls.filter_is<FnDecl>() {
         interceptions :: interceptions_of(program, module_name, f, interceptors, declared)
@@ -141,7 +143,13 @@ wrap_file :: fn(
         }
         result :: f.return_type else continue
         for depth in 1..=interceptions.len() {
+            start :: glue.byte_len()
             glue.append(layer_text(source, module_name, f, result, interceptions, depth))
+            origins.push(CodeOrigin {
+                .start = header.byte_len() + start,
+                .end = header.byte_len() + glue.byte_len(),
+                .origin = layer_origin(f, interceptions[depth - 1]),
+            })
         }
         wrapped.push(f)
     }
@@ -149,7 +157,7 @@ wrap_file :: fn(
         return null
     }
     path :: generated_file(INTERCEPT_KIND, source.path)
-    content :: "module \"${module_name}\"\n${imports_text(source)}${glue.to_string()}"
+    content :: "${header}${glue.to_string()}"
     parsed :: parse_compiler_written(content, path)
     diags.push_all(parsed.errors)
     assign_program_ids(parsed.program, ids)
@@ -166,7 +174,18 @@ wrap_file :: fn(
         f.visibility = .Private
         f.doc = null
     }
-    return SourceFile { .path = path, .content = content, .program = parsed.program }
+    return SourceFile {
+        .path = path,
+        .content = content,
+        .program = parsed.program,
+        .origins = origins,
+    }
+}
+
+// The function a layer of `f` wraps, as the origin of the layer.
+layer_origin :: fn(f: FnDecl, interception: Interception) -> Related = Related {
+    .span = f.name_span,
+    .message = "the code `@${interception.qualifier}${interception.name}` writes for `${f.name}`",
 }
 
 // The imports of `source`, as written, decorators included, one per line.

@@ -373,7 +373,7 @@ Every compiler phase reports its problems as diagnostics (*Output*). A diagnosti
 - a **detail**, what this occurrence adds: types, names, counts;
 - a **span**, the source range it points at.
 
-There are no secondary spans, notes or suggested fixes yet; some details say how to fix the problem:
+A diagnostic in code the compiler wrote also leads to the code that asked for it: the function an interceptor wraps, the declaration a decorator such as `@displayable` writes for. There are no other secondary spans, notes or suggested fixes yet; some details say how to fix the problem:
 
 - Modifying a frozen value (`T3070`), or lending one to a function that modifies it (`T3072`), names the value, what modifies it down the calls, and the copy to modify instead (a name bound to it, or a `bytes()` view's `.clone()`).
 - `x.f()`, whose `f` is in scope only through a namespace alias and accepts `x`, reports `T3078` instead of the generic member error, with the qualified call in its detail.
@@ -389,6 +389,7 @@ The command line prints one line per diagnostic:
 ```
 
 - The file is relative to the working directory when under it.
+- A diagnostic in code the compiler wrote is followed by an indented line, `[file:line:col] the code ... writes for ...`, naming the code that asked for it. The language server shows it there, the detail saying where it was found.
 - Code the compiler writes as source (an interceptor's wrappers, what a decorator such as `@displayable` adds) has no file of its own. `vader build` and `vader run` write it under `build/expanded/<writer>/` of the project folder, or else the entry's, named after the file or module it was written for, and a diagnostic in it names that file. `vader check` writes nothing, and names it `<generated>:<writer>:<origin>`.
 - Lines and columns count from 1, columns in code points.
 - Lines are sorted by file and position, duplicates printed once. Past 100 lines, a last line counts the others.

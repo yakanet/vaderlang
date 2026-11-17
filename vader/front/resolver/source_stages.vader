@@ -125,12 +125,13 @@ run_source_stages :: fn(
             content :: "module \"${m.found.name}\"\n${generated.text}"
             parsed :: parse_compiler_written(content, path)
             diags.push_all(parsed.errors)
-            anchor_impls(parsed.program, generated.anchors)
+            origins :: anchor_impls(parsed.program, generated.anchors, spec.name)
             assign_program_ids(parsed.program, ids)
             m.sources.push(SourceFile {
                 .path = path,
                 .content = content,
                 .program = parsed.program,
+                .origins = origins,
             })
         }
     }
@@ -184,16 +185,25 @@ same_given :: fn(written: Given, read: Given) -> bool = match written {
     is DecoratorOrigin -> read is DecoratorOrigin && same_origin(read, written)
 }
 
-// Give each impl of `program` the span of its anchor, in order.
-anchor_impls :: fn(program: Program, anchors: Span[]) -> void {
+// Give each impl of `program`, which the stage `stage` wrote, the span of its
+// anchor, in order: the origin of each impl so anchored.
+anchor_impls :: fn(program: Program, anchors: Span[], stage: string) -> CodeOrigin[] {
+    origins: CodeOrigin[]: []
+    message :: "the code `${stage}` writes here"
     i: i64 = 0
     for d in program.decls.filter_is<ImplDecl>() {
         if i >= anchors.len() {
-            return
+            break
         }
+        origins.push(CodeOrigin {
+            .start = d.span.start.offset,
+            .end = d.span.end.offset,
+            .origin = Related { .span = anchors[i], .message = message },
+        })
         d.span = anchors[i]
         i += 1
     }
+    return origins
 }
 
 // ---- tests ----------------------------------------------------------------
