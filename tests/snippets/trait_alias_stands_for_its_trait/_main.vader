@@ -1,0 +1,55 @@
+// An alias of one trait stands for it: an impl written through the alias
+// implements the trait, the short form included, and the alias is a type equal to
+// the instance it names. Its own parameters substitute, and an alias of an alias is
+// followed whatever the order they are declared in.
+module "snippet"
+
+import "std/console"
+
+Stage :: trait<In, Out> {
+    run :: fn(self, input: In) -> Out
+}
+
+/// Declared before the alias it names.
+Doubling :: trait = Numbers
+Numbers :: trait = Stage<i32, i32>
+/// A list stage over any element.
+ListStage :: trait<T> = Stage<T[], T[]>
+
+Double :: struct {}
+
+Double implements Numbers {
+    run :: fn(self, input: i32) -> i32 = input * 2
+}
+
+Square :: struct {}
+
+Square implements Doubling -> input * input
+
+Reverse :: struct {}
+
+Reverse implements ListStage<string> {
+    run :: fn(self, input: string[]) -> string[] {
+        out: string[]: []
+        for i in 0..<input.len() {
+            out.push(input[input.len() - 1 - i])
+        }
+        return out
+    }
+}
+
+run_all :: fn<In, Out>(stages: Stage<In, Out>[], input: In) -> Out[] {
+    out: Out[]: []
+    for s in stages {
+        out.push(s.run(input))
+    }
+    return out
+}
+
+main :: fn() -> i32 {
+    numbers: Numbers[]: [Double {}, Square {}]
+    println("${run_all(numbers, 3)}")
+    lists: ListStage<string>[]: [Reverse {}]
+    println("${lists[0].run(["a", "b", "c"])}")
+    return 0
+}

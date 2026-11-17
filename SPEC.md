@@ -2072,7 +2072,25 @@ Hashable :: trait<T> : Hash & Equals {
 }
 ```
 
-The composition is an `&`-chain in type position, with the precedence of a type intersection; a single trait makes an alias (`Foo :: trait<T> = Bar`). A bound `T: Foo` requires every composed trait.
+The composition is an `&`-chain in type position, with the precedence of a type intersection. A bound `T: Foo` requires every composed trait.
+
+A single trait and no method of its own make an alias, which stands for the trait it names, arguments included:
+
+```vader
+Stage :: trait<In, Out> {
+    run :: fn(self, input: In) -> Out
+}
+
+CheckStage :: trait = Stage<Program, Diagnostic[]>
+ListStage :: trait<T> = Stage<T[], T[]>
+
+Lint implements CheckStage -> report(input)      // implements Stage<Program, Diagnostic[]>
+checks: CheckStage[]: [Lint {}]                  // a Stage<Program, Diagnostic[]>[]
+```
+
+- An impl written through the alias implements the trait it names, the short form included.
+- The alias is a type equal to that instance, and its own parameters take the arguments written after it.
+- An alias may name another alias, declared before or after it. An alias that comes back to itself is an error.
 
 #### Method dispatch on trait values
 

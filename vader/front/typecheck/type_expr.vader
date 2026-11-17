@@ -195,9 +195,27 @@ lower_ident :: fn(e: AST.IdentExpr, resolved: ResolvedModule) -> Type {
 resolve_named_type :: fn(sym: Symbol, resolved: ResolvedModule) -> Type {
     redirected :: redirect_import(sym, resolved)
     aliased :: resolved.alias_types[redirected.id]
-    if !(aliased is null) { return aliased }
+    if !(aliased is null) { return through_trait_aliases(aliased, resolved) }
     return type_from_symbol(redirected, [])
 }
+
+/// `t`, a trait alias followed to the trait it stands for, through as many
+/// aliases as name one another: an alias registered before the one it names
+/// still names that alias.
+///
+/// @param t         a type an alias stands for.
+/// @param resolved  holds the project's aliases.
+through_trait_aliases :: fn(t: Type, resolved: ResolvedModule) -> Type {
+    out := t
+    for _ in 0..<AST.MAX_TRAIT_ALIAS_DEPTH {
+        if out !is TraitType {
+            return out
+        }
+        out = alias_instance(out.symbol, out.args, resolved) else return out
+    }
+    return out
+}
+
 
 // Substitute an alias's type-params with the call-site's args.
 // `Maybe<T> :: T | null` instantiated as `Maybe(i32)` walks the
@@ -226,7 +244,14 @@ instantiate_named :: fn(
 }
 
 instance_of_named :: fn(target: Symbol, args: Type[], resolved: ResolvedModule) -> Type {
-    aliased :: resolved.alias_types[target.id] else return type_from_symbol(target, args)
+    instance :: alias_instance(target, args, resolved) else return type_from_symbol(target, args)
+    return through_trait_aliases(instance, resolved)
+}
+
+// What the alias `target` stands for at `args`, its parameters substituted, one
+// alias deep ; null when `target` is no alias.
+alias_instance :: fn(target: Symbol, args: Type[], resolved: ResolvedModule) -> Type | null {
+    aliased :: resolved.alias_types[target.id] else return null
     params :: resolved.alias_params[target.id] else return aliased
     return substitute_alias_args(aliased, params, args)
 }

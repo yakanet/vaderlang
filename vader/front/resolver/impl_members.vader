@@ -61,7 +61,15 @@ materialize_file_impl_members :: fn(
             continue
         }
         head :: AST.impl_trait_head(decl)
-        found :: find_impl_trait_decl(head, loaded, scope, name_index, project)
+        found :: find_impl_trait_decl(
+            head,
+            AST.impl_trait_args(decl),
+            loaded,
+            scope,
+            name_index,
+            project,
+            core_seed,
+        )
         if found.trait_decl is null {
             written :: "`${AST.impl_trait_written_name(decl)}`"
             diag :: if found.hidden {
@@ -82,10 +90,10 @@ materialize_file_impl_members :: fn(
         // lets the T3036 "missing method" loop credit the SAM-named
         // slot. Without the rename, both required methods would be
         // flagged missing instead of just the unprovided one.
-        materialize_sam_members(decl, trait_decl, loaded.node_id_factory)
+        materialize_sam_members(decl, trait_decl, found.args, loaded.node_id_factory)
         // A default method the impl does not write is declared for it, its
         // signature substituted ; the body stays the trait's.
-        materialize_default_members(decl, trait_decl, loaded.node_id_factory)
+        materialize_default_members(decl, trait_decl, found.args, loaded.node_id_factory)
     }
 }
 
@@ -131,10 +139,12 @@ export has_impl_decl :: fn(decls: AST.Decl[]) -> bool = !decls.filter_is<AST.Imp
 // the prelude and the wildcard imports.
 find_impl_trait_decl :: fn(
     head: AST.Expr,
+    written: AST.TypeExpr[],
     loaded: LoadedModule,
     scope: Map<string, Symbol>,
     name_index: Map<string, LoadedModule>,
     project: LoadedProject,
+    core_seed: Map<string, Symbol>,
 ) -> TraitLookup {
     unresolved :: TraitLookup { .trait_decl = null, .other_kind = "" }
     sym :: trait_in_file_scope(head, loaded, scope, name_index) else return unresolved
@@ -153,12 +163,66 @@ find_impl_trait_decl :: fn(
         return TraitLookup { .trait_decl = null, .other_kind = other_kind }
     }
     owner :: project.modules[sym.module] else return unresolved
-    for decl in concat_file_decls(owner.module.files).filter_is<AST.TraitDecl>() {
-        if decl.name == sym.name {
-            return TraitLookup { .trait_decl = decl, .other_kind = "" }
+    named :: trait_named(owner, sym.name) else return unresolved
+    return through_aliases(named, owner, written, name_index, project, core_seed)
+}
+
+// The trait `named`, declared in `owner`, stands for, its arguments `written` as
+// the impl writes them: `named` itself, or the trait an alias names, its own
+// parameters bound in the arguments it gives (`CheckStage` for `Stage<Checked,
+// Diagnostic[]>`). A name the alias writes binds in the scope of its own file.
+through_aliases :: fn(
+    named: DeclaredTrait,
+    owner: LoadedModule,
+    written: AST.TypeExpr[],
+    name_index: Map<string, LoadedModule>,
+    project: LoadedProject,
+    core_seed: Map<string, Symbol>,
+) -> TraitLookup {
+    unresolved :: TraitLookup { .trait_decl = null, .other_kind = "" }
+    no_builtins :: Map<string, Symbol> {}
+    current := named
+    module := owner
+    args := written
+    // An alias of an alias is followed ; one that comes back to itself stops here.
+    for _ in 0..<AST.MAX_TRAIT_ALIAS_DEPTH {
+        target :: AST.trait_alias_target(current.decl) else {
+            return TraitLookup { .trait_decl = current.decl, .other_kind = "", .args = args }
+        }
+        imports :: file_imports(module.collected, current.file)
+        scope :: file_root_scope(no_builtins, module.collected, imports, name_index, core_seed)
+        sym :: trait_in_file_scope(AST.instance_head(target), module, scope, name_index)
+            else return unresolved
+        if sym.kind != .Trait {
+            return TraitLookup { .trait_decl = null, .other_kind = "an alias of no trait" }
+        }
+        next_module :: project.modules[sym.module] else return unresolved
+        next :: trait_named(next_module, sym.name) else return unresolved
+        subst :: new_subst()
+        bind_trait_params(subst, current.decl, args)
+        args = AST.instance_args(target).map((a) -> substitute_type_expr(a, subst)).collect()
+        current = next
+        module = next_module
+    }
+    return TraitLookup { .trait_decl = null, .other_kind = "an alias that names itself" }
+}
+
+// A trait declaration, and the file that declares it.
+DeclaredTrait :: struct {
+    decl: AST.TraitDecl
+    file: string
+}
+
+// The trait `name` of `owner`.
+trait_named :: fn(owner: LoadedModule, name: string) -> DeclaredTrait | null {
+    for f in owner.module.files {
+        for d in f.program.decls.filter_is<AST.TraitDecl>() {
+            if d.name == name {
+                return DeclaredTrait { .decl = d, .file = f.program.file }
+            }
         }
     }
-    return unresolved
+    return null
 }
 
 // The symbol the trait name `head` binds to in a file's `scope`: a name of the
@@ -208,8 +272,12 @@ name_in_file_scope :: fn(
 TraitLookup :: struct {
     trait_decl: AST.TraitDecl | null
     /// `"a struct"` / `"an enum"` / `"an alias"` when the name binds to that kind
-    /// of declaration ; empty otherwise. Only meaningful when `trait_decl` is null.
+    /// of declaration, or what a trait alias that reaches no trait is ; empty
+    /// otherwise. Only meaningful when `trait_decl` is null.
     other_kind: string
     /// The name is `Ns.Trait`, and its module does not export `Trait`.
     hidden: bool = false
+    /// The arguments the impl gives `trait_decl`: those it writes, or for an
+    /// alias, those the alias gives in its own terms, the impl's substituted.
+    args: AST.TypeExpr[] = []
 }

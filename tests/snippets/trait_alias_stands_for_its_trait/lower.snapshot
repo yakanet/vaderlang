@@ -1,0 +1,74 @@
+# Lower
+
+## snippet
+  snippet.Double :: struct {}  // snippet$Double
+  snippet.Double.run :: fn(self: Double, input: i32) -> i32 {  // snippet$Double$Stage$run
+      input * 2
+  }
+  snippet.Square :: struct {}  // snippet$Square
+  snippet.Square.run :: fn(self: Square, input: i32) -> i32 {  // snippet$Square$Stage$run
+      input * input
+  }
+  snippet.Reverse :: struct {}  // snippet$Reverse
+  snippet.Reverse.run :: fn(self: Reverse, input: string[]) -> string[] {  // snippet$Reverse$Stage$run
+      out: string[] = @array.reserve(@array.len(input))
+      {
+          i: i64 = 0
+          __for_hi_0: i64 = @array.len(input)
+          for i < __for_hi_0 {
+              @array.push_cached(out, input[(@array.len(input) - i64(1)) - i])
+          } @step {
+              i = i +% i64(1)
+          }
+      }
+      return out
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      numbers: Stage<i32, i32>[] = [Double {}, Square {}] :Stage<i32, i32>[]
+      std.console.println<string>(std.core.i32[].to_string(snippet.run_all<i32, i32>(numbers, 3)))
+      lists: Stage<string[], string[]>[] = [Reverse {}] :Stage<string[], string[]>[]
+      std.console.println<string>(std.core.string[].to_string(@vcall(snippet.Stage.run, lists[0], ["a", "b", "c"] :string[])))
+      return 0
+  }
+  snippet.run_all<i32, i32> :: fn(stages: Stage<i32, i32>[], input: i32) -> i32[] {  // snippet$run_all__i32__i32
+      out: i32[] = @array.reserve(@array.len(stages))
+      {
+          __for_arr_0: Stage<i32, i32>[] = stages
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
+          for __for_i_2 < __for_len_1 {
+              s: Stage<i32, i32> = __for_arr_0[__for_i_2]
+              @array.push(out, @vcall(snippet.Stage.run, s, input))
+          } @step {
+              __for_i_2 = __for_i_2 +% i64(1)
+          }
+      }
+      return out
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+  vtable snippet.Stage.run for Double  snippet.Double.run  // snippet$Double$Stage$run
+  vtable snippet.Stage.run for Reverse  snippet.Reverse.run  // snippet$Reverse$Stage$run
+  vtable snippet.Stage.run for Square  snippet.Square.run  // snippet$Square$Stage$run
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_signed  // std_core$format_signed
+    fn std.core.i32.to_string  // std_core$i32$Display$to_string
+    fn std.core.i32[].to_string  // std_core$$array$Display$to_string__i32
+    fn std.core.string.to_string  // std_core$string$Display$to_string
+    fn std.core.string[].to_string  // std_core$$array$Display$to_string__string
+    fn std.core.write_string_at  // std_core$write_string_at
+    struct std.core.Buffer  // std_core$Buffer

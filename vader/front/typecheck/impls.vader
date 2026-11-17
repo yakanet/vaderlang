@@ -130,7 +130,7 @@ registered_trait_args :: fn(
     resolved: ResolvedModule,
     typed: TypedProgram | null,
 ) -> Type[] {
-    written :: written_type_args(impl_trait_args(impl_), resolved, [])
+    written :: impl_trait_type_args(impl_, resolved, [])
     if typed == null {
         return written
     }
@@ -191,8 +191,48 @@ export trait_param_bindings :: fn(
 /// @param decl      the impl.
 /// @param resolved  the module that declares `decl`.
 impl_trait_symbol :: fn(decl: ImplDecl, resolved: ResolvedModule) -> Symbol | null {
+    instance :: impl_trait_instance(decl, resolved, diag_sink()) else return null
+    return instance.symbol
+}
+
+/// The arguments `decl` gives its trait, as types (`impl_trait_instance`) ; those
+/// it writes when its trait does not resolve.
+///
+/// @param decl      the impl.
+/// @param resolved  the module that declares `decl`.
+/// @param diags     where a written argument that names no type is reported.
+impl_trait_type_args :: fn(
+    decl: ImplDecl,
+    resolved: ResolvedModule,
+    diags: Diagnostic[],
+) -> Type[] {
+    instance :: impl_trait_instance(decl, resolved, diags)
+        else return written_type_args(impl_trait_args(decl), resolved, diags)
+    return instance.args
+}
+
+/// The trait `decl` implements at the arguments it gives it: those written after
+/// its name, or for an alias, the trait it stands for at the arguments the alias
+/// gives, the written ones substituted. Null when the name binds to no trait.
+///
+/// @param decl      the impl.
+/// @param resolved  the module that declares `decl`.
+/// @param diags     where a written argument that names no type is reported.
+impl_trait_instance :: fn(
+    decl: ImplDecl,
+    resolved: ResolvedModule,
+    diags: Diagnostic[],
+) -> TraitType | null {
     target :: named_declaration(impl_trait_head(decl), resolved) else return null
-    return if target.kind == .Trait { target } else { null }
+    if target.kind != .Trait {
+        return null
+    }
+    written :: written_type_args(impl_trait_args(decl), resolved, diags)
+    instance :: instance_of_named(target, written, resolved)
+    if instance is TraitType {
+        return instance
+    }
+    return TraitType { .symbol = target, .args = written }
 }
 
 collect_impl :: fn(

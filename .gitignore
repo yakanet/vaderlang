@@ -37,11 +37,12 @@ poc/
 
 # Snippet artefacts: left behind when a dev runs `vader build` directly on
 # a `tests/snippets/<name>/_main.vader` to inspect the native output: the
-# `_main` binary, and its C, headers and objects in `c/`.
+# `_main` binary, its C and headers in `c/`, its objects in `obj/`.
 # `tests/native.test.ts` uses `native.c` / `native[.exe]` for its own runs and
 # those are listed separately just below.
 tests/snippets/*/_main
 tests/snippets/*/c/
+tests/snippets/*/obj/
 tests/snippets/*/_main.dSYM/
 tests/snippets/*/native
 tests/snippets/*/native.c

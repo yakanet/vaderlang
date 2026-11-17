@@ -41,18 +41,20 @@ unplaced_span :: fn() -> Span {
 /// own in the id-keyed tables.
 ///
 /// @param impl_decl   the impl to complete.
-/// @param trait_decl  the trait it implements.
+/// @param trait_decl  the trait it implements, an alias followed.
+/// @param args        the arguments the impl gives `trait_decl`.
 /// @param factory     the project's node-id factory.
 export materialize_default_members :: fn(
     impl_decl: AST.ImplDecl,
     trait_decl: AST.TraitDecl,
+    args: AST.TypeExpr[],
     factory: NodeIdFactory,
 ) -> void {
     if !any_has_body(trait_decl.members) {
         return
     }
     provided :: provided_names(impl_decl.members)
-    subst :: build_subst(impl_decl, trait_decl)
+    subst :: build_subst(impl_decl, trait_decl, args)
     for method in trait_decl.members {
         if method.body == null || method.name in provided {
             continue
@@ -131,7 +133,8 @@ substitute_params_disambiguated :: fn(
 export materialize_sam_members :: fn(
     impl_decl: AST.ImplDecl,
     trait_decl: AST.TraitDecl,
-    factory: NodeIdFactory
+    args: AST.TypeExpr[],
+    factory: NodeIdFactory,
 ) -> void {
     syn_count :: count_sam_synthetics(impl_decl.members)
     if syn_count == 0 { return }
@@ -142,7 +145,7 @@ export materialize_sam_members :: fn(
     // first one still lets the T3036 "missing method" loop find at
     // least the SAM-named method instead of flagging both as missing.
     method :: required[0]
-    subst :: build_subst(impl_decl, trait_decl)
+    subst :: build_subst(impl_decl, trait_decl, args)
     for i in 0..<impl_decl.members.len() {
         m :: impl_decl.members[i]
         if !m.sam_synthetic { continue }
@@ -193,10 +196,21 @@ export required_methods :: fn(members: AST.FnDecl[]) -> AST.FnDecl[] {
     return out
 }
 
-build_subst :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> Subst {
+build_subst :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl, args: AST.TypeExpr[]) -> Subst {
     subst :: new_subst()
     bind(subst, "Self", impl_.for_type)
-    args :: AST.impl_trait_args(impl_)
+    bind_trait_params(subst, trait_, args)
+    return subst
+}
+
+/// Bind in `subst` each type parameter of `trait_` to its argument in `args`, or
+/// to its default when `args` stops short.
+///
+/// @param subst   receives the bindings ; `Self` already bound when a default
+///                names it.
+/// @param trait_  the trait whose parameters are bound.
+/// @param args    the written arguments, in order.
+bind_trait_params :: fn(subst: Subst, trait_: AST.TraitDecl, args: AST.TypeExpr[]) -> void {
     n :: min(trait_.type_params.len(), args.len())
     for i in 0..<n {
         bind(subst, trait_.type_params[i].name, args[i])
@@ -209,7 +223,6 @@ build_subst :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> Subst {
         d :: trait_.type_params[i].default else break
         bind(subst, trait_.type_params[i].name, substitute_type_expr(d, subst))
     }
-    return subst
 }
 
 // `p` with `Self` and the trait's parameters substituted, as a member declared for
@@ -251,7 +264,12 @@ Point implements Equals -> true
             match impl_decl {
                 is null -> { assert(false, "Point implements Equals should be parsed") }
                 is AST.ImplDecl -> {
-                    materialize_sam_members(impl_decl, trait_decl, new_node_id_factory())
+                    materialize_sam_members(
+                        impl_decl,
+                        trait_decl,
+                        AST.impl_trait_args(impl_decl),
+                        new_node_id_factory(),
+                    )
                     found := false
                     for m in impl_decl.members {
                         if m.name == "equals" { found = true }
@@ -282,7 +300,12 @@ Square implements Shape {
     parsed :: parse_source(src, "t.vader")
     trait_decl :: find_trait(parsed.program.decls, "Shape") else panic("the trait should parse")
     impl_decl :: find_impl(parsed.program.decls) else panic("the impl should parse")
-    materialize_default_members(impl_decl, trait_decl, new_node_id_factory())
+    materialize_default_members(
+        impl_decl,
+        trait_decl,
+        AST.impl_trait_args(impl_decl),
+        new_node_id_factory(),
+    )
     assert_eq(impl_decl.members.len(), 2)
     twice :: impl_decl.members[1]
     assert_eq(twice.name, "twice")

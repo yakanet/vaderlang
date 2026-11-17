@@ -6,6 +6,7 @@ import "std/collections"
 import "std/iter"
 AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
+import "toolchain/span"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/resolver"
@@ -45,6 +46,15 @@ RecordedImpl :: struct {
     decl: AST.ImplDecl
     for_ty: Type
     trait_sym: Symbol
+}
+
+// Where the arguments `decl` gives its trait are written: the one it writes, or
+// its trait's name when they come from an alias.
+trait_args_span :: fn(decl: AST.ImplDecl, written_args: AST.TypeExpr[]) -> Span {
+    if written_args.len() == 1 {
+        return written_args[0].span
+    }
+    return AST.impl_trait_head(decl).span
 }
 
 // The impls of `decls` the tables record: neither one whose trait does not
@@ -127,7 +137,7 @@ record_impl_members :: fn(
     // With the default a slot's arguments take, so the impl's instance compares
     // with the slots that ask for it (`implements_trait_instance`).
     written_args :: AST.impl_trait_args(decl)
-    written :: written_type_args(written_args, owner.resolved, diags)
+    written :: impl_trait_type_args(decl, owner.resolved, diags)
     trait_args :: substitute_each_map(
         implemented_trait_args(written, trait_sym, for_ty, owner),
         as_struct,
@@ -140,7 +150,7 @@ record_impl_members :: fn(
     side :: impl_side_key(for_ty)
     trait_type :: TraitType { .symbol = trait_sym, .args = written }
     if written.len() == 1 {
-        reject_iterator_of_stop(trait_type, written_args[0].span, diags)
+        reject_iterator_of_stop(trait_type, trait_args_span(decl, written_args), diags)
     }
     generic :: type_contains_type_param(for_ty)
     for_type :: substitute_map(for_ty, as_struct)

@@ -260,12 +260,13 @@ declare_and_check_impl :: fn(
             ),
         )
     }
-    trait_sym :: impl_trait_symbol(id, typed.resolved) else return
+    // Resolved again by `record_impl_members`, which reports what fails.
+    trait_type :: impl_trait_instance(id, typed.resolved, []) else return
+    trait_sym :: trait_type.symbol
     trait_key :: trait_key_of(trait_sym)
-    written_args :: AST.impl_trait_args(id)
     if trait_key == core_trait_key(TRAIT_INTO) {
-        if written_args.len() == 1 {
-            target_ty :: type_from_expr(written_args[0], typed.resolved, diags)
+        if trait_type.args.len() == 1 {
+            target_ty :: trait_type.args[0]
             if equals_type(for_ty, target_ty) {
                 diags.push(
                     typecheck_error(
@@ -279,9 +280,6 @@ declare_and_check_impl :: fn(
         }
     }
     trait_decl :: typed.trait_decls[trait_sym.id]
-    // Resolved again by `record_impl_members`, which reports what fails.
-    args :: written_type_args(written_args, typed.resolved, [])
-    trait_type :: TraitType { .symbol = trait_sym, .args = args }
     for m in id.members {
         if m.inherits != null {
             declare_inherited_member(m, trait_type, for_ty, typed)

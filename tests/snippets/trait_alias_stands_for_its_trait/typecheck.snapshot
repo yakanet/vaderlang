@@ -1,0 +1,66 @@
+# Typecheck
+
+## tests/snippets/trait_alias_stands_for_its_trait
+  StructDecl     Double               :: Double
+  TraitDecl      Doubling             :: Doubling
+  TraitDecl      ListStage            :: ListStage<T>
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Numbers              :: Numbers
+  StructDecl     Reverse              :: Reverse
+  FnDecl         run_all              :: fn(Stage<In, Out>[], In) -> Out[]
+  StructDecl     Square               :: Square
+  TraitDecl      Stage                :: Stage<In, Out>
+  expr 22:42    BinaryExpr     :: i32
+  expr 22:42    IdentExpr      :: i32
+  expr 27:31    BinaryExpr     :: i32
+  expr 27:31    IdentExpr      :: i32
+  expr 27:39    IdentExpr      :: i32
+  expr 33:24    SeqLitExpr     :: string[]
+  expr 34:18    RangeExpr      :: Range<i64>
+  expr 34:22    CallExpr       :: i64
+  expr 34:22    FieldExpr      :: fn() -> i64
+  expr 34:22    IdentExpr      :: string[]
+  expr 35:13    CallExpr       :: void
+  expr 35:13    FieldExpr      :: fn(string) -> void
+  expr 35:13    IdentExpr      :: string[]
+  expr 35:22    IdentExpr      :: string[]
+  expr 35:22    IndexExpr      :: string
+  expr 35:28    BinaryExpr     :: i64
+  expr 35:28    BinaryExpr     :: i64
+  expr 35:28    CallExpr       :: i64
+  expr 35:28    FieldExpr      :: fn() -> i64
+  expr 35:28    IdentExpr      :: string[]
+  expr 35:46    IdentExpr      :: i64
+  expr 37:16    IdentExpr      :: string[]
+  expr 42:17    SeqLitExpr     :: Out[]
+  expr 43:14    IdentExpr      :: Stage<In, Out>[]
+  expr 44:18    CallExpr       :: Out
+  expr 44:18    FieldExpr      :: fn(In) -> Out
+  expr 44:18    IdentExpr      :: Stage<In, Out>
+  expr 44:24    IdentExpr      :: In
+  expr 44:9     CallExpr       :: void
+  expr 44:9     FieldExpr      :: fn(Out) -> void
+  expr 44:9     IdentExpr      :: Out[]
+  expr 46:12    IdentExpr      :: Out[]
+  expr 50:25    SeqLitExpr     :: Stage<i32, i32>[]
+  expr 50:26    StructLitExpr  :: Double
+  expr 50:37    StructLitExpr  :: Square
+  expr 51:13    StringLitExpr  :: string
+  expr 51:16    CallExpr       :: i32[]
+  expr 51:16    IdentExpr      :: fn(Stage<In, Out>[], In) -> Out[]
+  expr 51:24    IdentExpr      :: Stage<i32, i32>[]
+  expr 51:5     CallExpr       :: void
+  expr 51:5     IdentExpr      :: fn(T) -> void
+  expr 52:33    SeqLitExpr     :: Stage<string[], string[]>[]
+  expr 52:34    StructLitExpr  :: Reverse
+  expr 53:13    StringLitExpr  :: string
+  expr 53:16    CallExpr       :: string[]
+  expr 53:16    FieldExpr      :: fn(string[]) -> string[]
+  expr 53:16    IdentExpr      :: Stage<string[], string[]>[]
+  expr 53:16    IndexExpr      :: Stage<string[], string[]>
+  expr 53:29    SeqLitExpr     :: string[]
+  expr 53:30    StringLitExpr  :: string
+  expr 53:35    StringLitExpr  :: string
+  expr 53:40    StringLitExpr  :: string
+  expr 53:5     CallExpr       :: void
+  expr 53:5     IdentExpr      :: fn(T) -> void

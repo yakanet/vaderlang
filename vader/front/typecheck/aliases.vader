@@ -5,6 +5,7 @@ module "vader/front/typecheck"
 import "std/collections"
 import "std/iter"
 AST :: import "toolchain/ast"
+import "toolchain/span"
 import "vader/core/types"
 import "vader/front/resolver"
 
@@ -47,16 +48,31 @@ settle_pending_aliases :: fn(typed: TypedProgram, pending: AST.Decl[]) -> AST.De
 // settle yet. Any other decl has nothing to register.
 register_alias_decl :: fn(decl: AST.Decl, typed: TypedProgram) -> bool {
     if decl is AST.TypeAliasDecl {
-        sym :: symbol_declared_at(typed.resolved, decl.name_span) else return true
-        aliased :: type_from_expr(decl.aliased, typed.resolved, diag_sink())
-        typed.resolved.alias_types[sym.id] = aliased
-        typed.resolved.alias_params[sym.id] = quantifier_of(decl.type_params, typed.resolved)
-        return !type_contains_unresolved(aliased)
+        return register_alias(typed, decl.name_span, decl.aliased, decl.type_params)
     }
     if decl is AST.ConstDecl {
         return decl.ty != null || register_alias_const(decl, typed)
     }
+    if decl is AST.TraitDecl {
+        target :: AST.trait_alias_target(decl) else return true
+        return register_alias(typed, decl.name_span, target, decl.type_params)
+    }
     return true
+}
+
+// Register the alias declared at `name_span` as the type `aliased` writes, over
+// its parameters `params` ; false when that type does not settle yet.
+register_alias :: fn(
+    typed: TypedProgram,
+    name_span: Span,
+    aliased: AST.TypeExpr,
+    params: AST.TypeParam[],
+) -> bool {
+    sym :: symbol_declared_at(typed.resolved, name_span) else return true
+    stands_for :: type_from_expr(aliased, typed.resolved, diag_sink())
+    typed.resolved.alias_types[sym.id] = stands_for
+    typed.resolved.alias_params[sym.id] = quantifier_of(params, typed.resolved)
+    return !type_contains_unresolved(stands_for)
 }
 
 // An alias naming another module's types (`Reading :: Celsius | Label`, the

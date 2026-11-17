@@ -80,7 +80,7 @@ check_module_impl_coherence :: fn(
             diags.push(resolver_error(.ConflictingImpl, decl.span, detail))
             continue
         }
-        args :: written_type_args(AST.impl_trait_args(decl), tp.resolved, diag_sink())
+        args :: impl_trait_type_args(decl, tp.resolved, diag_sink())
         if reject_overlapping_impl(decl, for_ty, trait_key, args, by_base, diags) {
             continue
         }
