@@ -68,6 +68,12 @@ test_fmt_keeps_a_negation_of_a_number :: fn() -> void {
 }
 
 @test
+test_fmt_keeps_a_trait_alias :: fn() -> void {
+    fmt_leaves("module \"t\"\n\nCheckStage :: trait = Stage<Program, Diagnostic[]>\n")
+    fmt_leaves("module \"t\"\n\nNumeric :: trait<T> = Add & Sub & Mul\n")
+}
+
+@test
 test_fmt_keeps_the_comptime_of_a_loop :: fn() -> void {
     // Without it, the loop runs at run time over what it unrolled at compile time.
     fmt_leaves(

@@ -986,6 +986,11 @@ emit_trait_decl :: fn(self: Printer, d: p.TraitDecl) -> void {
     self.write(d.name)
     self.write(" :: trait")
     self.emit_type_params(d.type_params)
+    // No method of its own: a composition, or an alias of one trait, written `=`.
+    if d.members.len() == 0 && d.requires != null {
+        self.emit_type_expr_with_prefix(" = ", d.requires)
+        return
+    }
     self.emit_type_expr_with_prefix(": ", d.requires)
     if d.members.len() == 0 {
         self.write(" {}")
