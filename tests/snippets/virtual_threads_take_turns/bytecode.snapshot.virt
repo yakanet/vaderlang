@@ -71,16 +71,24 @@ end
 
 fn 1 snippet$spawn (ref) -> void
   local j ref
-  local $add_checked_5 i64
-  call 0   ; snippet$joiner
-  local.set 1   ; j
+  local $add_checked_9 i64
+  global.get 0   ; joiner.state
+  i32.const 2
+  i32.eq
+  if $L0 void
+    global.get 1   ; joiner.instance
+    local.set 1   ; j
+  else
+    call 0   ; snippet$joiner
+    local.set 1   ; j
+  end $L0
   local.field 1 1 0   ; j snippet$Joiner.running
   ref.cast 5   ; i64
   i64.const 1
   i64.checked_add
-  local.set 2   ; $add_checked_5
+  local.set 2   ; $add_checked_9
   local.get 1   ; j
-  local.get 2   ; $add_checked_5
+  local.get 2   ; $add_checked_9
   struct.set 1 0   ; snippet$Joiner.running
   local.get 0   ; arg 0
   local.get 1   ; j
@@ -158,12 +166,23 @@ end
 
 fn 4 snippet$main () -> i32
   local main_thread i64
+  local if_res ref
   local __buf_1 ref
   local __off_2 i64
-  local $eq_19 bool
+  local $eq_29 bool
   call.import 5   ; std_core$Intrinsic$current_thread
   local.set 0   ; main_thread
-  call 0   ; snippet$joiner
+  global.get 0   ; joiner.state
+  i32.const 2
+  i32.eq
+  if $L0 void
+    global.get 1   ; joiner.instance
+    local.set 1   ; if_res
+  else
+    call 0   ; snippet$joiner
+    local.set 1   ; if_res
+  end $L0
+  local.get 1   ; if_res
   local.get 0   ; main_thread
   struct.set 1 1   ; snippet$Joiner.main_thread
   fn.ref 8 2   ; __lambda_snippet_2 fn
@@ -174,41 +193,51 @@ fn 4 snippet$main () -> i32
   struct.new 8   ; __lambda_env_snippet_5
   make_closure 10 2   ; __lambda_snippet_4 fn
   call 1   ; snippet$spawn
-  loop $L0 void
-    call 0   ; snippet$joiner
-    struct.get 1 0   ; snippet$Joiner.running
+  loop $L1 void
+    global.get 0   ; joiner.state
+    i32.const 2
+    i32.eq
+    if $L2 void
+      global.get 1   ; joiner.instance
+      local.set 1   ; if_res
+    else
+      call 0   ; snippet$joiner
+      local.set 1   ; if_res
+    end $L2
+    local.field 1 1 0   ; if_res snippet$Joiner.running
     ref.cast 5   ; i64
     i64.const 0
     i64.gt
-    if $L1 void
-      call.import 3   ; std_core$Intrinsic$park
-      br $L0
-    end $L1
-  end $L0
-  i64.const 19
-  buffer.new
-  local.set 1   ; __buf_1
-  i64.const 0
-  local.set 2   ; __off_2
-  local.get 1   ; __buf_1
-  local.get 2   ; __off_2
-  string.const 2   ; "main is back: "
-  call 13   ; std_core$write_string_at
-  local.set 2   ; __off_2
-  call.import 5   ; std_core$Intrinsic$current_thread
-  local.get 0   ; main_thread
-  i64.eq
-  local.set 3   ; $eq_19
-  local.get 1   ; __buf_1
-  local.get 2   ; __off_2
-  local.get 3   ; $eq_19
-  call 15   ; std_core$write_bool
-  local.set 2   ; __off_2
-  local.get 1   ; __buf_1
-  local.get 2   ; __off_2
-  call 12   ; std_core$finish_buffer
-  call 21   ; std_console$println__string
-  return.lit i32.const 0
+    if $L3 void
+    else
+      i64.const 19
+      buffer.new
+      local.set 2   ; __buf_1
+      i64.const 0
+      local.set 3   ; __off_2
+      local.get 2   ; __buf_1
+      local.get 3   ; __off_2
+      string.const 2   ; "main is back: "
+      call 13   ; std_core$write_string_at
+      local.set 3   ; __off_2
+      call.import 5   ; std_core$Intrinsic$current_thread
+      local.get 0   ; main_thread
+      i64.eq
+      local.set 4   ; $eq_29
+      local.get 2   ; __buf_1
+      local.get 3   ; __off_2
+      local.get 4   ; $eq_29
+      call 15   ; std_core$write_bool
+      local.set 3   ; __off_2
+      local.get 2   ; __buf_1
+      local.get 3   ; __off_2
+      call 12   ; std_core$finish_buffer
+      call 21   ; std_console$println__string
+      return.lit i32.const 0
+    end $L3
+    call.import 3   ; std_core$Intrinsic$park
+    br $L1
+  end $L1
 end
 
 fn 5 snippet$joiner$singleton () -> ref

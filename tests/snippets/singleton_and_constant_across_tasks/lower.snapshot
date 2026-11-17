@@ -90,7 +90,7 @@
   snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
       first: Task<string> = std.task.launch<string>(__lambda_snippet_0)
       second: Task<string> = std.task.launch<string>(__lambda_snippet_1)
-      std.console.println<string>(concat_5(@vcall(std.core.Display.to_string, std.task.join<string>(first)), " ", @vcall(std.core.Display.to_string, std.task.join<string>(second)), " ", snippet.config()))
+      std.console.println<string>(concat_5(@vcall(std.core.Display.to_string, std.task.join<string>(first)), " ", @vcall(std.core.Display.to_string, std.task.join<string>(second)), " ", if @global(0) == 2 { @global(1) } else { snippet.config() } :string))
       cancelled: Task<string> = std.task.launch<string>(__lambda_snippet_2)
       waiting: Task<string> = std.task.launch<string>(__lambda_snippet_3)
       std.task.sleep(std.time.millis(i64(1)))
@@ -100,7 +100,7 @@
       other: Task<i32> = std.task.launch<i32>(snippet.read_answer)
       std.console.println<string>(concat_3(@vcall(std.core.Display.to_string, std.task.join<i32>(reader)), " ", @vcall(std.core.Display.to_string, std.task.join<i32>(other))))
       joiner: Task<i32> = std.task.launch<i32>(__lambda_snippet_4)
-      std.console.println<string>(concat_3(@vcall(std.core.Display.to_string, std.task.join<i32>(joiner)), " ", @vcall(std.core.Display.to_string, std.task.join<i32>(snippet.warmup()))))
+      std.console.println<string>(concat_3(@vcall(std.core.Display.to_string, std.task.join<i32>(joiner)), " ", @vcall(std.core.Display.to_string, std.task.join<i32>(if @global(6) == 2 { @global(7) } else { snippet.warmup() } :Task<i32>))))
       if (@array.len(argv) > i64(1)) && (argv[1] == "again") {
           std.console.println<string>({
               __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(20))
@@ -148,20 +148,20 @@
       @global(6) = 2
   }
   __lambda_snippet_0 :: fn() -> string {
-      snippet.config()
+      if @global(0) == 2 { @global(1) } else { snippet.config() } :string
   }
   __lambda_snippet_1 :: fn() -> string {
-      snippet.config()
+      if @global(0) == 2 { @global(1) } else { snippet.config() } :string
   }
   __lambda_snippet_2 :: fn() -> string {
-      snippet.pool()
+      if @global(3) == 2 { @global(4) } else { snippet.pool() } :string
   }
   __lambda_snippet_3 :: fn() -> string {
-      snippet.pool()
+      if @global(3) == 2 { @global(4) } else { snippet.pool() } :string
   }
   __lambda_snippet_4 :: fn() -> i32 {
       {
-          __fallback_0: Cancelled | i32 = std.task.join<i32>(snippet.warmup())
+          __fallback_0: Cancelled | i32 = std.task.join<i32>(if @global(6) == 2 { @global(7) } else { snippet.warmup() } :Task<i32>)
           if __fallback_0 is Cancelled { std_core$Intrinsic$panic("the task was cancelled") } else { i32(__fallback_0) } :i32
       } :i32
   }

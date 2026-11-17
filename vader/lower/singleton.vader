@@ -25,6 +25,11 @@
 //
 //     keep: if state == READY { return } ; instance = init() ; state = READY
 //
+// A call of a singleton that keeps an instance reads it in place once it is built,
+// `if state == READY { instance } else { f() }` (`read_in_place`): the accessor
+// roots what its init returns, so it opens a GC frame, which a call past the first
+// would pay for a single read.
+//
 // A `void` singleton runs its body once and keeps no instance, as does one that
 // never returns. The init has an identity of its own, as an extern's import has:
 // a synthetic symbol and mangle, so it never shares a function slot with `f`.
@@ -76,8 +81,9 @@ lower_singleton :: fn(
     project_ctx.synth_decls.push(init_decl)
     instance_type :: init_decl.return_type
     span :: fn_decl.span
-    state :: new_global(ctx.project, ctx.typed.resolved.path, "${fn_decl.name}.state", TY_I32, span)
-    instance :: instance_slot(ctx, fn_decl.name, instance_type, span)
+    slots :: slots_of(ctx.project, fn_decl, ctx.typed.resolved.path, instance_type, span)
+    state :: slots.state
+    instance :: slots.instance
     built :: mk_lowered_call(init, [], instance_type, span)
     reentered :: LoweredExprStmt {
         .span = span,
@@ -130,15 +136,59 @@ keep_fn :: fn(
     return keep
 }
 
-// The slot keeping the instance of singleton `name`, or null when it has none to
-// keep: it returns `void`, or never returns.
-instance_slot :: fn(
-    ctx: FnLowerCtx, name: string, type: Type, span: Span,
-) -> LoweredGlobalGet | null {
-    if is_void(type) || type is NeverType {
-        return null
+// The global slots of a singleton: its state, and its instance unless it keeps
+// none. The accessor and the calls that read the instance in place share them.
+SingletonSlots :: struct {
+    state: LoweredGlobalGet
+    instance: LoweredGlobalGet | null
+}
+
+// The slots of the singleton `fn_decl` of the module `module`, whose instance is a
+// `type`: made by whichever of its accessor and its first call is lowered first.
+slots_of :: fn(
+    project_ctx: LowerProjectCtx, fn_decl: AST.FnDecl, module: string, type: Type, span: Span,
+) -> SingletonSlots {
+    known :: project_ctx.singleton_slots[fn_decl.id]
+    if known != null {
+        return known
     }
-    return new_global(ctx.project, ctx.typed.resolved.path, "${name}.instance", type, span)
+    name :: fn_decl.name
+    state :: new_global(project_ctx, module, "${name}.state", TY_I32, span)
+    instance :: if is_void(type) || type is NeverType {
+        null
+    } else {
+        new_global(project_ctx, module, "${name}.instance", type, span)
+    }
+    slots :: SingletonSlots { .state = state, .instance = instance }
+    project_ctx.singleton_slots[fn_decl.id] = slots
+    return slots
+}
+
+/// `lowered`, the call `call` of type `type`, reading in place the instance of the
+/// singleton it calls once that is built: `if state == READY { instance } else
+/// { lowered }`. Any other call is `lowered` itself.
+///
+/// @param call     the call as written.
+/// @param lowered  the call, lowered.
+/// @param type     its result type.
+read_in_place :: fn(
+    ctx: FnLowerCtx, call: AST.CallExpr, lowered: LoweredExpr, type: Type,
+) -> LoweredExpr {
+    callee :: recorded_callee(ctx, call, .Call)
+    if callee !is DirectFn || !AST.has_compiler_decorator(callee.decl.decorators, .Singleton) {
+        return lowered
+    }
+    owner :: ctx.project.fn_symbols[callee.decl.id] else return lowered
+    slots :: slots_of(ctx.project, callee.decl, owner.module, type, call.span)
+    instance :: slots.instance else return lowered
+    span :: call.span
+    return LoweredIf {
+        .span       = span,
+        .type       = type,
+        .cond       = equals_primop(slots.state, state_value(span, READY), span),
+        .then_block = value_block(instance),
+        .else_block = value_block(lowered),
+    }
 }
 
 // `instance = built`, or just `built` when there is no instance to keep.

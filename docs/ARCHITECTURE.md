@@ -67,7 +67,7 @@ something under a decorator it names, and writes source the module gains as a
 file of its own, parsed like the others (`@displayable` is the first). It then
 wraps each function an interceptor marks (`vader/front/resolver/intercept.vader`): the
 function is renamed, and its file gains a wrapper under its name, which calls
-`around`, and two `@singleton`: its state, and its `Site`, whose decorator value
+`around`, and one `@singleton` holding its state and its `Site`, whose decorator value
 `@decorator` reads once the comptime pass has computed it (the typecheck records
 which decorator a call reads, `decorator_reads`, and the lowerer builds the value
 as a literal). All of it is written as source and parsed.
@@ -254,6 +254,9 @@ the lowerer's own route.
 - **Singletons**: a `@singleton` and a constant whose value runs code wait on a
   gate (`vader/lower/init_gate.vader`) only in a program that loads
   `std/runtime/scheduler`: one that does not has a single thread.
+  A call of a singleton reads its instance in place once it is built
+  (`vader/lower/singleton.vader`): the accessor, which opens a GC frame to root
+  what its init returns, runs only until then.
 - **Module constants**: `vader/lower/inline_consts.vader` gives each its storage
   ([`RUNTIME.md`](RUNTIME.md) *Globals and constants*); the lowering the comptime
   VM runs guards none, since that VM refuses global slots

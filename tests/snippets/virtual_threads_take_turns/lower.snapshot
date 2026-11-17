@@ -18,7 +18,7 @@
       return @global(1)
   }
   snippet.spawn :: fn(entry: fn() -> void) -> void {  // snippet$spawn
-      j: Joiner = snippet.joiner()
+      j: Joiner = if @global(0) == 2 { @global(1) } else { snippet.joiner() }
       j.running = j.running + i64(1)
       std_core$Intrinsic$spawn_thread(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = entry, .cap_1 = j }))
   }
@@ -48,11 +48,11 @@
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       main_thread: i64 = std_core$Intrinsic$current_thread()
-      snippet.joiner().main_thread = main_thread
+      (if @global(0) == 2 { @global(1) } else { snippet.joiner() } :Joiner).main_thread = main_thread
       snippet.spawn(__lambda_snippet_2)
       snippet.spawn(__lambda_snippet_3)
       snippet.spawn(@closure(__lambda_snippet_4, __lambda_env_snippet_5 { .cap_0 = main_thread }))
-      for snippet.joiner().running > i64(0) {
+      for (if @global(0) == 2 { @global(1) } else { snippet.joiner() } :Joiner).running > i64(0) {
           std_core$Intrinsic$park()
       }
       std.console.println<string>({

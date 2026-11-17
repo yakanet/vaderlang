@@ -78,7 +78,7 @@
   }
   snippet.bump :: fn(i: i64) -> void {  // snippet$bump
       {
-          __place_operand_0: i32[] = snippet.counts()
+          __place_operand_0: i32[] = if @global(0) == 2 { @global(1) } else { snippet.counts() }
           __place_operand_0[i] = __place_operand_0[i] + 1
       }
   }
@@ -162,14 +162,14 @@
           __buf_22: Buffer = std_core$Intrinsic$new_byte_buffer(i64(69))
           __off_23: i64 = 0
           __off_23 = std.core.write_string_at(__buf_22, __off_23, "counts=")
-          __off_23 = std.core.write_int(__buf_22, __off_23, snippet.counts()[0])
+          __off_23 = std.core.write_int(__buf_22, __off_23, (if @global(0) == 2 { @global(1) } else { snippet.counts() } :i32[])[0])
           __off_23 = std.core.write_string_at(__buf_22, __off_23, ",")
-          __off_23 = std.core.write_int(__buf_22, __off_23, snippet.counts()[1])
+          __off_23 = std.core.write_int(__buf_22, __off_23, (if @global(0) == 2 { @global(1) } else { snippet.counts() } :i32[])[1])
           __off_23 = std.core.write_string_at(__buf_22, __off_23, ",")
-          __off_23 = std.core.write_int(__buf_22, __off_23, snippet.counts()[2])
+          __off_23 = std.core.write_int(__buf_22, __off_23, (if @global(0) == 2 { @global(1) } else { snippet.counts() } :i32[])[2])
           std.core.finish_buffer(__buf_22, __off_23)
       } :string)
-      names: string[] = snippet.slots()
+      names: string[] = if @global(2) == 2 { @global(3) } else { snippet.slots() }
       {
           i: i32 = 0
           for i < 24 {
@@ -189,7 +189,7 @@
       {
           i: i32 = 0
           for i < 24 {
-              if snippet.slots()[i] != ({
+              if (if @global(2) == 2 { @global(3) } else { snippet.slots() } :string[])[i] != ({
                   __buf_26: Buffer = std_core$Intrinsic$new_byte_buffer(i64(33))
                   __off_27: i64 = 0
                   __off_27 = std.core.write_string_at(__buf_26, __off_27, "runtime-slot-")
@@ -203,8 +203,8 @@
           }
       }
       std.console.println<string>({
-          __p_28: string = snippet.slots()[0]
-          __p_29: string = snippet.slots()[23]
+          __p_28: string = (if @global(2) == 2 { @global(3) } else { snippet.slots() } :string[])[0]
+          __p_29: string = (if @global(2) == 2 { @global(3) } else { snippet.slots() } :string[])[23]
           __buf_30: Buffer = std_core$Intrinsic$new_byte_buffer(i64(52) +% (std_core$Intrinsic$byte_len(__p_28) +% std_core$Intrinsic$byte_len(__p_29)))
           __off_31: i64 = 0
           __off_31 = std.core.write_string_at(__buf_30, __off_31, "slots=")
@@ -217,19 +217,19 @@
           __off_31 = std.core.write_bool(__buf_30, __off_31, std_core$Intrinsic$collections() > i64(0))
           std.core.finish_buffer(__buf_30, __off_31)
       } :string)
-      snippet.flags()[2] = true
+      (if @global(4) == 2 { @global(5) } else { snippet.flags() } :bool[])[2] = true
       std.console.println<string>({
           __buf_32: Buffer = std_core$Intrinsic$new_byte_buffer(i64(42))
           __off_33: i64 = 0
           __off_33 = std.core.write_string_at(__buf_32, __off_33, "flags=")
-          __off_33 = std.core.write_bool(__buf_32, __off_33, snippet.flags()[0])
+          __off_33 = std.core.write_bool(__buf_32, __off_33, (if @global(4) == 2 { @global(5) } else { snippet.flags() } :bool[])[0])
           __off_33 = std.core.write_string_at(__buf_32, __off_33, ",")
-          __off_33 = std.core.write_bool(__buf_32, __off_33, snippet.flags()[2])
+          __off_33 = std.core.write_bool(__buf_32, __off_33, (if @global(4) == 2 { @global(5) } else { snippet.flags() } :bool[])[2])
           __off_33 = std.core.write_string_at(__buf_32, __off_33, " len=")
-          __off_33 = std.core.write_int(__buf_32, __off_33, @array.len(snippet.flags()))
+          __off_33 = std.core.write_int(__buf_32, __off_33, @array.len(if @global(4) == 2 { @global(5) } else { snippet.flags() } :bool[]))
           std.core.finish_buffer(__buf_32, __off_33)
       } :string)
-      table: i32[] = snippet.counts()
+      table: i32[] = if @global(0) == 2 { @global(1) } else { snippet.counts() }
       {
           i: i32 = 0
           for i < 40 {
@@ -243,7 +243,7 @@
       {
           i: i32 = 0
           for i < 40 {
-              if snippet.counts()[i + 3] == i32(i) {
+              if (if @global(0) == 2 { @global(1) } else { snippet.counts() } :i32[])[i + 3] == i32(i) {
                   grown = grown + 1
               }
           } @step {
@@ -256,10 +256,10 @@
           __off_35 = std.core.write_string_at(__buf_34, __off_35, "grown=")
           __off_35 = std.core.write_int(__buf_34, __off_35, grown)
           __off_35 = std.core.write_string_at(__buf_34, __off_35, "/40 len=")
-          __off_35 = std.core.write_int(__buf_34, __off_35, @array.len(snippet.counts()))
+          __off_35 = std.core.write_int(__buf_34, __off_35, @array.len(if @global(0) == 2 { @global(1) } else { snippet.counts() } :i32[]))
           std.core.finish_buffer(__buf_34, __off_35)
       } :string)
-      pending: Spec[] = snippet.queue()
+      pending: Spec[] = if @global(6) == 2 { @global(7) } else { snippet.queue() }
       @array.push(pending, Spec { .name = "seed", .code = 0 })
       pending[0] = Spec {
           .name = {
@@ -291,13 +291,13 @@
       }
       std_core$Intrinsic$collect()
       queue_ok: i32 = 0
-      if snippet.queue()[0].name == "replaced-2" {
+      if (if @global(6) == 2 { @global(7) } else { snippet.queue() } :Spec[])[0].name == "replaced-2" {
           queue_ok = queue_ok + 1
       }
       {
           i: i32 = 0
           for i < 8 {
-              if snippet.queue()[i + 1].name == ({
+              if (if @global(6) == 2 { @global(7) } else { snippet.queue() } :Spec[])[i + 1].name == ({
                   __buf_40: Buffer = std_core$Intrinsic$new_byte_buffer(i64(22))
                   __off_41: i64 = 0
                   __off_41 = std.core.write_string_at(__buf_40, __off_41, "q-")
@@ -316,9 +316,9 @@
           __off_43 = std.core.write_string_at(__buf_42, __off_43, "queue=")
           __off_43 = std.core.write_int(__buf_42, __off_43, queue_ok)
           __off_43 = std.core.write_string_at(__buf_42, __off_43, "/9 len=")
-          __off_43 = std.core.write_int(__buf_42, __off_43, @array.len(snippet.queue()))
+          __off_43 = std.core.write_int(__buf_42, __off_43, @array.len(if @global(6) == 2 { @global(7) } else { snippet.queue() } :Spec[]))
           __off_43 = std.core.write_string_at(__buf_42, __off_43, " code=")
-          __off_43 = std.core.write_int(__buf_42, __off_43, snippet.queue()[0].code)
+          __off_43 = std.core.write_int(__buf_42, __off_43, (if @global(6) == 2 { @global(7) } else { snippet.queue() } :Spec[])[0].code)
           std.core.finish_buffer(__buf_42, __off_43)
       } :string)
       total: i32 = 0

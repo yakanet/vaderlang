@@ -23,7 +23,7 @@
   snippet$selfish$singleton :: fn() -> i32 {
       std.console.println<string>("selfish starts")
       std.task.sleep(std.time.millis(i64(1)))
-      return snippet.selfish() + 1
+      return (if @global(0) == 2 { @global(1) } else { snippet.selfish() } :i32) + 1
   }
   snippet$selfish$keep :: fn() -> void {
       if @global(0) == 2 {
@@ -33,7 +33,7 @@
       @global(0) = 2
   }
   __lambda_snippet_0 :: fn() -> i32 {
-      snippet.selfish()
+      if @global(0) == 2 { @global(1) } else { snippet.selfish() } :i32
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)

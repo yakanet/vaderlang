@@ -58,7 +58,7 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     forwarded_form :: try_lower_forwarded_call(ctx, call, type)
     if forwarded_form != null { return forwarded_form }
     namespace_form :: try_lower_namespace_call(ctx, call, type)
-    if namespace_form != null { return namespace_form }
+    if namespace_form != null { return read_in_place(ctx, call, namespace_form, type) }
     cast_form :: try_lower_cast_call(ctx, call, type)
     if cast_form != null { return cast_form }
     method_form :: try_lower_method_call(ctx, call, type)
@@ -82,7 +82,7 @@ lower_plain_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredEx
         .callee = callee,
         .args = args,
     }
-    return observed(ctx, call, .Call, plain)
+    return read_in_place(ctx, call, observed(ctx, call, .Call, plain), type)
 }
 
 

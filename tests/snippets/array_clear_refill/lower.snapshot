@@ -39,15 +39,15 @@
       {
           i: i32 = 0
           for i < 5000 {
-              @array.push(snippet.seen(), {
+              @array.push(if @global(0) == 2 { @global(1) } else { snippet.seen() } :string[], {
                   __buf_2: Buffer = std_core$Intrinsic$new_byte_buffer(i64(25))
                   __off_3: i64 = 0
                   __off_3 = std.core.write_string_at(__buf_2, __off_3, "step ")
                   __off_3 = std.core.write_int(__buf_2, __off_3, i)
                   std.core.finish_buffer(__buf_2, __off_3)
               } :string)
-              if @array.len(snippet.seen()) > i64(128) {
-                  @array.clear(snippet.seen())
+              if @array.len(if @global(0) == 2 { @global(1) } else { snippet.seen() } :string[]) > i64(128) {
+                  @array.clear(if @global(0) == 2 { @global(1) } else { snippet.seen() } :string[])
               }
           } @step {
               i = i +% 1
@@ -57,12 +57,12 @@
           __buf_4: Buffer = std_core$Intrinsic$new_byte_buffer(i64(27))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "module=")
-          __off_5 = std.core.write_int(__buf_4, __off_5, @array.len(snippet.seen()))
+          __off_5 = std.core.write_int(__buf_4, __off_5, @array.len(if @global(0) == 2 { @global(1) } else { snippet.seen() } :string[]))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
-      @array.push(snippet.seen(), "x")
-      @array.push(snippet.seen(), "y")
-      popped: null | string = @array.remove_last(snippet.seen())
+      @array.push(if @global(0) == 2 { @global(1) } else { snippet.seen() } :string[], "x")
+      @array.push(if @global(0) == 2 { @global(1) } else { snippet.seen() } :string[], "y")
+      popped: null | string = @array.remove_last(if @global(0) == 2 { @global(1) } else { snippet.seen() } :string[])
       std.console.println<string>({
           __p_7: string = {
               __fallback_6: null | string = popped
@@ -73,7 +73,7 @@
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "popped=")
           __off_9 = std.core.write_string_at(__buf_8, __off_9, __p_7)
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " left=")
-          __off_9 = std.core.write_int(__buf_8, __off_9, @array.len(snippet.seen()))
+          __off_9 = std.core.write_int(__buf_8, __off_9, @array.len(if @global(0) == 2 { @global(1) } else { snippet.seen() } :string[]))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       src: i32[] = [1, 2, 3, 4, 5] :i32[]

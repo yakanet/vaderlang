@@ -92,14 +92,14 @@
   }
   snippet.bump :: fn() -> void {  // snippet$bump
       {
-          __place_operand_0: Counter = snippet.counter()
+          __place_operand_0: Counter = if @global(0) == 2 { @global(1) } else { snippet.counter() }
           __place_operand_0.n = __place_operand_0.n + 1
       }
-      @array.push(snippet.log(), {
+      @array.push(if @global(2) == 2 { @global(3) } else { snippet.log() } :string[], {
           __buf_1: Buffer = std_core$Intrinsic$new_byte_buffer(i64(25))
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "bump ")
-          __off_2 = std.core.write_int(__buf_1, __off_2, snippet.counter().n)
+          __off_2 = std.core.write_int(__buf_1, __off_2, (if @global(0) == 2 { @global(1) } else { snippet.counter() } :Counter).n)
           std.core.finish_buffer(__buf_1, __off_2)
       } :string)
   }
@@ -109,21 +109,21 @@
       std.console.println<string>({
           __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(11))
           __off_1: i64 = 0
-          __off_1 = std.core.write_bool(__buf_0, __off_1, snippet.probed())
+          __off_1 = std.core.write_bool(__buf_0, __off_1, if @global(8) == 2 { @global(9) } else { snippet.probed() } :bool)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, snippet.probed())
+          __off_1 = std.core.write_bool(__buf_0, __off_1, if @global(8) == 2 { @global(9) } else { snippet.probed() } :bool)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       snippet.bump()
       snippet.bump()
       {
-          __place_operand_2: Counter = snippet.start()
+          __place_operand_2: Counter = if @global(4) == 2 { @global(5) } else { snippet.start() }
           __place_operand_2.n = __place_operand_2.n + 5
       }
       std.console.println<string>({
-          __p_3: i32 = snippet.counter().n
-          __p_4: i64 = @array.len(snippet.log())
-          __p_5: string = snippet.log()[1]
+          __p_3: i32 = (if @global(0) == 2 { @global(1) } else { snippet.counter() } :Counter).n
+          __p_4: i64 = @array.len(if @global(2) == 2 { @global(3) } else { snippet.log() } :string[])
+          __p_5: string = (if @global(2) == 2 { @global(3) } else { snippet.log() } :string[])[1]
           __buf_6: Buffer = std_core$Intrinsic$new_byte_buffer(i64(42) +% std_core$Intrinsic$byte_len(__p_5))
           __off_7: i64 = 0
           __off_7 = std.core.write_int(__buf_6, __off_7, __p_3)
@@ -136,12 +136,12 @@
       std.console.println<string>({
           __buf_8: Buffer = std_core$Intrinsic$new_byte_buffer(i64(41))
           __off_9: i64 = 0
-          __off_9 = std.core.write_int(__buf_8, __off_9, snippet.start().n)
+          __off_9 = std.core.write_int(__buf_8, __off_9, (if @global(4) == 2 { @global(5) } else { snippet.start() } :Counter).n)
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
           __off_9 = std.core.write_int(__buf_8, __off_9, snippet.DEFAULT.n)
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
-      std.console.println<string>(snippet.greeting())
+      std.console.println<string>(if @global(6) == 2 { @global(7) } else { snippet.greeting() } :string)
       return 0
   }
   snippet$counter$singleton :: fn() -> Counter {

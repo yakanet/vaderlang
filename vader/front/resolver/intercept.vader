@@ -5,13 +5,16 @@
 // is collected, each such function `g` is renamed `__intercepted_g` and loses its
 // `export`, and its file gains:
 //
+//     __Layer_g :: struct { state: S<A, R>, site: Site<D> }
 //     @singleton
-//     __state_g :: fn() = S<A, R> {}
-//     @singleton
-//     __site_g :: fn() = Site<D> { ..., .marker = @decorator(__intercepted_g, D) }
-//     g :: fn(<the parameters of g>) -> R =
-//         f(__state_g(), __site_g(), <args>, (args) -> __intercepted_g(...))
+//     __layer_g :: fn() = __Layer_g { .state = S<A, R> {}, .site = Site<D> { ... } }
+//     g :: fn(<the parameters of g>) -> R {
+//         layer :: __layer_g()
+//         return f(layer.state, layer.site, <args>, (args) -> __intercepted_g(...))
+//     }
 //
+// One singleton holds both, so a call reads one instance: the site's decorator is
+// `@decorator(__intercepted_g, D)`.
 // `S` is the struct the first parameter of `f` names, `A` the one parameter's
 // type or the tuple of them, `R` the written result. The wrapper takes the name,
 // so every call reaches it, the recursive ones of `g` included. It is written in
@@ -232,7 +235,7 @@ refusal :: fn(f: FnDecl, interceptions: Interception[]) -> string | null {
     return null
 }
 
-// The state, the site and the wrapper of `f`, a function of `source` in the
+// The layer and the wrapper of `f`, a function of `source` in the
 // module `module_name`, whose written result is `result`.
 wrapper_text :: fn(
     source: SourceFile,
@@ -248,23 +251,30 @@ wrapper_text :: fn(
     interceptor :: interception.interceptor
     location :: "${source.path.to_path().filename()}:${f.name_span.start.line}"
     decorator_name :: "${qualifier}${interception.name}"
+    state_type :: "${qualifier}${interceptor.state}<${arguments_type(content, f)}, ${result_text}>"
     out :: StringBuilder {}
+    out.append("__Layer_${f.name} :: struct {\n")
+    out.append("    state: ${state_type}\n")
+    out.append("    site: Site<${decorator_name}>\n")
+    out.append("}\n")
     out.append("@singleton\n")
-    out.append("__state_${f.name} :: fn() = ${qualifier}${interceptor.state}")
-    out.append("<${arguments_type(content, f)}, ${result_text}> {}\n")
-    out.append("@singleton\n")
-    out.append("__site_${f.name} :: fn() = Site<${decorator_name}> {\n")
-    out.append("    .function = ${quote_vader(f.name)},\n")
-    out.append("    .module = ${quote_vader(module_name)},\n")
-    out.append("    .location = ${quote_vader(location)},\n")
-    out.append("    .marker = @decorator(__intercepted_${f.name}, ${decorator_name}),\n")
+    out.append("__layer_${f.name} :: fn() = __Layer_${f.name} {\n")
+    out.append("    .state = ${state_type} {},\n")
+    out.append("    .site = Site<${decorator_name}> {\n")
+    out.append("        .function = ${quote_vader(f.name)},\n")
+    out.append("        .module = ${quote_vader(module_name)},\n")
+    out.append("        .location = ${quote_vader(location)},\n")
+    out.append("        .marker = @decorator(__intercepted_${f.name}, ${decorator_name}),\n")
+    out.append("    },\n")
     out.append("}\n")
     if f.visibility == .Public {
         out.append("export ")
     }
-    out.append("${f.name} :: fn${f.params_span.text_in(content)} -> ${result_text} = ")
-    out.append("${qualifier}${interceptor.around}(__state_${f.name}(), __site_${f.name}(), ")
+    out.append("${f.name} :: fn${f.params_span.text_in(content)} -> ${result_text} {\n")
+    out.append("    layer :: __layer_${f.name}()\n")
+    out.append("    return ${qualifier}${interceptor.around}(layer.state, layer.site, ")
     out.append("${tupled(names)}, (args) -> __intercepted_${f.name}(${spread(names.len())}))\n")
+    out.append("}\n")
     return out.to_string()
 }
 

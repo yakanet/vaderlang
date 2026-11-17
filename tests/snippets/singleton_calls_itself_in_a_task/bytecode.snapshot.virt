@@ -137,13 +137,32 @@ fn 1 snippet$main () -> i32
 end
 
 fn 2 snippet$selfish$singleton () -> i32
+  local if_res i32
+  local $k_9 i32
   string.const 0   ; "selfish starts"
   call 61   ; std_console$println__string
   i64.const 1
   call 77   ; std_time$millis
   call 63   ; std_task$sleep
+  global.get 0   ; selfish.state
+  i32.const 2
+  i32.eq
+  if $L0 void
+    global.get 1   ; selfish.instance
+    local.set 0   ; if_res
+    i32.const 1
+    local.set 1   ; $k_9
+    local.get 0   ; if_res
+    local.get 1   ; $k_9
+    i32.checked_add
+    return
+  end $L0
   call 0   ; snippet$selfish
+  local.set 0   ; if_res
   i32.const 1
+  local.set 1   ; $k_9
+  local.get 0   ; if_res
+  local.get 1   ; $k_9
   i32.checked_add
   return
 end
@@ -164,6 +183,13 @@ fn 3 snippet$selfish$keep () -> void
 end
 
 fn 4 __lambda_snippet_0 () -> i32
+  global.get 0   ; selfish.state
+  i32.const 2
+  i32.eq
+  if $L0 void
+    global.get 1   ; selfish.instance
+    return
+  end $L0
   call 0   ; snippet$selfish
   return
 end
@@ -3446,16 +3472,24 @@ end
 
 fn 67 std_task$start_thread (ref) -> i64
   local __place_operand_0 ref
-  local $add_checked_5 i64
-  call 64   ; std_task$started
-  local.set 1   ; __place_operand_0
+  local $add_checked_9 i64
+  global.get 3   ; started.state
+  i32.const 2
+  i32.eq
+  if $L0 void
+    global.get 4   ; started.instance
+    local.set 1   ; __place_operand_0
+  else
+    call 64   ; std_task$started
+    local.set 1   ; __place_operand_0
+  end $L0
   local.field 1 25 0   ; __place_operand_0 std_task$Started.count
   ref.cast 5   ; i64
   i64.const 1
   i64.checked_add
-  local.set 2   ; $add_checked_5
+  local.set 2   ; $add_checked_9
   local.get 1   ; __place_operand_0
-  local.get 2   ; $add_checked_5
+  local.get 2   ; $add_checked_9
   struct.set 25 0   ; std_task$Started.count
   local.get 0   ; arg 0
   call.import 2   ; std_core$Intrinsic$spawn_thread
@@ -3463,35 +3497,44 @@ fn 67 std_task$start_thread (ref) -> i64
 end
 
 fn 68 std_task$launch__i32 (ref) -> ref
-  local $add_checked_4 i64
-  local $arr_7 ref
-  local $arr_8 ref
-  call 64   ; std_task$started
-  struct.get 25 0   ; std_task$Started.count
+  local if_res ref
+  local $add_checked_9 i64
+  local $arr_13 ref
+  global.get 3   ; started.state
+  i32.const 2
+  i32.eq
+  if $L0 void
+    global.get 4   ; started.instance
+    local.set 1   ; if_res
+  else
+    call 64   ; std_task$started
+    local.set 1   ; if_res
+  end $L0
+  local.field 1 25 0   ; if_res std_task$Started.count
   ref.cast 5   ; i64
   i64.const 1
   i64.checked_add
-  local.set 1   ; $add_checked_4
+  local.set 2   ; $add_checked_9
   array.new 31 0   ; i32[]
-  local.set 2   ; $arr_7
+  local.set 1   ; if_res
   array.new 32 0   ; std_task$Waiter[]
-  local.set 3   ; $arr_8
-  local.get 1   ; $add_checked_4
+  local.set 3   ; $arr_13
+  local.get 2   ; $add_checked_9
   i64.const -1
   bool.const false
-  local.get 2   ; $arr_7
-  local.get 3   ; $arr_8
+  local.get 1   ; if_res
+  local.get 3   ; $arr_13
   struct.new 24   ; std_task$Task__i32
-  local.tee 2   ; $arr_7
+  local.tee 1   ; if_res
   local.get 0   ; arg 0
   struct.new 27   ; __lambda_env_std_task_1
   make_closure 69 23   ; __lambda_std_task_0 fn
   call 67   ; std_task$start_thread
-  local.set 1   ; $add_checked_4
-  local.get 2   ; $arr_7
-  local.get 1   ; $add_checked_4
+  local.set 2   ; $add_checked_9
+  local.get 1   ; if_res
+  local.get 2   ; $add_checked_9
   struct.set 24 1   ; std_task$Task__i32.thread
-  local.get 2   ; $arr_7
+  local.get 1   ; if_res
   return
 end
 

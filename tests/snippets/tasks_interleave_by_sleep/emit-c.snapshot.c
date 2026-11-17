@@ -3045,55 +3045,67 @@ static void std_task$started$keep(void) {
 static int64_t std_task$start_thread(void* l0) {
     void* l1 = NULL;
     int64_t l2;
-    int64_t t0;
+    int32_t t0;
+    int64_t t1;
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    l1 = std_task$started();
-    t0 = ((vader_struct_std_task$Started_t*) l1)->f_count;
-    l2 = vader_chk_add(i64, t0, INT64_C(1));
+    t0 = vader_global_0;
+    if (t0 == INT32_C(2)) {
+        l1 = vader_global_1;
+    } else {
+        l1 = std_task$started();
+    }
+    t1 = ((vader_struct_std_task$Started_t*) l1)->f_count;
+    l2 = vader_chk_add(i64, t1, INT64_C(1));
     ((vader_struct_std_task$Started_t*) l1)->f_count = l2;
-    t0 = vader_host_std_core$Intrinsic$spawn_thread(l0);
-    { int64_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    t1 = vader_host_std_core$Intrinsic$spawn_thread(l0);
+    { int64_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void* std_task$launch__i64(void* l0) {
-    int64_t l1;
-    void* l2 = NULL;
+    void* l1 = NULL;
     void* l3 = NULL;
-    void* t0 = NULL;
+    int64_t l2;
+    int32_t t0;
     int64_t t1;
-    void** gc_raw_roots[4] = { &l0, &l2, &l3, &t0 };
+    void* t2 = NULL;
+    void** gc_raw_roots[4] = { &l0, &l1, &l3, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = std_task$started();
-    t1 = ((vader_struct_std_task$Started_t*) t0)->f_count;
-    l1 = vader_chk_add(i64, t1, INT64_C(1));
+    t0 = vader_global_0;
+    if (t0 == INT32_C(2)) {
+        l1 = vader_global_1;
+    } else {
+        l1 = std_task$started();
+    }
+    t1 = ((vader_struct_std_task$Started_t*) l1)->f_count;
+    l2 = vader_chk_add(i64, t1, INT64_C(1));
     vader_array_t* _a0_arr = vader_array_new(20u, 0u, 8u, 2u);
-    l2 = (void*) _a0_arr;
+    l1 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_new(33u, 0u, 13u, 34u);
     l3 = (void*) _a1_arr;
     vader_struct_std_task$Task__i64_t* _a2_obj = (vader_struct_std_task$Task__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Task__i64_t));
     vader_obj_header_init(_a2_obj, 24u);
-    _a2_obj->f_number = l1;
+    _a2_obj->f_number = l2;
     _a2_obj->f_thread = INT64_C(-1);
     _a2_obj->f_ended = false;
-    _a2_obj->f_result = l2;
+    _a2_obj->f_result = l1;
     _a2_obj->f_waiters = l3;
-    l2 = (void*) _a2_obj;
+    l1 = (void*) _a2_obj;
     vader_struct___lambda_env_std_task_1_t* _a3_obj = (vader_struct___lambda_env_std_task_1_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_std_task_1_t));
     vader_obj_header_init(_a3_obj, 27u);
-    _a3_obj->f_cap_0 = l2;
+    _a3_obj->f_cap_0 = l1;
     _a3_obj->f_cap_1 = l0;
-    t0 = (void*) _a3_obj;
+    t2 = (void*) _a3_obj;
     vader_fn_t* _a4_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a4_closure, 23u);
     _a4_closure->code = (void*) &vader_fn_lift___lambda_std_task_0;
-    _a4_closure->env = t0;
-    t0 = (void*) _a4_closure;
-    l1 = std_task$start_thread(t0);
-    ((vader_struct_std_task$Task__i64_t*) l2)->f_thread = l1;
-    { void* __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
+    _a4_closure->env = t2;
+    t2 = (void*) _a4_closure;
+    l2 = std_task$start_thread(t2);
+    ((vader_struct_std_task$Task__i64_t*) l1)->f_thread = l2;
+    { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void __lambda_std_task_0(void* l0) {

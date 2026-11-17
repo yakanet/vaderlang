@@ -307,26 +307,32 @@ static void* snippet$joiner(void) {
 static void snippet$spawn(void* l0) {
     void* l1 = NULL;
     int64_t l2;
-    int64_t t0;
-    void* t1 = NULL;
-    void** gc_raw_roots[3] = { &l0, &l1, &t1 };
+    int32_t t0;
+    int64_t t1;
+    void* t2 = NULL;
+    void** gc_raw_roots[3] = { &l0, &l1, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    l1 = snippet$joiner();
-    t0 = ((vader_struct_snippet$Joiner_t*) l1)->f_running;
-    l2 = vader_chk_add(i64, t0, INT64_C(1));
+    t0 = vader_global_0;
+    if (t0 == INT32_C(2)) {
+        l1 = vader_global_1;
+    } else {
+        l1 = snippet$joiner();
+    }
+    t1 = ((vader_struct_snippet$Joiner_t*) l1)->f_running;
+    l2 = vader_chk_add(i64, t1, INT64_C(1));
     ((vader_struct_snippet$Joiner_t*) l1)->f_running = l2;
     vader_struct___lambda_env_snippet_1_t* _a0_obj = (vader_struct___lambda_env_snippet_1_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_1_t));
     vader_obj_header_init(_a0_obj, 7u);
     _a0_obj->f_cap_0 = l0;
     _a0_obj->f_cap_1 = l1;
-    t1 = (void*) _a0_obj;
+    t2 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a1_closure, 2u);
     _a1_closure->code = (void*) &vader_fn_lift___lambda_snippet_0;
-    _a1_closure->env = t1;
-    t1 = (void*) _a1_closure;
-    vader_host_std_core$Intrinsic$spawn_thread(t1);
+    _a1_closure->env = t2;
+    t2 = (void*) _a1_closure;
+    vader_host_std_core$Intrinsic$spawn_thread(t2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -371,53 +377,65 @@ static void snippet$worker(vader_string_t l0, int64_t l1) {
 }
 
 static int32_t snippet$main(void) {
-    int64_t l0, l2;
+    int64_t l0, l3;
     void* l1 = NULL;
-    bool l3;
-    void* t0 = NULL;
-    int64_t t1;
-    vader_string_t t2 = 0;
-    void** gc_raw_roots[2] = { &l1, &t0 };
-    vader_string_t* gc_atom_roots[1] = { &t2 };
+    void* l2 = NULL;
+    bool l4;
+    int32_t t0;
+    void* t1 = NULL;
+    int64_t t2;
+    vader_string_t t3 = 0;
+    void** gc_raw_roots[3] = { &l1, &l2, &t1 };
+    vader_string_t* gc_atom_roots[1] = { &t3 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+        vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l0 = vader_host_std_core$Intrinsic$current_thread();
-    t0 = snippet$joiner();
-    ((vader_struct_snippet$Joiner_t*) t0)->f_main_thread = l0;
-    t0 = (void*) &vader_fn_static___lambda_snippet_2;
-    snippet$spawn(t0);
-    t0 = (void*) &vader_fn_static___lambda_snippet_3;
-    snippet$spawn(t0);
+    t0 = vader_global_0;
+    if (t0 == INT32_C(2)) {
+        l1 = vader_global_1;
+    } else {
+        l1 = snippet$joiner();
+    }
+    ((vader_struct_snippet$Joiner_t*) l1)->f_main_thread = l0;
+    t1 = (void*) &vader_fn_static___lambda_snippet_2;
+    snippet$spawn(t1);
+    t1 = (void*) &vader_fn_static___lambda_snippet_3;
+    snippet$spawn(t1);
     vader_struct___lambda_env_snippet_5_t* _a0_obj = (vader_struct___lambda_env_snippet_5_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_5_t));
     vader_obj_header_init(_a0_obj, 8u);
     _a0_obj->f_cap_0 = l0;
-    t0 = (void*) _a0_obj;
+    t1 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a1_closure, 2u);
     _a1_closure->code = (void*) &vader_fn_lift___lambda_snippet_4;
-    _a1_closure->env = t0;
-    t0 = (void*) _a1_closure;
-    snippet$spawn(t0);
+    _a1_closure->env = t1;
+    t1 = (void*) _a1_closure;
+    snippet$spawn(t1);
     for (;;) {
-        t0 = snippet$joiner();
-        t1 = ((vader_struct_snippet$Joiner_t*) t0)->f_running;
-        if ((t1 > INT64_C(0))) {
-            vader_host_std_core$Intrinsic$park();
-            continue;
+        t0 = vader_global_0;
+        if (t0 == INT32_C(2)) {
+            l1 = vader_global_1;
+        } else {
+            l1 = snippet$joiner();
         }
-        break;
+        t2 = ((vader_struct_snippet$Joiner_t*) l1)->f_running;
+        if (!((t2 > INT64_C(0)))) {
+            l2 = (void*) vader_buffer_new((size_t) INT64_C(19));
+            l3 = INT64_C(0);
+            l3 = std_core$write_string_at(l2, l3, 3u);
+            t2 = vader_host_std_core$Intrinsic$current_thread();
+            l4 = t2 == l0;
+            l3 = std_core$write_bool(l2, l3, l4);
+            t3 = std_core$finish_buffer(l2, l3);
+            std_console$println__string(t3);
+            { vader_gc_top = gc_frame.prev; return INT32_C(0); }
+        }
+        vader_host_std_core$Intrinsic$park();
+        continue;
     }
-    l1 = (void*) vader_buffer_new((size_t) INT64_C(19));
-    l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l1, l2, 3u);
-    t1 = vader_host_std_core$Intrinsic$current_thread();
-    l3 = t1 == l0;
-    l2 = std_core$write_bool(l1, l2, l3);
-    t2 = std_core$finish_buffer(l1, l2);
-    std_console$println__string(t2);
-    { vader_gc_top = gc_frame.prev; return INT32_C(0); }
+    vader_gc_top = gc_frame.prev;
 }
 
 static void* snippet$joiner$singleton(void) {
