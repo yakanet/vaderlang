@@ -24,6 +24,7 @@ import "std/io"
 import "std/iter"
 import "std/numbers"
 import "std/runtime/scheduler"
+import "std/task"
 import "system/libc"
 import "system/posix"
 import "system/windows"
@@ -189,6 +190,10 @@ export SpawnOptions :: struct {
     /// takes the value given, or is left out for a null one. On Windows, where
     /// the name of a variable has no case, a change reaches every spelling.
     env: [string, string | null][] = []
+    /// What the child reads on its stdin, which then ends: `spawn` writes it
+    /// while it drains the child, so it may be of any size. Null: the child
+    /// shares this process's stdin. Only `spawn` reads it.
+    input: u8[] | null = null
 }
 
 /// Launch `argv` without waiting, its stdout and stderr captured.
@@ -202,7 +207,10 @@ export SpawnOptions :: struct {
 export spawn_start :: fn(
     argv: string[],
     options: SpawnOptions = SpawnOptions {},
-) -> ChildProcess | ProcessError = launch_child(argv, false, options)
+) -> ChildProcess | ProcessError {
+    launched :: launch_child(argv, false, options) else return launched
+    return launched.child
+}
 
 /// Launch `argv` without waiting, as `spawn_start` does, with a pipe on its
 /// stdin too: `write_input` feeds it, `close_input` ends it, `read_output` takes
@@ -217,20 +225,31 @@ export spawn_start :: fn(
 export spawn_interactive :: fn(
     argv: string[],
     options: SpawnOptions = SpawnOptions {},
-) -> ChildProcess | ProcessError = launch_child(argv, true, options)
+) -> ChildProcess | ProcessError {
+    launched :: launch_child(argv, true, options) else return launched
+    launched.child.in_pipe = launched.input
+    return launched.child
+}
+
+// A child just launched, and the write end of its stdin when it reads a pipe,
+// which the caller hands to whoever writes it.
+Launched :: struct {
+    child: ChildProcess
+    input: Descriptor | null = null
+}
 
 launch_child :: fn(
     argv: string[],
     piped_input: bool,
     options: SpawnOptions,
-) -> ChildProcess | ProcessError {
+) -> Launched | ProcessError {
     if argv.len() == 0 {
         return ProcessError { .msg = "spawn: empty argv" }
     }
-    child :: start_child(argv, piped_input, options) else return ProcessError {
+    launched :: start_child(argv, piped_input, options) else return ProcessError {
         .msg = "spawn: failed to launch \"${argv[0]}\"",
     }
-    return child
+    return launched
 }
 
 /// Launch `argv`, not empty, with pipes on its stdout and stderr, and on its
@@ -239,9 +258,10 @@ launch_child :: fn(
 /// @param argv         the command line.
 /// @param piped_input  whether the child reads a pipe this process writes.
 /// @param options      where the child starts and the environment it sees.
-/// @return             the child, or null when it could not be launched.
+/// @return             the child and the write end of its stdin, or null when it
+///                     could not be launched.
 @target
-start_child :: fn(argv: string[], piped_input: bool, options: SpawnOptions) -> ChildProcess | null
+start_child :: fn(argv: string[], piped_input: bool, options: SpawnOptions) -> Launched | null
 
 // The `NAME=value` entries of the environment a child launched with `changes`
 // sees: this process's, each change applied in turn.
@@ -285,7 +305,7 @@ poll_exit :: fn(child: ChildProcess) -> i32
 export kill :: fn(child: ChildProcess) -> void
 
 @target(.Linux, .Darwin)
-start_child :: fn(argv: string[], piped_input: bool, options: SpawnOptions) -> ChildProcess | null {
+start_child :: fn(argv: string[], piped_input: bool, options: SpawnOptions) -> Launched | null {
     out_fds: i32[]: [0, 0]
     err_fds: i32[]: [0, 0]
     in_fds: i32[]: [0, 0]
@@ -322,6 +342,9 @@ start_child :: fn(argv: string[], piped_input: bool, options: SpawnOptions) -> C
         // spawned meanwhile would inherit it, and the reader would never see
         // its input end. Closed on exec, it reaches none.
         sys_fcntl(in_fds[1], F_SETFD, FD_CLOEXEC)
+        // A full pipe parks the writing task (`write_some`) rather than the
+        // whole thread: another task drains the child meanwhile.
+        set_non_blocking(in_fds[1])
         sys_spawn_actions_adddup2(actions, in_fds[0], 0)
         sys_spawn_actions_addclose(actions, in_fds[0])
     }
@@ -341,16 +364,18 @@ start_child :: fn(argv: string[], piped_input: bool, options: SpawnOptions) -> C
         }
         return null
     }
-    child :: ChildProcess {
-        .program = argv[0],
-        .process = Pid(pid),
-        .out_pipe = Fd(out_fds[0]),
-        .err_pipe = Fd(err_fds[0]),
+    launched :: Launched {
+        .child = ChildProcess {
+            .program = argv[0],
+            .process = Pid(pid),
+            .out_pipe = Fd(out_fds[0]),
+            .err_pipe = Fd(err_fds[0]),
+        },
     }
     if piped_input {
-        child.in_pipe = Fd(in_fds[1])
+        launched.input = Fd(in_fds[1])
     }
-    return child
+    return launched
 }
 
 /// `argv` as the NULL-terminated `char*` vector a spawn takes, in two views of
@@ -579,7 +604,7 @@ close_descriptor :: fn(pipe: Descriptor) -> void {
 }
 
 @target(.Windows)
-start_child :: fn(argv: string[], piped_input: bool, options: SpawnOptions) -> ChildProcess | null {
+start_child :: fn(argv: string[], piped_input: bool, options: SpawnOptions) -> Launched | null {
     out_r: u64[]: [0]
     out_w: u64[]: [0]
     err_r: u64[]: [0]
@@ -629,16 +654,18 @@ start_child :: fn(argv: string[], piped_input: bool, options: SpawnOptions) -> C
         return null
     }
     close_handle(pi.hThread)
-    child :: ChildProcess {
-        .program = argv[0],
-        .process = ProcessHandle(pi.hProcess),
-        .out_pipe = PipeHandle(out_read),
-        .err_pipe = PipeHandle(err_read),
+    launched :: Launched {
+        .child = ChildProcess {
+            .program = argv[0],
+            .process = ProcessHandle(pi.hProcess),
+            .out_pipe = PipeHandle(out_read),
+            .err_pipe = PipeHandle(err_read),
+        },
     }
     if piped_input {
-        child.in_pipe = PipeHandle(ptr_at(in_w, 0))
+        launched.input = PipeHandle(ptr_at(in_w, 0))
     }
-    return child
+    return launched
 }
 
 /// The `STARTUPINFOA` that hands a child these three standard handles.
@@ -915,10 +942,27 @@ export spawn :: fn(
     argv: string[],
     options: SpawnOptions = SpawnOptions {},
 ) -> ProcessResult | ProcessError {
-    child :: spawn_start(argv, options) else return child
+    input :: options.input
+    launched :: launch_child(argv, input != null, options) else return launched
+    child :: launched.child
     // A cancelled task runs its defers: the child does not outlive the wait.
     defer child.kill()
-    return child.wait()
+    pipe :: launched.input
+    if input == null || pipe == null {
+        return child.wait()
+    }
+    program :: child.program
+    feeding :: launch(() -> feed(program, pipe, input))
+    result :: child.wait()
+    feeding.join()
+    return result
+}
+
+// Write `input` on `pipe`, then close it. A failed write is no error: the
+// child's output and exit are the answer.
+feed :: fn(program: string, pipe: Descriptor, input: u8[]) -> void {
+    _ :: write_all(program, pipe, input)
+    close_descriptor(pipe)
 }
 
 /// Wait until `child` ends, and give its exit code with what it wrote.
@@ -968,8 +1012,9 @@ await_child :: fn(child: ChildProcess) -> void {
 
 /// Write `data` on the stdin of a child `spawn_interactive` launched.
 ///
-/// Blocking, and the scheduler does not run meanwhile: a child that reads
-/// nothing while this process writes more than a pipe holds stalls it.
+/// While the pipe is full, the writing task parks and the others run. On
+/// Windows the write itself waits: a child that reads nothing while this
+/// process writes more than a pipe holds stalls it.
 ///
 /// @param child  what `spawn_interactive` returned.
 /// @param data   the bytes to write.
@@ -980,15 +1025,20 @@ export write_input :: fn(child: ChildProcess, data: u8[]) -> null | ProcessError
     pipe :: child.in_pipe else return ProcessError {
         .msg = "\"${child.program}\" has no stdin to write",
     }
+    return write_all(child.program, pipe, data)
+}
+
+// Write `data` on `pipe`, the stdin of the child `program` names.
+write_all :: fn(program: string, pipe: Descriptor, data: u8[]) -> null | ProcessError {
     rest := data
     for rest.len() > 0 {
         n :: write_some(pipe, rest)
         if n < 0 {
             // A child that closed its stdin, or ended, answers EPIPE on POSIX,
             // where the runtime catches SIGPIPE, and a broken pipe on Windows.
-            failure :: last_io_error("writing to \"${child.program}\" failed")
+            failure :: last_io_error("writing to \"${program}\" failed")
             if failure.kind == .BrokenPipe {
-                return ProcessError { .msg = "\"${child.program}\" reads no more input" }
+                return ProcessError { .msg = "\"${program}\" reads no more input" }
             }
             return ProcessError { .msg = failure.msg }
         }
@@ -997,13 +1047,27 @@ export write_input :: fn(child: ChildProcess, data: u8[]) -> null | ProcessError
     return null
 }
 
-// Write the start of `bytes` on `pipe`, blocking until some of it is written:
+// Write the start of `bytes` on `pipe`, the task parked while the pipe is full:
 // how many bytes, or -1 on a failure, whose error `last_io_error` gives.
 @target
 write_some :: fn(pipe: Descriptor, bytes: u8[]) -> i64
 
 @target(.Linux, .Darwin)
-write_some :: fn(pipe: Descriptor, bytes: u8[]) -> i64 = sys_write(fd_of(pipe), bytes, bytes.len())
+write_some :: fn(pipe: Descriptor, bytes: u8[]) -> i64 {
+    fd :: fd_of(pipe)
+    for {
+        written :: sys_write(fd, bytes, bytes.len())
+        if written >= 0 {
+            return written
+        }
+        code :: sys_last_errno()
+        if code == EAGAIN {
+            wait_writable(pipe)
+        } else if code != EINTR {
+            return -1
+        }
+    }
+}
 
 @target(.Windows)
 write_some :: fn(pipe: Descriptor, bytes: u8[]) -> i64 {
@@ -1156,7 +1220,6 @@ cannot_launch :: fn(program: string) -> ProcessError =
 // ---- tests ----------------------------------------------------------------
 
 import "std/string"
-import "std/task"
 import "std/testing"
 import "std/time"
 
@@ -1311,6 +1374,33 @@ test_read_output_of_a_silent_child_waits_until_a_timeout :: fn() -> void {
         waited :: launch(() -> child.read_output()).timeout(1.millis())
         assert(waited is TimeoutError, "nothing came, and `timeout` ended the wait")
     }
+}
+
+// `cat` answers as it reads: written whole before its answer is drained, a
+// megabyte would fill both pipes and stall the two programs.
+@test
+test_spawn_feeds_its_input_while_it_drains_the_child :: fn() -> void {
+    if VADER_OS == .Windows {
+        return
+    }
+    sent: u8[]: [120] * 1_000_000
+    result :: spawn(["cat"], SpawnOptions { .input = sent }) else {
+        fail(result.msg)
+        return
+    }
+    assert_eq(result.stdout.byte_len(), 1_000_000)
+}
+
+@test
+test_spawn_without_input_shares_no_pipe_with_the_child :: fn() -> void {
+    if VADER_OS == .Windows {
+        return
+    }
+    result :: spawn(["sh", "-c", "echo ok"]) else {
+        fail(result.msg)
+        return
+    }
+    assert_eq(result.stdout, "ok\n")
 }
 
 // The child closes its stdin, says so, then waits: the write finds no reader.

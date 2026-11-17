@@ -720,13 +720,6 @@ closing :: fn(fd: i32, error: IOError) -> IOError {
     return error
 }
 
-// Whether `fd` is now in the mode where a call with nothing to take fails with
-// `EAGAIN` instead of waiting.
-set_non_blocking :: fn(fd: i32) -> bool {
-    flags :: sys_fcntl(fd, F_GETFL, 0)
-    return flags >= 0 && sys_fcntl(fd, F_SETFL, flags | O_NONBLOCK) == 0
-}
-
 // A socket as `std/io` waits on it.
 socket_descriptor :: fn(socket: Socket) -> Descriptor = match socket {
     is Fd           -> socket

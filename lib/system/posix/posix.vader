@@ -779,6 +779,16 @@ export F_SETFL: i32: 4
 /// is not portable: 0x4 on Darwin, 0x800 on Linux.
 export O_NONBLOCK: i32: if VADER_OS == .Darwin { 0x0004 } else { 0x0800 }
 
+/// Put `fd` in the mode where a call with nothing to take, or no room to give,
+/// fails with `EAGAIN` instead of waiting.
+///
+/// @param fd  the descriptor.
+/// @return    whether the mode is set.
+export set_non_blocking :: fn(fd: i32) -> bool {
+    flags :: sys_fcntl(fd, F_GETFL, 0)
+    return flags >= 0 && sys_fcntl(fd, F_SETFL, flags | O_NONBLOCK) == 0
+}
+
 /// `SHUT_WR`, the `shutdown(2)` direction that ends what the socket sends. 1 on
 /// both systems.
 export SHUT_WR: i32: 1
