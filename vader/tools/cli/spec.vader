@@ -83,6 +83,14 @@ PROJECT_FLAG :: FlagSpec {
     .value_name = "folder",
 }
 
+// Extra module search roots, before every other: every action that loads a
+// project as a build does takes them.
+INCLUDE_PATHS_FLAG :: FlagSpec {
+    .name = "include-paths",
+    .help = "Extra module search roots (GCC -I style), highest precedence",
+    .value_name = "a,b",
+}
+
 // The flags of an action that takes one program and nothing else: `run`, where
 // every other flag before the path would be one the program never sees, and
 // `lint`.
@@ -99,11 +107,7 @@ CHECK_FLAGS: FlagSpec[]: [
         .value_name = "os-arch",
         .default_text = "this machine",
     },
-    FlagSpec {
-        .name = "include-paths",
-        .help = "Extra module search roots (GCC -I style), highest precedence",
-        .value_name = "a,b",
-    },
+    INCLUDE_PATHS_FLAG,
 ]
 
 TEST_FLAGS: FlagSpec[]: [
@@ -211,11 +215,7 @@ BUILD_FLAGS: FlagSpec[]: [
         .help = "Native only: raw linker flags appended to the cc invocation",
         .value_name = "flags",
     },
-    FlagSpec {
-        .name = "include-paths",
-        .help = "Extra module search roots (GCC -I style), highest precedence",
-        .value_name = "a,b",
-    },
+    INCLUDE_PATHS_FLAG,
     FlagSpec {
         .name = "no-split",
         .kind = .Bool,
@@ -260,6 +260,13 @@ DUMP_STAGES: ValueSpec[]: [
     ValueSpec { .name = "wasm", .help = "WebAssembly module (not yet implemented)" },
 ]
 
+// `expand` loads the project as a build does, so it takes the build's search roots.
+EXPAND_FLAGS: FlagSpec[]: [
+    ENTRY_FLAG,
+    PROJECT_FLAG,
+    INCLUDE_PATHS_FLAG,
+]
+
 GRAPH_FORMATS: ValueSpec[]: [
     ValueSpec { .name = "mermaid", .help = "Mermaid `graph TB`, renders with no tool installed" },
     ValueSpec { .name = "dot",     .help = "Graphviz DOT, pipe to `dot -Tpng`" },
@@ -275,11 +282,7 @@ GRAPH_FLAGS: FlagSpec[]: [
     PROJECT_FLAG,
     // Same spelling and meaning as `build`'s: a graph that cannot see the roots
     // a build sees is not drawing the same project.
-    FlagSpec {
-        .name = "include-paths",
-        .help = "Extra module search roots (GCC -I style), highest precedence",
-        .value_name = "a,b",
-    },
+    INCLUDE_PATHS_FLAG,
     FlagSpec {
         .name = "format",
         .alias = "f",
@@ -304,11 +307,7 @@ DUMP_FLAGS: FlagSpec[]: [
     // build sees is not dumping the same program. Reaching for a dump is the one
     // way to observe an order-sensitive materialisation bug WITHOUT perturbing
     // it, and that only works if the dump can reproduce the build's module graph.
-    FlagSpec {
-        .name = "include-paths",
-        .help = "Extra module search roots (GCC -I style), highest precedence",
-        .value_name = "a,b",
-    },
+    INCLUDE_PATHS_FLAG,
     FlagSpec {
         .name = "stage",
         .alias = "s",
@@ -486,6 +485,13 @@ export COMMANDS: CommandSpec[]: [
         .summary = "Print the project's module import graph",
         .usage = "<path>",
         .flags = GRAPH_FLAGS,
+        .tail = .None,
+    },
+    CommandSpec {
+        .name = "expand",
+        .summary = "Print the code the compiler writes for a project: interceptors, stages",
+        .usage = "<path>",
+        .flags = EXPAND_FLAGS,
         .tail = .None,
     },
     CommandSpec {

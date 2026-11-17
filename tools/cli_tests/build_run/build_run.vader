@@ -106,6 +106,15 @@ test_an_error_in_the_code_the_compiler_wrote_names_where_it_is_and_what_asked_fo
 }
 
 @test
+test_expand_prints_the_code_the_compiler_writes_even_when_it_does_not_check :: fn() -> void {
+    dir :: staged("expand", INTERCEPTED_ILL_TYPED)
+    ran :: vader_in(dir, ["expand", "main.vader"])
+    assert_eq(ran.exit, 0)
+    assert(ran.stdout.starts_with("// build/expanded/intercept/main.vader\n"), ran.stdout)
+    assert("make :: fn(x: i32) -> Opaque" in ran.stdout, ran.stdout)
+}
+
+@test
 test_an_executable_for_another_platform_needs_a_c_compiler_for_it :: fn() -> void {
     // `CC` emptied: a host that exports one, as the CI of Windows does, would
     // pass the check.

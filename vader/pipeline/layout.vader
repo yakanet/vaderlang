@@ -101,7 +101,7 @@ export EXPANDED_DIR :: "build/expanded"
 /// @param file          the entry.
 /// @param project_root  the project of the entry, null for a file on its own.
 export write_expanded :: fn(b: CfgBytecode, file: Path, project_root: string | null) -> void {
-    root :: project_root else entry_folder_of(file.as_string())
+    root :: expansion_root(file, project_root)
     written :: Map<string, string> {}
     for source in b.generated {
         name :: expanded_name(source.file, root) else continue
@@ -114,6 +114,14 @@ export write_expanded :: fn(b: CfgBytecode, file: Path, project_root: string | n
     repoint(b.pre_diags, written)
     repoint(b.lower_diags, written)
 }
+
+/// The folder whose `EXPANDED_DIR` holds the code the compiler writes for the
+/// entry `file`: its project's, else the entry's own.
+///
+/// @param file          the entry.
+/// @param project_root  the project of the entry, null for a file on its own.
+export expansion_root :: fn(file: Path, project_root: string | null) -> string =
+    project_root else entry_folder_of(file.as_string())
 
 // Whether the file `path` holds `content`.
 holds :: fn(path: string, content: string) -> bool {

@@ -52,6 +52,7 @@ main :: fn(argv: string[]) -> i32 {
         "check"                        -> cmd_check(action_args)
         "lint"                         -> cmd_lint(action_args)
         "graph"                        -> cmd_graph(action_args)
+        "expand"                       -> cmd_expand(action_args)
         "doc"                          -> cmd_doc(action_args)
         "doctor"                       -> cmd_doctor(action_args)
         "info"                         -> cmd_info(action_args)

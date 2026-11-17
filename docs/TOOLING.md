@@ -83,6 +83,10 @@ An empty modifier list is dropped: `import "p" {}` becomes `import "p"`.
 
 `vader graph <path>` prints the module import graph in Mermaid (`--format=mermaid`, the default) or Graphviz (`--format=dot`). It draws the project's own modules, plus the library and toolchain ones under `--scope=all`.
 
+### `vader expand`
+
+`vader expand <path>` prints the code the compiler writes for a file or a project, which no file holds: the wrappers of its interceptors, what a decorator such as `@displayable` adds. Each file opens with a line naming where `vader build` writes it (`// build/expanded/intercept/main.vader`). It only loads the project, so it prints that code even when it does not type-check; the toolchain's own modules are left out. `--entry`, `--project` and `--include-paths` are `vader build`'s.
+
 ### `vader doc`
 
 `vader doc [path]` writes the data of an API reference for the modules under `path`, a folder or the file of a module: each export with its head and its vaderdoc, split by its tags. The data goes to the `build/doc/` of the project.

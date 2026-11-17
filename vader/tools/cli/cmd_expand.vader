@@ -1,0 +1,92 @@
+// vader/tools/cli/cmd_expand: the `vader expand` command.
+//
+// Prints the code the compiler writes as source for a project: the wrappers of
+// its interceptors, what its source stages add (`@displayable`). Loading is
+// enough: both are written once every module is parsed, before any is checked.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/tools/cli"
+
+import "cli"
+import "std/console"
+import "std/path"
+import "std/sort"
+import "std/string_builder"
+import "toolchain/diagnostics"
+import "vader/front/resolver"
+import "vader/pipeline"
+
+/// `vader expand <path>`: print the code the compiler writes for a project, each
+/// file under the name a build writes it to (`build/expanded/`).
+///
+/// @param args  positional args ; `args[0]` is the entry file or project folder.
+/// @return      0 on success, 1 on a missing argument or a load error.
+cmd_expand :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("expand", args)
+    if parsed is i32 {
+        return parsed
+    }
+    if reject_extra_positionals("expand", parsed) {
+        return 1
+    }
+    file :: parsed.action_file()
+    if file == "" {
+        eprintln("vader expand: expected a file or a project folder")
+        return 1
+    }
+    entry :: single_entry("expand", file, parsed)
+    if entry is i32 {
+        return entry
+    }
+    include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
+    loaded :: load_project(entry.file.as_string(), include_path_flags, entry.project_root)
+    if any_error_diag(loaded.diags) {
+        eprintln(loaded.diags.dump_diagnostics_with_file())
+        return 1
+    }
+    root :: expansion_root(entry.file, entry.project_root)
+    written :: expanded_text(generated_sources(loaded), root)
+    if written == "" {
+        eprintln("vader expand: the compiler writes no code for `${file.to_native()}`")
+        return 0
+    }
+    print(written)
+    return 0
+}
+
+// `sources`, each under a line naming the file a build writes it to, from `root`,
+// in the order of those names.
+expanded_text :: fn(sources: GeneratedSource[], root: string) -> string {
+    named: [string, string][]: []
+    for source in sources {
+        name :: expanded_name(source.file, root) else continue
+        named.push([name, source.content])
+    }
+    out :: StringBuilder {}
+    for [name, content] in sort(named, (a, b) -> a.0 < b.0) {
+        if out.byte_len() > 0 {
+            out.append("\n")
+        }
+        out.append("// ${EXPANDED_DIR}/${name}\n")
+        out.append(content)
+    }
+    return out.to_string()
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_expanded_text_names_each_file_and_orders_them :: fn() -> void {
+    sources :: [
+        GeneratedSource { .file = "<generated>:intercept:./main.vader", .content = "module \"m\"\n" },
+        GeneratedSource { .file = "<generated>:displayable:m", .content = "module \"m\"\n" },
+    ]
+    assert_eq(
+        expanded_text(sources, "."),
+        "// build/expanded/displayable/m.vader\nmodule \"m\"\n\n"
+            + "// build/expanded/intercept/main.vader\nmodule \"m\"\n",
+    )
+}
