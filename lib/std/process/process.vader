@@ -193,7 +193,7 @@ export SpawnOptions :: struct {
     /// What the child reads on its stdin, which then ends: `spawn` writes it
     /// while it drains the child, so it may be of any size. Null: the child
     /// shares this process's stdin. Only `spawn` reads it.
-    input: u8[] | null = null
+    input: u8[] | string | null = null
 }
 
 /// Launch `argv` without waiting, its stdout and stderr captured.
@@ -960,8 +960,8 @@ export spawn :: fn(
 
 // Write `input` on `pipe`, then close it. A failed write is no error: the
 // child's output and exit are the answer.
-feed :: fn(program: string, pipe: Descriptor, input: u8[]) -> void {
-    _ :: write_all(program, pipe, input)
+feed :: fn(program: string, pipe: Descriptor, input: u8[] | string) -> void {
+    _ :: write_all(program, pipe, input.bytes_of())
     close_descriptor(pipe)
 }
 
@@ -1389,6 +1389,18 @@ test_spawn_feeds_its_input_while_it_drains_the_child :: fn() -> void {
         return
     }
     assert_eq(result.stdout.byte_len(), 1_000_000)
+}
+
+@test
+test_spawn_takes_a_string_as_input :: fn() -> void {
+    if VADER_OS == .Windows {
+        return
+    }
+    result :: spawn(["cat"], SpawnOptions { .input = "one\ntwo\n" }) else {
+        fail(result.msg)
+        return
+    }
+    assert_eq(result.stdout, "one\ntwo\n")
 }
 
 @test
