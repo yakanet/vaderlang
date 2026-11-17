@@ -260,23 +260,22 @@ dead_exports :: fn(decls: AST.Decl[], discarded: AST.FnDecl[] = []) -> DeadExpor
     return out
 }
 
-/// Result of linting a LOADED project for unused exports : the findings plus
-/// whether the project exposed a `main` (its reachability seed). A rootless
-/// project (`has_main == false`) yields no findings: callers surface an
-/// under-report warning instead of trusting the empty list.
+/// Whether a module of `project`, not one the toolchain ships, declares `main`:
+/// the root the unused-export walk starts from.
 ///
-/// A build driver's `build` is deliberately NOT accepted as that seed, unlike
-/// in W0007's per-module roots. Rooting it makes the lint RUN on a driven
-/// project, whose closure is the whole compiler, and every compiler export the
-/// driver does not reach then reports as unused, all of
-/// them alive and called by `vader/tools/cli`, which is not in that closure. Running it
-/// needs a scope predicate first: "was this module provided by a TOOLCHAIN root or
-/// by the project?", which `Module.origin` answers for `lib/` but not for
-/// the compiler, since a checkout reaches `vader/` through the project root, and
-/// there the compiler IS the project, where the lint must keep working.
-export UnusedExportReport :: struct {
-    has_main: bool
-    findings: DeadExport[]
+/// @param project  the loaded module graph.
+export project_declares_main :: fn(project: LoadedProject) -> bool {
+    // Where a module came from, not what it is called: see `dead_exports_of_project`.
+    for [_, lm] in project.modules {
+        if lm.module.origin == .Toolchain {
+            continue
+        }
+        decls :: concat_file_decls(lm.module.files)
+        if decls.any_match((d) -> d is AST.FnDecl && d.name == "main") {
+            return true
+        }
+    }
+    return false
 }
 
 /// Run `dead_exports` over a loaded project : merge every non-stdlib module's
@@ -287,12 +286,26 @@ export UnusedExportReport :: struct {
 /// Bodies target selection discarded are gathered from the same modules and fed
 /// in as reachability seeds, see `dead_exports`.
 ///
+/// A project with no `main` (`project_declares_main`) has no reachability seed and
+/// yields no finding: a caller warns of the under-report instead. A build driver's
+/// `build` is deliberately NOT accepted as that seed, unlike in W0007's per-module
+/// roots. Rooting it makes the lint RUN on a driven project, whose closure is the
+/// whole compiler, and every compiler export the driver does not reach then
+/// reports as unused, all of them alive and called by `vader/tools/cli`, which is
+/// not in that closure. Running it needs a scope predicate first: "was this module
+/// provided by a TOOLCHAIN root or by the project?", which `Module.origin` answers
+/// for `lib/` but not for the compiler, since a checkout reaches `vader/` through
+/// the project root, and there the compiler IS the project, where the lint must
+/// keep working.
+///
 /// @param project  the loaded module graph (from `load_project` or the LSP cache).
-/// @return         findings + `has_main` (see `UnusedExportReport`).
-export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportReport {
+/// @return         the exported functions no root reaches.
+export dead_exports_of_project :: fn(project: LoadedProject) -> DeadExport[] {
+    if !project_declares_main(project) {
+        return []
+    }
     all_decls: AST.Decl[]: []
     all_discarded: AST.FnDecl[]: []
-    has_main := false
     // Where a module came from, not what it is called: `lib/` hosts every
     // namespace the toolchain ships, so a `std/` name test would put `json`,
     // `regex` and `toolchain` inside a project's lint scope: reporting W0012 on
@@ -304,25 +317,9 @@ export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportRepo
         for d in lm.discarded_bodies {
             all_discarded.push(d)
         }
-        for d in concat_file_decls(lm.module.files) {
-            all_decls.push(d)
-            if d is AST.FnDecl {
-                if d.name == "main" {
-                    has_main = true
-                }
-            }
-        }
+        all_decls.push_all(concat_file_decls(lm.module.files))
     }
-    if !has_main {
-        return UnusedExportReport {
-            .has_main = false,
-            .findings = [],
-        }
-    }
-    return UnusedExportReport {
-        .has_main = true,
-        .findings = dead_exports(all_decls, all_discarded),
-    }
+    return dead_exports(all_decls, all_discarded)
 }
 
 /// Render one `DeadExport` as its W0012 warning.

@@ -1,0 +1,20 @@
+// vader/pipeline/check/stage_unused_imports: the `unused_imports` check of a program.
+
+module "vader/pipeline/check"
+
+import "toolchain/diagnostics"
+import "vader/front/dead_code"
+
+// W0006 on the whole program: it indexes every module before it walks one.
+UnusedImports :: struct {}
+
+UnusedImports implements CheckStage {
+    describe :: fn(self) = CheckSpec { .name = "unused_imports" }
+
+    run :: fn(self, input: Checked) -> Diagnostic[] {
+        result :: input.program.result else return []
+        out: Diagnostic[]: []
+        check_unused_imports(input.program.project, result, out)
+        return out
+    }
+}

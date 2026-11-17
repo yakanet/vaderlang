@@ -1,0 +1,19 @@
+// vader/pipeline/check/stage_widening: the `widening` check of a program.
+
+module "vader/pipeline/check"
+
+import "toolchain/diagnostics"
+Fx :: import "vader/front/effects"
+
+// T3102, from the effect summary.
+Widening :: struct {}
+
+Widening implements CheckStage {
+    describe :: fn(self) = CheckSpec { .name = "widening" }
+
+    run :: fn(self, input: Checked) -> Diagnostic[] {
+        effects :: input.program.effects else return []
+        result :: input.program.result else return []
+        return Fx.widening_diagnostics(effects, result)
+    }
+}

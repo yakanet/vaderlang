@@ -1,0 +1,21 @@
+// vader/pipeline/check/stage_unused_exports: the `unused_exports` check of a program.
+
+module "vader/pipeline/check"
+
+import "toolchain/diagnostics"
+import "vader/front/dead_code"
+
+// W0012 on the whole project: an exported function no root reaches, across every
+// module. A name-reachability walk: it needs no types, and a build never runs it.
+UnusedExports :: struct {}
+
+UnusedExports implements CheckStage {
+    describe :: fn(self) = CheckSpec {
+        .name = "unused_exports",
+        .purpose = .Lint,
+        .needs = .Loaded,
+    }
+
+    run :: fn(self, input: Checked) -> Diagnostic[] =
+        dead_export_diags(dead_exports_of_project(input.program.project))
+}

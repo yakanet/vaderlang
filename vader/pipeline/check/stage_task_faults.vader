@@ -1,0 +1,18 @@
+// vader/pipeline/check/stage_task_faults: the `task_faults` check of a program.
+
+module "vader/pipeline/check"
+
+import "toolchain/diagnostics"
+Fx :: import "vader/front/effects"
+
+// The task faults the effect summary found.
+TaskFaults :: struct {}
+
+TaskFaults implements CheckStage {
+    describe :: fn(self) = CheckSpec { .name = "task_faults" }
+
+    run :: fn(self, input: Checked) -> Diagnostic[] {
+        effects :: input.program.effects else return []
+        return Fx.task_diagnostics(effects)
+    }
+}

@@ -10,9 +10,10 @@ module "vader/tools/cli"
 
 import "std/console"
 import "std/path"
-import "vader/front/resolver"
-import "vader/front/dead_code"
 import "toolchain/diagnostics"
+import "vader/front/dead_code"
+import "vader/front/resolver"
+import "vader/pipeline/check"
 
 /// `vader lint <file>`: project-wide hygiene lints kept OUT of the default
 /// build (a plain `vader build` never runs any of these). v1 ships a single
@@ -52,19 +53,21 @@ cmd_lint :: fn(args: string[]) -> i32 {
         eprintln(loaded.diags.dump_diagnostics_with_file())
         return 1
     }
-    // Lint the loaded project (shared engine, see `dead_exports_of_project`).
-    report :: dead_exports_of_project(loaded)
     // A rootless library (no `main`) has no reachability seed, so every export
     // would look dead: the classic false-positive. Under-report instead : warn,
     // report nothing. Rooting a project's own API needs an entry policy (`vader
     // lint` D-roots) that v1 does not yet ship.
-    if !report.has_main {
-        eprintln("vader lint: `${file.to_native()}` exposes no `main`, so unused-export under-reports a rootless library (its exports need an entry policy to lint)")
+    if !project_declares_main(loaded) {
+        eprintln(
+            "vader lint: `${file.to_native()}` exposes no `main`, so unused-export under-reports a rootless library (its exports need an entry policy to lint)",
+        )
         return 0
     }
-    if report.findings.len() == 0 {
+    // The checks `.Lint` runs, compiled only as far as they need (`lint_project`).
+    findings :: lint_project(loaded)
+    if findings.len() == 0 {
         return 0
     }
-    eprintln(dead_export_diags(report.findings).dump_diagnostics_with_file())
+    eprintln(findings.dump_diagnostics_with_file())
     return 1
 }

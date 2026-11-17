@@ -1,0 +1,28 @@
+// vader/pipeline/check/stage_dead_code: the `dead_code` check of a program.
+
+module "vader/pipeline/check"
+
+import "toolchain/diagnostics"
+import "vader/front/dead_code"
+import "vader/front/resolver"
+
+// W0007, one module at a time: a private top-level declaration nothing in its
+// module reaches.
+DeadCode :: struct {}
+
+DeadCode implements CheckStage {
+    describe :: fn(self) = CheckSpec { .name = "dead_code", .per = .Module }
+
+    run :: fn(self, input: Checked) -> Diagnostic[] {
+        loaded :: input.program.project.modules[input.key.module] else return []
+        out: Diagnostic[]: []
+        check_dead_code(
+            concat_file_decls(loaded.module.files),
+            loaded.module.module_name,
+            out,
+            loaded.discarded_bodies,
+            decorators_above_module(loaded.module.files),
+        )
+        return out
+    }
+}

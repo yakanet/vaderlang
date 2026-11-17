@@ -19,7 +19,6 @@ import "json"
 import "std/uri"
 import "toolchain/diagnostics"
 import "vader/front/resolver"
-import "vader/front/dead_code"
 import "vader/pipeline/check"
 import "vader/tools/lsp/protocol"
 
@@ -48,7 +47,7 @@ export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void
     diags.push_all(cached.diags)
     checked :: CheckedProject { .result = cached.result, .effects = cached.effects }
     evaluate_checked(cached.project, checked, diags)
-    diags.push_all(unused_export_diags(cached.project))
+    diags.push_all(lint_project(cached.project))
     publish(self, uri, file_path, diags)
 }
 
@@ -56,21 +55,6 @@ export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void
 /// the client. Called from `didClose`.
 export clear_diagnostics_for_uri :: fn(uri: string) -> void =
     send_diagnostics(uri, [])
-
-/// The opt-in project-wide `unused-export` (W0012) findings for an
-/// already-loaded project: the LSP side of the `vader lint` recipe. Surfaced
-/// by the editor but NEVER by `vader build` : it runs here in the diagnostics
-/// path only (not at cache build, so hover / completion never pay it), off the
-/// shared typecheck path (P-lean).
-///
-/// Walks the cached `LoadedProject` (NO reload) via `dead_exports_of_project`,
-/// so it is a bare name-reachability walk over decls already in memory. The
-/// caller merges these into the published set, where `publish`'s per-file filter
-/// scopes them to the open document : the ANALYSIS is project-wide (a
-/// cross-module use is never a false positive) but the DISPLAY is per-file,
-/// exactly as W0007. A rootless project (no `main`) yields nothing.
-unused_export_diags :: fn(project: LoadedProject) =
-    dead_export_diags(dead_exports_of_project(project).findings)
 
 /// Push a `publishDiagnostics` notification carrying `diags` filtered to
 /// those whose primary span lies in `file_path`, the file `uri` names (we don't

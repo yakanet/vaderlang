@@ -1,0 +1,189 @@
+// vader/pipeline/check/stages: the checks run on a typed program, as stages.
+//
+// A stage reads the program and returns its own diagnostics: it writes nothing
+// another invocation reads. Its description says what command it serves, how far
+// the program must be compiled for it, and how often it runs (`per`): the plan
+// holds one invocation per stage and key, a module or the whole program, and the
+// diagnostics merge in plan order.
+
+module "vader/pipeline/check"
+
+import "std/abort"
+import "std/collections"
+import "std/iter"
+import "toolchain/diagnostics"
+import "toolchain/stage"
+import "vader/front/resolver"
+import "vader/front/typecheck"
+Fx :: import "vader/front/effects"
+
+// ---- the model ------------------------------------------------------------
+
+/// What the checks read: the loaded project, and its typecheck and effect
+/// summary when a stage of the plan needs them. Read only: no stage writes into
+/// it.
+CheckInput :: struct {
+    project: LoadedProject
+    result: CheckResult | null = null
+    effects: Fx.EffectSummary | null = null
+}
+
+/// What a command runs the checks for: each stage says which it serves.
+Purpose :: enum {
+    /// Every build, check, run and test: the checks before the lowering.
+    Compile,
+    /// `vader lint` and the editor: the project-wide lints a build never runs.
+    Lint,
+}
+
+/// How far the program must be compiled for a stage: the plan compiles it as far
+/// as its deepest stage needs, and no further.
+Need :: enum {
+    /// Loaded and parsed: names, as written.
+    Loaded,
+    /// Typed, with its effect summary.
+    Typed,
+}
+
+/// What one invocation of a stage covers: a module, or the whole program
+/// (`module` empty).
+StageKey :: struct {
+    module: string
+}
+
+/// The key of a stage that reads the whole program at once.
+PROGRAM_KEY :: StageKey { .module = "" }
+
+/// How often a check runs, and on what.
+Grain :: enum {
+    /// Once, on the whole program.
+    Program,
+    /// Once per module: the entry first, then every module not trimmed.
+    Module,
+}
+
+/// What a check describes of itself.
+CheckSpec :: struct {
+    name: string
+    /// What command it runs for.
+    purpose: Purpose = .Compile
+    /// How far the program must be compiled for it.
+    needs: Need = .Typed
+    per: Grain = .Program
+}
+
+// The checks report in plan order and read nothing another writes: none waits on
+// another.
+CheckSpec implements Placed {
+    stage_name :: fn(self) -> string = self.name
+}
+
+/// What one invocation of a check reads: the program, and the key it runs on.
+Checked :: struct {
+    program: CheckInput
+    key: StageKey
+}
+
+/// A check run on a program: its own diagnostics.
+CheckStage :: trait = Stage<Checked, Diagnostic[], CheckSpec>
+
+/// One invocation of the plan: a stage and the key it runs on.
+Invocation :: struct {
+    stage: CheckStage
+    key: StageKey
+}
+
+// ---- plan and executor ----------------------------------------------------
+
+/// The stages `purpose` runs, in the order they report.
+///
+/// @param purpose  what the command runs the checks for.
+active_stages :: fn(purpose: Purpose) -> CheckStage[] =
+    check_stages().filter((stage) -> stage.describe().purpose == purpose).collect()
+
+/// Whether a stage of `stages` needs the program typed.
+///
+/// @param stages  the stages of a plan.
+needs_typing :: fn(stages: CheckStage[]) -> bool =
+    stages.any_match((stage) -> stage.describe().needs == .Typed)
+
+/// The diagnostics of the checks `.Lint` runs on `project`, compiled only as far
+/// as they need: no stage of `.Lint` needs types today, so nothing is typed.
+///
+/// @param project  the loaded project.
+export lint_project :: fn(project: LoadedProject) -> Diagnostic[] {
+    stages :: active_stages(.Lint)
+    input :: input_for(project, stages)
+    return run_checks(plan_checks(stages, input), input)
+}
+
+// What `stages` read of `project`: typed only when one of them needs it.
+input_for :: fn(project: LoadedProject, stages: CheckStage[]) -> CheckInput {
+    if !needs_typing(stages) {
+        return CheckInput { .project = project }
+    }
+    ignored: Diagnostic[]: []
+    result :: check_project_with_bodies(project, ignored, false)
+    return CheckInput {
+        .project = project,
+        .result = result,
+        .effects = Fx.summarise_effects(project, result),
+    }
+}
+
+/// One invocation per stage and key, stages in the order given.
+///
+/// @param stages  the stages, in the order their diagnostics are reported.
+/// @param input   what they read: the keys of a stage come from its grain.
+plan_checks :: fn(stages: CheckStage[], input: CheckInput) -> Invocation[] {
+    planned :: plan_stages(stages) else panic("check stages: ${planned.message}")
+    plan: Invocation[]: []
+    for stage in planned {
+        for key in keys_per(stage.describe().per, input.project) {
+            plan.push(Invocation { .stage = stage, .key = key })
+        }
+    }
+    return plan
+}
+
+// The keys a check of grain `per` runs on, in the order it reports.
+keys_per :: fn(per: Grain, project: LoadedProject) -> StageKey[] = match per {
+    .Program -> [PROGRAM_KEY]
+    .Module  -> checked_modules(project).map((id) -> StageKey { .module = id }).collect()
+}
+
+// The modules a check reads: the entry first, then every module not trimmed.
+checked_modules :: fn(project: LoadedProject) -> string[] {
+    out: string[]: [project.entry]
+    for [id, loaded] in project.modules {
+        if id != project.entry && !loaded.trimmed {
+            out.push(id)
+        }
+    }
+    return out
+}
+
+/// Run every invocation of `plan`, and merge their diagnostics in plan order.
+///
+/// @param plan   the invocations.
+/// @param input  what they read.
+run_checks :: fn(plan: Invocation[], input: CheckInput) -> Diagnostic[] {
+    merged: Diagnostic[]: []
+    for invocation in plan {
+        merged.push_all(invocation.stage.run(Checked { .program = input, .key = invocation.key }))
+    }
+    return merged
+}
+
+// ---- the stages -----------------------------------------------------------
+
+/// The checks of a program, in the order they report.
+check_stages :: fn() -> CheckStage[] = [
+    DeadCode {},
+    UnusedImports {},
+    Widening {},
+    Frozen {},
+    TaskFaults {},
+    DeepCopies {},
+    UnusedExports {},
+]
