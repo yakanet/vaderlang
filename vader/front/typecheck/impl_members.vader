@@ -170,7 +170,9 @@ ufcs_method_type :: fn(
 // own `<...>`. A receiver binds the impl's (`impl_member_type`) ; a static
 // call binds them at the call, as its own.
 impl_member_quantifier :: fn(
-    impl_: AST.ImplDecl, fd: AST.FnDecl, resolved: ResolvedModule,
+    impl_: AST.ImplDecl,
+    fd: AST.FnDecl,
+    resolved: ResolvedModule,
 ) -> TypeParamType[] {
     of_impl :: impl_type_params_of(impl_, resolved)
     if fd.type_params.len() == 0 {
