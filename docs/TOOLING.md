@@ -389,6 +389,7 @@ The command line prints one line per diagnostic:
 ```
 
 - The file is relative to the working directory when under it.
+- Code the compiler writes as source (an interceptor's wrappers, what a decorator such as `@displayable` adds) has no file of its own. `vader build` and `vader run` write it under `build/expanded/<writer>/` of the project folder, or else the entry's, named after the file or module it was written for, and a diagnostic in it names that file. `vader check` writes nothing, and names it `<generated>:<writer>:<origin>`.
 - Lines and columns count from 1, columns in code points.
 - Lines are sorted by file and position, duplicates printed once. Past 100 lines, a last line counts the others.
 - On a terminal, the severity is coloured.

@@ -828,7 +828,11 @@ export generated_root_for :: fn(project_root: string | null) -> string {
     return candidate
 }
 
-entry_folder_of :: fn(path: string) -> string {
+/// The folder of the entry `path`: itself when a folder, else the folder holding
+/// it, the working directory for a bare file name.
+///
+/// @param path  the entry the command names.
+export entry_folder_of :: fn(path: string) -> string {
     if exists(path) && is_dir(path) { return path }
     folder :: dir_of(path)
     // A bare filename ("main.vader", no separator) has no parent, and `read_dir`

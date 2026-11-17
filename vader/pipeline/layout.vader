@@ -8,10 +8,13 @@
 
 module "vader/pipeline"
 
+import "std/collections"
 import "std/console"
 import "std/fs"
 import "std/io"
 import "std/path"
+import "toolchain/diagnostics"
+import "toolchain/span"
 import "vader/front/resolver"
 import "vader/support/target"
 
@@ -83,6 +86,64 @@ profile_name :: fn(release: bool) -> string {
         return "release"
     }
     return "debug"
+}
+
+/// Where a build writes the code the compiler wrote as source, under the project
+/// folder: a diagnostic in that code points there.
+export EXPANDED_DIR :: "build/expanded"
+
+/// Write the code the compiler wrote as source for `b` under the `EXPANDED_DIR`
+/// of its project, or else of the folder of `file`, and point each of its
+/// diagnostics in that code at the file written. A file already holding the code
+/// is left alone.
+///
+/// @param b             the prepared program; its diagnostics are repointed.
+/// @param file          the entry.
+/// @param project_root  the project of the entry, null for a file on its own.
+export write_expanded :: fn(b: CfgBytecode, file: Path, project_root: string | null) -> void {
+    root :: project_root else entry_folder_of(file.as_string())
+    written :: Map<string, string> {}
+    for source in b.generated {
+        name :: expanded_name(source.file, root) else continue
+        path :: root.to_path().join(EXPANDED_DIR).join(name).normalize().as_string()
+        if !holds(path, source.content) && !write_text(path, source.content) {
+            continue
+        }
+        written[source.file] = path
+    }
+    repoint(b.pre_diags, written)
+    repoint(b.lower_diags, written)
+}
+
+// Whether the file `path` holds `content`.
+holds :: fn(path: string, content: string) -> bool {
+    current :: read_file_string(path) else return false
+    return current == content
+}
+
+// Write `content` to the file `path` and its missing folders: false after saying
+// it could not.
+write_text :: fn(path: string, content: string) -> bool {
+    if !ensure_dir(path.to_path().parent().as_string()) {
+        return false
+    }
+    failed :: write_file(path, content) else is IOError {
+        eprintln("vader build: cannot write `${path.to_native()}`: ${failed.message()}")
+        return false
+    }
+    return true
+}
+
+// Point each diagnostic of `diags` in a file `written` names at the file written
+// for it.
+repoint :: fn(diags: Diagnostic[], written: Map<string, string>) -> void {
+    for i in 0..<diags.len() {
+        d :: diags[i]
+        path :: written[d.primary.start.file] else continue
+        start :: Position { ...d.primary.start, .file = path }
+        end :: Position { ...d.primary.end, .file = path }
+        diags[i] = Diagnostic { ...d, .primary = Span { .start = start, .end = end } }
+    }
 }
 
 /// Make the folder `path` when missing, with its missing parents.

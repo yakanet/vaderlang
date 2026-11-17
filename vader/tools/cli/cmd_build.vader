@@ -325,6 +325,7 @@ build_virt :: fn(file: Path, stem: Path, request: BuildRequest) -> i32 {
 // messages.
 prepared_program :: fn(file: Path, request: BuildRequest, command: string) -> CfgBytecode | null {
     b :: prepare_program(file, request)
+    write_expanded(b, file, request.project_root)
     if !ready_to_emit(b, command, file) {
         return null
     }

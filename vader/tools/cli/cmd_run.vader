@@ -75,6 +75,7 @@ run_source :: fn(file: Path, host_argv: string[], project_root: string | null) -
     // function" trap that buries the real diagnostic ; and a lowering or CFG error
     // puts an `unreachable` where it could not lower, which would cut the function
     // short with nothing said.
+    write_expanded(prepared, file, project_root)
     if !ready_to_emit(prepared, "run", file) {
         return 1
     }

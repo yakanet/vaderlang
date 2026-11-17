@@ -5,10 +5,14 @@
 // interceptor) is parsed under a file name no file on disk has: the kind of
 // writer, then what it was written for. Each such name is unique in a load, which
 // keeps each span unique: a span-keyed table must never see two nodes on one span.
+// A build writes each to a real file (`expanded_name`), where a diagnostic in it
+// points.
 
 module "vader/front/resolver"
 
+import "std/path"
 import "std/string"
+import "toolchain/diagnostics"
 
 // Every name `generated_file` makes starts with it.
 GENERATED_FILE_PREFIX :: "<generated>:"
@@ -27,6 +31,63 @@ export is_generated_file :: fn(file: string) -> bool = file.starts_with(GENERATE
 is_generated_by :: fn(file: string, kind: string) -> bool =
     file.starts_with("${GENERATED_FILE_PREFIX}${kind}:")
 
+/// Code the compiler wrote as source, as it was parsed.
+export GeneratedSource :: struct {
+    /// The name it was parsed under.
+    file: string
+    content: string
+}
+
+/// The code the compiler wrote as source for the modules of `loaded` the build
+/// named: the toolchain's are left out, an error in them being the compiler's.
+///
+/// @param loaded  a loaded project.
+export generated_sources :: fn(loaded: LoadedProject) -> GeneratedSource[] {
+    out: GeneratedSource[]: []
+    for [_, lm] in loaded.modules {
+        if lm.module.origin == .Toolchain {
+            continue
+        }
+        for f in lm.module.files {
+            if is_generated_file(f.path) {
+                out.push(GeneratedSource { .file = f.path, .content = f.content })
+            }
+        }
+    }
+    return out
+}
+
+/// Where a build writes the code parsed under `file`, under the folder of the
+/// generated code: `<kind>/<the file it was written for>`, named from `root`, or
+/// `<kind>/<module>.vader`. Null for a file a user wrote.
+///
+/// @param file  the file a span names.
+/// @param root  the folder of the project, or of the entry file on its own.
+export expanded_name :: fn(file: string, root: string) -> string | null {
+    if !is_generated_file(file) {
+        return null
+    }
+    rest :: file.byte_slice(GENERATED_FILE_PREFIX.byte_len(), file.byte_len())
+    colon :: rest.index_of(':') else return null
+    origin :: rest.byte_slice(colon + 1, rest.byte_len())
+    return "${rest.byte_slice(0, colon)}/${origin_name(origin, root)}"
+}
+
+// The name the code written for `origin` takes in the folder of its kind: a file
+// of the project, named from `root` (its file name alone when outside), or a
+// module.
+origin_name :: fn(origin: string, root: string) -> string {
+    if !origin.ends_with(".vader") {
+        return "${origin}.vader"
+    }
+    file :: normalized_path(origin)
+    within :: relative_to(file, normalized_path(root))
+    if within == file {
+        return origin.to_path().filename()
+    }
+    return within
+}
+
 /// The file the code parsed under `file` was written for: the written file a glue
 /// of interceptors wraps the functions of, `file` itself for any other.
 ///
@@ -36,4 +97,25 @@ export written_file_of :: fn(file: string) -> string {
         return file
     }
     return file.byte_slice(generated_file(INTERCEPT_KIND, "").byte_len(), file.byte_len())
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_expanded_name_follows_the_written_file :: fn() -> void {
+    written :: expanded_name("<generated>:intercept:./app/main.vader", ".") else ""
+    assert_eq(written, "intercept/app/main.vader")
+}
+
+@test
+test_expanded_name_follows_the_module :: fn() -> void {
+    written :: expanded_name("<generated>:displayable:app/shapes", ".") else ""
+    assert_eq(written, "displayable/app/shapes.vader")
+}
+
+@test
+test_expanded_name_leaves_a_written_file :: fn() -> void {
+    assert(expanded_name("main.vader", ".") == null, "a written file has no expanded name")
 }
