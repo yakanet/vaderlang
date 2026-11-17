@@ -26,9 +26,9 @@ import "toolchain/diagnostics"
 import "toolchain/parser"
 import "toolchain/span"
 
-// Prefix of the file name the wrappers of a file are parsed under ; the rest is
-// that file's path, which keeps each span of a wrapper unique.
-INTERCEPT_FILE_PREFIX :: "<intercept>:"
+// The kind of the files the wrappers are parsed under (`generated_file`): no
+// source stage takes it as its name.
+INTERCEPT_KIND :: "intercept"
 
 // What a declared interceptor routes the calls of its functions through.
 Interceptor :: struct {
@@ -63,12 +63,6 @@ intercept_functions :: fn(
         }
     }
 }
-
-/// Whether `file` holds the wrappers an interceptor wrote: what the source does
-/// not write, a warning does not report.
-///
-/// @param file  the file of a span.
-export is_interceptor_file :: fn(file: string) -> bool = file.starts_with(INTERCEPT_FILE_PREFIX)
 
 // The interceptors `modules` declare.
 declared_interceptors :: fn(modules: DeferredModule[], diags: Diagnostic[]) -> Interceptor[] {
@@ -155,7 +149,7 @@ wrap_file :: fn(
     }
     parsed :: parse_source(
         "module \"${module_name}\"\n${glue.to_string()}",
-        "${INTERCEPT_FILE_PREFIX}${source.path}",
+        generated_file(INTERCEPT_KIND, source.path),
     )
     diags.push_all(parsed.errors)
     assign_program_ids(parsed.program, ids)
@@ -190,7 +184,7 @@ interceptions_of :: fn(
     for d in f.decorators {
         origin :: written_origin(program, module_name, d, declared) else continue
         for i in interceptors {
-            if i.origin.module == origin.module && i.origin.name == origin.name {
+            if same_origin(i.origin, origin) {
                 out.push(Interception { .interceptor = i, .qualifier = qualifier_of(d) })
             }
         }

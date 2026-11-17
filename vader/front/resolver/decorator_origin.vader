@@ -19,6 +19,10 @@ DecoratorOrigin :: struct {
     name: string
 }
 
+// Whether `a` and `b` are the same declaration.
+same_origin :: fn(a: DecoratorOrigin, b: DecoratorOrigin) -> bool =
+    a.module == b.module && a.name == b.name
+
 // The decorators each module of `modules` declares, by module name.
 declared_decorators :: fn(modules: DeferredModule[]) -> Map<string, Set<string>> {
     out :: Map<string, Set<string>> {}

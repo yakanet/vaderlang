@@ -10,17 +10,15 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         pair                 :: fn(A, B) -> string
   StructDecl     StatusInfo           :: StatusInfo
+  expr 10:19    StringLitExpr  :: string
+  expr 11:18    StringLitExpr  :: string
   expr 20:29    StringLitExpr  :: string
   expr 21:29    StringLitExpr  :: string
   expr 22:29    StringLitExpr  :: string
   expr 26:25    StringLitExpr  :: string
   expr 27:25    StringLitExpr  :: string
-  expr 2:39     MatchExpr      :: string
-  expr 2:39     MatchExpr      :: string
-  expr 2:45     IdentExpr      :: Color
-  expr 2:45     IdentExpr      :: Direction
-  expr 3:17     StringLitExpr  :: string
-  expr 3:19     StringLitExpr  :: string
+  expr 3:39     MatchExpr      :: string
+  expr 3:45     IdentExpr      :: Color
   expr 41:39    StringLitExpr  :: string
   expr 41:46    FieldExpr      :: T
   expr 41:46    IdentExpr      :: Box<T>
@@ -49,8 +47,7 @@
   expr 49:75    IdentExpr      :: fn(T) -> i64
   expr 49:82    FieldExpr      :: Color
   expr 49:82    IdentExpr      :: Color
-  expr 4:18     StringLitExpr  :: string
-  expr 4:19     StringLitExpr  :: string
+  expr 4:17     StringLitExpr  :: string
   expr 50:13    CallExpr       :: string
   expr 50:13    IdentExpr      :: fn(A, B) -> string
   expr 50:18    FieldExpr      :: HttpStatus
@@ -108,6 +105,7 @@
   expr 59:5     CallExpr       :: void
   expr 59:5     IdentExpr      :: fn(T) -> void
   expr 59:57    IdentExpr      :: Box<Direction>
+  expr 5:19     StringLitExpr  :: string
   expr 60:15    StructLitExpr  :: Box<Color>
   expr 60:37    DotVariantExpr :: Color
   expr 61:23    SeqLitExpr     :: Display[]
@@ -123,3 +121,5 @@
   expr 63:40    IdentExpr      :: Box<Color> | Box<Direction>
   expr 63:5     CallExpr       :: void
   expr 63:5     IdentExpr      :: fn(T) -> void
+  expr 9:39     MatchExpr      :: string
+  expr 9:45     IdentExpr      :: Direction

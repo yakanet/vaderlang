@@ -120,11 +120,11 @@ string 36 "truncate with append"
 string 37 "cannot open file"
 string 38 "invalid open options: "
 string 39 "is a directory"
-string 40 "File"
-string 41 "Directory"
-string 42 "Symlink"
-string 43 "Other"
-string 44 "write failed: nothing written"
+string 40 "write failed: nothing written"
+string 41 "File"
+string 42 "Directory"
+string 43 "Symlink"
+string 44 "Other"
 string 45 "write failed"
 string 46 "file not found"
 string 47 "permission denied"
@@ -346,7 +346,7 @@ fn 0 snippet$main () -> i32
         ref.cast 6   ; i64
         local.set 8   ; __p_0
         local.field 7 2 3   ; entry std_fs$WalkEntry.kind
-        call 55   ; std_fs$EntryKind$std_core$Display$to_string
+        call 56   ; std_fs$EntryKind$std_core$Display$to_string
         local.set 5   ; $field_41
         local.field 7 2 1   ; entry std_fs$WalkEntry.relative
         ref.cast 4   ; string
@@ -1690,7 +1690,7 @@ fn 25 std_fs$write_file (string,any) -> any
   ref.cast 31   ; std_fs$File
   local.tee 2   ; f
   local.get 1   ; arg 1
-  call 56   ; std_fs$File$std_io$Writer$write
+  call 55   ; std_fs$File$std_io$Writer$write
   local.set 3   ; __fallback_0
   local.get 2   ; f
   call 36   ; std_fs$close
@@ -2764,46 +2764,7 @@ fn 54 std_fs$is_a_directory (i32) -> ref
   return
 end
 
-fn 55 std_fs$EntryKind$std_core$Display$to_string (u8) -> string
-  local if_res string
-  local.get 0   ; arg 0
-  i32.const 0
-  i32.eq
-  if $L0 void
-    string.const 40   ; "File"
-    local.tee 1   ; if_res
-    return
-  end $L0
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.eq
-  if $L1 void
-    string.const 41   ; "Directory"
-    local.set 1   ; if_res
-  else
-    local.get 0   ; arg 0
-    i32.const 2
-    i32.eq
-    if $L2 void
-      string.const 42   ; "Symlink"
-      local.set 1   ; if_res
-    else
-      local.get 0   ; arg 0
-      i32.const 3
-      i32.eq
-      if $L3 void
-      else
-        unreachable "non-exhaustive match (T3013 should have caught this)"
-      end $L3
-      string.const 43   ; "Other"
-      local.set 1   ; if_res
-    end $L2
-  end $L1
-  local.get 1   ; if_res
-  return
-end
-
-fn 56 std_fs$File$std_io$Writer$write (ref,any) -> any
+fn 55 std_fs$File$std_io$Writer$write (ref,any) -> any
   local bytes ref
   local done i64
   local $len_10 i64
@@ -2862,7 +2823,7 @@ fn 56 std_fs$File$std_io$Writer$write (ref,any) -> any
       i64.const 0
       i64.eq
       if $L4 void
-        string.const 44   ; "write failed: nothing written"
+        string.const 40   ; "write failed: nothing written"
         i32.const 0
         i32.const 0
         struct.new 20   ; std_io$IOError
@@ -2876,6 +2837,45 @@ fn 56 std_fs$File$std_io$Writer$write (ref,any) -> any
     end $L2
   end $L1
   return.lit null.const
+end
+
+fn 56 std_fs$EntryKind$std_core$Display$to_string (u8) -> string
+  local if_res string
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    string.const 41   ; "File"
+    local.tee 1   ; if_res
+    return
+  end $L0
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.eq
+  if $L1 void
+    string.const 42   ; "Directory"
+    local.set 1   ; if_res
+  else
+    local.get 0   ; arg 0
+    i32.const 2
+    i32.eq
+    if $L2 void
+      string.const 43   ; "Symlink"
+      local.set 1   ; if_res
+    else
+      local.get 0   ; arg 0
+      i32.const 3
+      i32.eq
+      if $L3 void
+      else
+        unreachable "non-exhaustive match (T3013 should have caught this)"
+      end $L3
+      string.const 44   ; "Other"
+      local.set 1   ; if_res
+    end $L2
+  end $L1
+  local.get 1   ; if_res
+  return
 end
 
 fn 57 std_fs$system_write (any,ref) -> any
@@ -3364,7 +3364,7 @@ fn 64 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   i32.const 0
   i32.eq
   if $L0 void
-    string.const 43   ; "Other"
+    string.const 44   ; "Other"
     local.tee 1   ; if_res
     return
   end $L0

@@ -609,12 +609,14 @@ import_paths_of :: fn(sources: SourceFile[]) -> ImportPath[] {
 }
 
 // Mint the symbols of the modules the load has read, in the order it read them,
-// once the interceptors have wrapped their functions. A load that keeps only
-// what is reached first trims each dependency to what the others reach.
+// once the source stages have written into them and the interceptors have
+// wrapped their functions. A load that keeps only what is reached first trims
+// each dependency to what the others reach.
 collect_deferred :: fn(ctx: LoadState) -> void {
     if ctx.deferred.len() == 0 {
         return
     }
+    run_source_stages(ctx.deferred, planned_source_stages(), ctx.node_factory, ctx.diags)
     intercept_functions(ctx.deferred, ctx.node_factory, ctx.diags)
     modules :: if ctx.only_reached { trimmed_to_reached(ctx) } else { ctx.deferred }
     for read in modules {
@@ -677,12 +679,11 @@ parse_module_files :: fn(ctx: LoadState, paths: string[]) -> SourceFile[] {
         if content == "" { continue }
         parsed :: parse_file(content, path, ctx.keep_docs)
         for e in parsed.errors { ctx.diags.push(e) }
-        program :: with_displayable_impls(parsed.program)
-        assign_program_ids(program, ctx.node_factory)
+        assign_program_ids(parsed.program, ctx.node_factory)
         out.push(SourceFile {
             .path = path,
             .content = content,
-            .program = program,
+            .program = parsed.program,
         })
     }
     return out

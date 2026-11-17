@@ -1,0 +1,28 @@
+// vader/front/resolver/generated: the names the code the compiler writes is parsed
+// under.
+//
+// Code the compiler writes as source (a source stage's file, the wrappers of an
+// interceptor) is parsed under a file name no file on disk has: the kind of
+// writer, then what it was written for. Each such name is unique in a load, which
+// keeps each span unique: a span-keyed table must never see two nodes on one span.
+
+module "vader/front/resolver"
+
+import "std/string"
+
+// Every name `generated_file` makes starts with it.
+GENERATED_FILE_PREFIX :: "<generated>:"
+
+// The name the code `kind` writes for `origin` is parsed under.
+generated_file :: fn(kind: string, origin: string) -> string =
+    "${GENERATED_FILE_PREFIX}${kind}:${origin}"
+
+/// Whether `file` is a name code the compiler wrote is parsed under: code no user
+/// wrote, which a warning about what the user wrote leaves alone.
+///
+/// @param file  the file a span names.
+export is_generated_file :: fn(file: string) -> bool = file.starts_with(GENERATED_FILE_PREFIX)
+
+// Whether `file` is a name the code `kind` writes is parsed under.
+is_generated_by :: fn(file: string, kind: string) -> bool =
+    file.starts_with("${GENERATED_FILE_PREFIX}${kind}:")

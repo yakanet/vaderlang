@@ -1,62 +1,52 @@
 // vader/front/resolver/displayable: the `Display` an `@displayable` enum is given.
 //
-// The impl is written out as source, parsed, and appended to the enum's own
-// file before node ids are assigned, so every later pass meets an ordinary
-// `E implements Display` and the generated code goes through the checks a
-// written one does. It is parsed under a file name of its own per enum, which
-// keeps each of its spans unique: a span-keyed table (`idents`, `param_types`)
-// must never see two nodes on one span.
+// The first source stage of the compiler (`source_stages.vader`): the impl is
+// written out as source into a file of the enum's module, so every later pass
+// meets an ordinary `E implements Display` and the generated code goes through
+// the checks a written one does. Each impl reports at the decorator that asked
+// for it, since its own spans name no file on disk: a conflict with a written
+// impl points there, and so does an "implementations" lookup.
 
 module "vader/front/resolver"
 
 import "std/iter"
-import "std/string"
 import "std/string_builder"
-import "toolchain/parser"
+import "toolchain/span"
 AST :: import "toolchain/ast"
 
-// Prefix of the file name a generated impl is parsed under ; the rest is the
-// enum's file, then `#` and the enum's name.
-DISPLAYABLE_FILE_PREFIX :: "<displayable>:"
+// The name `DisplayableStage` describes itself under, and generates under.
+DISPLAYABLE_STAGE :: "displayable"
 
-/// Return `program` with the `Display` impl of every enum it declares under
-/// `@displayable` appended: `program` itself when it declares none. Each
-/// variant renders as its own name.
-///
-/// @param program  one parsed file, before node ids are assigned.
-export with_displayable_impls :: fn(program: AST.Program) -> AST.Program {
-    generated: AST.Decl[]: []
-    for d in program.decls.filter_is<AST.EnumDecl>() {
-        marker :: AST.find_compiler_decorator(d.decorators, .Displayable) else continue
-        generated.push(displayable_impl(d, marker, program.file))
+// The `Display` of each `@displayable` enum of a module.
+DisplayableStage :: struct {}
+
+DisplayableStage implements SourceStage {
+    describe :: fn(self) = SourceSpec {
+        .name = DISPLAYABLE_STAGE,
+        .given = [DecoratedWith { .marker = .Displayable }],
     }
-    if generated.is_empty() {
-        return program
+
+    run :: fn(self, input: Sources) -> Generated {
+        text :: StringBuilder {}
+        anchors: Span[]: []
+        for program in input.files {
+            for e in program.decls.filter_is<AST.EnumDecl>() {
+                marker :: AST.find_compiler_decorator(e.decorators, .Displayable) else continue
+                text.append("${e.name} implements Display {\n")
+                text.append("    to_string :: fn(self) -> string = match self {\n")
+                for v in e.variants {
+                    text.append("        .${v.name} -> \"${v.name}\"\n")
+                }
+                text.append("    }\n}\n")
+                anchors.push(marker.span)
+            }
+        }
+        return Generated { .text = text.to_string(), .anchors = anchors }
     }
-    return AST.Program { ...program, .decls = program.decls + generated }
 }
 
-// The impl reports at the decorator: a conflict with a written impl, an
-// "implementations" lookup, since its own spans name no real file.
-displayable_impl :: fn(e: AST.EnumDecl, marker: AST.Decorator, file: string) -> AST.Decl {
-    sb :: StringBuilder {}
-    sb.append("${e.name} implements Display {\n")
-    sb.append("    to_string :: fn(self) -> string = match self {\n")
-    for v in e.variants {
-        sb.append("        .${v.name} -> \"${v.name}\"\n")
-    }
-    sb.append("    }\n}\n")
-    source_file :: "${DISPLAYABLE_FILE_PREFIX}${file}#${e.name}"
-    impl_ :: parse_source(sb.to_string(), source_file).program.decls[0]
-    if impl_ is AST.ImplDecl {
-        impl_.span = marker.span
-    }
-    return impl_
-}
-
-/// Whether `decl` is the `Display` an `@displayable` enum is given, parsed under
-/// a file name of its own.
+/// Whether `decl` is the `Display` an `@displayable` enum is given.
 ///
 /// @param decl  an impl.
 export is_displayable_impl :: fn(decl: AST.ImplDecl) -> bool =
-    decl.members.any_match((m) -> m.span.start.file.starts_with(DISPLAYABLE_FILE_PREFIX))
+    decl.members.any_match((m) -> is_generated_by(m.span.start.file, DISPLAYABLE_STAGE))

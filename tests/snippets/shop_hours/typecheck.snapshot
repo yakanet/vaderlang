@@ -6,6 +6,12 @@
   FnDecl         main                 :: fn(string[]) -> i32
   ConstDecl      Opening              :: type
   EnumDecl       Weekday              :: Weekday
+  expr 10:17    StringLitExpr  :: string
+  expr 14:39    MatchExpr      :: string
+  expr 14:45    IdentExpr      :: Discount
+  expr 15:18    StringLitExpr  :: string
+  expr 16:18    StringLitExpr  :: string
+  expr 17:18    StringLitExpr  :: string
   expr 21:14    IdentExpr      :: Weekday
   expr 21:5     IfExpr         :: void
   expr 21:8     BinaryExpr     :: bool
@@ -26,10 +32,6 @@
   expr 29:47    IntrinsicCallExpr :: Discount
   expr 29:5     CallExpr       :: void
   expr 29:5     IdentExpr      :: fn(T) -> void
-  expr 2:39     MatchExpr      :: string
-  expr 2:39     MatchExpr      :: string
-  expr 2:45     IdentExpr      :: Discount
-  expr 2:45     IdentExpr      :: Weekday
   expr 30:13    StringLitExpr  :: string
   expr 30:16    CallExpr       :: string
   expr 30:16    IdentExpr      :: fn(i32) -> string
@@ -53,8 +55,8 @@
   expr 38:13    StringLitExpr  :: string
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(T) -> void
-  expr 3:17     StringLitExpr  :: string
-  expr 3:18     StringLitExpr  :: string
+  expr 3:39     MatchExpr      :: string
+  expr 3:45     IdentExpr      :: Weekday
   expr 40:13    StringLitExpr  :: string
   expr 40:16    BinaryExpr     :: bool
   expr 40:16    IdentExpr      :: i64
@@ -79,9 +81,7 @@
   expr 49:5     CallExpr       :: void
   expr 49:5     IdentExpr      :: fn(T) -> void
   expr 4:17     StringLitExpr  :: string
-  expr 4:18     StringLitExpr  :: string
   expr 5:17     StringLitExpr  :: string
-  expr 5:18     StringLitExpr  :: string
   expr 6:17     StringLitExpr  :: string
   expr 7:17     StringLitExpr  :: string
   expr 8:17     StringLitExpr  :: string

@@ -156,15 +156,17 @@ index_module :: fn(checked: DocCheck, loaded: LoadedModule, base: string) -> Doc
     files: string[]: []
     decls: DocDecl[]: []
     for file in module.files {
-        ctx :: FileContext {
-            .project = checked.project,
-            .file = file,
-            .path = display_path(file.path, base),
-            .typed = typed,
-            .target_decls = loaded.target_decls,
+        if !is_generated_file(file.path) {
+            files.push(display_path(file.path, base))
         }
-        files.push(ctx.path)
         for d in file.program.decls {
+            ctx :: FileContext {
+                .project = checked.project,
+                .file = file,
+                .path = display_path(reported_file(file, d), base),
+                .typed = typed,
+                .target_decls = loaded.target_decls,
+            }
             decl :: doc_decl(ctx, d) else continue
             decls.push(decl)
         }
@@ -178,6 +180,15 @@ index_module :: fn(checked: DocCheck, loaded: LoadedModule, base: string) -> Doc
         .files = files,
         .decls = decls,
     }
+}
+
+// The file `d`, a declaration of `file`, is reported in: an impl the compiler
+// wrote reports at the code that asked for it (`source_stages.vader`).
+reported_file :: fn(file: SourceFile, d: Decl) -> string {
+    if d is ImplDecl && is_generated_file(file.path) {
+        return d.span.start.file
+    }
+    return file.path
 }
 
 // The entry of `d`; null when `d` is neither an export nor an impl a caller can

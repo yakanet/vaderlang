@@ -60,14 +60,20 @@ the trait: the type checker checks it once there, `Self` a type parameter bounde
 by the trait, and the lowerer reads it for each impl as it reads a generic
 function for each instance (`vader/lower/inherited.vader`).
 
-Once every module is parsed, and before any is collected, the loader wraps each
-function an interceptor marks (`vader/front/resolver/intercept.vader`): the
+Once every module is parsed, and before any is collected, the loader runs the
+source stages (`vader/front/resolver/source_stages.vader`, the `Stage` of
+`toolchain/stage` at that point): each reads the files of a module that declare
+something under a decorator it names, and writes source the module gains as a
+file of its own, parsed like the others (`@displayable` is the first). It then
+wraps each function an interceptor marks (`vader/front/resolver/intercept.vader`): the
 function is renamed, and its file gains a wrapper under its name, which calls
 `around`, and a `@singleton` holding its state, both written as source and parsed.
 The decorator is matched to its declaration from the parsed files alone
 (`decorator_origin.vader`), the way the resolver later finds it. Every module is
 collected only then, in the order the modules were read, so symbol ids do not
-depend on interceptors.
+depend on what the stages and interceptors write. Code the compiler writes is
+parsed under a file name no file on disk has (`generated.vader`), which a warning
+about written code leaves alone.
 
 A project's `build.vader` drives the same pipeline through `toolchain/build`, and
 `vader` runs it (`vader/build_server`, ADR 0145): per generation round the front end

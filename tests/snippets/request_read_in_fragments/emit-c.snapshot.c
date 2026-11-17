@@ -237,7 +237,6 @@ static int64_t std_io$line_break_of(void* l0);
 static void std_io$compact(void* l0);
 static vader_box_t std_io$refill(void* l0);
 static void std_io$reserve(void* l0);
-static vader_string_t std_io$IOErrorKind$std_core$Display$to_string(uint8_t l0);
 static vader_box_t std_io$BytesReader$Reader$read(void* l0, void* l1);
 static vader_box_t std_io$BytesWriter$Writer$write(void* l0, vader_box_t l1);
 static vader_box_t std_io$FragmentedReader$Reader$read(void* l0, void* l1);
@@ -245,6 +244,7 @@ static vader_box_t std_io$FailingReader$Reader$read(void* l0, void* l1);
 static vader_box_t std_io$FailingWriter$Writer$write(void* l0, vader_box_t l1);
 static vader_box_t std_io$BufferedReader$Reader$read(void* l0, void* l1);
 static vader_box_t std_io$BufferedWriter$Writer$write(void* l0, vader_box_t l1);
+static vader_string_t std_io$IOErrorKind$std_core$Display$to_string(uint8_t l0);
 static void* std_io$bytes_of(vader_box_t l0);
 static int64_t std_math$min__i64(int64_t l0, int64_t l1);
 
@@ -1415,59 +1415,6 @@ static void std_io$reserve(void* l0) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static vader_string_t std_io$IOErrorKind$std_core$Display$to_string(uint8_t l0) {
-    vader_string_t l1;
-    if (l0 == INT32_C(0)) {
-        l1 = 40u;
-        return l1;
-    }
-    if (l0 == INT32_C(1)) {
-        l1 = 41u;
-    } else if (l0 == INT32_C(2)) {
-        l1 = 42u;
-    } else if (l0 == INT32_C(3)) {
-        l1 = 43u;
-    } else if (l0 == INT32_C(4)) {
-        l1 = 44u;
-    } else if (l0 == INT32_C(5)) {
-        l1 = 45u;
-    } else if (l0 == INT32_C(6)) {
-        l1 = 46u;
-    } else if (l0 == INT32_C(7)) {
-        l1 = 47u;
-    } else if (l0 == INT32_C(8)) {
-        l1 = 48u;
-    } else if (l0 == INT32_C(9)) {
-        l1 = 49u;
-    } else if (l0 == INT32_C(10)) {
-        l1 = 50u;
-    } else if (l0 == INT32_C(11)) {
-        l1 = 51u;
-    } else if (l0 == INT32_C(12)) {
-        l1 = 52u;
-    } else if (l0 == INT32_C(13)) {
-        l1 = 53u;
-    } else if (l0 == INT32_C(14)) {
-        l1 = 54u;
-    } else if (l0 == INT32_C(15)) {
-        l1 = 55u;
-    } else if (l0 == INT32_C(16)) {
-        l1 = 56u;
-    } else if (l0 == INT32_C(17)) {
-        l1 = 57u;
-    } else if (l0 == INT32_C(18)) {
-        l1 = 58u;
-    } else if (l0 == INT32_C(19)) {
-        l1 = 59u;
-    } else {
-        if (!(l0 == INT32_C(20))) {
-            vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-        }
-        l1 = 60u;
-    }
-    return l1;
-}
-
 static vader_box_t std_io$BytesReader$Reader$read(void* l0, void* l1) {
     void* l2 = NULL;
     int64_t l3, l4;
@@ -1689,6 +1636,59 @@ static vader_box_t std_io$BufferedWriter$Writer$write(void* l0, vader_box_t l1) 
     l5 = ((vader_struct_std_io$BufferedWriter_t*) l0)->f_sink;
     t1 = std_io$Writer$write$$dispatch(l5, vader_ref_box(l2));
     { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static vader_string_t std_io$IOErrorKind$std_core$Display$to_string(uint8_t l0) {
+    vader_string_t l1;
+    if (l0 == INT32_C(0)) {
+        l1 = 40u;
+        return l1;
+    }
+    if (l0 == INT32_C(1)) {
+        l1 = 41u;
+    } else if (l0 == INT32_C(2)) {
+        l1 = 42u;
+    } else if (l0 == INT32_C(3)) {
+        l1 = 43u;
+    } else if (l0 == INT32_C(4)) {
+        l1 = 44u;
+    } else if (l0 == INT32_C(5)) {
+        l1 = 45u;
+    } else if (l0 == INT32_C(6)) {
+        l1 = 46u;
+    } else if (l0 == INT32_C(7)) {
+        l1 = 47u;
+    } else if (l0 == INT32_C(8)) {
+        l1 = 48u;
+    } else if (l0 == INT32_C(9)) {
+        l1 = 49u;
+    } else if (l0 == INT32_C(10)) {
+        l1 = 50u;
+    } else if (l0 == INT32_C(11)) {
+        l1 = 51u;
+    } else if (l0 == INT32_C(12)) {
+        l1 = 52u;
+    } else if (l0 == INT32_C(13)) {
+        l1 = 53u;
+    } else if (l0 == INT32_C(14)) {
+        l1 = 54u;
+    } else if (l0 == INT32_C(15)) {
+        l1 = 55u;
+    } else if (l0 == INT32_C(16)) {
+        l1 = 56u;
+    } else if (l0 == INT32_C(17)) {
+        l1 = 57u;
+    } else if (l0 == INT32_C(18)) {
+        l1 = 58u;
+    } else if (l0 == INT32_C(19)) {
+        l1 = 59u;
+    } else {
+        if (!(l0 == INT32_C(20))) {
+            vader_unreachable("non-exhaustive match (T3013 should have caught this)");
+        }
+        l1 = 60u;
+    }
+    return l1;
 }
 
 static void* std_io$bytes_of(vader_box_t l0) {

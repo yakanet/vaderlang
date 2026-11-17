@@ -7,20 +7,22 @@
 
 module "vader/tools/doc"
 
+import "std/iter"
 import "std/path"
 import "std/string"
 import "vader/front/resolver"
 import "vader/tools/fmt"
 
-// The header of the main file of `module`: its only file, or the one named after
-// the last segment of its name. "" when it has several files and none of them is
-// named so: each one's header speaks for that file, not for the module.
+// The header of the main file of `module`: its only written file, or the one named
+// after the last segment of its name. "" when it has several files and none of
+// them is named so: each one's header speaks for that file, not for the module.
 module_header :: fn(module: Module) -> string {
-    if module.files.len() == 1 {
-        return file_header(module.files[0])
+    written :: module.files.filter((f) -> !is_generated_file(f.path)).collect()
+    if written.len() == 1 {
+        return file_header(written[0])
     }
     leaf :: module.module_name.to_path().filename()
-    for file in module.files {
+    for file in written {
         if file.path.to_path().name() == leaf {
             return file_header(file)
         }
@@ -66,6 +68,7 @@ header_summary :: fn(header: string) -> string {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "toolchain/parser"
 
 @test
 test_header_summary_drops_the_path :: fn() -> void {
@@ -75,4 +78,23 @@ test_header_summary_drops_the_path :: fn() -> void {
 @test
 test_header_summary_keeps_a_sentence_with_a_colon :: fn() -> void {
     assert_eq(header_summary("The rule here: one pass."), "The rule here: one pass.")
+}
+
+// A file of the module `app` parsed from `content`, under `path`.
+app_file :: fn(path: string, content: string) -> SourceFile =
+    SourceFile { .path = path, .content = content, .program = parse_source(content, path).program }
+
+@test
+test_module_header_ignores_a_file_the_compiler_wrote :: fn() -> void {
+    module :: Module {
+        .id = "app",
+        .display_path = "app",
+        .module_name = "app",
+        .origin = .Build,
+        .files = [
+            app_file("main.vader", "// app: the shop.\nmodule \"app\"\n"),
+            app_file("<generated>:displayable:app", "module \"app\"\n"),
+        ],
+    }
+    assert_eq(module_header(module), "app: the shop.")
 }

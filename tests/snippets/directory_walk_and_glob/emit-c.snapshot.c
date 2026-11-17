@@ -205,11 +205,11 @@ static const char vader_atom_blob[] =
     "cannot open file" "\0"
     "invalid open options: " "\0"
     "is a directory" "\0"
+    "write failed: nothing written" "\0"
     "File" "\0"
     "Directory" "\0"
     "Symlink" "\0"
     "Other" "\0"
-    "write failed: nothing written" "\0"
     "write failed" "\0"
     "file not found" "\0"
     "permission denied" "\0"
@@ -315,11 +315,11 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[460] },
     { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[477] },
     { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[500] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[515] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[520] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[530] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[538] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[544] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[515] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[545] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[550] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[560] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[568] },
     { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[574] },
     { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[587] },
     { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[602] },
@@ -522,8 +522,8 @@ static void* std_fs$invalid_options(vader_string_t l0);
 static int32_t std_fs$open_flags(void* l0);
 static int32_t std_fs$access_mode(void* l0);
 static void* std_fs$is_a_directory(int32_t l0);
-static vader_string_t std_fs$EntryKind$std_core$Display$to_string(uint8_t l0);
 static vader_box_t std_fs$File$std_io$Writer$write(void* l0, vader_box_t l1);
+static vader_string_t std_fs$EntryKind$std_core$Display$to_string(uint8_t l0);
 static vader_box_t std_fs$system_write(vader_box_t l0, void* l1);
 static void* std_io$last_io_error(vader_string_t l0);
 static vader_box_t std_io$failure_unless(bool l0, vader_string_t l1);
@@ -2715,25 +2715,6 @@ static void* std_fs$is_a_directory(int32_t l0) {
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t std_fs$EntryKind$std_core$Display$to_string(uint8_t l0) {
-    vader_string_t l1;
-    if (l0 == INT32_C(0)) {
-        l1 = 40u;
-        return l1;
-    }
-    if (l0 == INT32_C(1)) {
-        l1 = 41u;
-    } else if (l0 == INT32_C(2)) {
-        l1 = 42u;
-    } else {
-        if (!(l0 == INT32_C(3))) {
-            vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-        }
-        l1 = 43u;
-    }
-    return l1;
-}
-
 static vader_box_t std_fs$File$std_io$Writer$write(void* l0, vader_box_t l1) {
     void* l2 = NULL;
     void* l8 = NULL;
@@ -2772,7 +2753,7 @@ static vader_box_t std_fs$File$std_io$Writer$write(void* l0, vader_box_t l1) {
             if (l5 == INT64_C(0)) {
                 vader_struct_std_io$IOError_t* _a2_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
                 vader_obj_header_init(_a2_obj, 20u);
-                _a2_obj->f_msg = 44u;
+                _a2_obj->f_msg = 40u;
                 _a2_obj->f_kind = (uint8_t) 0;
                 _a2_obj->f_code = INT32_C(0);
                 t1 = (void*) _a2_obj;
@@ -2784,6 +2765,25 @@ static vader_box_t std_fs$File$std_io$Writer$write(void* l0, vader_box_t l1) {
         break;
     }
     { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+}
+
+static vader_string_t std_fs$EntryKind$std_core$Display$to_string(uint8_t l0) {
+    vader_string_t l1;
+    if (l0 == INT32_C(0)) {
+        l1 = 41u;
+        return l1;
+    }
+    if (l0 == INT32_C(1)) {
+        l1 = 42u;
+    } else if (l0 == INT32_C(2)) {
+        l1 = 43u;
+    } else {
+        if (!(l0 == INT32_C(3))) {
+            vader_unreachable("non-exhaustive match (T3013 should have caught this)");
+        }
+        l1 = 44u;
+    }
+    return l1;
 }
 
 static vader_box_t std_fs$system_write(vader_box_t l0, void* l1) {
@@ -3046,7 +3046,7 @@ static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l
 static vader_string_t std_io$IOErrorKind$std_core$Display$to_string(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        l1 = 43u;
+        l1 = 44u;
         return l1;
     }
     if (l0 == INT32_C(1)) {

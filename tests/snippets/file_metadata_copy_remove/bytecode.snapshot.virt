@@ -83,11 +83,11 @@ string 40 "is a directory"
 string 41 "cannot read directory"
 string 42 "."
 string 43 ".."
-string 44 "File"
-string 45 "Directory"
-string 46 "Symlink"
-string 47 "Other"
-string 48 "write failed: nothing written"
+string 44 "write failed: nothing written"
+string 45 "File"
+string 46 "Directory"
+string 47 "Symlink"
+string 48 "Other"
 string 49 "read failed"
 string 50 "write failed"
 string 51 "file not found"
@@ -206,7 +206,7 @@ fn 0 snippet$main () -> i32
     local.get 3   ; entry
     ref.cast 16   ; std_fs$Metadata
     struct.get 16 0   ; std_fs$Metadata.kind
-    call 57   ; std_fs$EntryKind$std_core$Display$to_string
+    call 59   ; std_fs$EntryKind$std_core$Display$to_string
     local.tee 1   ; $call_10
     call.import 0   ; std_core$Intrinsic$byte_len
     local.set 4   ; $call_21
@@ -995,7 +995,7 @@ fn 16 std_fs$write_file (string,any) -> any
   ref.cast 19   ; std_fs$File
   local.tee 2   ; f
   local.get 1   ; arg 1
-  call 59   ; std_fs$File$std_io$Writer$write
+  call 58   ; std_fs$File$std_io$Writer$write
   local.set 3   ; __fallback_0
   local.get 2   ; f
   call 25   ; std_fs$close
@@ -1876,7 +1876,7 @@ fn 47 std_fs$copy_chunks (ref,ref) -> any
   loop $L0 void
     local.get 0   ; arg 0
     local.get 2   ; chunk
-    call 58   ; std_fs$File$std_io$Reader$read
+    call 57   ; std_fs$File$std_io$Reader$read
     local.tee 4   ; __fallback_0
     type_check 0   ; null
     if $L1 void
@@ -1899,7 +1899,7 @@ fn 47 std_fs$copy_chunks (ref,ref) -> any
       local.set 6   ; $slice_18
       local.get 1   ; arg 1
       local.get 6   ; $slice_18
-      call 59   ; std_fs$File$std_io$Writer$write
+      call 58   ; std_fs$File$std_io$Writer$write
       local.tee 7   ; __fallback_1
       local.set 8   ; written
       local.get 7   ; __fallback_1
@@ -2259,46 +2259,7 @@ fn 56 std_fs$kind_of_dirent (string,string,i32) -> u8
   return
 end
 
-fn 57 std_fs$EntryKind$std_core$Display$to_string (u8) -> string
-  local if_res string
-  local.get 0   ; arg 0
-  i32.const 0
-  i32.eq
-  if $L0 void
-    string.const 44   ; "File"
-    local.tee 1   ; if_res
-    return
-  end $L0
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.eq
-  if $L1 void
-    string.const 45   ; "Directory"
-    local.set 1   ; if_res
-  else
-    local.get 0   ; arg 0
-    i32.const 2
-    i32.eq
-    if $L2 void
-      string.const 46   ; "Symlink"
-      local.set 1   ; if_res
-    else
-      local.get 0   ; arg 0
-      i32.const 3
-      i32.eq
-      if $L3 void
-      else
-        unreachable "non-exhaustive match (T3013 should have caught this)"
-      end $L3
-      string.const 47   ; "Other"
-      local.set 1   ; if_res
-    end $L2
-  end $L1
-  local.get 1   ; if_res
-  return
-end
-
-fn 58 std_fs$File$std_io$Reader$read (ref,ref) -> any
+fn 57 std_fs$File$std_io$Reader$read (ref,ref) -> any
   local count i64
   local $field_11 any
   local count any
@@ -2351,7 +2312,7 @@ fn 58 std_fs$File$std_io$Reader$read (ref,ref) -> any
   return.lit null.const
 end
 
-fn 59 std_fs$File$std_io$Writer$write (ref,any) -> any
+fn 58 std_fs$File$std_io$Writer$write (ref,any) -> any
   local bytes ref
   local done i64
   local $len_10 i64
@@ -2410,7 +2371,7 @@ fn 59 std_fs$File$std_io$Writer$write (ref,any) -> any
       i64.const 0
       i64.eq
       if $L4 void
-        string.const 48   ; "write failed: nothing written"
+        string.const 44   ; "write failed: nothing written"
         i32.const 0
         i32.const 0
         struct.new 12   ; std_io$IOError
@@ -2424,6 +2385,45 @@ fn 59 std_fs$File$std_io$Writer$write (ref,any) -> any
     end $L2
   end $L1
   return.lit null.const
+end
+
+fn 59 std_fs$EntryKind$std_core$Display$to_string (u8) -> string
+  local if_res string
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    string.const 45   ; "File"
+    local.tee 1   ; if_res
+    return
+  end $L0
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.eq
+  if $L1 void
+    string.const 46   ; "Directory"
+    local.set 1   ; if_res
+  else
+    local.get 0   ; arg 0
+    i32.const 2
+    i32.eq
+    if $L2 void
+      string.const 47   ; "Symlink"
+      local.set 1   ; if_res
+    else
+      local.get 0   ; arg 0
+      i32.const 3
+      i32.eq
+      if $L3 void
+      else
+        unreachable "non-exhaustive match (T3013 should have caught this)"
+      end $L3
+      string.const 48   ; "Other"
+      local.set 1   ; if_res
+    end $L2
+  end $L1
+  local.get 1   ; if_res
+  return
 end
 
 fn 60 std_fs$system_read (any,ref,i64) -> any
@@ -2942,7 +2942,7 @@ fn 68 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   i32.const 0
   i32.eq
   if $L0 void
-    string.const 47   ; "Other"
+    string.const 48   ; "Other"
     local.tee 1   ; if_res
     return
   end $L0

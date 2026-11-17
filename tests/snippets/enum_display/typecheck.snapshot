@@ -11,6 +11,10 @@
   EnumDecl       Status               :: Status
   StructDecl     StatusInfo           :: StatusInfo
   ConstDecl      Weight               :: type
+  expr 11:39    MatchExpr      :: string
+  expr 11:45    IdentExpr      :: Status
+  expr 12:16    StringLitExpr  :: string
+  expr 13:21    StringLitExpr  :: string
   expr 25:30    StringLitExpr  :: string
   expr 25:33    CallExpr       :: u8
   expr 25:33    IdentExpr      :: type
@@ -20,10 +24,6 @@
   expr 29:48    StringLitExpr  :: string
   expr 29:51    IdentExpr      :: T
   expr 29:56    IdentExpr      :: T
-  expr 2:39     MatchExpr      :: string
-  expr 2:39     MatchExpr      :: string
-  expr 2:45     IdentExpr      :: Direction
-  expr 2:45     IdentExpr      :: Status
   expr 31:51    StringLitExpr  :: string
   expr 31:54    IdentExpr      :: T[]
   expr 33:58    IfExpr         :: Direction | null
@@ -42,8 +42,8 @@
   expr 39:39    IdentExpr      :: Direction
   expr 39:5     CallExpr       :: void
   expr 39:5     IdentExpr      :: fn(T) -> void
-  expr 3:16     StringLitExpr  :: string
-  expr 3:19     StringLitExpr  :: string
+  expr 3:39     MatchExpr      :: string
+  expr 3:45     IdentExpr      :: Direction
   expr 40:10    CallExpr       :: Direction | null
   expr 40:10    IdentExpr      :: fn(bool) -> Direction | null
   expr 41:5     IfExpr         :: void
@@ -111,7 +111,7 @@
   expr 49:21    IdentExpr      :: fn(bool) -> null | u8
   expr 49:5     CallExpr       :: void
   expr 49:5     IdentExpr      :: fn(T) -> void
-  expr 4:18     StringLitExpr  :: string
-  expr 4:21     StringLitExpr  :: string
-  expr 5:19     StringLitExpr  :: string
-  expr 6:18     StringLitExpr  :: string
+  expr 4:19     StringLitExpr  :: string
+  expr 5:18     StringLitExpr  :: string
+  expr 6:19     StringLitExpr  :: string
+  expr 7:18     StringLitExpr  :: string
