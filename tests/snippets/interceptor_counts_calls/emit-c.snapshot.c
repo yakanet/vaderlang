@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct_snippet$__Layer_fib_t vader_struct_snippet$__Layer_fib_t;
-typedef struct vader_struct_snippet$__Layer_add_t vader_struct_snippet$__Layer_add_t;
+typedef struct vader_struct_snippet$fib$$Layer_t vader_struct_snippet$fib$$Layer_t;
+typedef struct vader_struct_snippet$add$$Layer_t vader_struct_snippet$add$$Layer_t;
 typedef struct vader_struct___Tuple_i32_i32_3103e027_t vader_struct___Tuple_i32_i32_3103e027_t;
 typedef struct vader_struct_snippet$Log__Any__i32_t vader_struct_snippet$Log__Any__i32_t;
 typedef struct vader_struct_std_core$Site__snippet_Logged_t vader_struct_std_core$Site__snippet_Logged_t;
@@ -18,12 +18,12 @@ typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
 typedef struct vader_struct_std_core$Site__Any_t vader_struct_std_core$Site__Any_t;
 typedef struct vader_struct_snippet_counter$Counted_t vader_struct_snippet_counter$Counted_t;
 
-struct vader_struct_snippet$__Layer_fib_t {
+struct vader_struct_snippet$fib$$Layer_t {
     vader_obj_header_t header;
     void* f_state;
     void* f_site;
 };
-struct vader_struct_snippet$__Layer_add_t {
+struct vader_struct_snippet$add$$Layer_t {
     vader_obj_header_t header;
     void* f_state;
     void* f_site;
@@ -135,15 +135,15 @@ static vader_gc_frame_t vader_global_frame = {
     NULL, 0u, 2u, NULL, vader_global_raw_roots, 0u, NULL,
 };
 
-static int64_t snippet$__intercepted_fib(int64_t l0);
+static int64_t snippet$fib$$intercepted(int64_t l0);
 static int32_t snippet$main(void);
-static void* snippet$__layer_fib(void);
+static void* snippet$fib$$layer(void);
 static int64_t snippet$fib(int64_t l0);
-static void* snippet$__layer_add(void);
+static void* snippet$add$$layer(void);
 static int32_t snippet$add(int32_t l0, int32_t l1);
-static void* snippet$__layer_fib$singleton(void);
+static void* snippet$fib$$layer$singleton(void);
 static int64_t __lambda_snippet_0(int64_t l0);
-static void* snippet$__layer_add$singleton(void);
+static void* snippet$add$$layer$singleton(void);
 static int32_t __lambda_snippet_1(void* l0);
 static int32_t snippet$logged__Any__i32(void* l0, void* l1, vader_box_t l2, void* l3);
 static vader_string_t concat_5(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4);
@@ -187,15 +187,15 @@ const vader_type_info_t vader_type_info_table[26] = {
     [1] = { .slot_size = 8 },
     [2] = { .slot_size = 4 },
     [3] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$__Layer_fib_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$fib$$Layer_t),
         .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$__Layer_fib_t, f_state), offsetof(vader_struct_snippet$__Layer_fib_t, f_site) },
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$fib$$Layer_t, f_state), offsetof(vader_struct_snippet$fib$$Layer_t, f_site) },
         .ref_count = 2,
     },
     [4] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$__Layer_add_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$add$$Layer_t),
         .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$__Layer_add_t, f_state), offsetof(vader_struct_snippet$__Layer_add_t, f_site) },
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$add$$Layer_t, f_state), offsetof(vader_struct_snippet$add$$Layer_t, f_site) },
         .ref_count = 2,
     },
     [5] = {
@@ -317,7 +317,7 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
     return;
 }
 
-static int64_t snippet$__intercepted_fib(int64_t l0) {
+static int64_t snippet$fib$$intercepted(int64_t l0) {
     int64_t l1, l2;
     int64_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
@@ -345,7 +345,7 @@ static int32_t snippet$main(void) {
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static void* snippet$__layer_fib(void) {
+static void* snippet$fib$$layer(void) {
     int32_t t0;
     void* t1 = NULL;
     void** gc_raw_roots[1] = { &t1 };
@@ -359,13 +359,13 @@ static void* snippet$__layer_fib(void) {
     t0 = vader_global_0;
     if (!(t0 == INT32_C(1))) {
         vader_global_0 = INT32_C(1);
-        t1 = snippet$__layer_fib$singleton();
+        t1 = snippet$fib$$layer$singleton();
         vader_global_1 = t1;
         vader_global_0 = INT32_C(2);
         t1 = vader_global_1;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_unreachable("singleton `__layer_fib` called while it initialises");
+    vader_unreachable("singleton `fib$$layer` called while it initialises");
     vader_gc_top = gc_frame.prev;
 }
 
@@ -382,16 +382,16 @@ static int64_t snippet$fib(int64_t l0) {
     if (t0 == INT32_C(2)) {
         l1 = vader_global_1;
     } else {
-        l1 = snippet$__layer_fib();
+        l1 = snippet$fib$$layer();
     }
-    l2 = ((vader_struct_snippet$__Layer_fib_t*) l1)->f_state;
-    l1 = ((vader_struct_snippet$__Layer_fib_t*) l1)->f_site;
+    l2 = ((vader_struct_snippet$fib$$Layer_t*) l1)->f_state;
+    l1 = ((vader_struct_snippet$fib$$Layer_t*) l1)->f_site;
     l3 = (void*) &vader_fn_static___lambda_snippet_0;
     t1 = snippet_counter$counted__i64__i64(l2, l1, l0, l3);
     { int64_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* snippet$__layer_add(void) {
+static void* snippet$add$$layer(void) {
     int32_t t0;
     void* t1 = NULL;
     void** gc_raw_roots[1] = { &t1 };
@@ -405,13 +405,13 @@ static void* snippet$__layer_add(void) {
     t0 = vader_global_2;
     if (!(t0 == INT32_C(1))) {
         vader_global_2 = INT32_C(1);
-        t1 = snippet$__layer_add$singleton();
+        t1 = snippet$add$$layer$singleton();
         vader_global_3 = t1;
         vader_global_2 = INT32_C(2);
         t1 = vader_global_3;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_unreachable("singleton `__layer_add` called while it initialises");
+    vader_unreachable("singleton `add$$layer` called while it initialises");
     vader_gc_top = gc_frame.prev;
 }
 
@@ -428,10 +428,10 @@ static int32_t snippet$add(int32_t l0, int32_t l1) {
     if (t0 == INT32_C(2)) {
         l2 = vader_global_3;
     } else {
-        l2 = snippet$__layer_add();
+        l2 = snippet$add$$layer();
     }
-    l3 = ((vader_struct_snippet$__Layer_add_t*) l2)->f_state;
-    l2 = ((vader_struct_snippet$__Layer_add_t*) l2)->f_site;
+    l3 = ((vader_struct_snippet$add$$Layer_t*) l2)->f_state;
+    l2 = ((vader_struct_snippet$add$$Layer_t*) l2)->f_site;
     vader_struct___Tuple_i32_i32_3103e027_t* _a0_obj = (vader_struct___Tuple_i32_i32_3103e027_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_i32_3103e027_t));
     vader_obj_header_init(_a0_obj, 5u);
     _a0_obj->f__0 = l0;
@@ -442,7 +442,7 @@ static int32_t snippet$add(int32_t l0, int32_t l1) {
     { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* snippet$__layer_fib$singleton(void) {
+static void* snippet$fib$$layer$singleton(void) {
     void* l0 = NULL;
     void* l1 = NULL;
     void* t0 = NULL;
@@ -464,7 +464,7 @@ static void* snippet$__layer_fib$singleton(void) {
     _a2_obj->f_location = 3u;
     _a2_obj->f_marker = vader_ref_box(l1);
     l1 = (void*) _a2_obj;
-    vader_struct_snippet$__Layer_fib_t* _a3_obj = (vader_struct_snippet$__Layer_fib_t*) vader_gc_alloc(sizeof(vader_struct_snippet$__Layer_fib_t));
+    vader_struct_snippet$fib$$Layer_t* _a3_obj = (vader_struct_snippet$fib$$Layer_t*) vader_gc_alloc(sizeof(vader_struct_snippet$fib$$Layer_t));
     vader_obj_header_init(_a3_obj, 3u);
     _a3_obj->f_state = l0;
     _a3_obj->f_site = l1;
@@ -474,11 +474,11 @@ static void* snippet$__layer_fib$singleton(void) {
 
 static int64_t __lambda_snippet_0(int64_t l0) {
     int64_t t0;
-    t0 = snippet$__intercepted_fib(l0);
+    t0 = snippet$fib$$intercepted(l0);
     return t0;
 }
 
-static void* snippet$__layer_add$singleton(void) {
+static void* snippet$add$$layer$singleton(void) {
     void* l0 = NULL;
     void* l1 = NULL;
     void* t0 = NULL;
@@ -499,7 +499,7 @@ static void* snippet$__layer_add$singleton(void) {
     _a2_obj->f_location = 5u;
     _a2_obj->f_marker = vader_ref_box(l1);
     l1 = (void*) _a2_obj;
-    vader_struct_snippet$__Layer_add_t* _a3_obj = (vader_struct_snippet$__Layer_add_t*) vader_gc_alloc(sizeof(vader_struct_snippet$__Layer_add_t));
+    vader_struct_snippet$add$$Layer_t* _a3_obj = (vader_struct_snippet$add$$Layer_t*) vader_gc_alloc(sizeof(vader_struct_snippet$add$$Layer_t));
     vader_obj_header_init(_a3_obj, 4u);
     _a3_obj->f_state = l0;
     _a3_obj->f_site = l1;

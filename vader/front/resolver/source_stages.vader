@@ -123,7 +123,7 @@ run_source_stages :: fn(
             }
             path :: generated_file(spec.name, m.found.name)
             content :: "module \"${m.found.name}\"\n${generated.text}"
-            parsed :: parse_source(content, path)
+            parsed :: parse_compiler_written(content, path)
             diags.push_all(parsed.errors)
             anchor_impls(parsed.program, generated.anchors)
             assign_program_ids(parsed.program, ids)

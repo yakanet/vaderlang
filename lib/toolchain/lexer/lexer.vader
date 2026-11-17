@@ -65,6 +65,8 @@ Lexer :: struct {
     // `doc_runs`, and the span of every comment in `comments`. The token stream is
     // the same either way.
     include_doc_comments: bool = false
+    // Set by `tokenize_compiler_written` : a name may end in `$$` and a word.
+    compiler_written: bool = false
     doc_runs: DocRun[] = []
     // The `///` lines read since the last token ; null when there are none, or when
     // a plain comment came after them.
@@ -404,13 +406,25 @@ handle_newline :: fn(l: Lexer) -> void {
 
 lex_ident :: fn(l: Lexer) -> void {
     start :: l.position_here()
-    for !l.at_end() && l.peek().is_ident_continue() {
-        l.advance(1)
+    skip_ident_continue(l)
+    if l.compiler_written && opens_generated_word(l) {
+        l.advance(2)
+        skip_ident_continue(l)
     }
     text :: l.src.byte_slice(start.offset, l.pos)
     kw :: lookup_keyword(text)
     l.push_simple(kw, text, start)
 }
+
+skip_ident_continue :: fn(l: Lexer) -> void {
+    for !l.at_end() && l.peek().is_ident_continue() {
+        l.advance(1)
+    }
+}
+
+// Whether `$$` and a word follow.
+opens_generated_word :: fn(l: Lexer) -> bool =
+    l.peek() == '$' && l.peek_at(1) == '$' && l.peek_at(2).is_ident_continue()
 
 // ---- numbers --------------------------------------------------------------
 
@@ -1191,6 +1205,19 @@ export tokenize_with_docs :: fn(source: string, file: string) -> LexedSource =
         .include_doc_comments = true,
     })
 
+/// Tokenize `source`, which the compiler wrote, as `tokenize` does, a name being
+/// allowed to end in `$$` and a word: `fib$$intercepted` (`generated_name` in
+/// `vader/core/mangle`). A `$` anywhere else is the error it is in a written file.
+///
+/// @param source  the text the compiler wrote.
+/// @param file    the path its spans name.
+export tokenize_compiler_written :: fn(source: string, file: string) -> LexedSource =
+    run_lexer(Lexer {
+        .src = source,
+        .file = file,
+        .compiler_written = true,
+    })
+
 /// Lex the opening of `source`, up to its first `count` tokens, as `tokenize`
 /// lexes them, and nothing after. A string literal comes whole, so the tokens can
 /// outnumber `count`; the lexer's diagnostics are dropped.
@@ -1237,6 +1264,15 @@ import "std/testing"
     l :: tokenize("foo", "test.vader")
     assert_eq(l.tokens.len(), 2) // ident + eof
     assert_eq(l.tokens[0].text, "foo")
+}
+
+@test test_tokenize_compiler_written_name :: fn() -> void {
+    lexed :: tokenize_compiler_written("fib\$\$layer", "test.vader")
+    assert_eq(lexed.tokens[0].text, "fib\$\$layer")
+}
+
+@test test_tokenize_written_name_stops_at_a_dollar :: fn() -> void {
+    assert_eq(tokenize("fib\$\$layer", "test.vader").tokens[0].text, "fib")
 }
 
 @test test_tokenize_int :: fn() -> void {

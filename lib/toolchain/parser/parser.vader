@@ -31,6 +31,14 @@ export ParsedSource :: struct {
 export parse_source :: fn(source: string, file: string) -> ParsedSource =
     parse_lexed(tokenize(source, file))
 
+/// Parse `source`, which the compiler wrote, as `parse_source` does: a name may end
+/// in `$$` and a word (`tokenize_compiler_written`), which no user can spell.
+///
+/// @param source  the text the compiler wrote.
+/// @param file    the path its spans name.
+export parse_compiler_written :: fn(source: string, file: string) -> ParsedSource =
+    parse_lexed(tokenize_compiler_written(source, file))
+
 /// Parse `source` as `parse_source` does, and give every declaration, struct field,
 /// enum variant and trait or impl member the `///` block written above it, in its
 /// `doc` field. The tree is otherwise the same, and `comments` holds the span of

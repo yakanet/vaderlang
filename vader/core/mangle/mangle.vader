@@ -13,6 +13,7 @@
 
 module "vader/core/mangle"
 
+import "std/abort"
 import "std/collections"
 import "std/string"
 import "std/string_builder"
@@ -167,6 +168,37 @@ export derived_mangle :: fn(base: string, role: DerivedRole) -> string = match r
     .Dispatcher     -> "${base}\$\$dispatch"
 }
 
+/// A declaration the compiler writes as source, named after the one it serves.
+export GeneratedRole :: enum {
+    /// The body an interceptor wraps, under the name it takes.
+    Intercepted
+    /// The singleton an intercepted function keeps its state and its site in.
+    Layer
+    /// The struct that singleton builds.
+    LayerType
+}
+
+/// The name of the declaration `role` the compiler writes for `base`, a name as
+/// written: `fib$$intercepted`. It meets no declaration's name, written or derived
+/// (ADR 0157).
+///
+/// @param base  the declaration it serves, by its written name: never one
+///              `generated_name` gave, which the lexer could not read back.
+/// @param role  what the written declaration is.
+export generated_name :: fn(base: string, role: GeneratedRole) -> string {
+    if "\$" in base {
+        panic("generated_name: `${base}` is no written name")
+    }
+    return "${base}\$\$${generated_word(role)}"
+}
+
+// The word `role` adds after the `$$`: never the word of a `DerivedRole`.
+generated_word :: fn(role: GeneratedRole) -> string = match role {
+    .Intercepted -> "intercepted"
+    .Layer       -> "layer"
+    .LayerType   -> "Layer"
+}
+
 /// The key a virtual call and the vtable rows it may land on share: the trait's
 /// `trait_key` and the method's name, `std_core$Display.to_string`.
 ///
@@ -274,11 +306,18 @@ export mangle_module_part :: fn(mangled: string) -> string {
 
 /// The last segment of a mangled name: what comes after its last `$`, the whole
 /// name when it has none. `snippet$main` gives `main`, `std_core$Display` gives
-/// `Display`.
+/// `Display`. A name the compiler derives or writes keeps its base:
+/// `snippet$fib$$layer` gives `fib$$layer`, a dispatcher `to_string$$dispatch`.
 ///
 /// @param mangled  a mangled name.
 export mangle_last_segment :: fn(mangled: string) -> string {
     at :: mangled.last_index_of('$') else return mangled
+    if at >= 2 && mangled.byte_at(at - 1) == '$' {
+        base_at :: mangled.byte_slice(0, at - 1).last_index_of('$')
+        if base_at != null && base_at + 1 < at - 1 {
+            return mangled.byte_slice(base_at + 1, mangled.byte_len())
+        }
+    }
     return mangled.byte_slice(at + 1, mangled.byte_len())
 }
 
@@ -355,4 +394,33 @@ test_mangle_readers_split_at_the_outer_dollars :: fn() -> void {
     assert_eq(mangle_module_part("__lambda_1"), "")
     assert_eq(mangle_last_segment(r"snippet$main"), "main")
     assert_eq(mangle_last_segment("main"), "main")
+}
+
+@test
+test_generated_name_meets_no_derived_role :: fn() -> void {
+    words :: Set<string> {}
+    for role in DerivedRole {
+        word := derived_mangle("", role)
+        for word.starts_with("\$") {
+            word = word.trim_prefix("\$")
+        }
+        words.add(word)
+    }
+    for role in GeneratedRole {
+        assert(generated_word(role) !in words, "`${generated_word(role)}` is a derived role")
+        words.add(generated_word(role))
+    }
+}
+
+@test
+test_generated_name_follows_its_base :: fn() -> void {
+    assert_eq(generated_name("fib", .Intercepted), "fib\$\$intercepted")
+}
+
+@test
+test_mangle_last_segment_keeps_a_generated_base :: fn() -> void {
+    assert_eq(mangle_last_segment("snippet\$fib\$\$layer"), "fib\$\$layer")
+    assert_eq(mangle_last_segment("snippet\$main"), "main")
+    assert_eq(mangle_last_segment("test\$\$genstate_count"), "genstate_count")
+    assert_eq(mangle_last_segment("std_core\$Display\$to_string\$\$dispatch"), "to_string\$\$dispatch")
 }

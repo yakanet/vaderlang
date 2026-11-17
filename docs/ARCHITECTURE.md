@@ -70,7 +70,9 @@ function is renamed, and its file gains a wrapper under its name, which calls
 `around`, and one `@singleton` holding its state and its `Site`, whose decorator value
 `@decorator` reads once the comptime pass has computed it (the typecheck records
 which decorator a call reads, `decorator_reads`, and the lowerer builds the value
-as a literal). All of it is written as source and parsed.
+as a literal). All of it is written as source and parsed (`parse_compiler_written`),
+under names no user can write: `g$$intercepted`, `g$$layer` (`generated_name` in
+`vader/core/mangle`, ADR 0157).
 The decorator is matched to its declaration from the parsed files alone
 (`decorator_origin.vader`), the way the resolver later finds it. Every module is
 collected only then, in the order the modules were read, so symbol ids do not

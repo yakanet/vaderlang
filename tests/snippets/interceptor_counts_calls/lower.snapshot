@@ -2,18 +2,18 @@
 
 ## snippet
   storage
-    global #0 i32  __layer_fib.state
-    global #1 __Layer_fib  __layer_fib.instance
-    global #2 i32  __layer_add.state
-    global #3 __Layer_add  __layer_add.instance
+    global #0 i32  fib$$layer.state
+    global #1 fib$$Layer  fib$$layer.instance
+    global #2 i32  add$$layer.state
+    global #3 add$$Layer  add$$layer.instance
   snippet.Logged :: struct { label: string }  // snippet$Logged
-  snippet.__intercepted_fib :: fn(n: i64) -> i64 {  // snippet$__intercepted_fib
+  snippet.fib$$intercepted :: fn(n: i64) -> i64 {  // snippet$fib$$intercepted
       if n < i64(2) {
           return n
       }
       return snippet.fib(n - i64(1)) + snippet.fib(n - i64(2))
   }
-  snippet.__intercepted_add :: fn(a: i32, b: i32) -> i32 {  // snippet$__intercepted_add
+  snippet.add$$intercepted :: fn(a: i32, b: i32) -> i32 {  // snippet$add$$intercepted
       a + b
   }
   snippet.main :: fn() -> i32 {  // snippet$main
@@ -21,42 +21,42 @@
       std.console.println<i32>(snippet.add(2, 3))
       return 0
   }
-  snippet.__Layer_fib :: struct { state: Count<i64, i64>, site: Site<Counted> }  // snippet$__Layer_fib
-  snippet.__layer_fib :: fn() -> __Layer_fib {  // snippet$__layer_fib
+  snippet.fib$$Layer :: struct { state: Count<i64, i64>, site: Site<Counted> }  // snippet$fib$$Layer
+  snippet.fib$$layer :: fn() -> fib$$Layer {  // snippet$fib$$layer
       if @global(0) == 2 {
           return @global(1)
       }
       if @global(0) == 1 {
-          @unreachable("singleton `__layer_fib` called while it initialises")
+          @unreachable("singleton `fib\$\$layer` called while it initialises")
       }
       @global(0) = 1
-      @global(1) = snippet$__layer_fib$singleton()
+      @global(1) = snippet$fib$$layer$singleton()
       @global(0) = 2
       return @global(1)
   }
   snippet.fib :: fn(n: i64) -> i64 {  // snippet$fib
-      layer: __Layer_fib = if @global(0) == 2 { @global(1) } else { snippet.__layer_fib() }
+      layer: fib$$Layer = if @global(0) == 2 { @global(1) } else { snippet.fib$$layer() }
       return snippet.counter.counted<i64, i64>(layer.state, layer.site, n, __lambda_snippet_0)
   }
-  snippet.__Layer_add :: struct { state: Log<[i32, i32], i32>, site: Site<Logged> }  // snippet$__Layer_add
-  snippet.__layer_add :: fn() -> __Layer_add {  // snippet$__layer_add
+  snippet.add$$Layer :: struct { state: Log<[i32, i32], i32>, site: Site<Logged> }  // snippet$add$$Layer
+  snippet.add$$layer :: fn() -> add$$Layer {  // snippet$add$$layer
       if @global(2) == 2 {
           return @global(3)
       }
       if @global(2) == 1 {
-          @unreachable("singleton `__layer_add` called while it initialises")
+          @unreachable("singleton `add\$\$layer` called while it initialises")
       }
       @global(2) = 1
-      @global(3) = snippet$__layer_add$singleton()
+      @global(3) = snippet$add$$layer$singleton()
       @global(2) = 2
       return @global(3)
   }
   snippet.add :: fn(a: i32, b: i32) -> i32 {  // snippet$add
-      layer: __Layer_add = if @global(2) == 2 { @global(3) } else { snippet.__layer_add() }
+      layer: add$$Layer = if @global(2) == 2 { @global(3) } else { snippet.add$$layer() }
       return snippet.logged<[i32, i32], i32>(layer.state, layer.site, [a, b] :[i32, i32], __lambda_snippet_1)
   }
-  snippet$__layer_fib$singleton :: fn() -> __Layer_fib {
-      __Layer_fib {
+  snippet$fib$$layer$singleton :: fn() -> fib$$Layer {
+      fib$$Layer {
           .state = Count<i64, i64> { .calls = i64(0) },
           .site = Site<Any> {
               .function = "fib",
@@ -67,10 +67,10 @@
       }
   }
   __lambda_snippet_0 :: fn(args: i64) -> i64 {
-      snippet.__intercepted_fib(args)
+      snippet.fib$$intercepted(args)
   }
-  snippet$__layer_add$singleton :: fn() -> __Layer_add {
-      __Layer_add {
+  snippet$add$$layer$singleton :: fn() -> add$$Layer {
+      add$$Layer {
           .state = Log<[Any, Any], i32> {},
           .site = Site<Any> {
               .function = "add",

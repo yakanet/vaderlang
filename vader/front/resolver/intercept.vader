@@ -2,19 +2,20 @@
 //
 // A decorator `D` declared under `@interceptor(around = "f")` routes every call of
 // a function it decorates through `f`. Once every module is parsed and before any
-// is collected, each such function `g` is renamed `__intercepted_g` and loses its
+// is collected, each such function `g` is renamed `g$$intercepted` and loses its
 // `export`, and its file gains:
 //
-//     __Layer_g :: struct { state: S<A, R>, site: Site<D> }
+//     g$$Layer :: struct { state: S<A, R>, site: Site<D> }
 //     @singleton
-//     __layer_g :: fn() = __Layer_g { .state = S<A, R> {}, .site = Site<D> { ... } }
+//     g$$layer :: fn() = g$$Layer { .state = S<A, R> {}, .site = Site<D> { ... } }
 //     g :: fn(<the parameters of g>) -> R {
-//         layer :: __layer_g()
-//         return f(layer.state, layer.site, <args>, (args) -> __intercepted_g(...))
+//         layer :: g$$layer()
+//         return f(layer.state, layer.site, <args>, (args) -> g$$intercepted(...))
 //     }
 //
 // One singleton holds both, so a call reads one instance: the site's decorator is
-// `@decorator(__intercepted_g, D)`.
+// `@decorator(g$$intercepted, D)`. The names are `generated_name`'s, which no
+// declaration a user writes can take.
 // `S` is the struct the first parameter of `f` names, `A` the one parameter's
 // type or the tuple of them, `R` the written result. The wrapper takes the name,
 // so every call reaches it, the recursive ones of `g` included. It is written in
@@ -33,6 +34,7 @@ import "toolchain/diagnostics"
 import "toolchain/lexer"
 import "toolchain/parser"
 import "toolchain/span"
+import "vader/core/mangle"
 
 // The kind of the files the wrappers are parsed under (`generated_file`): no
 // source stage takes it as its name.
@@ -157,7 +159,7 @@ wrap_file :: fn(
     if wrapped.is_empty() {
         return
     }
-    parsed :: parse_source(
+    parsed :: parse_compiler_written(
         "module \"${module_name}\"\n${glue.to_string()}",
         generated_file(INTERCEPT_KIND, source.path),
     )
@@ -175,7 +177,7 @@ wrap_file :: fn(
         if wrapper != null {
             wrapper.doc = f.doc
         }
-        f.name = "__intercepted_${f.name}"
+        f.name = generated_name(f.name, .Intercepted)
         f.visibility = .Private
         f.doc = null
     }
@@ -252,28 +254,31 @@ wrapper_text :: fn(
     location :: "${source.path.to_path().filename()}:${f.name_span.start.line}"
     decorator_name :: "${qualifier}${interception.name}"
     state_type :: "${qualifier}${interceptor.state}<${arguments_type(content, f)}, ${result_text}>"
+    intercepted :: generated_name(f.name, .Intercepted)
+    layer :: generated_name(f.name, .Layer)
+    layer_type :: generated_name(f.name, .LayerType)
     out :: StringBuilder {}
-    out.append("__Layer_${f.name} :: struct {\n")
+    out.append("${layer_type} :: struct {\n")
     out.append("    state: ${state_type}\n")
     out.append("    site: Site<${decorator_name}>\n")
     out.append("}\n")
     out.append("@singleton\n")
-    out.append("__layer_${f.name} :: fn() = __Layer_${f.name} {\n")
+    out.append("${layer} :: fn() = ${layer_type} {\n")
     out.append("    .state = ${state_type} {},\n")
     out.append("    .site = Site<${decorator_name}> {\n")
     out.append("        .function = ${quote_vader(f.name)},\n")
     out.append("        .module = ${quote_vader(module_name)},\n")
     out.append("        .location = ${quote_vader(location)},\n")
-    out.append("        .marker = @decorator(__intercepted_${f.name}, ${decorator_name}),\n")
+    out.append("        .marker = @decorator(${intercepted}, ${decorator_name}),\n")
     out.append("    },\n")
     out.append("}\n")
     if f.visibility == .Public {
         out.append("export ")
     }
     out.append("${f.name} :: fn${f.params_span.text_in(content)} -> ${result_text} {\n")
-    out.append("    layer :: __layer_${f.name}()\n")
+    out.append("    layer :: ${layer}()\n")
     out.append("    return ${qualifier}${interceptor.around}(layer.state, layer.site, ")
-    out.append("${tupled(names)}, (args) -> __intercepted_${f.name}(${spread(names.len())}))\n")
+    out.append("${tupled(names)}, (args) -> ${intercepted}(${spread(names.len())}))\n")
     out.append("}\n")
     return out.to_string()
 }
