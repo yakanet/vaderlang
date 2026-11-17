@@ -1,0 +1,297 @@
+// vader/front/resolver/intercept: the functions a declared interceptor wraps.
+//
+// A decorator declared under `@interceptor(around = "f")` routes every call of a
+// function it decorates through `f`. Once every module is parsed and before any
+// is collected, each such function `g` is renamed `__intercepted_g` and loses its
+// `export`, and its file gains:
+//
+//     @singleton
+//     __state_g :: fn() = S<A, R> {}
+//     g :: fn(<the parameters of g>) -> R = f(__state_g(), <args>, (args) -> __intercepted_g(...))
+//
+// `S` is the struct the first parameter of `f` names, `A` the one parameter's
+// type or the tuple of them, `R` the written result. The wrapper takes the name,
+// so every call reaches it, the recursive ones of `g` included. It is written in
+// the file of `g`, which sees the types `g` names and the interceptor under the
+// import `g` wrote it with.
+
+module "vader/front/resolver"
+
+import "std/collections"
+import "std/iter"
+import "std/string"
+import "std/string_builder"
+import "toolchain/ast"
+import "toolchain/diagnostics"
+import "toolchain/parser"
+import "toolchain/span"
+
+// Prefix of the file name the wrappers of a file are parsed under ; the rest is
+// that file's path, which keeps each span of a wrapper unique.
+INTERCEPT_FILE_PREFIX :: "<intercept>:"
+
+// What a declared interceptor routes the calls of its functions through.
+Interceptor :: struct {
+    /// Its decorator.
+    origin: DecoratorOrigin
+    /// The function every call goes through.
+    around: string
+    /// The struct its first parameter names: the state each function keeps.
+    state: string
+}
+
+/// Wrap every function a declared interceptor decorates, in every module of a
+/// load.
+///
+/// @param modules  the modules of the load, parsed, none collected yet.
+/// @param ids      numbers the declarations the wrapping adds.
+/// @param diags    where a misdeclared interceptor and a function it cannot wrap
+///                 are reported.
+intercept_functions :: fn(
+    modules: DeferredModule[],
+    ids: NodeIdFactory,
+    diags: Diagnostic[],
+) -> void {
+    interceptors :: declared_interceptors(modules, diags)
+    if interceptors.is_empty() {
+        return
+    }
+    declared :: declared_decorators(modules)
+    for m in modules {
+        for source in m.sources {
+            wrap_file(source, m.found.name, interceptors, declared, ids, diags)
+        }
+    }
+}
+
+/// Whether `file` holds the wrappers an interceptor wrote: what the source does
+/// not write, a warning does not report.
+///
+/// @param file  the file of a span.
+export is_interceptor_file :: fn(file: string) -> bool = file.starts_with(INTERCEPT_FILE_PREFIX)
+
+// The interceptors `modules` declare.
+declared_interceptors :: fn(modules: DeferredModule[], diags: Diagnostic[]) -> Interceptor[] {
+    out: Interceptor[]: []
+    for m in modules {
+        for source in m.sources {
+            for d in source.program.decls.filter_is<StructDecl>() {
+                marker :: find_compiler_decorator(d.decorators, .Interceptor) else continue
+                around :: string_field(marker, "around", 0)
+                state :: state_of(m.sources, around) else {
+                    diags.push(resolver_error(
+                        .InterceptorMisdeclared,
+                        marker.span,
+                        "`${around}` is no function of this module taking its state first, "
+                            + "`S<A, R>`",
+                    ))
+                    continue
+                }
+                out.push(Interceptor {
+                    .origin = DecoratorOrigin { .module = m.found.name, .name = d.name },
+                    .around = around,
+                    .state = state,
+                })
+            }
+        }
+    }
+    return out
+}
+
+// The struct the first parameter of the function `around` names, among the
+// declarations of `sources`: `S` for `fn<A, R>(state: S<A, R>, ...)`.
+state_of :: fn(sources: SourceFile[], around: string) -> string | null {
+    for source in sources {
+        for f in source.program.decls.filter_is<FnDecl>() {
+            if f.name != around || f.params.is_empty() {
+                continue
+            }
+            written :: f.params[0].ty
+            if written is GenericInstExpr && written.callee is IdentExpr {
+                return written.callee.name
+            }
+        }
+    }
+    return null
+}
+
+// An interceptor of a function and the prefix its names take in the wrapper: the
+// namespace alias the decorator is written behind and its dot, "" when it is
+// written bare.
+Interception :: struct {
+    interceptor: Interceptor
+    qualifier: string
+}
+
+// Wrap the functions of `source` an interceptor decorates. The wrappers are
+// written from the names as written, so the functions are renamed after.
+wrap_file :: fn(
+    source: SourceFile,
+    module_name: string,
+    interceptors: Interceptor[],
+    declared: Map<string, Set<string>>,
+    ids: NodeIdFactory,
+    diags: Diagnostic[],
+) -> void {
+    program :: source.program
+    glue :: StringBuilder {}
+    wrapped: FnDecl[]: []
+    for f in program.decls.filter_is<FnDecl>() {
+        interceptions :: interceptions_of(program, module_name, f, interceptors, declared)
+        if interceptions.is_empty() {
+            continue
+        }
+        reason :: refusal(f, interceptions)
+        if reason != null {
+            diags.push(resolver_error(.CannotIntercept, f.name_span, reason))
+            continue
+        }
+        result :: f.return_type else continue
+        glue.append(wrapper_text(source.content, f, result, interceptions[0]))
+        wrapped.push(f)
+    }
+    if wrapped.is_empty() {
+        return
+    }
+    parsed :: parse_source(
+        "module \"${module_name}\"\n${glue.to_string()}",
+        "${INTERCEPT_FILE_PREFIX}${source.path}",
+    )
+    diags.push_all(parsed.errors)
+    assign_program_ids(parsed.program, ids)
+    wrappers :: Map<string, FnDecl> {}
+    for d in parsed.program.decls {
+        program.decls.push(d)
+        if d is FnDecl {
+            wrappers[d.name] = d
+        }
+    }
+    for f in wrapped {
+        wrapper :: wrappers[f.name]
+        if wrapper != null {
+            wrapper.doc = f.doc
+        }
+        f.name = "__intercepted_${f.name}"
+        f.visibility = .Private
+        f.doc = null
+    }
+}
+
+// The interceptors the decorators of `f` name, written in `program`, a file of
+// the module `module_name`.
+interceptions_of :: fn(
+    program: Program,
+    module_name: string,
+    f: FnDecl,
+    interceptors: Interceptor[],
+    declared: Map<string, Set<string>>,
+) -> Interception[] {
+    out: Interception[]: []
+    for d in f.decorators {
+        origin :: written_origin(program, module_name, d, declared) else continue
+        for i in interceptors {
+            if i.origin.module == origin.module && i.origin.name == origin.name {
+                out.push(Interception { .interceptor = i, .qualifier = qualifier_of(d) })
+            }
+        }
+    }
+    return out
+}
+
+// What the names of the module of `d` are written after: its namespace alias and
+// a dot, "" for a bare decorator.
+qualifier_of :: fn(d: Decorator) -> string {
+    qualifier :: d.qualifier else return ""
+    return "${qualifier.name}."
+}
+
+// Why `f`, marked by `interceptions`, cannot be wrapped, null when it can.
+refusal :: fn(f: FnDecl, interceptions: Interception[]) -> string | null {
+    if interceptions.len() > 1 {
+        first :: interceptions[0].interceptor.origin.name
+        second :: interceptions[1].interceptor.origin.name
+        return "`${f.name}` is marked by `${first}` and `${second}`, and a call goes through one"
+    }
+    if f.body == null {
+        return "`${f.name}` has no body to call"
+    }
+    if !f.type_params.is_empty() {
+        return "`${f.name}` is generic, and a state is kept per function"
+    }
+    if f.params.is_empty() {
+        return "`${f.name}` takes no parameter to pass on"
+    }
+    if f.return_type == null {
+        return "the result of `${f.name}` must be written"
+    }
+    return null
+}
+
+// The state and the wrapper of `f`, whose written result is `result`, read from
+// `content`, the text of its file.
+wrapper_text :: fn(
+    content: string,
+    f: FnDecl,
+    result: TypeExpr,
+    interception: Interception,
+) -> string {
+    result_text :: result.span.text_in(content)
+    names :: f.params.map((p) -> p.name).collect()
+    qualifier :: interception.qualifier
+    interceptor :: interception.interceptor
+    out :: StringBuilder {}
+    out.append("@singleton\n")
+    out.append("__state_${f.name} :: fn() = ${qualifier}${interceptor.state}")
+    out.append("<${arguments_type(content, f)}, ${result_text}> {}\n")
+    if f.visibility == .Public {
+        out.append("export ")
+    }
+    out.append("${f.name} :: fn${f.params_span.text_in(content)} -> ${result_text} = ")
+    out.append("${qualifier}${interceptor.around}(__state_${f.name}(), ${tupled(names)}, ")
+    out.append("(args) -> __intercepted_${f.name}(${spread(names.len())}))\n")
+    return out.to_string()
+}
+
+// The type the parameters of `f` travel as: the one's, or their tuple. An
+// unwritten type is the typecheck's to report.
+arguments_type :: fn(content: string, f: FnDecl) -> string {
+    types: string[]: []
+    for p in f.params {
+        written_type :: p.ty else continue
+        types.push(written_type.span.text_in(content))
+    }
+    return tupled(types)
+}
+
+// `items` as one value: the one item, or their tuple. `spread` takes it apart.
+tupled :: fn(items: string[]) -> string {
+    if items.len() == 1 {
+        return items[0]
+    }
+    return "[${items.join(", ")}]"
+}
+
+// The arguments a lambda taking `args` passes on, as `tupled` built it: `args`,
+// or each element.
+spread :: fn(count: i64) -> string {
+    if count == 1 {
+        return "args"
+    }
+    return (0..<count).map((i) -> "args.${i}").collect().join(", ")
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_intercept_passes_one_argument_alone :: fn() -> void {
+    assert_eq(tupled(["n"]), "n")
+    assert_eq(spread(1), "args")
+}
+
+@test
+test_intercept_passes_several_arguments_as_a_tuple :: fn() -> void {
+    assert_eq(tupled(["a", "b"]), "[a, b]")
+    assert_eq(spread(2), "args.0, args.1")
+}

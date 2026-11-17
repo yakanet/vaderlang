@@ -242,6 +242,8 @@ export ResolverCode :: enum(CodeInfo) {
     NoTargetBodyCoversTarget     { .id = "R2041", .message = "no `@target` body covers the target being built" },
     UnionInBound                 { .id = "R2042", .message = "a bound cannot be a union" },
     CompilerDecoratorName        { .id = "R2043", .message = "this name belongs to a decorator of the compiler" },
+    InterceptorMisdeclared       { .id = "R2044", .message = "an interceptor names no `around` function it can call" },
+    CannotIntercept              { .id = "R2045", .message = "this function cannot be intercepted" },
 }
 
 // C-codes belong to the comptime evaluator.

@@ -1,0 +1,148 @@
+// vader/front/resolver/decorator_origin: the declaration a decorator names, as a
+// file writes it.
+//
+// Read once every module is parsed and before any is collected, from the files
+// alone: a declaration written with `decorator` in place of `struct` declares a
+// decorator, and an import is the only way a file reaches the decorators of
+// another module. A bare name is the file's own module's first, then a wildcard
+// import's, as the resolver later finds it.
+
+module "vader/front/resolver"
+
+import "std/collections"
+import "std/iter"
+import "toolchain/ast"
+
+// A decorator declaration: the module that declares it and its name there.
+DecoratorOrigin :: struct {
+    module: string
+    name: string
+}
+
+// The decorators each module of `modules` declares, by module name.
+declared_decorators :: fn(modules: DeferredModule[]) -> Map<string, Set<string>> {
+    out :: Map<string, Set<string>> {}
+    for m in modules {
+        names :: out[m.found.name] else {
+            created :: Set<string> {}
+            out[m.found.name] = created
+            created
+        }
+        for source in m.sources {
+            for d in source.program.decls.filter_is<StructDecl>() {
+                if is_decorator(d) {
+                    names.add(d.name)
+                }
+            }
+        }
+    }
+    return out
+}
+
+// The declaration `d` names, written in `program`, a file of the module
+// `module_name`: null when no module of the load declares it as written.
+written_origin :: fn(
+    program: Program,
+    module_name: string,
+    d: Decorator,
+    declared: Map<string, Set<string>>,
+) -> DecoratorOrigin | null {
+    qualifier :: d.qualifier
+    if qualifier != null {
+        for i in program.decls.filter_is<ImportDecl>() {
+            binding :: i.binding
+            if binding is NamedNamespaceImport && binding.name == qualifier.name {
+                return declared_in(declared, i.path, d.name)
+            }
+        }
+        return null
+    }
+    own :: declared_in(declared, module_name, d.name)
+    if own != null {
+        return own
+    }
+    for i in program.decls.filter_is<ImportDecl>() {
+        name :: declared_name_through(i.binding, d.name) else continue
+        found :: declared_in(declared, i.path, name)
+        if found != null {
+            return found
+        }
+    }
+    return null
+}
+
+// The decorator `name` of the module `module_name`, null when it declares none.
+declared_in :: fn(
+    declared: Map<string, Set<string>>,
+    module_name: string,
+    name: string,
+) -> DecoratorOrigin | null {
+    names :: declared[module_name] else return null
+    if name !in names {
+        return null
+    }
+    return DecoratorOrigin { .module = module_name, .name = name }
+}
+
+// The name the module behind `binding` declares for `written`: itself through a
+// wildcard, the source name of a rename, null through a namespace alias or when
+// the import renames or drops it. A name written with no `as` drops nothing, as
+// the collection reads it.
+declared_name_through :: fn(binding: ImportBinding, written: string) -> string | null {
+    if binding is WildcardImport {
+        return written
+    }
+    if binding is DestructureImport {
+        renamed :: binding.names.find((n) -> n.alias == written)
+        if renamed != null {
+            return renamed.name
+        }
+        if binding.names.any_match((n) -> n.name == written && n.alias != null) {
+            return null
+        }
+        return written
+    }
+    return null
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "toolchain/parser"
+
+// The origin of the decorator on the first function of `source`, a file of the
+// module `app`, where `lib` declares `Traced`; "" when none.
+origin_written_in :: fn(source: string) -> string {
+    program :: parse_source(source, "app.vader").program
+    declared :: Map<string, Set<string>> {}
+    traced :: Set<string> {}
+    traced.add("Traced")
+    declared["lib"] = traced
+    f :: program.decls.filter_is<FnDecl>().collect()[0]
+    origin :: written_origin(program, "app", f.decorators[0], declared) else return ""
+    return "${origin.module}.${origin.name}"
+}
+
+@test
+test_decorator_origin_through_a_wildcard :: fn() -> void {
+    source :: "module \"app\"\nimport \"lib\"\n@Traced\nf :: fn() -> i32 = 0\n"
+    assert_eq(origin_written_in(source), "lib.Traced")
+}
+
+@test
+test_decorator_origin_through_an_alias :: fn() -> void {
+    source :: "module \"app\"\nL :: import \"lib\"\n@L.Traced\nf :: fn() -> i32 = 0\n"
+    assert_eq(origin_written_in(source), "lib.Traced")
+}
+
+@test
+test_decorator_origin_through_a_rename :: fn() -> void {
+    source :: "module \"app\"\nimport \"lib\" { Traced as T }\n@T\nf :: fn() -> i32 = 0\n"
+    assert_eq(origin_written_in(source), "lib.Traced")
+}
+
+@test
+test_decorator_origin_lost_when_the_import_drops_it :: fn() -> void {
+    source :: "module \"app\"\nimport \"lib\" { Traced as _ }\n@Traced\nf :: fn() -> i32 = 0\n"
+    assert_eq(origin_written_in(source), "")
+}

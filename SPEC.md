@@ -3409,6 +3409,7 @@ Decorators are written with `@`. The compiler's own, in the table below, are ins
 | `@target`, `@target(.Os, ...)` | top-level fn | Selects the body for the target OS (§17 *Target selection*) |
 | `@displayable` | enum | Generates `Display`: each variant renders as its name (§4 *Enums*) |
 | `@singleton` | top-level fn without parameters | Runs the body once and returns the same instance to every call (below) |
+| `@interceptor(around = "f")` | decorator declaration | Routes every call of a function the decorator marks through `f` (*Interceptors*, below) |
 | `@returns(cond)` | top-level fn returning `bool` | The function returns the value of `cond` (§3 *Declared guards*) |
 | `@ensures(cond)` | top-level fn | `cond` holds when the function returns (§3 *Declared postconditions*) |
 | `@allow_unused` | any top-level declaration, an import | Exempts the declaration from the dead-code warning, or the import from the unused-import warning (below) |
@@ -3466,6 +3467,34 @@ list_users :: fn() -> string = "users"
 - A name after `@` that names no decorator, or names a declaration that is not one, is an error. The compiler's decorators, declared in `std/core`, are written only at the places their declarations name and take their arguments as their fields say, like any other. They are read as written and never computed: each argument is a literal (a string without interpolation, a number, a boolean, an enum variant), except the library of `@extern`, a `CLibrary` constant, and the condition of `@returns`, `@ensures` and `@assert`. None of them is a value a program names.
 
 A decorator is written above a struct field as above a declaration, beside `@internal`, and above an enum variant, where no decorator of the compiler applies. On a function parameter it is written before the name, beside the compiler's `@c_*` of an `@extern`. Above the `module` line it decorates the module; when a module spans several files, each writes its own.
+
+### Interceptors
+
+A decorator declared with `@interceptor(around = "f")` routes every call of a function it marks through `f`, a function of the decorator's module:
+
+```vader
+export Count :: struct<A, R> {
+    calls: i64 = 0
+}
+
+@interceptor(around = "counted")
+export Counted :: decorator(.Function) {}
+
+export counted :: fn<A, R>(state: Count<A, R>, args: A, proceed: fn(A) -> R) -> R {
+    state.calls += 1
+    return proceed(args)
+}
+
+@Counted
+fib :: fn(n: i64) -> i64 = if n < 2 { n } else { fib(n - 1) + fib(n - 2) }
+```
+
+- The function `around` names takes three parameters: the state of the marked function, its arguments, and `proceed`, which calls the marked function itself. It returns what the call returns.
+- `A` is the type of the one parameter of the marked function, or the tuple of the types of its parameters: `fn(a: i32, b: i32) -> i32` passes `[i32, i32]`, which `proceed` takes back. `R` is its result.
+- The state is a struct `S<A, R>` of the decorator's module, whose fields all have a default. Each marked function keeps one for the whole program, built on its first call.
+- Every call goes through `around`, the recursive calls of the function included: `fib(4)` above counts nine calls.
+- The decorator is written `@D` or `@Alias.D`. Used from another module, the decorator, the function and the state are all exported.
+- `around` names a function of the decorator's module whose first parameter is the state; otherwise it is an error. So is a marked function that is generic, takes no parameter, has no body, does not write its result, or is marked by two interceptors.
 
 ### `@assert`
 

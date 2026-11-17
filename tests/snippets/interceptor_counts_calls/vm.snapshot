@@ -1,0 +1,15 @@
+# stdout
+call 1
+call 2
+call 3
+call 4
+call 5
+call 6
+call 7
+call 8
+call 9
+3
+-> 5
+5
+# exit
+0

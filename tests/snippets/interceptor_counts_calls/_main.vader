@@ -1,0 +1,37 @@
+// An interceptor routes every call of the functions it decorates through its
+// `around` function, the recursive calls included: `fib(4)` is called nine times.
+// One declared in another module is written behind its namespace alias; one
+// declared here is written bare, over a function whose two parameters travel as a
+// tuple.
+module "snippet"
+
+import "std/console"
+C :: import "snippet/counter"
+
+Log :: struct<A, R> {}
+
+@interceptor(around = "logged")
+Logged :: decorator(.Function) {}
+
+logged :: fn<A, R: Display>(state: Log<A, R>, args: A, proceed: fn(A) -> R) -> R {
+    result :: proceed(args)
+    println("-> ${result}")
+    return result
+}
+
+@C.Counted
+fib :: fn(n: i64) -> i64 {
+    if n < 2 {
+        return n
+    }
+    return fib(n - 1) + fib(n - 2)
+}
+
+@Logged
+add :: fn(a: i32, b: i32) -> i32 = a + b
+
+main :: fn() -> i32 {
+    println(fib(4))
+    println(add(2, 3))
+    return 0
+}

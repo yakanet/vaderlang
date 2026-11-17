@@ -30,6 +30,7 @@ export CompilerDecorator :: enum(DecoratorName) {
     Displayable { .text = "displayable" },
     Ensures     { .text = "ensures" },
     Extern      { .text = "extern" },
+    Interceptor { .text = "interceptor" },
     Internal    { .text = "internal" },
     MainThread  { .text = "main_thread" },
     NoReturn    { .text = "no_return" },
@@ -59,6 +60,7 @@ export compiler_decorator_named :: fn(name: string) -> CompilerDecorator | null 
     "displayable"  -> .Displayable
     "ensures"      -> .Ensures
     "extern"       -> .Extern
+    "interceptor"  -> .Interceptor
     "internal"     -> .Internal
     "main_thread"  -> .MainThread
     "no_return"    -> .NoReturn
@@ -111,8 +113,8 @@ import "std/testing"
 test_a_compiler_decorator_reads_back_from_its_name :: fn() -> void {
     every: CompilerDecorator[]: [
         .Alias, .AllowUnused, .Assert, .CAddress, .CHeader, .COut, .CStruct, .CType,
-        .CVariadic, .Comptime, .Deprecated, .Displayable, .Ensures, .Extern, .Internal,
-        .MainThread, .NoReturn, .Partial, .Returns, .Singleton, .Target, .Test,
+        .CVariadic, .Comptime, .Deprecated, .Displayable, .Ensures, .Extern, .Interceptor,
+        .Internal, .MainThread, .NoReturn, .Partial, .Returns, .Singleton, .Target, .Test,
         .Unreachable,
     ]
     for which in every {

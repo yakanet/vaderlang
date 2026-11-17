@@ -1,0 +1,25 @@
+// An interceptor another module declares, which counts the calls of each function
+// it decorates.
+module "snippet/counter"
+
+import "std/console"
+
+/// What a counted function keeps for the whole program.
+export Count :: struct<A, R> {
+    calls: i64 = 0
+}
+
+/// Counts every call of the function it decorates.
+@interceptor(around = "counted")
+export Counted :: decorator(.Function) {}
+
+/// Count the call, then make it.
+///
+/// @param state    the count of the function.
+/// @param args     its arguments.
+/// @param proceed  the function itself.
+export counted :: fn<A, R>(state: Count<A, R>, args: A, proceed: fn(A) -> R) -> R {
+    state.calls += 1
+    println("call ${state.calls}")
+    return proceed(args)
+}

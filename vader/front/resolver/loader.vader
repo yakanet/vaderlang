@@ -418,9 +418,7 @@ LoadState :: struct {
     /// The folder of the module loaded to run its tests, null in any other load.
     /// NO default, for the reason `selected_target` has none.
     tested: string | null
-    /// Whether a dependency keeps only what the program reaches. Its symbols are
-    /// then minted once every module is parsed (`collect_deferred`), in the
-    /// order the modules were read.
+    /// Whether a dependency keeps only what the program reaches.
     only_reached: bool
     /// The modules read so far whose symbols are still to mint.
     deferred: DeferredModule[] = []
@@ -559,13 +557,9 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
         .target_decls = target_declarations(parsed),
         .tests_removed = tests_removed,
     }
-    if !ctx.only_reached {
-        collected :: collect_files(sources, m.folder, m.name, ctx.factory, ctx.index, ctx.bases, ctx.diags)
-        ctx.modules[m.folder] = loaded_module(ctx, read_module, collected)
-        return
-    }
     // Only its imports for now, which is what the walk of the module graph
-    // reads: the symbols wait for `collect_deferred`.
+    // reads: the symbols wait for `collect_deferred`, once every module is
+    // parsed, since an interceptor of another module renames a function.
     ctx.deferred.push(read_module)
     ctx.modules[m.folder] = loaded_module(ctx, read_module, CollectedModule {
         .symbols      = Map<string, Symbol> {},
@@ -614,34 +608,42 @@ import_paths_of :: fn(sources: SourceFile[]) -> ImportPath[] {
     return paths
 }
 
-// Mint the symbols of the modules a load that keeps only what is reached has
-// read, each trimmed first to what the others reach (`only_reached`). Modules
-// are collected in the order they were read, the order of a load that collects
-// each as it reads it.
+// Mint the symbols of the modules the load has read, in the order it read them,
+// once the interceptors have wrapped their functions. A load that keeps only
+// what is reached first trims each dependency to what the others reach.
 collect_deferred :: fn(ctx: LoadState) -> void {
     if ctx.deferred.len() == 0 {
         return
     }
+    intercept_functions(ctx.deferred, ctx.node_factory, ctx.diags)
+    modules :: if ctx.only_reached { trimmed_to_reached(ctx) } else { ctx.deferred }
+    for read in modules {
+        collected :: collect_files(
+            read.sources, read.found.folder, read.found.name, ctx.factory, ctx.index, ctx.bases,
+            ctx.diags,
+        )
+        ctx.modules[read.found.folder] = loaded_module(ctx, read, collected)
+    }
+}
+
+// The modules `ctx` has read, each dependency trimmed to what the others reach.
+trimmed_to_reached :: fn(ctx: LoadState) -> DeferredModule[] {
     units: ReachUnit[]: []
     for read in ctx.deferred {
         trimmed :: is_dependency(ctx, read.found) && read.found.folder != ctx.prelude
         units.push(ReachUnit { .files = read.sources, .trimmed = trimmed })
     }
     reached :: only_reached(units, GATE_FUNCTIONS)
+    out: DeferredModule[]: []
     for i in 0..<ctx.deferred.len() {
-        read :: ctx.deferred[i]
-        kept :: DeferredModule {
-            ...read,
+        out.push(DeferredModule {
+            ...ctx.deferred[i],
             .sources = reached[i].files,
             .trimmed = units[i].trimmed,
             .lost_impl_traits = reached[i].lost_impl_traits,
-        }
-        collected :: collect_files(
-            kept.sources, read.found.folder, read.found.name, ctx.factory, ctx.index, ctx.bases,
-            ctx.diags,
-        )
-        ctx.modules[read.found.folder] = loaded_module(ctx, kept, collected)
+        })
     }
+    return out
 }
 
 // Whether the tests of `m` are no business of this load (`without_tests`): those

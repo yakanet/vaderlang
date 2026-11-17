@@ -60,6 +60,15 @@ the trait: the type checker checks it once there, `Self` a type parameter bounde
 by the trait, and the lowerer reads it for each impl as it reads a generic
 function for each instance (`vader/lower/inherited.vader`).
 
+Once every module is parsed, and before any is collected, the loader wraps each
+function an interceptor marks (`vader/front/resolver/intercept.vader`): the
+function is renamed, and its file gains a wrapper under its name, which calls
+`around`, and a `@singleton` holding its state, both written as source and parsed.
+The decorator is matched to its declaration from the parsed files alone
+(`decorator_origin.vader`), the way the resolver later finds it. Every module is
+collected only then, in the order the modules were read, so symbol ids do not
+depend on interceptors.
+
 A project's `build.vader` drives the same pipeline through `toolchain/build`, and
 `vader` runs it (`vader/build_server`, ADR 0145): per generation round the front end
 runs once, the driver reads the typed declarations of the project's modules (those

@@ -1,0 +1,90 @@
+# Typecheck
+
+## tests/snippets/interceptor_counts_calls
+  FnDecl         __intercepted_add    :: fn(i32, i32) -> i32
+  FnDecl         __intercepted_fib    :: fn(i64) -> i64
+  FnDecl         __state_add          :: fn() -> Log<[i32, i32], i32>
+  FnDecl         __state_fib          :: fn() -> Count<i64, i64>
+  FnDecl         add                  :: fn(i32, i32) -> i32
+  FnDecl         fib                  :: fn(i64) -> i64
+  StructDecl     Log                  :: Log<A, R>
+  StructDecl     Logged               :: Logged
+  FnDecl         logged               :: fn(Log<A, R>, A, fn(A) -> R) -> R
+  FnDecl         main                 :: fn() -> i32
+  expr 13:23    StringLitExpr  :: string
+  expr 14:21    DotVariantExpr :: DecoratorTarget
+  expr 17:15    CallExpr       :: R
+  expr 17:15    IdentExpr      :: fn(A) -> R
+  expr 17:23    IdentExpr      :: A
+  expr 18:13    StringLitExpr  :: string
+  expr 18:19    IdentExpr      :: R
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 19:12    IdentExpr      :: R
+  expr 24:5     IfExpr         :: void
+  expr 24:8     BinaryExpr     :: bool
+  expr 24:8     IdentExpr      :: i64
+  expr 25:16    IdentExpr      :: i64
+  expr 27:12    BinaryExpr     :: i64
+  expr 27:12    CallExpr       :: i64
+  expr 27:12    IdentExpr      :: fn(i64) -> i64
+  expr 27:16    BinaryExpr     :: i64
+  expr 27:16    IdentExpr      :: i64
+  expr 27:25    CallExpr       :: i64
+  expr 27:25    IdentExpr      :: fn(i64) -> i64
+  expr 27:29    BinaryExpr     :: i64
+  expr 27:29    IdentExpr      :: i64
+  expr 31:36    BinaryExpr     :: i32
+  expr 31:36    IdentExpr      :: i32
+  expr 31:40    IdentExpr      :: i32
+  expr 34:13    CallExpr       :: i64
+  expr 34:13    IdentExpr      :: fn(i64) -> i64
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn(T) -> void
+  expr 35:13    CallExpr       :: i32
+  expr 35:13    IdentExpr      :: fn(i32, i32) -> i32
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 3:23     StructLitExpr  :: Count<i64, i64>
+  expr 4:28     CallExpr       :: i64
+  expr 4:28     FieldExpr      :: fn(Count<A, R>, A, fn(A) -> R) -> R
+  expr 4:38     CallExpr       :: Count<i64, i64>
+  expr 4:38     IdentExpr      :: fn() -> Count<i64, i64>
+  expr 4:53     IdentExpr      :: i64
+  expr 4:56     LambdaExpr     :: fn(i64) -> i64
+  expr 4:66     CallExpr       :: i64
+  expr 4:66     IdentExpr      :: fn(i64) -> i64
+  expr 4:84     IdentExpr      :: i64
+  expr 6:23     StructLitExpr  :: Log<[i32, i32], i32>
+  expr 7:102    FieldExpr      :: i32
+  expr 7:102    IdentExpr      :: [i32, i32]
+  expr 7:36     CallExpr       :: i32
+  expr 7:36     IdentExpr      :: fn(Log<A, R>, A, fn(A) -> R) -> R
+  expr 7:43     CallExpr       :: Log<[i32, i32], i32>
+  expr 7:43     IdentExpr      :: fn() -> Log<[i32, i32], i32>
+  expr 7:58     SeqLitExpr     :: [i32, i32]
+  expr 7:59     IdentExpr      :: i32
+  expr 7:62     IdentExpr      :: i32
+  expr 7:66     LambdaExpr     :: fn([i32, i32]) -> i32
+  expr 7:76     CallExpr       :: i32
+  expr 7:76     IdentExpr      :: fn(i32, i32) -> i32
+  expr 7:94     FieldExpr      :: i32
+  expr 7:94     IdentExpr      :: [i32, i32]
+
+## tests/snippets/interceptor_counts_calls/counter
+  StructDecl     Count                :: Count<A, R>
+  StructDecl     Counted              :: Counted
+  FnDecl         counted              :: fn(Count<A, R>, A, fn(A) -> R) -> R
+  expr 13:23    StringLitExpr  :: string
+  expr 14:29    DotVariantExpr :: DecoratorTarget
+  expr 22:5     BinaryExpr     :: i64
+  expr 22:5     FieldExpr      :: i64
+  expr 22:5     IdentExpr      :: Count<A, R>
+  expr 23:13    StringLitExpr  :: string
+  expr 23:21    FieldExpr      :: i64
+  expr 23:21    IdentExpr      :: Count<A, R>
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 24:12    CallExpr       :: R
+  expr 24:12    IdentExpr      :: fn(A) -> R
+  expr 24:20    IdentExpr      :: A

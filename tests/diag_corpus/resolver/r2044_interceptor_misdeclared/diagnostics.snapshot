@@ -1,0 +1,2 @@
+[5:1] error[R2044] an interceptor names no `around` function it can call: `missing` is no function of this module taking its state first, `S<A, R>`
+[6:1] warning[W0007] declaration is never used in its module: `Traced` is never used

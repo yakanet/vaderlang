@@ -1,0 +1,8 @@
+// An interceptor names the function its calls go through, which takes the state
+// of each function first: a name that leads to no such function is R2044.
+module "snippet"
+
+@interceptor(around = "missing")
+Traced :: decorator(.Function) {}
+
+main :: fn() -> i32 = 0

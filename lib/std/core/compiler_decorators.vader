@@ -131,6 +131,18 @@ export c_variadic :: decorator(.Parameter) {}
 /// `implements Display` written beside it is an error.
 export displayable :: decorator(.Enum) {}
 
+/// Makes the decorator it is written on an interceptor: every call of a function
+/// that decorator decorates goes through `around`, its own calls included.
+///
+/// `around` is a function of the same module, `fn<A, R>(state: S<A, R>, args: A,
+/// proceed: fn(A) -> R) -> R`: `A` is the one parameter of the function, or the
+/// tuple of its parameters, `R` its result, and `S<A, R> {}` the state the
+/// function keeps for the whole program.
+export interceptor :: decorator(.Struct) {
+    /// The name of the function the calls go through.
+    around: string
+}
+
 /// Runs the body of a parameterless top-level function once per program and
 /// hands every call the instance it built: how a module keeps state.
 ///
