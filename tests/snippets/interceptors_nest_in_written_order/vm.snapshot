@@ -1,0 +1,17 @@
+# stdout
+traced: enter fib
+counted: call 1 of fib
+traced: enter fib
+counted: call 2 of fib
+traced: leave fib -> 1
+traced: enter fib
+counted: call 3 of fib
+traced: leave fib -> 0
+traced: leave fib -> 1
+1
+counted: call 1 of add
+traced: enter add
+traced: leave add -> 5
+5
+# exit
+0

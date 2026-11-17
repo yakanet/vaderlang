@@ -76,7 +76,10 @@ pass has computed it (the typecheck records which decorator a call reads,
 `decorator_reads`, and the lowerer builds the value as a literal). The glue is
 written as source and parsed (`parse_compiler_written`), under names no user can
 write: `g$$intercepted`, `g$$layer` (`generated_name` in `vader/core/mangle`, ADR
-0157). A walk over the declarations of a written file never meets it.
+0157). Each interceptor of a function adds one such layer, the first written
+outermost: the layers under the first are `g$$proceed2`, `g$$proceed3`... each with
+its numbered singleton. A walk over the declarations of a written file never meets
+it.
 The decorator is matched to its declaration from the parsed files alone
 (`decorator_origin.vader`), the way the resolver later finds it. Every module is
 collected only then, in the order the modules were read, so symbol ids do not

@@ -3504,7 +3504,8 @@ fib :: fn(n: i64) -> i64 = if n < 2 { n } else { fib(n - 1) + fib(n - 2) }
 - Every call goes through `around`, the recursive calls of the function included: `fib(4)` above counts nine calls.
 - The decorator is written `@D` or `@Alias.D`. Used from another module, the decorator, the function and the state are all exported.
 - `around` names, unquoted, a function of the decorator's module written `fn<A, R>(state: S<A, R>, site: Site<D>, args: A, proceed: fn(A) -> R) -> R`, `S` being a struct of the module and `D` the decorator; anything else is an error, reported at the part of the function that differs.
-- A marked function that is generic, takes no parameter, has no body, does not write its result, or is marked by two interceptors is an error.
+- A function marked by several interceptors goes through each, the first written outermost: its `proceed` calls the next one's `around`, and the last one's calls the function. Each keeps its own state and site.
+- A marked function that is generic, takes no parameter, has no body, does not write its result, or is marked twice by one interceptor is an error.
 
 ### `@assert`
 

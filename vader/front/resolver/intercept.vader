@@ -16,6 +16,11 @@
 // One singleton holds both, so a call reads one instance: the site's decorator is
 // `@decorator(g$$intercepted, D)`. The names are `generated_name`'s, which no
 // declaration a user writes can take.
+//
+// A function several interceptors mark gets one layer per interceptor, the first
+// written outermost. The layer under `g` is `g$$proceed2`, which the `proceed` of
+// `g` calls, with its own `g$$layer2` and `g$$Layer2`; the last one's `proceed`
+// calls `g$$intercepted`.
 // `S` is the struct the first parameter of `f` names, `A` the one parameter's
 // type or the tuple of them, `R` the written result. The wrapper takes the name,
 // so every call reaches it, the recursive ones of `g` included. It is written in
@@ -135,7 +140,9 @@ wrap_file :: fn(
             continue
         }
         result :: f.return_type else continue
-        glue.append(wrapper_text(source, module_name, f, result, interceptions[0]))
+        for depth in 1..=interceptions.len() {
+            glue.append(layer_text(source, module_name, f, result, interceptions, depth))
+        }
         wrapped.push(f)
     }
     if wrapped.is_empty() {
@@ -207,10 +214,9 @@ qualifier_of :: fn(d: Decorator) -> string {
 
 // Why `f`, marked by `interceptions`, cannot be wrapped, null when it can.
 refusal :: fn(f: FnDecl, interceptions: Interception[]) -> string | null {
-    if interceptions.len() > 1 {
-        first :: interceptions[0].interceptor.origin.name
-        second :: interceptions[1].interceptor.origin.name
-        return "`${f.name}` is marked by `${first}` and `${second}`, and a call goes through one"
+    repeated :: repeated_interceptor(interceptions)
+    if repeated != null {
+        return "`${f.name}` is marked twice by `${repeated}`, which wraps a function once"
     }
     if f.body == null {
         return "`${f.name}` has no body to call"
@@ -227,33 +233,61 @@ refusal :: fn(f: FnDecl, interceptions: Interception[]) -> string | null {
     return null
 }
 
-// The layer and the wrapper of `f`, a function of `source` in the
-// module `module_name`, whose written result is `result`.
-wrapper_text :: fn(
+// The name of the interceptor written twice in `interceptions`, null when none is.
+repeated_interceptor :: fn(interceptions: Interception[]) -> string | null {
+    for i in 1..<interceptions.len() {
+        origin :: interceptions[i].interceptor.origin
+        for j in 0..<i {
+            if same_origin(interceptions[j].interceptor.origin, origin) {
+                return origin.name
+            }
+        }
+    }
+    return null
+}
+
+// The function a call reaches at the layer `depth` of `base`, which has `count`,
+// numbered from 1: `base` itself at the first, its body under the last.
+layer_function :: fn(base: string, depth: i64, count: i64) -> string {
+    if depth == 1 {
+        return base
+    }
+    if depth > count {
+        return generated_name(base, .Intercepted)
+    }
+    return ranked_generated_name(base, .Proceed, depth)
+}
+
+// The singleton and the wrapper of the layer `depth` of `f`, a function of
+// `source` in the module `module_name` that `interceptions` mark, whose written
+// result is `result`.
+layer_text :: fn(
     source: SourceFile,
     module_name: string,
     f: FnDecl,
     result: TypeExpr,
-    interception: Interception,
+    interceptions: Interception[],
+    depth: i64,
 ) -> string {
     content :: source.content
     result_text :: result.span.text_in(content)
     names :: f.params.map((p) -> p.name).collect()
+    interception :: interceptions[depth - 1]
     qualifier :: interception.qualifier
     interceptor :: interception.interceptor
     location :: "${source.path.to_path().filename()}:${f.name_span.start.line}"
     decorator_name :: "${qualifier}${interception.name}"
     state_type :: "${qualifier}${interceptor.state}<${arguments_type(content, f)}, ${result_text}>"
     intercepted :: generated_name(f.name, .Intercepted)
-    layer :: generated_name(f.name, .Layer)
-    layer_type :: generated_name(f.name, .LayerType)
+    singleton :: ranked_generated_name(f.name, .Layer, depth)
+    layer_type :: ranked_generated_name(f.name, .LayerType, depth)
     out :: StringBuilder {}
     out.append("${layer_type} :: struct {\n")
     out.append("    state: ${state_type}\n")
     out.append("    site: Site<${decorator_name}>\n")
     out.append("}\n")
     out.append("@singleton\n")
-    out.append("${layer} :: fn() = ${layer_type} {\n")
+    out.append("${singleton} :: fn() = ${layer_type} {\n")
     out.append("    .state = ${state_type} {},\n")
     out.append("    .site = Site<${decorator_name}> {\n")
     out.append("        .function = ${quote_vader(f.name)},\n")
@@ -262,13 +296,15 @@ wrapper_text :: fn(
     out.append("        .marker = @decorator(${intercepted}, ${decorator_name}),\n")
     out.append("    },\n")
     out.append("}\n")
-    if f.visibility == .Public {
+    if depth == 1 && f.visibility == .Public {
         out.append("export ")
     }
-    out.append("${f.name} :: fn${f.params_span.text_in(content)} -> ${result_text} {\n")
-    out.append("    layer :: ${layer}()\n")
+    function :: layer_function(f.name, depth, interceptions.len())
+    below :: layer_function(f.name, depth + 1, interceptions.len())
+    out.append("${function} :: fn${f.params_span.text_in(content)} -> ${result_text} {\n")
+    out.append("    layer :: ${singleton}()\n")
     out.append("    return ${qualifier}${interceptor.around}(layer.state, layer.site, ")
-    out.append("${tupled(names)}, (args) -> ${intercepted}(${spread(names.len())}))\n")
+    out.append("${tupled(names)}, (args) -> ${below}(${spread(names.len())}))\n")
     out.append("}\n")
     return out.to_string()
 }
@@ -309,6 +345,13 @@ import "std/testing"
 test_intercept_passes_one_argument_alone :: fn() -> void {
     assert_eq(tupled(["n"]), "n")
     assert_eq(spread(1), "args")
+}
+
+@test
+test_intercept_numbers_the_layers_under_the_first :: fn() -> void {
+    assert_eq(layer_function("fib", 1, 2), "fib")
+    assert_eq(layer_function("fib", 2, 2), "fib\$\$proceed2")
+    assert_eq(layer_function("fib", 3, 2), "fib\$\$intercepted")
 }
 
 @test

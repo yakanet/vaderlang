@@ -176,6 +176,9 @@ export GeneratedRole :: enum {
     Layer
     /// The struct that singleton builds.
     LayerType
+    /// A layer under the outermost one, which the `proceed` of the layer above
+    /// calls.
+    Proceed
 }
 
 /// The name of the declaration `role` the compiler writes for `base`, a name as
@@ -192,11 +195,27 @@ export generated_name :: fn(base: string, role: GeneratedRole) -> string {
     return "${base}\$\$${generated_word(role)}"
 }
 
+/// The name of the declaration `role` the compiler writes at `rank` in a stack of
+/// them for `base`: the first is `generated_name`'s, each next one carries its
+/// rank (`fib$$layer2`). No word ends in a digit, so a rank meets no word.
+///
+/// @param base  as `generated_name`'s.
+/// @param role  what the written declaration is.
+/// @param rank  its place in the stack, numbered from 1.
+export ranked_generated_name :: fn(base: string, role: GeneratedRole, rank: i64) -> string {
+    name :: generated_name(base, role)
+    if rank == 1 {
+        return name
+    }
+    return "${name}${rank}"
+}
+
 // The word `role` adds after the `$$`: never the word of a `DerivedRole`.
 generated_word :: fn(role: GeneratedRole) -> string = match role {
     .Intercepted -> "intercepted"
     .Layer       -> "layer"
     .LayerType   -> "Layer"
+    .Proceed     -> "proceed"
 }
 
 /// The key a virtual call and the vtable rows it may land on share: the trait's
@@ -415,6 +434,17 @@ test_generated_name_meets_no_derived_role :: fn() -> void {
 @test
 test_generated_name_follows_its_base :: fn() -> void {
     assert_eq(generated_name("fib", .Intercepted), "fib\$\$intercepted")
+}
+
+@test
+test_ranked_generated_name_numbers_all_but_the_first :: fn() -> void {
+    assert_eq(ranked_generated_name("fib", .Layer, 1), "fib\$\$layer")
+    assert_eq(ranked_generated_name("fib", .Layer, 2), "fib\$\$layer2")
+    for role in GeneratedRole {
+        word :: generated_word(role)
+        last :: word.byte_at(word.byte_len() - 1)
+        assert(last < '0' || last > '9', "`${word}` ends in a digit")
+    }
 }
 
 @test

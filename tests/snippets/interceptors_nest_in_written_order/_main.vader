@@ -1,0 +1,60 @@
+// Two interceptors on one function nest in the order they are written: the first
+// is entered first and left last, and its `proceed` reaches the second, whose own
+// reaches the body. The recursive calls of `fib` go through both again.
+module "snippet"
+
+import "std/console"
+
+Trace :: struct<A, R> {}
+
+Count :: struct<A, R> {
+    calls: i64 = 0
+}
+
+@interceptor(around = traced)
+Traced :: decorator(.Function) {}
+
+@interceptor(around = counted)
+Counted :: decorator(.Function) {}
+
+traced :: fn<A, R: Display>(
+    state: Trace<A, R>,
+    site: Site<Traced>,
+    args: A,
+    proceed: fn(A) -> R,
+) -> R {
+    println("traced: enter ${site.function}")
+    result :: proceed(args)
+    println("traced: leave ${site.function} -> ${result}")
+    return result
+}
+
+counted :: fn<A, R>(
+    state: Count<A, R>,
+    site: Site<Counted>,
+    args: A,
+    proceed: fn(A) -> R,
+) -> R {
+    state.calls += 1
+    println("counted: call ${state.calls} of ${site.function}")
+    return proceed(args)
+}
+
+@Traced
+@Counted
+fib :: fn(n: i64) -> i64 {
+    if n < 2 {
+        return n
+    }
+    return fib(n - 1) + fib(n - 2)
+}
+
+@Counted
+@Traced
+add :: fn(a: i32, b: i32) -> i32 = a + b
+
+main :: fn() -> i32 {
+    println(fib(2))
+    println(add(2, 3))
+    return 0
+}

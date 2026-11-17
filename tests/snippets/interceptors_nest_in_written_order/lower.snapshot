@@ -1,0 +1,247 @@
+# Lower
+
+## snippet
+  storage
+    global #0 i32  fib$$layer.state
+    global #1 fib$$Layer  fib$$layer.instance
+    global #2 i32  fib$$layer2.state
+    global #3 fib$$Layer2  fib$$layer2.instance
+    global #4 i32  add$$layer.state
+    global #5 add$$Layer  add$$layer.instance
+    global #6 i32  add$$layer2.state
+    global #7 add$$Layer2  add$$layer2.instance
+  snippet.Traced :: struct {}  // snippet$Traced
+  snippet.Counted :: struct {}  // snippet$Counted
+  snippet.fib$$intercepted :: fn(n: i64) -> i64 {  // snippet$fib$$intercepted
+      if n < i64(2) {
+          return n
+      }
+      return snippet.fib(n - i64(1)) + snippet.fib(n - i64(2))
+  }
+  snippet.add$$intercepted :: fn(a: i32, b: i32) -> i32 {  // snippet$add$$intercepted
+      a + b
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.console.println<i64>(snippet.fib(i64(2)))
+      std.console.println<i32>(snippet.add(2, 3))
+      return 0
+  }
+  snippet.fib$$Layer :: struct { state: Trace<i64, i64>, site: Site<Traced> }  // snippet$fib$$Layer
+  snippet.fib$$layer :: fn() -> fib$$Layer {  // snippet$fib$$layer
+      if @global(0) == 2 {
+          return @global(1)
+      }
+      if @global(0) == 1 {
+          @unreachable("singleton `fib\$\$layer` called while it initialises")
+      }
+      @global(0) = 1
+      @global(1) = snippet$fib$$layer$singleton()
+      @global(0) = 2
+      return @global(1)
+  }
+  snippet.fib :: fn(n: i64) -> i64 {  // snippet$fib
+      layer: fib$$Layer = if @global(0) == 2 { @global(1) } else { snippet.fib$$layer() }
+      return snippet.traced<i64, i64>(layer.state, layer.site, n, __lambda_snippet_0)
+  }
+  snippet.fib$$Layer2 :: struct { state: Count<i64, i64>, site: Site<Counted> }  // snippet$fib$$Layer2
+  snippet.fib$$layer2 :: fn() -> fib$$Layer2 {  // snippet$fib$$layer2
+      if @global(2) == 2 {
+          return @global(3)
+      }
+      if @global(2) == 1 {
+          @unreachable("singleton `fib\$\$layer2` called while it initialises")
+      }
+      @global(2) = 1
+      @global(3) = snippet$fib$$layer2$singleton()
+      @global(2) = 2
+      return @global(3)
+  }
+  snippet.fib$$proceed2 :: fn(n: i64) -> i64 {  // snippet$fib$$proceed2
+      layer: fib$$Layer2 = if @global(2) == 2 { @global(3) } else { snippet.fib$$layer2() }
+      return snippet.counted<i64, i64>(layer.state, layer.site, n, __lambda_snippet_1)
+  }
+  snippet.add$$Layer :: struct { state: Count<[i32, i32], i32>, site: Site<Counted> }  // snippet$add$$Layer
+  snippet.add$$layer :: fn() -> add$$Layer {  // snippet$add$$layer
+      if @global(4) == 2 {
+          return @global(5)
+      }
+      if @global(4) == 1 {
+          @unreachable("singleton `add\$\$layer` called while it initialises")
+      }
+      @global(4) = 1
+      @global(5) = snippet$add$$layer$singleton()
+      @global(4) = 2
+      return @global(5)
+  }
+  snippet.add :: fn(a: i32, b: i32) -> i32 {  // snippet$add
+      layer: add$$Layer = if @global(4) == 2 { @global(5) } else { snippet.add$$layer() }
+      return snippet.counted<[i32, i32], i32>(layer.state, layer.site, [a, b] :[i32, i32], __lambda_snippet_2)
+  }
+  snippet.add$$Layer2 :: struct { state: Trace<[i32, i32], i32>, site: Site<Traced> }  // snippet$add$$Layer2
+  snippet.add$$layer2 :: fn() -> add$$Layer2 {  // snippet$add$$layer2
+      if @global(6) == 2 {
+          return @global(7)
+      }
+      if @global(6) == 1 {
+          @unreachable("singleton `add\$\$layer2` called while it initialises")
+      }
+      @global(6) = 1
+      @global(7) = snippet$add$$layer2$singleton()
+      @global(6) = 2
+      return @global(7)
+  }
+  snippet.add$$proceed2 :: fn(a: i32, b: i32) -> i32 {  // snippet$add$$proceed2
+      layer: add$$Layer2 = if @global(6) == 2 { @global(7) } else { snippet.add$$layer2() }
+      return snippet.traced<[i32, i32], i32>(layer.state, layer.site, [a, b] :[i32, i32], __lambda_snippet_3)
+  }
+  snippet$fib$$layer$singleton :: fn() -> fib$$Layer {
+      fib$$Layer {
+          .state = Trace<i64, i64> {},
+          .site = Site<Any> {
+              .function = "fib",
+              .module = "snippet",
+              .location = "_main.vader:45",
+              .marker = Traced {},
+          },
+      }
+  }
+  __lambda_snippet_0 :: fn(args: i64) -> i64 {
+      snippet.fib$$proceed2(args)
+  }
+  snippet$fib$$layer2$singleton :: fn() -> fib$$Layer2 {
+      fib$$Layer2 {
+          .state = Count<i64, i64> { .calls = i64(0) },
+          .site = Site<Any> {
+              .function = "fib",
+              .module = "snippet",
+              .location = "_main.vader:45",
+              .marker = Counted {},
+          },
+      }
+  }
+  __lambda_snippet_1 :: fn(args: i64) -> i64 {
+      snippet.fib$$intercepted(args)
+  }
+  snippet$add$$layer$singleton :: fn() -> add$$Layer {
+      add$$Layer {
+          .state = Count<[Any, Any], i32> { .calls = i64(0) },
+          .site = Site<Any> {
+              .function = "add",
+              .module = "snippet",
+              .location = "_main.vader:54",
+              .marker = Counted {},
+          },
+      }
+  }
+  __lambda_snippet_2 :: fn(args: [i32, i32]) -> i32 {
+      snippet.add$$proceed2(args._0, args._1)
+  }
+  snippet$add$$layer2$singleton :: fn() -> add$$Layer2 {
+      add$$Layer2 {
+          .state = Trace<[Any, Any], i32> {},
+          .site = Site<Any> {
+              .function = "add",
+              .module = "snippet",
+              .location = "_main.vader:54",
+              .marker = Traced {},
+          },
+      }
+  }
+  __lambda_snippet_3 :: fn(args: [i32, i32]) -> i32 {
+      args._0 + args._1
+  }
+  snippet.Trace<i64, i64> :: struct {}  // snippet$Trace__i64__i64
+  snippet.Count<i64, i64> :: struct { calls: i64 }  // snippet$Count__i64__i64
+  snippet.Count<[i32, i32], i32> :: struct { calls: i64 }  // snippet$Count___i32__i32___i32
+  snippet.Trace<[i32, i32], i32> :: struct {}  // snippet$Trace___i32__i32___i32
+  snippet.traced<[i32, i32], i32> :: fn(state: Trace<Any, i32>, site: Site<Traced>, args: Any, proceed: fn(Any) -> i32) -> i32 {  // snippet$traced__Any__i32
+      std.console.println<string>(concat_2("traced: enter ", site.function))
+      result: i32 = proceed(args)
+      std.console.println<string>({
+          __p_0: string = site.function
+          __buf_1: Buffer = std_core$Intrinsic$new_byte_buffer(i64(38) +% std_core$Intrinsic$byte_len(__p_0))
+          __off_2: i64 = 0
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, "traced: leave ")
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, " -> ")
+          __off_2 = std.core.write_int(__buf_1, __off_2, result)
+          std.core.finish_buffer(__buf_1, __off_2)
+      } :string)
+      return result
+  }
+  snippet.traced<i64, i64> :: fn(state: Trace<i64, i64>, site: Site<Traced>, args: i64, proceed: fn(i64) -> i64) -> i64 {  // snippet$traced__i64__i64
+      std.console.println<string>(concat_2("traced: enter ", site.function))
+      result: i64 = proceed(args)
+      std.console.println<string>({
+          __p_0: string = site.function
+          __buf_1: Buffer = std_core$Intrinsic$new_byte_buffer(i64(38) +% std_core$Intrinsic$byte_len(__p_0))
+          __off_2: i64 = 0
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, "traced: leave ")
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, " -> ")
+          __off_2 = std.core.write_int(__buf_1, __off_2, result)
+          std.core.finish_buffer(__buf_1, __off_2)
+      } :string)
+      return result
+  }
+  snippet.counted<[i32, i32], i32> :: fn(state: Count<Any, i32>, site: Site<Counted>, args: Any, proceed: fn(Any) -> i32) -> i32 {  // snippet$counted__Any__i32
+      state.calls = state.calls + i64(1)
+      std.console.println<string>({
+          __p_0: i64 = state.calls
+          __p_1: string = site.function
+          __buf_2: Buffer = std_core$Intrinsic$new_byte_buffer(i64(38) +% std_core$Intrinsic$byte_len(__p_1))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, "counted: call ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, __p_0)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " of ")
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      return proceed(args)
+  }
+  snippet.counted<i64, i64> :: fn(state: Count<i64, i64>, site: Site<Counted>, args: i64, proceed: fn(i64) -> i64) -> i64 {  // snippet$counted__i64__i64
+      state.calls = state.calls + i64(1)
+      std.console.println<string>({
+          __p_0: i64 = state.calls
+          __p_1: string = site.function
+          __buf_2: Buffer = std_core$Intrinsic$new_byte_buffer(i64(38) +% std_core$Intrinsic$byte_len(__p_1))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, "counted: call ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, __p_0)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " of ")
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      return proceed(args)
+  }
+  snippet.Count<[Any, Any], i32> :: struct { calls: i64 }  // snippet$Count___Any__Any___i32
+  snippet.Trace<[Any, Any], i32> :: struct {}  // snippet$Trace___Any__Any___i32
+  snippet.Trace<Any, i32> :: struct {}  // snippet$Trace__Any__i32
+  snippet.Count<Any, i32> :: struct { calls: i64 }  // snippet$Count__Any__i32
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<i32>  // std_console$println__i32
+    fn std.console.println<i64>  // std_console$println__i64
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Site<Any>  // std_core$Site__Any
+    struct std.core.Site<Counted>  // std_core$Site__snippet_Counted
+    struct std.core.Site<Traced>  // std_core$Site__snippet_Traced

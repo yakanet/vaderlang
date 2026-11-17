@@ -1,4 +1,4 @@
 [31:1] error[R2045] this function cannot be intercepted: `identity` is generic, and a state is kept per function
 [34:1] error[R2045] this function cannot be intercepted: `zero` takes no parameter to pass on
 [37:1] error[R2045] this function cannot be intercepted: the result of `twice` must be written
-[41:1] error[R2045] this function cannot be intercepted: `both` is marked by `Counted` and `Timed`, and a call goes through one
+[41:1] error[R2045] this function cannot be intercepted: `again` is marked twice by `Timed`, which wraps a function once
