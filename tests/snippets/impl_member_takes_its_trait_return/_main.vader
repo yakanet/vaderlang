@@ -1,0 +1,34 @@
+// A member written without its return type takes the one its trait declares, read
+// in the trait's module with the trait's arguments bound: `-> T` of `Maker<T>` is
+// `string` for `Maker<string>`, and `Info` names the type of the trait's module even
+// where only a namespace alias reaches it. An alias of a trait the namespace alias
+// reaches (`Named`) stands for it like any other.
+module "snippet"
+
+import "std/console"
+S :: import "snippet/shapes"
+
+/// A shape that makes its name.
+Named :: trait = S.Maker<string>
+
+Square :: struct {}
+
+Square implements S.Maker<i32> {
+    make :: fn(self) = 4
+    info :: fn(self) = S.Info { .label = "square" }
+}
+
+Circle :: struct {}
+
+Circle implements Named {
+    make :: fn(self) = "circle"
+    info :: fn(self) = S.Info { .label = "round" }
+}
+
+main :: fn() -> i32 {
+    square: S.Maker<i32>: Square {}
+    circle: Named: Circle {}
+    println("${square.make()} ${square.info().label}")
+    println("${circle.make()} ${circle.info().label}")
+    return 0
+}

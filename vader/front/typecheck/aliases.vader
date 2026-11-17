@@ -132,15 +132,15 @@ settle_namespace_member_aliases :: fn(
 }
 
 // Whether a pending decl may settle now that the member tables are filled: a const
-// that reads as a type, or a type alias still unresolved. A const that does not
-// read as a type yet can only settle after one of those does.
+// that reads as a type, or a type or trait alias still unresolved. A const that
+// does not read as a type yet can only settle after one of those does.
 can_settle_now :: fn(
     per_module: Map<string, TypedProgram>, unsettled: Map<string, AST.Decl[]>,
 ) -> bool {
     for [id, pending] in unsettled {
         typed :: per_module[id] else continue
         for decl in pending {
-            if decl is AST.TypeAliasDecl {
+            if decl is AST.TypeAliasDecl || decl is AST.TraitDecl {
                 return true
             }
             if decl is AST.ConstDecl && is_type_expr(decl.value, typed.resolved) {

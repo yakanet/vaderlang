@@ -220,17 +220,21 @@ declare_impl_return :: fn(
 ) -> Type {
     // An unannotated member takes the trait method's return type, with `Self`
     // substituted to `for_ty`: `Direction implements Turnable { turn_left :: fn(self) = ... }`
-    // picks up `-> Self` from `Turnable.turn_left`. A default that leaves its own to
-    // its body gives it once settled ; until then the member's body gives its own.
+    // picks up `-> Self` from `Turnable.turn_left`. Through a trait type it is read in
+    // the trait's module with the trait's arguments bound (`-> S` of `Gen<S>` is
+    // `Spec` for `Gen<Spec>`) ; a default checked in its own trait reads it in its own
+    // scope. A default that leaves its own to its body gives it once settled ; until
+    // then the member's body gives its own.
     if fd.return_type == null && trait_method !is null {
-        written :: trait_method.return_type
-        if written !is null {
-            return type_with_self(written, for_ty, typed.resolved, diags)
-        }
         if trait_type != null {
             from_trait :: try_trait_method(trait_type, fd.name, typed, for_ty)
             if from_trait is FnType && from_trait.return_type !is UnresolvedType {
                 return from_trait.return_type
+            }
+        } else {
+            written :: trait_method.return_type
+            if written !is null {
+                return type_with_self(written, for_ty, typed.resolved, diags)
             }
         }
     }

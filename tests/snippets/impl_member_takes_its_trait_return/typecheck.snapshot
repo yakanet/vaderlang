@@ -1,0 +1,38 @@
+# Typecheck
+
+## tests/snippets/impl_member_takes_its_trait_return
+  StructDecl     Circle               :: Circle
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Named                :: Named
+  StructDecl     Square               :: Square
+  expr 18:24    StructLitExpr  :: Info
+  expr 18:42    StringLitExpr  :: string
+  expr 24:24    StringLitExpr  :: string
+  expr 25:24    StructLitExpr  :: Info
+  expr 25:42    StringLitExpr  :: string
+  expr 29:27    StructLitExpr  :: Square
+  expr 30:20    StructLitExpr  :: Circle
+  expr 31:13    StringLitExpr  :: string
+  expr 31:16    CallExpr       :: i32
+  expr 31:16    FieldExpr      :: fn() -> i32
+  expr 31:16    IdentExpr      :: Maker<i32>
+  expr 31:33    CallExpr       :: Info
+  expr 31:33    FieldExpr      :: fn() -> Info
+  expr 31:33    FieldExpr      :: string
+  expr 31:33    IdentExpr      :: Maker<i32>
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void
+  expr 32:13    StringLitExpr  :: string
+  expr 32:16    CallExpr       :: string
+  expr 32:16    FieldExpr      :: fn() -> string
+  expr 32:16    IdentExpr      :: Maker<string>
+  expr 32:33    CallExpr       :: Info
+  expr 32:33    FieldExpr      :: fn() -> Info
+  expr 32:33    FieldExpr      :: string
+  expr 32:33    IdentExpr      :: Maker<string>
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/impl_member_takes_its_trait_return/shapes
+  StructDecl     Info                 :: Info
+  TraitDecl      Maker                :: Maker<T>

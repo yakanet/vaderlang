@@ -1,0 +1,13 @@
+// A trait over a type of its own module, which an importer reaches under an alias.
+module "snippet/shapes"
+
+/// What a shape tells of itself.
+export Info :: struct {
+    label: string
+}
+
+/// A shape that makes a value of its parameter's type.
+export Maker :: trait<T> {
+    make :: fn(self) -> T
+    info :: fn(self) -> Info
+}
