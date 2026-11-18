@@ -199,6 +199,21 @@ export LateFn :: struct {
     stage: string
 }
 
+/// The name a file gives a function a stage declared without a body: `Type.name`
+/// for a member of an impl on `Type`, then the line of its declaration, which no
+/// other function of the stage's file shares (`Person.to_json_value@4`).
+///
+/// @param decl   the function.
+/// @param owner  the impl that declares it, null for a function of the module.
+export late_fn_label :: fn(decl: FnDecl, owner: ImplDecl | null) -> string {
+    line :: decl.span.start.line
+    if owner == null {
+        return "${decl.name}@${line}"
+    }
+    type_name :: impl_type_name(owner) else "impl"
+    return "${type_name}.${decl.name}@${line}"
+}
+
 /// Run `stages` on every module of a load, each module gaining one file per stage
 /// that writes anything, numbered by `ids`. A function a stage writes without a
 /// body joins the module's `late`.

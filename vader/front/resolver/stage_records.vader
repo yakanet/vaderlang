@@ -87,23 +87,7 @@ export body_record_key :: fn(stage: string, request: BodyRequest) -> string =
 /// @param request       what it was asked.
 export body_record_path :: fn(project_root: string, stage: string, request: BodyRequest) -> string {
     bodies :: join_path(join_path(stage_records_dir(project_root), stage), "${request.module_name}.bodies")
-    return join_path(bodies, "${late_identity(request)}.record")
-}
-
-// The function of `request` as a record names it: `Type.name` for a member of an
-// impl on `Type`.
-late_identity :: fn(request: BodyRequest) -> string {
-    owner :: request.owner else return request.decl.name
-    return "${impl_type_name(owner.for_type)}.${request.decl.name}"
-}
-
-// The name of the type an impl is written on, its arguments left out.
-impl_type_name :: fn(ty: TypeExpr) -> string {
-    named :: if ty is GenericInstExpr { ty.callee } else { ty }
-    if named is IdentExpr {
-        return named.name
-    }
-    return "impl"
+    return join_path(bodies, "${late_fn_label(request.decl, request.owner)}.record")
 }
 
 /// The file recording what the stage `stage` wrote for the module `module_name`.

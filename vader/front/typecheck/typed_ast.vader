@@ -97,6 +97,19 @@ share_file_overloads :: fn(from: TypedProgram, into: TypedProgram, file: string)
     into.imported_fn_overloads[file] = file_overload_table(from, file)
 }
 
+/// Lend the scope of `file` to `alias`, a file name no source has: a body a stage
+/// gives once the comptime has run is parsed under one, and resolves its calls and
+/// its traits as the file that declares its function does.
+///
+/// @param typed  the module.
+/// @param file   the file that declares the function.
+/// @param alias  the file name of its body.
+export lend_file_scope :: fn(typed: TypedProgram, file: string, alias: string) -> void {
+    typed.imported_fn_overloads[alias] = file_overload_table(typed, file)
+    scope :: typed.trait_scopes[file] else return
+    typed.trait_scopes[alias] = scope
+}
+
 /// A bound on one argument of a generic type : one a generic impl puts on the type
 /// it implements a trait for (`Box<T> implements<T: Display> Display` holds for
 /// `Box<X>` only when `X` implements `Display`), or one a struct declares on its own

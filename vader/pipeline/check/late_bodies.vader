@@ -113,16 +113,16 @@ provide_module_bodies :: fn(
 }
 
 // The body `text` gives `late`, parsed inside a function of its own under a file
-// name no file has: its spans are its own, its node ids the project's, and the
-// declaration keeps its id. Null when it does not parse as a block, which is
-// reported.
+// name no file has, nor another body: its spans are its own, since the resolution
+// keys a name by its span, its node ids the project's, and the declaration keeps
+// its id. Null when it does not parse as a block, which is reported.
 parsed_body :: fn(
     late: LateFn,
     module: LoadedModule,
     text: string,
     diags: Diagnostic[],
 ) -> BlockExpr | null {
-    path :: "<${late.stage}>/${module.module.module_name}/${late.decl.name}"
+    path :: "<${late.stage}>/${module.module.module_name}/${late_fn_label(late.decl, late.owner)}"
     parsed :: parse_compiler_written("module \"late\"\nlate_body :: fn() -> void ${text}", path)
     diags.push_all(parsed.errors)
     if any_error_diag(parsed.errors) {
@@ -160,14 +160,16 @@ ANSWER_SOURCE :: """
 
     Box :: struct {}
 
+    Crate :: struct {}
+
     @answer(@comptime 40 + 2)
     export question :: fn() -> i32 = 0
 
-    main :: fn() -> i32 = answer_of_question() + Box {}.value()
+    main :: fn() -> i32 = answer_of_question() + Box {}.value() + Crate {}.value()
     """
 
-// Writes, for each function marked `@answer`, a function and an impl member
-// without a body.
+// Writes, for each function marked `@answer`, a function and two impl members of
+// one name without a body.
 AnswerStage :: struct {}
 
 AnswerStage implements SourceStage {
@@ -178,7 +180,8 @@ AnswerStage implements SourceStage {
 
     run :: fn(self, input: Sources) -> Generated = Generated {
         .text = "answer_of_question :: fn() -> i32\n"
-            + "Box implements Valued {\n    value :: fn(self) -> i32\n}\n",
+            + "Box implements Valued {\n    value :: fn(self) -> i32\n}\n"
+            + "Crate implements Valued {\n    value :: fn(self) -> i32\n}\n",
     }
 }
 
@@ -224,12 +227,31 @@ ids_of :: fn(check: FileCheck) -> string = check.diags.map((d) -> d.code.id).col
 test_a_body_stage_gives_what_the_value_of_a_decorator_computes :: fn() -> void {
     check :: checked_answer([AnswerBodies {}])
     assert_eq(ids_of(check), "")
-    assert_eq(check.project.late_fns.len(), 2)
+    assert_eq(check.project.late_fns.len(), 3)
     for late in check.project.late_fns {
         body :: late.decl.body else return assert(false, "`${late.decl.name}` has a body")
         returned :: body.stmts[0]
         assert(returned is ReturnStmt && returned.value is IntLitExpr, "returns a literal")
     }
+}
+
+@test
+test_a_late_body_calls_what_the_file_of_its_function_imports :: fn() -> void {
+    body :: "{\n    xs: i32[]: []\n    xs.push(42)\n    return xs[0]\n}"
+    assert_eq(ids_of(checked_answer([AnswerBodies { .fixed = body }])), "")
+}
+
+@test
+test_each_late_body_has_a_file_name_of_its_own :: fn() -> void {
+    // The resolution keys a name by its span: two bodies under one file name would
+    // read each other's locals.
+    check :: checked_answer([AnswerBodies {}])
+    files :: Set<string> {}
+    for late in check.project.late_fns {
+        body :: late.decl.body else return assert(false, "`${late.decl.name}` has a body")
+        files.add(body.span.start.file)
+    }
+    assert_eq(files.len(), 3)
 }
 
 @test

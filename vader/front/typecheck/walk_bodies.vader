@@ -449,6 +449,8 @@ collect_tested_type :: fn(n: AST.Node, tested: AST.TypeExpr[]) -> AST.Walk {
 export check_late_bodies :: fn(late: LateFn[], typed: TypedProgram, diags: Diagnostic[]) -> void {
     files :: Set<string> {}
     for l in late {
+        given :: l.decl.body else continue
+        lend_file_scope(typed, l.decl.span.start.file, given.span.start.file)
         owner :: l.owner
         if owner != null {
             typed.enclosing_impl = owner.span.hash()
@@ -457,8 +459,7 @@ export check_late_bodies :: fn(late: LateFn[], typed: TypedProgram, diags: Diagn
         walk_fn_body(l.decl, typed, diags, .Full)
         typed.enclosing_impl = 0
         typed.enclosing_impl_params = Set<i32> {}
-        body :: l.decl.body else continue
-        files.add(body.span.start.file)
+        files.add(given.span.start.file)
     }
     settled: Diagnostic[]: []
     report_literals_past_default(typed, settled)

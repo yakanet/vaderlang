@@ -809,6 +809,19 @@ export trait_alias_target :: fn(d: TraitDecl) -> TypeExpr | null {
     return null
 }
 
+/// The name of the type `d` implements its trait for, its arguments left out:
+/// `Stack` for `Stack<T> implements ...`. Null for a type written otherwise (an
+/// array, a function type).
+///
+/// @param d  the impl.
+export impl_type_name :: fn(d: ImplDecl) -> string | null {
+    head :: instance_head(d.for_type)
+    if head is IdentExpr {
+        return head.name
+    }
+    return null
+}
+
 /// The trait's own name in `d`, the alias left out: `Display` for `Fmt.Display`.
 ///
 /// @param d  the impl.
