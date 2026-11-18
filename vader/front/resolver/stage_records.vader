@@ -86,7 +86,8 @@ export body_record_key :: fn(stage: string, request: BodyRequest) -> string =
 /// @param stage         the name of the stage.
 /// @param request       what it was asked.
 export body_record_path :: fn(project_root: string, stage: string, request: BodyRequest) -> string {
-    bodies :: join_path(join_path(stage_records_dir(project_root), stage), "${request.module_name}.bodies")
+    folder :: bodies_folder(request.module_name)
+    bodies :: stage_records_dir(project_root).join_path(stage).join_path(folder)
     return join_path(bodies, "${late_fn_label(request.decl, request.owner)}.record")
 }
 
@@ -96,7 +97,7 @@ export body_record_path :: fn(project_root: string, stage: string, request: Body
 /// @param stage         the name of the stage.
 /// @param module_name   the module.
 export stage_record_path :: fn(project_root: string, stage: string, module_name: string) -> string =
-    join_path(join_path(stage_records_dir(project_root), stage), "${module_name}.record")
+    stage_records_dir(project_root).join_path(stage).join_path("${module_name}.record")
 
 /// A record: its key on a line, then the answer of the stage as the driver sent
 /// it.

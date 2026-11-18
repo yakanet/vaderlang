@@ -65,6 +65,8 @@ export LoadedProject :: struct {
     late_fns:     LateFn[] = []
     /// The body stages that give them.
     body_stages:  BodyStage[] = []
+    /// The bodies they gave, as they were parsed once the comptime had run.
+    given_bodies: GeneratedSource[] = []
 }
 
 /// Empty placeholder: used by test fixtures that construct downstream

@@ -2,7 +2,7 @@
 // under.
 //
 // Code the compiler writes as source (a source stage's file, the wrappers of an
-// interceptor) is parsed under a file name no file on disk has: the kind of
+// interceptor, the body a body stage gives) is parsed under a file name no file on disk has: the kind of
 // writer, then what it was written for. Each such name is unique in a load, which
 // keeps each span unique: a span-keyed table must never see two nodes on one span.
 // A build writes each to a real file (`expanded_name`), where a diagnostic in it
@@ -31,6 +31,41 @@ generated_file :: fn(kind: string, origin: string) -> string =
 framed_source :: fn(kind: string, origin: string, module_name: string, body: string) -> string =
     "${GENERATED_HEADER} (${kind}) for `${origin}`: do not edit\nmodule \"${module_name}\"\n${body}"
 
+/// What follows a module in the name of the folder of the bodies body stages give
+/// its functions, as written out and as recorded: `app.bodies`.
+export BODIES_SUFFIX :: ".bodies"
+
+/// The folder of the bodies body stages give the functions of `module_name`.
+///
+/// @param module_name  the module.
+export bodies_folder :: fn(module_name: string) -> string = "${module_name}${BODIES_SUFFIX}"
+
+// What the body of `late` is written for: `app.bodies/Person.to_json_value@4`.
+late_body_origin :: fn(late: LateFn, module_name: string) -> string =
+    "${bodies_folder(module_name)}/${late_fn_label(late.decl, late.owner)}"
+
+/// The name the body a body stage gives `late` is parsed under, in the module
+/// `module_name`: code its stage wrote, for the module.
+///
+/// @param late         the function given a body.
+/// @param module_name  the module that declares it.
+export late_body_file :: fn(late: LateFn, module_name: string) -> string =
+    generated_file(late.stage, late_body_origin(late, module_name))
+
+/// The source the body `text` of `late` is parsed from: `text` holds the block, the
+/// lines around it the header of generated code and a function that holds it,
+/// whose signature is not read.
+///
+/// @param late         the function given a body.
+/// @param module_name  the module that declares it.
+/// @param text         the body the stage gave, a block.
+export late_body_source :: fn(late: LateFn, module_name: string, text: string) -> string {
+    label :: late_fn_label(late.decl, late.owner)
+    note :: "// The body `${late.stage}` gives `${label}`: the function around it only holds it."
+    held :: "${note}\nlate_body :: fn() -> void ${text}\n"
+    return framed_source(late.stage, late_body_origin(late, module_name), module_name, held)
+}
+
 /// Whether `file` is a name code the compiler wrote is parsed under: code no user
 /// wrote, which a warning about what the user wrote leaves alone.
 ///
@@ -57,7 +92,8 @@ export GeneratedCode :: struct {
 }
 
 /// The code the compiler wrote as source for the modules of `loaded` the build
-/// named: the toolchain's are left out, an error in them being the compiler's.
+/// named, and the bodies its body stages gave: the toolchain's are left out, an
+/// error in them being the compiler's.
 ///
 /// @param loaded  a loaded project.
 export generated_code :: fn(loaded: LoadedProject) -> GeneratedCode {
@@ -75,6 +111,7 @@ export generated_code :: fn(loaded: LoadedProject) -> GeneratedCode {
             }
         }
     }
+    out.sources.push_all(loaded.given_bodies)
     return out
 }
 
@@ -177,6 +214,12 @@ test_expanded_name_follows_the_written_file :: fn() -> void {
 test_expanded_name_follows_the_module :: fn() -> void {
     written :: expanded_name("<generated>:displayable:app/shapes", ".") else ""
     assert_eq(written, "displayable/app/shapes.vader")
+}
+
+@test
+test_expanded_name_puts_a_body_beside_its_module :: fn() -> void {
+    written :: expanded_name("<generated>:json:app.bodies/Person.to_json_value@4", ".") else ""
+    assert_eq(written, "json/app.bodies/Person.to_json_value@4.vader")
 }
 
 @test

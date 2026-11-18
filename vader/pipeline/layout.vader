@@ -123,7 +123,8 @@ export write_expanded :: fn(b: CfgBytecode, file: Path, project_root: string | n
 }
 
 // Remove each file of `dir` the compiler wrote, under a name of `owned` once its
-// kind's folder is left out, that `names` no longer holds, then the folders that
+// kind's folder is left out (a body under the name of its module, `owner_name`),
+// that `names` no longer holds, then the folders that
 // leaves empty. A file of another load, or that the compiler did not write, stays.
 remove_stale :: fn(dir: string, names: Set<string>, owned: Set<string>) -> void {
     walker :: walk(dir) else return
@@ -138,7 +139,8 @@ remove_stale :: fn(dir: string, names: Set<string>, owned: Set<string>) -> void 
             continue
         }
         slash :: e.relative.index_of('/') else continue
-        if e.relative.byte_slice(slash + 1, e.relative.byte_len()) in owned && is_generated(e.path) {
+        name :: e.relative.byte_slice(slash + 1, e.relative.byte_len())
+        if owner_name(name) in owned && is_generated(e.path) {
             stale.push(e.path)
         }
     }
@@ -156,6 +158,13 @@ remove_stale :: fn(dir: string, names: Set<string>, owned: Set<string>) -> void 
     for i in 0..<folders.len() {
         remove(folders[folders.len() - 1 - i])
     }
+}
+
+// The name of the code written for an origin that owns the file `name`: a body,
+// under `<module>.bodies/`, belongs to its module.
+owner_name :: fn(name: string) -> string {
+    [module, _] :: name.split_first("${BODIES_SUFFIX}/") else return name
+    return "${module}.vader"
 }
 
 // Whether the file `path` opens with the line the compiler writes first.
@@ -303,6 +312,12 @@ test_project_output_dir_names_profile_and_target :: fn() -> void {
     assert_eq(project_output_dir("app", true, linux), "app/build/release-linux-x86_64")
     host :: host_target().to_string()
     assert_eq(project_output_dir("app", false, null), "app/build/debug-${host}")
+}
+
+@test
+test_a_body_belongs_to_its_module :: fn() -> void {
+    assert_eq(owner_name("app/shapes.bodies/Person.to_json_value@4.vader"), "app/shapes.vader")
+    assert_eq(owner_name("app/main.vader"), "app/main.vader")
 }
 
 @test

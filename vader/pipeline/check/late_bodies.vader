@@ -38,6 +38,8 @@ export provide_late_bodies :: fn(
     result: CheckResult,
     diags: Diagnostic[],
 ) -> void {
+    // The bodies of this check alone: a project checked again gives them again.
+    loaded.given_bodies.clear()
     ignored: Diagnostic[]: []
     evaluated :: evaluate_project(loaded, typed_project_of(result, FreshReads {}), ignored)
     core_seed :: build_core_seed(loaded)
@@ -94,7 +96,7 @@ provide_module_bodies :: fn(
             },
         )
         diags.push_all(body.diagnostics)
-        parsed :: parsed_body(late, module, body.text, diags) else continue
+        parsed :: parsed_body(ctx.loaded, late, module, body.text, diags) else continue
         late.decl.body = parsed
         given.push(late)
     }
@@ -115,15 +117,21 @@ provide_module_bodies :: fn(
 // The body `text` gives `late`, parsed inside a function of its own under a file
 // name no file has, nor another body: its spans are its own, since the resolution
 // keys a name by its span, its node ids the project's, and the declaration keeps
-// its id. Null when it does not parse as a block, which is reported.
+// its id. The source joins the bodies of `loaded`, which a build writes out, one
+// that does not parse included: its parse errors point there. Null when it does
+// not parse as a block, which is reported.
 parsed_body :: fn(
+    loaded: LoadedProject,
     late: LateFn,
     module: LoadedModule,
     text: string,
     diags: Diagnostic[],
 ) -> BlockExpr | null {
-    path :: "<${late.stage}>/${module.module.module_name}/${late_fn_label(late.decl, late.owner)}"
-    parsed :: parse_compiler_written("module \"late\"\nlate_body :: fn() -> void ${text}", path)
+    module_name :: module.module.module_name
+    path :: late_body_file(late, module_name)
+    source :: late_body_source(late, module_name, text)
+    loaded.given_bodies.push(GeneratedSource { .file = path, .content = source })
+    parsed :: parse_compiler_written(source, path)
     diags.push_all(parsed.errors)
     if any_error_diag(parsed.errors) {
         return null
