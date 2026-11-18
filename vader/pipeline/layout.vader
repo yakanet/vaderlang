@@ -172,15 +172,21 @@ is_generated :: fn(path: string) -> bool {
 export expansion_root :: fn(file: Path, project_root: string | null) -> string =
     project_root else entry_folder_of(file.as_string())
 
-// Whether the file `path` holds `content`.
-holds :: fn(path: string, content: string) -> bool {
+/// Whether the file `path` holds `content`.
+///
+/// @param path     the file.
+/// @param content  what it should hold.
+export holds :: fn(path: string, content: string) -> bool {
     current :: read_file_string(path) else return false
     return current == content
 }
 
-// Write `content` to the file `path` and its missing folders: false after saying
-// it could not.
-write_text :: fn(path: string, content: string) -> bool {
+/// Write `content` to the file `path` and its missing folders.
+///
+/// @param path     the file.
+/// @param content  what it holds once written.
+/// @return         false after saying it could not.
+export write_text :: fn(path: string, content: string) -> bool {
     if !ensure_dir(path.to_path().parent().as_string()) {
         return false
     }

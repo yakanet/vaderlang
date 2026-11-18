@@ -1,0 +1,220 @@
+// vader/front/resolver/stage_records: what the stages of a project's driver
+// wrote in its last build, which a load with no driver replays.
+//
+// A source stage is pure: what it writes follows from its files alone, read
+// without their bodies, nothing typed. A served build records, for each stage of
+// the driver and each module it ran on, a key of the files it read and what it
+// wrote, under `STAGE_RECORDS_DIR` of the project (the build server writes them).
+// `vader run`, `vader test` and the language server load the project once the
+// driver is gone, and replay the records. A record whose key no longer matches was
+// written for files changed since: it is replayed all the same, with a warning,
+// until the next build. A change to the driver itself shows at the next build.
+
+module "vader/front/resolver"
+
+import "std/fs"
+import "std/iter"
+import "std/numbers"
+import "std/path"
+import "std/string"
+import "toolchain/ast"
+import "toolchain/diagnostics"
+import "toolchain/protocol"
+import "toolchain/span"
+import "toolchain/stage"
+
+/// Where a build records what the stages of its driver wrote, under the project.
+export STAGE_RECORDS_DIR :: "build/stages"
+
+// The file, under `STAGE_RECORDS_DIR`, describing the stages of the last build.
+STAGE_PLAN_FILE :: "plan"
+
+/// The files of a stage of the driver as the driver receives them: the
+/// declarations that cross.
+///
+/// @param input  what the stage is given.
+export driver_sources :: fn(input: Sources) -> Sources {
+    files: Program[]: []
+    for program in input.files {
+        files.push(Program { ...program, .decls = program.decls.filter(crosses).collect() })
+    }
+    return Sources { .module_name = input.module_name, .files = files }
+}
+
+/// The key of the files `sources` hands the stage `stage`: equal for files that
+/// read alike.
+///
+/// @param stage    the name of the stage.
+/// @param sources  its files, as `driver_sources` makes them.
+export record_key :: fn(stage: string, sources: Sources) -> string =
+    server_payload(SourceStageFrame { .stage = stage, .sources = sources }).hash().to_hex()
+
+/// The folder of the records of `project_root`.
+///
+/// @param project_root  the project folder.
+export stage_records_dir :: fn(project_root: string) -> string =
+    join_path(project_root, STAGE_RECORDS_DIR)
+
+/// The file describing the stages the last build of `project_root` ran.
+///
+/// @param project_root  the project folder.
+export stage_plan_path :: fn(project_root: string) -> string =
+    join_path(stage_records_dir(project_root), STAGE_PLAN_FILE)
+
+/// The file recording what the stage `stage` wrote for the module `module_name`.
+///
+/// @param project_root  the project folder.
+/// @param stage         the name of the stage.
+/// @param module_name   the module.
+export stage_record_path :: fn(project_root: string, stage: string, module_name: string) -> string =
+    join_path(join_path(stage_records_dir(project_root), stage), "${module_name}.record")
+
+/// A record: its key on a line, then the answer of the stage as the driver sent
+/// it.
+///
+/// @param key     the key of the files the stage read (`record_key`).
+/// @param answer  what it wrote.
+export record_text :: fn(key: string, answer: GeneratedFrame) -> string =
+    "${key}\n${driver_payload(answer)}"
+
+/// A report of the driver as a diagnostic, under the hook code it names.
+///
+/// @param frame  the report.
+/// @error        `ProtocolError` when it names no hook code.
+export hook_diagnostic :: fn(frame: ReportFrame) -> Diagnostic | ProtocolError {
+    for code in HookCode {
+        if CodeInfo(code).id == frame.code {
+            return hook_error(code, frame.span, frame.detail)
+        }
+    }
+    return ProtocolError { .msg = "`${frame.code}` is no hook code" }
+}
+
+// The stages the last build of `project` recorded, which replay what they wrote:
+// none when no build of it ran a stage.
+replayed_stages :: fn(project: string) -> SourceStage[] {
+    text :: read_file_string(stage_plan_path(project)) else return []
+    specs :: decode_source_specs(text) else return []
+    stages: SourceStage[]: []
+    for spec in specs {
+        stages.push(ReplayedStage { .spec = spec, .project_root = project })
+    }
+    return stages
+}
+
+// A stage of the driver of the last build, which replays what it wrote then.
+ReplayedStage :: struct {
+    spec: SourceSpec
+    project_root: string
+}
+
+ReplayedStage implements SourceStage {
+    describe :: fn(self) -> SourceSpec = self.spec
+
+    run :: fn(self, input: Sources) -> Generated {
+        name :: self.spec.name
+        path :: stage_record_path(self.project_root, name, input.module_name)
+        recorded :: read_recorded(path) else {
+            return Generated { .diagnostics = [replay_warning(input, "`${name}` has not run on `${input.module_name}`")] }
+        }
+        diagnostics: Diagnostic[]: []
+        for report in recorded.answer.reports {
+            d :: hook_diagnostic(report) else continue
+            diagnostics.push(d)
+        }
+        if recorded.key != record_key(name, driver_sources(input)) {
+            diagnostics.push(replay_warning(input, "`${name}` read other files of `${input.module_name}`"))
+        }
+        return Generated {
+            .text = recorded.answer.text,
+            .anchors = recorded.answer.anchors,
+            .diagnostics = diagnostics,
+        }
+    }
+}
+
+// A record read back.
+Recorded :: struct {
+    key: string
+    answer: GeneratedFrame
+}
+
+// The record in the file `path`, null when there is none or it does not read.
+read_recorded :: fn(path: string) -> Recorded | null {
+    text :: read_file_string(path) else return null
+    newline :: text.index_of('\n') else return null
+    frame :: decode_driver_frame(text.byte_slice(newline + 1, text.byte_len())) else return null
+    if frame !is GeneratedFrame {
+        return null
+    }
+    return Recorded { .key = text.byte_slice(0, newline), .answer = frame }
+}
+
+// The warning that a stage is replayed from an earlier build, at the head of the
+// first file it reads.
+replay_warning :: fn(input: Sources, why: string) -> Diagnostic {
+    at :: input.files[0].span.start
+    span :: Span { .start = at, .end = at }
+    detail :: "${why} since the last build: build the project again"
+    return new_diagnostic(.Warning, CodeInfo(HookCode.StaleStageReplay), span, detail)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/env"
+import "std/testing"
+import "toolchain/parser"
+
+// The files of `app` a stage reads: one, with `source`.
+app_sources :: fn(source: string) -> Sources =
+    Sources { .module_name = "app", .files = [parse_source(source, "src/main.vader").program] }
+
+// A project whose last build recorded that `echo` wrote `text` for `recorded`.
+recorded_project :: fn(recorded: Sources, text: string) -> string {
+    project :: create_unique_dir(temp_dir(), "stage_records.") else panic("no temporary folder")
+    create_dir(join_path(stage_records_dir(project), "echo"))
+    write_file(stage_plan_path(project), encode_source_specs([SourceSpec { .name = "echo" }]))
+    key :: record_key("echo", driver_sources(recorded))
+    write_file(stage_record_path(project, "echo", "app"), record_text(key, GeneratedFrame { .text = text }))
+    return project
+}
+
+// The stage of `project` replayed on `input`.
+replayed :: fn(project: string, input: Sources) -> Generated {
+    stages :: replayed_stages(project)
+    assert_eq(stages.len(), 1)
+    return stages[0].run(input)
+}
+
+@test
+test_a_load_replays_what_the_last_build_recorded :: fn() -> void {
+    input :: app_sources("module \"app\"\nP :: struct {}\n")
+    project :: recorded_project(input, "x :: 1")
+    defer remove(project, RemoveOptions { .recursive = true })
+    generated :: replayed(project, input)
+    assert_eq(generated.text, "x :: 1")
+    assert_eq(generated.diagnostics.len(), 0)
+}
+
+@test
+test_a_record_for_other_files_is_replayed_with_a_warning :: fn() -> void {
+    project :: recorded_project(app_sources("module \"app\"\nP :: struct {}\n"), "x :: 1")
+    defer remove(project, RemoveOptions { .recursive = true })
+    generated :: replayed(project, app_sources("module \"app\"\nQ :: struct {}\n"))
+    assert_eq(generated.text, "x :: 1")
+    assert_eq(generated.diagnostics.len(), 1)
+    assert_eq(generated.diagnostics[0].code.id, "H6016")
+    assert(generated.diagnostics[0].severity == .Warning, "a stale replay only warns")
+}
+
+@test
+test_a_module_no_build_ran_the_stage_on_gets_a_warning :: fn() -> void {
+    input :: app_sources("module \"app\"\nP :: struct {}\n")
+    project :: recorded_project(input, "x :: 1")
+    defer remove(project, RemoveOptions { .recursive = true })
+    stages :: replayed_stages(project)
+    generated :: stages[0].run(Sources { ...input, .module_name = "other" })
+    assert_eq(generated.text, "")
+    assert_eq(generated.diagnostics[0].code.id, "H6016")
+}

@@ -322,6 +322,7 @@ export HookCode :: enum(CodeInfo) {
     BuildInsidePlugin          { .id = "H6013", .message = "a plugin started a build inside the build" },
     NoRoundAfterGeneration     { .id = "H6014", .message = "a generated module is never written" },
     DriverStagesCannotRun      { .id = "H6015", .message = "the source stages of the driver cannot run" },
+    StaleStageReplay           { .id = "H6016", .message = "the code of a stage of the driver comes from an earlier build" },
 }
 
 /// IR self-check codes, emitted by the cross-pass verifiers

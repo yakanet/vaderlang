@@ -17,3 +17,12 @@ main :: fn() -> i32 {
     println(greet(Person { .name = "Ada" }))
     return 0
 }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_greet_is_what_the_stage_wrote :: fn() -> void {
+    assert_eq(greet(Person { .name = "Ada" }), "hello Ada")
+}

@@ -264,12 +264,7 @@ export driver_payload :: fn(frame: DriverFrame) -> string {
             out.write_integer(i64(frame.target))
             out.write_field(frame.cc)
             out.write_field(frame.ldflags)
-            out.write_integer(frame.stages.len())
-            for spec in frame.stages {
-                out.write_field(spec.name)
-                out.write_givens(spec.given)
-                out.write_givens(spec.generates)
-            }
+            out.write_specs(frame.stages)
         }
         is EmitModuleFrame -> {
             out.write_field("emit_module")
@@ -300,6 +295,38 @@ export driver_payload :: fn(frame: DriverFrame) -> string {
         }
     }
     return out.to_string()
+}
+
+write_specs :: fn(out: StringBuilder, specs: SourceSpec[]) -> void {
+    out.write_integer(specs.len())
+    for spec in specs {
+        out.write_field(spec.name)
+        out.write_givens(spec.given)
+        out.write_givens(spec.generates)
+    }
+}
+
+/// The descriptions of source stages, as `decode_source_specs` reads them back.
+///
+/// @param specs  the descriptions.
+export encode_source_specs :: fn(specs: SourceSpec[]) -> string {
+    out :: StringBuilder {}
+    out.write_specs(specs)
+    return out.to_string()
+}
+
+/// The descriptions `encode_source_specs` wrote.
+///
+/// @param text  what it wrote.
+/// @error       `ProtocolError` when `text` holds no descriptions, or bytes past
+///              them.
+export decode_source_specs :: fn(text: string) -> SourceSpec[] | ProtocolError {
+    r :: FieldReader { .payload = text }
+    specs :: r.read_specs() else return specs
+    if r.at < text.byte_len() {
+        return past_last_field(r)
+    }
+    return specs
 }
 
 write_report :: fn(out: StringBuilder, report: ReportFrame) -> void {
@@ -478,18 +505,7 @@ read_configure :: fn(r: FieldReader) -> ConfigureFrame | ProtocolError {
     }
     cc :: r.read_field() else return cc
     ldflags :: r.read_field() else return ldflags
-    stage_count :: r.read_count() else return stage_count
-    stages: SourceSpec[]: []
-    for _ in 0..<stage_count {
-        name :: r.read_field() else return name
-        given :: r.read_givens() else return given
-        generates :: r.read_givens() else return generates
-        stages.push(SourceSpec {
-            .name = name,
-            .given = given,
-            .generates = generates,
-        })
-    }
+    stages :: r.read_specs() else return stages
     return ConfigureFrame {
         .fingerprint = fingerprint,
         .entries = entries,
@@ -500,6 +516,22 @@ read_configure :: fn(r: FieldReader) -> ConfigureFrame | ProtocolError {
         .ldflags = ldflags,
         .stages = stages,
     }
+}
+
+read_specs :: fn(r: FieldReader) -> SourceSpec[] | ProtocolError {
+    count :: r.read_count() else return count
+    specs: SourceSpec[]: []
+    for _ in 0..<count {
+        name :: r.read_field() else return name
+        given :: r.read_givens() else return given
+        generates :: r.read_givens() else return generates
+        specs.push(SourceSpec {
+            .name = name,
+            .given = given,
+            .generates = generates,
+        })
+    }
+    return specs
 }
 
 read_givens :: fn(r: FieldReader) -> Given[] | ProtocolError {

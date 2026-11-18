@@ -6,20 +6,25 @@
 // sends the driver the files of the module (`SourceStageFrame`) and waits for
 // what the stage generated (`GeneratedFrame`). Meanwhile the pipeline is inside
 // a load, and the driver inside its pull of the next event, which answers the
-// stages until an event comes.
+// stages until an event comes. Each answer is recorded for the loads that come
+// once the driver is gone (`stage_records.vader`, in the resolver).
 
 module "vader/build_server"
 
-import "std/iter"
-import "toolchain/ast"
+import "std/collections" { remove as _ }
+import "std/fs"
 import "toolchain/diagnostics"
 import "toolchain/protocol"
 import "toolchain/stage"
+import "vader/front/resolver"
+import "vader/pipeline"
 
 /// The driver the stages of one build run in. Once it broke the protocol it is
 /// asked nothing more, and the build stops on the failure before its next event.
 export StageLink :: struct {
     peer: DriverPeer
+    /// Where the answers are recorded, null for a build with no project.
+    project_root: string | null
     failure: ProtocolError | null = null
 }
 
@@ -62,18 +67,19 @@ export driver_stages :: fn(link: StageLink, specs: SourceSpec[]) -> SourceStage[
 }
 
 // What the stage `stage` of the driver generates for `input`, the declarations
-// that cross only.
+// that cross only, recorded.
 run_in_driver :: fn(link: StageLink, stage: string, input: Sources) -> Generated | ProtocolError {
-    files: Program[]: []
-    for program in input.files {
-        files.push(Program { ...program, .decls = program.decls.filter(crosses).collect() })
-    }
-    sources :: Sources { .module_name = input.module_name, .files = files }
+    sources :: driver_sources(input)
     sent :: link.peer.send(SourceStageFrame { .stage = stage, .sources = sources })
         else is ProtocolError { return sent }
     answer :: link.peer.receive() else return answer
     if answer !is GeneratedFrame {
         return ProtocolError { .msg = "the driver answered the stage `${stage}` with another frame" }
+    }
+    project :: link.project_root
+    if project != null {
+        path :: stage_record_path(project, stage, sources.module_name)
+        write_record(path, record_text(record_key(stage, sources), answer))
     }
     diagnostics: Diagnostic[]: []
     for report in answer.reports {
@@ -84,5 +90,40 @@ run_in_driver :: fn(link: StageLink, stage: string, input: Sources) -> Generated
         .text = answer.text,
         .anchors = answer.anchors,
         .diagnostics = diagnostics,
+    }
+}
+
+/// Record the stages a driver plugged as the plan of the last build of
+/// `project_root`, and forget what the stages it no longer plugs wrote. A driver
+/// with no stage leaves no record.
+///
+/// @param project_root  the project folder.
+/// @param specs         what its stages describe of themselves.
+export record_plan :: fn(project_root: string, specs: SourceSpec[]) -> void {
+    dir :: stage_records_dir(project_root)
+    tree :: RemoveOptions { .recursive = true, .force = true }
+    if specs.is_empty() {
+        remove(dir, tree)
+        return
+    }
+    write_record(stage_plan_path(project_root), encode_source_specs(specs))
+    planned :: Set<string> {}
+    for spec in specs {
+        planned.add(spec.name)
+    }
+    names :: read_dir(dir) else return
+    for name in names {
+        path :: join_path(dir, name)
+        if name !in planned && is_dir(path) {
+            remove(path, tree)
+        }
+    }
+}
+
+// Write `text` to the record `path`, unless it holds it already. A record not
+// written only costs a load with no driver its replay.
+write_record :: fn(path: string, text: string) -> void {
+    if !holds(path, text) {
+        write_text(path, text)
     }
 }

@@ -260,6 +260,7 @@ A `vader.json` project is built by a driver compiled into `vader`: nothing is co
 - talks to `vader` over its standard input and output, so it does not run on its own;
 - killed when it leaves `vader` waiting ten minutes for an answer;
 - under `info`, `run`, `dump`, `lint` and `graph`, its output goes to stderr, leaving stdout to the command.
+- the source stages it plugs run in it, during each load of a build; what they wrote is kept under `build/stages/`, which the commands that read the project once the driver is done (`run`, `test`, the language server) use, with a warning (H6016) for a stage whose files changed since the last build.
 
 `ctx.mode()` tells the driver which command runs it:
 

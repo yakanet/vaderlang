@@ -62,6 +62,15 @@ export project_stages_problem :: fn(stages: SourceStage[]) -> string {
     return ""
 }
 
+// The stages of the driver of `project`, plugged or replayed. Without a project,
+// the records are read under the working directory, as the generated modules are.
+stages_of_driver :: fn(project: string | null) -> SourceStage[] {
+    if project == null {
+        return replayed_stages("")
+    }
+    return driver_stages()[project] else replayed_stages(project)
+}
+
 // The compiler's source stages, then `driver`'s.
 with_compiler_stages :: fn(driver: SourceStage[]) -> SourceStage[] {
     stages :: source_stages()
@@ -70,13 +79,15 @@ with_compiler_stages :: fn(driver: SourceStage[]) -> SourceStage[] {
 }
 
 /// The source stages of a load, in a planned order: the compiler's, then those
-/// the driver of `project` plugged. A plan that fails is a compiler bug: the
-/// build checks a driver's stages before it registers them.
+/// of the driver of `project`: the ones it plugged while its build runs, else
+/// those its last build recorded, replayed (`stage_records.vader`). A plan that
+/// fails is a compiler bug: the build checks a driver's stages before it
+/// registers or records them.
 ///
 /// @param project  the project the load belongs to, posix, null for a file on
-///                 its own.
+///                 its own: the working directory's records are replayed then.
 planned_source_stages :: fn(project: string | null) -> SourceStage[] {
-    driver: SourceStage[]: if project == null { [] } else { driver_stages()[project] else [] }
+    driver :: stages_of_driver(project)
     planned :: plan_stages(with_compiler_stages(driver)) else {
         panic("source stages: ${planned.message}")
     }

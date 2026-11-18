@@ -68,7 +68,11 @@ file of its own, parsed like the others (`@displayable` is the first). The stage
 project's driver plugs run in the driver's process: the build server plans a
 stand-in for each beside the compiler's (`vader/build_server/stages.vader`), which
 sends the driver the files and waits for its text, and registers them for the
-project (`register_project_stages`) so that every load of it plans them. It then
+project (`register_project_stages`) so that every load of it plans them. Each
+answer is recorded under `build/stages/` with a key of the files the stage read; a
+load with no driver (`vader run`, `vader test`, the language server) replays the
+records (`vader/front/resolver/stage_records.vader`), warning on a key that no
+longer matches. It then
 wraps each function an interceptor marks (`vader/front/resolver/intercept.vader`).
 The shape of the function an interceptor names in `around` is read from its
 declaration first (`around.vader`): a wrong one is reported in the user's code,

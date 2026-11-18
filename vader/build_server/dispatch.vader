@@ -12,7 +12,6 @@ module "vader/build_server"
 
 import "std/console"
 import "std/iter"
-import "toolchain/diagnostics"
 import "toolchain/project"
 import "toolchain/protocol"
 import "vader/front/resolver"
@@ -105,7 +104,7 @@ export serve :: fn(
         return protocol_failure("the driver opened with another frame than its configuration")
     }
     session :: new_session(request, description_file, opening)
-    link :: StageLink { .peer = peer }
+    link :: StageLink { .peer = peer, .project_root = project_of(session) }
     session.plug_stages(driver_stages(link, opening.stages))
     // Every way out: a load after the build must not reach a driver gone.
     defer forget_project_stages(session.project_root)
@@ -198,16 +197,6 @@ take_report :: fn(session: BuildSession, frame: ReportFrame) -> null | ProtocolE
     d :: hook_diagnostic(frame) else return d
     session.diagnostics.push(d)
     return null
-}
-
-// A report of the driver as a diagnostic, under the hook code it names.
-hook_diagnostic :: fn(frame: ReportFrame) -> Diagnostic | ProtocolError {
-    for code in HookCode {
-        if CodeInfo(code).id == frame.code {
-            return hook_error(code, frame.span, frame.detail)
-        }
-    }
-    return ProtocolError { .msg = "`${frame.code}` is no hook code" }
 }
 
 /// The frame that tells a driver `event`: of a module, the declarations that

@@ -100,6 +100,7 @@ plug_stages :: fn(session: BuildSession, stages: SourceStage[]) -> void {
     }
     project :: project_of(session) else return
     register_project_stages(project, stages)
+    record_plan(project, stages.map((stage) -> stage.describe()).collect())
 }
 
 // ---- diagnostics ----------------------------------------------------------
