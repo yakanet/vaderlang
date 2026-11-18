@@ -13,7 +13,6 @@ module "tools/testrunner/src"
 
 import "std/diff"
 import "std/fs"
-import "std/io"
 import "std/iter"
 import "std/sort"
 import "std/string"
