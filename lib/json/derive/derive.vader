@@ -1,21 +1,23 @@
-// json/derive: a build plugin writing a JSON serialiser for each struct marked
+// json/derive: a source stage writing a JSON serialiser for each struct marked
 // `@json`.
 //
-// It reads the decorators of `json` (`decorators.vader` there), each with the
-// value the build computed: `@json` above a struct, `@json_name("key")` and
-// `@json_skip` above a field. The code
-// joins the struct's own module, which is what lets it name the type: a module of
-// its own would have to import the struct's module, which imports it back.
+// It reads the decorators of `json` (`decorators.vader` there) as they are
+// written: `@json` above a struct, `@json_name("key")` and `@json_skip` above a
+// field. The build runs it while it loads the project, so the code joins the
+// struct's own module before anything is checked, which is what lets it name the
+// type: a module of its own would have to import the struct's module, which
+// imports it back.
 
 module "json/derive"
 
 import "std/iter"
 import "std/string_builder"
-import "toolchain/build"
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "toolchain/lexer"
+import "toolchain/stage"
 
-/// A build plugin giving each struct marked `@json` a JSON serialiser: a
+/// A source stage giving each struct marked `@json` a JSON serialiser: a
 /// `to_json_value(v)` building a `JsonValue`, and a `to_json(v)` writing its text.
 ///
 /// The functions are overloads on the struct type, generated into the struct's
@@ -23,7 +25,7 @@ import "toolchain/lexer"
 /// `string`, a `bool`, a struct of the same module marked `@json` (through its own
 /// overload), or an array of one of them. Any other field is reported, and left
 /// out. A field takes the key `@json_name` gives, its name otherwise, and
-/// `@json_skip` leaves it out.
+/// `@json_skip` leaves it out. The key is read as written: a string literal.
 ///
 /// @example
 ///   # import "toolchain/build"
@@ -31,28 +33,36 @@ import "toolchain/lexer"
 ///   ctx.use(JsonDerive {})
 export JsonDerive :: struct {}
 
-JsonDerive implements BuildPlugin {
+JsonDerive implements SourceStage {
+    describe :: fn(self) -> SourceSpec = SourceSpec {
+        .name = "json",
+        .given = [DecoratorOrigin { .module = JSON_MODULE, .name = "json" }],
+    }
+
     // The struct names are collected before any is written, so a field whose type is
-    // a sibling struct is recognised as one however the file orders them.
-    on_module :: fn(self, ctx: BuildContext, msg: TypecheckedMessage) -> void {
+    // a sibling struct is recognised as one however the files order them.
+    run :: fn(self, input: Sources) -> Generated {
         structs: AST.StructDecl[]: []
         names: string[]: []
-        for d in msg.declarations.filter_is<AST.StructDecl>() {
-            if json_decorator(d.decorators, "json") != null {
-                structs.push(d)
-                names.push(d.name)
+        for file in input.files {
+            for d in file.decls.filter_is<AST.StructDecl>() {
+                if json_decorator(d.decorators, "json") != null {
+                    structs.push(d)
+                    names.push(d.name)
+                }
             }
         }
         if structs.len() == 0 {
-            return
+            return Generated {}
         }
         out :: StringBuilder {}
+        reports: Diagnostic[]: []
         out.append("import \"std/collections\"\n")
         out.append("${JSON_ALIAS} :: import \"json\"\n")
         for s in structs {
-            write_struct(ctx, out, s, names)
+            write_struct(out, reports, s, names)
         }
-        ctx.emit_module(msg.module_name, out.to_string())
+        return Generated { .text = out.to_string(), .diagnostics = reports }
     }
 }
 
@@ -63,7 +73,7 @@ NUMERIC_TYPES :: ["i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "f32", "
 json_decorator :: fn(decorators: AST.Decorator[], name: string) -> AST.Decorator | null =
     AST.find_declared_decorator(decorators, JSON_MODULE, name)
 
-// The module that declares the decorators the plugin reads.
+// The module that declares the decorators the stage reads.
 JSON_MODULE :: "json"
 
 // The alias the generated file reaches `json` through. A file's alias shares the
@@ -71,8 +81,8 @@ JSON_MODULE :: "json"
 JSON_ALIAS :: "DerivedJson"
 
 write_struct :: fn(
-    ctx: BuildContext,
     out: StringBuilder,
+    reports: Diagnostic[],
     s: AST.StructDecl,
     siblings: string[],
 ) -> void {
@@ -80,7 +90,7 @@ write_struct :: fn(
     out.append("to_json_value :: fn(v: ${s.name}) -> ${JSON_ALIAS}.JsonValue {\n")
     out.append("    entries :: Map<string, ${JSON_ALIAS}.JsonValue> {}\n")
     for f in s.fields {
-        write_field(ctx, out, f, siblings)
+        write_field(out, reports, f, siblings)
     }
     out.append("    return ${JSON_ALIAS}.JsonObject { .entries = entries }\n")
     out.append("}\n")
@@ -92,11 +102,16 @@ write_struct :: fn(
 
 // The statements that put one field into `entries`. A field whose type has no JSON
 // mapping is reported against the field, so the user sees which one.
-write_field :: fn(ctx: BuildContext, out: StringBuilder, f: AST.StructField, siblings: string[]) -> void {
+write_field :: fn(
+    out: StringBuilder,
+    reports: Diagnostic[],
+    f: AST.StructField,
+    siblings: string[],
+) -> void {
     if json_decorator(f.decorators, "json_skip") != null {
         return
     }
-    key :: quote_vader(key_of(ctx, f))
+    key :: quote_vader(key_of(reports, f))
     access :: "v.${f.name}"
     scalar :: value_expression(f.ty, access, siblings)
     if scalar != null {
@@ -118,15 +133,19 @@ write_field :: fn(ctx: BuildContext, out: StringBuilder, f: AST.StructField, sib
             return
         }
     }
-    ctx.report(f.span, "field `${f.name}` has no JSON mapping: skipped by the derived serialiser")
+    reports.push(hook_error(
+        .HookReport,
+        f.span,
+        "field `${f.name}` has no JSON mapping: skipped by the derived serialiser",
+    ))
 }
 
 // The key `f` takes: the one its `@json_name` gives, its name otherwise. A
 // `@json_name` that arrives without one is reported, and the name stands in.
-key_of :: fn(ctx: BuildContext, f: AST.StructField) -> string {
+key_of :: fn(reports: Diagnostic[], f: AST.StructField) -> string {
     renamed :: json_decorator(f.decorators, "json_name") else return f.name
     key :: AST.argument_named(renamed, "name", 0) else {
-        ctx.report(renamed.span, "`@json_name` gives no key")
+        reports.push(hook_error(.HookReport, renamed.span, "`@json_name` gives no key"))
         return f.name
     }
     return AST.string_literal_text(key) else f.name
@@ -180,7 +199,7 @@ test_value_expression_reaches_a_struct_of_the_module_only :: fn() -> void {
     assert(value_expression(named_type("Address"), "x", []) == null, "another module's struct")
 }
 
-// A decorator of `json`, as the build hands it to a driver.
+// A decorator of `json`, as the build hands it to a stage.
 json_mark :: fn(name: string, args: AST.CallArg[]) -> AST.Decorator = AST.Decorator {
     .span = empty_span(),
     .name = name,
@@ -201,43 +220,43 @@ string_argument :: fn(text: string) -> AST.CallArg = AST.CallArg {
 
 @test
 test_a_field_takes_the_key_its_json_name_writes :: fn() -> void {
-    ctx :: new_build_context(["driver", "/tmp/proj"])
+    reports: Diagnostic[]: []
     out :: StringBuilder {}
     field :: field_of("id", named_type("i64"))
     field.decorators = [json_mark("json_name", [string_argument("user\"id")])]
-    write_field(ctx, out, field, [])
+    write_field(out, reports, field, [])
     assert(out.to_string().contains("entries[\"user\\\"id\"]"), out.to_string())
-    assert_eq(ctx.reports_of().len(), 0)
+    assert_eq(reports.len(), 0)
 }
 
 @test
 test_a_field_under_json_skip_is_left_out :: fn() -> void {
-    ctx :: new_build_context(["driver", "/tmp/proj"])
+    reports: Diagnostic[]: []
     out :: StringBuilder {}
     field :: field_of("when", named_type("Instant"))
     field.decorators = [json_mark("json_skip", [])]
-    write_field(ctx, out, field, [])
+    write_field(out, reports, field, [])
     assert_eq(out.to_string(), "")
-    assert_eq(ctx.reports_of().len(), 0)
+    assert_eq(reports.len(), 0)
 }
 
 @test
 test_a_json_name_without_a_key_is_reported :: fn() -> void {
-    ctx :: new_build_context(["driver", "/tmp/proj"])
+    reports: Diagnostic[]: []
     out :: StringBuilder {}
     field :: field_of("id", named_type("i64"))
     field.decorators = [json_mark("json_name", [])]
-    write_field(ctx, out, field, [])
+    write_field(out, reports, field, [])
     assert(out.to_string().contains("entries[\"id\"]"), "the name stands in")
-    assert_eq(ctx.reports_of().len(), 1)
+    assert_eq(reports.len(), 1)
 }
 
 @test
 test_write_field_reports_an_unmapped_field :: fn() -> void {
-    ctx :: new_build_context(["driver", "/tmp/proj"])
+    reports: Diagnostic[]: []
     out :: StringBuilder {}
-    write_field(ctx, out, field_of("when", named_type("Instant")), [])
+    write_field(out, reports, field_of("when", named_type("Instant")), [])
     assert_eq(out.to_string(), "")
-    assert_eq(ctx.reports_of().len(), 1)
-    assert_eq(ctx.reports_of()[0].code.id, "H6004")
+    assert_eq(reports.len(), 1)
+    assert_eq(reports[0].code.id, "H6004")
 }

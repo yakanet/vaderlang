@@ -1,7 +1,8 @@
 // json/decorators: what a program writes for `json/derive` to read.
 //
 // The decorators live in the runtime module, which a program imports, and the
-// plugin that reads them in `json/derive`, which only a build driver imports.
+// source stage that reads them in `json/derive`, which only a build driver
+// imports.
 // They compile to nothing: importing them costs the program nothing.
 
 module "json"

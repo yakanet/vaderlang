@@ -1,10 +1,10 @@
-// A project whose JSON serialisers are written by a build plugin.
+// A project whose JSON serialisers are written by a source stage.
 //
 // There is no `to_json` anywhere in this tree: `build.vader` plugs `json/derive`
-// in, which reads the typed declarations, walks each struct's FIELD TYPES, and
-// generates one serialiser per struct marked `@json` into the struct's own
-// module. So `to_json` below resolves to generated code, and it can take `Person`
-// by type because the generated file is a module sibling, not an imported module.
+// in, which reads the declarations as written, walks each struct's FIELD TYPES,
+// and writes one serialiser per struct marked `@json` into the struct's own
+// module. So `to_json` below resolves to written code, and it can take `Person`
+// by type because the written file joins the module, not an imported one.
 
 module "app"
 
@@ -43,17 +43,13 @@ main :: fn() -> i32 {
 
 // ---- tests ----------------------------------------------------------------
 //
-// These are the assertions this fixture makes, and they are Vader rather than
-// TypeScript on purpose: what they call (`to_json`, written by `json/derive`)
-// exists only because the driven build produced it. `build/generated/` is a merge
-// root for the resolver, so a hand-written test reaches generated declarations
-// like any other. Before a build they are `R2006`, which is what makes them a
-// proof that generation worked rather than a test of hand-written code.
-//
-// The consequence, so it is not mistaken for a bug: an EDITOR flags `to_json`
-// below as unresolved. Resolving it needs the generated tree on disk, and nothing
-// that comes out of a build is committed: `generated.snapshot` beside this file
-// is what carries the generator's text for review instead.
+// These are the assertions this fixture makes: what they call (`to_json`, written
+// by `json/derive`) exists only because the driven build ran the stage. `vader
+// test` loads the project once the driver is done, and replays what the stage
+// wrote in that build (`build/stages/`). Before a build they are `R2006`, which
+// is what makes them a proof that the stage ran rather than a test of
+// hand-written code. `expanded.snapshot` beside this file carries the text the
+// stage writes, for review.
 
 import "std/testing"
 

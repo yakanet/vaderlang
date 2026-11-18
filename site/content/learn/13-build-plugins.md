@@ -210,7 +210,7 @@ The generated code is written under `build/generated/`, where it can be read. A 
 
 ## Sharing a plugin
 
-A plugin is a type: put it in a module of a library, and a driver plugs it in with an import. `json/derive` is one, giving each struct marked `@json` a `to_json`. The decorators come from `json`, the module the program imports: `@json_name("key")` renames a field, `@json_skip` leaves one out. Declaring your own and reading them: *Decorators*.
+A plugin is a type: put it in a module of a library, and a driver plugs it in with an import. So is a source stage, which writes code while the build loads the project, before anything is checked: `json/derive` is one, giving each struct marked `@json` a `to_json`. The decorators come from `json`, the module the program imports: `@json_name("key")` renames a field, `@json_skip` leaves one out. Declaring your own and reading them: *Decorators*.
 
 ```vader
 # module "app"
@@ -247,4 +247,4 @@ build :: fn(args: string[]) -> i32 {
 }
 ```
 
-The rules: §11 *Plugins*.
+The rules: §11 *Plugins* and §11 *Source stages*.

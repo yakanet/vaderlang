@@ -7,6 +7,8 @@
 // `VADER_HOME` at the repository, and compares what the build printed with
 // `build.snapshot`, once the paths and the host are taken out of it. A build
 // that succeeds has its generated modules compared with `generated.snapshot`,
+// and the code the compiler wrote as source (`build/expanded/`, a stage's, an
+// interceptor's) with `expanded.snapshot`,
 // and the `@test` functions of `src/` then run on the built project: they call
 // the generated code, so they fail to resolve where the build generated nothing.
 // The entry and the driver a build writes beside the project must be gone after
@@ -30,10 +32,13 @@ import "vader/tools/testing"
 
 HOOK_CORPUS :: "tests/fixtures/hook"
 
-// The modules a driven build generates, under its project.
-GENERATED :: "build/generated"
-
-GENERATED_SNAPSHOT :: "generated.snapshot"
+// What a driven build writes under its project and a fixture pins, each folder
+// with its snapshot: the modules its driver generates, and the code the compiler
+// writes as source.
+WRITTEN_TREES: [string, string][]: [
+    ["build/generated", "generated.snapshot"],
+    ["build/expanded", "expanded.snapshot"],
+]
 
 // What the path of the project reads as in a snapshot.
 PROJECT :: "<project>"
@@ -85,19 +90,22 @@ check_hook :: fn(case: Case, dir: string, update: bool) -> StageReport | CaseFai
     if is_failure(report.result) || built.exit != 0 {
         return report
     }
-    generated :: generated_report(case, project, update, began)
-    if generated != null && is_failure(generated.result) {
-        return generated
+    // A snapshot written shows in the report, whichever it is.
+    shown := report
+    for [tree, snapshot] in WRITTEN_TREES {
+        compared :: tree_report(case, project, tree, snapshot, update, began) else continue
+        if is_failure(compared.result) {
+            return compared
+        }
+        if compared.result == .Written {
+            shown = compared
+        }
     }
     failed :: tests_failure(case.dir, options)
     if failed != null {
         return failed
     }
-    // A snapshot written shows in the report, whichever it is.
-    if generated != null && generated.result == .Written {
-        return generated
-    }
-    return report
+    return shown
 }
 
 hook_failure :: fn(message: string) = CaseFailure { .message = "${HOOK_PHASE}: ${message}" }
@@ -120,27 +128,26 @@ tests_failure :: fn(fixture: string, options: RunOptions) -> CaseFailure | null 
     )
 }
 
-// What the build of `project` generated, compared with the snapshot of `case`;
-// null when it generated nothing and the fixture pins nothing.
-generated_report :: fn(
+// What the build of `project` wrote under its folder `tree`, compared with the
+// snapshot `snapshot` of `case`; null when it wrote nothing there and the fixture
+// pins nothing. Each file is under a `--- <path>` header, in path order: a changed
+// generator shows in the hash of a name and in its text.
+tree_report :: fn(
     case: Case,
     project: string,
+    tree: string,
+    snapshot: string,
     update: bool,
     began: Monotonic,
 ) -> StageReport | null {
-    actual :: generated_text(project)
-    if actual == "" && !exists("${case.dir}/${GENERATED_SNAPSHOT}") {
+    actual :: tree_text("${project}/${tree}", (entry) -> entry.name.ends_with(".vader"))
+    if actual == "" && !exists("${case.dir}/${snapshot}") {
         return null
     }
     // The case's snapshot outranks the stage's in `report_of`.
-    generated :: Case { ...case, .snapshot = GENERATED_SNAPSHOT }
-    return report_of(generated, HOOK_STAGE, actual, update, began)
+    pinned :: Case { ...case, .snapshot = snapshot }
+    return report_of(pinned, HOOK_STAGE, actual, update, began)
 }
-
-// The modules generated in `project`, each under a `--- <path>` header, in path
-// order: a changed generator shows in the hash of a name and in its text.
-generated_text :: fn(project: string) -> string =
-    tree_text("${project}/${GENERATED}", (entry) -> entry.name.ends_with(".vader"))
 
 // The files under `root` that `keep` takes, each under a `--- <path>` header, the
 // path relative to `root`, in path order; "" when `root` cannot be read.

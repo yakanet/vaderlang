@@ -3344,7 +3344,7 @@ build :: fn(args: string[]) -> i32 {
 ```
 
 - A plugin reports and generates as a driver does.
-- A library can ship a plugin: `ctx.use(JsonDerive {})`, from `json/derive`, gives each struct marked `@json` a `to_json`. The program imports the decorators it reads from `json`.
+- A library can ship a plugin, or a source stage (below).
 - Plugins are read when the stream starts, like the rest of the configuration.
 - In `.Describe` mode the stream builds nothing, and the plugins hear nothing.
 - Starting a build from inside a plugin is an error.
@@ -3394,6 +3394,7 @@ build :: fn(args: string[]) -> i32 {
 - What a stage reports in `diagnostics` is reported as the driver's reports are.
 - A stage named like another, the compiler's included, or stages that wait on one another, are an error, and nothing is compiled.
 - A value that is both a plugin and a stage is plugged as both.
+- A library can ship a stage: `ctx.use(JsonDerive {})`, from `json/derive`, gives each struct marked `@json` a `to_json`, which `@json_name("key")` and `@json_skip` above a field shape. The program imports the decorators it writes from `json`. Their arguments are read as written: a key is a string literal.
 - A command that reads the project once the driver is done, such as `vader run`, `vader test` or the language server, takes what each stage wrote in the last build. When a stage's files have changed since, the compiler warns, and still uses that code until the next build.
 
 #### Generating code
