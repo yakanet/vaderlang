@@ -245,8 +245,12 @@ declare_fn :: fn(
     // R2041: naming the target and what the group DOES cover. Emitting this too
     // would answer the same question a second time with the opposite advice
     // ("make it `@extern`"), which is the wrong fix for a coverage hole.
+    //
+    // A function a stage wrote without a body takes it after the comptime
+    // (`vader/front/resolver/late_body.vader`).
     if decl.body == null && !AST.has_compiler_decorator(decl.decorators, .Extern)
-        && !AST.has_compiler_decorator(decl.decorators, .Target) {
+        && !AST.has_compiler_decorator(decl.decorators, .Target)
+        && decl.id !in typed.resolved.late_bodies {
         diags.push(
             typecheck_error(
                 .BodylessFnMustBeExtern,

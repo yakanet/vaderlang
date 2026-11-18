@@ -71,6 +71,8 @@ check_project_modules :: fn(
         mod_index,
         core_seed,
     )
+    late_bodies :: late_bodies_by_module(project)
+    entry_rm.late_bodies = late_bodies[project.entry] else entry_rm.late_bodies
     // One set of impl tables for the whole project (`register_project_impls`), and
     // one alias table: symbol ids are project-wide, and every module expands an
     // alias as its owner registered it.
@@ -101,6 +103,7 @@ check_project_modules :: fn(
         )
         rm.alias_types = alias_types
         rm.alias_params = alias_params
+        rm.late_bodies = late_bodies[id] else rm.late_bodies
         typed :: new_typed_program(rm)
         typed.dump_types = dump_types
         typed.impl_tables = impl_tables
@@ -348,6 +351,17 @@ check_project_modules :: fn(
         .others = others,
         .all_modules = per_module,
     }
+}
+
+// The node ids of the functions a stage gives a body after the comptime, by module.
+late_bodies_by_module :: fn(project: LoadedProject) -> Map<string, Set<i64>> {
+    out :: Map<string, Set<i64>> {}
+    for late in project.late_fns {
+        ids :: out[late.module] else Set<i64> {}
+        ids.add(late.decl.id)
+        out[late.module] = ids
+    }
+    return out
 }
 
 collect_direct_imports :: fn(

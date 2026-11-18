@@ -438,6 +438,35 @@ collect_tested_type :: fn(n: AST.Node, tested: AST.TypeExpr[]) -> AST.Walk {
     return .Descend
 }
 
+/// Type the bodies a stage gave `late`, after their module was typed and resolved
+/// (`resolve_late_body`), each in the impl that declares it when there is one,
+/// then settle the module's tables again. Of what the settling reports, only what
+/// lies in the bodies is kept: the rest was reported with the module.
+///
+/// @param late   functions of the module, their bodies attached.
+/// @param typed  the module's typed program, written in place.
+/// @param diags  receives what the bodies' typing reports.
+export check_late_bodies :: fn(late: LateFn[], typed: TypedProgram, diags: Diagnostic[]) -> void {
+    files :: Set<string> {}
+    for l in late {
+        owner :: l.owner
+        if owner != null {
+            typed.enclosing_impl = owner.span.hash()
+            typed.enclosing_impl_params = impl_param_ids(owner, typed)
+        }
+        walk_fn_body(l.decl, typed, diags, .Full)
+        typed.enclosing_impl = 0
+        typed.enclosing_impl_params = Set<i32> {}
+        body :: l.decl.body else continue
+        files.add(body.span.start.file)
+    }
+    settled: Diagnostic[]: []
+    report_literals_past_default(typed, settled)
+    settle_fn_references(typed, settled)
+    zonk_module_tables(typed)
+    diags.push_all(settled.filter((d) -> d.primary.start.file in files).collect())
+}
+
 walk_fn_body :: fn(
     fd: AST.FnDecl,
     typed: TypedProgram,

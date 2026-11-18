@@ -124,6 +124,9 @@ export ResolvedModule :: struct {
     /// read it for a member `namespace_member_types` holds, which is an
     /// exported one. Populated alongside `namespace_private_members`.
     namespace_member_symbols: Map<i32, Map<string, Symbol>>
+    /// The functions of the module a stage gives a body after the comptime
+    /// (`late_body.vader`), by node id: bodyless until then.
+    late_bodies: Set<i64> = Set<i64> {}
 }
 
 export ResolvedProject :: struct {
@@ -179,12 +182,7 @@ export resolve_module_files :: fn(
     clashes: Diagnostic[]: []
     for file in files {
         imports :: file_imports(collected, file.program.file)
-        ambiguous :: wildcard_ambiguities(name_index, imports.paths, imports.excludes, core_seed)
-        scopes[file.program.file] = FileScope {
-            .root       = file_root_scope(builtins, collected, imports, name_index, core_seed),
-            .ambiguous  = ambiguous,
-            .overloaded = function_clashes(name_index, ambiguous),
-        }
+        scopes[file.program.file] = file_scope(imports, collected, name_index, core_seed, builtins)
         programs.push(file.program)
         for [_, binding] in imports.bindings {
             bindings.push(binding)
@@ -217,6 +215,23 @@ export resolve_module_files :: fn(
         .namespace_member_types = Map<i32, Map<string, Type>> {},
         .namespace_private_members = Map<i32, Map<string, bool>> {},
         .namespace_member_symbols = Map<i32, Map<string, Symbol>> {},
+    }
+}
+
+// What a file of the module `collected` sees at its top level, `imports` being
+// what it imports: the module's declarations, its imports and `builtins`.
+file_scope :: fn(
+    imports: FileImports,
+    collected: CollectedModule,
+    name_index: Map<string, LoadedModule>,
+    core_seed: Map<string, Symbol>,
+    builtins: Map<string, Symbol>,
+) -> FileScope {
+    ambiguous :: wildcard_ambiguities(name_index, imports.paths, imports.excludes, core_seed)
+    return FileScope {
+        .root       = file_root_scope(builtins, collected, imports, name_index, core_seed),
+        .ambiguous  = ambiguous,
+        .overloaded = function_clashes(name_index, ambiguous),
     }
 }
 

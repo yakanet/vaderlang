@@ -152,6 +152,56 @@ is_computed :: fn(reference: AST.Expr, program: EvaluatedProgram) -> bool {
 
 // ---- the value a build driver reads -----------------------------------------
 
+/// A declared decorator, and the arguments it was written with.
+export WrittenArguments :: struct {
+    written: AST.Decorator
+    args:    AST.CallArg[]
+}
+
+/// Make each declared decorator written in one of `paths` what a reader of its
+/// value reads: the module that declares it, as the typecheck resolved it, and its
+/// value, one named argument per field (`value_arguments`, ADR 0154). The front
+/// end leaves `Decorator.module_name` empty, but in the files a source stage read;
+/// a decorator of the compiler names none and keeps its arguments. The nodes are
+/// rewritten in place.
+///
+/// @param typed      the typed module.
+/// @param evaluated  its comptime ; null leaves the arguments as written.
+/// @param paths      the files whose decorators are delivered.
+/// @return           the arguments each rewritten decorator was written with: a
+///                   pass that reads the source after this puts them back
+///                   (`restore_written_arguments`).
+export deliver_decorators :: fn(
+    typed: TypedProgram,
+    evaluated: EvaluatedProgram | null,
+    paths: string[],
+) -> WrittenArguments[] {
+    out: WrittenArguments[]: []
+    for [_, use] in typed.decorator_uses {
+        if use.written.span.start.file !in paths {
+            continue
+        }
+        use.written.module_name = use.symbol.module_name
+        if evaluated == null {
+            continue
+        }
+        built :: evaluated.decorator_values[use.written.id] else continue
+        declared :: typed.struct_fields[use.symbol.id] else continue
+        out.push(WrittenArguments { .written = use.written, .args = use.written.args })
+        use.written.args = value_arguments(use.written, built.value, declared)
+    }
+    return out
+}
+
+/// Give each decorator of `written` back the arguments it was written with.
+///
+/// @param written  what `deliver_decorators` returned.
+export restore_written_arguments :: fn(written: WrittenArguments[]) -> void {
+    for w in written {
+        w.written.args = w.args
+    }
+}
+
 /// The arguments a build driver reads of the decorator `written`: one named
 /// argument per field of `declared`, in its order, holding the value `value`
 /// gives it as a literal, the defaults filled. An argument written keeps its

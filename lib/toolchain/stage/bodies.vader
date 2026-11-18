@@ -1,0 +1,50 @@
+// toolchain/stage/bodies: the stages that give a body to a function a source stage
+// declared without one, once the values of the decorators are computed.
+//
+// A source stage runs before anything is typed: it reads a decorator as written.
+// When what it writes depends on the value of a decorator (an argument computed
+// with `@comptime`), it declares the function without a body, and the body stage
+// of the same name gives the body once the comptime has run. The signature is all
+// the typecheck of the rest of the program reads; the body is resolved and typed
+// alone, in the module of its declaration.
+
+module "toolchain/stage"
+
+import "toolchain/ast"
+import "toolchain/diagnostics"
+
+/// A function a source stage declared without a body.
+export BodyRequest :: struct {
+    decl: FnDecl
+    /// The impl that declares it, null for a function of the module.
+    owner: ImplDecl | null = null
+    /// The declarations of its module, each declared decorator with the module
+    /// that declares it (`Decorator.module_name`) and its value: one literal
+    /// argument per field, the defaults filled.
+    declarations: Decl[]
+    module_name: string
+}
+
+/// The body a body stage gives.
+export Body :: struct {
+    /// A block, braces included: `{ return 42 }`.
+    text: string
+    /// What the stage reports.
+    diagnostics: Diagnostic[] = []
+}
+
+/// What a body stage describes of itself: its name, the source stage's whose
+/// functions it gives a body.
+export BodySpec :: struct {
+    name: string
+}
+
+// Each body is asked of the stage that declared its function: none waits on
+// another.
+BodySpec implements Placed {
+    stage_name :: fn(self) -> string = self.name
+}
+
+/// A stage that gives a body to the functions the source stage of the same name
+/// declares without one.
+export BodyStage :: trait = Stage<BodyRequest, Body, BodySpec>

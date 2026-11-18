@@ -59,6 +59,12 @@ export LoadedProject :: struct {
     factory:      SymbolFactory
     project_root: string | null
     diags:        Diagnostic[]
+    /// The functions the source stages wrote without a body, in the order they
+    /// were written: each takes its body after the comptime
+    /// (`vader/pipeline/check/late_bodies.vader`).
+    late_fns:     LateFn[] = []
+    /// The body stages that give them.
+    body_stages:  BodyStage[] = []
 }
 
 /// Empty placeholder: used by test fixtures that construct downstream
@@ -220,6 +226,7 @@ export load_project_with_overlay :: fn(
                 .tested = if under_test { entry_module.folder } else { null },
                 .only_reached = only_reached,
                 .source_stages = planned_source_stages(project),
+                .body_stages = planned_body_stages(project),
             }
             // Re-resolve the entry through the generic path now that the roots
             // exist. `paths[0]` is the entry's own folder rooted at its declared
@@ -260,9 +267,13 @@ export load_project_with_overlay :: fn(
             collect_deferred(ctx)
             detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
-                .entry = entry_module.folder, .modules = modules, .factory = factory,
+                .entry = entry_module.folder,
+                .modules = modules,
+                .factory = factory,
                 .project_root = project,
                 .diags = loader_diags,
+                .late_fns = ctx.late_fns,
+                .body_stages = ctx.body_stages,
             }
         }
     }
@@ -427,6 +438,11 @@ LoadState :: struct {
     /// The source stages that write into them, planned
     /// (`planned_source_stages`).
     source_stages: SourceStage[]
+    /// The body stages that give a body to what they wrote without one
+    /// (`planned_body_stages`).
+    body_stages: BodyStage[]
+    /// The functions they wrote without a body, in the modules the load keeps.
+    late_fns: LateFn[] = []
     /// The folder of the prelude, null in a load with no standard library. The
     /// compiler reads its declarations by itself, with no source that writes
     /// their name, so `only_reached` never trims it.
@@ -442,6 +458,8 @@ DeferredModule :: struct {
     tests_removed: bool
     trimmed: bool = false
     lost_impl_traits: string[] = []
+    /// The functions the source stages wrote into it without a body.
+    late: LateFn[] = []
 }
 
 // The module `name` resolves to from the roots of the load `ctx`.
@@ -621,16 +639,48 @@ collect_deferred :: fn(ctx: LoadState) -> void {
     if ctx.deferred.len() == 0 {
         return
     }
-    run_source_stages(ctx.deferred, ctx.source_stages, ctx.node_factory, ctx.diags)
+    bodies :: Set<string> {}
+    for stage in ctx.body_stages {
+        bodies.add(stage.describe().name)
+    }
+    run_source_stages(ctx.deferred, ctx.source_stages, bodies, ctx.node_factory, ctx.diags)
     intercept_functions(ctx.deferred, ctx.node_factory, ctx.diags)
     modules :: if ctx.only_reached { trimmed_to_reached(ctx) } else { ctx.deferred }
     for read in modules {
+        ctx.late_fns.push_all(still_declared(read.late, read.sources))
         collected :: collect_files(
             read.sources, read.found.folder, read.found.name, ctx.factory, ctx.index, ctx.bases,
             ctx.diags,
         )
         ctx.modules[read.found.folder] = loaded_module(ctx, read, collected)
     }
+}
+
+// The functions of `late` that `sources` still declare, once a dependency is
+// trimmed to what the program reaches.
+still_declared :: fn(late: LateFn[], sources: SourceFile[]) -> LateFn[] {
+    if late.is_empty() {
+        return late
+    }
+    kept :: Set<i64> {}
+    for source in sources {
+        for d in source.program.decls {
+            kept.add(d.id)
+        }
+    }
+    out: LateFn[]: []
+    for l in late {
+        if declaring_id(l) in kept {
+            out.push(l)
+        }
+    }
+    return out
+}
+
+// The id of the top-level declaration that holds `l`: its impl, or itself.
+declaring_id :: fn(l: LateFn) -> i64 {
+    owner :: l.owner else return l.decl.id
+    return owner.id
 }
 
 // The modules `ctx` has read, each dependency trimmed to what the others reach.

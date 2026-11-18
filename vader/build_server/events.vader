@@ -28,7 +28,6 @@ import "toolchain/project"
 import "toolchain/protocol"
 import "vader/front/comptime"
 import "vader/front/resolver"
-import "vader/front/typecheck"
 import "vader/pipeline"
 
 // ---- events ---------------------------------------------------------------
@@ -47,31 +46,6 @@ export ModuleTypechecked :: struct {
 }
 
 // ---- the stream -----------------------------------------------------------
-
-// Make each declared decorator of `files` what the driver that receives them
-// reads: the module that declares it, as the typecheck resolved it, and its
-// value, one named argument per field (`value_arguments`, ADR 0154). The front
-// end leaves `Decorator.module_name` empty, but in the files a source stage
-// read ; a decorator of the compiler names none and keeps its arguments. The nodes are
-// rewritten in place for the delivery: no pass reads the arguments of a
-// declared decorator once its value is computed.
-deliver_decorators :: fn(
-    typed: TypedProgram, evaluated: EvaluatedProgram | null, files: SourceFile[],
-) -> void {
-    paths :: files.map((f) -> f.path).collect()
-    for [_, use] in typed.decorator_uses {
-        if use.written.span.start.file !in paths {
-            continue
-        }
-        use.written.module_name = use.symbol.module_name
-        if evaluated == null {
-            continue
-        }
-        built :: evaluated.decorator_values[use.written.id] else continue
-        declared :: typed.struct_fields[use.symbol.id] else continue
-        use.written.args = value_arguments(use.written, built.value, declared)
-    }
-}
 
 /// Run the build the session describes, and yield what the pipeline produces.
 ///
@@ -209,7 +183,10 @@ export build_events :: fn(session: BuildSession) -> Iterator<BuildEvent> {
                 session.remember_delivered(fresh)
                 typed :: pipeline.typed.modules[module_id]
                 if typed != null {
-                    deliver_decorators(typed, pipeline.evaluated.modules[module_id], fresh)
+                    // No pass reads the arguments of a declared decorator once
+                    // its value is computed: they are not put back.
+                    paths :: fresh.map((f) -> f.path).collect()
+                    _ :: deliver_decorators(typed, pipeline.evaluated.modules[module_id], paths)
                 }
                 yield ModuleTypechecked { .module_name = loaded.module.module_name, .files = fresh }
             }

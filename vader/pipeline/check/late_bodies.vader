@@ -1,0 +1,253 @@
+// vader/pipeline/check/late_bodies: the bodies a stage gives once the comptime has
+// run.
+//
+// A source stage may write a function without a body: the signature is all the
+// typecheck of the rest of the program needs. Once the comptime has computed the
+// values of the decorators, the body stage of the same name reads them and gives
+// the body, which is resolved and typed alone, in its module, and attached to the
+// declaration. The effect summary and the checks then run over the whole program,
+// the bodies included (`check_project`).
+//
+// The comptime is evaluated here for the values of the decorators, then again by
+// whoever evaluates the checked project: its diagnostics are those of the second
+// evaluation, which a call to a function given its body here reports as well
+// (C4022).
+
+module "vader/pipeline/check"
+
+import "std/abort"
+import "std/collections"
+import "std/iter"
+import "toolchain/ast"
+import "toolchain/diagnostics"
+import "toolchain/parser"
+import "toolchain/stage"
+import "vader/core/symbol"
+import "vader/front/comptime"
+import "vader/front/resolver"
+import "vader/front/typecheck"
+
+/// Give each function of `loaded` a stage wrote without a body its body.
+///
+/// @param loaded  the loaded project, its late functions in `late_fns`.
+/// @param result  its typecheck, written in place.
+/// @param diags   receives what the stages report, and what the bodies' parse,
+///                resolution and typing report.
+export provide_late_bodies :: fn(
+    loaded: LoadedProject,
+    result: CheckResult,
+    diags: Diagnostic[],
+) -> void {
+    ignored: Diagnostic[]: []
+    evaluated :: evaluate_project(loaded, typed_project_of(result, FreshReads {}), ignored)
+    core_seed :: build_core_seed(loaded)
+    name_index :: module_index_by_name(loaded)
+    for module_id in loaded.late_fns.map((l) -> l.module).distinct() {
+        provide_module_bodies(
+            ModuleBodies {
+                .loaded = loaded,
+                .module_id = module_id,
+                .core_seed = core_seed,
+                .name_index = name_index,
+            },
+            result,
+            evaluated,
+            diags,
+        )
+    }
+}
+
+// What the bodies of one module are resolved against.
+ModuleBodies :: struct {
+    loaded: LoadedProject
+    module_id: string
+    core_seed: Map<string, Symbol>
+    name_index: Map<string, LoadedModule>
+}
+
+// Give each late function of one module its body. The decorators of the module
+// are delivered once, for every stage, then put back as written: the checks read
+// the arguments as written, where a function only a `@comptime` argument calls is
+// used.
+provide_module_bodies :: fn(
+    ctx: ModuleBodies,
+    result: CheckResult,
+    evaluated: EvaluatedProject,
+    diags: Diagnostic[],
+) -> void {
+    module :: ctx.loaded.modules[ctx.module_id] else panic("late body: `${ctx.module_id}` unloaded")
+    typed :: result.all_modules[ctx.module_id] else panic("late body: `${ctx.module_id}` untyped")
+    paths :: module.module.files.map((f) -> f.path).collect()
+    written :: deliver_decorators(typed, evaluated.modules[ctx.module_id], paths)
+    declarations :: concat_file_decls(module.module.files)
+    lates :: ctx.loaded.late_fns.filter((l) -> l.module == ctx.module_id).collect()
+    given: LateFn[]: []
+    for late in lates {
+        // Without a body stage of its name, the load reported it (H6017).
+        stage :: ctx.loaded.body_stages.find((s) -> s.describe().name == late.stage) else continue
+        body :: stage.run(
+            BodyRequest {
+                .decl = late.decl,
+                .owner = late.owner,
+                .declarations = declarations,
+                .module_name = module.module.module_name,
+            },
+        )
+        diags.push_all(body.diagnostics)
+        parsed :: parsed_body(late, module, body.text, diags) else continue
+        late.decl.body = parsed
+        given.push(late)
+    }
+    restore_written_arguments(written)
+    scopes :: module_file_scopes(
+        module.module.files,
+        module.collected,
+        ctx.name_index,
+        ctx.core_seed,
+        ctx.loaded.factory,
+    )
+    for late in given {
+        diags.push_all(resolve_late_body(typed.resolved, scopes, ctx.loaded.factory, late))
+    }
+    check_late_bodies(given, typed, diags)
+}
+
+// The body `text` gives `late`, parsed inside a function of its own under a file
+// name no file has: its spans are its own, its node ids the project's, and the
+// declaration keeps its id. Null when it does not parse as a block, which is
+// reported.
+parsed_body :: fn(
+    late: LateFn,
+    module: LoadedModule,
+    text: string,
+    diags: Diagnostic[],
+) -> BlockExpr | null {
+    path :: "<${late.stage}>/${module.module.module_name}/${late.decl.name}"
+    parsed :: parse_compiler_written("module \"late\"\nlate_body :: fn() -> void ${text}", path)
+    diags.push_all(parsed.errors)
+    if any_error_diag(parsed.errors) {
+        return null
+    }
+    assign_program_ids(parsed.program, module.node_id_factory)
+    for holder in parsed.program.decls.filter_is<FnDecl>() {
+        if !holder.is_expression_bodied {
+            return holder.body
+        }
+    }
+    detail :: "`${late.decl.name}` is given `${text}`, which is no block"
+    diags.push(hook_error(.HookReport, late.decl.name_span, detail))
+    return null
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/string"
+import "std/testing"
+
+// The test project: `question` is marked `@answer`, whose value is computed.
+LATE_ROOT :: "/no/such/vader_late_project"
+
+ANSWER_SOURCE :: """
+    module "main"
+
+    answer :: decorator(.Function) {
+        value: i32
+    }
+
+    Valued :: trait {
+        value :: fn(self) -> i32
+    }
+
+    Box :: struct {}
+
+    @answer(@comptime 40 + 2)
+    export question :: fn() -> i32 = 0
+
+    main :: fn() -> i32 = answer_of_question() + Box {}.value()
+    """
+
+// Writes, for each function marked `@answer`, a function and an impl member
+// without a body.
+AnswerStage :: struct {}
+
+AnswerStage implements SourceStage {
+    describe :: fn(self) -> SourceSpec = SourceSpec {
+        .name = "answer",
+        .given = [DecoratorOrigin { .module = "main", .name = "answer" }],
+    }
+
+    run :: fn(self, input: Sources) -> Generated = Generated {
+        .text = "answer_of_question :: fn() -> i32\n"
+            + "Box implements Valued {\n    value :: fn(self) -> i32\n}\n",
+    }
+}
+
+// Gives each of them `{ return <value> }`, the value of `@answer` as delivered,
+// or the body `fixed` when it is not empty.
+AnswerBodies :: struct {
+    fixed: string = ""
+}
+
+AnswerBodies implements BodyStage {
+    describe :: fn(self) -> BodySpec = BodySpec { .name = "answer" }
+
+    run :: fn(self, input: BodyRequest) -> Body {
+        if self.fixed != "" {
+            return Body { .text = self.fixed }
+        }
+        for d in input.declarations.filter_is<FnDecl>() {
+            marker :: find_declared_decorator(d.decorators, "main", "answer") else continue
+            value :: argument_named(marker, "value", 0) else continue
+            if value is IntLitExpr {
+                return Body { .text = "{ return ${value.value} }" }
+            }
+        }
+        return Body { .text = "{ return 0 }" }
+    }
+}
+
+// The test project, `extra` appended, checked with `AnswerStage` and `bodies`
+// plugged.
+checked_answer :: fn(bodies: BodyStage[], extra: string = "") -> FileCheck {
+    entry :: "${LATE_ROOT}/main.vader"
+    overlay :: Map<string, string> {}
+    overlay[entry] = ANSWER_SOURCE + extra
+    register_project_stages(LATE_ROOT, [AnswerStage {}], bodies)
+    defer forget_project_stages(LATE_ROOT)
+    return check_file(entry, overlay, [], LATE_ROOT, false)
+}
+
+// The ids of the diagnostics of `check`, joined.
+ids_of :: fn(check: FileCheck) -> string = check.diags.map((d) -> d.code.id).collect().join(" ")
+
+@test
+test_a_body_stage_gives_what_the_value_of_a_decorator_computes :: fn() -> void {
+    check :: checked_answer([AnswerBodies {}])
+    assert_eq(ids_of(check), "")
+    assert_eq(check.project.late_fns.len(), 2)
+    for late in check.project.late_fns {
+        body :: late.decl.body else return assert(false, "`${late.decl.name}` has a body")
+        returned :: body.stmts[0]
+        assert(returned is ReturnStmt && returned.value is IntLitExpr, "returns a literal")
+    }
+}
+
+@test
+test_a_late_body_is_typed_against_its_signature :: fn() -> void {
+    check :: checked_answer([AnswerBodies { .fixed = "{ return \"no\" }" }])
+    assert(ids_of(check).contains("T3020"), ids_of(check))
+}
+
+@test
+test_a_function_without_a_body_stage_is_reported :: fn() -> void {
+    assert(ids_of(checked_answer([])).contains("H6017"), "H6017")
+}
+
+@test
+test_a_comptime_evaluation_cannot_call_a_late_function :: fn() -> void {
+    check :: checked_answer([AnswerBodies {}], "\nexport ASKED :: @comptime answer_of_question()\n")
+    diags: Diagnostic[]: []
+    checked :: CheckedProject { .result = check.result, .effects = check.effects }
+    _ :: evaluate_checked(check.project, checked, diags)
+    assert(diags.any_match((d) -> d.code.id == "C4022"), "C4022")
+}

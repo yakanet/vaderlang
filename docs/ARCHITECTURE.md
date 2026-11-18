@@ -72,7 +72,16 @@ project (`register_project_stages`) so that every load of it plans them. Each
 answer is recorded under `build/stages/` with a key of the files the stage read; a
 load with no driver (`vader run`, `vader test`, the language server) replays the
 records (`vader/front/resolver/stage_records.vader`), warning on a key that no
-longer matches. It then
+longer matches. A function a stage writes without a body, top-level or impl member
+(`parse_stage_written` lets a member go bare), waits for the body stage of the same
+name (`LateFn`): the type checker reads its signature and leaves it be. Once the
+module bodies are typed, `check_project` evaluates the comptime, delivers the
+decorator values to each body stage, parses the body it gives, resolves it in the
+scope of its declaration's file (`vader/front/resolver/late_body.vader`) and types
+it (`check_late_body`), before the effect summary and the checks
+(`vader/pipeline/check/late_bodies.vader`). A comptime call to such a function is
+an error whether its body is there yet or not, so the two evaluations of the
+project agree. It then
 wraps each function an interceptor marks (`vader/front/resolver/intercept.vader`).
 The shape of the function an interceptor names in `around` is read from its
 declaration first (`around.vader`): a wrong one is reported in the user's code,

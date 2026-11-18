@@ -1,0 +1,130 @@
+// vader/front/resolver/late_body: resolve a body a stage gives after the comptime.
+//
+// A source stage may write a function without a body, which the body stage of the
+// same name gives once the comptime has computed what it depends on. The
+// declaration was resolved with its module: its parameters already have their
+// symbols, which the typecheck read for its signature. Resolving the body binds
+// those symbols again, never new ones, and writes into the module's own tables, so
+// every pass after it meets the body as if it had been written.
+
+module "vader/front/resolver"
+
+import "std/abort"
+import "std/collections"
+import "std/iter"
+AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
+import "toolchain/span"
+import "vader/core/symbol"
+
+/// The scope of each file of `files`, as the resolution of their module built it:
+/// what a body resolved after the module reads.
+///
+/// @param files       the module's source files.
+/// @param collected   the module's collected view.
+/// @param name_index  module name -> loaded module, to read wildcard targets.
+/// @param core_seed   the core-prelude seed of the project.
+/// @param factory     mints the builtin symbols.
+export module_file_scopes :: fn(
+    files: SourceFile[],
+    collected: CollectedModule,
+    name_index: Map<string, LoadedModule>,
+    core_seed: Map<string, Symbol>,
+    factory: SymbolFactory,
+) -> Map<string, FileScope> {
+    builtins :: make_builtin_scope(factory)
+    scopes :: Map<string, FileScope> {}
+    for file in files {
+        imports :: file_imports(collected, file.program.file)
+        scopes[file.program.file] = file_scope(imports, collected, name_index, core_seed, builtins)
+    }
+    return scopes
+}
+
+/// Resolve the body a stage gave `late`, in the scope of the file that declares
+/// it, with the parameters of `late` and of the impl that declares it bound to the
+/// symbols they already have. The module's tables gain what the body names and
+/// declares.
+///
+/// @param resolved     the module's resolution, written in place.
+/// @param file_scopes  the scope of each file of the module (`module_file_scopes`).
+/// @param factory      the project's symbol factory, which mints the body's locals.
+/// @param late         the declaration, resolved with its module, its body
+///                     attached, numbered by the project's factory.
+/// @return             what the resolution reports.
+export resolve_late_body :: fn(
+    resolved: ResolvedModule,
+    file_scopes: Map<string, FileScope>,
+    factory: SymbolFactory,
+    late: LateFn,
+) -> Diagnostic[] {
+    body :: late.decl.body else panic("resolver: `${late.decl.name}` was given no body")
+    state :: ResolveState {
+        .file_scopes = file_scopes,
+        .idents = resolved.idents,
+        .immutable_locals = resolved.immutable_locals,
+        .fallback_names = resolved.fallback_names,
+        .type_param_bounds = resolved.type_param_bounds,
+        .loop_rebinds = resolved.loop_rebinds,
+        .closure_rebound = resolved.closure_rebound,
+        .mutable_decls = [],
+        .reassigned = Set<i32> {},
+        .diags = [],
+        .scope = new_scope(Map<string, Symbol> {}),
+        .module_path = resolved.path,
+        .factory = factory,
+        .ambiguous = Map<string, string[]> {},
+    }
+    decl :: late.decl
+    declared_in :: file_scopes[decl.span.start.file] else {
+        panic("resolver: no scope for `${decl.span.start.file}`")
+    }
+    state.enter_file(declared_in)
+    state.scope.push()
+    owner :: late.owner
+    if owner != null {
+        bind_impl_params(state, owner)
+    }
+    for tp in decl.type_params {
+        bind_declared(state, tp.name, tp.span)
+    }
+    for p in decl.params {
+        bind_declared(state, p.name, p.span)
+    }
+    state.walk_body(body)
+    state.scope.pop()
+    state.report_unreassigned_mutables()
+    // The first walk read the parameters as never rebound: the body may rebind one.
+    for id in state.rebind_free_locals() {
+        resolved.rebind_free.add(id)
+    }
+    for id in state.reassigned {
+        resolved.rebind_free.remove(id)
+    }
+    return state.diags
+}
+
+// Bind the type parameters of `owner`: those of `implements<...>`, and those its
+// target names without declaring them (`Stack<T> implements ...`), which the walk of
+// the target recorded.
+bind_impl_params :: fn(state: ResolveState, owner: AST.ImplDecl) -> void {
+    for tp in owner.type_params {
+        bind_declared(state, tp.name, tp.span)
+    }
+    target :: owner.for_type
+    if target !is AST.GenericInstExpr {
+        return
+    }
+    for arg in target.type_args.filter_is<AST.IdentExpr>() {
+        sym :: state.idents[arg.span.hash()] else continue
+        if sym.kind == .TypeParam {
+            state.scope.bind(arg.name, sym)
+        }
+    }
+}
+
+// Bind `name` to the symbol the module's resolution gave the declaration at `span`.
+bind_declared :: fn(state: ResolveState, name: string, span: Span) -> void {
+    sym :: state.idents[span.hash()] else panic("resolver: `${name}` was never declared")
+    state.scope.bind(name, sym)
+}

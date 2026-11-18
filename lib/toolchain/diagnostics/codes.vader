@@ -262,6 +262,7 @@ export ComptimeCode :: enum(CodeInfo) {
     LibrariesDisagree           { .id = "C4019", .message = "two `CLibrary` constants of one name describe different binaries" },
     ExternSymbolClaimedTwice    { .id = "C4020", .message = "two `@extern` declarations claim one C symbol" },
     VariadicExternWithoutHeader { .id = "C4021", .message = "a variadic `@extern` names no header" },
+    LateBodyAtComptime          { .id = "C4022", .message = "a comptime evaluation cannot call a function whose body a stage gives after it" },
 }
 
 // M-codes belong to the lowering pass (AST -> Lowered IR). The `M` prefix
@@ -323,6 +324,7 @@ export HookCode :: enum(CodeInfo) {
     NoRoundAfterGeneration     { .id = "H6014", .message = "a generated module is never written" },
     DriverStagesCannotRun      { .id = "H6015", .message = "the source stages of the driver cannot run" },
     StaleStageReplay           { .id = "H6016", .message = "the code of a stage of the driver comes from an earlier build" },
+    LateBodyWithoutStage       { .id = "H6017", .message = "a function a stage declares without a body has no body stage" },
 }
 
 /// IR self-check codes, emitted by the cross-pass verifiers

@@ -29,7 +29,7 @@ export ParsedSource :: struct {
 }
 
 export parse_source :: fn(source: string, file: string) -> ParsedSource =
-    parse_lexed(tokenize(source, file))
+    parse_lexed(tokenize(source, file), false)
 
 /// Parse `source`, which the compiler wrote, as `parse_source` does: a name may end
 /// in `$$` and a word (`tokenize_compiler_written`), which no user can spell.
@@ -37,7 +37,16 @@ export parse_source :: fn(source: string, file: string) -> ParsedSource =
 /// @param source  the text the compiler wrote.
 /// @param file    the path its spans name.
 export parse_compiler_written :: fn(source: string, file: string) -> ParsedSource =
-    parse_lexed(tokenize_compiler_written(source, file))
+    parse_lexed(tokenize_compiler_written(source, file), false)
+
+/// Parse `source`, which a source stage wrote, as `parse_compiler_written` does,
+/// except that an impl member may be a bare signature: the body stage of the same
+/// name gives its body (`toolchain/stage`).
+///
+/// @param source  the text the stage wrote.
+/// @param file    the path its spans name.
+export parse_stage_written :: fn(source: string, file: string) -> ParsedSource =
+    parse_lexed(tokenize_compiler_written(source, file), true)
 
 /// Parse `source` as `parse_source` does, and give every declaration, struct field,
 /// enum variant and trait or impl member the `///` block written above it, in its
@@ -50,15 +59,16 @@ export parse_compiler_written :: fn(source: string, file: string) -> ParsedSourc
 /// @param source  the text of the file.
 /// @param file    the path its spans name.
 export parse_source_with_docs :: fn(source: string, file: string) -> ParsedSource =
-    parse_lexed(tokenize_with_docs(source, file))
+    parse_lexed(tokenize_with_docs(source, file), false)
 
-parse_lexed :: fn(l: LexedSource) -> ParsedSource {
+parse_lexed :: fn(l: LexedSource, bodies_given_later: bool) -> ParsedSource {
     // The lexer's diagnostics come first, so the snapshot shows both phases.
     p :: Parser {
         .tokens = l.tokens,
         .file = l.file,
         .errors = l.errors,
         .doc_runs = l.doc_runs,
+        .bodies_given_later = bodies_given_later,
     }
     program :: parse_program(p)
     // Mint stable IDs for every node: downstream side-tables key on
@@ -222,6 +232,9 @@ Parser :: struct {
     // first one no declaration has claimed yet (`take_doc`).
     doc_runs: DocRun[] = []
     doc_cursor: i64 = 0
+    // Whether an impl member may be a bare signature: in what a source stage
+    // wrote, whose body stage gives the body (`parse_stage_written`).
+    bodies_given_later: bool = false
 }
 
 // ----------------------------------------------------------- token helpers
@@ -965,8 +978,8 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
             member :: p.parse_fn_decl_inside_trait()
             if member != null {
                 // Only a trait member may be a bare signature: nothing else
-                // provides an impl member's body.
-                if member.body == null {
+                // provides an impl member's body, but a body stage.
+                if member.body == null && !p.bodies_given_later {
                     p.error(.ImplMemberWithoutBody, member.name_span, "`${member.name}`")
                 }
                 members.push(member)

@@ -137,6 +137,11 @@ evaluate_with_arguments :: fn(
 evaluate_fn_body :: fn(
     fn_decl: AST.FnDecl, context: ComptimeContext, call_span: Span,
 ) -> EvalResult {
+    // Reported whether the body is given yet or not, so each evaluation of the
+    // project reports the same.
+    if fn_decl.id in context.typed.resolved.late_bodies {
+        return fail(comptime_error(.LateBodyAtComptime, call_span, "`${fn_decl.name}`"))
+    }
     body :: fn_decl.body else return vm_required(call_span, "CallExpr (callee has no body)")
     trailing :: body.trailing
     if trailing !is null {

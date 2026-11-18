@@ -15,6 +15,10 @@
 // load of the project plans them with the compiler's. They read each declared
 // decorator of their files under the module that declares it
 // (`Decorator.module_name`), as the driver reads every declaration it receives.
+//
+// A function a stage writes without a body, top-level or impl member, waits for
+// the body stage of the same name (`LateFn`), which gives it once the comptime has
+// run (`vader/pipeline/check/late_bodies.vader`).
 
 module "vader/front/resolver"
 
@@ -31,19 +35,36 @@ import "toolchain/stage"
 /// The source stages of the compiler, in the order they are registered.
 source_stages :: fn() -> SourceStage[] = [DisplayableStage {}]
 
+/// The body stages of the compiler.
+body_stages :: fn() -> BodyStage[] = []
+
+// The stages the driver of a project plugged.
+DriverStages :: struct {
+    sources: SourceStage[]
+    bodies: BodyStage[]
+}
+
 // The stages the driver of each project being built plugged, by project folder.
 @singleton
-driver_stages :: fn() -> Map<string, SourceStage[]> = Map<string, SourceStage[]> {}
+driver_stages :: fn() -> Map<string, DriverStages> = Map<string, DriverStages> {}
 
-/// Declare the source stages the driver of the project `project_root` plugged:
-/// every load of the project runs them beside the compiler's, until
+/// Declare the stages the driver of the project `project_root` plugged: every
+/// load of the project runs them beside the compiler's, until
 /// `forget_project_stages`.
 ///
 /// @param project_root  the project folder, with `\` or `/` separators.
-/// @param stages        the stages, in the order the driver plugged them, which
-///                      `project_stages_problem` accepts.
-export register_project_stages :: fn(project_root: string, stages: SourceStage[]) -> void {
-    driver_stages()[project_root.to_posix()] = stages.clone()
+/// @param stages        the source stages, in the order the driver plugged them,
+///                      which `project_stages_problem` accepts.
+/// @param bodies        the body stages, each named like one of `stages`.
+export register_project_stages :: fn(
+    project_root: string,
+    stages: SourceStage[],
+    bodies: BodyStage[],
+) -> void {
+    driver_stages()[project_root.to_posix()] = DriverStages {
+        .sources = stages.clone(),
+        .bodies = bodies.clone(),
+    }
 }
 
 /// Forget the stages of the driver of `project_root`: its build is over.
@@ -92,7 +113,23 @@ stages_of_driver :: fn(project: string | null) -> SourceStage[] {
     if project == null {
         return replayed_stages("")
     }
-    return driver_stages()[project] else replayed_stages(project)
+    plugged :: driver_stages()[project] else return replayed_stages(project)
+    return plugged.sources
+}
+
+/// The body stages of a load: the compiler's, then those the driver of `project`
+/// plugged while its build runs.
+///
+/// @param project  the project the load belongs to, posix, null for a file on
+///                 its own.
+planned_body_stages :: fn(project: string | null) -> BodyStage[] {
+    stages :: body_stages()
+    if project == null {
+        return stages
+    }
+    plugged :: driver_stages()[project] else return stages
+    stages.push_all(plugged.bodies)
+    return stages
 }
 
 // The compiler's source stages, then `driver`'s.
@@ -118,17 +155,34 @@ planned_source_stages :: fn(project: string | null) -> SourceStage[] {
     return planned
 }
 
+/// A function a source stage wrote without a body, which the body stage of the
+/// same name gives once the comptime has run.
+export LateFn :: struct {
+    /// The id of the module that declares it.
+    module: string
+    decl: FnDecl
+    /// The impl that declares it, null for a function of the module.
+    owner: ImplDecl | null
+    /// The name of the stages that declare it and give its body.
+    stage: string
+}
+
 /// Run `stages` on every module of a load, each module gaining one file per stage
-/// that writes anything, numbered by `ids`.
+/// that writes anything, numbered by `ids`. A function a stage writes without a
+/// body joins the module's `late`.
 ///
 /// @param modules  the modules of the load, parsed, none collected yet.
 /// @param stages   the source stages, planned.
+/// @param bodies   the names of the body stages of the load.
 /// @param ids      numbers the declarations the stages write.
 /// @param diags    where the parse errors of the files written and what the
 ///                 stages report go.
+/// @error          H6017 at a function written without a body by a stage no body
+///                 stage is named like.
 run_source_stages :: fn(
     modules: DeferredModule[],
     stages: SourceStage[],
+    bodies: Set<string>,
     ids: NodeIdFactory,
     diags: Diagnostic[],
 ) -> void {
@@ -161,10 +215,18 @@ run_source_stages :: fn(
             }
             path :: generated_file(spec.name, m.found.name)
             content :: framed_source(spec.name, m.found.name, m.found.name, generated.text)
-            parsed :: parse_compiler_written(content, path)
+            parsed :: parse_stage_written(content, path)
             diags.push_all(parsed.errors)
             origins :: anchor_impls(parsed.program, generated.anchors, spec.name)
             assign_program_ids(parsed.program, ids)
+            late :: late_fns_of(parsed.program, m.found.folder, spec.name)
+            if spec.name !in bodies {
+                for l in late {
+                    detail :: "`${l.decl.name}`: no body stage is named `${spec.name}`"
+                    diags.push(hook_error(.LateBodyWithoutStage, l.decl.name_span, detail))
+                }
+            }
+            m.late.push_all(late)
             m.sources.push(SourceFile {
                 .path = path,
                 .content = content,
@@ -173,6 +235,32 @@ run_source_stages :: fn(
             })
         }
     }
+}
+
+// The functions of `program`, which the stage `stage` wrote into the module
+// `module`, that have no body: top-level, then impl members, in source order.
+late_fns_of :: fn(program: Program, module: string, stage: string) -> LateFn[] {
+    out: LateFn[]: []
+    late :: (decl: FnDecl, owner: ImplDecl | null) -> {
+        if decl.body == null && !decl.decorators.has_compiler_decorator(.Extern) {
+            out.push(LateFn {
+                .module = module,
+                .decl = decl,
+                .owner = owner,
+                .stage = stage,
+            })
+        }
+    }
+    for d in program.decls {
+        if d is FnDecl {
+            late(d, null)
+        } else if d is ImplDecl {
+            for member in d.members {
+                late(member, d)
+            }
+        }
+    }
+    return out
 }
 
 // Name the module that declares each decorator of `program` a module declares
