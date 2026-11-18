@@ -3395,6 +3395,7 @@ build :: fn(args: string[]) -> i32 {
 - `describe` names the stage and the decorators whose declarations it reads, in `given`. A stage that reads a decorator another one lists in `generates` runs after it.
 - A stage reads the declarations of its files as a driver receives them, without the bodies of functions, each declared decorator naming the module that declares it. A file of the project is named from the project folder (`src/main.vader`), whatever the command was given. It sees nothing typed and nothing of another module.
 - What a stage reports in `diagnostics` is reported as the driver's reports are.
+- A module the text of a stage imports joins the program, even when nothing else imports it, and the stages run on it in turn.
 - A stage named like another, the compiler's included, or stages that wait on one another, are an error, and nothing is compiled.
 - A value that is a plugin and stages at once is plugged as each.
 - A library can ship a stage: `ctx.use(JsonDerive {})`, from `json/derive`, makes each struct marked `@json` implement `ToJson` of `json` (`to_json_value()`, `to_json()`), which `@json_name("key")` and `@json_skip` above a field shape. The impl is written into the struct's module, and adds no name to it. The program imports the decorators it writes from `json`. A key may be computed at compile time (`@json_name(@comptime postal("code"))`): `JsonDerive` is a body stage too, which writes each serialiser once the values are known (*Body stages*, below).

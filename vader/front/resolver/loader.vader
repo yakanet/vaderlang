@@ -19,6 +19,7 @@ module "vader/front/resolver"
 import "std/collections"
 import "std/env"
 import "std/fs"
+import "std/iter"
 import "std/path"
 import "std/string"
 import "toolchain/diagnostics"
@@ -645,7 +646,15 @@ collect_deferred :: fn(ctx: LoadState) -> void {
     for stage in ctx.body_stages {
         bodies.add(stage.describe().name)
     }
-    run_source_stages(ctx.deferred, ctx.source_stages, bodies, ctx.node_factory, ctx.diags)
+    // A module a stage's file imports joins the load, and the stages run on it in
+    // turn, until no file a stage writes imports a module the load lacks.
+    first: i64 = 0
+    for first < ctx.deferred.len() {
+        end :: ctx.deferred.len()
+        run_source_stages(ctx.deferred, first, ctx.source_stages, bodies, ctx.node_factory, ctx.diags)
+        load_stage_imports(ctx, first, end)
+        first = end
+    }
     intercept_functions(ctx.deferred, ctx.node_factory, ctx.diags)
     modules :: if ctx.only_reached { trimmed_to_reached(ctx) } else { ctx.deferred }
     for read in modules {
@@ -656,6 +665,21 @@ collect_deferred :: fn(ctx: LoadState) -> void {
         )
         ctx.modules[read.found.folder] = loaded_module(ctx, read, collected)
     }
+}
+
+// Load the modules the files the stages wrote into `ctx.deferred[first..<end]`
+// import, and what they import.
+load_stage_imports :: fn(ctx: LoadState, first: i64, end: i64) -> void {
+    queue: DiscoveredModule[]: []
+    for i in first..<end {
+        written :: ctx.deferred[i].sources.filter((s) -> is_generated_file(s.path)).collect()
+        preresolve_imports(written, ctx.bases, ctx.index, ctx.overlay, ctx.diags)
+        for edge in import_paths_of(written) {
+            found :: ctx.index[edge.path] else continue
+            queue.push(found)
+        }
+    }
+    drain_load_queue(ctx, queue)
 }
 
 // The functions of `late` that `sources` still declare, once a dependency is

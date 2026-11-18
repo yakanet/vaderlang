@@ -177,8 +177,10 @@ ANSWER_SOURCE :: """
     """
 
 // Writes, for each function marked `@answer`, a function and two impl members of
-// one name without a body.
-AnswerStage :: struct {}
+// one name without a body, `imports` above them.
+AnswerStage :: struct {
+    imports: string = ""
+}
 
 AnswerStage implements SourceStage {
     describe :: fn(self) -> SourceSpec = SourceSpec {
@@ -187,7 +189,7 @@ AnswerStage implements SourceStage {
     }
 
     run :: fn(self, input: Sources) -> Generated = Generated {
-        .text = "answer_of_question :: fn() -> i32\n"
+        .text = self.imports + "answer_of_question :: fn() -> i32\n"
             + "Box implements Valued {\n    value :: fn(self) -> i32\n}\n"
             + "Crate implements Valued {\n    value :: fn(self) -> i32\n}\n",
     }
@@ -217,13 +219,13 @@ AnswerBodies implements BodyStage {
     }
 }
 
-// The test project, `extra` appended, checked with `AnswerStage` and `bodies`
-// plugged.
-checked_answer :: fn(bodies: BodyStage[], extra: string = "") -> FileCheck {
+// The test project, `extra` appended, checked with `AnswerStage` writing `imports`
+// and `bodies` plugged.
+checked_answer :: fn(bodies: BodyStage[], extra: string = "", imports: string = "") -> FileCheck {
     entry :: "${LATE_ROOT}/main.vader"
     overlay :: Map<string, string> {}
     overlay[entry] = ANSWER_SOURCE + extra
-    register_project_stages(LATE_ROOT, [AnswerStage {}], bodies)
+    register_project_stages(LATE_ROOT, [AnswerStage { .imports = imports }], bodies)
     defer forget_project_stages(LATE_ROOT)
     return check_file(entry, overlay, [], LATE_ROOT, false)
 }
@@ -247,6 +249,20 @@ test_a_body_stage_gives_what_the_value_of_a_decorator_computes :: fn() -> void {
 test_a_late_body_calls_what_the_file_of_its_function_imports :: fn() -> void {
     body :: "{\n    xs: i32[]: []\n    xs.push(42)\n    return xs[0]\n}"
     assert_eq(ids_of(checked_answer([AnswerBodies { .fixed = body }])), "")
+}
+
+@test
+test_an_import_only_late_bodies_read_is_used :: fn() -> void {
+    // Nothing else imports `std/char`: the stage's file brings it into the load.
+    body :: "{\n    return if is_white_char(' ') { 42 } else { 0 }\n}"
+    check :: checked_answer([AnswerBodies { .fixed = body }], "", "import \"std/char\"\n")
+    assert_eq(ids_of(check), "")
+}
+
+@test
+test_a_module_a_stage_imports_that_does_not_exist_is_reported_once :: fn() -> void {
+    check :: checked_answer([AnswerBodies {}], "", "import \"no/such/module\"\n")
+    assert_eq(ids_of(check), "R2001")
 }
 
 @test

@@ -213,11 +213,13 @@ export late_fn_label :: fn(decl: FnDecl, owner: ImplDecl | null) -> string {
     return "${type_name}.${decl.name}@${line}"
 }
 
-/// Run `stages` on every module of a load, each module gaining one file per stage
-/// that writes anything, numbered by `ids`. A function a stage writes without a
-/// body joins the module's `late`.
+/// Run `stages` on the modules of a load from `first` on, each module gaining one
+/// file per stage that writes anything, numbered by `ids`. A function a stage
+/// writes without a body joins the module's `late`.
 ///
-/// @param modules  the modules of the load, parsed, none collected yet.
+/// @param modules  the modules of the load, parsed, none collected yet: those
+///                 before `first` only declare decorators.
+/// @param first    the first module the stages run on.
 /// @param stages   the source stages, planned.
 /// @param bodies   the names of the body stages of the load.
 /// @param ids      numbers the declarations the stages write.
@@ -227,6 +229,7 @@ export late_fn_label :: fn(decl: FnDecl, owner: ImplDecl | null) -> string {
 ///                 stage is named like.
 run_source_stages :: fn(
     modules: DeferredModule[],
+    first: i64,
     stages: SourceStage[],
     bodies: Set<string>,
     ids: NodeIdFactory,
@@ -235,7 +238,8 @@ run_source_stages :: fn(
     specs :: stages.map((stage) -> stage.describe()).collect()
     declared :: declared_by(modules, specs)
     named :: Set<string> {}
-    for m in modules {
+    for at in first..<modules.len() {
+        m :: modules[at]
         for i in 0..<stages.len() {
             stage :: stages[i]
             spec :: specs[i]
