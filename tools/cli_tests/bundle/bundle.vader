@@ -68,7 +68,7 @@ test_a_bundle_drives_a_build_with_nothing_beside_the_project :: fn() -> void {
     assert_eq(built.exit, 0)
     binary :: executable_path("${dir}/build/debug-${host_folder()}/app")
     ran :: run_command([binary], RunOptions { .cwd = dir }) else panic(ran.message())
-    assert("\"home\":{\"city\":\"Lyon\",\"zip\":69001}" in ran.stdout, ran.stdout)
+    assert("\"home\":{\"city\":\"Lyon\",\"postal_code\":69001}" in ran.stdout, ran.stdout)
 }
 
 @test

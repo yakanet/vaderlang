@@ -1,20 +1,25 @@
 // A project whose JSON serialisers are written by a source stage.
 //
 // There is no `to_json` anywhere in this tree: `build.vader` plugs `json/derive`
-// in, which reads the declarations as written, walks each struct's FIELD TYPES,
-// and writes an impl of `ToJson` (`json`) per struct marked `@json` into the
-// struct's own module. So `to_json` below is the trait's, reached through that
-// impl, which can take `Person` by type because the written file joins the
-// module, not an imported one.
+// in, which reads the declarations, walks each struct's FIELD TYPES, and writes
+// an impl of `ToJson` (`json`) per struct marked `@json` into the struct's own
+// module. So `to_json` below is the trait's, reached through that impl, which can
+// take `Person` by type because the written file joins the module, not an
+// imported one. The impl's body comes once the comptime has run, so the key of
+// `zip` is the value `postal` computes.
 
 module "app"
 
 import "json"
 import "std/console"
 
+// The key of a postal field.
+postal :: fn(name: string) -> string = "postal_${name}"
+
 @json
 Address :: struct {
     city: string
+    @json_name(@comptime postal("code"))
     zip:  i32
 }
 
@@ -59,7 +64,7 @@ test_nested_struct_has_its_own_serialiser :: fn() -> void {
     // One impl per struct, so `Address` is serialisable on its own, not
     // only as a field of `Person`.
     assert_eq(Address { .city = "Lyon", .zip = 69001 }.to_json(),
-              "{\"city\":\"Lyon\",\"zip\":69001}")
+              "{\"city\":\"Lyon\",\"postal_code\":69001}")
 }
 
 @test
@@ -75,7 +80,7 @@ test_every_field_kind_maps :: fn() -> void {
         .tags   = ["x", "y"],
     }
     assert_eq(p.to_json(),
-              "{\"full_name\":\"A\\\"B\",\"age\":41,\"active\":true,\"home\":{\"city\":\"Lyon\",\"zip\":69001},\"tags\":[\"x\",\"y\"]}")
+              "{\"full_name\":\"A\\\"B\",\"age\":41,\"active\":true,\"home\":{\"city\":\"Lyon\",\"postal_code\":69001},\"tags\":[\"x\",\"y\"]}")
 }
 
 @test

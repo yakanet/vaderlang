@@ -1,13 +1,15 @@
-// json/derive: a source stage writing a JSON serialiser for each struct marked
-// `@json`.
+// json/derive: a source stage and a body stage writing a JSON serialiser for each
+// struct marked `@json`.
 //
-// It reads the decorators of `json` (`decorators.vader` there) as they are
-// written: `@json` above a struct, `@json_name("key")` and `@json_skip` above a
-// field. The build runs it while it loads the project, and the impl of `ToJson`
-// it writes for each struct joins the struct's own module before anything is
-// checked, which is what lets it name the type: a module of its own would have to
-// import the struct's module, which imports it back. An impl adds no name to the
-// module, and reaches every module that sees the struct.
+// It reads the decorators of `json` (`decorators.vader` there): `@json` above a
+// struct, `@json_name("key")` and `@json_skip` above a field. The source stage
+// runs while the build loads the project, and the impl of `ToJson` it declares
+// for each struct joins the struct's own module before anything is checked,
+// which is what lets it name the type: a module of its own would have to import
+// the struct's module, which imports it back. An impl adds no name to the module,
+// and reaches every module that sees the struct. Its member has no body: the body
+// stage writes it once the comptime has computed the values of the decorators, so
+// a key may be computed (`@json_name(@comptime key_of("id"))`).
 
 module "json/derive"
 
@@ -19,16 +21,16 @@ import "toolchain/lexer"
 import "toolchain/span"
 import "toolchain/stage"
 
-/// A source stage giving each struct marked `@json` a JSON serialiser: an impl
-/// of `ToJson` (`json`), whose `to_json_value()` builds a `JsonValue` and
-/// `to_json()` writes its text.
+/// A source stage and a body stage giving each struct marked `@json` a JSON
+/// serialiser: an impl of `ToJson` (`json`), whose `to_json_value()` builds a
+/// `JsonValue` and `to_json()` writes its text.
 ///
 /// The impl is written into the struct's own module. The mapping reads each
 /// field's type as written: a number, a `string`, a `bool`, a struct of the same
 /// module marked `@json` (through its own impl), or an array of one of them. Any
 /// other field is reported, and left out. A field takes the key `@json_name`
-/// gives, its name otherwise, and `@json_skip` leaves it out. The key is read as
-/// written: a string literal.
+/// gives, its name otherwise, and `@json_skip` leaves it out. The key is the value
+/// of the argument, computed at compile time when it is written `@comptime`.
 ///
 /// @example
 ///   # import "toolchain/build"
@@ -42,38 +44,68 @@ JsonDerive implements SourceStage {
         .given = [DecoratorOrigin { .module = JSON_MODULE, .name = "json" }],
     }
 
-    // The struct names are collected before any is written, so a field whose type is
-    // a sibling struct is recognised as one however the files order them.
     run :: fn(self, input: Sources) -> Generated {
         structs: AST.StructDecl[]: []
-        names: string[]: []
-        // Each impl reports at the `@json` that asked for it, in the impls' order.
-        anchors: Span[]: []
         for file in input.files {
-            for d in file.decls.filter_is<AST.StructDecl>() {
-                marker :: json_decorator(d.decorators, "json") else continue
-                structs.push(d)
-                names.push(d.name)
-                anchors.push(marker.span)
-            }
+            structs.push_all(json_structs(file.decls))
         }
         if structs.len() == 0 {
             return Generated {}
         }
         out :: StringBuilder {}
-        reports: Diagnostic[]: []
         out.append("import \"std/collections\"\n")
         out.append("${JSON_ALIAS} :: import \"json\"\n")
+        // Each impl reports at the `@json` that asked for it, in the impls' order.
+        anchors: Span[]: []
         for s in structs {
-            write_struct(out, reports, s, names)
+            write_signature(out, s)
+            marker :: json_decorator(s.decorators, "json") else continue
+            anchors.push(marker.span)
         }
-        return Generated {
-            .text = out.to_string(),
-            .anchors = anchors,
-            .diagnostics = reports,
-        }
+        return Generated { .text = out.to_string(), .anchors = anchors }
     }
 }
+
+JsonDerive implements BodyStage {
+    describe :: fn(self) -> BodySpec = BodySpec { .name = "json" }
+
+    // The struct names are collected before any body is written, so a field whose
+    // type is a sibling struct is recognised as one however the files order them.
+    run :: fn(self, input: BodyRequest) -> Body {
+        structs :: json_structs(input.declarations)
+        target :: implementing_type(input.owner)
+        marked :: structs.find((s) -> s.name == target) else {
+            unknown :: hook_error(
+                .HookReport,
+                input.decl.name_span,
+                "`json/derive` was asked a body for no struct marked `@json`",
+            )
+            return Body { .text = EMPTY_BODY, .diagnostics = [unknown] }
+        }
+        reports: Diagnostic[]: []
+        out :: StringBuilder {}
+        write_body(out, reports, marked, structs.map((s) -> s.name).collect())
+        return Body { .text = out.to_string(), .diagnostics = reports }
+    }
+}
+
+// The body of a `to_json_value` that has no struct to read: an empty object.
+EMPTY_BODY :: "{ return ${JSON_ALIAS}.JsonObject { "
+    + ".entries = Map<string, ${JSON_ALIAS}.JsonValue> {} } }"
+
+// The name of the type `owner` implements the trait for, empty for no impl.
+implementing_type :: fn(owner: AST.ImplDecl | null) -> string {
+    if owner == null {
+        return ""
+    }
+    return AST.impl_type_name(owner) else ""
+}
+
+// The structs among `decls` marked `@json`.
+json_structs :: fn(decls: AST.Decl[]) -> AST.StructDecl[] =
+    decls.filter_is<AST.StructDecl>().filter(is_json_struct).collect()
+
+is_json_struct :: fn(d: AST.StructDecl) -> bool = json_decorator(d.decorators, "json") != null
 
 NUMERIC_TYPES :: ["i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "f32", "f64"]
 
@@ -89,22 +121,29 @@ JSON_MODULE :: "json"
 // module's names, so it must be one no hand-written declaration takes.
 JSON_ALIAS :: "DerivedJson"
 
-write_struct :: fn(
+// The impl of `ToJson` for `s`, its member without a body: the body stage gives
+// it.
+write_signature :: fn(out: StringBuilder, s: AST.StructDecl) -> void {
+    out.append("\n/// Generated from `${s.name}` by `json/derive`.\n")
+    out.append("${s.name} implements ${JSON_ALIAS}.ToJson {\n")
+    out.append("    to_json_value :: fn(self) -> ${JSON_ALIAS}.JsonValue\n")
+    out.append("}\n")
+}
+
+// The body of `to_json_value` for `s`, a block.
+write_body :: fn(
     out: StringBuilder,
     reports: Diagnostic[],
     s: AST.StructDecl,
     siblings: string[],
 ) -> void {
-    out.append("\n/// Generated from `${s.name}` by `json/derive`.\n")
-    out.append("${s.name} implements ${JSON_ALIAS}.ToJson {\n")
-    out.append("    to_json_value :: fn(self) -> ${JSON_ALIAS}.JsonValue {\n")
-    out.append("        entries :: Map<string, ${JSON_ALIAS}.JsonValue> {}\n")
+    out.append("{\n")
+    out.append("    entries :: Map<string, ${JSON_ALIAS}.JsonValue> {}\n")
     for f in s.fields {
         write_field(out, reports, f, siblings)
     }
-    out.append("        return ${JSON_ALIAS}.JsonObject { .entries = entries }\n")
-    out.append("    }\n")
-    out.append("}\n")
+    out.append("    return ${JSON_ALIAS}.JsonObject { .entries = entries }\n")
+    out.append("}")
 }
 
 // The statements of `to_json_value` that put one field into `entries`. A field
@@ -123,7 +162,7 @@ write_field :: fn(
     access :: "self.${f.name}"
     scalar :: value_expression(f.ty, access, siblings)
     if scalar != null {
-        out.append("        entries[${key}] = ${scalar}\n")
+        out.append("    entries[${key}] = ${scalar}\n")
         return
     }
     array :: f.ty
@@ -131,13 +170,11 @@ write_field :: fn(
         element :: value_expression(array.element, "element", siblings)
         if element != null {
             items :: "items_${f.name}"
-            out.append("        ${items}: ${JSON_ALIAS}.JsonValue[]: []\n")
-            out.append("        for element in ${access} {\n")
-            out.append("            ${items}.push(${element})\n")
-            out.append("        }\n")
-            out.append(
-                "        entries[${key}] = ${JSON_ALIAS}.JsonArray { .items = ${items} }\n",
-            )
+            out.append("    ${items}: ${JSON_ALIAS}.JsonValue[]: []\n")
+            out.append("    for element in ${access} {\n")
+            out.append("        ${items}.push(${element})\n")
+            out.append("    }\n")
+            out.append("    entries[${key}] = ${JSON_ALIAS}.JsonArray { .items = ${items} }\n")
             return
         }
     }

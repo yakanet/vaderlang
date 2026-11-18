@@ -6,27 +6,10 @@ DerivedJson :: import "json"
 
 /// Generated from `Address` by `json/derive`.
 Address implements DerivedJson.ToJson {
-    to_json_value :: fn(self) -> DerivedJson.JsonValue {
-        entries :: Map<string, DerivedJson.JsonValue> {}
-        entries["city"] = DerivedJson.JsonString { .value = self.city }
-        entries["zip"] = DerivedJson.JsonNumber { .value = f64(self.zip) }
-        return DerivedJson.JsonObject { .entries = entries }
-    }
+    to_json_value :: fn(self) -> DerivedJson.JsonValue
 }
 
 /// Generated from `Person` by `json/derive`.
 Person implements DerivedJson.ToJson {
-    to_json_value :: fn(self) -> DerivedJson.JsonValue {
-        entries :: Map<string, DerivedJson.JsonValue> {}
-        entries["full_name"] = DerivedJson.JsonString { .value = self.name }
-        entries["age"] = DerivedJson.JsonNumber { .value = f64(self.age) }
-        entries["active"] = DerivedJson.JsonBool { .value = self.active }
-        entries["home"] = DerivedJson.ToJson.to_json_value(self.home)
-        items_tags: DerivedJson.JsonValue[]: []
-        for element in self.tags {
-            items_tags.push(DerivedJson.JsonString { .value = element })
-        }
-        entries["tags"] = DerivedJson.JsonArray { .items = items_tags }
-        return DerivedJson.JsonObject { .entries = entries }
-    }
+    to_json_value :: fn(self) -> DerivedJson.JsonValue
 }
