@@ -18,6 +18,7 @@ import "std/path"
 import "std/string"
 import "std/time"
 import "toolchain/diagnostics"
+import "vader/front/resolver"
 import "vader/pipeline"
 import "vader/tools/testing"
 
@@ -55,13 +56,14 @@ cmd_test :: fn(args: string[]) -> i32 {
         return 2
     }
     entries :: test_entries(target, files, filters)
-    // A folder to walk is not an entry: the project is the one `vader test` runs
-    // in, as for `vader build` with no argument. Spelled `""`, the working
-    // directory, so that module ids stay relative to it.
-    project_root :: project_at("")
-    if project_root != null && checked_manifest("test", project_root) == null {
-        return 1
+    // A folder to walk is not an entry: the project is the one above the target,
+    // as for a file.
+    no_hooks :: parsed.bool_flag("no-hooks")
+    within :: file_within("test", target, find_project_root(target.as_string()), no_hooks)
+    if within is i32 {
+        return within
     }
+    project_root :: within.project_root
     ran :: Set<string> {}
     total_pass := 0
     total_fail := 0

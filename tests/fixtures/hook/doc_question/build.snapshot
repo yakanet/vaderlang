@@ -6,6 +6,7 @@ driver: Lean: Where a point leans.
 driver: Lean.East: Toward the east.
 driver: Lean.West: (none)
 # stderr
+vader build: compiling the build driver `build.vader`...
 vader build: wrote <project>/build/driver/driver
 vader build: wrote <project>/build/debug-<host>/app (split: <n> objects compiled in parallel)
 # exit

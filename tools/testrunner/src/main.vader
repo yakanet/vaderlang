@@ -7,8 +7,8 @@
 // The runner drives K workers, each a `testrunner --worker` child of the same
 // binary that compiles the cases in its own process (`worker.vader`), K being
 // the number of cores by default. Each worker runs its cases under a folder of
-// its own, `SCRATCH/<i>`, which keeps the files of a case that fails until the
-// next run. It hands them the cases one at a time (`pool.vader`), over JSON
+// its own, `<scratch>/<i>` (`scratch_root`), which keeps the files of a case that
+// fails until the next run. It hands them the cases one at a time (`pool.vader`), over JSON
 // lines (`protocol.vader`), and prints what they report as it comes, then the
 // tally (`report.vader`).
 //
@@ -29,6 +29,8 @@ import "std/console"
 import "std/env"
 import "std/fs"
 import "std/iter"
+import "std/numbers"
+import "std/path"
 import "std/process"
 import "std/string"
 import "std/task"
@@ -75,8 +77,14 @@ FLAGS: FlagSpec[]: [
     },
 ]
 
-// The folder the workers run the cases under, emptied at the start of a run.
-SCRATCH :: "build/testrunner"
+// The folder the workers run the cases under, emptied at the start of a run: in
+// the temporary folder of the system, one per checkout, since a file under the
+// checkout belongs to its project (its `vader.json`), and a case compiles files
+// that belong to none.
+scratch_root :: fn() -> string {
+    checkout :: current_working_directory().hash().to_hex()
+    return temp_dir().to_path().join("vader-testrunner-${checkout}").as_string()
+}
 
 // The folders the binary is built from.
 SOURCES: string[]: ["vader", "lib", "tools/testrunner", "tools/cli_tests"]
@@ -98,7 +106,7 @@ main :: fn(argv: string[]) -> i32 {
     }
     update :: parsed.bool_flag("update")
     if parsed.bool_flag("worker") {
-        scratch :: parsed.string_flag("scratch", "${current_working_directory()}/${SCRATCH}/worker")
+        scratch :: parsed.string_flag("scratch", "${scratch_root()}/worker")
         return run_worker(update, scratch)
     }
     newer :: newer_source(current_executable_location(), SOURCES)
@@ -158,8 +166,8 @@ run_all :: fn(
     // The workers inherit this environment, and a `VADER_HOME` moves the modules
     // of the toolchain in the dumps: the snapshots are taken without one.
     unset_env("VADER_HOME")
-    remove_tree(SCRATCH)
-    scratch :: "${current_working_directory()}/${SCRATCH}"
+    scratch :: scratch_root()
+    remove_tree(scratch)
     // Indices rather than the cases: a task that reads an array of a `Case` it
     // received is taken for one that writes it.
     // Counted before the tasks start: the task analysis does not see `join_all`

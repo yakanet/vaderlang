@@ -173,16 +173,7 @@ build_input :: fn(
 ) -> i32 {
     match input {
         is FileInput -> {
-            // A named file bypasses the driver of the folder the build runs in,
-            // and has to: `bootstrap/build.sh` compiles the compiler by name, and
-            // could not depend on a driver to do it. But silently skipping a
-            // project's own rules is worse than the extra line: a house rule
-            // that stops applying the moment you name a file is a rule nobody
-            // can trust. `--no-hooks` says "I know" and quiets this.
-            if !no_hooks && find_build_driver(current_working_directory()) != null {
-                eprintln("vader build: `${DRIVER_FILENAME}` not applied, since a named file bypasses it (use `vader build` alone, or --no-hooks to silence)")
-            }
-            return build_file(input.file, request)
+            return build_file(input.file, BuildRequest { ...request, .project_root = input.project_root })
         }
         is ManifestProject -> { return run_manifest_project(input, selected, request, .Build) }
         is DrivenProject -> {

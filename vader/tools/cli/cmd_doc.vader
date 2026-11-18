@@ -107,7 +107,7 @@ cmd_doc :: fn(args: string[]) -> i32 {
 // date, then what the query names in them, the path's modules first. What the
 // refresh says is kept quiet unless a set of data cannot be written. Without a
 // `project`, the library alone.
-search_data :: fn(parsed: ParsedArgs, project: EntryInProject | null, home: string) -> i32 {
+search_data :: fn(parsed: ParsedArgs, project: FileInput | null, home: string) -> i32 {
     query :: parsed.string_flag("search", "")
     if query == "" {
         eprintln("vader doc: `--search` expects a query: `--search=read_file_bytes`")
@@ -173,7 +173,7 @@ searchable_data :: fn(inputs: Doc.DocInputs, home: string, layout: string) -> st
 // exit code after saying why the path holds none.
 path_inputs :: fn(
     parsed: ParsedArgs,
-    project: EntryInProject,
+    project: FileInput,
     home: string,
     compiler: string | null,
 ) -> Doc.DocInputs | i32 {
@@ -243,7 +243,7 @@ left_out_lines :: fn(left_out: string[]) -> string[] =
 // `--project` names, else the working directory, and its entry as `vader lint`
 // takes it, `--entry` choosing among several. Without a project, the synthetic
 // entry of `vader/tools/doc`. The exit code after saying why there is no entry.
-doc_project :: fn(parsed: ParsedArgs) -> EntryInProject | i32 {
+doc_project :: fn(parsed: ParsedArgs) -> FileInput | i32 {
     selected :: parsed.string_flag("entry", "")
     if parsed.flags["project"] == null && project_at("") == null && find_build_driver("") == null {
         if selected != "" {
@@ -253,7 +253,7 @@ doc_project :: fn(parsed: ParsedArgs) -> EntryInProject | i32 {
             )
             return 2
         }
-        return EntryInProject { .file = Path(Doc.SYNTHETIC_ENTRY), .project_root = null }
+        return FileInput { .file = Path(Doc.SYNTHETIC_ENTRY), .project_root = null }
     }
     dir :: parsed.string_flag("project", ".")
     match input :: resolve_input("doc", Path(dir), selected, parsed.bool_flag("no-hooks")) {
@@ -273,7 +273,7 @@ doc_project :: fn(parsed: ParsedArgs) -> EntryInProject | i32 {
         }
         is ManifestProject -> {
             entry :: sole_entry("doc", input.dir, input.entries) else return 2
-            return EntryInProject { .file = entry.file, .project_root = input.dir }
+            return FileInput { .file = entry.file, .project_root = input.dir }
         }
     }
 }

@@ -140,7 +140,7 @@ test_build_run_runs_the_one_entry_or_the_one_entry_names :: fn() -> void {
 }
 
 @test
-test_project_runs_one_file_of_a_project_with_its_search_roots :: fn() -> void {
+test_a_file_of_a_project_runs_with_its_search_roots :: fn() -> void {
     manifest :: r"""{"includePaths": ["libs"], "entries": {"app": "src/main.vader"}}"""
     dir :: stage("search_roots", manifest)
     create_dir("${dir}/libs")
@@ -164,9 +164,10 @@ test_project_runs_one_file_of_a_project_with_its_search_roots :: fn() -> void {
         }
         """,
     )
+    // The project above the file, as an editor opens it.
     alone :: vader(["run", file])
-    assert_eq(alone.exit, 1)
-    assert("module not found: `greet`" in alone.stdout + alone.stderr, alone.stderr)
+    assert_eq(alone.stderr, "")
+    assert_eq(alone.stdout, "greeted\n")
     within :: vader(["run", "--project=${dir}", file])
     assert_eq(within.stderr, "")
     assert_eq(within.exit, 0)

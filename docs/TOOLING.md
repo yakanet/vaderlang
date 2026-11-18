@@ -35,7 +35,7 @@ First, the default C compiler (*`vader build`*) compiles the adapters its `@exte
 
 ### `vader build`
 
-`vader build [path]` compiles a file or a project folder (*Projects*) to a native binary for this machine. A named file ignores the working directory's `build.vader`, saying so unless given `--no-hooks`, which every action accepts and only `vader build` reads. On a folder its `build.vader` describes, `--no-hooks` is refused.
+`vader build [path]` compiles a file or a project folder (*Projects*) to a native binary for this machine. A named file is built within the project above it (*The project of a command*). On a folder its `build.vader` describes, `--no-hooks` is refused.
 
 `--emit` (`-e`) picks the output:
 
@@ -214,13 +214,13 @@ A project is a folder described by its `vader.json` or by its `build.vader` (SPE
 
 ### The project of a command
 
-A command works on a project only when given one:
+A command works on the project its argument names, as an editor does:
 
-- a folder handed to `build`, `run`, `check`, `dump`, `lint`, `graph`, `info` or `eject`;
-- for `test` and `doctor`, the working directory, when it holds a `vader.json`;
-- for `run`, `dump`, `lint` and `graph` given a file, the folder `--project=<folder>` names: the file is the entry and the project gives its search roots. A driven project is prepared first (*Build drivers*).
+- a folder handed to `build`, `run`, `check`, `dump`, `lint`, `graph`, `info` or `eject` is the project;
+- a file, or the folder `test` walks, belongs to the nearest project above it (*The project of a file*): the file is the entry and the project gives its search roots. A driven project is prepared first (*Build drivers*), unless `--no-hooks`. The `build.vader` of a project is its driver, which belongs to no project;
+- for `run`, `dump`, `lint` and `graph` given a file, `--project=<folder>` names its project instead.
 
-A file given without `--project` has no project, even inside a project folder. A folder holding both a `build.vader` and a `vader.json`, or neither, is refused, as is a malformed `vader.json` or one that declares no entry. The debugger and the language server find a file's project themselves (*The project of a file*).
+A file with no project above it is compiled on its own. A folder holding both a `build.vader` and a `vader.json`, or neither, is refused, as is a malformed `vader.json` or one that declares no entry.
 
 ### Entries and outputs
 
@@ -295,8 +295,8 @@ test_addition :: fn() {
 
 - A test passes when it returns, and fails when it stops the program: a failed assertion, a `panic`, a run-time check (SPEC §2 *Run-time checks*).
 - `std/testing`, not in the prelude, provides `assert`, `assert_eq`, `assert_ne`, `assert_close` and other assertions.
-- Each module is compiled with its own imports, in the working directory's project: a test can fail where the program builds, when an impl it needs comes from a module only another module imports.
-- A project its `build.vader` describes is read without running its driver: a search root the driver adds (`ctx.include_paths`) is not searched, and a module only that root holds is not found.
+- Each module is compiled with its own imports, in the project above the path: a test can fail where the program builds, when an impl it needs comes from a module only another module imports.
+- A project its `build.vader` describes is prepared first, unless `--no-hooks`: the search roots its driver adds (`ctx.include_paths`) are searched, and the modules it generates read.
 - Each test reports how long it ran, and the summary how long the command took.
 - It exits with 0 when every test passes, 1 when one fails or the filter is not a glob, 2 when the path holds no `.vader` file, no test, or none the filter keeps.
 

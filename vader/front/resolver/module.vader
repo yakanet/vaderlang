@@ -129,13 +129,27 @@ export Module :: struct {
 // ---------------------------------------------------------------- discovery
 
 /// Walk up from `start` to the nearest folder holding a `vader.json` or a build
-/// driver (`holds_build_driver`), whichever describes the project. The way the
-/// language server and the debugger find the project of the file they open.
+/// driver (`holds_build_driver`), whichever describes the project: the project of
+/// a file, for every command and for the language server and the debugger. The
+/// driver of a project belongs to none: it is compiled with the toolchain alone.
 ///
-/// @param start  a file or a folder; for a file, the walk starts at its folder.
-/// @return       that folder, or null when none up to the filesystem root does.
-export find_project_root :: fn(start: string) -> string | null =
-    walk_up(start, (dir) -> exists(join_path(dir, MANIFEST_FILENAME)) || holds_build_driver(dir))
+/// @param start  a file or a folder; for a file, the walk starts at its folder. A
+///               relative one is read from the working directory, and the walk
+///               goes on above it.
+/// @return       that folder, absolute, or null when none up to the filesystem
+///               root does.
+export find_project_root :: fn(start: string) -> string | null {
+    absolute :: absolute_path(start.to_posix())
+    project :: walk_up(
+        absolute,
+        (dir) -> exists(join_path(dir, MANIFEST_FILENAME)) || holds_build_driver(dir),
+    ) else return null
+    driver :: join_path(project, DRIVER_FILENAME)
+    if is_driven_project(project) && normalized_path(absolute) == normalized_path(driver) {
+        return null
+    }
+    return project
+}
 
 /// Whether `dir` holds a build driver: a `build.vader` that declares
 /// `module "build"`. A file of that name in another module (the compiler's own
@@ -356,6 +370,15 @@ test_a_build_vader_of_another_module_is_no_driver :: fn() -> void {
     assert(!holds_build_driver(dir), "a source file named build.vader is no driver")
     write_file(join_path(dir, DRIVER_FILENAME), "module \"build\"\n")
     assert(holds_build_driver(dir), "one declaring `module \"build\"` is")
+}
+
+@test
+test_the_driver_of_a_project_belongs_to_none :: fn() -> void {
+    dir :: join_path(temp_dir(), "vader_project_of_its_driver_probe")
+    create_dir(join_path(dir, "src"))
+    write_file(join_path(dir, DRIVER_FILENAME), "module \"build\"\n")
+    assert_eq(find_project_root(join_path(dir, "src/main.vader")) else "", normalized_path(dir))
+    assert(find_project_root(join_path(dir, DRIVER_FILENAME)) == null, "the driver is no file of it")
 }
 
 @test

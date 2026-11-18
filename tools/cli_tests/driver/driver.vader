@@ -237,20 +237,20 @@ test_a_driver_that_panics_still_says_why :: fn() -> void {
 }
 
 @test
-test_a_named_file_bypasses_the_driver_and_says_so :: fn() -> void {
-    // The path `bootstrap/build.sh` takes to compile the compiler, so it wins;
-    // dropping the rules of a project in silence would make them untrustworthy.
+test_a_named_file_follows_the_rules_of_its_project :: fn() -> void {
+    // A file is compiled within the project above it, its driver run first.
     dir :: staged_copy("${FIXTURES}/pascal_case_lint", "driver_named_file")
     ran :: driven(dir, ["build", "--emit=c", "--out=-", "src/main.vader"])
-    assert("not applied" in ran.stderr, ran.stderr)
-    assert_eq(ran.exit, 0)
+    assert("should be PascalCase" in ran.stdout + ran.stderr, ran.stderr)
+    assert(ran.exit != 0, "the rule of the driver fails the build")
 }
 
 @test
-test_no_hooks_silences_that_and_skips_the_driver_entirely :: fn() -> void {
+test_no_hooks_skips_the_driver_of_the_project :: fn() -> void {
     dir :: staged_copy("${FIXTURES}/pascal_case_lint", "driver_no_hooks")
     quiet :: driven(dir, ["build", "--emit=c", "--out=-", "--no-hooks", "src/main.vader"])
-    assert("not applied" !in quiet.stderr, quiet.stderr)
+    assert("PascalCase" !in quiet.stdout + quiet.stderr, quiet.stderr)
+    assert_eq(quiet.exit, 0)
     // With no file either, the folder then describes no build.
     bare :: driven(dir, ["build", "--no-hooks"])
     assert("`--no-hooks` ignores" in bare.stderr, bare.stderr)

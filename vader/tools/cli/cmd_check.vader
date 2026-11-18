@@ -72,7 +72,7 @@ export cmd_check :: fn(args: string[]) -> i32 {
         return input
     }
     match input {
-        is FileInput -> { return exit_code_of(check_entry(input.file, include_path_flags, target, null)) }
+        is FileInput -> { return exit_code_of(check_entry(input.file, include_path_flags, target, input.project_root)) }
         is ManifestProject -> {
             request :: BuildRequest { .target = target, .include_paths = include_path_flags }
             return run_manifest_project(input, selected, request, .Check)

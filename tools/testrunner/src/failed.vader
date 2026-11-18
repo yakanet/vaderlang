@@ -16,7 +16,7 @@ import "std/io"
 import "std/iter"
 import "std/string"
 
-// Outside `SCRATCH`, which a run empties first.
+// Outside the scratch folder (`scratch_root`), which a run empties first.
 FAILED_FILE :: "build/testrunner-failed"
 
 // The phase of a problem of a case that no stage owns, a request its worker

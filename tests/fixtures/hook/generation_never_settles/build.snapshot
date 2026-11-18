@@ -1,4 +1,5 @@
 # stderr
+vader build: compiling the build driver `build.vader`...
 vader build: wrote <project>/build/driver/driver
 
 # Diagnostics

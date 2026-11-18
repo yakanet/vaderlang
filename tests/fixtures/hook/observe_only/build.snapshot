@@ -1,6 +1,7 @@
 # stdout
 observed 1 module(s), built nothing
 # stderr
+vader build: compiling the build driver `build.vader`...
 vader build: wrote <project>/build/driver/driver
 # exit
 0

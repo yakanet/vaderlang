@@ -1,7 +1,8 @@
 // vader/tools/cli/project: what the argument of `build`, `run`, `check`, `dump`,
 // `lint` or `graph` names.
 //
-// A file is compiled as it is. A folder is a project, described by exactly one
+// A file is compiled within the nearest project above it, as an editor opens it,
+// or on its own when there is none. A folder is a project, described by exactly one
 // of its `build.vader` (the project drives its own build) and its `vader.json`
 // (the `entries` it declares): with both, nothing says which description wins,
 // and with neither, nothing says what to compile.
@@ -24,9 +25,11 @@ import "vader/pipeline"
 /// What the argument of `build`, `run`, `check`, `dump`, `lint` or `graph` names.
 ProjectInput :: FileInput | ManifestProject | DrivenProject
 
-/// A file, compiled as it is.
+/// A file, compiled within its project.
 FileInput :: struct {
     file: Path
+    /// The project folder, null for a file on its own.
+    project_root: string | null = null
 }
 
 /// A folder whose `vader.json` declares the programs to compile.
@@ -69,7 +72,7 @@ resolve_input :: fn(
                 + "and `${dir.to_native()}` is not a folder")
             return 2
         }
-        return FileInput { .file = path }
+        return file_within(command, path, find_project_root(dir), no_hooks)
     }
     described_by :: project_description(command, dir, "; name the entry file instead") else return 1
     if described_by == DRIVER_FILENAME {
@@ -125,18 +128,11 @@ project_description :: fn(command: string, dir: string, otherwise: string) -> st
     return null
 }
 
-/// One file to work on, and the project it belongs to.
-EntryInProject :: struct {
-    file:         Path
-    /// The project folder, null for a file on its own.
-    project_root: string | null
-}
-
 // The one file `command` works on: the file `path` names, within the project
 // folder `--project` names when it names one, or the only entry of the project
 // folder `path` names (the one `--entry` names among several). The exit code
 // after saying why there is none.
-single_entry :: fn(command: string, path: Path, parsed: ParsedArgs) -> EntryInProject | i32 {
+single_entry :: fn(command: string, path: Path, parsed: ParsedArgs) -> FileInput | i32 {
     selected :: parsed.string_flag("entry", "")
     project_dir :: parsed.string_flag("project", "")
     no_hooks :: parsed.bool_flag("no-hooks")
@@ -148,10 +144,10 @@ single_entry :: fn(command: string, path: Path, parsed: ParsedArgs) -> EntryInPr
         return input
     }
     match input {
-        is FileInput -> { return EntryInProject { .file = input.file, .project_root = null } }
+        is FileInput -> { return input }
         is ManifestProject -> {
             entry :: sole_entry(command, input.dir, input.entries) else return 2
-            return EntryInProject { .file = entry.file, .project_root = input.dir }
+            return FileInput { .file = entry.file, .project_root = input.dir }
         }
         is DrivenProject -> {
             // The driver chooses the entry and generates first, so that
@@ -159,23 +155,21 @@ single_entry :: fn(command: string, path: Path, parsed: ParsedArgs) -> EntryInPr
             project :: prepared_project(command, input.dir, selected) else return 1
             entries :: project_entries(input.dir, project.entries)
             entry :: sole_entry(command, input.dir, entries) else return 2
-            return EntryInProject { .file = entry.file, .project_root = input.dir }
+            return FileInput { .file = entry.file, .project_root = input.dir }
         }
     }
 }
 
-// The file `path`, compiled within the project folder `project`: how an editor
-// runs one file of a project. The project is named, as a folder argument names
-// one, never found by walking up from the file. A `build.vader` prepares it
-// first, unless `no_hooks`. The exit code after saying why not: 2 for a flag
-// that does not apply.
+// The file `path`, compiled within the project folder `project`, which `--project`
+// names instead of the one above the file. The exit code after saying why not: 2
+// for a flag that does not apply.
 file_in_project :: fn(
     command: string,
     path: Path,
     project: string,
     selected: string,
     no_hooks: bool,
-) -> EntryInProject | i32 {
+) -> FileInput | i32 {
     if is_dir(path.as_string()) {
         eprintln("vader ${command}: `--project` names the project of a file, and `${path.to_native()}` is a folder")
         return 2
@@ -188,16 +182,31 @@ file_in_project :: fn(
         eprintln(not_a_folder(command, project))
         return 1
     }
+    return file_within(command, path, project, no_hooks)
+}
+
+// The file `path` within the project folder `project`, null for a file on its
+// own. A project its `build.vader` describes is prepared first, unless
+// `no_hooks`: the file reads the roots it declares and the modules it generates.
+// The exit code after saying why the project describes nothing.
+file_within :: fn(
+    command: string,
+    path: Path,
+    project: string | null,
+    no_hooks: bool,
+) -> FileInput | i32 {
+    if project == null {
+        return FileInput { .file = path }
+    }
     described_by :: project_description(command, project, "") else return 1
     if described_by == DRIVER_FILENAME {
-        // Prepared, not only described: the file reads the modules it generates.
         if !no_hooks {
             _ :: prepared_project(command, project, "") else return 1
         }
     } else if checked_manifest(command, project) == null {
         return 1
     }
-    return EntryInProject { .file = path, .project_root = project }
+    return FileInput { .file = path, .project_root = project }
 }
 
 // The project the `build.vader` of the folder `dir` describes, its driver run
@@ -247,8 +256,8 @@ described_project :: fn(
     return without_problems(command, source, project)
 }
 
-// The project `vader test` and `vader doctor` take: `dir`, the folder they run
-// in, when it holds a `vader.json`; null otherwise.
+// The project `vader doc` takes: `dir`, the folder it runs in, when it holds a
+// `vader.json`; null otherwise.
 project_at :: fn(dir: string) -> string | null {
     if !exists(join_path(dir, MANIFEST_FILENAME)) {
         return null

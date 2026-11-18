@@ -10,6 +10,7 @@
 
 module "app"
 
+import "geo"
 import "json"
 import "std/console"
 
@@ -95,4 +96,9 @@ test_a_field_is_renamed_or_skipped_as_its_decorator_says :: fn() -> void {
     text :: p.to_json()
     assert(text.contains("\"full_name\":\"Ada\""), text)
     assert(!text.contains("secret"), text)
+}
+
+@test
+test_a_struct_of_another_module_is_serialised_by_its_own_impl :: fn() -> void {
+    assert_eq(Point { .lat = 45.5, .lon = 4.0 }.to_json(), "{\"lat\":45.5,\"lon\":4}")
 }

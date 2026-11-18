@@ -1,0 +1,15 @@
+// geo: a module of the project with a struct marked `@json`, serialised from `app`.
+//
+// The body of its `to_json_value` is given in this module, and called from
+// another one.
+
+module "geo"
+
+import "json"
+
+/// A point on a map.
+@json
+export Point :: struct {
+    lat: f64
+    lon: f64
+}

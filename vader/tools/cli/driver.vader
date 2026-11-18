@@ -429,6 +429,7 @@ rebuild_driver :: fn(
         .cc_jobs = DRIVER_CC_JOBS,
     }
     binary :: driver_binary_path(root)
+    eprintln("vader ${command}: compiling the build driver `${DRIVER_FILENAME}`...")
     code :: build_driver_binary(command, Path(entry), Path(binary), request)
     remove_entry(entry)
     if code != 0 {
