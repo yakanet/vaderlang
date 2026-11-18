@@ -1,0 +1,32 @@
+// A struct under a decorator whose argument the comptime computes, and a call to
+// the function a stage of the driver declares for it and gives a body to later.
+
+module "app"
+
+import "std/console"
+
+/// A struct that gets a greeting, in the word given.
+Greeting :: decorator(.Struct) {
+    word: string
+}
+
+joined :: fn(a: string, b: string) -> string = "${a}${b}"
+
+@Greeting(@comptime joined("hel", "lo"))
+Person :: struct {
+    name: string
+}
+
+main :: fn() -> i32 {
+    println(greet(Person { .name = "Ada" }))
+    return 0
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_greet_is_what_the_stages_wrote :: fn() -> void {
+    assert_eq(greet(Person { .name = "Ada" }), "hello Ada")
+}

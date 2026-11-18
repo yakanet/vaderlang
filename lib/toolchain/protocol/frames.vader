@@ -10,7 +10,8 @@
 //
 // While it loads the project, `vader` runs the source stages the driver plugged:
 // a `SourceStageFrame` the driver answers at once with a `GeneratedFrame`, the
-// pipeline waiting on it.
+// pipeline waiting on it. Once the comptime has run, the body stages: a
+// `BodyStageFrame` answered with a `BodyFrame`.
 //
 // A frame holds strings and integers, a `Span` included, and the declarations of
 // a module (`declarations.vader`). Its payload is a sequence of fields, each
@@ -43,7 +44,12 @@ import "toolchain/stage"
 
 /// What `vader` sends a driver: the events of the pipeline, and the answers to
 /// its questions.
-export ServerFrame :: TypecheckedFrame | PhaseFrame | CompleteFrame | DocAnswerFrame | SourceStageFrame
+export ServerFrame :: TypecheckedFrame
+             | PhaseFrame
+             | CompleteFrame
+             | DocAnswerFrame
+             | SourceStageFrame
+             | BodyStageFrame
 
 /// What a driver sends `vader`: its configuration, then its requests and
 /// questions.
@@ -54,6 +60,7 @@ export DriverFrame :: ConfigureFrame
              | NextFrame
              | StopFrame
              | GeneratedFrame
+             | BodyFrame
 
 /// A module passed type checking.
 export TypecheckedFrame :: struct {
@@ -95,6 +102,8 @@ export ConfigureFrame :: struct {
     /// What each source stage the driver plugged describes of itself, in the
     /// order it plugged them: `vader` runs them while it loads the project.
     stages: SourceSpec[] = []
+    /// The names of the body stages the driver plugged, in that order.
+    bodies: string[] = []
 }
 
 /// A module the driver generates, which `vader` writes at `BeforeEmit`.
@@ -140,6 +149,25 @@ export GeneratedFrame :: struct {
     text: string = ""
     /// The span each impl of `text` reports at, in their order.
     anchors: Span[] = []
+    /// What the stage reports, each under a hook code.
+    reports: ReportFrame[] = []
+}
+
+/// A body stage of the driver to run, once the comptime has run. The driver
+/// answers with a `BodyFrame` before `vader` sends anything else.
+export BodyStageFrame :: struct {
+    /// The name the stage describes itself under.
+    stage: string
+    /// The function and the declarations of its module, those that cross,
+    /// without the bodies of their functions (`declarations.vader`), each declared
+    /// decorator holding its value.
+    request: BodyRequest
+}
+
+/// What a body stage gave back for a `BodyStageFrame`.
+export BodyFrame :: struct {
+    /// The body, braces included.
+    text: string
     /// What the stage reports, each under a hook code.
     reports: ReportFrame[] = []
 }
@@ -228,6 +256,18 @@ export server_payload :: fn(frame: ServerFrame) -> string {
                 out.write_declarations(file.decls)
             }
         }
+        is BodyStageFrame   -> {
+            out.write_field("body_stage")
+            out.write_field(frame.stage)
+            out.write_field(frame.request.module_name)
+            out.write_declarations([frame.request.decl])
+            owner :: frame.request.owner
+            out.write_flag(owner != null)
+            if owner != null {
+                out.write_declarations([owner])
+            }
+            out.write_declarations(frame.request.declarations)
+        }
     }
     return out.to_string()
 }
@@ -265,6 +305,7 @@ export driver_payload :: fn(frame: DriverFrame) -> string {
             out.write_field(frame.cc)
             out.write_field(frame.ldflags)
             out.write_specs(frame.stages)
+            out.write_strings(frame.bodies)
         }
         is EmitModuleFrame -> {
             out.write_field("emit_module")
@@ -288,10 +329,12 @@ export driver_payload :: fn(frame: DriverFrame) -> string {
             for anchor in frame.anchors {
                 out.write_span(anchor)
             }
-            out.write_integer(frame.reports.len())
-            for report in frame.reports {
-                out.write_report(report)
-            }
+            out.write_reports(frame.reports)
+        }
+        is BodyFrame       -> {
+            out.write_field("body")
+            out.write_field(frame.text)
+            out.write_reports(frame.reports)
         }
     }
     return out.to_string()
@@ -306,27 +349,43 @@ write_specs :: fn(out: StringBuilder, specs: SourceSpec[]) -> void {
     }
 }
 
-/// The descriptions of source stages, as `decode_source_specs` reads them back.
+/// The stages of a driver, as a build records them.
+export StagePlan :: struct {
+    /// What its source stages describe of themselves, in the order it plugged them.
+    sources: SourceSpec[] = []
+    /// The names of its body stages, in that order.
+    bodies: string[] = []
+}
+
+/// The plan `decode_stage_plan` reads back.
 ///
-/// @param specs  the descriptions.
-export encode_source_specs :: fn(specs: SourceSpec[]) -> string {
+/// @param plan  the stages.
+export encode_stage_plan :: fn(plan: StagePlan) -> string {
     out :: StringBuilder {}
-    out.write_specs(specs)
+    out.write_specs(plan.sources)
+    out.write_strings(plan.bodies)
     return out.to_string()
 }
 
-/// The descriptions `encode_source_specs` wrote.
+/// The plan `encode_stage_plan` wrote.
 ///
 /// @param text  what it wrote.
-/// @error       `ProtocolError` when `text` holds no descriptions, or bytes past
-///              them.
-export decode_source_specs :: fn(text: string) -> SourceSpec[] | ProtocolError {
+/// @error       `ProtocolError` when `text` holds no plan, or bytes past it.
+export decode_stage_plan :: fn(text: string) -> StagePlan | ProtocolError {
     r :: FieldReader { .payload = text }
-    specs :: r.read_specs() else return specs
+    sources :: r.read_specs() else return sources
+    bodies :: r.read_strings() else return bodies
     if r.at < text.byte_len() {
         return past_last_field(r)
     }
-    return specs
+    return StagePlan { .sources = sources, .bodies = bodies }
+}
+
+write_reports :: fn(out: StringBuilder, reports: ReportFrame[]) -> void {
+    out.write_integer(reports.len())
+    for report in reports {
+        out.write_report(report)
+    }
 }
 
 write_report :: fn(out: StringBuilder, report: ReportFrame) -> void {
@@ -435,6 +494,7 @@ read_server_frame :: fn(r: FieldReader, kind: string) -> ServerFrame | ProtocolE
     "complete"     -> read_complete(r)
     "doc_answer"   -> read_doc_answer(r)
     "source_stage" -> read_source_stage(r)
+    "body_stage"   -> read_body_stage(r)
     _              -> ProtocolError { .msg = "`${kind}` is no frame `vader` sends" }
 }
 
@@ -446,6 +506,7 @@ read_driver_frame :: fn(r: FieldReader, kind: string) -> DriverFrame | ProtocolE
     "next"        -> NextFrame {}
     "stop"        -> StopFrame {}
     "generated"   -> read_generated(r)
+    "body"        -> read_body(r)
     _             -> ProtocolError { .msg = "`${kind}` is no frame a driver sends" }
 }
 
@@ -506,6 +567,7 @@ read_configure :: fn(r: FieldReader) -> ConfigureFrame | ProtocolError {
     cc :: r.read_field() else return cc
     ldflags :: r.read_field() else return ldflags
     stages :: r.read_specs() else return stages
+    bodies :: r.read_strings() else return bodies
     return ConfigureFrame {
         .fingerprint = fingerprint,
         .entries = entries,
@@ -515,6 +577,7 @@ read_configure :: fn(r: FieldReader) -> ConfigureFrame | ProtocolError {
         .cc = cc,
         .ldflags = ldflags,
         .stages = stages,
+        .bodies = bodies,
     }
 }
 
@@ -581,17 +644,60 @@ read_generated :: fn(r: FieldReader) -> GeneratedFrame | ProtocolError {
         anchor :: r.read_span() else return anchor
         anchors.push(anchor)
     }
-    report_count :: r.read_count() else return report_count
-    reports: ReportFrame[]: []
-    for _ in 0..<report_count {
-        report :: r.read_report() else return report
-        reports.push(report)
-    }
+    reports :: r.read_reports() else return reports
     return GeneratedFrame {
         .text = text,
         .anchors = anchors,
         .reports = reports,
     }
+}
+
+read_body_stage :: fn(r: FieldReader) -> BodyStageFrame | ProtocolError {
+    stage :: r.read_field() else return stage
+    module_name :: r.read_field() else return module_name
+    decl :: r.read_one_declaration() else return decl
+    if decl !is AST.FnDecl {
+        return ProtocolError { .msg = "the body stage `${stage}` is asked a body for no function" }
+    }
+    owner :: read_owner(r, decl.name) else is ProtocolError { return owner }
+    declarations :: r.read_declarations() else return declarations
+    return BodyStageFrame {
+        .stage = stage,
+        .request = BodyRequest {
+            .decl = decl,
+            .owner = owner,
+            .declarations = declarations,
+            .module_name = module_name,
+        },
+    }
+}
+
+// A list of declarations that holds one.
+// The impl that declares the function `name`, null for a function of the module.
+read_owner :: fn(r: FieldReader, name: string) -> AST.ImplDecl | ProtocolError | null {
+    owned :: r.read_flag() else return owned
+    if !owned {
+        return null
+    }
+    owner :: r.read_one_declaration() else return owner
+    if owner !is AST.ImplDecl {
+        return ProtocolError { .msg = "`${name}` is declared by no impl" }
+    }
+    return owner
+}
+
+read_one_declaration :: fn(r: FieldReader) -> AST.Decl | ProtocolError {
+    decls :: r.read_declarations() else return decls
+    if decls.len() != 1 {
+        return ProtocolError { .msg = "${decls.len()} declarations where one is due" }
+    }
+    return decls[0]
+}
+
+read_body :: fn(r: FieldReader) -> BodyFrame | ProtocolError {
+    text :: r.read_field() else return text
+    reports :: r.read_reports() else return reports
+    return BodyFrame { .text = text, .reports = reports }
 }
 
 read_emit_module :: fn(r: FieldReader) -> EmitModuleFrame | ProtocolError {
@@ -603,6 +709,16 @@ read_emit_module :: fn(r: FieldReader) -> EmitModuleFrame | ProtocolError {
 read_doc_query :: fn(r: FieldReader) -> DocQueryFrame | ProtocolError {
     span :: r.read_span() else return span
     return DocQueryFrame { .span = span }
+}
+
+read_reports :: fn(r: FieldReader) -> ReportFrame[] | ProtocolError {
+    count :: r.read_count() else return count
+    reports: ReportFrame[]: []
+    for _ in 0..<count {
+        report :: r.read_report() else return report
+        reports.push(report)
+    }
+    return reports
 }
 
 read_report :: fn(r: FieldReader) -> ReportFrame | ProtocolError {

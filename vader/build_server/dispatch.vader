@@ -105,7 +105,10 @@ export serve :: fn(
     }
     session :: new_session(request, description_file, opening)
     link :: StageLink { .peer = peer, .project_root = project_of(session) }
-    session.plug_stages(driver_stages(link, opening.stages))
+    session.plug_stages(
+        driver_stages(link, opening.stages),
+        driver_body_stages(link, opening.bodies),
+    )
     // Every way out: a load after the build must not reach a driver gone.
     defer forget_project_stages(session.project_root)
     // A module asked for before the stream is pulled, generated from data the
@@ -168,7 +171,7 @@ answer :: fn(peer: DriverPeer, session: BuildSession) -> NextFrame | StopFrame |
             is ConfigureFrame                -> {
                 return ProtocolError { .msg = "the driver configured its build twice" }
             }
-            is GeneratedFrame                -> {
+            is GeneratedFrame | BodyFrame    -> {
                 return ProtocolError { .msg = "the driver answered a stage it was not asked to run" }
             }
         }

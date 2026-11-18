@@ -74,12 +74,28 @@ export forget_project_stages :: fn(project_root: string) -> void {
     driver_stages().remove(project_root.to_posix())
 }
 
-/// Why the source stages a driver plugged cannot run beside the compiler's, ""
-/// when they can: two stages under one name, or an order none allows.
+/// Why the stages a driver plugged cannot run beside the compiler's, "" when
+/// they can: two stages of one kind under one name, an order none allows, or a
+/// body stage no source stage of the driver is named like.
 ///
-/// @param stages  the driver's stages, in the order it plugged them.
-export project_stages_problem :: fn(stages: SourceStage[]) -> string {
+/// @param stages  the driver's source stages, in the order it plugged them.
+/// @param bodies  its body stages.
+export project_stages_problem :: fn(stages: SourceStage[], bodies: BodyStage[]) -> string {
     planned :: plan_stages(with_compiler_stages(stages)) else return planned.message
+    sources :: Set<string> {}
+    for stage in stages {
+        sources.add(stage.describe().name)
+    }
+    named :: Set<string> {}
+    for stage in bodies {
+        name :: stage.describe().name
+        if !named.add(name) {
+            return "two body stages are named `${name}`"
+        }
+        if name !in sources {
+            return "the body stage `${name}` has no source stage of its name"
+        }
+    }
     return ""
 }
 
@@ -88,6 +104,9 @@ export ListedStage :: struct {
     spec: SourceSpec
     /// Whether the project's driver plugged it, rather than the compiler.
     from_driver: bool
+    /// Whether a body stage of its name gives the bodies of what it writes
+    /// without one.
+    gives_bodies: bool = false
 }
 
 /// The source stages a load of `project` runs, in that order: the compiler's,
@@ -99,10 +118,18 @@ export listed_source_stages :: fn(project: string | null) -> ListedStage[] {
     for stage in source_stages() {
         compiler.add(stage.describe().name)
     }
+    bodies :: Set<string> {}
+    for stage in planned_body_stages(project) {
+        bodies.add(stage.describe().name)
+    }
     listed: ListedStage[]: []
     for stage in planned_source_stages(project) {
         spec :: stage.describe()
-        listed.push(ListedStage { .spec = spec, .from_driver = spec.name !in compiler })
+        listed.push(ListedStage {
+            .spec = spec,
+            .from_driver = spec.name !in compiler,
+            .gives_bodies = spec.name in bodies,
+        })
     }
     return listed
 }
@@ -117,19 +144,24 @@ stages_of_driver :: fn(project: string | null) -> SourceStage[] {
     return plugged.sources
 }
 
-/// The body stages of a load: the compiler's, then those the driver of `project`
-/// plugged while its build runs.
+/// The body stages of a load: the compiler's, then those of the driver of
+/// `project`, plugged or replayed as its source stages are (`stages_of_driver`).
 ///
 /// @param project  the project the load belongs to, posix, null for a file on
 ///                 its own.
 planned_body_stages :: fn(project: string | null) -> BodyStage[] {
     stages :: body_stages()
-    if project == null {
-        return stages
-    }
-    plugged :: driver_stages()[project] else return stages
-    stages.push_all(plugged.bodies)
+    stages.push_all(body_stages_of_driver(project))
     return stages
+}
+
+// The body stages of the driver of `project`, plugged or replayed.
+body_stages_of_driver :: fn(project: string | null) -> BodyStage[] {
+    if project == null {
+        return replayed_body_stages("")
+    }
+    plugged :: driver_stages()[project] else return replayed_body_stages(project)
+    return plugged.bodies
 }
 
 // The compiler's source stages, then `driver`'s.
@@ -408,10 +440,29 @@ test_source_stage_skips_a_decorator_of_another_module :: fn() -> void {
 
 @test
 test_driver_stages_named_like_another_cannot_run :: fn() -> void {
-    assert_eq(project_stages_problem([RouterStage {}]), "")
+    assert_eq(project_stages_problem([RouterStage {}], []), "")
     assert_eq(
-        project_stages_problem([RouterStage {}, RouterStage {}]),
+        project_stages_problem([RouterStage {}, RouterStage {}], []),
         "two stages are named `router`",
+    )
+}
+
+// A body stage named `name`.
+NamedBodies :: struct {
+    name: string
+}
+
+NamedBodies implements BodyStage {
+    describe :: fn(self) -> BodySpec = BodySpec { .name = self.name }
+    run :: fn(self, input: BodyRequest) -> Body = Body { .text = "{}" }
+}
+
+@test
+test_a_body_stage_runs_beside_the_source_stage_of_its_name :: fn() -> void {
+    assert_eq(project_stages_problem([RouterStage {}], [NamedBodies { .name = "router" }]), "")
+    assert_eq(
+        project_stages_problem([RouterStage {}], [NamedBodies { .name = "other" }]),
+        "the body stage `other` has no source stage of its name",
     )
 }
 

@@ -111,6 +111,7 @@ open_link :: fn(ctx: BuildContext) -> ServerLink {
         .cc = ctx.cc,
         .ldflags = ctx.ldflags,
         .stages = ctx.stages.map((stage) -> stage.describe()).collect(),
+        .bodies = ctx.body_stages.map((stage) -> stage.describe().name).collect(),
     }
     link :: ctx.server
     ctx.link = link
@@ -159,6 +160,9 @@ next_message :: fn(ctx: BuildContext, link: ServerLink, plugins: BuildPlugin[]) 
             is SourceStageFrame              -> {
                 link.send(ctx.run_stage(frame))
             }
+            is BodyStageFrame                -> {
+                link.send(ctx.run_body_stage(frame))
+            }
             is TypecheckedFrame | PhaseFrame -> {
                 msg :: message_of(frame)
                 tell_plugins(ctx, plugins, msg)
@@ -183,6 +187,17 @@ run_stage :: fn(ctx: BuildContext, frame: SourceStageFrame) -> GeneratedFrame {
         .anchors = generated.anchors,
         .reports = generated.diagnostics.map(report_of).collect(),
     }
+}
+
+// The body the body stage of `ctx` that `frame` names gives, its reports under
+// their code.
+run_body_stage :: fn(ctx: BuildContext, frame: BodyStageFrame) -> BodyFrame {
+    stage :: ctx.body_stages.find((s) -> s.describe().name == frame.stage) else {
+        ctx.lose_build("it was asked to run `${frame.stage}`, a body stage it does not have")
+        return BodyFrame { .text = "{}" }
+    }
+    body :: dispatched(() -> stage.run(frame.request))
+    return BodyFrame { .text = body.text, .reports = body.diagnostics.map(report_of).collect() }
 }
 
 // A diagnostic of the driver as the build takes it.

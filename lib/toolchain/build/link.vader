@@ -84,4 +84,5 @@ told_word :: fn(frame: DriverFrame) -> string = match frame {
     is NextFrame       -> "next"
     is StopFrame       -> "stop"
     is GeneratedFrame  -> "generated"
+    is BodyFrame       -> "body"
 }

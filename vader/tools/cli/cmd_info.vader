@@ -136,7 +136,7 @@ render_info_text :: fn(info: ProjectInfo) -> string {
 }
 
 // A source stage in the text report: its name, where it comes from, the
-// decorators it reads and those it writes.
+// decorators it reads and those it writes, and whether a body stage follows it.
 stage_line :: fn(stage: ListedStage) -> string {
     line :: StringBuilder {}
     line.append("${stage.spec.name} (${origin_of_stage(stage)})")
@@ -145,6 +145,9 @@ stage_line :: fn(stage: ListedStage) -> string {
     }
     if stage.spec.generates.len() > 0 {
         line.append(" ; writes ${displayed_givens(stage.spec.generates)}")
+    }
+    if stage.gives_bodies {
+        line.append(" ; gives bodies")
     }
     return line.to_string()
 }
@@ -198,9 +201,9 @@ resolution_json :: fn(resolution: Resolution) -> Json.JsonValue {
 }
 
 // The `stages` of the JSON report, in the order they run: each with its `name`,
-// its `origin` (`compiler` or `driver`), and the decorators it reads (`given`)
-// and writes (`generates`), each a `decorator` and, when a module declares it,
-// its `module`.
+// its `origin` (`compiler` or `driver`), the decorators it reads (`given`) and
+// writes (`generates`), each a `decorator` and, when a module declares it, its
+// `module`, and whether a body stage of its name follows it (`bodies`).
 stages_json :: fn(stages: ListedStage[]) -> Json.JsonValue {
     items: Json.JsonValue[]: []
     for stage in stages {
@@ -209,6 +212,7 @@ stages_json :: fn(stages: ListedStage[]) -> Json.JsonValue {
         item["origin"] = Json.JsonString { .value = origin_of_stage(stage) }
         item["given"] = givens_json(stage.spec.given)
         item["generates"] = givens_json(stage.spec.generates)
+        item["bodies"] = Json.JsonBool { .value = stage.gives_bodies }
         items.push(Json.JsonObject { .entries = item })
     }
     return Json.JsonArray { .items = items }
@@ -435,9 +439,15 @@ test_info_text_lists_the_source_stages_in_the_order_they_run :: fn() -> void {
         .described_by = DRIVER_FILENAME,
         .root = "game",
         .manifest = Manifest {},
-        .stages = [ListedStage { .spec = greeter, .from_driver = true }],
+        .stages = [
+            ListedStage {
+                .spec = greeter,
+                .from_driver = true,
+                .gives_bodies = true,
+            },
+        ],
     }
-    line :: "stage    greeter (driver) reads @Greeting of `app` ; writes @displayable"
+    line :: "stage    greeter (driver) reads @Greeting of `app` ; writes @displayable ; gives bodies"
     assert(line in render_info_text(info), render_info_text(info))
 }
 

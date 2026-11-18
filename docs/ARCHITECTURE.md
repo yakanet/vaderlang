@@ -79,7 +79,11 @@ module bodies are typed, `check_project` evaluates the comptime, delivers the
 decorator values to each body stage, parses the body it gives, resolves it in the
 scope of its declaration's file (`vader/front/resolver/late_body.vader`) and types
 it (`check_late_body`), before the effect summary and the checks
-(`vader/pipeline/check/late_bodies.vader`). A comptime call to such a function is
+(`vader/pipeline/check/late_bodies.vader`). A body stage of the driver has its
+stand-in too (`DriverBodyStage`, one `BodyStageFrame` per function), planned with
+the source stages (`StagePlan`), and its answer is recorded under
+`build/stages/<stage>/<module>.bodies/`, keyed by the declarations it read; a load
+with no driver replays it (`ReplayedBodyStage`). A comptime call to such a function is
 an error whether its body is there yet or not, so the two evaluations of the
 project agree. It then
 wraps each function an interceptor marks (`vader/front/resolver/intercept.vader`).

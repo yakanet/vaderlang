@@ -40,13 +40,17 @@ export BuildPlugin :: trait {
 /// plugged once `messages()` has been pulled waits for the next build.
 ///
 /// @param ctx     the context being configured.
-/// @param plugin  the behaviour to plug, a source stage, or both.
-export use :: fn(ctx: BuildContext, plugin: BuildPlugin | SourceStage) -> void {
+/// @param plugin  the behaviour to plug, a source stage, a body stage, or any of
+///                them at once.
+export use :: fn(ctx: BuildContext, plugin: BuildPlugin | SourceStage | BodyStage) -> void {
     if plugin is BuildPlugin {
         ctx.plugins.push(plugin)
     }
     if plugin is SourceStage {
         ctx.stages.push(plugin)
+    }
+    if plugin is BodyStage {
+        ctx.body_stages.push(plugin)
     }
 }
 
@@ -141,24 +145,30 @@ test_a_build_started_from_a_plugin_is_refused :: fn() -> void {
     assert_eq(reported[0], "H6013")
 }
 
-// A plugin that is also a source stage.
-Both :: struct {}
+// A plugin that is also a source stage and a body stage.
+MultipleStagePlugin :: struct {}
 
-Both implements BuildPlugin {
+MultipleStagePlugin implements BuildPlugin {
     on_complete :: fn(self, ctx: BuildContext, code: i32) -> void {}
 }
 
-Both implements SourceStage {
+MultipleStagePlugin implements SourceStage {
     describe :: fn(self) -> SourceSpec = SourceSpec { .name = "both" }
     run :: fn(self, input: Sources) -> Generated = Generated {}
 }
 
+MultipleStagePlugin implements BodyStage {
+    describe :: fn(self) -> BodySpec = BodySpec { .name = "both" }
+    run :: fn(self, input: BodyRequest) -> Body = Body { .text = "{}" }
+}
+
 @test
-test_a_value_both_plugin_and_stage_is_plugged_as_both :: fn() -> void {
+test_a_value_plugin_and_stages_is_plugged_as_each :: fn() -> void {
     ctx :: new_build_context(["driver", "/tmp/proj"])
-    ctx.use(Both {})
+    ctx.use(MultipleStagePlugin {})
     assert_eq(ctx.plugins.len(), 1)
     assert_eq(ctx.stages.len(), 1)
+    assert_eq(ctx.body_stages.len(), 1)
 }
 
 @test

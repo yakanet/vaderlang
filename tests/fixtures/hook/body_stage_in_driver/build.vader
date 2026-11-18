@@ -1,0 +1,55 @@
+// A driver that plugs one value as a source stage and a body stage: the source
+// stage declares `greet` without a body for the struct under `@Greeting`, and the
+// body stage gives the body once the comptime has computed the word the
+// decorator carries, which the source stage could not read.
+
+module "build"
+
+import "std/iter"
+import "std/string_builder"
+import "toolchain/build"
+import "toolchain/stage"
+AST :: import "toolchain/ast"
+
+// Declares `greet` for each struct under `@Greeting`, then gives its body.
+Greeter :: struct {}
+
+Greeter implements SourceStage {
+    describe :: fn(self) -> SourceSpec = SourceSpec {
+        .name = "greeter",
+        .given = [DecoratorOrigin { .module = "app", .name = "Greeting" }],
+    }
+
+    run :: fn(self, input: Sources) -> Generated {
+        out :: StringBuilder {}
+        for file in input.files {
+            for d in file.decls.filter_is<AST.StructDecl>() {
+                if AST.find_declared_decorator(d.decorators, "app", "Greeting") != null {
+                    out.append("greet :: fn(p: ${d.name}) -> string\n")
+                }
+            }
+        }
+        return Generated { .text = out.to_string() }
+    }
+}
+
+Greeter implements BodyStage {
+    describe :: fn(self) -> BodySpec = BodySpec { .name = "greeter" }
+
+    run :: fn(self, input: BodyRequest) -> Body {
+        for d in input.declarations.filter_is<AST.StructDecl>() {
+            marker :: AST.find_declared_decorator(d.decorators, "app", "Greeting") else continue
+            word :: AST.argument_named(marker, "word", 0) else continue
+            text :: AST.string_literal_text(word) else continue
+            return Body { .text = "{ return \"${text} \${p.name}\" }" }
+        }
+        return Body { .text = "{ return \"\" }" }
+    }
+}
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_entry("app", "src/main.vader")
+    ctx.use(Greeter {})
+    return ctx.emit_native()
+}

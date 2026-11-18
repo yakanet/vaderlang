@@ -6,8 +6,9 @@
 // sends the driver the files of the module (`SourceStageFrame`) and waits for
 // what the stage generated (`GeneratedFrame`). Meanwhile the pipeline is inside
 // a load, and the driver inside its pull of the next event, which answers the
-// stages until an event comes. Each answer is recorded for the loads that come
-// once the driver is gone (`stage_records.vader`, in the resolver).
+// stages until an event comes. A body stage runs the same way once the comptime
+// has (`BodyStageFrame`, `BodyFrame`). Each answer is recorded for the loads that
+// come once the driver is gone (`stage_records.vader`, in the resolver).
 
 module "vader/build_server"
 
@@ -66,6 +67,73 @@ export driver_stages :: fn(link: StageLink, specs: SourceSpec[]) -> SourceStage[
     return stages
 }
 
+/// A body stage of the driver, as the build plans it.
+DriverBodyStage :: struct {
+    name: string
+    link: StageLink
+}
+
+DriverBodyStage implements BodyStage {
+    describe :: fn(self) -> BodySpec = BodySpec { .name = self.name }
+
+    // A driver that broke the protocol gives an empty body: the build stops on
+    // the failure before its next event.
+    run :: fn(self, input: BodyRequest) -> Body {
+        if self.link.failure != null {
+            return Body { .text = "{}" }
+        }
+        body :: self.link.run_body_in_driver(self.name, input) else is ProtocolError {
+            self.link.failure = body
+            return Body { .text = "{}" }
+        }
+        return body
+    }
+}
+
+/// The stand-ins of the body stages a driver plugged, which run in it through
+/// `link`.
+///
+/// @param link   the driver.
+/// @param names  the names of its body stages, in the order it plugged them.
+export driver_body_stages :: fn(link: StageLink, names: string[]) -> BodyStage[] {
+    // A loop, for the reason `driver_stages` has one.
+    stages: BodyStage[]: []
+    for name in names {
+        stages.push(DriverBodyStage { .name = name, .link = link })
+    }
+    return stages
+}
+
+// The body the body stage `stage` of the driver gives for `input`, the
+// declarations that cross only, recorded.
+run_body_in_driver :: fn(link: StageLink, stage: string, input: BodyRequest) -> Body | ProtocolError {
+    request :: driver_request(input)
+    sent :: link.peer.send(BodyStageFrame { .stage = stage, .request = request })
+        else is ProtocolError { return sent }
+    answer :: link.peer.receive() else return answer
+    if answer !is BodyFrame {
+        return ProtocolError { .msg = "the driver answered the body stage `${stage}` with another frame" }
+    }
+    project :: link.project_root
+    if project != null {
+        path :: body_record_path(project, stage, request)
+        write_record(path, record_text(body_record_key(stage, request), answer))
+    }
+    diagnostics :: driver_diagnostics(answer.reports) else return diagnostics
+    return Body { .text = answer.text, .diagnostics = diagnostics }
+}
+
+// The reports of a stage of the driver as diagnostics ; a report naming no hook
+// code breaks the protocol.
+driver_diagnostics :: fn(reports: ReportFrame[]) -> Diagnostic[] | ProtocolError {
+    diagnostics: Diagnostic[]: []
+    for report in reports {
+        d :: hook_diagnostic(report) else return d
+        diagnostics.push(d)
+    }
+    return diagnostics
+}
+
 // What the stage `stage` of the driver generates for `input`, the declarations
 // that cross only, recorded.
 run_in_driver :: fn(link: StageLink, stage: string, input: Sources) -> Generated | ProtocolError {
@@ -81,11 +149,7 @@ run_in_driver :: fn(link: StageLink, stage: string, input: Sources) -> Generated
         path :: stage_record_path(project, stage, sources.module_name)
         write_record(path, record_text(record_key(stage, sources), answer))
     }
-    diagnostics: Diagnostic[]: []
-    for report in answer.reports {
-        d :: hook_diagnostic(report) else return d
-        diagnostics.push(d)
-    }
+    diagnostics :: driver_diagnostics(answer.reports) else return diagnostics
     return Generated {
         .text = answer.text,
         .anchors = answer.anchors,
@@ -98,18 +162,21 @@ run_in_driver :: fn(link: StageLink, stage: string, input: Sources) -> Generated
 /// with no stage leaves no record.
 ///
 /// @param project_root  the project folder.
-/// @param specs         what its stages describe of themselves.
-export record_plan :: fn(project_root: string, specs: SourceSpec[]) -> void {
+/// @param plan          its stages.
+export record_plan :: fn(project_root: string, plan: StagePlan) -> void {
     dir :: stage_records_dir(project_root)
     tree :: RemoveOptions { .recursive = true, .force = true }
-    if specs.is_empty() {
+    if plan.sources.is_empty() && plan.bodies.is_empty() {
         remove(dir, tree)
         return
     }
-    write_record(stage_plan_path(project_root), encode_source_specs(specs))
+    write_record(stage_plan_path(project_root), encode_stage_plan(plan))
     planned :: Set<string> {}
-    for spec in specs {
+    for spec in plan.sources {
         planned.add(spec.name)
+    }
+    for name in plan.bodies {
+        planned.add(name)
     }
     names :: read_dir(dir) else return
     for name in names {

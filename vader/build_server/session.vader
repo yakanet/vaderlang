@@ -86,21 +86,29 @@ export new_session :: fn(
 
 /// Register the stages the driver plugged for every load of the project while
 /// the build lasts, unless they cannot run beside the compiler's: two of one
-/// name, or no order for them. The caller forgets them
+/// name, no order for them, or a body stage no source stage is named like. The
+/// caller forgets them
 /// (`forget_project_stages`).
 ///
 /// @param session  the build.
-/// @param stages   the stand-ins of the driver's stages.
+/// @param stages   the stand-ins of the driver's source stages.
+/// @param bodies   the stand-ins of its body stages.
 /// @error          H6015 when they cannot run ; the build then compiles nothing.
-plug_stages :: fn(session: BuildSession, stages: SourceStage[]) -> void {
-    problem :: project_stages_problem(stages)
+plug_stages :: fn(session: BuildSession, stages: SourceStage[], bodies: BodyStage[]) -> void {
+    problem :: project_stages_problem(stages, bodies)
     if problem != "" {
         session.report_driver(.DriverStagesCannotRun, problem)
         return
     }
     project :: project_of(session) else return
-    register_project_stages(project, stages, [])
-    record_plan(project, stages.map((stage) -> stage.describe()).collect())
+    register_project_stages(project, stages, bodies)
+    record_plan(
+        project,
+        StagePlan {
+            .sources = stages.map((stage) -> stage.describe()).collect(),
+            .bodies = bodies.map((stage) -> stage.describe().name).collect(),
+        },
+    )
 }
 
 // ---- diagnostics ----------------------------------------------------------

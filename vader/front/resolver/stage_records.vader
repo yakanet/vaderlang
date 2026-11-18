@@ -9,6 +9,9 @@
 // driver is gone, and replay the records. A record whose key no longer matches was
 // written for files changed since: it is replayed all the same, with a warning,
 // until the next build. A change to the driver itself shows at the next build.
+//
+// A body stage is recorded the same way, one record per function, its key that of
+// the declarations of the module, decorator values included.
 
 module "vader/front/resolver"
 
@@ -61,6 +64,48 @@ export stage_records_dir :: fn(project_root: string) -> string =
 export stage_plan_path :: fn(project_root: string) -> string =
     join_path(stage_records_dir(project_root), STAGE_PLAN_FILE)
 
+/// The function a body stage is asked a body for, the declarations that cross
+/// only, as the driver receives them.
+///
+/// @param input  what the stage is given.
+export driver_request :: fn(input: BodyRequest) -> BodyRequest =
+    BodyRequest { ...input, .declarations = input.declarations.filter(crosses).collect() }
+
+/// The key of the request `request` hands the body stage `stage`.
+///
+/// @param stage    the name of the stage.
+/// @param request  what it is asked, as `driver_request` makes it.
+export body_record_key :: fn(stage: string, request: BodyRequest) -> string =
+    server_payload(BodyStageFrame { .stage = stage, .request = request }).hash().to_hex()
+
+/// The file recording the body the body stage `stage` gave the function of
+/// `request`: under the module, the function's name, after its impl's type for a
+/// member.
+///
+/// @param project_root  the project folder.
+/// @param stage         the name of the stage.
+/// @param request       what it was asked.
+export body_record_path :: fn(project_root: string, stage: string, request: BodyRequest) -> string {
+    bodies :: join_path(join_path(stage_records_dir(project_root), stage), "${request.module_name}.bodies")
+    return join_path(bodies, "${late_identity(request)}.record")
+}
+
+// The function of `request` as a record names it: `Type.name` for a member of an
+// impl on `Type`.
+late_identity :: fn(request: BodyRequest) -> string {
+    owner :: request.owner else return request.decl.name
+    return "${impl_type_name(owner.for_type)}.${request.decl.name}"
+}
+
+// The name of the type an impl is written on, its arguments left out.
+impl_type_name :: fn(ty: TypeExpr) -> string {
+    named :: if ty is GenericInstExpr { ty.callee } else { ty }
+    if named is IdentExpr {
+        return named.name
+    }
+    return "impl"
+}
+
 /// The file recording what the stage `stage` wrote for the module `module_name`.
 ///
 /// @param project_root  the project folder.
@@ -72,9 +117,9 @@ export stage_record_path :: fn(project_root: string, stage: string, module_name:
 /// A record: its key on a line, then the answer of the stage as the driver sent
 /// it.
 ///
-/// @param key     the key of the files the stage read (`record_key`).
-/// @param answer  what it wrote.
-export record_text :: fn(key: string, answer: GeneratedFrame) -> string =
+/// @param key     the key of what the stage read (`record_key`, `body_record_key`).
+/// @param answer  what it gave back.
+export record_text :: fn(key: string, answer: GeneratedFrame | BodyFrame) -> string =
     "${key}\n${driver_payload(answer)}"
 
 /// A report of the driver as a diagnostic, under the hook code it names.
@@ -90,16 +135,72 @@ export hook_diagnostic :: fn(frame: ReportFrame) -> Diagnostic | ProtocolError {
     return ProtocolError { .msg = "`${frame.code}` is no hook code" }
 }
 
-// The stages the last build of `project` recorded, which replay what they wrote:
-// none when no build of it ran a stage.
+// The stages the last build of `project` recorded: none when no build of it ran
+// a stage.
+recorded_plan :: fn(project: string) -> StagePlan {
+    text :: read_file_string(stage_plan_path(project)) else return StagePlan {}
+    return decode_stage_plan(text) else StagePlan {}
+}
+
+// The source stages the last build of `project` recorded, which replay what they
+// wrote.
 replayed_stages :: fn(project: string) -> SourceStage[] {
-    text :: read_file_string(stage_plan_path(project)) else return []
-    specs :: decode_source_specs(text) else return []
     stages: SourceStage[]: []
-    for spec in specs {
+    for spec in recorded_plan(project).sources {
         stages.push(ReplayedStage { .spec = spec, .project_root = project })
     }
     return stages
+}
+
+// The body stages the last build of `project` recorded, which replay the bodies
+// they gave.
+replayed_body_stages :: fn(project: string) -> BodyStage[] {
+    stages: BodyStage[]: []
+    for name in recorded_plan(project).bodies {
+        stages.push(ReplayedBodyStage { .name = name, .project_root = project })
+    }
+    return stages
+}
+
+// A body stage of the driver of the last build, which replays the bodies it gave
+// then. A function it gave none is left an empty body, with the warning.
+ReplayedBodyStage :: struct {
+    name: string
+    project_root: string
+}
+
+ReplayedBodyStage implements BodyStage {
+    describe :: fn(self) -> BodySpec = BodySpec { .name = self.name }
+
+    run :: fn(self, input: BodyRequest) -> Body {
+        request :: driver_request(input)
+        at :: input.decl.name_span
+        why :: "`${self.name}` has not given `${input.decl.name}` a body"
+        missing :: Body { .text = "{}", .diagnostics = [replay_warning_at(at, why)] }
+        recorded :: read_recorded(body_record_path(self.project_root, self.name, request))
+            else return missing
+        answer :: recorded.answer
+        if answer !is BodyFrame {
+            return missing
+        }
+        diagnostics :: replayed_diagnostics(answer.reports)
+        if recorded.key != body_record_key(self.name, request) {
+            stale :: "`${self.name}` read other declarations of `${input.module_name}`"
+            diagnostics.push(replay_warning_at(at, stale))
+        }
+        return Body { .text = answer.text, .diagnostics = diagnostics }
+    }
+}
+
+// The reports a record holds as diagnostics, but for one naming no hook code: a
+// record of another compiler's codes still replays.
+replayed_diagnostics :: fn(reports: ReportFrame[]) -> Diagnostic[] {
+    diagnostics: Diagnostic[]: []
+    for report in reports {
+        d :: hook_diagnostic(report) else continue
+        diagnostics.push(d)
+    }
+    return diagnostics
 }
 
 // A stage of the driver of the last build, which replays what it wrote then.
@@ -114,29 +215,29 @@ ReplayedStage implements SourceStage {
     run :: fn(self, input: Sources) -> Generated {
         name :: self.spec.name
         path :: stage_record_path(self.project_root, name, input.module_name)
-        recorded :: read_recorded(path) else {
-            return Generated { .diagnostics = [replay_warning(input, "`${name}` has not run on `${input.module_name}`")] }
+        why :: "`${name}` has not run on `${input.module_name}`"
+        missing :: Generated { .diagnostics = [replay_warning(input, why)] }
+        recorded :: read_recorded(path) else return missing
+        answer :: recorded.answer
+        if answer !is GeneratedFrame {
+            return missing
         }
-        diagnostics: Diagnostic[]: []
-        for report in recorded.answer.reports {
-            d :: hook_diagnostic(report) else continue
-            diagnostics.push(d)
-        }
+        diagnostics :: replayed_diagnostics(answer.reports)
         if recorded.key != record_key(name, driver_sources(input)) {
             diagnostics.push(replay_warning(input, "`${name}` read other files of `${input.module_name}`"))
         }
         return Generated {
-            .text = recorded.answer.text,
-            .anchors = recorded.answer.anchors,
+            .text = answer.text,
+            .anchors = answer.anchors,
             .diagnostics = diagnostics,
         }
     }
 }
 
-// A record read back.
+// A record read back: its key, and the answer of the stage.
 Recorded :: struct {
     key: string
-    answer: GeneratedFrame
+    answer: DriverFrame
 }
 
 // The record in the file `path`, null when there is none or it does not read.
@@ -144,9 +245,6 @@ read_recorded :: fn(path: string) -> Recorded | null {
     text :: read_file_string(path) else return null
     newline :: text.index_of('\n') else return null
     frame :: decode_driver_frame(text.byte_slice(newline + 1, text.byte_len())) else return null
-    if frame !is GeneratedFrame {
-        return null
-    }
     return Recorded { .key = text.byte_slice(0, newline), .answer = frame }
 }
 
@@ -154,7 +252,11 @@ read_recorded :: fn(path: string) -> Recorded | null {
 // first file it reads.
 replay_warning :: fn(input: Sources, why: string) -> Diagnostic {
     at :: input.files[0].span.start
-    span :: Span { .start = at, .end = at }
+    return replay_warning_at(Span { .start = at, .end = at }, why)
+}
+
+// The warning that a stage is replayed from an earlier build, at `span`.
+replay_warning_at :: fn(span: Span, why: string) -> Diagnostic {
     detail :: "${why} since the last build: build the project again"
     return new_diagnostic(.Warning, CodeInfo(HookCode.StaleStageReplay), span, detail)
 }
@@ -174,7 +276,7 @@ app_sources :: fn(source: string) -> Sources =
 recorded_project :: fn(recorded: Sources, text: string) -> string {
     project :: create_unique_dir(temp_dir(), "stage_records.") else panic("no temporary folder")
     create_dir(join_path(stage_records_dir(project), "echo"))
-    write_file(stage_plan_path(project), encode_source_specs([SourceSpec { .name = "echo" }]))
+    write_file(stage_plan_path(project), encode_stage_plan(StagePlan { .sources = [SourceSpec { .name = "echo" }] }))
     key :: record_key("echo", driver_sources(recorded))
     write_file(stage_record_path(project, "echo", "app"), record_text(key, GeneratedFrame { .text = text }))
     return project

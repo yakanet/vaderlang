@@ -3396,9 +3396,47 @@ build :: fn(args: string[]) -> i32 {
 - A stage reads the declarations of its files as a driver receives them, without the bodies of functions, each declared decorator naming the module that declares it. It sees nothing typed and nothing of another module.
 - What a stage reports in `diagnostics` is reported as the driver's reports are.
 - A stage named like another, the compiler's included, or stages that wait on one another, are an error, and nothing is compiled.
-- A value that is both a plugin and a stage is plugged as both.
+- A value that is a plugin and stages at once is plugged as each.
 - A library can ship a stage: `ctx.use(JsonDerive {})`, from `json/derive`, makes each struct marked `@json` implement `ToJson` of `json` (`to_json_value()`, `to_json()`), which `@json_name("key")` and `@json_skip` above a field shape. The impl is written into the struct's module, and adds no name to it. The program imports the decorators it writes from `json`. Their arguments are read as written: a key is a string literal.
 - A command that reads the project once the driver is done, such as `vader run`, `vader test` or the language server, takes what each stage wrote in the last build. When a stage's files have changed since, the compiler warns, and still uses that code until the next build.
+
+#### Body stages
+
+A source stage reads a decorator as written, before anything is computed. When what it writes depends on the value of an argument (`@Greeting(@comptime joined("hel", "lo"))`), it declares the function without a body, a free function or an impl member, and a body stage of the same name gives the body once the comptime has run. A body stage implements `BodyStage` from `toolchain/stage`; the same type may implement both.
+
+```vader
+Greeter implements SourceStage {
+    describe :: fn(self) -> SourceSpec = SourceSpec {
+        .name = "greeter",
+        .given = [DecoratorOrigin { .module = "app", .name = "Greeting" }],
+    }
+
+    run :: fn(self, input: Sources) -> Generated = Generated {
+        .text = "greet :: fn(p: Person) -> string\n",
+    }
+}
+
+Greeter implements BodyStage {
+    describe :: fn(self) -> BodySpec = BodySpec { .name = "greeter" }
+
+    run :: fn(self, input: BodyRequest) -> Body {
+        for d in input.declarations.filter_is<AST.StructDecl>() {
+            marker :: AST.find_declared_decorator(d.decorators, "app", "Greeting") else continue
+            word :: AST.argument_named(marker, "word", 0) else continue
+            text :: AST.string_literal_text(word) else continue
+            return Body { .text = "{ return \"${text} \${p.name}\" }" }
+        }
+        return Body { .text = "{ return \"\" }" }
+    }
+}
+```
+
+- The stage is asked once per function, with its declaration, the impl that declares it if any, and the declarations of its module, each decorator holding its value: one literal argument per field, the defaults filled.
+- The body is a block, braces included. It is typed against the signature, in the scope of the file the source stage wrote.
+- The rest of the program is checked against the signature alone, so it can call the function before the body is there.
+- A function without a body and no body stage of its stage's name is an error, as is a body stage with no source stage of its name, or two body stages of one name.
+- Calling such a function at compile time (`@comptime`) is an error.
+- A command that reads the project once the driver is done takes the bodies of the last build, as it takes what source stages wrote.
 
 #### Generating code
 
