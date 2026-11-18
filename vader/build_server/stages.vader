@@ -1,0 +1,88 @@
+// vader/build_server/stages: the source stages of a driver, run while `vader`
+// loads the project.
+//
+// A stage a driver plugs runs in the driver's process. The build plans a
+// stand-in for it beside the compiler's own stages (`DriverStage`): running it
+// sends the driver the files of the module (`SourceStageFrame`) and waits for
+// what the stage generated (`GeneratedFrame`). Meanwhile the pipeline is inside
+// a load, and the driver inside its pull of the next event, which answers the
+// stages until an event comes.
+
+module "vader/build_server"
+
+import "std/iter"
+import "toolchain/ast"
+import "toolchain/diagnostics"
+import "toolchain/protocol"
+import "toolchain/stage"
+
+/// The driver the stages of one build run in. Once it broke the protocol it is
+/// asked nothing more, and the build stops on the failure before its next event.
+export StageLink :: struct {
+    peer: DriverPeer
+    failure: ProtocolError | null = null
+}
+
+/// A stage of the driver, as the build plans it.
+DriverStage :: struct {
+    /// What the driver said the stage describes of itself.
+    spec: SourceSpec
+    link: StageLink
+}
+
+DriverStage implements SourceStage {
+    describe :: fn(self) -> SourceSpec = self.spec
+
+    run :: fn(self, input: Sources) -> Generated {
+        if self.link.failure != null {
+            return Generated {}
+        }
+        generated :: self.link.run_in_driver(self.spec.name, input) else is ProtocolError {
+            self.link.failure = generated
+            return Generated {}
+        }
+        return generated
+    }
+}
+
+/// The stand-ins of the stages a driver described, which run in it through
+/// `link`.
+///
+/// @param link   the driver.
+/// @param specs  what its stages describe of themselves, in the order it plugged
+///               them.
+export driver_stages :: fn(link: StageLink, specs: SourceSpec[]) -> SourceStage[] {
+    // A loop: a mapped array would be `DriverStage[]`, which an array of the
+    // trait does not take.
+    stages: SourceStage[]: []
+    for spec in specs {
+        stages.push(DriverStage { .spec = spec, .link = link })
+    }
+    return stages
+}
+
+// What the stage `stage` of the driver generates for `input`, the declarations
+// that cross only.
+run_in_driver :: fn(link: StageLink, stage: string, input: Sources) -> Generated | ProtocolError {
+    files: Program[]: []
+    for program in input.files {
+        files.push(Program { ...program, .decls = program.decls.filter(crosses).collect() })
+    }
+    sources :: Sources { .module_name = input.module_name, .files = files }
+    sent :: link.peer.send(SourceStageFrame { .stage = stage, .sources = sources })
+        else is ProtocolError { return sent }
+    answer :: link.peer.receive() else return answer
+    if answer !is GeneratedFrame {
+        return ProtocolError { .msg = "the driver answered the stage `${stage}` with another frame" }
+    }
+    diagnostics: Diagnostic[]: []
+    for report in answer.reports {
+        d :: hook_diagnostic(report) else return d
+        diagnostics.push(d)
+    }
+    return Generated {
+        .text = answer.text,
+        .anchors = answer.anchors,
+        .diagnostics = diagnostics,
+    }
+}

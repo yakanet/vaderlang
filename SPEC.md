@@ -3349,6 +3349,52 @@ build :: fn(args: string[]) -> i32 {
 - In `.Describe` mode the stream builds nothing, and the plugins hear nothing.
 - Starting a build from inside a plugin is an error.
 
+#### Source stages
+
+A driver can also plug a source stage, a type that implements `SourceStage` from `toolchain/stage`. The build runs it while it loads the project, before anything is checked, on the files of each module that declare something under a decorator the stage names. The source it returns joins the module as a file of its own, so the project's code can call what a stage writes.
+
+```vader
+module "build"
+
+import "std/iter"
+import "std/string_builder"
+import "toolchain/build"
+import "toolchain/stage"
+AST :: import "toolchain/ast"
+
+Greeter :: struct {}
+
+Greeter implements SourceStage {
+    describe :: fn(self) -> SourceSpec = SourceSpec {
+        .name = "greeter",
+        .given = [DecoratorOrigin { .module = "app", .name = "Greeting" }],
+    }
+
+    run :: fn(self, input: Sources) -> Generated {
+        out :: StringBuilder {}
+        for file in input.files {
+            for d in file.decls.filter_is<AST.StructDecl>() {
+                out.append("greet :: fn(p: ${d.name}) -> string = \"hello\"\n")
+            }
+        }
+        return Generated { .text = out.to_string() }
+    }
+}
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_entry("app", "src/main.vader")
+    ctx.use(Greeter {})
+    return ctx.emit_native()
+}
+```
+
+- `describe` names the stage and the decorators whose declarations it reads, in `given`. A stage that reads a decorator another one lists in `generates` runs after it.
+- A stage reads the declarations of its files as a driver receives them, without the bodies of functions, each declared decorator naming the module that declares it. It sees nothing typed and nothing of another module.
+- What a stage reports in `diagnostics` is reported as the driver's reports are.
+- A stage named like another, the compiler's included, or stages that wait on one another, are an error, and nothing is compiled.
+- A value that is both a plugin and a stage is plugged as both.
+
 #### Generating code
 
 ```vader

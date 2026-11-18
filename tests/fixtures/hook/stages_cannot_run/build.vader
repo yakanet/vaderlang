@@ -1,0 +1,22 @@
+// A driver whose source stage takes the name of one of the compiler's: the
+// build refuses its stages and compiles nothing.
+
+module "build"
+
+import "toolchain/build"
+import "toolchain/stage"
+
+// Writes nothing, under a name the compiler's `@displayable` stage holds.
+Clash :: struct {}
+
+Clash implements SourceStage {
+    describe :: fn(self) -> SourceSpec = SourceSpec { .name = "displayable" }
+    run :: fn(self, input: Sources) -> Generated = Generated {}
+}
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_entry("app", "src/main.vader")
+    ctx.use(Clash {})
+    return ctx.emit_native()
+}

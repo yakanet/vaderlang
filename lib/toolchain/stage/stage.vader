@@ -9,6 +9,7 @@
 
 module "toolchain/stage"
 
+import "std/collections"
 import "std/iter"
 import "std/string"
 
@@ -46,7 +47,8 @@ PlanError implements Error {
 ///
 /// @param stages  the stages, in the order they are registered.
 /// @return        the planned order.
-/// @error         `PlanError` naming the stages that wait on one another.
+/// @error         `PlanError` naming two stages of one name, or the stages that
+///                wait on one another.
 export plan_stages :: fn<In, Out, Spec: Placed>(
     stages: Stage<In, Out, Spec>[],
 ) -> Stage<In, Out, Spec>[] | PlanError {
@@ -67,9 +69,16 @@ export plan_stages :: fn<In, Out, Spec: Placed>(
 ///
 /// @param specs  the descriptions, in the order their stages are registered.
 /// @return       the index of each description, in planned order.
-/// @error        `PlanError` naming the stages that wait on one another.
+/// @error        `PlanError` naming two stages of one name, or the stages that
+///               wait on one another.
 plan_order :: fn<Spec: Placed>(specs: Spec[]) -> i64[] | PlanError {
     n :: specs.len()
+    names :: Set<string> {}
+    for spec in specs {
+        if !names.add(spec.stage_name()) {
+            return PlanError { .message = "two stages are named `${spec.stage_name()}`" }
+        }
+    }
     // `before[i]` holds the stages `i` runs after, `why[i]` the reason of each.
     before: i64[][]: n.filled(() -> [])
     why: string[][]: n.filled(() -> [])
@@ -185,6 +194,12 @@ test_plan_keeps_the_registered_order_when_free :: fn() -> void {
     first :: ProbeStage { .spec = Probe { .name = "a" } }
     second :: ProbeStage { .spec = Probe { .name = "b" } }
     assert_eq(planned_names([first, second]), "a, b")
+}
+
+@test
+test_plan_refuses_two_stages_of_one_name :: fn() -> void {
+    a :: ProbeStage { .spec = Probe { .name = "a" } }
+    assert_eq(planned_names([a, a]), "two stages are named `a`")
 }
 
 @test

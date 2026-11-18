@@ -34,6 +34,7 @@ import "toolchain/diagnostics"
 import "toolchain/project"
 Protocol :: import "toolchain/protocol"
 import "toolchain/span"
+import "toolchain/stage"
 
 // ---- context --------------------------------------------------------------
 
@@ -102,6 +103,10 @@ export BuildContext :: struct {
     /// The plugins `use` received, in that order (`plugin.vader`).
     @internal
     plugins:        BuildPlugin[] = []
+    /// The source stages `use` received, in that order, which the build runs
+    /// while it loads the project.
+    @internal
+    stages:         SourceStage[] = []
     /// The build the last `messages()` opened, which takes what the driver does
     /// until it is stopped: by another build opening, or the driver's exit.
     @internal

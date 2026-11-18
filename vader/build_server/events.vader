@@ -50,9 +50,9 @@ export ModuleTypechecked :: struct {
 
 // Make each declared decorator of `files` what the driver that receives them
 // reads: the module that declares it, as the typecheck resolved it, and its
-// value, one named argument per field (`value_arguments`, ADR 0154). The one
-// writer of `Decorator.module_name`, which the front end leaves empty ; a
-// decorator of the compiler names none and keeps its arguments. The nodes are
+// value, one named argument per field (`value_arguments`, ADR 0154). The front
+// end leaves `Decorator.module_name` empty, but in the files a source stage
+// read ; a decorator of the compiler names none and keeps its arguments. The nodes are
 // rewritten in place for the delivery: no pass reads the arguments of a
 // declared decorator once its value is computed.
 deliver_decorators :: fn(
@@ -348,6 +348,8 @@ emit_one :: fn(
     output: BuildRequest,
 ) -> i32 {
     cfg :: prepare_program_from(lowered, entry, output)
+    // Before the diagnostics are taken: it points those in written code there.
+    write_expanded(cfg, entry, output.project_root)
     session.diagnostics.push_all(cfg.pre_diags)
     session.diagnostics.push_all(cfg.lower_diags)
     // BOTH bags, as `flush_build_diags` does for `vader build <file>`: a lowering

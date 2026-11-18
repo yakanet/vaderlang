@@ -64,7 +64,11 @@ Once every module is parsed, and before any is collected, the loader runs the
 source stages (`vader/front/resolver/source_stages.vader`, the `Stage` of
 `toolchain/stage` at that point): each reads the files of a module that declare
 something under a decorator it names, and writes source the module gains as a
-file of its own, parsed like the others (`@displayable` is the first). It then
+file of its own, parsed like the others (`@displayable` is the first). The stages a
+project's driver plugs run in the driver's process: the build server plans a
+stand-in for each beside the compiler's (`vader/build_server/stages.vader`), which
+sends the driver the files and waits for its text, and registers them for the
+project (`register_project_stages`) so that every load of it plans them. It then
 wraps each function an interceptor marks (`vader/front/resolver/intercept.vader`).
 The shape of the function an interceptor names in `around` is read from its
 declaration first (`around.vader`): a wrong one is reported in the user's code,

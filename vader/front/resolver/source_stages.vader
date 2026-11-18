@@ -9,25 +9,75 @@
 // to the module that declares it (`written_origin`), whether it is written bare
 // or behind an alias. A stage that reads what another generates declares it
 // (`generates`), and the plan runs that one first.
+//
+// The driver of a project plugs stages of its own, which run in its process: the
+// build registers them for the project (`register_project_stages`), and every
+// load of the project plans them with the compiler's. They read each declared
+// decorator of their files under the module that declares it
+// (`Decorator.module_name`), as the driver reads every declaration it receives.
 
 module "vader/front/resolver"
 
 import "std/abort"
 import "std/collections"
 import "std/iter"
+import "std/path"
 import "toolchain/ast"
 import "toolchain/diagnostics"
 import "toolchain/parser"
 import "toolchain/span"
 import "toolchain/stage"
 
-/// The source stages of a build, in the order they are registered.
+/// The source stages of the compiler, in the order they are registered.
 source_stages :: fn() -> SourceStage[] = [DisplayableStage {}]
 
-/// The source stages in a planned order, or a stop naming why none can run: an
-/// internal stage misplaced is a compiler bug.
-planned_source_stages :: fn() -> SourceStage[] {
-    planned :: plan_stages(source_stages()) else {
+// The stages the driver of each project being built plugged, by project folder.
+@singleton
+driver_stages :: fn() -> Map<string, SourceStage[]> = Map<string, SourceStage[]> {}
+
+/// Declare the source stages the driver of the project `project_root` plugged:
+/// every load of the project runs them beside the compiler's, until
+/// `forget_project_stages`.
+///
+/// @param project_root  the project folder, with `\` or `/` separators.
+/// @param stages        the stages, in the order the driver plugged them, which
+///                      `project_stages_problem` accepts.
+export register_project_stages :: fn(project_root: string, stages: SourceStage[]) -> void {
+    driver_stages()[project_root.to_posix()] = stages.clone()
+}
+
+/// Forget the stages of the driver of `project_root`: its build is over.
+///
+/// @param project_root  the project folder, as `register_project_stages` took it.
+export forget_project_stages :: fn(project_root: string) -> void {
+    driver_stages().remove(project_root.to_posix())
+}
+
+/// Why the source stages a driver plugged cannot run beside the compiler's, ""
+/// when they can: two stages under one name, or an order none allows.
+///
+/// @param stages  the driver's stages, in the order it plugged them.
+export project_stages_problem :: fn(stages: SourceStage[]) -> string {
+    planned :: plan_stages(with_compiler_stages(stages)) else return planned.message
+    return ""
+}
+
+// The compiler's source stages, then `driver`'s.
+with_compiler_stages :: fn(driver: SourceStage[]) -> SourceStage[] {
+    stages :: source_stages()
+    stages.push_all(driver)
+    return stages
+}
+
+/// The source stages of a load, in a planned order: the compiler's, then those
+/// the driver of `project` plugged. A plan that fails is a compiler bug: the
+/// build checks a driver's stages before it registers them.
+///
+/// @param project  the project the load belongs to, posix, null for a file on
+///                 its own.
+planned_source_stages :: fn(project: string | null) -> SourceStage[] {
+    driver: SourceStage[]: if project == null { [] } else { driver_stages()[project] else [] }
+    planned :: plan_stages(with_compiler_stages(driver)) else {
         panic("source stages: ${planned.message}")
     }
     return planned
@@ -49,6 +99,7 @@ run_source_stages :: fn(
 ) -> void {
     specs :: stages.map((stage) -> stage.describe()).collect()
     declared :: declared_by(modules, specs)
+    named :: Set<string> {}
     for m in modules {
         for i in 0..<stages.len() {
             stage :: stages[i]
@@ -61,6 +112,12 @@ run_source_stages :: fn(
             }
             if files.is_empty() {
                 continue
+            }
+            for program in files {
+                // Only a stage given a decorator a module declares reads one.
+                if declared.len() > 0 && named.add(program.file) {
+                    name_declared_decorators(program, m.found.name, declared)
+                }
             }
             generated :: stage.run(Sources { .module_name = m.found.name, .files = files })
             diags.push_all(generated.diagnostics)
@@ -79,6 +136,38 @@ run_source_stages :: fn(
                 .program = parsed.program,
                 .origins = origins,
             })
+        }
+    }
+}
+
+// Name the module that declares each decorator of `program` a module declares
+// (`Decorator.module_name`), in place: above its declarations, their fields,
+// variants and parameters, and their members. Those `declared` does not know
+// keep an empty name, as a decorator of the compiler does.
+name_declared_decorators :: fn(
+    program: Program,
+    module_name: string,
+    declared: Map<string, Set<string>>,
+) -> void {
+    for d in program.decls {
+        name_sites(program, module_name, d, place_of(d), declared)
+        for member in members_of(d) {
+            name_sites(program, module_name, member, member_place(d), declared)
+        }
+    }
+}
+
+name_sites :: fn(
+    program: Program,
+    module_name: string,
+    decl: Decl,
+    place: string,
+    declared: Map<string, Set<string>>,
+) -> void {
+    for site in decorator_sites(decl, place) {
+        for written in site.decorators {
+            origin :: written_origin(program, module_name, written, declared) else continue
+            written.module_name = origin.module
         }
     }
 }
@@ -192,4 +281,30 @@ test_source_stage_reads_a_decorator_behind_an_alias :: fn() -> void {
 test_source_stage_skips_a_decorator_of_another_module :: fn() -> void {
     source :: "module \"app\"\nimport \"web\"\n@Route\nf :: fn() -> i32 = 0\n"
     assert(!given_to_router(source), "`@Route` of `web` is not the `Route` of `http`")
+}
+
+@test
+test_driver_stages_named_like_another_cannot_run :: fn() -> void {
+    assert_eq(project_stages_problem([RouterStage {}]), "")
+    assert_eq(
+        project_stages_problem([RouterStage {}, RouterStage {}]),
+        "two stages are named `router`",
+    )
+}
+
+@test
+test_a_stage_reads_the_module_of_each_declared_decorator :: fn() -> void {
+    source :: "module \"app\"\nH :: import \"http\"\nS :: struct {\n    @H.Route\n    x: i32\n}\n"
+    program :: parse_source(source, "app.vader").program
+    routes :: Set<string> {}
+    routes.add("Route")
+    declared :: Map<string, Set<string>> {}
+    declared["http"] = routes
+    name_declared_decorators(program, "app", declared)
+    s :: program.decls[1]
+    if s !is StructDecl {
+        assert(false, "the second declaration is the struct")
+        return
+    }
+    assert_eq(s.fields[0].decorators[0].module_name, "http")
 }

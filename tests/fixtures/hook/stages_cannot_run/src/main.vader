@@ -1,0 +1,5 @@
+// An entry the build never compiles: the stages of its driver cannot run.
+
+module "app"
+
+main :: fn() -> i32 = 0

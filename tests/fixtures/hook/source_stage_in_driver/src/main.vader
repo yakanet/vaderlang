@@ -1,0 +1,19 @@
+// A struct under a decorator the module declares, and a call to the function a
+// source stage of the driver writes for it.
+
+module "app"
+
+import "std/console"
+
+/// A struct that gets a greeting.
+Greeting :: decorator(.Struct) {}
+
+@Greeting
+Person :: struct {
+    name: string
+}
+
+main :: fn() -> i32 {
+    println(greet(Person { .name = "Ada" }))
+    return 0
+}

@@ -9,11 +9,17 @@
 // A plugin observes, emits (`emit_module`) and reports (`report`). The shape of
 // the build, its entries, target and output, is the driver's.
 //
+// `use` also takes a source stage (`toolchain/stage`), which the build runs
+// while it loads the project, as it runs its own: a value that is both a plugin
+// and a stage is plugged as both.
+//
 // A shipped plugin lives in a module of its own: importing `toolchain/build`
 // brings the driver's side of the build protocol, which a program importing
 // only the library must not drag.
 
 module "toolchain/build"
+
+import "toolchain/stage"
 
 /// Behaviour plugged into a build, told each message of the stream in order.
 /// Every member does nothing unless the plugin overrides it.
@@ -27,15 +33,21 @@ export BuildPlugin :: trait {
     on_complete :: fn(self, ctx: BuildContext, code: i32) -> void {}
 }
 
-/// Plug `plugin` into the build, after the plugins plugged before it.
+/// Plug `plugin` into the build, after the plugins and stages plugged before
+/// it.
 ///
 /// Read when the stream starts, as the rest of the configuration is: a plugin
 /// plugged once `messages()` has been pulled waits for the next build.
 ///
 /// @param ctx     the context being configured.
-/// @param plugin  the behaviour to plug.
-export use :: fn(ctx: BuildContext, plugin: BuildPlugin) -> void {
-    ctx.plugins.push(plugin)
+/// @param plugin  the behaviour to plug, a source stage, or both.
+export use :: fn(ctx: BuildContext, plugin: BuildPlugin | SourceStage) -> void {
+    if plugin is BuildPlugin {
+        ctx.plugins.push(plugin)
+    }
+    if plugin is SourceStage {
+        ctx.stages.push(plugin)
+    }
 }
 
 // Whether a plugin is running in this process. A build started then would run
@@ -47,13 +59,21 @@ PluginDispatch :: struct {
 @singleton
 plugin_dispatch :: fn() -> PluginDispatch = PluginDispatch {}
 
-// Hand `msg` to each of `plugins`, in order. A plugin starting a build from here
-// is refused (`messages`): that build would run inside this one.
-tell_plugins :: fn(ctx: BuildContext, plugins: BuildPlugin[], msg: Message) -> void {
+// What `body` gives, run as a plugin or a stage runs: a build it starts is
+// refused (`messages`), since that build would run inside this one.
+dispatched :: fn<T>(body: fn() -> T) -> T {
     dispatch :: plugin_dispatch()
     dispatch.running = true
     // A cancelled task runs its defers: the flag must not outlive the dispatch.
     defer dispatch.running = false
+    return body()
+}
+
+// Hand `msg` to each of `plugins`, in order.
+tell_plugins :: fn(ctx: BuildContext, plugins: BuildPlugin[], msg: Message) -> void =
+    dispatched(() -> tell_each(ctx, plugins, msg))
+
+tell_each :: fn(ctx: BuildContext, plugins: BuildPlugin[], msg: Message) -> void {
     for plugin in plugins {
         match msg {
             is TypecheckedMessage -> plugin.on_module(ctx, msg)
@@ -119,6 +139,26 @@ test_a_build_started_from_a_plugin_is_refused :: fn() -> void {
     ctx.emit_native()
     assert_eq(reported.len(), 1)
     assert_eq(reported[0], "H6013")
+}
+
+// A plugin that is also a source stage.
+Both :: struct {}
+
+Both implements BuildPlugin {
+    on_complete :: fn(self, ctx: BuildContext, code: i32) -> void {}
+}
+
+Both implements SourceStage {
+    describe :: fn(self) -> SourceSpec = SourceSpec { .name = "both" }
+    run :: fn(self, input: Sources) -> Generated = Generated {}
+}
+
+@test
+test_a_value_both_plugin_and_stage_is_plugged_as_both :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx.use(Both {})
+    assert_eq(ctx.plugins.len(), 1)
+    assert_eq(ctx.stages.len(), 1)
 }
 
 @test

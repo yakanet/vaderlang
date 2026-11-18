@@ -28,6 +28,7 @@ import "toolchain/project"
 import "vader/core/symbol"
 import "vader/support/target"
 import "toolchain/span"
+import "toolchain/stage"
 
 /// Synthetic 1:1 span anchored on a file path. Used by R2001 when the
 /// entry folder lies outside every scoped root: there is no source-
@@ -218,6 +219,7 @@ export load_project_with_overlay :: fn(
                 .keep_docs = keep_docs,
                 .tested = if under_test { entry_module.folder } else { null },
                 .only_reached = only_reached,
+                .source_stages = planned_source_stages(project),
             }
             // Re-resolve the entry through the generic path now that the roots
             // exist. `paths[0]` is the entry's own folder rooted at its declared
@@ -422,6 +424,9 @@ LoadState :: struct {
     only_reached: bool
     /// The modules read so far whose symbols are still to mint.
     deferred: DeferredModule[] = []
+    /// The source stages that write into them, planned
+    /// (`planned_source_stages`).
+    source_stages: SourceStage[]
     /// The folder of the prelude, null in a load with no standard library. The
     /// compiler reads its declarations by itself, with no source that writes
     /// their name, so `only_reached` never trims it.
@@ -616,7 +621,7 @@ collect_deferred :: fn(ctx: LoadState) -> void {
     if ctx.deferred.len() == 0 {
         return
     }
-    run_source_stages(ctx.deferred, planned_source_stages(), ctx.node_factory, ctx.diags)
+    run_source_stages(ctx.deferred, ctx.source_stages, ctx.node_factory, ctx.diags)
     intercept_functions(ctx.deferred, ctx.node_factory, ctx.diags)
     modules :: if ctx.only_reached { trimmed_to_reached(ctx) } else { ctx.deferred }
     for read in modules {

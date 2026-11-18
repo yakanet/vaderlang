@@ -110,6 +110,7 @@ open_link :: fn(ctx: BuildContext) -> ServerLink {
         .target = ctx.target,
         .cc = ctx.cc,
         .ldflags = ctx.ldflags,
+        .stages = ctx.stages.map((stage) -> stage.describe()).collect(),
     }
     link :: ctx.server
     ctx.link = link
@@ -129,8 +130,7 @@ stop_build :: fn(ctx: BuildContext) -> void {
 // modules it emitted, then `closing`: on with the stream, or stop the build.
 hand_over :: fn(ctx: BuildContext, link: ServerLink, closing: NextFrame | StopFrame) -> void {
     for i in ctx.printed..<ctx.diagnostics.len() {
-        d :: ctx.diagnostics[i]
-        link.send(ReportFrame { .code = d.code.id, .span = d.primary, .detail = d.detail })
+        link.send(report_of(ctx.diagnostics[i]))
     }
     ctx.printed = ctx.diagnostics.len()
     for m in ctx.pending {
@@ -141,26 +141,53 @@ hand_over :: fn(ctx: BuildContext, link: ServerLink, closing: NextFrame | StopFr
 }
 
 // The next message of the stream, once the plugins heard it, the end as
-// `finished` settles it. A link `vader` closed ends the stream on a failure.
+// `finished` settles it. A link `vader` closed ends the stream on a failure. A
+// stage the build runs meanwhile is answered on the spot.
 next_message :: fn(ctx: BuildContext, link: ServerLink, plugins: BuildPlugin[]) -> Message {
-    if ctx.lost {
-        return finished(ctx, link, plugins, CompleteFrame { .code = 1 })
-    }
-    frame :: link.receive() else return lost_build(ctx, link, plugins, frame.msg)
-    match frame {
-        is CompleteFrame                 -> {
-            return finished(ctx, link, plugins, frame)
+    for {
+        if ctx.lost {
+            return finished(ctx, link, plugins, CompleteFrame { .code = 1 })
         }
-        is DocAnswerFrame                -> {
-            return lost_build(ctx, link, plugins, "it was sent an answer for an event")
-        }
-        is TypecheckedFrame | PhaseFrame -> {
-            msg :: message_of(frame)
-            tell_plugins(ctx, plugins, msg)
-            return msg
+        frame :: link.receive() else return lost_build(ctx, link, plugins, frame.msg)
+        match frame {
+            is CompleteFrame                 -> {
+                return finished(ctx, link, plugins, frame)
+            }
+            is DocAnswerFrame                -> {
+                return lost_build(ctx, link, plugins, "it was sent an answer for an event")
+            }
+            is SourceStageFrame              -> {
+                link.send(ctx.run_stage(frame))
+            }
+            is TypecheckedFrame | PhaseFrame -> {
+                msg :: message_of(frame)
+                tell_plugins(ctx, plugins, msg)
+                return msg
+            }
         }
     }
 }
+
+// What the stage of `ctx` that `frame` names writes for its files, its reports
+// under their code. A stage starting a build is refused, as a plugin is.
+run_stage :: fn(ctx: BuildContext, frame: SourceStageFrame) -> GeneratedFrame {
+    stage :: ctx.stages.find((s) -> s.describe().name == frame.stage) else {
+        // The build answers nothing it was not told of: the driver answers empty
+        // so that it does not wait, and fails.
+        ctx.lose_build("it was asked to run `${frame.stage}`, a stage it does not have")
+        return GeneratedFrame {}
+    }
+    generated :: dispatched(() -> stage.run(frame.sources))
+    return GeneratedFrame {
+        .text = generated.text,
+        .anchors = generated.anchors,
+        .reports = generated.diagnostics.map(report_of).collect(),
+    }
+}
+
+// A diagnostic of the driver as the build takes it.
+report_of :: fn(d: Diagnostic) -> ReportFrame =
+    ReportFrame { .code = d.code.id, .span = d.primary, .detail = d.detail }
 
 // The end of a build the driver lost: a failure.
 lost_build :: fn(
@@ -280,7 +307,69 @@ export emit_native :: fn(ctx: BuildContext) -> i32 {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "toolchain/ast"
 import "toolchain/span"
+import "toolchain/stage"
+
+// Writes a function counting the files it reads, and reports at the first.
+Echo :: struct {}
+
+Echo implements SourceStage {
+    describe :: fn(self) -> SourceSpec = SourceSpec { .name = "echo" }
+
+    run :: fn(self, input: Sources) -> Generated = Generated {
+        .text = "echo :: fn() -> i32 = ${input.files.len()}",
+        .diagnostics = [hook_error(.HookReport, input.files[0].span, "echoed")],
+    }
+}
+
+// The build running the stage `stage` on one file of `app`, then ending.
+stage_script :: fn(stage: string) -> ScriptedLink {
+    file :: Program { .file = "src/main.vader", .span = empty_span(), .decls = [] }
+    run :: SourceStageFrame {
+        .stage = stage,
+        .sources = Sources { .module_name = "app", .files = [file] },
+    }
+    return ScriptedLink { .events = [run, CompleteFrame { .code = 0 }] }
+}
+
+@test test_the_configuration_describes_the_stages_the_driver_plugged :: fn() -> void {
+    link :: stage_script("echo")
+    ctx :: scripted_context(link)
+    ctx.use(Echo {})
+    ctx.emit_native()
+    configure :: link.told[0]
+    if configure !is ConfigureFrame {
+        assert(false, "the driver opens with its configuration")
+        return
+    }
+    assert_eq(configure.stages.len(), 1)
+    assert_eq(configure.stages[0].name, "echo")
+}
+
+@test test_a_stage_the_build_runs_is_answered_before_the_next_event :: fn() -> void {
+    link :: stage_script("echo")
+    ctx :: scripted_context(link)
+    ctx.use(Echo {})
+    assert_eq(ctx.emit_native(), 0)
+    assert_eq(told(link), "configure next generated next")
+    answer :: link.told[2]
+    if answer !is GeneratedFrame {
+        assert(false, "the stage is answered with what it generated")
+        return
+    }
+    assert_eq(answer.text, "echo :: fn() -> i32 = 1")
+    assert_eq(answer.reports.len(), 1)
+    assert_eq(answer.reports[0].code, "H6004")
+}
+
+@test test_a_stage_the_driver_does_not_have_fails_the_build :: fn() -> void {
+    link :: stage_script("missing")
+    ctx :: scripted_context(link)
+    ctx.use(Echo {})
+    assert_eq(ctx.emit_native(), 1)
+    assert_eq(told(link), "configure next generated next")
+}
 
 @test test_the_reports_made_before_the_stream_go_with_the_configuration :: fn() -> void {
     link :: ScriptedLink { .events = [CompleteFrame { .code = 1 }] }

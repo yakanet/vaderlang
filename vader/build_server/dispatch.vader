@@ -105,6 +105,10 @@ export serve :: fn(
         return protocol_failure("the driver opened with another frame than its configuration")
     }
     session :: new_session(request, description_file, opening)
+    link :: StageLink { .peer = peer }
+    session.plug_stages(driver_stages(link, opening.stages))
+    // Every way out: a load after the build must not reach a driver gone.
+    defer forget_project_stages(session.project_root)
     // A module asked for before the stream is pulled, generated from data the
     // entries import, is read by the first round.
     opened :: answer(peer, session) else is ProtocolError {
@@ -115,6 +119,9 @@ export serve :: fn(
     }
     code := 0
     for event in build_events(session) {
+        if link.failure != null {
+            return protocol_failure(link.failure.msg)
+        }
         sent :: peer.send(frame_of(session, event)) else is ProtocolError {
             return protocol_failure(sent.msg)
         }
@@ -127,6 +134,9 @@ export serve :: fn(
         if answered is StopFrame {
             return close_session(session, code)
         }
+    }
+    if link.failure != null {
+        return protocol_failure(link.failure.msg)
     }
     close_session(session, code)
     stopped :: answer(peer, session) else is ProtocolError {
@@ -159,6 +169,9 @@ answer :: fn(peer: DriverPeer, session: BuildSession) -> NextFrame | StopFrame |
             is ConfigureFrame                -> {
                 return ProtocolError { .msg = "the driver configured its build twice" }
             }
+            is GeneratedFrame                -> {
+                return ProtocolError { .msg = "the driver answered a stage it was not asked to run" }
+            }
         }
     }
 }
@@ -182,10 +195,16 @@ export take_request :: fn(
 
 // The report of the driver, under the hook code it names.
 take_report :: fn(session: BuildSession, frame: ReportFrame) -> null | ProtocolError {
+    d :: hook_diagnostic(frame) else return d
+    session.diagnostics.push(d)
+    return null
+}
+
+// A report of the driver as a diagnostic, under the hook code it names.
+hook_diagnostic :: fn(frame: ReportFrame) -> Diagnostic | ProtocolError {
     for code in HookCode {
         if CodeInfo(code).id == frame.code {
-            session.diagnostics.push(hook_error(code, frame.span, frame.detail))
-            return null
+            return hook_error(code, frame.span, frame.detail)
         }
     }
     return ProtocolError { .msg = "`${frame.code}` is no hook code" }

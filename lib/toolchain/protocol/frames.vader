@@ -8,6 +8,10 @@
 // `ConfigureFrame`, on its first pull. A question among the requests
 // (`DocQueryFrame`) is answered at once, before the next request is read.
 //
+// While it loads the project, `vader` runs the source stages the driver plugged:
+// a `SourceStageFrame` the driver answers at once with a `GeneratedFrame`, the
+// pipeline waiting on it.
+//
 // A frame holds strings and integers, a `Span` included, and the declarations of
 // a module (`declarations.vader`). Its payload is a sequence of fields, each
 // written as its length in bytes, a colon, then the bytes; the first field names
@@ -33,12 +37,13 @@ import "std/string_builder"
 AST :: import "toolchain/ast"
 import "toolchain/project"
 import "toolchain/span"
+import "toolchain/stage"
 
 // ---- frames ---------------------------------------------------------------
 
 /// What `vader` sends a driver: the events of the pipeline, and the answers to
 /// its questions.
-export ServerFrame :: TypecheckedFrame | PhaseFrame | CompleteFrame | DocAnswerFrame
+export ServerFrame :: TypecheckedFrame | PhaseFrame | CompleteFrame | DocAnswerFrame | SourceStageFrame
 
 /// What a driver sends `vader`: its configuration, then its requests and
 /// questions.
@@ -48,6 +53,7 @@ export DriverFrame :: ConfigureFrame
              | DocQueryFrame
              | NextFrame
              | StopFrame
+             | GeneratedFrame
 
 /// A module passed type checking.
 export TypecheckedFrame :: struct {
@@ -86,6 +92,9 @@ export ConfigureFrame :: struct {
     target: BuildTarget
     cc: string
     ldflags: string
+    /// What each source stage the driver plugged describes of itself, in the
+    /// order it plugged them: `vader` runs them while it loads the project.
+    stages: SourceSpec[] = []
 }
 
 /// A module the driver generates, which `vader` writes at `BeforeEmit`.
@@ -113,6 +122,26 @@ export DocAnswerFrame :: struct {
     /// Null when the node has none, or when no node the driver received has
     /// that span.
     doc: AST.DocComment | null
+}
+
+/// A source stage of the driver to run, while `vader` loads the project. The
+/// driver answers with a `GeneratedFrame` before `vader` sends anything else.
+export SourceStageFrame :: struct {
+    /// The name the stage describes itself under.
+    stage: string
+    /// The files of the module it reads, each with the declarations that
+    /// cross, without the bodies of their functions (`declarations.vader`).
+    sources: Sources
+}
+
+/// What a source stage gave back for a `SourceStageFrame`.
+export GeneratedFrame :: struct {
+    /// Source, without its `module` line ; "" for nothing.
+    text: string = ""
+    /// The span each impl of `text` reports at, in their order.
+    anchors: Span[] = []
+    /// What the stage reports, each under a hook code.
+    reports: ReportFrame[] = []
 }
 
 /// Let the pipeline go on to its next event.
@@ -188,6 +217,17 @@ export server_payload :: fn(frame: ServerFrame) -> string {
             out.write_field("doc_answer")
             out.write_doc(frame.doc)
         }
+        is SourceStageFrame -> {
+            out.write_field("source_stage")
+            out.write_field(frame.stage)
+            out.write_field(frame.sources.module_name)
+            out.write_integer(frame.sources.files.len())
+            for file in frame.sources.files {
+                out.write_field(file.file)
+                out.write_span(file.span)
+                out.write_declarations(file.decls)
+            }
+        }
     }
     return out.to_string()
 }
@@ -224,6 +264,12 @@ export driver_payload :: fn(frame: DriverFrame) -> string {
             out.write_integer(i64(frame.target))
             out.write_field(frame.cc)
             out.write_field(frame.ldflags)
+            out.write_integer(frame.stages.len())
+            for spec in frame.stages {
+                out.write_field(spec.name)
+                out.write_givens(spec.given)
+                out.write_givens(spec.generates)
+            }
         }
         is EmitModuleFrame -> {
             out.write_field("emit_module")
@@ -232,9 +278,7 @@ export driver_payload :: fn(frame: DriverFrame) -> string {
         }
         is ReportFrame     -> {
             out.write_field("report")
-            out.write_field(frame.code)
-            out.write_span(frame.span)
-            out.write_field(frame.detail)
+            out.write_report(frame)
         }
         is DocQueryFrame   -> {
             out.write_field("doc_query")
@@ -242,8 +286,42 @@ export driver_payload :: fn(frame: DriverFrame) -> string {
         }
         is NextFrame       -> out.write_field("next")
         is StopFrame       -> out.write_field("stop")
+        is GeneratedFrame  -> {
+            out.write_field("generated")
+            out.write_field(frame.text)
+            out.write_integer(frame.anchors.len())
+            for anchor in frame.anchors {
+                out.write_span(anchor)
+            }
+            out.write_integer(frame.reports.len())
+            for report in frame.reports {
+                out.write_report(report)
+            }
+        }
     }
     return out.to_string()
+}
+
+write_report :: fn(out: StringBuilder, report: ReportFrame) -> void {
+    out.write_field(report.code)
+    out.write_span(report.span)
+    out.write_field(report.detail)
+}
+
+// A decorator of the compiler as its name, one a module declares as the module
+// and the name.
+write_givens :: fn(out: StringBuilder, givens: Given[]) -> void {
+    out.write_integer(givens.len())
+    for given in givens {
+        if given is DecoratedWith {
+            out.write_field("compiler")
+            out.write_field(AST.DecoratorName(given.marker).text)
+        } else {
+            out.write_field("declared")
+            out.write_field(given.module)
+            out.write_field(given.name)
+        }
+    }
 }
 
 write_field :: fn(out: StringBuilder, text: string) -> void {
@@ -325,11 +403,12 @@ export decode_driver_frame :: fn(payload: string) -> DriverFrame | ProtocolError
 }
 
 read_server_frame :: fn(r: FieldReader, kind: string) -> ServerFrame | ProtocolError = match kind {
-    "typechecked" -> read_typechecked(r)
-    "phase"       -> read_phase(r)
-    "complete"    -> read_complete(r)
-    "doc_answer"  -> read_doc_answer(r)
-    _             -> ProtocolError { .msg = "`${kind}` is no frame `vader` sends" }
+    "typechecked"  -> read_typechecked(r)
+    "phase"        -> read_phase(r)
+    "complete"     -> read_complete(r)
+    "doc_answer"   -> read_doc_answer(r)
+    "source_stage" -> read_source_stage(r)
+    _              -> ProtocolError { .msg = "`${kind}` is no frame `vader` sends" }
 }
 
 read_driver_frame :: fn(r: FieldReader, kind: string) -> DriverFrame | ProtocolError = match kind {
@@ -339,6 +418,7 @@ read_driver_frame :: fn(r: FieldReader, kind: string) -> DriverFrame | ProtocolE
     "doc_query"   -> read_doc_query(r)
     "next"        -> NextFrame {}
     "stop"        -> StopFrame {}
+    "generated"   -> read_generated(r)
     _             -> ProtocolError { .msg = "`${kind}` is no frame a driver sends" }
 }
 
@@ -398,6 +478,18 @@ read_configure :: fn(r: FieldReader) -> ConfigureFrame | ProtocolError {
     }
     cc :: r.read_field() else return cc
     ldflags :: r.read_field() else return ldflags
+    stage_count :: r.read_count() else return stage_count
+    stages: SourceSpec[]: []
+    for _ in 0..<stage_count {
+        name :: r.read_field() else return name
+        given :: r.read_givens() else return given
+        generates :: r.read_givens() else return generates
+        stages.push(SourceSpec {
+            .name = name,
+            .given = given,
+            .generates = generates,
+        })
+    }
     return ConfigureFrame {
         .fingerprint = fingerprint,
         .entries = entries,
@@ -406,6 +498,67 @@ read_configure :: fn(r: FieldReader) -> ConfigureFrame | ProtocolError {
         .target = BuildTarget(rank),
         .cc = cc,
         .ldflags = ldflags,
+        .stages = stages,
+    }
+}
+
+read_givens :: fn(r: FieldReader) -> Given[] | ProtocolError {
+    count :: r.read_count() else return count
+    givens: Given[]: []
+    for _ in 0..<count {
+        kind :: r.read_field() else return kind
+        if kind == "compiler" {
+            name :: r.read_field() else return name
+            marker :: AST.compiler_decorator_named(name) else {
+                return ProtocolError { .msg = "`@${name}` is no decorator of the compiler" }
+            }
+            givens.push(DecoratedWith { .marker = marker })
+        } else if kind == "declared" {
+            module :: r.read_field() else return module
+            name :: r.read_field() else return name
+            givens.push(DecoratorOrigin { .module = module, .name = name })
+        } else {
+            return ProtocolError { .msg = "`${kind}` is no decorator a stage reads" }
+        }
+    }
+    return givens
+}
+
+read_source_stage :: fn(r: FieldReader) -> SourceStageFrame | ProtocolError {
+    stage :: r.read_field() else return stage
+    module_name :: r.read_field() else return module_name
+    count :: r.read_count() else return count
+    files: AST.Program[]: []
+    for _ in 0..<count {
+        file :: r.read_field() else return file
+        span :: r.read_span() else return span
+        decls :: r.read_declarations() else return decls
+        files.push(AST.Program { .file = file, .span = span, .decls = decls })
+    }
+    return SourceStageFrame {
+        .stage = stage,
+        .sources = Sources { .module_name = module_name, .files = files },
+    }
+}
+
+read_generated :: fn(r: FieldReader) -> GeneratedFrame | ProtocolError {
+    text :: r.read_field() else return text
+    anchor_count :: r.read_count() else return anchor_count
+    anchors: Span[]: []
+    for _ in 0..<anchor_count {
+        anchor :: r.read_span() else return anchor
+        anchors.push(anchor)
+    }
+    report_count :: r.read_count() else return report_count
+    reports: ReportFrame[]: []
+    for _ in 0..<report_count {
+        report :: r.read_report() else return report
+        reports.push(report)
+    }
+    return GeneratedFrame {
+        .text = text,
+        .anchors = anchors,
+        .reports = reports,
     }
 }
 
@@ -635,6 +788,81 @@ test_configure_frame_round_trips :: fn() -> void {
     assert(received.target == .None, "the target reads back")
     assert_eq(received.cc, "clang")
     assert_eq(received.ldflags, "-lm -lpthread")
+    assert_eq(received.stages.len(), 0)
+}
+
+@test
+test_configure_frame_carries_the_descriptions_of_the_stages :: fn() -> void {
+    spec :: SourceSpec {
+        .name = "json",
+        .given = [DecoratorOrigin { .module = "json", .name = "json" }],
+        .generates = [DecoratedWith { .marker = .Displayable }],
+    }
+    sent :: ConfigureFrame {
+        .fingerprint = "",
+        .entries = [],
+        .include_paths = [],
+        .assets = [],
+        .target = .Native,
+        .cc = "",
+        .ldflags = "",
+        .stages = [spec],
+    }
+    received :: decode_driver_frame(driver_payload(sent))
+    if received !is ConfigureFrame {
+        assert(false, "a configure frame reads back as one")
+        return
+    }
+    assert_eq(received.stages.len(), 1)
+    back :: received.stages[0]
+    assert_eq(back.name, "json")
+    given :: back.given[0]
+    assert(given is DecoratorOrigin && given.module == "json" && given.name == "json", "given")
+    generates :: back.generates[0]
+    assert(generates is DecoratedWith && generates.marker == .Displayable, "generates")
+}
+
+@test
+test_a_source_stage_and_what_it_generated_round_trip :: fn() -> void {
+    span :: Span { .start = in_main(0, 1, 1), .end = in_main(30, 3, 1) }
+    alias :: AST.TypeAliasDecl {
+        .span = span,
+        .name = "Name",
+        .name_span = span,
+        .visibility = .Public,
+        .type_params = [],
+        .aliased = AST.IdentExpr { .span = span, .name = "string", .implicit_dot = false },
+        .decorators = [],
+    }
+    program :: AST.Program { .file = "main.vader", .span = span, .decls = [alias] }
+    sent :: SourceStageFrame {
+        .stage = "json",
+        .sources = Sources { .module_name = "app", .files = [program] },
+    }
+    received :: decode_server_frame(server_payload(sent))
+    if received !is SourceStageFrame {
+        assert(false, "a source stage frame reads back as one")
+        return
+    }
+    assert_eq(received.stage, "json")
+    assert_eq(received.sources.module_name, "app")
+    assert_eq(received.sources.files[0].file, "main.vader")
+    assert_eq(received.sources.files[0].span.end.offset, 30)
+    assert_eq(received.sources.files[0].decls.len(), 1)
+    report :: ReportFrame { .code = "H6004", .span = span, .detail = "no key" }
+    answer :: GeneratedFrame {
+        .text = "x :: 1",
+        .anchors = [span],
+        .reports = [report],
+    }
+    back :: decode_driver_frame(driver_payload(answer))
+    if back !is GeneratedFrame {
+        assert(false, "a generated frame reads back as one")
+        return
+    }
+    assert_eq(back.text, "x :: 1")
+    assert_eq(back.anchors[0].start.line, 1)
+    assert_eq(back.reports[0].detail, "no key")
 }
 
 @test

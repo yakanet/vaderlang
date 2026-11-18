@@ -83,4 +83,5 @@ told_word :: fn(frame: DriverFrame) -> string = match frame {
     is DocQueryFrame   -> "doc"
     is NextFrame       -> "next"
     is StopFrame       -> "stop"
+    is GeneratedFrame  -> "generated"
 }

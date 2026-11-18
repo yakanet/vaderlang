@@ -17,6 +17,7 @@ import "toolchain/diagnostics"
 import "toolchain/project"
 import "toolchain/protocol"
 import "toolchain/span"
+import "toolchain/stage"
 import "vader/front/resolver"
 import "vader/pipeline"
 
@@ -81,6 +82,24 @@ export new_session :: fn(
     .target = configure.target,
     .cc = configure.cc,
     .ldflags = configure.ldflags,
+}
+
+/// Register the stages the driver plugged for every load of the project while
+/// the build lasts, unless they cannot run beside the compiler's: two of one
+/// name, or no order for them. The caller forgets them
+/// (`forget_project_stages`).
+///
+/// @param session  the build.
+/// @param stages   the stand-ins of the driver's stages.
+/// @error          H6015 when they cannot run ; the build then compiles nothing.
+plug_stages :: fn(session: BuildSession, stages: SourceStage[]) -> void {
+    problem :: project_stages_problem(stages)
+    if problem != "" {
+        session.report_driver(.DriverStagesCannotRun, problem)
+        return
+    }
+    project :: project_of(session) else return
+    register_project_stages(project, stages)
 }
 
 // ---- diagnostics ----------------------------------------------------------
