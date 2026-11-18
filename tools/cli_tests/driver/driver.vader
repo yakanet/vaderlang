@@ -183,6 +183,15 @@ test_info_check_run_build_run_and_the_build_flags_take_a_driven_project :: fn() 
 }
 
 @test
+test_info_lists_the_source_stages_a_driver_plugs :: fn() -> void {
+    dir :: staged_copy("${FIXTURES}/source_stage_in_driver", "driver_info_stages")
+    ran :: driven(dir, ["info", "."])
+    assert_eq(ran.exit, 0)
+    assert("stage    displayable (compiler) reads @displayable" in ran.stdout, ran.stdout)
+    assert("stage    greeter (driver) reads @Greeting of `app`" in ran.stdout, ran.stdout)
+}
+
+@test
 test_info_describes_a_driver_that_adds_no_entry :: fn() -> void {
     // `info` reports a project as declared: the missing entry a build reports as
     // H6003 is a line of the report.

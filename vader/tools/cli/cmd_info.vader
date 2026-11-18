@@ -1,9 +1,10 @@
 // vader/tools/cli/cmd_info: `vader info [--json] [<folder>]`, what a project folder
 // describes.
 //
-// The entries, the module search roots and the assets of a project, whichever
-// of its `vader.json` and its `build.vader` describes it: for the second, the
-// driver runs to describe itself and compiles nothing. A readable report by
+// The entries, the module search roots, the assets and the source stages of a
+// project, whichever of its `vader.json` and its `build.vader` describes it: for
+// the second, the driver runs to describe itself and compiles nothing, and its
+// stages are those it described then. A readable report by
 // default, JSON with `--json` for tools. A path it resolves takes the
 // separators of the OS; what the project declares is shown as written.
 //
@@ -19,7 +20,9 @@ import "std/fs"
 import "std/path"
 import "std/string"
 import "std/string_builder"
+import "toolchain/ast"
 import "toolchain/project"
+import "toolchain/stage"
 import "vader/front/resolver"
 import "vader/pipeline"
 
@@ -59,6 +62,8 @@ ProjectInfo :: struct {
     root:         string
     /// What it declares, in the shape of a `vader.json`.
     manifest:     Manifest
+    /// The source stages a load of it runs, in that order.
+    stages:       ListedStage[] = []
 }
 
 // What the project folder `dir` describes, or the exit code after saying it
@@ -83,6 +88,7 @@ project_info :: fn(dir: string, may_compile: bool, no_hooks: bool) -> ProjectInf
         .described_by = described_by,
         .root = normalized_path(dir),
         .manifest = manifest,
+        .stages = listed_source_stages(dir.to_posix()),
     }
 }
 
@@ -121,9 +127,37 @@ render_info_text :: fn(info: ProjectInfo) -> string {
     for asset in resolution.assets {
         out.append("asset    ${asset.declared} -> ${asset.path.to_native()}${text_mark(asset)}\n")
     }
+    for stage in info.stages {
+        out.append("stage    ${stage_line(stage)}\n")
+    }
     out.append("output   ${resolution.debug_output.to_native()} (debug)\n")
     out.append("output   ${resolution.release_output.to_native()} (release)")
     return out.to_string()
+}
+
+// A source stage in the text report: its name, where it comes from, the
+// decorators it reads and those it writes.
+stage_line :: fn(stage: ListedStage) -> string {
+    line :: StringBuilder {}
+    line.append("${stage.spec.name} (${origin_of_stage(stage)})")
+    if stage.spec.given.len() > 0 {
+        line.append(" reads ${displayed_givens(stage.spec.given)}")
+    }
+    if stage.spec.generates.len() > 0 {
+        line.append(" ; writes ${displayed_givens(stage.spec.generates)}")
+    }
+    return line.to_string()
+}
+
+displayed_givens :: fn(givens: Given[]) -> string = givens.map(display_given).collect().join(", ")
+
+// `driver` or `compiler`, where a stage comes from.
+origin_of_stage :: fn(stage: ListedStage) -> string = if stage.from_driver { "driver" } else { "compiler" }
+
+// A decorator a stage reads or writes: `@displayable`, or `@Greeting of `app``.
+display_given :: fn(given: Given) -> string = match given {
+    is DecoratedWith   -> "@${DecoratorName(given.marker).text}"
+    is DecoratorOrigin -> "@${given.name} of `${given.module}`"
 }
 
 // What follows a resolved path in the text report: `(missing)`, the origin of a
@@ -143,6 +177,7 @@ render_info_json :: fn(info: ProjectInfo) -> string {
     report["root"] = Json.JsonString { .value = info.root.to_native() }
     write_manifest_json(report, info.manifest)
     report["resolved"] = resolution_json(resolve_paths(info))
+    report["stages"] = stages_json(info.stages)
     return Json.stringify(Json.JsonObject { .entries = report }, 2)
 }
 
@@ -160,6 +195,40 @@ resolution_json :: fn(resolution: Resolution) -> Json.JsonValue {
     out["assets"] = paths_json(resolution.assets, "declared")
     out["output"] = Json.JsonObject { .entries = output }
     return Json.JsonObject { .entries = out }
+}
+
+// The `stages` of the JSON report, in the order they run: each with its `name`,
+// its `origin` (`compiler` or `driver`), and the decorators it reads (`given`)
+// and writes (`generates`), each a `decorator` and, when a module declares it,
+// its `module`.
+stages_json :: fn(stages: ListedStage[]) -> Json.JsonValue {
+    items: Json.JsonValue[]: []
+    for stage in stages {
+        item :: Map<string, Json.JsonValue> {}
+        item["name"] = Json.JsonString { .value = stage.spec.name }
+        item["origin"] = Json.JsonString { .value = origin_of_stage(stage) }
+        item["given"] = givens_json(stage.spec.given)
+        item["generates"] = givens_json(stage.spec.generates)
+        items.push(Json.JsonObject { .entries = item })
+    }
+    return Json.JsonArray { .items = items }
+}
+
+// The decorators of `givens` in the JSON report, each its `decorator`, then the
+// `module` that declares it, none for the compiler's.
+givens_json :: fn(givens: Given[]) -> Json.JsonValue {
+    items: Json.JsonValue[]: []
+    for given in givens {
+        item :: Map<string, Json.JsonValue> {}
+        if given is DecoratedWith {
+            item["decorator"] = Json.JsonString { .value = DecoratorName(given.marker).text }
+        } else {
+            item["decorator"] = Json.JsonString { .value = given.name }
+            item["module"] = Json.JsonString { .value = given.module }
+        }
+        items.push(Json.JsonObject { .entries = item })
+    }
+    return Json.JsonArray { .items = items }
 }
 
 // `paths` as a JSON array, what the project writes for each under `label`.
@@ -286,7 +355,10 @@ test_info_json_carries_the_project_in_the_shape_of_a_manifest :: fn() -> void {
         assert(false, "the report is a JSON object")
         return
     }
-    assert_eq(parsed.entries.keys().collect().join(","), "kind,root,includePaths,entries,assets,resolved")
+    assert_eq(
+        parsed.entries.keys().collect().join(","),
+        "kind,root,includePaths,entries,assets,resolved,stages",
+    )
     kind :: parsed.entries["kind"]
     assert(kind is Json.JsonString && kind.value == "driver", "a driven project says so")
 }
@@ -305,7 +377,7 @@ test_info_json_of_a_manifest_carries_its_name_and_version :: fn() -> void {
     }
     assert_eq(
         parsed.entries.keys().collect().join(","),
-        "kind,root,name,version,includePaths,entries,assets,resolved",
+        "kind,root,name,version,includePaths,entries,assets,resolved,stages",
     )
 }
 
@@ -350,4 +422,27 @@ test_info_text_says_a_project_has_no_entry :: fn() -> void {
         .manifest = Manifest {},
     }
     assert("entry    none" in render_info_text(info), "an empty project says so")
+}
+
+@test
+test_info_text_lists_the_source_stages_in_the_order_they_run :: fn() -> void {
+    greeter :: SourceSpec {
+        .name = "greeter",
+        .given = [DecoratorOrigin { .module = "app", .name = "Greeting" }],
+        .generates = [DecoratedWith { .marker = .Displayable }],
+    }
+    info :: ProjectInfo {
+        .described_by = DRIVER_FILENAME,
+        .root = "game",
+        .manifest = Manifest {},
+        .stages = [ListedStage { .spec = greeter, .from_driver = true }],
+    }
+    line :: "stage    greeter (driver) reads @Greeting of `app` ; writes @displayable"
+    assert(line in render_info_text(info), render_info_text(info))
+}
+
+@test
+test_a_project_lists_the_source_stages_of_the_compiler :: fn() -> void {
+    listed :: listed_source_stages(null)
+    assert(listed.any_match((s) -> s.spec.name == "displayable" && !s.from_driver), "`displayable`")
 }

@@ -62,6 +62,30 @@ export project_stages_problem :: fn(stages: SourceStage[]) -> string {
     return ""
 }
 
+/// A source stage a load of a project runs, as `vader info` lists it.
+export ListedStage :: struct {
+    spec: SourceSpec
+    /// Whether the project's driver plugged it, rather than the compiler.
+    from_driver: bool
+}
+
+/// The source stages a load of `project` runs, in that order: the compiler's,
+/// and those of its driver, plugged or recorded by its last build.
+///
+/// @param project  the project folder, posix, null for a file on its own.
+export listed_source_stages :: fn(project: string | null) -> ListedStage[] {
+    compiler :: Set<string> {}
+    for stage in source_stages() {
+        compiler.add(stage.describe().name)
+    }
+    listed: ListedStage[]: []
+    for stage in planned_source_stages(project) {
+        spec :: stage.describe()
+        listed.push(ListedStage { .spec = spec, .from_driver = spec.name !in compiler })
+    }
+    return listed
+}
+
 // The stages of the driver of `project`, plugged or replayed. Without a project,
 // the records are read under the working directory, as the generated modules are.
 stages_of_driver :: fn(project: string | null) -> SourceStage[] {
