@@ -187,8 +187,8 @@ test_info_lists_the_source_stages_a_driver_plugs :: fn() -> void {
     dir :: staged_copy("${FIXTURES}/source_stage_in_driver", "driver_info_stages")
     ran :: driven(dir, ["info", "."])
     assert_eq(ran.exit, 0)
-    assert("stage    displayable (compiler) reads @displayable" in ran.stdout, ran.stdout)
-    assert("stage    greeter (driver) reads @Greeting of `app`" in ran.stdout, ran.stdout)
+    assert("stage    greeter reads @Greeting of `app`" in ran.stdout, ran.stdout)
+    assert("stage    displayable" !in ran.stdout, "the compiler's stages are left out")
 }
 
 @test

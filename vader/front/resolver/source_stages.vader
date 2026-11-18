@@ -102,34 +102,33 @@ export project_stages_problem :: fn(stages: SourceStage[], bodies: BodyStage[]) 
 /// A source stage a load of a project runs, as `vader info` lists it.
 export ListedStage :: struct {
     spec: SourceSpec
-    /// Whether the project's driver plugged it, rather than the compiler.
-    from_driver: bool
     /// Whether a body stage of its name gives the bodies of what it writes
     /// without one.
     gives_bodies: bool = false
 }
 
-/// The source stages a load of `project` runs, in that order: the compiler's,
-/// and those of its driver, plugged or recorded by its last build.
+/// The source stages the driver of `project` adds to a load, in the order the load
+/// runs them, plugged or recorded by its last build. The compiler's own are left
+/// out: they run in every project.
 ///
 /// @param project  the project folder, posix, null for a file on its own.
-export listed_source_stages :: fn(project: string | null) -> ListedStage[] {
+export listed_driver_stages :: fn(project: string | null) -> ListedStage[] {
     compiler :: Set<string> {}
     for stage in source_stages() {
         compiler.add(stage.describe().name)
     }
     bodies :: Set<string> {}
-    for stage in planned_body_stages(project) {
+    for stage in body_stages_of_driver(project) {
         bodies.add(stage.describe().name)
     }
     listed: ListedStage[]: []
+    // The plan, not the driver's list: a stage that reads what another writes
+    // runs after it, whatever order the driver plugged them in.
     for stage in planned_source_stages(project) {
         spec :: stage.describe()
-        listed.push(ListedStage {
-            .spec = spec,
-            .from_driver = spec.name !in compiler,
-            .gives_bodies = spec.name in bodies,
-        })
+        if spec.name !in compiler {
+            listed.push(ListedStage { .spec = spec, .gives_bodies = spec.name in bodies })
+        }
     }
     return listed
 }
