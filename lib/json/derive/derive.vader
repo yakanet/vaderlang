@@ -3,10 +3,11 @@
 //
 // It reads the decorators of `json` (`decorators.vader` there) as they are
 // written: `@json` above a struct, `@json_name("key")` and `@json_skip` above a
-// field. The build runs it while it loads the project, so the code joins the
-// struct's own module before anything is checked, which is what lets it name the
-// type: a module of its own would have to import the struct's module, which
-// imports it back.
+// field. The build runs it while it loads the project, and the impl of `ToJson`
+// it writes for each struct joins the struct's own module before anything is
+// checked, which is what lets it name the type: a module of its own would have to
+// import the struct's module, which imports it back. An impl adds no name to the
+// module, and reaches every module that sees the struct.
 
 module "json/derive"
 
@@ -15,17 +16,19 @@ import "std/string_builder"
 AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
 import "toolchain/lexer"
+import "toolchain/span"
 import "toolchain/stage"
 
-/// A source stage giving each struct marked `@json` a JSON serialiser: a
-/// `to_json_value(v)` building a `JsonValue`, and a `to_json(v)` writing its text.
+/// A source stage giving each struct marked `@json` a JSON serialiser: an impl
+/// of `ToJson` (`json`), whose `to_json_value()` builds a `JsonValue` and
+/// `to_json()` writes its text.
 ///
-/// The functions are overloads on the struct type, generated into the struct's
-/// own module. The mapping reads each field's type as written: a number, a
-/// `string`, a `bool`, a struct of the same module marked `@json` (through its own
-/// overload), or an array of one of them. Any other field is reported, and left
-/// out. A field takes the key `@json_name` gives, its name otherwise, and
-/// `@json_skip` leaves it out. The key is read as written: a string literal.
+/// The impl is written into the struct's own module. The mapping reads each
+/// field's type as written: a number, a `string`, a `bool`, a struct of the same
+/// module marked `@json` (through its own impl), or an array of one of them. Any
+/// other field is reported, and left out. A field takes the key `@json_name`
+/// gives, its name otherwise, and `@json_skip` leaves it out. The key is read as
+/// written: a string literal.
 ///
 /// @example
 ///   # import "toolchain/build"
@@ -44,12 +47,14 @@ JsonDerive implements SourceStage {
     run :: fn(self, input: Sources) -> Generated {
         structs: AST.StructDecl[]: []
         names: string[]: []
+        // Each impl reports at the `@json` that asked for it, in the impls' order.
+        anchors: Span[]: []
         for file in input.files {
             for d in file.decls.filter_is<AST.StructDecl>() {
-                if json_decorator(d.decorators, "json") != null {
-                    structs.push(d)
-                    names.push(d.name)
-                }
+                marker :: json_decorator(d.decorators, "json") else continue
+                structs.push(d)
+                names.push(d.name)
+                anchors.push(marker.span)
             }
         }
         if structs.len() == 0 {
@@ -62,7 +67,11 @@ JsonDerive implements SourceStage {
         for s in structs {
             write_struct(out, reports, s, names)
         }
-        return Generated { .text = out.to_string(), .diagnostics = reports }
+        return Generated {
+            .text = out.to_string(),
+            .anchors = anchors,
+            .diagnostics = reports,
+        }
     }
 }
 
@@ -87,21 +96,20 @@ write_struct :: fn(
     siblings: string[],
 ) -> void {
     out.append("\n/// Generated from `${s.name}` by `json/derive`.\n")
-    out.append("to_json_value :: fn(v: ${s.name}) -> ${JSON_ALIAS}.JsonValue {\n")
-    out.append("    entries :: Map<string, ${JSON_ALIAS}.JsonValue> {}\n")
+    out.append("${s.name} implements ${JSON_ALIAS}.ToJson {\n")
+    out.append("    to_json_value :: fn(self) -> ${JSON_ALIAS}.JsonValue {\n")
+    out.append("        entries :: Map<string, ${JSON_ALIAS}.JsonValue> {}\n")
     for f in s.fields {
         write_field(out, reports, f, siblings)
     }
-    out.append("    return ${JSON_ALIAS}.JsonObject { .entries = entries }\n")
+    out.append("        return ${JSON_ALIAS}.JsonObject { .entries = entries }\n")
+    out.append("    }\n")
     out.append("}\n")
-    out.append("\n/// JSON text for a `${s.name}`.\n")
-    out.append(
-        "to_json :: fn(v: ${s.name}) -> string = ${JSON_ALIAS}.stringify(to_json_value(v))\n",
-    )
 }
 
-// The statements that put one field into `entries`. A field whose type has no JSON
-// mapping is reported against the field, so the user sees which one.
+// The statements of `to_json_value` that put one field into `entries`. A field
+// whose type has no JSON mapping is reported against the field, so the user sees
+// which one.
 write_field :: fn(
     out: StringBuilder,
     reports: Diagnostic[],
@@ -112,10 +120,10 @@ write_field :: fn(
         return
     }
     key :: quote_vader(key_of(reports, f))
-    access :: "v.${f.name}"
+    access :: "self.${f.name}"
     scalar :: value_expression(f.ty, access, siblings)
     if scalar != null {
-        out.append("    entries[${key}] = ${scalar}\n")
+        out.append("        entries[${key}] = ${scalar}\n")
         return
     }
     array :: f.ty
@@ -123,12 +131,12 @@ write_field :: fn(
         element :: value_expression(array.element, "element", siblings)
         if element != null {
             items :: "items_${f.name}"
-            out.append("    ${items}: ${JSON_ALIAS}.JsonValue[]: []\n")
-            out.append("    for element in ${access} {\n")
-            out.append("        ${items}.push(${element})\n")
-            out.append("    }\n")
+            out.append("        ${items}: ${JSON_ALIAS}.JsonValue[]: []\n")
+            out.append("        for element in ${access} {\n")
+            out.append("            ${items}.push(${element})\n")
+            out.append("        }\n")
             out.append(
-                "    entries[${key}] = ${JSON_ALIAS}.JsonArray { .items = ${items} }\n",
+                "        entries[${key}] = ${JSON_ALIAS}.JsonArray { .items = ${items} }\n",
             )
             return
         }
@@ -154,7 +162,9 @@ key_of :: fn(reports: Diagnostic[], f: AST.StructField) -> string {
 // The `JsonValue` expression for a value of type `ty` read at `access`, or null when
 // there is none. A number goes through `f64`, which is what `JsonNumber` carries;
 // `stringify` prints an integral one without a decimal point. A struct is one of
-// `siblings` only: any other name would not compile in the generated code.
+// `siblings` only, through its impl: the stage sees no other module's. The trait
+// is in scope through `JSON_ALIAS` alone, so its method is called qualified: the
+// method form does not reach through an alias (T3078).
 value_expression :: fn(ty: AST.TypeExpr, access: string, siblings: string[]) -> string | null {
     if ty !is AST.IdentExpr {
         return null
@@ -169,7 +179,7 @@ value_expression :: fn(ty: AST.TypeExpr, access: string, siblings: string[]) -> 
         return "${JSON_ALIAS}.JsonBool { .value = ${access} }"
     }
     if ty.name in siblings {
-        return "to_json_value(${access})"
+        return "${JSON_ALIAS}.ToJson.to_json_value(${access})"
     }
     return null
 }
@@ -177,7 +187,6 @@ value_expression :: fn(ty: AST.TypeExpr, access: string, siblings: string[]) -> 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "toolchain/span"
 
 named_type :: fn(name: string) -> AST.TypeExpr = AST.IdentExpr {
     .span = empty_span(),
@@ -195,7 +204,10 @@ field_of :: fn(name: string, ty: AST.TypeExpr) -> AST.StructField = AST.StructFi
 
 @test
 test_value_expression_reaches_a_struct_of_the_module_only :: fn() -> void {
-    assert_eq(value_expression(named_type("Address"), "x", ["Address"]) else "", "to_json_value(x)")
+    assert_eq(
+        value_expression(named_type("Address"), "x", ["Address"]) else "",
+        "DerivedJson.ToJson.to_json_value(x)",
+    )
     assert(value_expression(named_type("Address"), "x", []) == null, "another module's struct")
 }
 

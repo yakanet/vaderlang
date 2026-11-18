@@ -2,9 +2,10 @@
 //
 // There is no `to_json` anywhere in this tree: `build.vader` plugs `json/derive`
 // in, which reads the declarations as written, walks each struct's FIELD TYPES,
-// and writes one serialiser per struct marked `@json` into the struct's own
-// module. So `to_json` below resolves to written code, and it can take `Person`
-// by type because the written file joins the module, not an imported one.
+// and writes an impl of `ToJson` (`json`) per struct marked `@json` into the
+// struct's own module. So `to_json` below is the trait's, reached through that
+// impl, which can take `Person` by type because the written file joins the
+// module, not an imported one.
 
 module "app"
 
@@ -37,7 +38,7 @@ main :: fn() -> i32 {
         .home   = Address { .city = "Lyon", .zip = 69001 },
         .tags   = ["x", "y"],
     }
-    println(to_json(p))
+    println(p.to_json())
     return 0
 }
 
@@ -55,9 +56,9 @@ import "std/testing"
 
 @test
 test_nested_struct_has_its_own_serialiser :: fn() -> void {
-    // One serialiser per struct, so `Address` is serialisable on its own, not
+    // One impl per struct, so `Address` is serialisable on its own, not
     // only as a field of `Person`.
-    assert_eq(to_json(Address { .city = "Lyon", .zip = 69001 }),
+    assert_eq(Address { .city = "Lyon", .zip = 69001 }.to_json(),
               "{\"city\":\"Lyon\",\"zip\":69001}")
 }
 
@@ -65,7 +66,7 @@ test_nested_struct_has_its_own_serialiser :: fn() -> void {
 test_every_field_kind_maps :: fn() -> void {
     // Every mapping the generator makes, in one value: a string carrying a quote
     // (escaped by `json`, not by hand), an i32 as a bare number, a bool, a
-    // NESTED struct recursed through its own generated overload, and an array.
+    // NESTED struct recursed through its own generated impl, and an array.
     p :: Person {
         .name   = "A\"B",
         .age    = 41,
@@ -73,7 +74,7 @@ test_every_field_kind_maps :: fn() -> void {
         .home   = Address { .city = "Lyon", .zip = 69001 },
         .tags   = ["x", "y"],
     }
-    assert_eq(to_json(p),
+    assert_eq(p.to_json(),
               "{\"full_name\":\"A\\\"B\",\"age\":41,\"active\":true,\"home\":{\"city\":\"Lyon\",\"zip\":69001},\"tags\":[\"x\",\"y\"]}")
 }
 
@@ -86,7 +87,7 @@ test_a_field_is_renamed_or_skipped_as_its_decorator_says :: fn() -> void {
         .home   = Address { .city = "London", .zip = 1 },
         .tags   = [],
     }
-    text :: to_json(p)
+    text :: p.to_json()
     assert(text.contains("\"full_name\":\"Ada\""), text)
     assert(!text.contains("secret"), text)
 }
