@@ -15,6 +15,7 @@
 
 module "vader/front/resolver"
 
+import "std/collections"
 import "std/fs"
 import "std/iter"
 import "std/numbers"
@@ -44,13 +45,84 @@ export driver_sources :: fn(input: Sources) -> Sources {
     return Sources { .module_name = input.module_name, .files = files }
 }
 
+/// How the driver of `project_root` names the files of a load: from the project
+/// folder, whatever the command called them, so that what a stage reads, and the
+/// key of its record, are the files alone.
+export DriverNames :: struct {
+    /// Each file of the load to the name the driver reads it under.
+    sent: Map<string, string> = Map<string, string> {}
+    /// Each name the driver reads to the file of the load.
+    read: Map<string, string> = Map<string, string> {}
+}
+
+/// The names the driver of `project_root` reads `files` under: each from the
+/// project folder, a file outside it and code the compiler wrote under their own.
+///
+/// @param files         the files of the load a stage reads.
+/// @param project_root  the project folder, null for a file on its own.
+export driver_names :: fn(files: string[], project_root: string | null) -> DriverNames {
+    names :: DriverNames {}
+    if project_root == null || project_root == "" {
+        return names
+    }
+    root :: normalized_path(project_root)
+    for file in files {
+        if is_generated_file(file) {
+            continue
+        }
+        name :: relative_to(normalized_path(file), root)
+        if name != file {
+            names.sent[file] = name
+            names.read[name] = file
+        }
+    }
+    return names
+}
+
+/// The files `sources` hands a source stage.
+///
+/// @param sources  what a source stage reads.
+export source_files :: fn(sources: Sources) -> string[] = sources.files.map((f) -> f.file).collect()
+
+/// The files the declarations of `request` name.
+///
+/// @param request  what a body stage is asked.
+export request_files :: fn(request: BodyRequest) -> string[] {
+    files: string[]: [request.decl.span.start.file]
+    for d in request.declarations {
+        files.push(decl_span(d).start.file)
+    }
+    return files.distinct().collect()
+}
+
+/// `reports` of a stage of the driver, their spans named as the load names them.
+///
+/// @param reports  what the stage reported.
+/// @param names    how the driver named the files (`driver_names`).
+export reports_read :: fn(reports: ReportFrame[], names: DriverNames) -> ReportFrame[] =
+    reports.map((r) -> ReportFrame { ...r, .span = renamed_span(r.span, names.read) }).collect()
+
+/// `anchors` a source stage of the driver answered, named as the load names them.
+///
+/// @param anchors  the spans the generated declarations report at.
+/// @param names    how the driver named the files (`driver_names`).
+export anchors_read :: fn(anchors: Span[], names: DriverNames) -> Span[] =
+    anchors.map((a) -> renamed_span(a, names.read)).collect()
+
 /// The key of the files `sources` hands the stage `stage`: equal for files that
 /// read alike.
 ///
 /// @param stage    the name of the stage.
 /// @param sources  its files, as `driver_sources` makes them.
-export record_key :: fn(stage: string, sources: Sources) -> string =
-    server_payload(SourceStageFrame { .stage = stage, .sources = sources }).hash().to_hex()
+/// @param names    how the driver names them (`driver_names`).
+export record_key :: fn(stage: string, sources: Sources, names: DriverNames) -> string {
+    frame :: SourceStageFrame {
+        .stage = stage,
+        .sources = sources,
+        .names = names.sent,
+    }
+    return server_payload(frame).hash().to_hex()
+}
 
 /// The folder of the records of `project_root`.
 ///
@@ -75,8 +147,15 @@ export driver_request :: fn(input: BodyRequest) -> BodyRequest =
 ///
 /// @param stage    the name of the stage.
 /// @param request  what it is asked, as `driver_request` makes it.
-export body_record_key :: fn(stage: string, request: BodyRequest) -> string =
-    server_payload(BodyStageFrame { .stage = stage, .request = request }).hash().to_hex()
+/// @param names    how the driver names its files (`driver_names`).
+export body_record_key :: fn(stage: string, request: BodyRequest, names: DriverNames) -> string {
+    frame :: BodyStageFrame {
+        .stage = stage,
+        .request = request,
+        .names = names.sent,
+    }
+    return server_payload(frame).hash().to_hex()
+}
 
 /// The file recording the body the body stage `stage` gave the function of
 /// `request`: under the module, the function's name, after its impl's type for a
@@ -168,8 +247,9 @@ ReplayedBodyStage implements BodyStage {
         if answer !is BodyFrame {
             return missing
         }
-        diagnostics :: replayed_diagnostics(answer.reports)
-        if recorded.key != body_record_key(self.name, request) {
+        names :: driver_names(request_files(request), self.project_root)
+        diagnostics :: replayed_diagnostics(reports_read(answer.reports, names))
+        if recorded.key != body_record_key(self.name, request, names) {
             stale :: "`${self.name}` read other declarations of `${input.module_name}`"
             diagnostics.push(replay_warning_at(at, stale))
         }
@@ -207,13 +287,14 @@ ReplayedStage implements SourceStage {
         if answer !is GeneratedFrame {
             return missing
         }
-        diagnostics :: replayed_diagnostics(answer.reports)
-        if recorded.key != record_key(name, driver_sources(input)) {
+        names :: driver_names(source_files(input), self.project_root)
+        diagnostics :: replayed_diagnostics(reports_read(answer.reports, names))
+        if recorded.key != record_key(name, driver_sources(input), names) {
             diagnostics.push(replay_warning(input, "`${name}` read other files of `${input.module_name}`"))
         }
         return Generated {
             .text = answer.text,
-            .anchors = answer.anchors,
+            .anchors = anchors_read(answer.anchors, names),
             .diagnostics = diagnostics,
         }
     }
@@ -253,18 +334,24 @@ import "std/env"
 import "std/testing"
 import "toolchain/parser"
 
-// The files of `app` a stage reads: one, with `source`.
-app_sources :: fn(source: string) -> Sources =
-    Sources { .module_name = "app", .files = [parse_source(source, "src/main.vader").program] }
+// The files of `app` a stage reads: one, with `source`, under `path`.
+app_sources :: fn(source: string, path: string = "src/main.vader") -> Sources =
+    Sources { .module_name = "app", .files = [parse_source(source, path).program] }
 
 // A project whose last build recorded that `echo` wrote `text` for `recorded`.
 recorded_project :: fn(recorded: Sources, text: string) -> string {
     project :: create_unique_dir(temp_dir(), "stage_records.") else panic("no temporary folder")
+    record_echo(project, recorded, text)
+    return project
+}
+
+// Record in `project` that `echo` wrote `text` for `recorded`.
+record_echo :: fn(project: string, recorded: Sources, text: string) -> void {
     create_dir(join_path(stage_records_dir(project), "echo"))
     write_file(stage_plan_path(project), encode_stage_plan(StagePlan { .sources = [SourceSpec { .name = "echo" }] }))
-    key :: record_key("echo", driver_sources(recorded))
+    names :: driver_names(source_files(recorded), project)
+    key :: record_key("echo", driver_sources(recorded), names)
     write_file(stage_record_path(project, "echo", "app"), record_text(key, GeneratedFrame { .text = text }))
-    return project
 }
 
 // The stage of `project` replayed on `input`.
@@ -280,6 +367,25 @@ test_a_load_replays_what_the_last_build_recorded :: fn() -> void {
     project :: recorded_project(input, "x :: 1")
     defer remove(project, RemoveOptions { .recursive = true })
     generated :: replayed(project, input)
+    assert_eq(generated.text, "x :: 1")
+    assert_eq(generated.diagnostics.len(), 0)
+}
+
+@test
+test_the_driver_reads_a_file_of_the_project_from_its_folder :: fn() -> void {
+    names :: driver_names(["/p/src/main.vader", "/elsewhere/x.vader"], "/p")
+    assert_eq(names.sent["/p/src/main.vader"] else "", "src/main.vader")
+    assert_eq(names.read["src/main.vader"] else "", "/p/src/main.vader")
+    assert(names.sent["/elsewhere/x.vader"] == null, "a file outside keeps its name")
+}
+
+@test
+test_a_file_named_otherwise_replays_without_a_warning :: fn() -> void {
+    project :: create_unique_dir(temp_dir(), "stage_records.") else panic("no temporary folder")
+    defer remove(project, RemoveOptions { .recursive = true })
+    source :: "module \"app\"\nP :: struct {}\n"
+    record_echo(project, app_sources(source, join_path(project, "src/main.vader")), "x :: 1")
+    generated :: replayed(project, app_sources(source, join_path(project, "src/./main.vader")))
     assert_eq(generated.text, "x :: 1")
     assert_eq(generated.diagnostics.len(), 0)
 }

@@ -108,8 +108,13 @@ export driver_body_stages :: fn(link: StageLink, names: string[]) -> BodyStage[]
 // declarations that cross only, recorded.
 run_body_in_driver :: fn(link: StageLink, stage: string, input: BodyRequest) -> Body | ProtocolError {
     request :: driver_request(input)
-    sent :: link.peer.send(BodyStageFrame { .stage = stage, .request = request })
-        else is ProtocolError { return sent }
+    names :: driver_names(request_files(request), link.project_root)
+    frame :: BodyStageFrame {
+        .stage = stage,
+        .request = request,
+        .names = names.sent,
+    }
+    sent :: link.peer.send(frame) else is ProtocolError { return sent }
     answer :: link.peer.receive() else return answer
     if answer !is BodyFrame {
         return ProtocolError { .msg = "the driver answered the body stage `${stage}` with another frame" }
@@ -117,9 +122,9 @@ run_body_in_driver :: fn(link: StageLink, stage: string, input: BodyRequest) -> 
     project :: link.project_root
     if project != null {
         path :: body_record_path(project, stage, request)
-        write_record(path, record_text(body_record_key(stage, request), answer))
+        write_record(path, record_text(body_record_key(stage, request, names), answer))
     }
-    diagnostics :: driver_diagnostics(answer.reports) else return diagnostics
+    diagnostics :: driver_diagnostics(reports_read(answer.reports, names)) else return diagnostics
     return Body { .text = answer.text, .diagnostics = diagnostics }
 }
 
@@ -138,8 +143,13 @@ driver_diagnostics :: fn(reports: ReportFrame[]) -> Diagnostic[] | ProtocolError
 // that cross only, recorded.
 run_in_driver :: fn(link: StageLink, stage: string, input: Sources) -> Generated | ProtocolError {
     sources :: driver_sources(input)
-    sent :: link.peer.send(SourceStageFrame { .stage = stage, .sources = sources })
-        else is ProtocolError { return sent }
+    names :: driver_names(source_files(sources), link.project_root)
+    frame :: SourceStageFrame {
+        .stage = stage,
+        .sources = sources,
+        .names = names.sent,
+    }
+    sent :: link.peer.send(frame) else is ProtocolError { return sent }
     answer :: link.peer.receive() else return answer
     if answer !is GeneratedFrame {
         return ProtocolError { .msg = "the driver answered the stage `${stage}` with another frame" }
@@ -147,12 +157,12 @@ run_in_driver :: fn(link: StageLink, stage: string, input: Sources) -> Generated
     project :: link.project_root
     if project != null {
         path :: stage_record_path(project, stage, sources.module_name)
-        write_record(path, record_text(record_key(stage, sources), answer))
+        write_record(path, record_text(record_key(stage, sources, names), answer))
     }
-    diagnostics :: driver_diagnostics(answer.reports) else return diagnostics
+    diagnostics :: driver_diagnostics(reports_read(answer.reports, names)) else return diagnostics
     return Generated {
         .text = answer.text,
-        .anchors = answer.anchors,
+        .anchors = anchors_read(answer.anchors, names),
         .diagnostics = diagnostics,
     }
 }

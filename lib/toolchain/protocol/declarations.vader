@@ -50,10 +50,15 @@ DeclWriter :: struct {
     files: Map<string, i64> = Map<string, i64> {}
 }
 
-write_declarations :: fn(out: StringBuilder, decls: AST.Decl[]) -> void {
+// `names` renames the files the spans name, a file it leaves out keeping its own.
+write_declarations :: fn(
+    out: StringBuilder,
+    decls: AST.Decl[],
+    names: Map<string, string> = Map<string, string> {},
+) -> void {
     w :: DeclWriter {}
     w.write_list(decls, write_decl)
-    out.write_strings(w.files.keys().collect())
+    out.write_strings(w.files.keys().map((f) -> names[f] else f).collect())
     out.append(w.out.to_string())
 }
 

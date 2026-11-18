@@ -3393,7 +3393,7 @@ build :: fn(args: string[]) -> i32 {
 ```
 
 - `describe` names the stage and the decorators whose declarations it reads, in `given`. A stage that reads a decorator another one lists in `generates` runs after it.
-- A stage reads the declarations of its files as a driver receives them, without the bodies of functions, each declared decorator naming the module that declares it. It sees nothing typed and nothing of another module.
+- A stage reads the declarations of its files as a driver receives them, without the bodies of functions, each declared decorator naming the module that declares it. A file of the project is named from the project folder (`src/main.vader`), whatever the command was given. It sees nothing typed and nothing of another module.
 - What a stage reports in `diagnostics` is reported as the driver's reports are.
 - A stage named like another, the compiler's included, or stages that wait on one another, are an error, and nothing is compiled.
 - A value that is a plugin and stages at once is plugged as each.

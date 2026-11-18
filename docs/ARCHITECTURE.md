@@ -69,7 +69,9 @@ project's driver plugs run in the driver's process: the build server plans a
 stand-in for each beside the compiler's (`vader/build_server/stages.vader`), which
 sends the driver the files and waits for its text, and registers them for the
 project (`register_project_stages`) so that every load of it plans them. Each
-answer is recorded under `build/stages/` with a key of the files the stage read; a
+answer is recorded under `build/stages/` with a key of the files the stage read,
+named from the project folder as the driver reads them (`driver_names`), so that a
+command naming a file otherwise replays the same record; a
 load with no driver (`vader run`, `vader test`, the language server) replays the
 records (`vader/front/resolver/stage_records.vader`), warning on a key that no
 longer matches. A function a stage writes without a body, top-level or impl member

@@ -32,6 +32,7 @@
 
 module "toolchain/protocol"
 
+import "std/collections"
 import "std/numbers"
 import "std/string"
 import "std/string_builder"
@@ -141,6 +142,8 @@ export SourceStageFrame :: struct {
     /// The files of the module it reads, each with the declarations that
     /// cross, without the bodies of their functions (`declarations.vader`).
     sources: Sources
+    /// The name the driver reads each file under, where it differs.
+    names: Map<string, string> = Map<string, string> {}
 }
 
 /// What a source stage gave back for a `SourceStageFrame`.
@@ -162,6 +165,8 @@ export BodyStageFrame :: struct {
     /// without the bodies of their functions (`declarations.vader`), each declared
     /// decorator holding its value.
     request: BodyRequest
+    /// The name the driver reads each file under, where it differs.
+    names: Map<string, string> = Map<string, string> {}
 }
 
 /// What a body stage gave back for a `BodyStageFrame`.
@@ -250,23 +255,25 @@ export server_payload :: fn(frame: ServerFrame) -> string {
             out.write_field(frame.stage)
             out.write_field(frame.sources.module_name)
             out.write_integer(frame.sources.files.len())
+            names :: frame.names
             for file in frame.sources.files {
-                out.write_field(file.file)
-                out.write_span(file.span)
-                out.write_declarations(file.decls)
+                out.write_field(names[file.file] else file.file)
+                out.write_span(renamed_span(file.span, names))
+                out.write_declarations(file.decls, names)
             }
         }
         is BodyStageFrame   -> {
             out.write_field("body_stage")
             out.write_field(frame.stage)
             out.write_field(frame.request.module_name)
-            out.write_declarations([frame.request.decl])
+            names :: frame.names
+            out.write_declarations([frame.request.decl], names)
             owner :: frame.request.owner
             out.write_flag(owner != null)
             if owner != null {
-                out.write_declarations([owner])
+                out.write_declarations([owner], names)
             }
-            out.write_declarations(frame.request.declarations)
+            out.write_declarations(frame.request.declarations, names)
         }
     }
     return out.to_string()
@@ -422,6 +429,16 @@ write_strings :: fn(out: StringBuilder, texts: string[]) -> void {
     for t in texts {
         out.write_field(t)
     }
+}
+
+/// `span`, its files named as `names` maps them, the others as they are: how a
+/// span crosses to a stage of the driver, and how one it gives back is read.
+///
+/// @param span   the span.
+/// @param names  each file to its other name.
+export renamed_span :: fn(span: Span, names: Map<string, string>) -> Span = Span {
+    .start = Position { ...span.start, .file = names[span.start.file] else span.start.file },
+    .end = Position { ...span.end, .file = names[span.end.file] else span.end.file },
 }
 
 write_span :: fn(out: StringBuilder, span: Span) -> void {
