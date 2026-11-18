@@ -20,6 +20,7 @@ import "std/string"
 import "std/target"
 import "std/task"
 import "std/time"
+import "toolchain/project"
 
 /// How a test runs a command.
 export RunOptions :: struct {
@@ -407,7 +408,9 @@ export stale_vader :: fn() -> string | null {
     return "`build/vader` is older than `${newer}`: ${REBUILD}"
 }
 
-/// The first `.vader` file under `roots` modified after the file at `binary`.
+/// The first `.vader` file under `roots` modified after the file at `binary`,
+/// code the compiler wrote as source aside (`GENERATED_HEADER`): a build writes
+/// some under the folder of an entry with no project.
 ///
 /// @param binary  a program built from what `roots` hold.
 /// @param roots   the folders it is built from, those of them that exist.
@@ -422,12 +425,18 @@ export newer_source :: fn(binary: string, roots: string[]) -> string | null {
                 continue
             }
             changed :: modification_time(entry.path)
-            if changed is i64 && changed > built {
+            if changed is i64 && changed > built && !is_written_by_vader(entry.path) {
                 return entry.path
             }
         }
     }
     return null
+}
+
+// Whether the file `path` holds code the compiler wrote as source.
+is_written_by_vader :: fn(path: string) -> bool {
+    text :: read_file_string(path) else return false
+    return text.starts_with(GENERATED_HEADER)
 }
 
 // ---- tests ----------------------------------------------------------------
