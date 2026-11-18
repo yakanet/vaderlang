@@ -1,0 +1,119 @@
+# Lower
+
+## snippet
+  snippet.Codec :: struct {}  // snippet$Codec
+  snippet$Codec$Stage$name :: fn(self: Codec) -> string {
+      "codec reads"
+  }
+  snippet$Codec$Stage$run :: fn(self: Codec, input: string) -> i64 {
+      std_core$Intrinsic$byte_len(input)
+  }
+  snippet$Codec$Stage$name$1 :: fn(self: Codec) -> string {
+      "codec writes"
+  }
+  snippet$Codec$Stage$run$1 :: fn(self: Codec, input: i64) -> string {
+      {
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(21))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "#")
+          __off_1 = std.core.write_int(__buf_0, __off_1, input)
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.Counter :: struct {}  // snippet$Counter
+  snippet.Counter.name :: fn(self: Counter) -> string {  // snippet$Counter$Stage$name
+      "counter"
+  }
+  snippet.Counter.run :: fn(self: Counter, input: string) -> i64 {  // snippet$Counter$Stage$run
+      i64(1)
+  }
+  snippet.describe :: fn(x: Stage<i64, string> | Stage<string, i64>) -> string {  // snippet$describe
+      if x is Stage<i64, string> {
+          return "a writer"
+      }
+      return "a reader only"
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      readers: Stage<string, i64>[] = [Codec {}, Counter {}, Wrapper<string> { .inner = "w" }] :Stage<string, i64>[]
+      writers: Stage<i64, string>[] = [Codec {}] :Stage<i64, string>[]
+      {
+          __for_arr_0: Stage<string, i64>[] = readers
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
+          for __for_i_2 < __for_len_1 {
+              r: Stage<string, i64> = __for_arr_0[__for_i_2]
+              std.console.println<string>({
+                  __p_3: string = @vcall(snippet$Stage__string__i64.name, r)
+                  __buf_4: Buffer = std_core$Intrinsic$new_byte_buffer(i64(22) +% std_core$Intrinsic$byte_len(__p_3))
+                  __off_5: i64 = 0
+                  __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
+                  __off_5 = std.core.write_string_at(__buf_4, __off_5, ": ")
+                  __off_5 = std.core.write_int(__buf_4, __off_5, @vcall(snippet$Stage__string__i64.run, r, "four"))
+                  std.core.finish_buffer(__buf_4, __off_5)
+              } :string)
+          } @step {
+              __for_i_2 = __for_i_2 +% i64(1)
+          }
+      }
+      {
+          __for_arr_6: Stage<i64, string>[] = writers
+          __for_len_7: i64 = @array.len(__for_arr_6)
+          __for_i_8: i64 = 0
+          for __for_i_8 < __for_len_7 {
+              w: Stage<i64, string> = __for_arr_6[__for_i_8]
+              std.console.println<string>(concat_3(@vcall(snippet$Stage__i64__string.name, w), ": ", @vcall(snippet$Stage__i64__string.run, w, i64(4))))
+          } @step {
+              __for_i_8 = __for_i_8 +% i64(1)
+          }
+      }
+      std.console.println<string>(snippet.describe(Codec {}))
+      std.console.println<string>(snippet.describe(Counter {}))
+      return 0
+  }
+  snippet.Wrapper<string> :: struct { inner: string }  // snippet$Wrapper__string
+  snippet.Wrapper<string>.name :: fn(self: Wrapper<string>) -> string {  // snippet$Wrapper$Stage$name__string
+      "wrapper"
+  }
+  snippet.Wrapper<string>.run :: fn(self: Wrapper<string>, input: string) -> i64 {  // snippet$Wrapper$Stage$run__string
+      i64(7)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c2)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_intern_string(buf, c2)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+  vtable snippet.Stage.name (and snippet$Stage__i64__string) for Codec  snippet$Codec$Stage$name$1
+  vtable snippet.Stage.name (and snippet$Stage__string__i64) for Codec  snippet$Codec$Stage$name
+  vtable snippet.Stage.name (and snippet$Stage__string__i64) for Counter  snippet.Counter.name  // snippet$Counter$Stage$name
+  vtable snippet.Stage.name (and snippet$Stage__string__i64) for Wrapper<string>  snippet.Wrapper<string>.name  // snippet$Wrapper$Stage$name__string
+  vtable snippet.Stage.run (and snippet$Stage__i64__string) for Codec  snippet$Codec$Stage$run$1
+  vtable snippet.Stage.run (and snippet$Stage__string__i64) for Codec  snippet$Codec$Stage$run
+  vtable snippet.Stage.run (and snippet$Stage__string__i64) for Counter  snippet.Counter.run  // snippet$Counter$Stage$run
+  vtable snippet.Stage.run (and snippet$Stage__string__i64) for Wrapper<string>  snippet.Wrapper<string>.run  // snippet$Wrapper$Stage$run__string
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer

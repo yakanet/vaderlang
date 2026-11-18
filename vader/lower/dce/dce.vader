@@ -133,8 +133,10 @@ export prune_unreachable_fns :: fn(
     // is an O(1) bucket lookup, not an O(vtable) rescan per outer pass.
     impls_by_vtable_key :: Map<string, LoweredVtableEntry[]> {}
     for e in lp.vtable_entries {
-        key :: "${e.trait_name}|${e.method_name}"
-        impls_by_vtable_key.get_or_put_with(key, () -> []).push(e)
+        for trait_name in e.row_traits {
+            key :: "${trait_name}|${e.method_name}"
+            impls_by_vtable_key.get_or_put_with(key, () -> []).push(e)
+        }
     }
 
     pending_virtual: string[]: []

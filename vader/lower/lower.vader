@@ -138,7 +138,8 @@ begin_lowering_of :: fn(
     // `impl_table` rows per interned struct tag (`build_impl_table_from_vtable`).
     entry_typed :: typed.modules[loaded.entry]
     if entry_typed != null {
-        project.trait_membership = entry_typed.impl_tables.struct_traits_by_sym
+        project.trait_membership = trait_membership_of(entry_typed, project_ctx.impls)
+        project.dispatched_instances = instances_dispatched_apart(entry_typed)
     }
 
     module_ids :: typed.modules.keys().collect()

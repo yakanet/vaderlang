@@ -140,8 +140,8 @@
       std_core$Intrinsic$buffer_write_string(buf, c0, p1)
       std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
-  vtable std.core.Add.add for Gauge  snippet$Gauge$std_core$Add$add
-  vtable std.core.Add.add for Gauge  snippet$Gauge$std_core$Add$add$1
+  vtable std.core.Add.add (and std_core$Add__f64__f64) for Gauge  snippet$Gauge$std_core$Add$add$1
+  vtable std.core.Add.add (and std_core$Add__i32__i32) for Gauge  snippet$Gauge$std_core$Add$add
 
 ## lowered in dependencies
   std/console

@@ -44,14 +44,14 @@
       std_core$Intrinsic$buffer_write_string(buf, c0, p1)
       std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
-  vtable snippet.Mix.mix for Box<i32>  snippet$Box$Mix$mix__i32
+  vtable snippet.Mix.mix (and snippet$Mix__i32) for Box<i32>  snippet$Box$Mix$mix__i32
+  vtable snippet.Mix.mix (and snippet$Mix__i32) for Pair  snippet$Pair$Mix$mix
+  vtable snippet.Mix.mix (and snippet$Mix__snippet_Pair) for Pair  snippet$Pair$Mix$mix$1
   vtable snippet.Mix.mix for Box<i32>  snippet$Box$Mix$mix__i32$1
-  vtable snippet.Mix.mix for Pair  snippet$Pair$Mix$mix
-  vtable snippet.Mix.mix for Pair  snippet$Pair$Mix$mix$1
-  vtable snippet.Mix.twice for Box<i32>  snippet$Box$Mix$twice__i32
+  vtable snippet.Mix.twice (and snippet$Mix__i32) for Box<i32>  snippet$Box$Mix$twice__i32
+  vtable snippet.Mix.twice (and snippet$Mix__i32) for Pair  snippet$Pair$Mix$twice
+  vtable snippet.Mix.twice (and snippet$Mix__snippet_Pair) for Pair  snippet$Pair$Mix$twice$1
   vtable snippet.Mix.twice for Box<i32>  snippet$Box$Mix$twice__i32$1
-  vtable snippet.Mix.twice for Pair  snippet$Pair$Mix$twice
-  vtable snippet.Mix.twice for Pair  snippet$Pair$Mix$twice$1
 
 ## lowered in dependencies
   std/console

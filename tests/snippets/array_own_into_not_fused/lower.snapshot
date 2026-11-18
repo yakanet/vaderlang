@@ -237,8 +237,8 @@
       std_core$Intrinsic$buffer_write_string(buf, c0, p1)
       std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
-  vtable std.core.Into.into for Mon[]  snippet$$array$std_core$Into$into__snippet_Mon
-  vtable std.core.Into.into for Mon[]  snippet$$array$std_core$Into$into__snippet_Mon$1
+  vtable std.core.Into.into (and std_core$Into__std_core_Iterator_snippet_Label_) for Mon[]  snippet$$array$std_core$Into$into__snippet_Mon$1
+  vtable std.core.Into.into (and std_core$Into__std_core_Iterator_snippet_Mon_) for Mon[]  snippet$$array$std_core$Into$into__snippet_Mon
   vtable std.core.Into.into for Pt[]  snippet.Pt[].into  // snippet$$array$std_core$Into$into__snippet_Pt$2
   vtable std.core.Iterator.next for $genstate_labels  snippet$$genstate_labels$Iterator$next
   vtable std.core.Iterator.next for $genstate_scaled  snippet$$genstate_scaled$Iterator$next

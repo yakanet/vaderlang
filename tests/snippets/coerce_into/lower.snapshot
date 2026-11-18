@@ -105,8 +105,8 @@
       std_core$Intrinsic$buffer_write_string(buf, c0, p1)
       std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
-  vtable std.core.Into.into for UserId  snippet$UserId$std_core$Into$into
-  vtable std.core.Into.into for UserId  snippet$UserId$std_core$Into$into$1
+  vtable std.core.Into.into (and std_core$Into__i32) for UserId  snippet$UserId$std_core$Into$into
+  vtable std.core.Into.into (and std_core$Into__string) for UserId  snippet$UserId$std_core$Into$into$1
 
 ## lowered in dependencies
   std/console

@@ -1,0 +1,9 @@
+# stdout
+codec reads: 4
+counter: 1
+wrapper: 7
+codec writes: #4
+a writer
+a reader only
+# exit
+0

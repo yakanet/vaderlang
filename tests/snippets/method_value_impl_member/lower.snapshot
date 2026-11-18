@@ -71,8 +71,8 @@
       std_core$Intrinsic$buffer_write_string(buf, c0, p1)
       std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
-  vtable std.core.Add.add for Point  snippet$Point$std_core$Add$add
-  vtable std.core.Add.add for Point  snippet$Point$std_core$Add$add$1
+  vtable std.core.Add.add (and std_core$Add__f64__f64) for Point  snippet$Point$std_core$Add$add$1
+  vtable std.core.Add.add (and std_core$Add__i32__i32) for Point  snippet$Point$std_core$Add$add
   vtable std.core.Display.to_string for Point  snippet.Point.to_string  // snippet$Point$std_core$Display$to_string
 
 ## lowered in dependencies

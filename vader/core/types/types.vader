@@ -413,6 +413,38 @@ export qualified_display_type :: fn(t: Type) -> string {
 export mangle_type_arg :: fn(t: Type) -> string =
     sanitise_ident(qualified_display_type(strip_distinct(t)))
 
+/// The key of the instance `args` of the trait `trait_key`, which the vtable of a
+/// trait dispatched by instance goes by (ADR 0158): `std_core$Mul__f64`.
+///
+/// @param trait_key  the trait.
+/// @param args       its arguments, concrete.
+export trait_instance_key :: fn(trait_key: string, args: Type[]) -> string {
+    segments: string[]: []
+    for arg in args {
+        segments.push(mangle_type_arg(arg))
+    }
+    return "${trait_key}${instance_suffix(segments)}"
+}
+
+/// The key of the instance `args` of the trait `trait_key`, when a value of it
+/// dispatches by instance ; null otherwise, the trait's own key serving.
+///
+/// @param trait_key   the trait.
+/// @param args        its arguments, as a value or an impl names them.
+/// @param dispatched  the instances a trait value dispatches by, each to its trait.
+export dispatched_instance_key :: fn(
+    trait_key: string, args: Type[], dispatched: Map<string, string>,
+) -> string | null {
+    if dispatched.is_empty() || args.len() == 0 || any_contains_type_param(args) {
+        return null
+    }
+    key :: trait_instance_key(trait_key, args)
+    if key !in dispatched {
+        return null
+    }
+    return key
+}
+
 /// `sym`'s name prefixed by its declaring module, as an instance name carries it:
 /// `pa$Point`, `std_collections$Map`. Neither half holds a `$`, so the
 /// type `C` of `a/b` (`a_b$C`) and the type `b_C` of `a` (`a$b_C`) name apart.

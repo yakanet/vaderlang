@@ -219,6 +219,7 @@ export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[]) -> CFGPr
         .data_pool       = lp.data_pool,
         .globals         = lp.globals,
         .trait_membership = lp.trait_membership,
+        .dispatched_instances = lp.dispatched_instances,
     }
 }
 

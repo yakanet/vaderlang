@@ -26,6 +26,12 @@ export LoweredVtableEntry :: struct {
     method_name: string
     struct_type: Type
     fn_symbol:   Symbol
+    /// The instance of the trait the entry implements, for a trait dispatched by
+    /// instance (`VtableSlot.instance_key`).
+    instance_key: string | null
+    /// The traits whose vtable rows the entry fills, and which a run-time `is`
+    /// test finds its receiver under: `trait_name`, then `instance_key` if any.
+    row_traits: string[]
 }
 
 /// A global slot: its type, and a name for the dumps.
@@ -185,6 +191,9 @@ export LoweredProject :: struct {
     /// bytecode emitter to seed `is Trait` impl_table rows per interned struct
     /// tag.
     trait_membership: Map<i32, string[]>
+    /// The instances a trait value dispatches by, each to its trait (ADR 0158): a
+    /// run-time `is` test of one reads the instance's row.
+    dispatched_instances: Map<string, string>
 }
 
 /// One module after lowering. `decls` is a flat list ; synthetic decls
@@ -971,7 +980,17 @@ export vtable_entry_of :: fn(d: LoweredDecl) -> LoweredVtableEntry | null {
         .method_name = slot.method,
         .struct_type = d.params[0].type,
         .fn_symbol   = fn_symbol_of(d),
+        .instance_key = slot.instance_key,
+        .row_traits   = row_traits_of(slot),
     }
+}
+
+// The traits whose vtable rows an impl member of `slot` fills: its trait's, then
+// the instance of it the impl implements, when a value of that instance
+// dispatches by it.
+row_traits_of :: fn(slot: VtableSlot) -> string[] {
+    instance :: slot.instance_key else return [slot.trait_key]
+    return [slot.trait_key, instance]
 }
 
 /// The symbol a call or a vtable entry names `d` by: its own, or one carrying its
@@ -1008,6 +1027,7 @@ export new_lowered_project :: fn() -> LoweredProject {
         .const_fn_wrap  = Map<i32, ConstFnWrap> {},
         .const_inline   = Map<i32, LoweredExpr> {},
         .trait_membership = Map<i32, string[]> {},
+        .dispatched_instances = Map<string, string> {},
     }
 }
 

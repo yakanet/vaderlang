@@ -297,6 +297,11 @@ export ImplTables :: struct {
     /// bound and is not recorded.
     impl_bounds: Map<string, BoundedImpl[]> = Map<string, BoundedImpl[]> {}
 
+    /// The instances a trait value dispatches by, each to its trait
+    /// (`instances_dispatched_apart`) ; null until first asked, once every impl is
+    /// recorded.
+    instances_apart: Map<string, string> | null = null
+
     /// `impl_base_key` of every base an impl on one instance is written for
     /// (`Wrapper` for `Wrapper<MonType> implements ...`): the receivers whose
     /// lookups ask their own type's key before their base's (`own_impl_key`).

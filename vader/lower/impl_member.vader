@@ -4,6 +4,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "std/iter"
 import "vader/core/mangle"
 import "vader/core/mono"
 import "vader/lower/ir"
@@ -145,13 +146,35 @@ find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: stri
 /// which is reached through a type and never dispatched on a value, and for a
 /// member with type parameters of its own, which has one body per call (T3107).
 ///
-/// @param trait_key  the trait the impl implements.
-/// @param member     the impl member.
-member_vtable_slot :: fn(trait_key: string, member: FnDecl) -> VtableSlot | null {
+/// @param trait_key     the trait the impl implements.
+/// @param member        the impl member.
+/// @param instance_key  the instance of the trait the impl implements, for a trait
+///                      dispatched by instance (`impl_instance_key`).
+member_vtable_slot :: fn(
+    trait_key: string,
+    member: FnDecl,
+    instance_key: string | null,
+) -> VtableSlot | null {
     if !has_self_param(member) || member.type_params.len() > 0 {
         return null
     }
-    return VtableSlot { .trait_key = trait_key, .method = member.name }
+    return VtableSlot {
+        .trait_key = trait_key,
+        .method = member.name,
+        .instance_key = instance_key,
+    }
+}
+
+/// The key of the instance of the trait `entry` implements, its arguments read
+/// through `subst`, when a value of the trait dispatches by instance ; null
+/// otherwise (`instance_dispatch_key`).
+///
+/// @param entry  the impl.
+/// @param subst  binds the impl's type parameters ; empty for a concrete impl.
+/// @param typed  reads the project's impl tables.
+impl_instance_key :: fn(entry: ImplEntry, subst: Substitution, typed: TypedProgram) -> string | null {
+    args :: entry.trait_args.map((t) -> substitute(t, subst)).collect()
+    return instance_dispatch_key(entry.trait_key, args, typed)
 }
 
 // The instance suffix of the member `entry` materialises for `target_type`. A
@@ -375,12 +398,22 @@ virtual_call :: fn(
     return LoweredVirtualCall {
         .span        = span,
         .type        = type,
-        .trait_name  = trait_key,
+        .trait_name  = dispatched_trait(ctx, trait_key, receiver.type),
         .method      = method,
         .receiver    = receiver,
         .args        = args,
         .param_types = param_types,
     }
+}
+
+// The key a virtual call of `trait_key` on a value of `receiver` dispatches by: the
+// instance a trait value names, for a trait dispatched by instance (ADR 0158) ;
+// `trait_key` for any other receiver, whose tag picks the impl.
+dispatched_trait :: fn(ctx: FnLowerCtx, trait_key: string, receiver: Type) -> string {
+    if receiver is TraitType && trait_key_of(receiver.symbol) == trait_key {
+        return dispatch_key_of(receiver, ctx.typed)
+    }
+    return trait_key
 }
 
 // The member `name` of `entry`, built for `receiver`.

@@ -71,8 +71,8 @@
   vtable snippet.Greet.hello for Vec  snippet.Vec.hello  // snippet$Vec$Greet$hello
   vtable snippet.Greet.name for Vec  snippet.Vec.name  // snippet$Vec$Greet$name
   vtable snippet.Sized.len for i32[]  snippet$$array$Sized$len__i32
-  vtable std.core.Add.add for Vec  snippet$Vec$std_core$Add$add
-  vtable std.core.Add.add for Vec  snippet$Vec$std_core$Add$add$1
+  vtable std.core.Add.add (and std_core$Add__f64__snippet_Vec) for Vec  snippet$Vec$std_core$Add$add
+  vtable std.core.Add.add (and std_core$Add__snippet_Vec__snippet_Vec) for Vec  snippet$Vec$std_core$Add$add$1
 
 ## snippet/loud
   snippet.loud.i32.shout :: fn(self: i32) -> i32 {  // snippet_loud$i32$Loud$shout

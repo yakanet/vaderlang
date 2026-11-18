@@ -618,6 +618,107 @@ struct_trait_arg_lists :: fn(t: Type, trait_key: string, typed: TypedProgram) ->
 
 NO_ARG_LISTS: Type[][]: []
 
+/// Whether a value of `t` entering a value of the trait `slot` cannot tell which of
+/// its impls of the trait it dispatches through: several cover `t`, and the
+/// arguments `slot` names do not single one out (ADR 0158).
+///
+/// @param t     the type of the value.
+/// @param slot  the trait it enters.
+export dispatch_is_ambiguous :: fn(t: Type, slot: TraitType, typed: TypedProgram) -> bool {
+    key :: trait_key_of(slot.symbol)
+    if !implements_more_than_once(t, key, typed) {
+        return false
+    }
+    if slot.args.len() == 0 || any_contains_type_param(slot.args) {
+        return true
+    }
+    asked :: with_trait_defaults(t, slot.args, slot.symbol, typed)
+    matching: i64 = 0
+    for raw in struct_trait_arg_lists(t, key, typed) {
+        have :: with_trait_defaults(t, resolve_trait_args_for(t, raw, typed), slot.symbol, typed)
+        if struct_args_compatible(have, asked) {
+            matching += 1
+        }
+    }
+    return matching != 1
+}
+
+/// The instances of a trait some type implements beside another instance of it
+/// (`Stage<string, i64>` beside `Stage<i64, string>`), by their key
+/// (`trait_instance_key`), each to the key of its trait: a value of one dispatches
+/// by the instance (ADR 0158). Read once every impl of the project is recorded.
+///
+/// @param typed  any typed module: the impl tables are the project's.
+export instances_dispatched_apart :: fn(typed: TypedProgram) -> Map<string, string> {
+    tables :: typed.impl_tables
+    known :: tables.instances_apart
+    if known != null {
+        return known
+    }
+    out :: Map<string, string> {}
+    for [_, per_trait] in tables.struct_trait_args {
+        for [trait_key, lists] in per_trait {
+            if lists.len() < 2 {
+                continue
+            }
+            for args in lists {
+                if args.len() > 0 && !any_contains_type_param(args) {
+                    out[trait_instance_key(trait_key, args)] = trait_key
+                }
+            }
+        }
+    }
+    tables.instances_apart = out
+    return out
+}
+
+/// The key of the instance `args` of the trait `trait_key`, when a value of it
+/// dispatches by instance (`instances_dispatched_apart`) ; null otherwise, the
+/// trait's own key serving.
+///
+/// @param trait_key  the trait.
+/// @param args       its arguments, as a value or an impl names them.
+/// @param typed      reads the project's impl tables.
+export instance_dispatch_key :: fn(trait_key: string, args: Type[], typed: TypedProgram) -> string | null =
+    dispatched_instance_key(trait_key, args, instances_dispatched_apart(typed))
+
+/// The traits each declaration implements, by its symbol id, as a run-time `is`
+/// test reads them: `struct_traits_by_sym`, plus the instance of a trait dispatched
+/// by instance each impl implements (`instance_dispatch_key`).
+///
+/// @param typed  any typed module: the impl tables are the project's.
+/// @param impls  every impl of the project.
+export trait_membership_of :: fn(typed: TypedProgram, impls: ImplRegistry) -> Map<i32, string[]> {
+    by_sym :: typed.impl_tables.struct_traits_by_sym
+    if instances_dispatched_apart(typed).is_empty() {
+        return by_sym
+    }
+    out :: Map<i32, string[]> {}
+    for [id, traits] in by_sym {
+        out[id] = traits.clone()
+    }
+    for entry in impls.all {
+        key :: instance_dispatch_key(entry.trait_key, entry.trait_args, typed) else continue
+        if is_instance_receiver(entry.for_type) {
+            continue
+        }
+        target :: type_to_target_symbol(entry.for_type) else continue
+        add_trait_unique(out, target.id, key)
+    }
+    return out
+}
+
+/// The key a value of the trait `t` dispatches by: the instance it names, for a
+/// trait dispatched by instance (`instance_dispatch_key`), the trait's own key
+/// otherwise.
+///
+/// @param t      the trait value's type.
+/// @param typed  reads the project's impl tables.
+export dispatch_key_of :: fn(t: TraitType, typed: TypedProgram) -> string {
+    key :: trait_key_of(t.symbol)
+    return instance_dispatch_key(key, t.args, typed) else key
+}
+
 /// Whether several impls of `trait_key` cover `t` (`Iterator<A>` beside
 /// `Iterator<B>`) : a use that does not name the trait's arguments cannot pick one.
 ///

@@ -379,7 +379,11 @@ materialize_impl_for_instance :: fn(
             .subst          = subst,
             .type_arguments = inst.args,
             .module         = impl_typed.resolved.path,
-            .vtable_slot    = member_vtable_slot(impl_trait, member),
+            .vtable_slot    = member_vtable_slot(
+                impl_trait,
+                member,
+                impl_instance_key(impl_entry, subst, impl_typed),
+            ),
         }
         synth_start :: project_ctx.synth_decls.len()
         decl :: lower_impl_member(

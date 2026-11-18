@@ -50,6 +50,9 @@ export EmitterCtx :: struct {
     /// The module's global slots (`BytecodeModule.globals`), their types interned
     /// before the bodies are emitted.
     globals: BcGlobal[] = []
+    /// The instances a trait value dispatches by, each to its trait
+    /// (`CFGProject.dispatched_instances`).
+    dispatched_instances: Map<string, string> = Map<string, string> {}
     /// Type table being built. Index 0 is reserved for the `null`
     /// primitive so unboxed nulls have a well-defined tag at runtime
     /// (matches `VADER_BOX_TAG_NULL = 0` in `runtime/c/vader.h`).
@@ -267,6 +270,13 @@ export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx) -> i32 {
     return new_index
 }
 
+// The trait a value of `t` is tested against at run time: the instance it names,
+// for a trait dispatched by instance (ADR 0158), the trait otherwise.
+trait_ref_name :: fn(t: TraitType, ctx: EmitterCtx) -> string {
+    key :: trait_key_of(t.symbol)
+    return dispatched_instance_key(key, t.args, ctx.dispatched_instances) else key
+}
+
 /// Context-aware translation : recursively interns element / param /
 /// return types so the resulting `BcType` carries the right type-table
 /// indices for composite shapes : Struct/Trait -> `BcRef { trait_name }`,
@@ -290,7 +300,7 @@ bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx) -> BcType {
         is EnumType | RangeType -> { return BcScalar { .val = val_type_of_type(t) } }
         is DistinctType  -> { return bc_type_of_with_ctx(t.backing, ctx) }
         is StructType    -> { return BcRef { .trait_name = t.symbol.name } }
-        is TraitType     -> { return BcRef { .trait_name = trait_key_of(t.symbol) } }
+        is TraitType     -> { return BcRef { .trait_name = trait_ref_name(t, ctx) } }
         is ArrayType     -> { return BcArray { .element = intern_type(t.element, ctx) } }
         is UnionType     -> {
             variant_indices: i32[]: []

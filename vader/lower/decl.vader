@@ -50,8 +50,9 @@ lower_impl_member_list :: fn(
         if !claim_impl_member(project_ctx, mangled) {
             continue
         }
-        entry :: synth_impl_entry(member, typed, mangled, impl_entry.trait_key)
         subst :: new_substitution()
+        instance :: impl_instance_key(impl_entry, subst, typed)
+        entry :: synth_impl_entry(member, typed, mangled, impl_entry.trait_key, instance)
         out.push(lower_impl_member(project_ctx, member, typed, impl_entry, self_type, subst, entry))
     }
     return out
@@ -127,7 +128,13 @@ impl_member_mangled :: fn(entry: ImplEntry, member: FnDecl, self_type: Type) -> 
 // it by its mangle ; a lookup by name would lend it the symbol of a free function
 // of the same name, and the backend, which indexes by symbol first, would then
 // put both in one slot.
-synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string, trait_key: string) -> MonoEntry {
+synth_impl_entry :: fn(
+    member: FnDecl,
+    typed: TypedProgram,
+    mangled: string,
+    trait_key: string,
+    instance_key: string | null,
+) -> MonoEntry {
     return MonoEntry {
         .id             = 0,
         .is_main        = false,
@@ -137,7 +144,7 @@ synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string, tra
         .subst          = new_substitution(),
         .type_arguments = [],
         .module         = typed.resolved.path,
-        .vtable_slot    = member_vtable_slot(trait_key, member),
+        .vtable_slot    = member_vtable_slot(trait_key, member, instance_key),
     }
 }
 

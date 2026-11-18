@@ -107,7 +107,13 @@ materialize_member_instance :: fn(
     params :: build_impl_member_params(inst.member, inst.target, types, owner, project_ctx)
     return_type :: return_type_of(inst.member, types)
     entry :: MonoEntry {
-        ...synth_impl_entry(inst.member, owner, inst.mangled, inst.entry.trait_key),
+        ...synth_impl_entry(
+            inst.member,
+            owner,
+            inst.mangled,
+            inst.entry.trait_key,
+            impl_instance_key(inst.entry, subst, owner),
+        ),
         .subst = subst,
         .type_arguments = inst.type_args,
     }

@@ -287,31 +287,31 @@
       std_core$Intrinsic$buffer_write_string(buf, c3, p4)
       std_core$Intrinsic$buffer_intern_string(buf, c4)
   }
-  vtable snippet.Describe.describe for Vec2  snippet$Vec2$Describe$describe
-  vtable snippet.Describe.describe for Vec2  snippet$Vec2$Describe$describe$1
-  vtable snippet.Describe.tag for Vec2  snippet$Vec2$Describe$tag
-  vtable snippet.Describe.tag for Vec2  snippet$Vec2$Describe$tag$1
+  vtable snippet.Describe.describe (and snippet$Describe__i32) for Vec2  snippet$Vec2$Describe$describe
+  vtable snippet.Describe.describe (and snippet$Describe__string) for Vec2  snippet$Vec2$Describe$describe$1
+  vtable snippet.Describe.tag (and snippet$Describe__i32) for Vec2  snippet$Vec2$Describe$tag
+  vtable snippet.Describe.tag (and snippet$Describe__string) for Vec2  snippet$Vec2$Describe$tag$1
   vtable snippet.Scale.scaled for Wrap<Vec2>  snippet.Wrap<Vec2>.scaled  // snippet$Wrap$Scale$scaled__snippet_Vec2
   vtable snippet.Show.show for Wrap<Vec2>  snippet.Wrap<Vec2>.show  // snippet$Wrap$Show$show__snippet_Vec2
   vtable std.core.Add.add for Pile<i32>  snippet$Pile$std_core$Add$add__i32
   vtable std.core.Add.add for Pile<i32>  snippet$Pile$std_core$Add$add__i32$1
-  vtable std.core.Contains.contains for Bag  snippet$Bag$std_core$Contains$contains
-  vtable std.core.Contains.contains for Bag  snippet$Bag$std_core$Contains$contains$1
-  vtable std.core.Index.at for Grid  snippet$Grid$std_core$Index$at
-  vtable std.core.Index.at for Grid  snippet$Grid$std_core$Index$at$1
-  vtable std.core.Index.at for Sheet  snippet$Sheet$std_core$Index$at
-  vtable std.core.Index.at for Sheet  snippet$Sheet$std_core$Index$at$1
-  vtable std.core.IndexSet.set_at for Grid  snippet$Grid$std_core$IndexSet$set_at
-  vtable std.core.IndexSet.set_at for Grid  snippet$Grid$std_core$IndexSet$set_at$1
-  vtable std.core.IndexSet.set_at for Sheet  snippet.Sheet.set_at  // snippet$Sheet$std_core$IndexSet$set_at
+  vtable std.core.Contains.contains (and std_core$Contains__i32) for Bag  snippet$Bag$std_core$Contains$contains
+  vtable std.core.Contains.contains (and std_core$Contains__string) for Bag  snippet$Bag$std_core$Contains$contains$1
+  vtable std.core.Index.at (and std_core$Index__i32__i32) for Grid  snippet$Grid$std_core$Index$at
+  vtable std.core.Index.at (and std_core$Index__i32__i32) for Sheet  snippet$Sheet$std_core$Index$at
+  vtable std.core.Index.at (and std_core$Index__string__string) for Grid  snippet$Grid$std_core$Index$at$1
+  vtable std.core.Index.at (and std_core$Index__string__string) for Sheet  snippet$Sheet$std_core$Index$at$1
+  vtable std.core.IndexSet.set_at (and std_core$IndexSet__i32__i32) for Grid  snippet$Grid$std_core$IndexSet$set_at
+  vtable std.core.IndexSet.set_at (and std_core$IndexSet__i32__i32) for Sheet  snippet.Sheet.set_at  // snippet$Sheet$std_core$IndexSet$set_at
+  vtable std.core.IndexSet.set_at (and std_core$IndexSet__string__string) for Grid  snippet$Grid$std_core$IndexSet$set_at$1
+  vtable std.core.Into.into (and std_core$Into___i32__i32_) for Rec  snippet$Rec$std_core$Into$into
+  vtable std.core.Into.into (and std_core$Into___string__string__string_) for Rec  snippet$Rec$std_core$Into$into$1
+  vtable std.core.Into.into (and std_core$Into__snippet_Label) for Mon  snippet$Mon$std_core$Into$into
+  vtable std.core.Into.into (and std_core$Into__snippet_Tag) for Mon  snippet$Mon$std_core$Into$into$1
   vtable std.core.Into.into for Counter  snippet.Counter.into  // snippet$Counter$std_core$Into$into
-  vtable std.core.Into.into for Mon  snippet$Mon$std_core$Into$into
-  vtable std.core.Into.into for Mon  snippet$Mon$std_core$Into$into$1
-  vtable std.core.Into.into for Rec  snippet$Rec$std_core$Into$into
-  vtable std.core.Into.into for Rec  snippet$Rec$std_core$Into$into$1
   vtable std.core.Iterator.next for Counter  snippet.Counter.next  // snippet$Counter$std_core$Iterator$next
-  vtable std.core.Mul.mul for Vec2  snippet$Vec2$std_core$Mul$mul
-  vtable std.core.Mul.mul for Vec2  snippet$Vec2$std_core$Mul$mul$1
+  vtable std.core.Mul.mul (and std_core$Mul__f64__snippet_Vec2) for Vec2  snippet$Vec2$std_core$Mul$mul
+  vtable std.core.Mul.mul (and std_core$Mul__snippet_Vec2__snippet_Vec2) for Vec2  snippet$Vec2$std_core$Mul$mul$1
 
 ## lowered in dependencies
   std/console

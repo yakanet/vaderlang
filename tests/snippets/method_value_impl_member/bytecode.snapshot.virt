@@ -41,6 +41,8 @@ import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h re
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=17 () -> void
 impl 1 std_core$Display
 impl 1 std_core$Add
+impl 1 std_core$Add__i32__i32
+impl 1 std_core$Add__f64__f64
 impl 11 std_core$ByteAccess
 export main 3
 

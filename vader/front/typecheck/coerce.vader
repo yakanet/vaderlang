@@ -121,12 +121,12 @@ try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
     if !implements_trait_instance(got, expected, typed) {
         return false
     }
-    // A trait value dispatches by the trait alone : it cannot tell several impls of
-    // it apart (`mismatch_diagnostic` says so, T3097), nor reach the impl of a
-    // distinct boxed as its backing (T3118).
-    trait_key :: trait_key_of(expected.symbol)
-    return !implements_more_than_once(got, trait_key, typed)
-        && !dispatches_as_backing(got, trait_key, typed)
+    // A trait value dispatches by its instance when several impls of the trait
+    // cover the value: it cannot enter when the instance does not single one out
+    // (`mismatch_diagnostic` says so, T3097), nor reach the impl of a distinct
+    // boxed as its backing (T3118).
+    return !dispatch_is_ambiguous(got, expected, typed)
+        && !dispatches_as_backing(got, trait_key_of(expected.symbol), typed)
 }
 
 /// Whether `t` is a distinct over a heap object (a struct, an array, a tuple, a fn)

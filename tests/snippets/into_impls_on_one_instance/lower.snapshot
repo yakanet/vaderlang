@@ -73,10 +73,10 @@
       std_core$Intrinsic$buffer_write_string(buf, c0, p1)
       std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
-  vtable std.core.Into.into for Mon[]  snippet$$array$std_core$Into$into__snippet_Mon
-  vtable std.core.Into.into for Mon[]  snippet$$array$std_core$Into$into__snippet_Mon$1
-  vtable std.core.Into.into for Wrapper<Mon>  snippet$Wrapper$std_core$Into$into__snippet_Mon
-  vtable std.core.Into.into for Wrapper<Mon>  snippet$Wrapper$std_core$Into$into__snippet_Mon$1
+  vtable std.core.Into.into (and std_core$Into__snippet_Label) for Mon[]  snippet$$array$std_core$Into$into__snippet_Mon
+  vtable std.core.Into.into (and std_core$Into__snippet_Label) for Wrapper<Mon>  snippet$Wrapper$std_core$Into$into__snippet_Mon
+  vtable std.core.Into.into (and std_core$Into__snippet_Tag) for Mon[]  snippet$$array$std_core$Into$into__snippet_Mon$1
+  vtable std.core.Into.into (and std_core$Into__snippet_Tag) for Wrapper<Mon>  snippet$Wrapper$std_core$Into$into__snippet_Mon$1
 
 ## lowered in dependencies
   std/console

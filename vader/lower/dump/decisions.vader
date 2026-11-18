@@ -56,10 +56,17 @@ vtable_lines :: fn(names: DumpNames, module: LoweredModule) -> string[] {
         }
         entry :: vtable_entry_of(decl) else continue
         slot :: "${trait_text(names, entry.trait_name)}.${entry.method_name}"
-        rows.push("vtable ${slot} for ${display_type(entry.struct_type)}  "
+        rows.push("vtable ${slot}${instance_note(entry)} for ${display_type(entry.struct_type)}  "
             + declared_line(names, decl.mangled))
     }
     return sort(rows, compare_ascending)
+}
+
+// The instance a vtable entry fills beside its trait's row, for a trait dispatched by
+// instance.
+instance_note :: fn(entry: LoweredVtableEntry) -> string {
+    instance :: entry.instance_key else return ""
+    return " (and ${instance})"
 }
 
 // What the lowering materialised in a module outside the scope : the storage of

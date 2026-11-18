@@ -142,15 +142,15 @@ trait_value_error :: fn(
     return null
 }
 
-// T3097 when `held` implements `slot` several times : nothing a trait value
-// dispatches through can tell the impls apart. T3118 when `held` is a distinct
-// that would dispatch as its backing.
+// T3097 when `held` implements `slot` several times and the arguments of `slot`
+// single out none of the impls, which a trait value dispatches by. T3118 when
+// `held` is a distinct that would dispatch as its backing.
 held_as_trait_error :: fn(
     held: Type, slot: TraitType, span: Span, typed: TypedProgram,
 ) -> Diagnostic | null {
     trait_key :: trait_key_of(slot.symbol)
-    if implements_more_than_once(held, trait_key, typed) {
-        what :: "a `${display_type(slot)}` value, which dispatches by the trait alone,"
+    if dispatch_is_ambiguous(held, slot, typed) {
+        what :: "a `${display_type(slot)}` value, whose arguments single out none of them,"
         return several_impls_error(held, trait_key, what, span)
     }
     if dispatches_as_backing(held, trait_key, typed) {

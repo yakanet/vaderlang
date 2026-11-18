@@ -2003,6 +2003,8 @@ m :: MonType { .id = 7 }
 t: Serial: m.into()           // Into<Serial>, by the type of the result
 println("${m.into()}")        // error: two `into` fit, give the result a type
 f :: m.into                   // error: two `into` fit
+s: Into<Serial>: m            // a trait value runs the impl it names
+s.into()                      // Into<Serial>: Serial { .n = 7 }
 ```
 
 A type may implement one trait at several arguments. Each use site picks the impl:
@@ -2013,7 +2015,8 @@ A type may implement one trait at several arguments. Each use site picks the imp
 - `[a, b] :: r`, by the arity of the tuple an `Into<[...]>` builds;
 - a static member, by its argument (`Vec2.make(1.5)`);
 - a call, a static member or an operator on a bounded `T`, in a generic function or a generic impl, by the bound's arguments (`fn<T: Mul<f64>>(v: T) -> T = v * 2.0`);
-- inside one of the impls, a member of the trait called on the impl's type, by that impl: a default method's `self.tag()` runs its own impl's `tag`.
+- inside one of the impls, a member of the trait called on the impl's type, by that impl: a default method's `self.tag()` runs its own impl's `tag`;
+- a trait value, by the arguments its type names: `s: Into<Serial>: m` calls `Into<Serial>`, and `x is Into<Serial>` holds only for a value implementing that one.
 
 These are errors:
 
@@ -2021,7 +2024,7 @@ These are errors:
 - a member without an argument whose result the site leaves untyped;
 - the member taken as a value without a function type to pick it (`f :: m.into`; `f: fn() -> Serial: m.into` is fine);
 - a use that does not name the trait's arguments: a `for` over a type implementing `Iterator` twice, or converting into two `Iterator`s without being one itself;
-- a trait value of a trait its type implements twice (`v: Into<Serial>: m`).
+- a trait value whose arguments single out none of its type's impls (`Into<T>`, `T` a type parameter).
 
 A type that is an `Iterator` and also converts into one is walked through its own `next`.
 
@@ -2094,7 +2097,7 @@ checks: CheckStage[]: [Lint {}]                  // a Stage<Program, Diagnostic[
 
 #### Method dispatch on trait values
 
-A call on a receiver typed by a trait runs the impl of the value's run-time type, primitive and enum impls included. The receiver's trait arguments are substituted into the method's signature: with `it: Iterator<i32>`, `it.next()` returns `i32 | Stop`.
+A call on a receiver typed by a trait runs the impl of the value's run-time type, primitive and enum impls included, at the trait arguments the receiver names when that type implements the trait more than once (*Several impls of one trait*). The receiver's trait arguments are substituted into the method's signature: with `it: Iterator<i32>`, `it.next()` returns `i32 | Stop`.
 
 ```vader
 report :: fn(e: Error) -> string {

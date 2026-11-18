@@ -67,6 +67,10 @@ export MonoEntry :: struct {
 export VtableSlot :: struct {
     trait_key:  string
     method: string
+    /// The key of the instance of the trait the impl implements, for a trait some
+    /// type implements at several instances (ADR 0158): the member fills that
+    /// instance's slot too. Null for every other trait.
+    instance_key: string | null
 }
 
 /// A stub source decl for a synthesised symbol, for the `decl` of its

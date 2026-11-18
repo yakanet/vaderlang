@@ -1,6 +1,6 @@
-// A trait value dispatches by the trait alone : a type implementing `Into` toward
-// two targets cannot become an `Into<Tag>` value, whose `into` would not know which
-// impl to run. T3097, at the value.
+// A trait value dispatches by the instance its arguments name. `Mon` implements
+// `Into` toward two targets, and an `Into<T>` value names its target by a type
+// parameter, which singles out neither impl. T3097, at the value.
 module "snippet"
 
 Label :: struct {
@@ -23,8 +23,9 @@ Mon implements Into<Tag> {
     into :: fn(self) -> Tag = Tag { .n = self.v }
 }
 
+held :: fn<T>(m: Mon) -> Into<T> = m
+
 main :: fn() -> i32 {
-    m :: Mon { .v = 3 }
-    v: Into<Tag>: m
+    v :: held<Tag>(Mon { .v = 3 })
     return 0
 }

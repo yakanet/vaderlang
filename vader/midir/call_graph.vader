@@ -75,9 +75,11 @@ build_call_graph :: fn(p: CFGProject) -> CallGraph {
         .unknown = indirect + 2,
     }
     for e in p.vtable_entries {
-        key :: vtable_key(e.trait_name, e.method_name)
-        targets :: index.virtual_targets.get_or_put_with(key, () -> [])
-        targets.push(callee_node(index, e.fn_symbol))
+        for trait_name in e.row_traits {
+            key :: vtable_key(trait_name, e.method_name)
+            targets :: index.virtual_targets.get_or_put_with(key, () -> [])
+            targets.push(callee_node(index, e.fn_symbol))
+        }
     }
     successors: i32[][]: []
     taken :: TakenFunctions { .as_values = Set<i32> {}, .as_addresses = Set<i32> {} }

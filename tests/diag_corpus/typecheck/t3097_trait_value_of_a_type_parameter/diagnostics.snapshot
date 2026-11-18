@@ -1,0 +1,1 @@
+[26:36] error[T3097] a type implementing a trait more than once cannot fill it here: `Mon` implements `Into` more than once ; a `Into<T>` value, whose arguments single out none of them, cannot tell its impls apart

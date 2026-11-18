@@ -611,6 +611,8 @@ export CFGProject :: struct {
     /// emit `is Trait` rows for every interned struct tag (incl. generic
     /// instances + never-called impls the vtable-sourced path misses).
     trait_membership: Map<i32, string[]>
+    /// Mirrors `LoweredProject.dispatched_instances`.
+    dispatched_instances: Map<string, string>
 }
 
 export CFGModule :: struct {

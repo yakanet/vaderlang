@@ -1,0 +1,67 @@
+// A type implementing a generic trait at two instances fills a value of either:
+// the instance a trait value names picks the impl it dispatches through, and a
+// run-time `is` test answers for that instance alone. A generic receiver reads
+// its instance through its own arguments.
+module "snippet"
+
+import "std/console"
+
+Stage :: trait<In, Out> {
+    name :: fn(self) -> string
+    run :: fn(self, input: In) -> Out
+}
+
+Reader :: trait = Stage<string, i64>
+Writer :: trait = Stage<i64, string>
+
+// Both a reader and a writer.
+Codec :: struct {}
+
+Codec implements Reader {
+    name :: fn(self) -> string = "codec reads"
+    run :: fn(self, input: string) -> i64 = input.byte_len()
+}
+
+Codec implements Writer {
+    name :: fn(self) -> string = "codec writes"
+    run :: fn(self, input: i64) -> string = "#${input}"
+}
+
+// A reader only.
+Counter :: struct {}
+
+Counter implements Reader {
+    name :: fn(self) -> string = "counter"
+    run :: fn(self, input: string) -> i64 = 1
+}
+
+// A reader through its argument: `Wrapper<string>` is a `Stage<string, i64>`.
+Wrapper :: struct<T> {
+    inner: T
+}
+
+Wrapper<T> implements Stage<T, i64> {
+    name :: fn(self) -> string = "wrapper"
+    run :: fn(self, input: T) -> i64 = 7
+}
+
+describe :: fn(x: Reader | Writer) -> string {
+    if x is Writer {
+        return "a writer"
+    }
+    return "a reader only"
+}
+
+main :: fn() -> i32 {
+    readers: Reader[]: [Codec {}, Counter {}, Wrapper<string> { .inner = "w" }]
+    writers: Writer[]: [Codec {}]
+    for r in readers {
+        println("${r.name()}: ${r.run("four")}")
+    }
+    for w in writers {
+        println("${w.name()}: ${w.run(4)}")
+    }
+    println(describe(Codec {}))
+    println(describe(Counter {}))
+    return 0
+}

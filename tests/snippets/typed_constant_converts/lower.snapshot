@@ -73,8 +73,8 @@
       std_core$Intrinsic$buffer_write_string(buf, c0, p1)
       std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
-  vtable std.core.Into.into for Celsius  snippet.Celsius.into  // snippet$Celsius$std_core$Into$into
-  vtable std.core.Into.into for string  snippet.string.into  // snippet$string$std_core$Into$into
+  vtable std.core.Into.into (and std_core$Into__snippet_Label) for Celsius  snippet.Celsius.into  // snippet$Celsius$std_core$Into$into
+  vtable std.core.Into.into (and std_core$Into__snippet_Label) for string  snippet.string.into  // snippet$string$std_core$Into$into
 
 ## lowered in dependencies
   std/target/baked

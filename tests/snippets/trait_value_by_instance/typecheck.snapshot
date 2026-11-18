@@ -1,0 +1,64 @@
+# Typecheck
+
+## tests/snippets/trait_value_by_instance
+  StructDecl     Codec                :: Codec
+  StructDecl     Counter              :: Counter
+  FnDecl         describe             :: fn(Stage<i64, string> | Stage<string, i64>) -> string
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Reader               :: Reader
+  TraitDecl      Stage                :: Stage<In, Out>
+  StructDecl     Wrapper              :: Wrapper<T>
+  TraitDecl      Writer               :: Writer
+  expr 21:34    StringLitExpr  :: string
+  expr 22:45    CallExpr       :: i64
+  expr 22:45    FieldExpr      :: fn() -> i64
+  expr 22:45    IdentExpr      :: string
+  expr 26:34    StringLitExpr  :: string
+  expr 27:45    StringLitExpr  :: string
+  expr 27:49    IdentExpr      :: i64
+  expr 34:34    StringLitExpr  :: string
+  expr 44:34    StringLitExpr  :: string
+  expr 49:13    IdentExpr      :: Stage<i64, string>
+  expr 49:5     IfExpr         :: void
+  expr 49:8     BinaryExpr     :: bool
+  expr 49:8     IdentExpr      :: Stage<i64, string> | Stage<string, i64>
+  expr 50:16    StringLitExpr  :: string
+  expr 52:12    StringLitExpr  :: string
+  expr 56:24    SeqLitExpr     :: Stage<string, i64>[]
+  expr 56:25    StructLitExpr  :: Codec
+  expr 56:35    StructLitExpr  :: Counter
+  expr 56:47    StructLitExpr  :: Wrapper<string>
+  expr 56:74    StringLitExpr  :: string
+  expr 57:24    SeqLitExpr     :: Stage<i64, string>[]
+  expr 57:25    StructLitExpr  :: Codec
+  expr 58:14    IdentExpr      :: Stage<string, i64>[]
+  expr 59:17    StringLitExpr  :: string
+  expr 59:20    CallExpr       :: string
+  expr 59:20    FieldExpr      :: fn() -> string
+  expr 59:20    IdentExpr      :: Stage<string, i64>
+  expr 59:33    CallExpr       :: i64
+  expr 59:33    FieldExpr      :: fn(string) -> i64
+  expr 59:33    IdentExpr      :: Stage<string, i64>
+  expr 59:39    StringLitExpr  :: string
+  expr 59:9     CallExpr       :: void
+  expr 59:9     IdentExpr      :: fn(T) -> void
+  expr 61:14    IdentExpr      :: Stage<i64, string>[]
+  expr 62:17    StringLitExpr  :: string
+  expr 62:20    CallExpr       :: string
+  expr 62:20    FieldExpr      :: fn() -> string
+  expr 62:20    IdentExpr      :: Stage<i64, string>
+  expr 62:33    CallExpr       :: string
+  expr 62:33    FieldExpr      :: fn(i64) -> string
+  expr 62:33    IdentExpr      :: Stage<i64, string>
+  expr 62:9     CallExpr       :: void
+  expr 62:9     IdentExpr      :: fn(T) -> void
+  expr 64:13    CallExpr       :: string
+  expr 64:13    IdentExpr      :: fn(Stage<i64, string> | Stage<string, i64>) -> string
+  expr 64:22    StructLitExpr  :: Codec
+  expr 64:5     CallExpr       :: void
+  expr 64:5     IdentExpr      :: fn(T) -> void
+  expr 65:13    CallExpr       :: string
+  expr 65:13    IdentExpr      :: fn(Stage<i64, string> | Stage<string, i64>) -> string
+  expr 65:22    StructLitExpr  :: Counter
+  expr 65:5     CallExpr       :: void
+  expr 65:5     IdentExpr      :: fn(T) -> void

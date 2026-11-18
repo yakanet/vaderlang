@@ -318,6 +318,8 @@ refuse_shared_instance :: fn(fn_name: string, t: Type) -> void {
 /// @return             a fresh `BytecodeModule`.
 export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: EmitOptions) -> BytecodeModule {
     ctx :: new_emitter_ctx()
+    // Before any type is interned: a trait value's type reads it.
+    ctx.dispatched_instances = cfg.dispatched_instances
     // Pass 1: reserve CFG fns / externs / structs.
     for [_, m] in cfg.modules {
         for f in m.functions { reserve_cfg_function(f, ctx) }
@@ -376,8 +378,10 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         }
         vtable_roots: i32[]: []
         for ve in cfg.vtable_entries {
-            key :: vtable_key(ve.trait_name, ve.method_name)
-            if used_vtable_keys[key] !is bool { continue }
+            used :: ve.row_traits.any_match(
+                (trait_name) -> used_vtable_keys[vtable_key(trait_name, ve.method_name)] is bool,
+            )
+            if !used { continue }
             // Pin the receiver struct type so structs only kept through an
             // impl row survive when the row's trait is actually dispatched
             // on.
@@ -465,8 +469,6 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
     }
     ordered.push_all(deferred)
     for ve in ordered {
-        key :: vtable_key(ve.trait_name, ve.method_name)
-        if used_keys[key] !is bool { continue }
         fn_idx :: resolve_fn_index(ve.fn_symbol, ctx) else continue
         receiver_key :: type_intern_key(ve.struct_type)
         receiver_slot :: ctx.type_key[receiver_key]
@@ -475,21 +477,35 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
         // on any receiver shape : `i32 implements Display` pins a `BcScalar`
         // slot, and requiring a struct drops those rows into a runtime
         // "vtable miss in std/core.Display.to_string".
-        receiver_idx :: receiver_slot
-        new_idx :: out.len()
-        existing :: rows_by_key.get_or_put(key, new_idx)
-        if existing != new_idx {
-            if has_receiver(out[existing], receiver_idx) {
-                continue
+        for trait_name in ve.row_traits {
+            key :: vtable_key(trait_name, ve.method_name)
+            if used_keys[key] is bool {
+                add_vtable_entry(out, rows_by_key, key, receiver_slot, fn_idx)
             }
-            out[existing].entries.push(BcVtableEntry { .receiver_type_index = receiver_idx, .fn_index = fn_idx })
-        } else {
-            entries_arr: BcVtableEntry[]: []
-            entries_arr.push(BcVtableEntry { .receiver_type_index = receiver_idx, .fn_index = fn_idx })
-            out.push(VtableRow { .key = key, .entries = entries_arr })
         }
     }
     return out
+}
+
+// Give the row `key` of `out` the entry of `receiver_idx`, unless it holds one: of
+// two impls of a trait on one receiver, the row of the trait alone keeps the first.
+add_vtable_entry :: fn(
+    out: VtableRow[],
+    rows_by_key: Map<string, i64>,
+    key: string,
+    receiver_idx: i32,
+    fn_idx: i32,
+) -> void {
+    entry :: BcVtableEntry { .receiver_type_index = receiver_idx, .fn_index = fn_idx }
+    new_idx :: out.len()
+    existing :: rows_by_key.get_or_put(key, new_idx)
+    if existing != new_idx {
+        if !has_receiver(out[existing], receiver_idx) {
+            out[existing].entries.push(entry)
+        }
+        return
+    }
+    out.push(VtableRow { .key = key, .entries = [entry] })
 }
 
 has_receiver :: fn(row: VtableRow, type_index: i32) -> bool {
@@ -521,10 +537,12 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Ma
         if i64(type_index) in 0..<ctx.types.len() {
             if ctx.types[type_index] !is BcStruct | BcArray { continue }
         }
-        key :: "${type_index}|${entry.trait_name}"
-        if seen[key] is bool { continue }
-        seen[key] = true
-        out.push(BcImplEntry { .type_index = type_index, .trait_name = entry.trait_name })
+        for trait_name in entry.row_traits {
+            key :: "${type_index}|${trait_name}"
+            if seen[key] is bool { continue }
+            seen[key] = true
+            out.push(BcImplEntry { .type_index = type_index, .trait_name = trait_name })
+        }
     }
     // Frontend-sourced membership : every interned struct tag gets a row for
     // each trait its source symbol implements: independent of whether any
