@@ -59,13 +59,11 @@ export DriverNames :: struct {
 /// project folder, a file outside it and code the compiler wrote under their own.
 ///
 /// @param files         the files of the load a stage reads.
-/// @param project_root  the project folder, null for a file on its own.
+/// @param project_root  the project folder; null or empty for a file on its own,
+///                      whose records are under the working directory.
 export driver_names :: fn(files: string[], project_root: string | null) -> DriverNames {
     names :: DriverNames {}
-    if project_root == null || project_root == "" {
-        return names
-    }
-    root :: normalized_path(project_root)
+    root :: normalized_path(records_folder(project_root))
     for file in files {
         if is_generated_file(file) {
             continue
@@ -83,6 +81,15 @@ export driver_names :: fn(files: string[], project_root: string | null) -> Drive
 ///
 /// @param sources  what a source stage reads.
 export source_files :: fn(sources: Sources) -> string[] = sources.files.map((f) -> f.file).collect()
+
+// The folder the records of `project_root` are under: the working directory for a
+// file on its own.
+records_folder :: fn(project_root: string | null) -> string {
+    if project_root == null || project_root == "" {
+        return "."
+    }
+    return project_root
+}
 
 /// The files the declarations of `request` name.
 ///
@@ -377,6 +384,13 @@ test_the_driver_reads_a_file_of_the_project_from_its_folder :: fn() -> void {
     assert_eq(names.sent["/p/src/main.vader"] else "", "src/main.vader")
     assert_eq(names.read["src/main.vader"] else "", "/p/src/main.vader")
     assert(names.sent["/elsewhere/x.vader"] == null, "a file outside keeps its name")
+}
+
+@test
+test_a_file_on_its_own_is_named_from_the_working_directory :: fn() -> void {
+    names :: driver_names(["./src/main.vader", "src/lib.vader"], null)
+    assert_eq(names.sent["./src/main.vader"] else "", "src/main.vader")
+    assert(names.sent["src/lib.vader"] == null, "a name already from there is kept")
 }
 
 @test
