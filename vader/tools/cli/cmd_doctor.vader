@@ -366,7 +366,7 @@ render_text :: fn(checks: Check[]) -> string {
         name :: c.name.pad_end(width, ' ')
         lines.push("${status_label(c.status)}  ${name}  ${c.summary}")
         if c.detail != "" {
-            lines.push("${DETAIL_INDENT}${c.detail}")
+            lines.push("${DETAIL_INDENT}${TTY.dim(c.detail)}")
         }
     }
     lines.push("")

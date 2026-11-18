@@ -132,7 +132,7 @@ check_environment :: fn() -> Check[] {
         ))
     }
     if out.len() == 0 {
-        out.push(check_ok("environment", "no runtime override in force", ""))
+        out.push(check_ok("environment", "no `VADER_*` setting nor `CC` changes the defaults", ""))
     }
     return out
 }
