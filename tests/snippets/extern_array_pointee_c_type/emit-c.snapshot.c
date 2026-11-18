@@ -822,6 +822,9 @@ const size_t vader_type_info_count = 16;
 _Static_assert(sizeof(int) == sizeof(int32_t) && _Generic(*(int*)0, signed char: 1, short: 1, int: 1, long: 1, long long: 1, unsigned char: 0, unsigned short: 0, unsigned int: 0, unsigned long: 0, unsigned long long: 0, char: ((char)-1 < 0), _Bool: 0, default: 2) != 0, "@c_type(int) names the elements of int32_t[]");
 _Static_assert(sizeof(time_t) == sizeof(int64_t) && _Generic(*(time_t*)0, signed char: 1, short: 1, int: 1, long: 1, long long: 1, unsigned char: 0, unsigned short: 0, unsigned int: 0, unsigned long: 0, unsigned long long: 0, char: ((char)-1 < 0), _Bool: 0, default: 2) != 0, "@c_type(time_t) names the elements of int64_t[]");
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static double vader_host_snippet$split_float(double a0, void* a1) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
     vader_foreign_depth += 1;
@@ -867,6 +870,8 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
     vader_foreign_depth -= 1;
     return;
 }
+
+#pragma GCC diagnostic pop
 
 static int32_t snippet$main(void) {
     void* l0 = NULL;

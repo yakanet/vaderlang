@@ -933,6 +933,9 @@ const size_t vader_type_info_count = 25;
 #include <unistd.h>
 #include "vader.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static void* vader_host_snippet$copy_bools(void* a0, void* a1, uint64_t a2) {
     vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
@@ -1012,6 +1015,8 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
     vader_foreign_depth -= 1;
     return;
 }
+
+#pragma GCC diagnostic pop
 
 static int32_t snippet$main(void) {
     void* l0 = NULL;

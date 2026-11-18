@@ -89,6 +89,9 @@ _Static_assert(sizeof(((div_t*) 0)->rem) == sizeof(((vader_struct_snippet$Pair_t
 _Static_assert(__builtin_offsetof(div_t, rem) == 4, "div_t.rem offset");
 _Static_assert(((__typeof__(((div_t*) 0)->rem)) -1 < 0) == 1, "div_t.rem signedness");
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static void* vader_host_snippet$zero_pair(void* a0, int32_t a1, int64_t a2) {
     div_t p0 = { 0 };
     p0.quot = (__typeof__(p0.quot)) ((vader_struct_snippet$Pair_t*) a0)->f_quot;
@@ -137,6 +140,8 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
     vader_foreign_depth -= 1;
     return;
 }
+
+#pragma GCC diagnostic pop
 
 static int32_t snippet$main(void) {
     void* l0 = NULL;

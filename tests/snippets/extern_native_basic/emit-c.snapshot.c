@@ -73,6 +73,9 @@ extern size_t strnlen(const char*, size_t);
 /* `@c_type` spellings, checked against the C types. */
 _Static_assert(sizeof(size_t) == sizeof(uint64_t) && (size_t) 0.5 == 0, "@c_type(size_t) is an integer as wide as uint64_t");
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static int32_t vader_host_snippet$add_i32(int32_t a0, int32_t a1) {
     vader_foreign_depth += 1;
     int32_t r = add_i32(a0, a1);
@@ -127,6 +130,8 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
     vader_foreign_depth -= 1;
     return;
 }
+
+#pragma GCC diagnostic pop
 
 static int32_t snippet$main(void) {
     int32_t l0;

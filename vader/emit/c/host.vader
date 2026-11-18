@@ -130,10 +130,21 @@ imports_of_unit :: fn(module: BytecodeModule, unit: string) -> BcImport[] =
 emit_import_group :: fn(ctx: EmitCtx, printer: CPrinter, imports: BcImport[]) -> void {
     types :: ctx.module.types
     emit_foreign_declarations(printer, imports, types, mirror_crossings(imports, types))
-    shims: CTopLevel[]: []
+    if imports.len() == 0 {
+        return
+    }
+    // An `@extern` names its symbol on purpose, a deprecated one included (a
+    // replacement may not exist on every OS version the program runs on). The
+    // shims are `static inline` in the imports header, so a deprecation the
+    // system header attaches would be reported once per unit of a split build.
+    shims: CTopLevel[]: [
+        CPragma { .text = "GCC diagnostic push" },
+        CPragma { .text = "GCC diagnostic ignored \"-Wdeprecated-declarations\"" },
+    ]
     for imp in imports {
         shims.push(import_shim(ctx, imp))
     }
+    shims.push(CPragma { .text = "GCC diagnostic pop" })
     printer.print_section(CSection { .items = shims })
 }
 

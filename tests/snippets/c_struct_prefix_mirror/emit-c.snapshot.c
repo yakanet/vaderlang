@@ -78,6 +78,9 @@ _Static_assert(sizeof(((struct timeval*) 0)->tv_sec) == sizeof(((vader_struct_sn
 _Static_assert(__builtin_offsetof(struct timeval, tv_sec) == 0, "struct timeval.tv_sec offset");
 _Static_assert(((__typeof__(((struct timeval*) 0)->tv_sec)) -1 < 0) == 1, "struct timeval.tv_sec signedness");
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static int32_t vader_host_snippet$sys_gettimeofday(void* a0, vader_box_t a1) {
     struct timeval p0 = { 0 };
     p0.tv_sec = (__typeof__(p0.tv_sec)) ((vader_struct_snippet$TimeVal_t*) a0)->f_tv_sec;
@@ -121,6 +124,8 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
     vader_foreign_depth -= 1;
     return;
 }
+
+#pragma GCC diagnostic pop
 
 static int32_t snippet$main(void) {
     void* l0 = NULL;

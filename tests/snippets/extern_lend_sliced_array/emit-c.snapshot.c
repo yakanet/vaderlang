@@ -73,6 +73,9 @@ const size_t vader_type_info_count = 12;
 extern void slice_set_cb(void*);
 extern void slice_fill(void*, int64_t);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static void vader_host_snippet$slice_set_cb(void* a0) {
     vader_foreign_depth += 1;
     slice_set_cb(a0);
@@ -121,6 +124,8 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
     vader_foreign_depth -= 1;
     return;
 }
+
+#pragma GCC diagnostic pop
 
 static void snippet$churn(int32_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };

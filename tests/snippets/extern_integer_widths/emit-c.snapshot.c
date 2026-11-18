@@ -74,6 +74,9 @@ const size_t vader_type_info_count = 14;
 #include <unistd.h>
 #include "vader.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static int64_t vader_host_snippet$magnitude_of_u32(uint32_t a0) {
     vader_foreign_depth += 1;
     int64_t r = llabs(a0);
@@ -153,6 +156,8 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
     vader_foreign_depth -= 1;
     return;
 }
+
+#pragma GCC diagnostic pop
 
 static int32_t snippet$main(void) {
     void* l0 = NULL;

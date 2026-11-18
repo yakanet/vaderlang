@@ -542,6 +542,7 @@ export CTopLevel :: CInclude
            | CFunctionPointerTypedef
            | CFunction
            | CStaticAssert
+           | CPragma
 
 /// `#include "path"`, or `#include <path>` for a `system` header: searched on
 /// the system include path only.
@@ -554,6 +555,11 @@ export CInclude :: struct {
 export CDefine :: struct {
     name: string
     value: CExpression
+}
+
+/// `#pragma text`.
+export CPragma :: struct {
+    text: string
 }
 
 /// `typedef struct name name;`.

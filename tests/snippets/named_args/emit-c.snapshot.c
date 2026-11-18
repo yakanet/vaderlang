@@ -58,6 +58,9 @@ const vader_type_info_t vader_type_info_table[9] = {
 };
 const size_t vader_type_info_count = 9;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
 }
@@ -69,6 +72,8 @@ static uint8_t vader_host_std_core$Intrinsic$byte_at(vader_string_t a0, int64_t 
 static bool vader_host_std_core$Intrinsic$is_ascii(vader_string_t a0) {
     return vader_string_is_ascii(a0);
 }
+
+#pragma GCC diagnostic pop
 
 static vader_string_t snippet$greet(vader_string_t l0, vader_string_t l1) {
     vader_string_t t0;

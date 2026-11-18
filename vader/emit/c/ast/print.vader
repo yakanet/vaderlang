@@ -119,6 +119,7 @@ write_top_level :: fn(out: StringBuilder, item: CTopLevel) -> void {
             write_expression(out, item.message)
             out.append(");\n")
         }
+        is CPragma                 -> out.append("#pragma ${item.text}\n")
     }
 }
 

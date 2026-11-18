@@ -454,6 +454,9 @@ const size_t vader_type_info_count = 38;
 #include "vader.h"
 #include <stdio.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
 }
@@ -620,6 +623,8 @@ static vader_box_t vader_host_system_libc$sys_getenv(vader_string_t a0) {
     vader_cstr_free_for(a0, c0);
     return out;
 }
+
+#pragma GCC diagnostic pop
 
 /* vtable forwards */
 static vader_box_t std_io$Reader$read$$dispatch(vader_box_t recv, vader_box_t a0);

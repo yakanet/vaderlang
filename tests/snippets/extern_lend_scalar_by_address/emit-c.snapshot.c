@@ -91,6 +91,9 @@ const size_t vader_type_info_count = 15;
 /* `@c_type` spellings, checked against the C types. */
 _Static_assert(sizeof(time_t) == sizeof(int64_t) && (time_t) 0.5 == 0, "@c_type(time_t) is an integer as wide as int64_t");
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static void vader_host_snippet$copy_f64(void* a0, double a1, uint64_t a2) {
     vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
     double p1 = a1;
@@ -172,6 +175,8 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
     vader_foreign_depth -= 1;
     return;
 }
+
+#pragma GCC diagnostic pop
 
 static int32_t snippet$main(void) {
     void* l0 = NULL;

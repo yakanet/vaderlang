@@ -92,6 +92,9 @@ const size_t vader_type_info_count = 12;
 #include <unistd.h>
 #include "vader.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
 }
@@ -121,6 +124,8 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
     vader_foreign_depth -= 1;
     return;
 }
+
+#pragma GCC diagnostic pop
 
 static void* snippet$new_row(void) {
     void* t0 = NULL;

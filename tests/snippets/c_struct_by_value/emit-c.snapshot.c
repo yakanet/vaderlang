@@ -1026,6 +1026,9 @@ _Static_assert(sizeof(((Texture*) 0)->format) == sizeof(((vader_struct_snippet$T
 _Static_assert(__builtin_offsetof(Texture, format) == 16, "Texture.format offset");
 _Static_assert(((__typeof__(((Texture*) 0)->format)) -1 < 0) == 1, "Texture.format signedness");
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static void* vader_host_snippet$c_div(int32_t a0, int32_t a1) {
     vader_foreign_depth += 1;
     div_t r = div(a0, a1);
@@ -1183,6 +1186,8 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
     vader_foreign_depth -= 1;
     return;
 }
+
+#pragma GCC diagnostic pop
 
 static int32_t snippet$main(void) {
     void* l0 = NULL;

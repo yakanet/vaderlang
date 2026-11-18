@@ -72,6 +72,9 @@ const size_t vader_type_info_count = 11;
 extern int32_t call_twice(void*);
 extern int32_t apply_twice(int32_t, void*, int32_t);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static int32_t vader_host_snippet$call_twice(void* a0) {
     vader_foreign_depth += 1;
     int32_t r = call_twice(a0);
@@ -119,6 +122,8 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
     vader_foreign_depth -= 1;
     return;
 }
+
+#pragma GCC diagnostic pop
 
 static int32_t snippet$double_it(int32_t l0) {
     int32_t t0;

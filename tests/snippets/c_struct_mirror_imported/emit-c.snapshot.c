@@ -83,6 +83,9 @@ _Static_assert(sizeof(((struct pollfd*) 0)->revents) == sizeof(((vader_struct_sy
 _Static_assert(__builtin_offsetof(struct pollfd, revents) == 6, "struct pollfd.revents offset");
 _Static_assert(((__typeof__(((struct pollfd*) 0)->revents)) -1 < 0) == 1, "struct pollfd.revents signedness");
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static int32_t vader_host_snippet$lend_pollfd(void* a0, uint64_t a1, int32_t a2) {
     struct pollfd p0 = { 0 };
     p0.fd = (__typeof__(p0.fd)) ((vader_struct_system_posix$Pollfd_t*) a0)->f_fd;
@@ -129,6 +132,8 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
     vader_foreign_depth -= 1;
     return;
 }
+
+#pragma GCC diagnostic pop
 
 static int32_t snippet$main(void) {
     void* l0 = NULL;
