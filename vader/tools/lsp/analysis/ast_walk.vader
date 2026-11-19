@@ -48,7 +48,7 @@ export TypedCursor :: struct {
 export typed_cursor :: fn(state: ServerState, file_path: string, line: i32, character: i32) -> TypedCursor | null {
     cached :: typed_project_for(state, file_path)
     entry :: cached.project.modules[cached.project.entry] else return null
-    sf :: source_file_for_path(entry.module.files, file_path) else return null
+    sf :: state.source_file_for_path(entry.module.files, file_path) else return null
     [l, column] :: state.span_point(file_path, line, character)
     return TypedCursor {
         .decls = sf.program.decls,

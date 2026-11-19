@@ -65,7 +65,7 @@ renameable_at :: fn(
     state: ServerState, index: ReferenceIndex, file: string, params: JsonValue,
 ) -> RefSite | null {
     [line, column] :: state.span_point(file, position_line(params), position_character(params))
-    site :: site_at(index, file, line, column) else return null
+    site :: site_at(index, state.analysed_path(file), line, column) else return null
     if site.key in index.fixed {
         return null
     }
@@ -132,7 +132,7 @@ in_signature :: fn(f: DeclEntry, offset: i64) -> bool {
 workspace_edit_json :: fn(edits: RefSite[], new_name: string, state: ServerState, li_cache: Map<string, LineIndex>) -> JsonValue {
     by_uri :: Map<string, JsonValue[]> {}
     for e in edits {
-        key :: e.span.start.file.to_uri().to_string()
+        key :: state.uri_of(e.span.start.file)
         te :: text_edit_json(e.span, new_name, state, li_cache)
         by_uri.get_or_put_with(key, () -> []).push(te)
     }

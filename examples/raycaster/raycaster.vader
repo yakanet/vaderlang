@@ -495,10 +495,8 @@ EXIT_WAV: u8[]: @comptime read_sound("assets/sounds/dsswtchx.wav")
 // The bytes of the sound file at `path`, relative to this source file: one that
 // is missing stops the build.
 read_sound :: fn(path: string) -> u8[] {
-    data :: read_file_bytes(path)
-    if data is IOError {
+    data :: read_file_bytes(path) else
         panic("cannot read `${path}`: ${data.message()}")
-    }
     return data
 }
 

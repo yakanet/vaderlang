@@ -13,6 +13,7 @@ module "vader/tools/lsp/analysis"
 import "std/collections"
 import "std/uri"
 import "toolchain/diagnostics"
+import "toolchain/parser"
 import "vader/core/symbol"
 import "vader/front/resolver"
 
@@ -246,6 +247,39 @@ export project_or_folder_of_document :: fn(path: string) -> string =
 /// @param uri    the document's URI.
 export document_roots :: fn(state: ServerState, uri: string) -> SearchRoots | null {
     path :: path_of_uri(uri) else return null
+    return roots_of_document(state, path)
+}
+
+/// The roots the document `path` imports from, as `document_roots`: for a copy
+/// a build wrote of code the compiler wrote, those of that code, its module as
+/// the entry.
+///
+/// @param state  carries the host's roots and the open documents.
+/// @param path   a document's filesystem path.
+export roots_of_document :: fn(state: ServerState, path: string) -> SearchRoots {
+    root :: state.copy_root(path) else return roots_of(state, path)
+    // The project of `root`, or else `root` itself, holds the module the code
+    // joins.
+    roots :: roots_of(state, root)
+    header :: parse_module_header(state.source_for_path(path), path) else return roots
+    return SearchRoots { ...roots, .entry = module_among(state, header.name, roots) }
+}
+
+// The module `name` among `roots`: the one of their entry folder first, which
+// the roots under it do not reach.
+module_among :: fn(state: ServerState, name: string, roots: SearchRoots) -> DiscoveredModule | null {
+    entry :: roots.entry
+    if entry != null && entry.name == name {
+        return entry
+    }
+    return module_named(state, name, roots.paths)
+}
+
+/// The roots a load from `path` searches, as `document_roots`.
+///
+/// @param state  carries the host's roots, searched first (`include_flags`).
+/// @param path   a file, or the folder of the module a load starts at.
+export roots_of :: fn(state: ServerState, path: string) -> SearchRoots {
     discard: Diagnostic[]: []
     roots :: search_roots(
         path, state.include_flags, project_of_document(path), doc_overlay(state), discard,

@@ -47,7 +47,7 @@ export handle_implementation :: fn(state: ServerState, params: JsonValue) -> Jso
     file_path :: path_of_uri(uri) else return JsonNull {}
     project :: union_project_for(state, file_path)
     [line, column] :: state.span_point(file_path, position_line(params), position_character(params))
-    name :: target_group_name_at(project, file_path, line, column)
+    name :: target_group_name_at(project, state.analysed_path(file_path), line, column)
     if name == "" {
         return trait_implementations(state, params)
     }
@@ -66,7 +66,7 @@ export handle_implementation :: fn(state: ServerState, params: JsonValue) -> Jso
                     continue
                 }
                 out.push(
-                    location_json(d.name_span.start.file.to_uri().to_string(),
+                    location_json(state.uri_of(d.name_span.start.file),
                     d.name_span.span_to_range_json(state.line_index_for_path(d.name_span.start.file)))
                 )
             }
@@ -139,7 +139,7 @@ target_group_name_at :: fn(
     project: LoadedProject, file_path: string, line: i32, col: i32,
 ) -> string {
     for [_, lm] in project.modules {
-        sf :: source_file_for_path(lm.module.files, file_path) else continue
+        sf :: lm.module.files.find((f) -> f.path == file_path) else continue
         for d in sf.program.decls.filter_is<AST.FnDecl>() {
             if !AST.has_compiler_decorator(d.decorators, .Target) {
                 continue

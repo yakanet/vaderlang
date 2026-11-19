@@ -26,7 +26,7 @@ export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonVal
     index :: reference_index_of(cached)
 
     [line, column] :: state.span_point(file_path, position_line(params), position_character(params))
-    target :: site_at(index, file_path, line, column)
+    target :: site_at(index, state.analysed_path(file_path), line, column)
         else return JsonArray { .items = [] }
 
     include_decl :: include_declaration(params)
@@ -38,7 +38,7 @@ export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonVal
         if s.is_decl && !include_decl { continue }
         path :: s.span.start.file
         li :: line_index_cached(state, li_cache, path)
-        items.push(location_json(path.to_uri().to_string(), s.span.span_to_range_json(li)))
+        items.push(location_json(state.uri_of(path), s.span.span_to_range_json(li)))
     }
     return JsonArray { .items = items }
 }

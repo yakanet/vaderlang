@@ -67,7 +67,7 @@ target_at :: fn(
     cached :: typed_project_for(state, document)
     index :: reference_index_of(cached)
     [l, column] :: state.span_point(path, line, character)
-    site :: site_at(index, path, l, column) else return null
+    site :: site_at(index, state.analysed_path(path), l, column) else return null
     decl_site :: declaration_site(index, site.key) else return null
     at :: decl_site.span.start
     indices :: Map<string, DocIndex> {}
@@ -103,7 +103,7 @@ doc_index_for :: fn(
 
 // The open document's index of the file at `path`, else one built from its text.
 open_or_built_index :: fn(state: ServerState, path: string) -> DocIndex {
-    uri :: path.to_uri().to_string()
+    uri :: state.uri_of(path)
     open :: state.index_for(uri)
     if open != null {
         return open
@@ -124,7 +124,7 @@ hierarchy_item_json :: fn(
     obj["name"]           = JsonString { .value = decl.name }
     obj["kind"]           = JsonNumber { .value = f64(kind) }
     obj["detail"]         = JsonString { .value = detail }
-    obj["uri"]            = JsonString { .value = path.to_uri().to_string() }
+    obj["uri"]            = JsonString { .value = target.state.uri_of(path) }
     obj["range"]          = range_json(decl.full_span.span_to_range_json(li))
     obj["selectionRange"] = range_json(decl.name_span.span_to_range_json(li))
     obj["data"]           = JsonObject { .entries = data }
@@ -145,6 +145,6 @@ read_line_index :: fn(target: DeclTarget, path: string) -> LineIndex {
 // The `Location` of `span`.
 span_location :: fn(target: DeclTarget, span: Span) -> JsonValue {
     path :: span.start.file
-    uri :: path.to_uri().to_string()
+    uri :: target.state.uri_of(path)
     return location_json(uri, span.span_to_range_json(target.line_index_for(path)))
 }

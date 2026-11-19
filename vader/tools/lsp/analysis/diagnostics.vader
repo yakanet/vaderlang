@@ -70,14 +70,15 @@ publish :: fn(self: ServerState, uri: string, file_path: string, diags: Diagnost
     // Every published diagnostic is filtered to `file_path` below, so one index
     // for the open document encodes them all.
     li :: self.line_index_for_path(file_path)
+    analysed :: self.analysed_path(file_path)
     shown: Diagnostic[]: []
     for d in diags {
-        if d.primary.start.file == file_path {
+        if d.primary.start.file == analysed {
             shown.push(d)
             continue
         }
         for r in d.related {
-            if r.span.start.file == file_path {
+            if r.span.start.file == analysed {
                 shown.push(shown_at_origin(d, r))
                 break
             }

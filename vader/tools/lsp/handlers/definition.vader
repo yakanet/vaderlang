@@ -143,7 +143,7 @@ member_by_type :: fn(
     // AST would otherwise jump to a position the text no longer has.
     cached :: typed_project_for(state, file_path)
     entry :: cached.project.modules[cached.project.entry] else return null
-    sf :: source_file_for_path(entry.module.files, file_path) else return null
+    sf :: state.source_file_for_path(entry.module.files, file_path) else return null
     [l, column] :: state.span_point(file_path, line, character)
     at_cursor :: find_expr_at(sf.program.decls, l, column, cached.result.typed)
     // A UFCS call typecheck resolved names the fn it chose : the receiver's type
@@ -183,7 +183,7 @@ decorator_field_at :: fn(
     file_path :: path_of_uri(uri) else return null
     cached :: typed_project_for(state, file_path)
     entry :: cached.project.modules[cached.project.entry] else return null
-    sf :: source_file_for_path(entry.module.files, file_path) else return null
+    sf :: state.source_file_for_path(entry.module.files, file_path) else return null
     typed :: cached.result.typed
     for [_, use] in typed.decorator_uses {
         for a in use.written.args {
@@ -243,7 +243,7 @@ chosen_member :: fn(
     if src.byte_len() == 0 {
         return null
     }
-    uri :: at.file.to_uri().to_string()
+    uri :: state.uri_of(at.file)
     index :: state.index_for(uri) else build_index(uri, src, state.position_encoding)
     // By position, not by name : the overloads share it.
     target :: index.entry_at_offset(at.offset) else return null

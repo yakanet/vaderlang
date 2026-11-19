@@ -85,7 +85,7 @@ has_declared_decorator :: fn(program: Program) -> bool {
 interceptor_lenses :: fn(state: ServerState, path: string, li: LineIndex) -> JsonValue[] {
     cached :: typed_project_for(state, path)
     entry :: cached.project.modules[cached.project.entry] else return []
-    file :: source_file_for_path(entry.module.files, path) else return []
+    file :: state.source_file_for_path(entry.module.files, path) else return []
     // Each interceptor is looked up once, however many functions it marks.
     found :: Map<i64, Interceptor> {}
     lenses: JsonValue[]: []
@@ -141,7 +141,7 @@ interceptor_declared :: fn(project: LoadedProject, sym: Symbol) -> Interceptor {
 go_to_lens :: fn(state: ServerState, at: Span, title: string, target: Span, li: LineIndex) -> JsonValue {
     path :: target.start.file
     range :: range_json(target.span_to_range_json(state.line_index_for_path(path)))
-    arguments :: JsonArray { .items = [JsonString { .value = path.to_uri().to_string() }, range] }
+    arguments :: JsonArray { .items = [JsonString { .value = state.uri_of(path) }, range] }
     return lens_json(at, title, GO_TO_COMMAND, arguments, li)
 }
 

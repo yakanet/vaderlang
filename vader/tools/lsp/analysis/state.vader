@@ -11,6 +11,7 @@ import "std/collections"
 import "std/string"
 import "std/uri"
 import "toolchain/project"
+import "vader/pipeline"
 import "vader/pipeline/check"
 import "vader/front/resolver"
 import "vader/support/target"
@@ -20,6 +21,7 @@ import "vader/tools/lsp/protocol"
 import "std/env"
 import "std/fs"
 import "std/iter"
+import "std/path"
 
 Fx :: import "vader/front/effects"
 Virt :: import "vader/front/virt"
@@ -173,6 +175,13 @@ export ServerState :: struct {
     /// Whether every `build.vader` stays unrun (`--no-hooks`): a project it
     /// describes is analysed with no root of its declaring.
     no_hooks:                   bool
+    /// The copy a build writes under `build/expanded/` of each code the compiler
+    /// wrote -> the name that code is parsed under, as the last load found it: a
+    /// copy opened is analysed as that code (`analysed_path`).
+    expanded_names:             Map<string, string> = Map<string, string> {}
+    /// The name code the compiler wrote is parsed under -> its copy
+    /// (`opened_path`).
+    expanded_copies:            Map<string, string> = Map<string, string> {}
 }
 
 export new_state :: fn(library_root: string, no_hooks: bool = false) -> ServerState {
@@ -240,10 +249,15 @@ export source_for :: fn(self: ServerState, uri: string) -> string | null {
 /// cross-file results (goto-def / references targets in other modules).
 ///
 export source_for_path :: fn(self: ServerState, path: string) -> string {
-    open :: self.docs[path.to_uri().to_string()]
-    if open is string { return open }
-    disk :: read_file_string(path)
-    if disk is string { return disk }
+    file :: self.opened_path(path)
+    open :: self.docs[file.to_uri().to_string()]
+    if open is string { 
+        return open
+    }
+    disk :: read_file_string(file)
+    if disk is string { 
+        return disk
+    }
     return ""
 }
 
@@ -251,7 +265,7 @@ export source_for_path :: fn(self: ServerState, path: string) -> string {
 /// document's own, or one built from the disk source. The single resolution
 /// point for encoding a cross-file span's `character` offsets.
 export line_index_for_path :: fn(self: ServerState, path: string) -> LineIndex {
-    open :: self.indices[path.to_uri().to_string()]
+    open :: self.indices[self.opened_path(path).to_uri().to_string()]
     if open != null {
         return open.line_index
     }
@@ -288,9 +302,10 @@ export index_for :: fn(self: ServerState, uri: string) -> DocIndex | null {
 /// @return           the cached-or-freshly-built project, typecheck result,
 ///                   and diagnostics.
 export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectCache {
+    entry_path :: analysis_entry(self, file_path)
     cached :: self.cache
     if cached != null {
-        if cached.entry_path == file_path { return cached }
+        if cached.entry_path == entry_path { return cached }
         // The one it displaces is kept as the PREVIOUS entry. A single slot made
         // alternating between two open files reload on every request: measured
         // at 4.7 s for six member clicks across two files, ~1 s each. Two slots
@@ -301,7 +316,7 @@ export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectC
         // for this tree), and this server has frozen an IDE once already.
         prev :: self.cache_prev
         if prev != null {
-            if prev.entry_path == file_path {
+            if prev.entry_path == entry_path {
                 // Promote, so the pair keeps alternating for free.
                 self.cache_prev = cached
                 self.cache = prev
@@ -311,9 +326,10 @@ export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectC
     }
     // No extra seed, and `dump_types` off: the LSP reads expr_types (hover/defs)
     // but never the dump-only expr_kinds / node_spans tables.
-    fc :: check_with_modules(self, file_path, [])
+    fc :: check_with_modules(self, entry_path, [])
+    learn_expanded_copies(self, fc.project, entry_path)
     entry :: ProjectCache {
-        .entry_path = file_path, .project = fc.project, .result = fc.result, .effects = fc.effects,
+        .entry_path = entry_path, .project = fc.project, .result = fc.result, .effects = fc.effects,
         .diags = fc.diags,
         .module_name_index = module_index_by_name(fc.project),
     }
@@ -351,18 +367,82 @@ export check_with_modules :: fn(
 /// @param file_path  the entry file's filesystem path.
 /// @return           the cached-or-freshly-loaded union project.
 export union_project_for :: fn(self: ServerState, file_path: string) -> LoadedProject {
+    entry_path :: analysis_entry(self, file_path)
     cached :: self.union_cache
     if cached != null {
-        if cached.entry_path == file_path {
+        if cached.entry_path == entry_path {
             return cached.project
         }
     }
     project :: load_project_with_overlay(
-        file_path, doc_overlay(self), self.include_flags, project_of_document(file_path),
+        entry_path, doc_overlay(self), self.include_flags, project_of_document(entry_path),
         AllTargets {},
     )
-    self.union_cache = UnionCache { .entry_path = file_path, .project = project }
+    self.union_cache = UnionCache { .entry_path = entry_path, .project = project }
     return project
+}
+
+// ---- copies of the code the compiler wrote ---------------------------------
+
+/// The name the file `path` is analysed under: the code the compiler wrote, for
+/// its copy under `build/expanded/`, the path itself otherwise.
+///
+/// @param path  a document's filesystem path.
+export analysed_path :: fn(self: ServerState, path: string) -> string =
+    self.expanded_names[normalized_path(path)] else path
+
+/// The file an editor opens for `file`, a file a span names: the copy of the code
+/// the compiler wrote, `file` itself otherwise.
+///
+/// @param file  the file a span names.
+export opened_path :: fn(self: ServerState, file: string) -> string =
+    self.expanded_copies[file] else file
+
+/// The URI of the file an editor opens for `file`, a file a span names
+/// (`opened_path`).
+///
+/// @param file  the file a span names.
+export uri_of :: fn(self: ServerState, file: string) -> string =
+    self.opened_path(file).to_uri().to_string()
+
+// The file a load for the document `path` starts at: for a copy of code the
+// compiler wrote, a file of the module the code joins, whose load writes it
+// again; `path` itself otherwise.
+analysis_entry :: fn(self: ServerState, path: string) -> string {
+    if copy_root(self, path) == null {
+        return path
+    }
+    // A module's files are the ones of its folder: a copy is under another.
+    module :: roots_of_document(self, path).entry else return path
+    return module.files.first() else path
+}
+
+/// The folder whose `EXPANDED_DIR` holds the document `path`, a copy a build
+/// wrote of code the compiler wrote; null for any other document.
+///
+/// @param path  a document's filesystem path.
+export copy_root :: fn(self: ServerState, path: string) -> string | null {
+    root :: expanded_root_of(path) else return null
+    if !self.source_for_path(path).starts_with(GENERATED_HEADER) {
+        return null
+    }
+    return root
+}
+
+// Learn where the copies of the code `loaded` holds go, for a load from `entry`;
+// a copy open in the editor that differs from that code is written again, so
+// that its positions are the code's.
+learn_expanded_copies :: fn(self: ServerState, loaded: LoadedProject, entry: string) -> void {
+    root :: expansion_root(Path(entry), project_of_document(entry))
+    for source in generated_code(loaded).sources {
+        copy :: expanded_copy(source.file, root) else continue
+        self.expanded_names[copy] = source.file
+        self.expanded_copies[source.file] = copy
+        open :: self.docs[copy.to_uri().to_string()] else continue
+        if open != source.content && !holds(copy, source.content) {
+            write_text(copy, source.content)
+        }
+    }
 }
 
 /// Pick the `SourceFile` of `files` whose `path` matches the requested
@@ -372,9 +452,14 @@ export union_project_for :: fn(self: ServerState, file_path: string) -> LoadedPr
 /// its AST nodes would put that file's hints, hovers and signatures at that
 /// file's positions. Null when no file matches, so the handler yields nothing
 /// rather than another file's data.
-export source_file_for_path :: fn(files: SourceFile[], file_path: string) -> SourceFile | null {
+export source_file_for_path :: fn(
+    self: ServerState,
+    files: SourceFile[],
+    file_path: string,
+) -> SourceFile | null {
+    analysed :: self.analysed_path(file_path)
     for f in files {
-        if f.path == file_path { return f }
+        if f.path == analysed { return f }
     }
     return null
 }

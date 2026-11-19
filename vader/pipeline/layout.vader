@@ -181,6 +181,26 @@ is_generated :: fn(path: string) -> bool {
 export expansion_root :: fn(file: Path, project_root: string | null) -> string =
     project_root else entry_folder_of(file.as_string())
 
+/// The copy a build writes of the code parsed under `file`, absolute and
+/// normalised (`normalized_path`) when `root` is absolute: null for a file a
+/// user wrote.
+///
+/// @param file  the file a span names.
+/// @param root  the folder the copies go under (`expansion_root`).
+export expanded_copy :: fn(file: string, root: string) -> string | null {
+    name :: expanded_name(file, root) else return null
+    return normalized_path(root.to_path().join(EXPANDED_DIR).join(name).as_string())
+}
+
+/// The folder whose `EXPANDED_DIR` holds the file `path`, null for a file
+/// outside one.
+///
+/// @param path  a file.
+export expanded_root_of :: fn(path: string) -> string | null {
+    [root, _] :: normalized_path(path).split_first("/${EXPANDED_DIR}/") else return null
+    return root
+}
+
 /// Whether the file `path` holds `content`.
 ///
 /// @param path     the file.

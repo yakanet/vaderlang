@@ -146,7 +146,7 @@ detail_ctx :: fn(state: ServerState, fp: string | null) -> DetailCtx {
     typed :: cached.result.typed
     entry :: cached.project.modules[cached.project.entry]
         else return DetailCtx { .typed = typed, .decls = [] }
-    sf :: source_file_for_path(entry.module.files, fp)
+    sf :: state.source_file_for_path(entry.module.files, fp)
         else return DetailCtx { .typed = typed, .decls = [] }
     return DetailCtx { .typed = typed, .decls = sf.program.decls }
 }
@@ -254,7 +254,7 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     file_path :: path_of_uri(uri) else return completion_list([])
     cached :: typed_project_for(state, file_path)
     entry :: cached.project.modules[cached.project.entry] else return completion_list([])
-    sf :: source_file_for_path(entry.module.files, file_path) else return completion_list([])
+    sf :: state.source_file_for_path(entry.module.files, file_path) else return completion_list([])
 
     // The receiver is the expression ending exactly at the dot (spans encode
     // `end` one-past-the-last-char). Anchoring on that end column resolves a
