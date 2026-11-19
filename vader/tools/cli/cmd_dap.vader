@@ -46,6 +46,10 @@ compile_for_dap :: fn(program: string) -> DapProgram {
     // driven one is prepared first, as `vader run` does, for its
     // search roots and the modules it generates.
     project_root :: find_project_root(program)
+    twice :: if project_root != null { twice_described(project_root) } else { null }
+    if twice != null {
+        return DapProgram { .state = null, .entry_index = -1, .error = twice }
+    }
     if project_root != null && is_driven_project(project_root) {
         _ :: prepared_project("dap", project_root, "") else return DapProgram {
             .state = null,

@@ -26,6 +26,21 @@ FIXTURES :: "tests/fixtures/doc"
 staged :: fn(name: string, label: string) -> string =
     staged_copy("${FIXTURES}/${name}", "doc_${label}")
 
+// The driver of the shapes project, in place of its `vader.json`, its entry
+// moved to `app/`: a driver keeps its folder to itself.
+DRIVER :: r"""
+    module "build"
+
+    import "toolchain/build"
+
+    build :: fn(args: string[]) -> i32 {
+        ctx :: new_build_context(args)
+        ctx.include_paths.push(".")
+        ctx.add_entry("shapes", "app/main.vader")
+        return ctx.emit_native()
+    }
+    """
+
 // What `vader doc shapes` did in the copy `dir`.
 doc_shapes :: fn(dir: string) -> ProcessResult = vader_in(dir, ["doc", "shapes"])
 
@@ -218,13 +233,16 @@ test_doc_asks_which_entry_to_start_from_when_the_project_declares_two :: fn() ->
 }
 
 @test
-test_doc_refuses_a_project_its_build_vader_describes_for_now :: fn() -> void {
+test_doc_prepares_a_project_its_build_vader_describes :: fn() -> void {
     dir :: staged("shapes", "driven")
     remove("${dir}/vader.json")
-    write_file("${dir}/build.vader", "module \"build\"\n")
-    ran :: doc_shapes(dir)
-    assert_eq(ran.exit, 1)
-    assert("which `vader doc` does not run yet" in ran.stderr, ran.stderr)
+    create_dir("${dir}/app")
+    write_file("${dir}/app/main.vader", read_file_string("${dir}/main.vader") else "")
+    remove("${dir}/main.vader")
+    write_file("${dir}/build.vader", DRIVER)
+    ran :: vader_in(dir, ["doc", "shapes"], [], HEAVY_TIMEOUT)
+    assert_eq(ran.exit, 0)
+    assert("shapes/text/pin.vader" in indexed_files(dir), indexed_files(dir).join(" "))
 }
 
 @test

@@ -172,6 +172,9 @@ export ServerState :: struct {
     /// project folder -> what the server knows of a project its `build.vader`
     /// describes: the roots registered, the `vader info` run in flight.
     driven:                     Map<string, DrivenProject>
+    /// The project folders the user was told hold both a `build.vader` and a
+    /// `vader.json` (`is_decided`), forgotten once one of them goes.
+    undecided:                  Set<string> = Set<string> {}
     /// The copy a build writes under `build/expanded/` of each code the compiler
     /// wrote -> the name that code is parsed under, as the last load found it: a
     /// copy opened is analysed as that code (`analysed_path`).

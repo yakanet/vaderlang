@@ -307,6 +307,10 @@ test_a_folder_that_does_not_say_what_to_build_is_refused :: fn() -> void {
     twice :: vader(["build", both])
     assert(twice.exit == 1, "a folder with both")
     assert("holds both a `build.vader` and a `vader.json`" in twice.stderr, twice.stderr)
+    // A file of that folder alike: its project decides no build.
+    inside :: vader(["check", "${both}/src/main.vader"])
+    assert(inside.exit == 1, "a file of a folder with both")
+    assert("holds both a `build.vader` and a `vader.json`" in inside.stderr, inside.stderr)
 }
 
 @test

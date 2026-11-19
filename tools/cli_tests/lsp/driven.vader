@@ -93,3 +93,23 @@ test_the_server_reads_the_search_roots_a_driver_declares :: fn() -> void {
     assert("R2001" in second, second)
     close_client(client)
 }
+
+@test
+test_the_server_refuses_a_project_with_both_a_driver_and_a_manifest :: fn() -> void {
+    dir :: scratch_dir("lsp_both")
+    create_dir("${dir}/src")
+    write_file("${dir}/build.vader", ROOTED_DRIVER)
+    write_file("${dir}/vader.json", r"""{"entries": {"app": "src/main.vader"}}""")
+    write_file("${dir}/src/main.vader", GREETED_MAIN)
+    client :: start_client(dir, "{}", RunOptions { .cwd = dir, .env = toolchain_env() })
+    uri :: file_uri("${dir}/src/main.vader")
+    client.send(did_open(uri, GREETED_MAIN))
+    told :: client.awaited(
+        (m) -> string_member(m, "method") == "window/showMessage",
+        "a message that the project decides no build",
+    )
+    message :: string_at(told, ["params", "message"]) else ""
+    assert("holds both a `build.vader` and a `vader.json`" in message, message)
+    assert_eq(published_from(client, uri, 0), "")
+    close_client(client)
+}

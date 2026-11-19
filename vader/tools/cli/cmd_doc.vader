@@ -19,7 +19,6 @@ import "std/iter"
 import "std/path"
 TTY :: import "std/tty"
 import "toolchain/diagnostics"
-import "toolchain/project"
 import "vader/front/resolver"
 import "vader/pipeline"
 Doc :: import "vader/tools/doc"
@@ -247,15 +246,13 @@ left_out_lines :: fn(left_out: string[]) -> string[] =
     left_out.map((line: string) -> "vader doc: ${line}, left out").collect()
 
 // The project of `vader doc` and the entry its load starts from: the project of
-// its path (the working directory without one), as for the other commands, and
-// its entry as `vader lint` takes it, `--entry` choosing among several. Without a
-// project, the synthetic entry of `vader/tools/doc`. The exit code after saying
-// why there is no entry.
+// its path (the working directory without one), and its entry as for `vader run`,
+// a driven project prepared first. Without a project, the synthetic entry of
+// `vader/tools/doc`. The exit code after saying why there is no entry.
 doc_project :: fn(parsed: ParsedArgs) -> FileInput | i32 {
-    selected :: parsed.string_flag("entry", "")
     path :: action_input(parsed).as_string()
     dir :: find_project_root(path) else {
-        if selected != "" {
+        if parsed.string_flag("entry", "") != "" {
             eprintln(
                 "vader doc: `--entry` chooses among a project's entries, and no project holds "
                     + "`${path.to_native()}`",
@@ -264,26 +261,7 @@ doc_project :: fn(parsed: ParsedArgs) -> FileInput | i32 {
         }
         return FileInput { .file = Path(Doc.SYNTHETIC_ENTRY), .project_root = null }
     }
-    match input :: resolve_input("doc", Path(dir), selected) {
-        is i32             -> {
-            return input
-        }
-        is FileInput       -> {
-            eprintln(not_a_folder("doc", dir))
-            return 1
-        }
-        is DrivenProject   -> {
-            eprintln(
-                "vader doc: `${dir.to_native()}` is described by its `${DRIVER_FILENAME}`, "
-                    + "which `vader doc` does not run yet",
-            )
-            return 1
-        }
-        is ManifestProject -> {
-            entry :: sole_entry("doc", input.dir, input.entries) else return 2
-            return FileInput { .file = entry.file, .project_root = input.dir }
-        }
-    }
+    return single_entry("doc", Path(dir), parsed)
 }
 
 // The path `vader doc` documents: its argument, the folder `home` without one.

@@ -30,10 +30,14 @@ export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void
         clear_diagnostics_for_uri(uri)
         return
     }
+    root :: project_of_document(file_path)
+    if root != null && !is_decided(self, root) {
+        clear_diagnostics_for_uri(uri)
+        return
+    }
     // Held back until a driven project's roots are first known: every import of
     // a root its driver declares would read as unresolved. They mark the
     // document again when they arrive.
-    root :: project_of_document(file_path)
     if root != null && !ensure_described(self, root) {
         return
     }

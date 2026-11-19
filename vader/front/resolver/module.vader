@@ -164,11 +164,25 @@ export holds_build_driver :: fn(dir: string) -> bool {
 }
 
 /// Whether the project folder `dir` is described by its build driver: it holds
-/// one and no `vader.json`, which wins where a file's project is found.
+/// one and no `vader.json` (`twice_described` says what holding both means).
 ///
 /// @param dir  a project folder (`find_project_root`).
 export is_driven_project :: fn(dir: string) -> bool =
     !exists(join_path(dir, MANIFEST_FILENAME)) && holds_build_driver(dir)
+
+/// What is wrong with the project folder `dir` when it holds both a build driver
+/// and a `vader.json`, which leaves its build undecided: every command, the
+/// language server and the debugger refuse it alike. Null when it holds at most
+/// one of them.
+///
+/// @param dir  a project folder.
+export twice_described :: fn(dir: string) -> string | null {
+    if !exists(join_path(dir, MANIFEST_FILENAME)) || !holds_build_driver(dir) {
+        return null
+    }
+    return "`${dir.to_native()}` holds both a `${DRIVER_FILENAME}` and a `${MANIFEST_FILENAME}`; "
+        + "keep the one that describes its build"
+}
 
 // The nearest folder from `start` up whose `holds` is true, or null.
 walk_up :: fn(start: string, holds: fn(string) -> bool) -> string | null {

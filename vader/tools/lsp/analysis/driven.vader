@@ -138,6 +138,24 @@ await_build :: fn(self: ServerState, root: string, known: DrivenProject) -> void
         + "driver is compiled; `vader build` compiles it")
 }
 
+/// Whether the project `root` decides its build: not when it holds both a
+/// `build.vader` and a `vader.json`, which every command refuses, and which the
+/// user is told once.
+///
+/// @param self  the server state, which remembers the projects told so.
+/// @param root  a project folder, as `project_of_document` names it.
+export is_decided :: fn(self: ServerState, root: string) -> bool {
+    twice :: twice_described(root) else {
+        self.undecided.remove(root)
+        return true
+    }
+    if !(root in self.undecided) {
+        self.undecided.add(root)
+        show_warning("vader: ${twice}")
+    }
+    return false
+}
+
 // The search roots a finished `vader info --json` run reports, or why it
 // reports none.
 description_of :: fn(finished: ProcessResult | ProcessError) -> string[] | string {

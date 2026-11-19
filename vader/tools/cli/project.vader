@@ -94,17 +94,15 @@ not_a_folder :: fn(command: string, path: string) -> string {
 // `vader.json`, or null after saying it holds both or neither; `otherwise`
 // ends the second message.
 project_description :: fn(command: string, dir: string, otherwise: string) -> string | null {
-    has_driver :: find_build_driver(dir) != null
-    has_manifest :: exists(join_path(dir, MANIFEST_FILENAME))
-    if has_driver && has_manifest {
-        eprintln("vader ${command}: `${dir.to_native()}` holds both a `${DRIVER_FILENAME}` and a "
-            + "`${MANIFEST_FILENAME}`; keep the one that describes its build")
+    twice :: twice_described(dir)
+    if twice != null {
+        eprintln("vader ${command}: ${twice}")
         return null
     }
-    if has_driver {
+    if find_build_driver(dir) != null {
         return DRIVER_FILENAME
     }
-    if has_manifest {
+    if exists(join_path(dir, MANIFEST_FILENAME)) {
         return MANIFEST_FILENAME
     }
     eprintln("vader ${command}: `${dir.to_native()}` holds neither a `${DRIVER_FILENAME}` nor a "
