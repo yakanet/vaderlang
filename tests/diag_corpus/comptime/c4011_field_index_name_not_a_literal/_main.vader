@@ -6,6 +6,6 @@ Point :: struct { x: i32 }
 
 NAME :: @comptime "x"
 
-export INDEX :: @comptime @field_index(Point, NAME)
+export INDEX: i64: @comptime @field_index(Point, NAME)
 
 main :: fn() -> i32 = 0

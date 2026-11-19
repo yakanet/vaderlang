@@ -191,9 +191,9 @@ test_doc_writes_the_data_again_when_what_the_load_read_changes :: fn() -> void {
     doc_shapes(dir)
     area :: "${dir}/shapes/geometry/area.vader"
     text :: read_file_string(area) else panic(text.message())
-    write_file(area, text + "\n/// One.\nexport ONE :: 1\n")
+    write_file(area, text + "\n/// One.\nexport ONE: i32: 1\n")
     assert("modules written" in doc_shapes(dir).stdout, "a changed file")
-    zero :: "module \"shapes/geometry\"\n\n/// Zero.\nexport ZERO :: 0\n"
+    zero :: "module \"shapes/geometry\"\n\n/// Zero.\nexport ZERO: i32: 0\n"
     write_file("${dir}/shapes/geometry/zero.vader", zero)
     assert("modules written" in doc_shapes(dir).stdout, "a file joins a folder")
     names :: declared(dir, "geometry.json")
@@ -210,9 +210,9 @@ test_doc_writes_the_data_again_when_a_root_appears_or_a_generated_file_changes :
     generated :: "${dir}/build/generated/shapes/geometry"
     create_dir(generated)
     gen :: "${generated}/gen.vader"
-    write_file(gen, "module \"shapes/geometry\"\n\n/// One, generated.\nexport GEN_ONE :: 1\n")
+    write_file(gen, "module \"shapes/geometry\"\n\n/// One, generated.\nexport GEN_ONE: i32: 1\n")
     assert("modules written" in doc_shapes(dir).stdout, "a root appears")
-    write_file(gen, "module \"shapes/geometry\"\n\n/// Two, generated.\nexport GEN_TWO :: 2\n")
+    write_file(gen, "module \"shapes/geometry\"\n\n/// Two, generated.\nexport GEN_TWO: i32: 2\n")
     assert("modules written" in doc_shapes(dir).stdout, "a generated file changes")
     names :: declared(dir, "geometry.json")
     assert(names.contains("GEN_TWO") && !names.contains("GEN_ONE"), names.join(" "))
@@ -395,12 +395,12 @@ test_doc_search_finds_what_a_file_gained_since_the_last_search :: fn() -> void {
     dir :: staged("shapes", "search_fresh")
     assert_eq(search(dir, "freshly_added").exit, 1)
     area :: "${dir}/shapes/geometry/area.vader"
-    added :: "\n/// Added after the first search.\nexport FRESHLY_ADDED :: 1\n"
+    added :: "\n/// Added after the first search.\nexport FRESHLY_ADDED: i32: 1\n"
     text :: read_file_string(area) else panic(text.message())
     write_file(area, text + added)
     ran :: search(dir, "freshly_added")
     assert_eq(ran.exit, 0)
-    assert("\nexport FRESHLY_ADDED :: 1" in ran.stdout, ran.stdout)
+    assert("\nexport FRESHLY_ADDED: i32: 1" in ran.stdout, ran.stdout)
     assert("\n    Added after the first search.\n" in ran.stdout, ran.stdout)
 }
 

@@ -71,7 +71,7 @@ export RUN_GATED :: "run_gated"
 
 /// The functions the compiler calls with no source that writes their name: a
 /// load that keeps only what is reached keeps them.
-export GATE_FUNCTIONS :: [GATE_OR_NEW, RUN_GATED]
+export GATE_FUNCTIONS: string[]: [GATE_OR_NEW, RUN_GATED]
 
 // The id of the loaded module declared as `name`.
 find_module_id :: fn(project: LoadedProject, name: string) -> string | null {

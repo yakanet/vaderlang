@@ -1,0 +1,3 @@
+[17:8] error[T3149] an exported constant leaves its type to inference: write `LIMIT: i32: ...`
+[20:8] error[T3149] an exported constant leaves its type to inference: write `DOUBLED: i64: ...`
+[23:8] error[T3149] an exported constant leaves its type to inference: write `SIZES: i32[]: ...`

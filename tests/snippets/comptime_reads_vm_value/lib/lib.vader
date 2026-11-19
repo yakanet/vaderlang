@@ -14,9 +14,9 @@ cubes_below_hundred :: fn() -> i32 {
     return count
 }
 
-export CUBES :: @comptime cubes_below_hundred()
+export CUBES: i32: @comptime cubes_below_hundred()
 
-export BASE :: @comptime 6
+export BASE: i32: @comptime 6
 
 LIMIT :: @comptime cubes_below_hundred() * 2
 

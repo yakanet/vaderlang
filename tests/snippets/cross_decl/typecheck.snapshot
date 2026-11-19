@@ -9,14 +9,14 @@
   ConstDecl      C                    :: i32
   FnDecl         main                 :: fn() -> i32
   expr 10:12    IdentExpr      :: i32
-  expr 3:13     CallExpr       :: i32
+  expr 3:16     CallExpr       :: i32
   expr 3:8      IdentExpr      :: fn() -> i32
-  expr 5:13     CallExpr       :: i32
-  expr 5:23     BinaryExpr     :: i32
-  expr 5:23     IdentExpr      :: i32
+  expr 5:16     CallExpr       :: i32
+  expr 5:26     BinaryExpr     :: i32
+  expr 5:26     IdentExpr      :: i32
   expr 5:8      IdentExpr      :: fn() -> i32
-  expr 7:13     CallExpr       :: i32
-  expr 7:23     BinaryExpr     :: i32
-  expr 7:23     IdentExpr      :: i32
-  expr 7:27     IdentExpr      :: i32
+  expr 7:16     CallExpr       :: i32
+  expr 7:26     BinaryExpr     :: i32
+  expr 7:26     IdentExpr      :: i32
+  expr 7:30     IdentExpr      :: i32
   expr 7:8      IdentExpr      :: fn() -> i32

@@ -113,7 +113,7 @@ export mirror_at :: fn(types: BcType[], type_index: i32) -> BcStruct | null {
 /// A C struct cannot contain itself by value, so a well-formed mirror bottoms
 /// out. The cap is what keeps a MALFORMED one (a Vader struct naming itself)
 /// from recursing forever rather than reporting.
-export NEST_CAP :: 16
+export NEST_CAP: i32: 16
 
 c_field_width_at :: fn(f: BcField, types: BcType[], depth: i32) -> i64 | null {
     v :: c_field_val_type(f, types)

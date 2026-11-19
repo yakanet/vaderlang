@@ -19,4 +19,4 @@ Celsius implements Display {
 
 export render :: fn(d: Display) -> string = d.to_string()
 
-export shown :: render(Celsius(Temp { .deg = 3 }))
+export shown: string: render(Celsius(Temp { .deg = 3 }))

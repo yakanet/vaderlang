@@ -1711,6 +1711,17 @@ Inference is bidirectional: from the value (`x :: 12` infers `x: i32`), and from
 
 There is no Hindley-Milner inference across the program: the parameters of a function declaration must be annotated (`self` excepted). An expression-bodied function may leave out its return type, which its expression gives; a block body without one returns nothing. An exported function writes its return type: other modules read it as a contract, which must not change with its body. One that never returns says so with `@no_return` instead (§12 *Decorators*, `@no_return`).
 
+An exported constant writes its type too, unless its value shows it: a string, a character, a boolean, a struct literal, or a conversion `T(x)` to a scalar, an enum or a distinct type. A number does not show its type, since a free literal takes the one its context asks for.
+
+```vader
+export NAME :: "vader"                   // a string
+export ORIGIN :: Point { .x = 0, .y = 0 }
+export MASK :: u8(0x7F)
+export LIMIT: i64: 64                    // the type written
+export SIZES :: [1, 2, 3]                // error: write `SIZES: i32[]: ...`
+LOCAL :: 64                              // private: an i32
+```
+
 #### Type arguments of a call
 
 ```vader

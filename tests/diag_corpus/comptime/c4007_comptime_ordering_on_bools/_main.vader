@@ -2,6 +2,6 @@
 // the type checker reports the same operands on its own (T3043).
 module "snippet"
 
-export BAD :: @comptime true < false
+export BAD: bool: @comptime true < false
 
 main :: fn() -> i32 = 0

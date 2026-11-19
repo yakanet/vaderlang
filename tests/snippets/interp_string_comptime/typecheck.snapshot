@@ -5,9 +5,9 @@
   ConstDecl      GREETING             :: string
   FnDecl         main                 :: fn() -> i32
   FnDecl         name                 :: fn() -> string
-  expr 3:20     CallExpr       :: string
-  expr 3:30     StringLitExpr  :: string
-  expr 3:40     CallExpr       :: string
-  expr 3:40     IdentExpr      :: fn() -> string
+  expr 3:26     CallExpr       :: string
+  expr 3:36     StringLitExpr  :: string
+  expr 3:46     CallExpr       :: string
+  expr 3:46     IdentExpr      :: fn() -> string
   expr 3:8      IdentExpr      :: fn() -> string
   expr 6:12     StringLitExpr  :: string

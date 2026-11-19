@@ -295,10 +295,15 @@ value_reads :: fn(e: AST.Expr, typed: TypedProgram) -> ValueReads {
 // its inferred one.
 check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
     sym :: symbol_declared_at(typed.resolved, cd.name_span) else return
-    // Only a written type is the expected type. An unannotated const's entry is what
-    // an earlier walk inferred: a return-only walk types it before the expression-
-    // bodied fns it calls have their return, and would pin it to `?`.
-    annot :: if cd.ty == null { null } else { typed.decl_types[sym.id] }
+    // The expected type is the one written, or the one the value shows. Any other
+    // entry of an unannotated const is what an earlier walk inferred: a return-only
+    // walk types it before the expression-bodied fns it calls have their return,
+    // and would pin it to `?`.
+    annot :: if cd.ty == null {
+        evident_const_type(cd.value, typed.resolved)
+    } else {
+        typed.decl_types[sym.id]
+    }
     if is_type_expr(cd.value, typed.resolved) {
         if annot is null {
             typed.decl_types[sym.id] = TY_TYPE
@@ -314,13 +319,24 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
     got :: check_expr(cd.value, annot, typed, diags)
     check_no_singleton_call(cd, typed, diags)
     if annot == null {
-        typed.decl_types[sym.id] = default_if_free(got)
+        inferred :: default_if_free(got)
+        typed.decl_types[sym.id] = inferred
+        if leaves_export_type_to_inference(cd, inferred) {
+            detail :: "write `${cd.name}: ${display_type(inferred)}: ...`"
+            diags.push(typecheck_error(.ExportConstTypeLeftToInference, cd.name_span, detail))
+        }
         return
     }
     // Held to its written type as a typed local is, through an `Into` the
     // lowering then runs.
     emit_mismatch_if(got, annot, cd.span, cd.value, .TypeMismatch, typed, diags)
 }
+
+// An exported constant with no type written nor shown by its value: another
+// module reads it before the value's walk, from the declarations alone. An
+// unresolved type is reported already.
+leaves_export_type_to_inference :: fn(cd: AST.ConstDecl, inferred: Type) -> bool =
+    cd.visibility == .Public && !cd.comptime_synthetic && !type_contains_unresolved(inferred)
 
 // T3119 : a constant whose value calls a singleton is never folded, so each read
 // calls it again and the constant would change with the instance. A lambda the

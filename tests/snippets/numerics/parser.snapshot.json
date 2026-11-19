@@ -17,7 +17,7 @@
       {
         "kind": "ConstDecl",
         "name": "a",
-        "visibility": "public",
+        "visibility": "private",
         "type": null,
         "value": {
           "kind": "IntLitExpr",
@@ -28,7 +28,7 @@
       {
         "kind": "ConstDecl",
         "name": "b",
-        "visibility": "public",
+        "visibility": "private",
         "type": null,
         "value": {
           "kind": "IntLitExpr",
@@ -39,7 +39,7 @@
       {
         "kind": "ConstDecl",
         "name": "c",
-        "visibility": "public",
+        "visibility": "private",
         "type": null,
         "value": {
           "kind": "IntLitExpr",
@@ -50,7 +50,7 @@
       {
         "kind": "ConstDecl",
         "name": "d",
-        "visibility": "public",
+        "visibility": "private",
         "type": null,
         "value": {
           "kind": "IntLitExpr",
@@ -61,7 +61,7 @@
       {
         "kind": "ConstDecl",
         "name": "e",
-        "visibility": "public",
+        "visibility": "private",
         "type": null,
         "value": {
           "kind": "IntLitExpr",
@@ -72,7 +72,7 @@
       {
         "kind": "ConstDecl",
         "name": "f",
-        "visibility": "public",
+        "visibility": "private",
         "type": null,
         "value": {
           "kind": "IntLitExpr",
@@ -83,7 +83,7 @@
       {
         "kind": "ConstDecl",
         "name": "g",
-        "visibility": "public",
+        "visibility": "private",
         "type": {
           "kind": "IdentExpr",
           "name": "i64"
@@ -97,7 +97,7 @@
       {
         "kind": "ConstDecl",
         "name": "h",
-        "visibility": "public",
+        "visibility": "private",
         "type": {
           "kind": "IdentExpr",
           "name": "u32"
@@ -111,7 +111,7 @@
       {
         "kind": "ConstDecl",
         "name": "i",
-        "visibility": "public",
+        "visibility": "private",
         "type": null,
         "value": {
           "kind": "FloatLitExpr",
@@ -122,7 +122,7 @@
       {
         "kind": "ConstDecl",
         "name": "j",
-        "visibility": "public",
+        "visibility": "private",
         "type": null,
         "value": {
           "kind": "FloatLitExpr",
@@ -133,7 +133,7 @@
       {
         "kind": "ConstDecl",
         "name": "k",
-        "visibility": "public",
+        "visibility": "private",
         "type": {
           "kind": "IdentExpr",
           "name": "f32"
@@ -147,7 +147,7 @@
       {
         "kind": "ConstDecl",
         "name": "l",
-        "visibility": "public",
+        "visibility": "private",
         "type": {
           "kind": "IdentExpr",
           "name": "f64"

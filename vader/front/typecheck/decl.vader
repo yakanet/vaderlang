@@ -1261,9 +1261,53 @@ declare_const :: fn(
         resolved.alias_types[sym.id] = alias_for(sym, alias_ty, decl)
         typed.decl_types[sym.id] = TY_TYPE
         return
+    } else {
+        // Known before any value is typed, so another module reads it at once.
+        evident :: evident_const_type(decl.value, resolved)
+        if evident != null {
+            typed.decl_types[sym.id] = evident
+        }
     }
     alias :: AST.find_compiler_decorator(decl.decorators, .Alias) else return
     diags.push(typecheck_error(.AliasOfAValue, alias.span, "`${decl.name}` is a constant"))
+}
+
+// The type an unannotated constant's value gives at sight, with nothing typed: a
+// string, a character, a boolean, a struct literal, or a conversion `T(x)` to a
+// scalar, an enum or a distinct type. Null for any other value, whose type only
+// its walk knows.
+evident_const_type :: fn(value: AST.Expr, resolved: ResolvedModule) -> Type | null {
+    if value is AST.StringLitExpr {
+        return TY_STRING
+    }
+    if value is AST.CharLitExpr {
+        return TY_CHAR
+    }
+    if value is AST.BoolLitExpr {
+        return TY_BOOL
+    }
+    if value is AST.StructLitExpr {
+        return cleanly_resolved(value.type_name, resolved)
+    }
+    if value is AST.CallExpr && value.type_args.len() == 0 && is_type_expr(value.callee, resolved) {
+        // Not to a struct: converting a variant to its enum's data type gives the
+        // data read-only, which its walk decides.
+        target :: cleanly_resolved(value.callee, resolved)
+        if target is PrimitiveType | RangeType | DistinctType | EnumType {
+            return target
+        }
+    }
+    return null
+}
+
+// The type `e` names, or null when it does not resolve: the value's walk reports
+// why.
+cleanly_resolved :: fn(e: AST.Expr, resolved: ResolvedModule) -> Type | null {
+    ty :: type_from_expr(e, resolved, diag_sink())
+    if type_contains_unresolved(ty) {
+        return null
+    }
+    return ty
 }
 
 /// Resolve the type a `Name :: <type-expr>` declaration registers. A primitive,
@@ -1492,4 +1536,26 @@ test_declare_type_alias_records_aliased :: fn() -> void {
 @test
 test_declare_const_with_annotation_records_type :: fn() -> void {
     assert_eq(declared_type("PI: f64 :: 3.14", "PI"), "f64")
+}
+
+@test
+test_declare_const_gives_the_type_its_value_shows :: fn() -> void {
+    assert_eq(declared_type("NAME :: \"vader\"", "NAME"), "string")
+    assert_eq(declared_type("MASK :: u8(0x7F)", "MASK"), "u8")
+}
+
+@test
+test_declare_const_reads_a_struct_literal_named_in_full :: fn() -> void {
+    src :: """
+Point :: struct {
+    x: i32
+}
+ORIGIN :: Point { .x = 0 }
+"""
+    assert_eq(declared_type(src, "ORIGIN"), "Point")
+}
+
+@test
+test_declare_const_leaves_a_free_literal_to_its_walk :: fn() -> void {
+    assert_eq(declared_type("LIMIT :: 64", "LIMIT"), "<missing>")
 }

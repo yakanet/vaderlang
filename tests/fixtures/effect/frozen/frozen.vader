@@ -20,7 +20,7 @@ export Holder :: struct {
 }
 
 export CFG :: Cfg { .n = 1 }
-export TABLE :: [Cfg { .n = 1 }]
+export TABLE: Cfg[]: [Cfg { .n = 1 }]
 export UNTOUCHED :: Untouched { .n = 1 }
 
 export writes_a_field :: fn() -> void {

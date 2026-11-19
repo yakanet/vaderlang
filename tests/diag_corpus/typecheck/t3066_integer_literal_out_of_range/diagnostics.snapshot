@@ -2,9 +2,12 @@
 [13:22] error[T3066] integer literal does not fit the target integer type: `-129` is not in `i8`
 [14:23] error[T3066] integer literal does not fit the target integer type: `2147483648` is not in `i32`
 [15:32] error[T3066] integer literal does not fit the target integer type: `-1` is not in `u32`
-[16:29] error[T3066] integer literal does not fit the target integer type: `9000000000` does not fit in `i32`, the type it defaults to
-[17:30] error[T3066] integer literal does not fit the target integer type: `9000000000` does not fit in `i32`, the type it defaults to
-[18:29] error[T3066] integer literal does not fit the target integer type: `9000000000` does not fit in `i32`, the type it defaults to
+[16:1] warning[W0007] declaration is never used in its module: `DEFAULTED` is never used
+[16:22] error[T3066] integer literal does not fit the target integer type: `9000000000` does not fit in `i32`, the type it defaults to
+[17:1] warning[W0007] declaration is never used in its module: `DEFAULTED_ELEMENT` is never used
+[17:23] error[T3066] integer literal does not fit the target integer type: `9000000000` does not fit in `i32`, the type it defaults to
+[18:1] warning[W0007] declaration is never used in its module: `DEFAULTED_OPERAND` is never used
+[18:22] error[T3066] integer literal does not fit the target integer type: `9000000000` does not fit in `i32`, the type it defaults to
 [21:5] error[T3066] integer literal does not fit the target integer type: `-1` is not in `u8`
 [22:9] error[T3066] integer literal does not fit the target integer type: `300` is not in `u8`
 [23:5] warning[W0014] match arm can never be taken, since an earlier arm already covers it: every value of `u8` is already matched above

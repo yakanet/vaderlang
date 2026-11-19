@@ -152,23 +152,23 @@ export primitive_size :: fn(name: string) -> i64 {
 /// Names of stdlib core traits used for compiler-driven dispatch. Kept as
 /// plain string constants so cross-module symbol lookup goes through
 /// resolved imports rather than a privileged registry.
-export TRAIT_DISPLAY    :: @type_name(Display)
-export TRAIT_EQUALS     :: @type_name(Equals)
-export TRAIT_COMPARABLE :: @type_name(Comparable)
-export TRAIT_ADD        :: @type_name(Add)
-export TRAIT_SUB        :: @type_name(Sub)
-export TRAIT_MUL        :: @type_name(Mul)
-export TRAIT_DIV        :: @type_name(Div)
-export TRAIT_REM        :: @type_name(Rem)
-export TRAIT_HASH       :: @type_name(Hash)
-export TRAIT_CLONE      :: @type_name(Clone)
-export TRAIT_STEP       :: @type_name(Step)
-export TRAIT_INTO       :: @type_name(Into)
-export TRAIT_ITERATOR   :: @type_name(Iterator)
-export TRAIT_CONTAINS   :: @type_name(Contains)
-export TRAIT_INDEX      :: @type_name(Index)
-export TRAIT_INDEX_SET  :: @type_name(IndexSet)
-export TRAIT_ERROR      :: @type_name(Error)
+export TRAIT_DISPLAY: string: @type_name(Display)
+export TRAIT_EQUALS: string: @type_name(Equals)
+export TRAIT_COMPARABLE: string: @type_name(Comparable)
+export TRAIT_ADD: string: @type_name(Add)
+export TRAIT_SUB: string: @type_name(Sub)
+export TRAIT_MUL: string: @type_name(Mul)
+export TRAIT_DIV: string: @type_name(Div)
+export TRAIT_REM: string: @type_name(Rem)
+export TRAIT_HASH: string: @type_name(Hash)
+export TRAIT_CLONE: string: @type_name(Clone)
+export TRAIT_STEP: string: @type_name(Step)
+export TRAIT_INTO: string: @type_name(Into)
+export TRAIT_ITERATOR: string: @type_name(Iterator)
+export TRAIT_CONTAINS: string: @type_name(Contains)
+export TRAIT_INDEX: string: @type_name(Index)
+export TRAIT_INDEX_SET: string: @type_name(IndexSet)
+export TRAIT_ERROR: string: @type_name(Error)
 
 /// `impl_base_key` of a nominal declaration: the symbol ids are unique across
 /// every kind, so the id alone names it.
@@ -245,26 +245,26 @@ export trait_key_name :: fn(key: string) -> string = mangle_last_segment(key)
 // ---- core structs and methods ---------------------------------------------
 
 /// Names of stdlib core structs the compiler refers to by symbol.
-export STRUCT_RANGE :: @type_name(Range)
-export STRUCT_FIELD :: @type_name(Field)
+export STRUCT_RANGE: string: @type_name(Range)
+export STRUCT_FIELD: string: @type_name(Field)
 
 /// `std/core::Stop`, what an `Iterator.next` returns once the iteration is over.
-export STRUCT_STOP :: @type_name(Stop)
+export STRUCT_STOP: string: @type_name(Stop)
 
 /// `std/core::CLibrary`, the library an `@extern` names.
-export STRUCT_C_LIBRARY :: @type_name(CLibrary)
+export STRUCT_C_LIBRARY: string: @type_name(CLibrary)
 
 /// `std/core::Condition`, an expression a compiler decorator reads as written.
-export STRUCT_CONDITION :: @type_name(Condition)
+export STRUCT_CONDITION: string: @type_name(Condition)
 
 /// `std/core::Around`, the function an `@interceptor` names.
-export STRUCT_AROUND :: @type_name(Around)
+export STRUCT_AROUND: string: @type_name(Around)
 
 /// `std/core::DecoratorTarget`, what the parentheses of a decorator declaration name.
-export ENUM_DECORATOR_TARGET :: @type_name(DecoratorTarget)
+export ENUM_DECORATOR_TARGET: string: @type_name(DecoratorTarget)
 
 /// `std/core::Intrinsic`, the operations the toolchain implements.
-export TRAIT_INTRINSIC :: @type_name(Intrinsic)
+export TRAIT_INTRINSIC: string: @type_name(Intrinsic)
 
 /// Method names the compiler dispatches by, paired with the `TRAIT_*` above
 /// (`Add::add`, `Comparable::compare`, `Iterator::next`, ...). Same rationale as

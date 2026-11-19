@@ -20,5 +20,5 @@
   ConstDecl      DEFAULT_ID           :: i64
   StructDecl     Node                 :: Node
   expr 11:17    IdentExpr      :: i64
-  expr 7:22     CallExpr       :: i64
-  expr 7:22     IdentExpr      :: type
+  expr 7:25     CallExpr       :: i64
+  expr 7:25     IdentExpr      :: type

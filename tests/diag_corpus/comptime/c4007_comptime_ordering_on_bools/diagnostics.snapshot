@@ -1,2 +1,2 @@
-[5:25] error[C4007] comptime value has incompatible type: `bool` values are not ordered (no Comparable impl); only == and != are valid at comptime
-[5:25] error[T3043] operand type does not implement the trait this operator requires: `bool` does not implement `Comparable`
+[5:29] error[C4007] comptime value has incompatible type: `bool` values are not ordered (no Comparable impl); only == and != are valid at comptime
+[5:29] error[T3043] operand type does not implement the trait this operator requires: `bool` does not implement `Comparable`

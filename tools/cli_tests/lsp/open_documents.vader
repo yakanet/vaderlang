@@ -26,7 +26,7 @@ SIBLING :: "module \"demo\"\n\nANSWER :: 40 + 2\n"
 // A sibling that declares a typed constant: it has no hint of its own.
 TYPED_SIBLING :: "module \"demo\"\n\nANSWER: i64: 42\n"
 
-TWICE :: "module \"demo\"\n\nexport TWICE :: ANSWER * 2\n"
+TWICE :: "module \"demo\"\n\nTWICE :: ANSWER * 2\n"
 
 WHOLE_FILE :: r"""{"start":{"line":0,"character":0},"end":{"line":100,"character":0}}"""
 
@@ -219,7 +219,7 @@ test_an_open_document_is_found_again_whichever_way_the_client_spells_its_uri :: 
     uri :: editor_uri("${dir}/b.vader")
     client.send(did_open(uri, TWICE))
     assert_eq(error_places(diagnostics_of(client, file_uri("${dir}/b.vader"))), "")
-    position :: r""","position":{"line":2,"character":17}"""
+    position :: r""","position":{"line":2,"character":10}"""
     found :: request(client, "textDocument/definition", on_document(uri, position))
     assert_eq(string_member(found, "uri") else "", file_uri("${dir}/a.vader"))
     assert_eq(int_at(found, ["range", "start", "line"]), 2)

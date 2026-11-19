@@ -12,18 +12,18 @@
   expr 10:12    BinaryExpr     :: i32
   expr 10:12    IdentExpr      :: i32
   expr 10:16    IdentExpr      :: i32
-  expr 13:18    CallExpr       :: i32
-  expr 13:29    BinaryExpr     :: i32
-  expr 13:29    BinaryExpr     :: i32
+  expr 13:21    CallExpr       :: i32
+  expr 13:32    BinaryExpr     :: i32
+  expr 13:32    BinaryExpr     :: i32
   expr 13:8     IdentExpr      :: fn() -> i32
-  expr 15:20    CallExpr       :: string
-  expr 15:30    BinaryExpr     :: string
-  expr 15:30    StringLitExpr  :: string
-  expr 15:42    StringLitExpr  :: string
+  expr 15:26    CallExpr       :: string
+  expr 15:36    BinaryExpr     :: string
+  expr 15:36    StringLitExpr  :: string
+  expr 15:48    StringLitExpr  :: string
   expr 15:8     IdentExpr      :: fn() -> string
-  expr 17:16    CallExpr       :: i32
-  expr 17:26    CallExpr       :: i32
-  expr 17:26    IdentExpr      :: fn(i32) -> i32
+  expr 17:19    CallExpr       :: i32
+  expr 17:29    CallExpr       :: i32
+  expr 17:29    IdentExpr      :: fn(i32) -> i32
   expr 17:8     IdentExpr      :: fn() -> i32
   expr 20:13    StringLitExpr  :: string
   expr 20:26    IdentExpr      :: string

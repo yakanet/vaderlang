@@ -12,7 +12,10 @@
         "visibility": "private",
         "typeParams": [],
         "params": [],
-        "returnType": null,
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
         "body": {
           "kind": "BlockExpr",
           "stmts": [],
@@ -28,7 +31,10 @@
         "kind": "ConstDecl",
         "name": "A",
         "visibility": "public",
-        "type": null,
+        "type": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
         "value": {
           "kind": "CallExpr",
           "callee": {
@@ -45,7 +51,10 @@
         "visibility": "private",
         "typeParams": [],
         "params": [],
-        "returnType": null,
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
         "body": {
           "kind": "BlockExpr",
           "stmts": [],
@@ -69,7 +78,10 @@
         "kind": "ConstDecl",
         "name": "B",
         "visibility": "public",
-        "type": null,
+        "type": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
         "value": {
           "kind": "CallExpr",
           "callee": {
@@ -86,7 +98,10 @@
         "visibility": "private",
         "typeParams": [],
         "params": [],
-        "returnType": null,
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
         "body": {
           "kind": "BlockExpr",
           "stmts": [],
@@ -110,7 +125,10 @@
         "kind": "ConstDecl",
         "name": "C",
         "visibility": "public",
-        "type": null,
+        "type": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
         "value": {
           "kind": "CallExpr",
           "callee": {

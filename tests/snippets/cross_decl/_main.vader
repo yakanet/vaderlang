@@ -1,10 +1,10 @@
 module "snippet"
 
-export A :: @comptime 10
+export A: i32: @comptime 10
 
-export B :: @comptime A * 2
+export B: i32: @comptime A * 2
 
-export C :: @comptime A + B
+export C: i32: @comptime A + B
 
 main :: fn() -> i32 {
     return C

@@ -2,18 +2,18 @@ module "snippet"
 
 import "std/console"
 
-export a :: 42
-export b :: 1_000_000
-export c :: 0xFF
-export d :: 0xFF_FF
-export e :: 0b1010
-export f :: 0o755
-export g: i64: 42
-export h: u32: 100
-export i :: 3.14
-export j :: 1.5e-10
-export k: f32: 3.14
-export l: f64: 0.5
+a :: 42
+b :: 1_000_000
+c :: 0xFF
+d :: 0xFF_FF
+e :: 0b1010
+f :: 0o755
+g: i64: 42
+h: u32: 100
+i :: 3.14
+j :: 1.5e-10
+k: f32: 3.14
+l: f64: 0.5
 
 main :: fn() -> i32 {
     println("${a} ${b} ${c} ${d} ${e} ${f}")

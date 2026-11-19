@@ -9,73 +9,61 @@
 [3:9-3:20   ] StringPart         "std/console" ="std/console"
 [3:20-3:21  ] StringEnd          "\""
 [4:1-4:1    ] Newline            "\n"
-[5:1-5:7    ] KwExport           "export"
-[5:8-5:9    ] Ident              "a"
-[5:10-5:12  ] DeclConst          "::"
-[5:13-5:15  ] IntLit             "42" =42n
+[5:1-5:2    ] Ident              "a"
+[5:3-5:5    ] DeclConst          "::"
+[5:6-5:8    ] IntLit             "42" =42n
 [6:1-6:1    ] Newline            "\n"
-[6:1-6:7    ] KwExport           "export"
-[6:8-6:9    ] Ident              "b"
-[6:10-6:12  ] DeclConst          "::"
-[6:13-6:22  ] IntLit             "1_000_000" =1000000n
+[6:1-6:2    ] Ident              "b"
+[6:3-6:5    ] DeclConst          "::"
+[6:6-6:15   ] IntLit             "1_000_000" =1000000n
 [7:1-7:1    ] Newline            "\n"
-[7:1-7:7    ] KwExport           "export"
-[7:8-7:9    ] Ident              "c"
-[7:10-7:12  ] DeclConst          "::"
-[7:13-7:17  ] IntLit             "0xFF" =255n
+[7:1-7:2    ] Ident              "c"
+[7:3-7:5    ] DeclConst          "::"
+[7:6-7:10   ] IntLit             "0xFF" =255n
 [8:1-8:1    ] Newline            "\n"
-[8:1-8:7    ] KwExport           "export"
-[8:8-8:9    ] Ident              "d"
-[8:10-8:12  ] DeclConst          "::"
-[8:13-8:20  ] IntLit             "0xFF_FF" =65535n
+[8:1-8:2    ] Ident              "d"
+[8:3-8:5    ] DeclConst          "::"
+[8:6-8:13   ] IntLit             "0xFF_FF" =65535n
 [9:1-9:1    ] Newline            "\n"
-[9:1-9:7    ] KwExport           "export"
-[9:8-9:9    ] Ident              "e"
-[9:10-9:12  ] DeclConst          "::"
-[9:13-9:19  ] IntLit             "0b1010" =10n
+[9:1-9:2    ] Ident              "e"
+[9:3-9:5    ] DeclConst          "::"
+[9:6-9:12   ] IntLit             "0b1010" =10n
 [10:1-10:1  ] Newline            "\n"
-[10:1-10:7  ] KwExport           "export"
-[10:8-10:9  ] Ident              "f"
-[10:10-10:12] DeclConst          "::"
-[10:13-10:18] IntLit             "0o755" =493n
+[10:1-10:2  ] Ident              "f"
+[10:3-10:5  ] DeclConst          "::"
+[10:6-10:11 ] IntLit             "0o755" =493n
 [11:1-11:1  ] Newline            "\n"
-[11:1-11:7  ] KwExport           "export"
-[11:8-11:9  ] Ident              "g"
-[11:9-11:10 ] Colon              ":"
-[11:11-11:14] Ident              "i64"
-[11:14-11:15] Colon              ":"
-[11:16-11:18] IntLit             "42" =42n
+[11:1-11:2  ] Ident              "g"
+[11:2-11:3  ] Colon              ":"
+[11:4-11:7  ] Ident              "i64"
+[11:7-11:8  ] Colon              ":"
+[11:9-11:11 ] IntLit             "42" =42n
 [12:1-12:1  ] Newline            "\n"
-[12:1-12:7  ] KwExport           "export"
-[12:8-12:9  ] Ident              "h"
-[12:9-12:10 ] Colon              ":"
-[12:11-12:14] Ident              "u32"
-[12:14-12:15] Colon              ":"
-[12:16-12:19] IntLit             "100" =100n
+[12:1-12:2  ] Ident              "h"
+[12:2-12:3  ] Colon              ":"
+[12:4-12:7  ] Ident              "u32"
+[12:7-12:8  ] Colon              ":"
+[12:9-12:12 ] IntLit             "100" =100n
 [13:1-13:1  ] Newline            "\n"
-[13:1-13:7  ] KwExport           "export"
-[13:8-13:9  ] Ident              "i"
-[13:10-13:12] DeclConst          "::"
-[13:13-13:17] FloatLit           "3.14" =3.14
+[13:1-13:2  ] Ident              "i"
+[13:3-13:5  ] DeclConst          "::"
+[13:6-13:10 ] FloatLit           "3.14" =3.14
 [14:1-14:1  ] Newline            "\n"
-[14:1-14:7  ] KwExport           "export"
-[14:8-14:9  ] Ident              "j"
-[14:10-14:12] DeclConst          "::"
-[14:13-14:20] FloatLit           "1.5e-10" =1.5e-10
+[14:1-14:2  ] Ident              "j"
+[14:3-14:5  ] DeclConst          "::"
+[14:6-14:13 ] FloatLit           "1.5e-10" =1.5e-10
 [15:1-15:1  ] Newline            "\n"
-[15:1-15:7  ] KwExport           "export"
-[15:8-15:9  ] Ident              "k"
-[15:9-15:10 ] Colon              ":"
-[15:11-15:14] Ident              "f32"
-[15:14-15:15] Colon              ":"
-[15:16-15:20] FloatLit           "3.14" =3.14
+[15:1-15:2  ] Ident              "k"
+[15:2-15:3  ] Colon              ":"
+[15:4-15:7  ] Ident              "f32"
+[15:7-15:8  ] Colon              ":"
+[15:9-15:13 ] FloatLit           "3.14" =3.14
 [16:1-16:1  ] Newline            "\n"
-[16:1-16:7  ] KwExport           "export"
-[16:8-16:9  ] Ident              "l"
-[16:9-16:10 ] Colon              ":"
-[16:11-16:14] Ident              "f64"
-[16:14-16:15] Colon              ":"
-[16:16-16:19] FloatLit           "0.5" =0.5
+[16:1-16:2  ] Ident              "l"
+[16:2-16:3  ] Colon              ":"
+[16:4-16:7  ] Ident              "f64"
+[16:7-16:8  ] Colon              ":"
+[16:9-16:12 ] FloatLit           "0.5" =0.5
 [17:1-17:1  ] Newline            "\n"
 [18:1-18:5  ] Ident              "main"
 [18:6-18:8  ] DeclConst          "::"

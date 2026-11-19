@@ -12,7 +12,7 @@ export INDENT :: "    "
 
 // Soft wrap threshold. Calls / struct literals / array literals whose
 // single-line rendering exceeds this width break to one-per-line.
-export MAX_LINE :: 100
+export MAX_LINE: i32: 100
 
 export NL :: "\n"
 

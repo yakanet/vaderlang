@@ -171,6 +171,7 @@ export TypecheckCode :: enum(CodeInfo) {
     IntrinsicImplemented            { .id = "T3146", .message = "`Intrinsic` is implemented by the toolchain alone" },
     NoDecoratorToRead               { .id = "T3147", .message = "`@decorator` finds no decorator to read here" },
     ExportReturnLeftToInference     { .id = "T3148", .message = "an exported function leaves its return type to inference" },
+    ExportConstTypeLeftToInference  { .id = "T3149", .message = "an exported constant leaves its type to inference" },
 }
 
 // Parser-pass codes.

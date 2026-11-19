@@ -6,8 +6,8 @@ module "snippet"
 @singleton
 names :: fn() -> string[] = []
 
-export TABLE :: names()
+export TABLE: string[]: names()
 
-export COUNT :: names().len() + 1
+export COUNT: i64: names().len() + 1
 
-export READ_LATER :: () -> names().len()
+export READ_LATER: fn() -> i64: () -> names().len()

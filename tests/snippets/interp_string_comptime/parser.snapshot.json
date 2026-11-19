@@ -12,7 +12,10 @@
         "visibility": "private",
         "typeParams": [],
         "params": [],
-        "returnType": null,
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "string"
+        },
         "body": {
           "kind": "BlockExpr",
           "stmts": [],
@@ -48,7 +51,10 @@
         "kind": "ConstDecl",
         "name": "GREETING",
         "visibility": "public",
-        "type": null,
+        "type": {
+          "kind": "IdentExpr",
+          "name": "string"
+        },
         "value": {
           "kind": "CallExpr",
           "callee": {

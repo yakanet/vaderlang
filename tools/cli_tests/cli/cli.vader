@@ -45,13 +45,13 @@ export Feed :: struct {
 }
 
 /// The wait for a command, by default: a check or a build of a small program.
-export DEFAULT_TIMEOUT :: 30.seconds()
+export DEFAULT_TIMEOUT: Duration: 30.seconds()
 
 /// The wait for a command that builds a large program, the compiler included.
-export LONG_TIMEOUT :: 120.seconds()
+export LONG_TIMEOUT: Duration: 120.seconds()
 
 /// The wait for a driven build, which compiles its driver first.
-export HEAVY_TIMEOUT :: 600.seconds()
+export HEAVY_TIMEOUT: Duration: 600.seconds()
 
 // Where the command finds its library when nothing else says.
 HOME_VARIABLE :: "VADER_HOME"

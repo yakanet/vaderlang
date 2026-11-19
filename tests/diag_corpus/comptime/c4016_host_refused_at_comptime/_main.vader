@@ -11,7 +11,7 @@ module "snippet"
 
 import "std/target"
 
-export INTERACTIVE_AT_BUILD :: @comptime read_tty()
+export INTERACTIVE_AT_BUILD: string: @comptime read_tty()
 
 // `current_os` will never leave the intrinsics: it answers for the machine the
 // COMPILER runs on, and baking that would make a macOS emit differ from a Linux

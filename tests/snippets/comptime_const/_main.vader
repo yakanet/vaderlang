@@ -10,11 +10,11 @@ export square :: fn(x: i32) -> i32 {
     return x * x
 }
 
-export ANSWER :: @comptime (40 + 2) * 1
+export ANSWER: i32: @comptime (40 + 2) * 1
 
-export GREETING :: @comptime "hello, " + "world"
+export GREETING: string: @comptime "hello, " + "world"
 
-export NINE :: @comptime square(3)
+export NINE: i32: @comptime square(3)
 
 main :: fn() -> i32 {
     println("greeting: ${GREETING}")

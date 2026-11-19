@@ -4,7 +4,7 @@
 // not the construction site's, see `_main`.
 module "snippet/shapes"
 
-export DEFAULT_ID :: i64(99)
+export DEFAULT_ID: i64: i64(99)
 
 export Node :: struct {
     name: string

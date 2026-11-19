@@ -11,7 +11,7 @@ import "std/io"
 import "std/string"
 
 /// The toolchain's version, as `vader --version` prints it.
-export VADER_VERSION :: @comptime {
+export VADER_VERSION: string: @comptime {
     read :: read_file_string("VERSION")
         else panic("cannot read `vader/support/version/VERSION`: ${read.message()}")
     return read.trim()

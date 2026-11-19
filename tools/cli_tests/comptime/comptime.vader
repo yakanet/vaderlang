@@ -68,7 +68,7 @@ ASSETS :: r"""
     import "std/console"
     import "std/fs"
 
-    export ICON :: @comptime {
+    export ICON: u8[]: @comptime {
         println("reading the icon")
         read :: read_file_bytes("icon.bin") else panic("cannot read `icon.bin`: ${read.message()}")
         return read
@@ -123,7 +123,7 @@ SQUARES :: r"""
 
     import "std/console"
 
-    export SQUARES :: @comptime {
+    export SQUARES: i32[]: @comptime {
         println("computing the squares")
         out: i32[]: []
         for i in 0..<4 {

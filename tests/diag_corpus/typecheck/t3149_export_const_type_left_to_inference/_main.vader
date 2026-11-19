@@ -1,0 +1,38 @@
+// T3149: an exported constant that leaves its type to inference.
+//
+// Its type is what other modules read, from the declarations alone, before any
+// value is typed. A value that gives its type at sight passes: a string, a
+// character, a boolean, a struct literal naming its type, a conversion to a
+// primitive. So do a written type and a private constant. A number does not give
+// its type: a free literal takes the one its context asks for.
+
+module "snippet"
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+// A free literal: refused, naming the type to write.
+export LIMIT :: 64
+
+// An expression: refused.
+export DOUBLED :: LIMIT_TYPED * 2
+
+// An array literal: refused.
+export SIZES :: [1, 2, 3]
+
+// The type written: passes.
+export LIMIT_TYPED: i64: 64
+
+// Given at sight: pass.
+export NAME :: "snippet"
+export SEPARATOR :: '/'
+export VERBOSE :: false
+export ORIGIN :: Point { .x = 0, .y = 0 }
+export MASK :: u8(0x7F)
+
+// Private: passes.
+LOCAL :: 64
+
+main :: fn() -> i32 = LOCAL - 64

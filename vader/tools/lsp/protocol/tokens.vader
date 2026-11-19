@@ -73,7 +73,7 @@ export modifier_bit :: fn(m: TokenModifier) -> i32 = 1 << i32(m)
 
 /// LSP semantic-token type names. The index of each entry is what travels on
 /// the wire ; the order MUST stay in sync with the `TokenType` enum above.
-export TOKEN_TYPES :: [
+export TOKEN_TYPES: string[]: [
     "namespace",
     "type",
     "function",
@@ -91,7 +91,7 @@ export TOKEN_TYPES :: [
 
 /// LSP semantic-token modifier names. Index = bit position in the modifier
 /// bitmask ; order MUST stay in sync with `TokenModifier`.
-export TOKEN_MODIFIERS :: [
+export TOKEN_MODIFIERS: string[]: [
     "documentation",
     "readonly",
     "static",

@@ -1,6 +1,6 @@
 module "snippet"
 
-export GREETING :: @comptime "Hello, ${name()}!"
+export GREETING: string: @comptime "Hello, ${name()}!"
 
 export name :: fn() -> string {
     return "Vader"

@@ -23,7 +23,7 @@ export lookup_keyword :: fn(text: string) -> TokenKind {
 /// Every keyword's source text, in declaration order: the list tooling consults
 /// for the keyword set (LSP completion, ...). Excludes the `module` soft
 /// keyword, which no `TokenKind` spells (it is contextual).
-export KEYWORDS :: @comptime {
+export KEYWORDS: string[]: @comptime {
     out: string[]: []
     for k in KEYWORD_KINDS {
         out.push(k.keyword)

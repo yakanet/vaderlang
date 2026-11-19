@@ -791,7 +791,7 @@ export instance_args :: fn(e: Expr) -> TypeExpr[] {
 }
 
 /// How many trait aliases a name goes through at most: a cycle stops there.
-export MAX_TRAIT_ALIAS_DEPTH :: 16
+export MAX_TRAIT_ALIAS_DEPTH: i32: 16
 
 /// The trait `d` stands for when it is an alias, one trait on the right and no
 /// method of its own (`CheckStage :: trait = Stage<Checked, Diagnostic[]>`) ;
