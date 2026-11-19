@@ -13,7 +13,6 @@
 module "std/net"
 
 import "std/io"
-import "std/target"
 import "system/posix"
 import "system/windows"
 

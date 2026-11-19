@@ -39,9 +39,10 @@ ReachUnit :: struct {
     /// Whether the module loses the declarations nothing reaches: a dependency.
     /// A module that is not trimmed is reached whole.
     trimmed: bool
-    /// What the load took from the module with its tests (`without_tests`): what
-    /// they name stays, so that the lint of imports finds what an import served.
-    removed: AST.Decl[] = []
+    /// The bodies of the other targets, which target selection dropped. In a
+    /// module that is not trimmed, what they name stays, so that the lint of
+    /// imports finds what an import served.
+    discarded: AST.FnDecl[] = []
 }
 
 /// What `only_reached` leaves of one module.
@@ -86,8 +87,11 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
         }
     }
     for unit in units {
-        for d in unit.removed {
-            seed_leading(names_written_by(d), leading, seeded, seed_refs)
+        // The lint of imports reads no trimmed module.
+        if !unit.trimmed {
+            for body in unit.discarded {
+                seed_leading(names_written_by(body), leading, seeded, seed_refs)
+            }
         }
         for f in unit.files {
             module_names: string[]: []

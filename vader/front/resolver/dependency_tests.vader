@@ -9,7 +9,7 @@
 // of dead code's to report.
 //
 // Imports stay: one that only a test needed is still loaded, and the lint of
-// imports reads the names of what went (`Untested.removed`).
+// imports does not judge a file that lost a test (`Untested.cut`).
 
 module "vader/front/resolver"
 
@@ -77,7 +77,7 @@ export without_tests :: fn(files: SourceFile[], module_name: string) -> Untested
             only_tested :: is_reached(d, by_tests, private_types)
                 && !is_reached(d, reachable, private_types)
             if is_test(d) || only_tested {
-                out.removed.push(d)
+                out.cut.add(AST.decl_span(d).start.file)
             } else {
                 kept.push(d)
             }
@@ -90,8 +90,8 @@ export without_tests :: fn(files: SourceFile[], module_name: string) -> Untested
 /// A module's files without its tests (`without_tests`).
 export Untested :: struct {
     files: SourceFile[]
-    /// The tests, and what only they reach.
-    removed: AST.Decl[] = []
+    /// The files that lost a test, or what only tests reach.
+    cut: Set<string> = Set<string> {}
 }
 
 // Whether `d` is a test.

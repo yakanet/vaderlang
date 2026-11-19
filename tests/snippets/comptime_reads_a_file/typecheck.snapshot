@@ -24,4 +24,4 @@
   expr 19:13    IdentExpr      :: string
   expr 19:5     CallExpr       :: void
   expr 19:5     IdentExpr      :: fn(T) -> void
-  expr 232:62   IdentExpr      :: i64
+  expr 231:62   IdentExpr      :: i64

@@ -10,7 +10,6 @@ module "std/fs"
 
 import "std/io"
 import "std/math"
-import "std/target"
 import "system/posix"
 import "system/windows"
 

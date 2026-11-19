@@ -157,8 +157,9 @@ test_a_module_is_tested_without_the_tests_of_the_modules_it_imports :: fn() -> v
 
 @test
 test_a_test_is_checked_by_vader_test_alone :: fn() -> void {
-    // Every other command loads the module without its tests, and without the
-    // import only they use: neither the error nor an unused import shows.
+    // Every other command loads the module without its tests: neither the error
+    // nor an import only they use shows, `std/string` included, which serves
+    // through `in` alone.
     dir :: scratch_dir("test_checked_alone")
     write_file(
         "${dir}/app.vader",
@@ -167,10 +168,12 @@ test_a_test_is_checked_by_vader_test_alone :: fn() -> void {
 
         main :: fn() -> i32 = 0
 
+        import "std/string"
         import "std/testing"
 
         @test
         test_main :: fn() -> void {
+            assert("a" in "abc", "a substring")
             wrong: i32: "text"
             assert_eq(main(), wrong)
         }

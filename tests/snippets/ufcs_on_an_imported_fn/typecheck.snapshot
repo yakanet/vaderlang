@@ -29,7 +29,7 @@
   expr 22:31    IdentExpr      :: string
   expr 22:9     CallExpr       :: void
   expr 22:9     IdentExpr      :: fn(T) -> void
-  expr 232:62   IdentExpr      :: i64
+  expr 231:62   IdentExpr      :: i64
   expr 25:14    CallExpr       :: IOError | string
   expr 25:14    FieldExpr      :: fn(i64) -> IOError | string
   expr 25:14    IdentExpr      :: string

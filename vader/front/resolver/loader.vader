@@ -99,9 +99,9 @@ export LoadedModule :: struct {
     /// Every `@target` declaration of the module as written, before selection
     /// merged each group into one: the targets of a group live there alone.
     target_decls: FnDecl[] = []
-    /// What `without_tests` took from the module: the lint of imports reads their
-    /// names as its files'.
-    removed_tests: Decl[] = []
+    /// The files `without_tests` took a test from: the lint of imports does not
+    /// judge them.
+    files_without_tests: Set<string> = Set<string> {}
     /// The module holds only the declarations the program reaches
     /// (`only_reached`): what looks unused in it may be used by the ones that
     /// went, and a lint of dead code does not read it.
@@ -458,7 +458,7 @@ DeferredModule :: struct {
     sources: SourceFile[]
     discarded_bodies: FnDecl[]
     target_decls: FnDecl[]
-    removed_tests: Decl[]
+    files_without_tests: Set<string>
     trimmed: bool = false
     lost_impl_traits: string[] = []
     /// The functions the source stages wrote into it without a body.
@@ -579,7 +579,7 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
         .sources = sources,
         .discarded_bodies = dropped_bodies,
         .target_decls = target_declarations(parsed),
-        .removed_tests = untested.removed,
+        .files_without_tests = untested.cut,
     }
     // Only its imports for now, which is what the walk of the module graph
     // reads: the symbols wait for `collect_deferred`, once every module is
@@ -599,7 +599,7 @@ loaded_module :: fn(ctx: LoadState, read: DeferredModule, collected: CollectedMo
     LoadedModule {
         .discarded_bodies = read.discarded_bodies,
         .target_decls = read.target_decls,
-        .removed_tests = read.removed_tests,
+        .files_without_tests = read.files_without_tests,
         .trimmed = read.trimmed,
         .lost_impl_traits = read.lost_impl_traits,
         .module = Module {
@@ -714,7 +714,7 @@ trimmed_to_reached :: fn(ctx: LoadState) -> DeferredModule[] {
         units.push(ReachUnit {
             .files = read.sources,
             .trimmed = is_trimmed(ctx, read.found),
-            .removed = read.removed_tests,
+            .discarded = read.discarded_bodies,
         })
     }
     reached :: only_reached(units, GATE_FUNCTIONS)

@@ -1,0 +1,19 @@
+// W0006: an import serves its file when a body another target selects uses it:
+// `system/windows` is read by the Windows body of `name` alone, and serves on
+// every host. `std/math` serves nothing and is reported.
+
+module "snippet"
+
+import "std/math"
+import "system/windows"
+
+@target
+name :: fn() -> string
+
+@target(.Linux, .Darwin)
+name :: fn() -> string = "posix"
+
+@target(.Windows)
+name :: fn() -> string = from_wide([0], 0)
+
+main :: fn() -> i32 = i32(name().byte_len())

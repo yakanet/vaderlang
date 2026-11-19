@@ -60,23 +60,20 @@ export check_unused_imports :: fn(
         }
         typed :: checked.all_modules[id]
         for file in loaded.module.files {
-            // A file the compiler wrote repeats imports it may not need.
-            if is_generated_file(file.path) {
+            // A file the compiler wrote repeats imports it may not need, and one
+            // that lost its tests is not what its author wrote: a test may use
+            // an import through an impl, which only its type check would show.
+            // `vader test` and the editor judge it whole.
+            if is_generated_file(file.path) || file.path in loaded.files_without_tests {
                 continue
             }
             // Walked for the first import no name serves: most files have none.
             run: ImplsRun | null = null
             names :: names_written(file.program.decls)
-            // A body another platform selects is source of this file too, and so
-            // is a test the load left out.
+            // A body another platform selects is source of this file too.
             for body in loaded.discarded_bodies {
                 if body.span.start.file == file.path {
                     add_names(body, names)
-                }
-            }
-            for removed in loaded.removed_tests {
-                if AST.decl_span(removed).start.file == file.path {
-                    add_names(removed, names)
                 }
             }
             for d in file.program.decls {

@@ -7,7 +7,6 @@
 
 module "toolchain/build"
 
-import "std/console"
 import "std/iter"
 AST :: import "toolchain/ast"
 import "toolchain/protocol"

@@ -10,7 +10,6 @@ module "tools/cli_tests/doctor"
 
 import "json"
 import "std/abort"
-import "std/fs"
 import "std/process"
 import "std/string"
 import "tools/cli_tests/cli"

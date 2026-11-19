@@ -191,4 +191,4 @@
   expr 68:16    FieldExpr      :: string
   expr 68:16    IdentExpr      :: IOError
   expr 70:12    StringLitExpr  :: string
-  expr 78:56    StructLitExpr  :: OpenOptions
+  expr 77:56    StructLitExpr  :: OpenOptions

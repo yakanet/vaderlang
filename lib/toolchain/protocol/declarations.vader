@@ -752,7 +752,6 @@ read_optional_span :: fn(d: DeclReader) -> Span | null | ProtocolError = d.read_
 
 import "std/abort"
 import "std/fs"
-import "std/io"
 import "std/string"
 import "std/testing"
 import "toolchain/parser"
