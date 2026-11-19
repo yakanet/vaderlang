@@ -359,7 +359,7 @@ check_source_bodies :: fn(src: string) -> CheckedSource {
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[]: []
     result :: check_module(parsed.program, rm, diags)
-    walk_bodies(parsed.program.decls, result.typed, diags, .Full)
+    walk_bodies(parsed.program.decls, result.typed, diags)
     return CheckedSource { .typed = result.typed, .diags = diags }
 }
 

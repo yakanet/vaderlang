@@ -115,11 +115,7 @@ push_narrow :: fn(typed: TypedProgram, sym_id: i32, narrowed: Type) -> NarrowSlo
 /// When `prev` is null the slot is *removed* so a later
 /// `narrow_for_binding` falls back to the binding's then-current static
 /// type. Removing (not overwriting with a captured `static_ty`) is what
-/// keeps narrowing scope-local : a stale type captured by an earlier
-/// walk, e.g. the premature imported-body walk in
-/// `settle_external_expr_bodied_returns`, which runs before a module's
-/// imports are wired and so sees `?` for `m[k]`-bound locals, must not
-/// outlive its scope and poison the authoritative re-walk.
+/// keeps narrowing scope-local.
 pop_narrow :: fn(typed: TypedProgram, sym_id: i32, prev: NarrowSlot | null) -> void {
     if prev == null {
         typed.narrow.bindings.remove(sym_id)

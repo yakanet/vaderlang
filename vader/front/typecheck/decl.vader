@@ -1207,8 +1207,12 @@ declare_fn_return :: fn(
     diags: Diagnostic[],
 ) -> Type {
     rt :: decl.return_type else {
-        // Expression-bodied without annotation : inference defers to body
-        // checking. Block-bodied without annotation : default to void.
+        // `@no_return` gives the type itself, for every reader, before any body.
+        // Otherwise expression-bodied without annotation : inference defers to
+        // body checking. Block-bodied without annotation : default to void.
+        if AST.has_compiler_decorator(decl.decorators, .NoReturn) {
+            return TY_NEVER
+        }
         if decl.is_expression_bodied {
             return TY_UNRESOLVED
         }

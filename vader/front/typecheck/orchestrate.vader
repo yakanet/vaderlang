@@ -244,23 +244,20 @@ check_project_modules :: fn(
             typed_by_name[lm.module.module_name] = t
         }
     }
-    // Populate `imported_fn_overloads` for every NON-ENTRY module BEFORE
-    // `settle_external_expr_bodied_returns` walks their bodies: otherwise
-    // UFCS dispatch inside an external expr-bodied fn (e.g. `s.chars()
-    // .count()` inside std/string::len) doesn't see cross-module overloads.
-    // The entry's overload table is populated AFTER settle so it picks up
-    // the resolved return types of expr-bodied externals.
+    register_project_impls(project, per_module)
+    // Each module copies what it reads of its imports once, before any walk: what
+    // a module exports is typed at its declaration (a written return, a constant's
+    // written or shown type), and a walk may type a body of another module, such
+    // as the default value of a parameter its call omits. The entry last: the
+    // default of an import it calls is copied with the types that import's module
+    // copied (`publish_default_resolutions`).
     for [id, lm] in project.modules {
-        if id == project.entry {
-            continue
-        }
-        other_typed :: per_module[id]
-        if other_typed != null {
-            populate_imported_fn_overloads(other_typed, lm.collected.files, typed_by_name)
+        if id != project.entry {
+            module_typed :: per_module[id] else continue
+            populate_external_types(module_typed, project, per_module)
+            populate_imported_fn_overloads(module_typed, lm.collected.files, typed_by_name)
         }
     }
-    register_project_impls(project, per_module)
-    settle_external_expr_bodied_returns(project, per_module)
     populate_external_types(entry_typed, project, per_module)
     populate_imported_fn_overloads(entry_typed, entry_loaded.collected.files, typed_by_name)
     pull_field_external_types(entry_typed, per_module)
@@ -279,52 +276,19 @@ check_project_modules :: fn(
     // widening this registers. Cross-module (imported std/iter combinators)
     // resolves each generator's element via its owner module.
     register_generator_iter_impls(per_module, impl_tables, project.factory)
-    // Two-pass body walk : first pass infers expression-bodied fn
-    // return types (forward-reference safe) ; second pass re-types
-    // bodies with all returns settled. Diags are captured only on
-    // the second pass: the first one is a throwaway sink.
-    if has_expr_bodied_fn(concat_file_decls(entry_loaded.module.files)) {
-        walk_bodies(
-            concat_file_decls(entry_loaded.module.files),
-            entry_typed,
-            diag_sink(),
-            .ReturnsOnly,
-        )
-        reset_expr_tables(entry_typed)
-    }
-    walk_bodies(concat_file_decls(entry_loaded.module.files), entry_typed, diags, .Full)
+    walk_bodies(concat_file_decls(entry_loaded.module.files), entry_typed, diags)
     // Body-check every imported module too, so the lowerer sees the
     // expression types of imported fn bodies. The whole-program lowerer
     // (vader/lower) lowers EVERY module's bodies to emit their bytecode ;
     // without per-module body types, imported bodies degrade, e.g. `m[k]`
     // Index resolution misses (target_type unresolved) and the emitter
-    // drops the call. Each import needs its OWN external types wired first
-    // (the entry-only setup above doesn't reach them), so we replay the
-    // same setup chain parameterised on each module's typed program.
-    // Diagnostics route to a throwaway sink : the user-facing surface stays
-    // entry-only (the resolver-diag forwarding below is likewise
-    // entry-scoped). Imported modules are body-checked here too.
+    // drops the call.
     for [id, other] in project.modules {
         if id == project.entry {
             continue
         }
         other_typed :: per_module[id] else continue
-        populate_external_types(other_typed, project, per_module)
-        // The pre-settle populate (so settle's own UFCS sees cross-module
-        // overloads) captured expr-bodied callees' returns while still `?` ;
-        // re-populate now that `settle` patched the settled returns into
-        // decl_types. `push_overload` is replace-on-signature (idempotent), so it
-        // OVERWRITES the stale `fn(i64) -> ?` entry in place rather than leaving it
-        // ahead of the settled `fn(i64) -> i64`: no `clear` needed. (That
-        // stale-ahead ordering is what `pick_overload` first-matched into `?` ->
-        // `any` -> wide-int compares truncated to `i32.lt`, the `abs` bug.)
-        populate_imported_fn_overloads(other_typed, other.collected.files, typed_by_name)
-        other_decls :: concat_file_decls(other.module.files)
-        if has_expr_bodied_fn(other_decls) {
-            walk_bodies(other_decls, other_typed, diag_sink(), .ReturnsOnly)
-            reset_expr_tables(other_typed)
-        }
-        walk_bodies(other_decls, other_typed, other_typed.resolved.diags, .Full)
+        walk_bodies(concat_file_decls(other.module.files), other_typed, other_typed.resolved.diags)
         // Imported-module body-check diagnostics are forwarded (not dropped) :
         // library W0005 etc. are real lines to fix, worth surfacing
         // project-wide rather than only in the entry module. Spans point at each

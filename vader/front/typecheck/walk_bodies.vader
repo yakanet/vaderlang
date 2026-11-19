@@ -15,55 +15,8 @@ import "vader/front/resolver"
 
 // An expression-bodied fn with no explicit return annotation: the only fn
 // shape whose return type is settled by body inference (`patch_fn_return_type`,
-// stmt.vader). Names the condition shared by `has_expr_bodied_fn` (which fns
-// force a forward-reference re-walk) and the return-only `walk_fn_body` guard
-// (which fns a re-walk must still walk).
+// stmt.vader).
 needs_return_inference :: fn(fd: AST.FnDecl) = fd.is_expression_bodied && fd.return_type is null
-
-has_expr_bodied_fn :: fn(decls: AST.Decl[]) -> bool = decls.any_match(holds_inferred_return)
-
-// Whether `d` is, or declares, a function whose expression body gives its return:
-// a fn, an impl member, or a trait's default.
-// @partial: no other declaration holds a function.
-holds_inferred_return :: fn(d: AST.Decl) -> bool = @partial match d {
-    is AST.FnDecl    -> needs_return_inference(d)
-    is AST.ImplDecl  -> d.members.any_match(infers_its_return)
-    is AST.TraitDecl -> d.members.any_match(infers_its_return)
-    _                -> false
-}
-
-// A member whose own body gives its return : not one declared for an impl from its
-// trait, which keeps the trait member's expression form and has no body.
-infers_its_return :: fn(m: AST.FnDecl) = m.body != null && needs_return_inference(m)
-
-// Clear per-expression tables so the second pass can re-populate
-// them with the now-settled fn return types: an entry the settle walk
-// wrote and the full walk does not would outlive it. Decl-level tables
-// (`decl_types`, struct/trait decls, the impl tables, ...) stay intact:
-// only side-tables filled from inside fn bodies need a refresh.
-reset_expr_tables :: fn(typed: TypedProgram) -> void {
-    typed.expr_types = Map<i64, Type> {}
-    typed.expr_kinds = Map<i64, string> {}
-    typed.node_spans = Map<i64, Span> {}
-    typed.ufcs_receiver_types = Map<i64, Type> {}
-    typed.into_coercions = Map<i64, Type> {}
-    typed.chosen_fns = Map<i64, FnCandidate> {}
-    typed.chosen_impl_methods = Map<i64, ImplMethod> {}
-    typed.overloaded_members = Map<i64, ImplMethod[]> {}
-    typed.literals_past_default = Map<i64, AST.IntLitExpr> {}
-    typed.static_members = Map<i64, StaticMember> {}
-    typed.callee_field_id = AST.UNASSIGNED_NODE_ID
-    typed.callees = Map<i64, Callee> {}
-    typed.call_sites = CallSites {}
-    typed.local_types = Map<u64, Type> {}
-    // The whole narrowing machine, not table by table: a table added to
-    // `NarrowState` is then reset here for free instead of being silently left
-    // out of a hand-written list.
-    typed.narrow = NarrowState {}
-    // What the guards prove is read off their checked bodies : the walk after
-    // the reset checks them again.
-    typed.guards = GuardState { .candidates = typed.guards.candidates }
-}
 
 // ---- inferred export returns ----------------------------------------------
 
@@ -105,31 +58,13 @@ return_to_write :: fn(ret: Type) -> string {
 
 // ---- body walk ------------------------------------------------------------
 
-/// How `walk_bodies` treats fn bodies that don't need return inference.
-WalkMode :: enum(u8) {
-    /// Type-check every body: populate `expr_types`, materialise stdlib fns.
-    Full,
-    /// Settle returns only : walk ONLY `needs_return_inference` fns to patch
-    /// their return into `decl_types` ; skip every other body (its return is
-    /// already final). Used by `settle_external_expr_bodied_returns` + the
-    /// forward-reference throwaway re-walks. Valid ONLY where a following
-    /// `Full` walk resets/overwrites `expr_types`, see the `walk_fn_body`
-    /// contract.
-    ReturnsOnly,
-}
-
 /// Walk every fn / const body in `decls` and type-check it. Skips
 /// extern / abstract decls (no body). For ConstDecls without an
 /// annotation, types the value expression and back-fills the const's
 /// declared type (post `default_if_free`) so `IdentExpr` lookups
-/// against it return a concrete type. A `Full` walk ends with the free
-/// literals past their default (`report_literals_past_default`).
-walk_bodies :: fn(
-    decls: AST.Decl[],
-    typed: TypedProgram,
-    diags: Diagnostic[],
-    mode: WalkMode,
-) -> void {
+/// against it return a concrete type. Ends with the free literals past
+/// their default (`report_literals_past_default`).
+walk_bodies :: fn(decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[]) -> void {
     // Pre-pass : the member declarations and the checks of every impl of the
     // module, before any fn body is walked, so a body that references an impl
     // member declared later in file order resolves. The impl tables are filled
@@ -144,8 +79,8 @@ walk_bodies :: fn(
     for decl in decls {
         match decl {
             is AST.FnDecl        -> {
-                walk_fn_body(decl, typed, diags, mode)
-                if mode == .Full && leaves_export_return_to_inference(decl, decl.visibility) {
+                walk_fn_body(decl, typed, diags)
+                if leaves_export_return_to_inference(decl, decl.visibility) {
                     reject_inferred_export_return(decl, typed, diags)
                 }
             }
@@ -164,17 +99,15 @@ walk_bodies :: fn(
                 typed.enclosing_impl = decl.span.hash()
                 typed.enclosing_impl_params = impl_param_ids(decl, typed)
                 for m in decl.members {
-                    walk_fn_body(m, typed, diags, mode)
+                    walk_fn_body(m, typed, diags)
                 }
-                if mode == .Full {
-                    check_inherited_tests(decl, typed, diags)
-                }
+                check_inherited_tests(decl, typed, diags)
                 typed.enclosing_impl = 0
                 typed.enclosing_impl_params = Set<i32> {}
             }
             is AST.EnumDecl      -> { check_variant_data(decl, typed, diags) }
             is AST.TraitDecl     -> {
-                walk_default_bodies(decl, typed, diags, mode)
+                walk_default_bodies(decl, typed, diags)
             }
             // Body-less decl kinds: nothing to walk. Listed explicitly (not
             // `_`) so a new Decl variant trips T3013 and forces a decision.
@@ -190,15 +123,13 @@ walk_bodies :: fn(
     // Every default is typed first : the walk reads the type of a spread in any of them.
     fill :: DefaultFill {}
     for decl in decls {
-        if decl is AST.StructDecl && mode == .Full {
+        if decl is AST.StructDecl {
             reject_default_cycle(decl, fill, typed, diags)
         }
     }
-    if mode == .Full {
-        report_literals_past_default(typed, diags)
-        for decl in decls.filter_is<AST.FnDecl>() {
-            check_extern_library(decl, typed, diags)
-        }
+    report_literals_past_default(typed, diags)
+    for decl in decls.filter_is<AST.FnDecl>() {
+        check_extern_library(decl, typed, diags)
     }
     settle_fn_references(typed, diags)
     zonk_module_tables(typed)
@@ -316,26 +247,40 @@ walk_default_bodies :: fn(
     d: AST.TraitDecl,
     typed: TypedProgram,
     diags: Diagnostic[],
-    mode: WalkMode,
 ) -> void {
     if !d.members.any_match((m) -> m.body != null) {
         return
     }
     trait_sym :: symbol_declared_at(typed.resolved, d.name_span) else return
     self_sym :: typed.resolved.trait_self_params[trait_sym.id] else return
-    self_param :: TypeParamType { .symbol = self_sym }
     typed.default_body_params = default_body_param_ids(d, self_sym, typed)
     for m in d.members {
         if m.body != null {
-            declare_impl_method_for_trait(m, self_param, m, null, typed, diags)
-            walk_fn_body(m, typed, diags, mode)
-            record_default_return(m, self_sym, typed)
-            if mode == .Full && leaves_export_return_to_inference(m, d.visibility) {
+            walk_default_body(m, self_sym, typed, diags)
+            if leaves_export_return_to_inference(m, d.visibility) {
                 reject_inferred_export_return(m, typed, diags)
             }
         }
     }
     typed.default_body_params = Set<i32> {}
+}
+
+// The default `m` of a trait: declared for the trait's own `Self` (`self_sym`), its
+// body walked with `default_body_params` set for the trait, the return it gives
+// recorded. Once per walk : a call ahead of the trait's turn walks it then
+// (`settle_default_return`), and declaring it again would drop what that walk typed.
+walk_default_body :: fn(
+    m: AST.FnDecl,
+    self_sym: Symbol,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    if needs_return_inference(m) && m.id in typed.return_walk.walked {
+        return
+    }
+    declare_impl_method_for_trait(m, TypeParamType { .symbol = self_sym }, m, null, typed, diags)
+    walk_fn_body(m, typed, diags)
+    record_default_return(m, self_sym, typed)
 }
 
 // The return a default body gives when its member leaves it out, for every reader
@@ -469,7 +414,7 @@ export check_late_bodies :: fn(late: LateFn[], typed: TypedProgram, diags: Diagn
             typed.enclosing_impl = owner.span.hash()
             typed.enclosing_impl_params = impl_param_ids(owner, typed)
         }
-        walk_fn_body(l.decl, typed, diags, .Full)
+        walk_fn_body(l.decl, typed, diags)
         typed.enclosing_impl = 0
         typed.enclosing_impl_params = Set<i32> {}
         files.add(given.span.start.file)
@@ -481,46 +426,25 @@ export check_late_bodies :: fn(late: LateFn[], typed: TypedProgram, diags: Diagn
     diags.push_all(settled.filter((d) -> d.primary.start.file in files).collect())
 }
 
-walk_fn_body :: fn(
-    fd: AST.FnDecl,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-    mode: WalkMode,
-) -> void {
+walk_fn_body :: fn(fd: AST.FnDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
     // SAM short-impl synthetics carry no real body to type ; skip them.
-    if fd.materialized && fd.sam_synthetic                 { return }
-    // Return-only mode (the `settle_external_expr_bodied_returns` passes + the
-    // import-loop / entry throwaway re-walks). Their sole job is to settle
-    // expression-bodied fn returns into `decl_types`, and only
-    // `needs_return_inference` fns ever call `patch_fn_return_type`
-    // (stmt.vader). Every other fn's return is already final from
-    // `declare_module`, so walking its body re-does full inference for
-    // nothing. Skip it.
-    //
-    // CONTRACT: use `.ReturnsOnly` ONLY from a walk whose `expr_types` is
-    // reset or fully overwritten by a following `.Full` walk. The always-full
-    // walk that follows (settle pass 0 / the real import walk) re-types every
-    // body, populates `expr_types`, and materialises stdlib fns, so skipping
-    // bodies here is byte-identical. A non-reset return-only walk would
-    // silently leave every skipped body at `:?` (lowerer -> degraded bytecode,
-    // no error).
-    infers :: needs_return_inference(fd)
-    if mode == .ReturnsOnly && !infers { return }
+    if fd.materialized && fd.sam_synthetic {
+        return
+    }
     body :: fd.body else return
     // `add` answers false for a body a call ahead of its turn walked already.
-    if infers && !typed.return_walk.walked.add(fd.id) {
+    if needs_return_inference(fd) && !typed.return_walk.walked.add(fd.id) {
         return
     }
     check_fn_body(fd, body, typed, diags)
 }
 
 // Walk now the body of the function `sym` of this module when it gives its return
-// and the walk has not reached it : a call ahead of its turn reads the return. Not
-// while a const's value is typed : a body is walked once every const it may read is
-// set (`guard_facts` waits alike). A call to a function being walked is a recursion,
-// whose return stays unknown (T3034).
+// and the walk has not reached it : a call ahead of its turn reads the return, a
+// const's value included. A call to a function being walked is a recursion, whose
+// return stays unknown (T3034).
 settle_return :: fn(sym: Symbol, typed: TypedProgram) -> void {
-    if sym.module != typed.resolved.path || typed.const_walk.typing.len() > 0 {
+    if sym.module != typed.resolved.path {
         return
     }
     // A return the body gives is unresolved until then: a written or settled one
@@ -540,12 +464,31 @@ settle_return :: fn(sym: Symbol, typed: TypedProgram) -> void {
     resume_walk(typed, position)
 }
 
+// Walk now the default `m` of the trait `trait_id` when the trait is of this module,
+// the default gives its return, and the walk has not reached it : a call ahead of
+// the trait's turn reads the return. One being walked is a recursion (T3034).
+settle_default_return :: fn(trait_id: i32, m: AST.FnDecl, typed: TypedProgram) -> void {
+    if m.id in typed.impl_tables.default_returns || !needs_return_inference(m) {
+        return
+    }
+    owner :: typed.trait_decl_owners[trait_id] else return
+    if owner.path != typed.resolved.path || m.id in typed.return_walk.walked {
+        return
+    }
+    d :: typed.trait_decls[trait_id] else return
+    self_sym :: typed.resolved.trait_self_params[trait_id] else return
+    position :: set_walk_aside(typed)
+    typed.default_body_params = default_body_param_ids(d, self_sym, typed)
+    walk_default_body(m, self_sym, typed, typed.return_walk.diags)
+    resume_walk(typed, position)
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
 
-// The type `checked` holds for its function `name`.
-fn_type_named :: fn(checked: CheckedSource, name: string) -> string {
+// The type `checked` holds for its function or constant `name`.
+type_named :: fn(checked: CheckedSource, name: string) -> string {
     sym :: checked.typed.resolved.symbols.find((s) -> s.name == name) else return "<none>"
     return display_type(checked.typed.decl_types[sym.id] else TY_UNRESOLVED)
 }
@@ -554,18 +497,45 @@ fn_type_named :: fn(checked: CheckedSource, name: string) -> string {
 test_return_left_to_a_body_is_read_through_a_chain_of_calls_ahead :: fn() -> void {
     checked :: check_source_bodies("a :: fn() = b() + 1\nb :: fn() = c() + 1\nc :: fn() = 1\n")
     assert_eq(checked.diags.len(), 0)
-    assert_eq(fn_type_named(checked, "a"), "fn() -> i32")
+    assert_eq(type_named(checked, "a"), "fn() -> i32")
 }
 
 @test
 test_return_left_to_a_body_is_read_through_a_method_call_ahead :: fn() -> void {
     checked :: check_source_bodies("a :: fn() = 3.twice()\ntwice :: fn(n: i32) = n * 2\n")
     assert_eq(checked.diags.len(), 0)
-    assert_eq(fn_type_named(checked, "a"), "fn() -> i32")
+    assert_eq(type_named(checked, "a"), "fn() -> i32")
 }
 
 @test
 test_return_left_to_a_recursive_body_is_refused :: fn() -> void {
     checked :: check_source_bodies("f :: fn(n: i32) = f(n - 1)\n")
     assert(has_code(checked.diags, "T3034"), "a recursion has no return to read")
+}
+
+@test
+test_return_left_to_a_body_is_read_by_a_constant_ahead :: fn() -> void {
+    checked :: check_source_bodies("X :: later()\nlater :: fn() = 40\n")
+    assert_eq(checked.diags.len(), 0)
+    assert_eq(type_named(checked, "X"), "i32")
+}
+
+@test
+test_return_left_to_a_trait_default_is_read_by_a_call_ahead :: fn() -> void {
+    src :: """
+        use :: fn(b: Bag) = b.twice() + 1
+        Counted :: trait {
+            count :: fn(self) -> i32
+            twice :: fn(self) = self.count() * 2
+        }
+        Bag :: struct {
+            n: i32
+        }
+        Bag implements Counted {
+            count :: fn(self) -> i32 = self.n
+        }
+        """
+    checked :: check_source_bodies(src)
+    assert_eq(checked.diags.len(), 0)
+    assert_eq(type_named(checked, "use"), "fn(Bag) -> i32")
 }

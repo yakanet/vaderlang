@@ -798,7 +798,7 @@ export TypedProgram :: struct {
     /// iteration-variable name a `break <var>` / `continue <var>` targeted it by.
     /// The lowerer reads it to stamp `LoweredLoop.label` (only for targeted loops:
     /// untargeted loops keep their pristine `ForStmt.label`). Written
-    /// idempotently, so it survives the two-pass / multi-module walks.
+    /// idempotently, so it survives the multi-module walks.
     loop_target_labels: Map<i64, string>
 
     /// A jump that names a labelled loop by its iteration variable: jump id -> the

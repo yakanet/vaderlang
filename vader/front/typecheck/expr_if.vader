@@ -353,11 +353,8 @@ detect_is_narrow :: fn(
             // the declared type when no narrowing is active for this binding.
             base :: narrow_for_binding(typed, sym.id, type_of_symbol(sym, typed))
             // Never narrow an unresolved binding: mirrors the field-chain
-            // guard in `resolve_field_chain_static` (narrow.vader). A
-            // premature imported-body walk (settle pass 0, before the
-            // module's imports are wired) resolves `m[k]`-bound locals to
-            // `?` ; recording a `?` narrowing here poisons every later
-            // reference (it survives into the authoritative re-walk).
+            // guard in `resolve_field_chain_static` (narrow.vader). A `?`
+            // narrowing would poison every later reference to the binding.
             if base is UnresolvedType { return null }
             null_ty :: TY_NULL
             non_null :: subtract_type(base, null_ty)

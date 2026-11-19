@@ -1656,15 +1656,16 @@ export trait_member_type :: fn(trait_id: i32, m: AST.FnDecl, typed: TypedProgram
     }
     return mk_fn(
         params,
-        trait_member_return(m, owner_resolved, typed),
+        trait_member_return(trait_id, m, owner_resolved, typed),
         quantifier_of(m.type_params, owner_resolved),
     )
 }
 
-// What `m` returns : the type it writes, or for a default that leaves it to its
-// expression, the one its body gave when the trait was checked ; unresolved until
-// then (`record_default_return`).
+// What `m`, a member of the trait `trait_id`, returns : the type it writes, or for a
+// default that leaves it to its expression, the one its body gives
+// (`record_default_return`), walked now if need be ; unresolved while it is walked.
 trait_member_return :: fn(
+    trait_id: i32,
     m: AST.FnDecl,
     owner_resolved: ResolvedModule,
     typed: TypedProgram,
@@ -1672,6 +1673,7 @@ trait_member_return :: fn(
     if !needs_return_inference(m) {
         return opt_or_void(m.return_type, owner_resolved, [])
     }
+    settle_default_return(trait_id, m, typed)
     return typed.impl_tables.default_returns[m.id] else TY_UNRESOLVED
 }
 

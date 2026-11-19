@@ -162,6 +162,7 @@ settled_member :: fn(m: ImplMethod, typed: TypedProgram) -> ImplMethod {
     if ty !is FnType {
         return m
     }
+    settle_default_return(trait_sym.id, source, typed)
     inferred :: typed.impl_tables.default_returns[source.id] else return m
     trait_decl :: typed.trait_decls[trait_sym.id] else return m
     bound :: substitute_type_params(inferred, trait_decl.type_params, m.trait_args, typed)
