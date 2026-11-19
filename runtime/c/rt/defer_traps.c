@@ -16,41 +16,40 @@
  * exec.
  *
  * Panic-unwind : a trap runs the pending defers before aborting. No
- * setjmp/longjmp is needed: `g_defer_stack` already holds exactly the
+ * setjmp/longjmp is needed: the defer stack already holds exactly the
  * pending defers of the live call chain (pushed at each `defer`, popped on
  * structured exit), so the three traps drain the whole stack LIFO, which is
- * precisely unwind order. `g_unwinding` guards against a defer that itself
- * traps (double-panic) : the second trap aborts at once without re-draining. */
-static vader_box_t* g_defer_stack = NULL;
-static size_t       g_defer_len   = 0;
-static size_t       g_defer_cap   = 0;
-static int          g_unwinding   = 0;
+ * precisely unwind order. `unwinding` guards against a defer that itself
+ * traps (double-panic) : the second trap aborts at once without re-draining.
+ * The stack is the running thread's, in its worker (`vader_worker_t`). */
 
 void vader_defer_push(vader_box_t closure) {
-    if (g_defer_len == g_defer_cap) {
-        size_t new_cap = g_defer_cap == 0 ? 16u : g_defer_cap * 2u;
-        vader_box_t* new_stack = (vader_box_t*) realloc(g_defer_stack, new_cap * sizeof(vader_box_t));
+    vader_thread_state_t* running = &vader_worker.running;
+    if (running->defer_len == running->defer_cap) {
+        size_t new_cap = running->defer_cap == 0 ? 16u : running->defer_cap * 2u;
+        vader_box_t* new_stack = (vader_box_t*) realloc(running->defer_stack, new_cap * sizeof(vader_box_t));
         if (new_stack == NULL) vader_trap("vader_defer_push: realloc failed");
-        g_defer_stack = new_stack;
-        g_defer_cap   = new_cap;
+        running->defer_stack = new_stack;
+        running->defer_cap   = new_cap;
     }
-    g_defer_stack[g_defer_len++] = closure;
+    running->defer_stack[running->defer_len++] = closure;
 }
 
 /* Pop and run the top defer thunk. The lifted fn signature is `fn(env) ->
  * void` ; we cast through a function pointer with the matching ABI
  * (`vader_fn_erased_sig_0_t` from the per-module emit lines up: it returns
  * a `vader_box_t`, but the thunk's wrapper returns a `null`-tagged box we
- * discard). Caller guarantees `g_defer_len > 0`. */
+ * discard). Caller guarantees a pending defer. */
 static void vader_run_one_defer(void) {
-    vader_box_t c = g_defer_stack[--g_defer_len];
+    vader_thread_state_t* running = &vader_worker.running;
+    vader_box_t c = running->defer_stack[--running->defer_len];
     vader_fn_t* fn = (vader_fn_t*) c.payload.obj;
     ((vader_box_t (*)(void*)) fn->code)(fn->env);
 }
 
 void vader_defer_pop_exec(uint32_t count) {
     for (uint32_t i = 0; i < count; i++) {
-        if (g_defer_len == 0u) vader_trap("vader_defer_pop_exec: stack underflow");
+        if (vader_worker.running.defer_len == 0u) vader_trap("vader_defer_pop_exec: stack underflow");
         vader_run_one_defer();
     }
 }
@@ -60,7 +59,8 @@ void vader_defer_pop_exec(uint32_t count) {
 /* What every trap does once it has reported: run the pending defers, unless a
  * defer is the one that trapped, then abort. */
 static VADER_NORETURN void vader_unwind_and_abort(void) {
-    if (!g_unwinding) { g_unwinding = 1; vader_run_pending_defers(); }
+    vader_thread_state_t* running = &vader_worker.running;
+    if (!running->unwinding) { running->unwinding = 1; vader_run_pending_defers(); }
     abort();
 }
 
@@ -73,7 +73,7 @@ void vader_unreachable(const char* where) {
  * The generated code balances push/pop on every structured exit, so the
  * stack only ever holds the frames between main and the trap site. */
 static void vader_run_pending_defers(void) {
-    while (g_defer_len > 0u) vader_run_one_defer();
+    while (vader_worker.running.defer_len > 0u) vader_run_one_defer();
 }
 
 void vader_trap(const char* msg) {

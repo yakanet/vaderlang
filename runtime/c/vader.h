@@ -1451,7 +1451,42 @@ typedef struct vader_gc_frame {
     vader_string_t**       atoms;
 } vader_gc_frame_t;
 
-extern vader_gc_frame_t* vader_gc_top;
+/* What a virtual thread carries from one run to the next. The worker that runs
+ * it holds it while it runs; a switch stores it in the thread it leaves and
+ * loads the one of the next. */
+typedef struct {
+    /* Shadow-stack head. Each emitted C function pushes/pops a frame chained
+     * through `prev`; the GC walks this list at collection time to enumerate
+     * precise roots. */
+    vader_gc_frame_t* gc_top;
+    /* The pending `defer` closures, LIFO (`rt/defer_traps.c`). */
+    vader_box_t*      defer_stack;
+    size_t            defer_len;
+    size_t            defer_cap;
+    /* Set once a trap runs the pending defers: a defer that traps in turn
+     * aborts at once. */
+    int               unwinding;
+} vader_thread_state_t;
+
+/* What one worker of the runtime, a system thread, holds: each system thread has
+ * its own, so a task always reads the state of the worker it runs on. */
+typedef struct vader_worker {
+    /* The state of the virtual thread it runs. */
+    vader_thread_state_t         running;
+    /* How many calls into C the running code is inside of: the shim of each
+     * `@extern` counts its call. A switch traps above zero, since another thread
+     * would run over the C frames under it, and what they hold. */
+    int                          foreign_depth;
+    /* The virtual thread it runs, and the one that runs its scheduler. */
+    struct vader_virtual_thread* current;
+    struct vader_virtual_thread* scheduler;
+} vader_worker_t;
+
+extern _Thread_local vader_worker_t vader_worker;
+
+/* The names the emitted C writes. */
+#define vader_gc_top        (vader_worker.running.gc_top)
+#define vader_foreign_depth (vader_worker.foreign_depth)
 
 /* Push a one-slot shadow-stack frame around a `vader_box_t` on the C stack.
  * Used by runtime helpers that allocate (and thus may collect) after binding
@@ -1500,8 +1535,9 @@ typedef struct {
  * captures stay live between push and pop_exec.
  *
  * Panic unwinding: `vader_trap`, `vader_panic` and `vader_unreachable` drain
- * the whole defer stack LIFO before `abort()`, guarded by `g_unwinding` so a
- * defer that itself traps does not recurse. No setjmp/longjmp is involved, see
+ * the whole defer stack LIFO before `abort()`, guarded by the worker's
+ * `unwinding` so a defer that itself traps does not recurse. No setjmp/longjmp
+ * is involved, see
  * `vader_run_pending_defers`. */
 void vader_defer_push(vader_box_t closure);
 void vader_defer_pop_exec(uint32_t count);
@@ -1547,11 +1583,6 @@ void    vader_scheduler_stop_waiting(int64_t fd);
 /* `main` returned `code`: cancel the threads still running and wait for their
  * defers. The process's exit code, not zero when it cancelled any. */
 int     vader_scheduler_exit(int code);
-
-/* How many calls into C the running code is inside of: the shim of each
- * `@extern` counts its call. A switch traps above zero, since another thread
- * would run over the C frames under it, and what they hold. */
-extern int vader_foreign_depth;
 
 /* ----------------------------------------------------------------- target
  *

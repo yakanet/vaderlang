@@ -537,8 +537,8 @@ gone fails, and stdout and stderr ignore it as before.
 
 **The defer stack.** The closures a `defer` registers
 ([`ARCHITECTURE.md`](ARCHITECTURE.md), *Lowered AST*) live on one stack per
-thread, globals of the C runtime that a switch saves and restores, and a field of
-the machine on the VM.
+thread, which the system thread running it holds while it runs and a switch
+saves and restores, and a field of the machine on the VM.
 
 ## What a backend provides
 

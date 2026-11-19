@@ -56,11 +56,6 @@ static inline size_t vader_old_used_cards(void) {
     return ((size_t)(g_old_bump - g_old_block) + VADER_CARD_BYTES - 1u) / VADER_CARD_BYTES;
 }
 
-/* Shadow-stack head. Each emitted C function pushes/pops a frame chained
- * through `prev`; the GC walks this list at collection time to enumerate
- * precise roots. */
-vader_gc_frame_t* vader_gc_top = NULL;
-
 /* Grow the gray worklist geometrically. Out of line, so that the push it serves
  * costs no stack frame in the collector's loops. */
 static VADER_NOINLINE void vader_gray_grow(void) {
@@ -424,7 +419,8 @@ static void vader_gc_scan_waiting(const vader_virtual_thread_roots_t* r) {
 /* Walk the shadow stack of every thread and forward every root cell. Used by
  * both cycles. */
 static void vader_gc_scan_roots(void) {
-    vader_gc_scan_thread(vader_gc_top, g_defer_stack, g_defer_len);
+    const vader_thread_state_t* running = &vader_worker.running;
+    vader_gc_scan_thread(running->gc_top, running->defer_stack, running->defer_len);
     vader_virtual_thread_each_waiting(vader_gc_scan_waiting);
 }
 

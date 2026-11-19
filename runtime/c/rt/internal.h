@@ -28,11 +28,6 @@
 
 /* ---- defer_traps.c ------------------------------------------------------- */
 
-static vader_box_t* g_defer_stack;
-static size_t g_defer_len;
-static size_t g_defer_cap;
-static int g_unwinding;
-
 /* Run the running thread's pending defers, LIFO, until none is left. */
 static void vader_run_pending_defers(void);
 

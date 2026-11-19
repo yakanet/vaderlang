@@ -117,7 +117,8 @@ static void vader_atom_mark_waiting(const vader_virtual_thread_roots_t* r) {
 }
 
 static void vader_atom_mark_roots(void) {
-    vader_atom_mark_thread(vader_gc_top, g_defer_stack, g_defer_len);
+    const vader_thread_state_t* running = &vader_worker.running;
+    vader_atom_mark_thread(running->gc_top, running->defer_stack, running->defer_len);
     vader_virtual_thread_each_waiting(vader_atom_mark_waiting);
     vader_atom_mark_cstack_conservative();
 }
