@@ -3,19 +3,22 @@
 // The module of an entry is loaded with its tests, and the compiler writes into it
 // the entry that calls each by its rank (`vader/front/resolver/tests_stage.vader`).
 // `lower_tests` lowers it with that entry as a root and names the tests from the
-// reading the entry was written from, which is all `vader test --list` needs;
-// `compile_tests` compiles it to bytecode and prepares the VM. Each test then runs
+// reading the entry was written from; `compile_tests` compiles it to bytecode and
+// prepares the VM. `vader test --list` compiles nothing: `listed_tests` reads the
+// same names from the parsed files of the module. Each test then runs
 // alone on that VM (`run_test`), as a call of the entry: a trap fails it, a return
 // passes it. What a compile reports goes to the caller, who prints it or shows its
 // errors.
 
 module "vader/tools/testing"
 
+import "std/fs"
 import "std/iter"
 import "std/path"
 import "std/time"
 import "toolchain/ast"
 import "toolchain/diagnostics"
+import "toolchain/parser"
 import "vader/emit/bytecode"
 import "vader/front/resolver"
 import "vader/lower/dce"
@@ -82,6 +85,38 @@ export lower_tests :: fn(
     if runner != null {
         roots.push(runner.origin.decl.id)
     }
+    return LoweredTests {
+        .entry = entry,
+        .project = prune_unreachable_fns(lowered.lowered, roots),
+        .runner = if runner == null { "" } else { runner.mangled },
+        .tests = discovered(entry, declared),
+    }
+}
+
+/// The tests of the module of `entry`, read from its parsed files: what `vader
+/// test --list` names. Nothing is compiled, so a module that does not type-check
+/// is listed all the same.
+///
+/// @param entry        the module (`test_entries`).
+/// @param diagnostics  takes what parsing its files reports.
+/// @return             null when a file cannot be read or does not parse.
+export listed_tests :: fn(entry: TestEntry, diagnostics: Diagnostic[]) -> DiscoveredTest[] | null {
+    programs: Program[]: []
+    for file in entry_files(entry.path) {
+        path :: file.as_string()
+        source :: read_file_string(path) else return null
+        parsed :: parse_source(source, path)
+        if parsed.errors.len() > 0 {
+            diagnostics.push_all(parsed.errors)
+            return null
+        }
+        programs.push(parsed.program)
+    }
+    return discovered(entry, tests_declared(programs))
+}
+
+// The tests `declared` of the module of `entry`, each at its rank.
+discovered :: fn(entry: TestEntry, declared: DeclaredTest[]) -> DiscoveredTest[] {
     tests: DiscoveredTest[]: []
     for [test, rank] in declared.indexed() {
         tests.push(DiscoveredTest {
@@ -92,12 +127,7 @@ export lower_tests :: fn(
             .line = test.line,
         })
     }
-    return LoweredTests {
-        .entry = entry,
-        .project = prune_unreachable_fns(lowered.lowered, roots),
-        .runner = if runner == null { "" } else { runner.mangled },
-        .tests = tests,
-    }
+    return tests
 }
 
 // The tests of the entry module of `loaded`, each at the rank the entry the

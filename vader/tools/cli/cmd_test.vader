@@ -71,6 +71,25 @@ cmd_test :: fn(args: string[]) -> i32 {
     for entry in entries {
         rep :: entry.path
         diagnostics: Diagnostic[]: []
+        if reporter.listing {
+            listed :: listed_tests(entry, diagnostics)
+            print_diagnostics(diagnostics)
+            if listed == null {
+                reporter.module_failed(entry.module, rep, DOES_NOT_PARSE)
+                total_fail += 1
+                continue
+            }
+            named :: kept_once(listed, filters, ran)
+            if named.len() == 0 {
+                continue
+            }
+            files_with_tests += 1
+            reporter.module_header(entry.module, rep)
+            for t in named {
+                reporter.listed(t)
+            }
+            continue
+        }
         lowered :: entry.lower_tests(include_path_flags, project_root, diagnostics)
         print_diagnostics(diagnostics)
         if lowered == null {
@@ -78,24 +97,12 @@ cmd_test :: fn(args: string[]) -> i32 {
             total_fail += 1
             continue
         }
-        // Run each test once across the whole invocation.
-        fresh: DiscoveredTest[]: []
-        for t in lowered.tests {
-            if keeps(filters, t) && ran.add("${t.path.as_string()}:${t.line}") {
-                fresh.push(t)
-            }
-        }
+        fresh :: kept_once(lowered.tests, filters, ran)
         if fresh.len() == 0 {
             continue
         }
         files_with_tests += 1
         reporter.module_header(entry.module, rep)
-        if reporter.listing {
-            for t in fresh {
-                reporter.listed(t)
-            }
-            continue
-        }
         compile_diagnostics: Diagnostic[]: []
         state :: lowered.compile_tests(project_root, compile_diagnostics)
         print_diagnostics(compile_diagnostics)
@@ -142,8 +149,24 @@ cmd_test :: fn(args: string[]) -> i32 {
     return 1
 }
 
+// The tests of `tests` one of `filters` keeps that no module of the run gave
+// before, noted in `seen`: each test runs once across the whole invocation.
+kept_once :: fn(tests: DiscoveredTest[], filters: TestFilter[], seen: Set<string>) -> DiscoveredTest[] {
+    kept: DiscoveredTest[]: []
+    for t in tests {
+        if keeps(filters, t) && seen.add("${t.path.as_string()}:${t.line}") {
+            kept.push(t)
+        }
+    }
+    return kept
+}
+
 // Why a module reports no test: its diagnostics are already on stderr.
 DOES_NOT_COMPILE :: "the module does not compile"
+
+// Why a module lists no test: a file of it cannot be read, or its parse errors
+// are on stderr.
+DOES_NOT_PARSE :: "a file of the module cannot be read or parsed"
 
 // ---- --filter ---------------------------------------------------------------
 

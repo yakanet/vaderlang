@@ -184,6 +184,31 @@ test_a_test_is_checked_by_vader_test_alone :: fn() -> void {
 }
 
 @test
+test_list_names_the_tests_of_a_module_that_does_not_type_check :: fn() -> void {
+    // Listing compiles nothing: the error waits for the run.
+    dir :: scratch_dir("test_list_unchecked")
+    write_file(
+        "${dir}/app.vader",
+        r"""
+        module "app"
+
+        main :: fn() -> i32 = 0
+
+        import "std/testing"
+
+        @test
+        test_main :: fn() -> void {
+            wrong: i32: "text"
+            assert_eq(main(), wrong)
+        }
+        """,
+    )
+    listing :: vader_in(dir, ["test", "--list", "app.vader"])
+    assert(listing.exit == 0, listing.stdout + listing.stderr)
+    assert_eq(listing.stdout.trim(), "app:app.vader:test_main")
+}
+
+@test
 test_a_folder_is_tested_within_the_project_above_it :: fn() -> void {
     // Run from inside `app`, which holds no `vader.json`: `helper` is found from
     // the project above.

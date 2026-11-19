@@ -317,7 +317,7 @@ The module is the name its `module "..."` line declares, the file is its name wi
 
 `--filter -` is how a tool passes many filters: a command line is limited in length (to 32,767 characters on Windows), stdin is not. A blank line holds no filter.
 
-`--list` names the tests without running them, one per line, as the `--filter` that keeps it alone: `<module>:<file>:<name>`, each part quoted.
+`--list` names the tests without running them, one per line, as the `--filter` that keeps it alone: `<module>:<file>:<name>`, each part quoted. It reads them from the source and compiles nothing: a module that does not type-check is listed all the same, only one that does not parse is reported.
 
 `--reporter=json` reports for a tool, an editor's test view or a CI. The report is a JSON text sequence (RFC 7464, `jq --seq`): each event is an object on one line, after a record separator (RS, `0x1E`, written `<RS>` here).
 
