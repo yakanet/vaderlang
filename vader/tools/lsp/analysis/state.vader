@@ -342,6 +342,9 @@ export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectC
 /// find-usages. The project is not kept : the seed set belongs to one request,
 /// and such a project holds most of the workspace ; `usages` keeps its answer.
 ///
+/// The file's module keeps its tests, as under `vader test`: the editor is where
+/// they are written.
+///
 /// @param self         the server state (carries the overlay).
 /// @param file_path    the entry file's filesystem path.
 /// @param extra_seeds  the modules to load beside what the entry imports.
@@ -350,7 +353,7 @@ export check_with_modules :: fn(
 ) -> FileCheck =
     check_file(
         file_path, doc_overlay(self), self.include_flags, project_of_document(file_path), false,
-        null, extra_seeds,
+        null, extra_seeds, under_test = true,
     )
 
 /// The navigation view for `file_path`, loaded once and cached.
@@ -375,7 +378,7 @@ export union_project_for :: fn(self: ServerState, file_path: string) -> LoadedPr
     }
     project :: load_project_with_overlay(
         entry_path, doc_overlay(self), self.include_flags, project_of_document(entry_path),
-        AllTargets {},
+        AllTargets {}, under_test = true,
     )
     self.union_cache = UnionCache { .entry_path = entry_path, .project = project }
     return project

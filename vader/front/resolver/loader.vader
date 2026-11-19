@@ -99,10 +99,9 @@ export LoadedModule :: struct {
     /// Every `@target` declaration of the module as written, before selection
     /// merged each group into one: the targets of a group live there alone.
     target_decls: FnDecl[] = []
-    /// The module was loaded without its tests (`without_tests`): what is left of
-    /// its files is not what its author wrote, and a lint of the source does not
-    /// read it.
-    tests_removed: bool = false
+    /// What `without_tests` took from the module: the lint of imports reads their
+    /// names as its files'.
+    removed_tests: Decl[] = []
     /// The module holds only the declarations the program reaches
     /// (`only_reached`): what looks unused in it may be used by the ones that
     /// went, and a lint of dead code does not read it.
@@ -431,8 +430,9 @@ LoadState :: struct {
     /// DISABLED and let every `@target` body through to the type checker.
     selected_target: Target | null
     keep_docs: bool
-    /// The folder of the module loaded to run its tests, null in any other load.
-    /// NO default, for the reason `selected_target` has none.
+    /// The folder of the module loaded to run its tests, null in any other load:
+    /// every other module is loaded without its tests (`without_tests`). NO
+    /// default, for the reason `selected_target` has none.
     tested: string | null
     /// Whether a dependency keeps only what the program reaches.
     only_reached: bool
@@ -458,7 +458,7 @@ DeferredModule :: struct {
     sources: SourceFile[]
     discarded_bodies: FnDecl[]
     target_decls: FnDecl[]
-    tests_removed: bool
+    removed_tests: Decl[]
     trimmed: bool = false
     lost_impl_traits: string[] = []
     /// The functions the source stages wrote into it without a body.
@@ -563,10 +563,8 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
     if m.files.len() == 0 { return }
     read :: parse_module_files(ctx, m.files)
     if read.len() == 0 { return }
-    tests_removed :: is_dependency(ctx, m)
-    // A module `only_reached` trims loses its tests there.
-    trimmed_later :: ctx.only_reached && m.folder != ctx.prelude
-    parsed :: if tests_removed && !trimmed_later { without_tests(read, m.name) } else { read }
+    untested :: tested_or_not(ctx, m, read)
+    parsed :: untested.files
     // Target selection happens HERE: after parsing, before collection. Every
     // pass downstream then sees one declaration per name and needs to know
     // nothing about targets: a losing body does not reach them at all.
@@ -581,7 +579,7 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
         .sources = sources,
         .discarded_bodies = dropped_bodies,
         .target_decls = target_declarations(parsed),
-        .tests_removed = tests_removed,
+        .removed_tests = untested.removed,
     }
     // Only its imports for now, which is what the walk of the module graph
     // reads: the symbols wait for `collect_deferred`, once every module is
@@ -601,7 +599,7 @@ loaded_module :: fn(ctx: LoadState, read: DeferredModule, collected: CollectedMo
     LoadedModule {
         .discarded_bodies = read.discarded_bodies,
         .target_decls = read.target_decls,
-        .tests_removed = read.tests_removed,
+        .removed_tests = read.removed_tests,
         .trimmed = read.trimmed,
         .lost_impl_traits = read.lost_impl_traits,
         .module = Module {
@@ -713,8 +711,11 @@ declaring_id :: fn(l: LateFn) -> i64 {
 trimmed_to_reached :: fn(ctx: LoadState) -> DeferredModule[] {
     units: ReachUnit[]: []
     for read in ctx.deferred {
-        trimmed :: is_dependency(ctx, read.found) && read.found.folder != ctx.prelude
-        units.push(ReachUnit { .files = read.sources, .trimmed = trimmed })
+        units.push(ReachUnit {
+            .files = read.sources,
+            .trimmed = is_trimmed(ctx, read.found),
+            .removed = read.removed_tests,
+        })
     }
     reached :: only_reached(units, GATE_FUNCTIONS)
     out: DeferredModule[]: []
@@ -729,11 +730,22 @@ trimmed_to_reached :: fn(ctx: LoadState) -> DeferredModule[] {
     return out
 }
 
-// Whether the tests of `m` are no business of this load (`without_tests`): those
-// of a module the toolchain ships, and in a load that runs the tests of one
-// module, those of every other.
-is_dependency :: fn(ctx: LoadState, m: DiscoveredModule) -> bool =
-    m.origin == .Toolchain || ctx.tested != null && m.folder != ctx.tested
+// The files `read` of `m` as the load keeps them: without their tests, but in
+// the module whose tests it runs. A module `only_reached` trims loses its tests
+// there instead (`trimmed_to_reached`).
+tested_or_not :: fn(ctx: LoadState, m: DiscoveredModule, read: SourceFile[]) -> Untested {
+    if m.folder == ctx.tested || ctx.only_reached && is_trimmed(ctx, m) {
+        return Untested { .files = read }
+    }
+    return without_tests(read, m.name)
+}
+
+// Whether `m` keeps only what the others reach (`only_reached`): a module the
+// toolchain ships, and in a load that runs the tests of one module, every other;
+// never the prelude.
+is_trimmed :: fn(ctx: LoadState, m: DiscoveredModule) -> bool =
+    (m.origin == .Toolchain || ctx.tested != null && m.folder != ctx.tested)
+        && m.folder != ctx.prelude
 
 // Read `path`'s source, consulting the in-memory `overlay` (filesystem path ->
 // current text) before the disk. The LSP populates the overlay from its

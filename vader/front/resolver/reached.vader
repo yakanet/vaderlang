@@ -37,6 +37,9 @@ ReachUnit :: struct {
     /// Whether the module loses the declarations nothing reaches: a dependency.
     /// A module that is not trimmed is reached whole.
     trimmed: bool
+    /// What the load took from the module with its tests (`without_tests`): what
+    /// they name stays, so that the lint of imports finds what an import served.
+    removed: AST.Decl[] = []
 }
 
 /// What `only_reached` leaves of one module.
@@ -81,14 +84,13 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
         }
     }
     for unit in units {
+        for d in unit.removed {
+            seed_leading(names_written_by(d), leading, seeded, seed_refs)
+        }
         for f in unit.files {
             module_names: string[]: []
             collect_decorator_names(AST.module_decorators(f.program), module_names)
-            for name in module_names {
-                if name in leading && seeded.add(name) {
-                    seed_refs.push(name)
-                }
-            }
+            seed_leading(module_names, leading, seeded, seed_refs)
             for d in f.program.decls {
                 if unit.trimmed && is_test(d) {
                     continue
@@ -96,11 +98,7 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
                 written :: names_written_by(d)
                 key :: reach_key(d, dependency_types)
                 if !unit.trimmed || key == null {
-                    for name in written {
-                        if name in leading && seeded.add(name) {
-                            seed_refs.push(name)
-                        }
-                    }
+                    seed_leading(written, leading, seeded, seed_refs)
                     continue
                 }
                 refs: string[]: []
@@ -160,6 +158,20 @@ add_leading_names :: fn(d: AST.Decl, leading: Set<string>) -> void {
     if d is AST.TraitDecl {
         for member in d.members {
             leading.add(member.name)
+        }
+    }
+}
+
+// Seed the walk with each of `names` that leads to a trimmed module, once.
+seed_leading :: fn(
+    names: string[],
+    leading: Set<string>,
+    seeded: Set<string>,
+    seed_refs: string[],
+) -> void {
+    for name in names {
+        if name in leading && seeded.add(name) {
+            seed_refs.push(name)
         }
     }
 }

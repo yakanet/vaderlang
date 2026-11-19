@@ -1,7 +1,8 @@
 // tools/cli_tests/lsp/diagnostics: what the server publishes for a document it
 // is given, unasked: the lints of dead code, a private declaration (W0007) and
-// an export nothing reaches (W0012), scoped to the document and faded, what the
-// evaluation at compile time reports, and each diagnostic once.
+// an export nothing reaches (W0012), scoped to the document and faded, an error
+// in a test, what the evaluation at compile time reports, and each diagnostic
+// once.
 
 module "tools/cli_tests/lsp"
 
@@ -82,6 +83,22 @@ test_the_server_publishes_w0007_on_an_unused_private_fn_faded :: fn() -> void {
     dead :: coded(diagnostics_for("w0007", source), "W0007")
     assert_eq(dead.len(), 1)
     assert_faded_warning(dead[0], "helper")
+}
+
+@test
+test_the_server_publishes_an_error_in_a_test_as_vader_test_reports_it :: fn() -> void {
+    source :: """
+        module "snippet"
+        main :: fn() -> i32 = 0
+        import "std/testing"
+        @test
+        test_main :: fn() -> void {
+            wrong: i32: "text"
+            assert_eq(main(), wrong)
+        }
+        """
+    mismatches :: coded(diagnostics_for("test_error", source), "T3001")
+    assert_eq(mismatches.len(), 1)
 }
 
 @test

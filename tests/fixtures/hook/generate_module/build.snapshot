@@ -1,6 +1,6 @@
 # stdout
 driver: 2 round(s), 2 generated file(s)
-driver: struct seen 1x, generated decls back 4
+driver: struct seen 1x, generated decls back 2
 # stderr
 vader build: compiling the build driver `build.vader`...
 vader build: wrote <project>/build/driver/driver

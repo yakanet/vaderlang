@@ -4,9 +4,6 @@
   storage
     const ENV: CLibrary  data pool #0, element 0
   snippet.log :: fn(ptr: i32, len: i32) -> void  // snippet$log
-  snippet.test_log :: fn() -> void {  // snippet$test_log
-      snippet.log(0, 0)
-  }
   snippet.main :: fn() -> i32 {  // snippet$main
       0
   }

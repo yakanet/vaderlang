@@ -4,9 +4,6 @@
   ConstDecl      ENV                  :: CLibrary
   FnDecl         log                  :: fn(i32, i32) -> void
   FnDecl         main                 :: fn() -> i32
-  FnDecl         test_log             :: fn() -> void
-  expr 10:5     CallExpr       :: void
-  expr 10:5     IdentExpr      :: fn(i32, i32) -> void
   expr 3:27     StringLitExpr  :: string
   expr 3:8      StructLitExpr  :: CLibrary
   expr 5:14     StringLitExpr  :: string

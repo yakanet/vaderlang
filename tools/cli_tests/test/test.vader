@@ -156,6 +156,34 @@ test_a_module_is_tested_without_the_tests_of_the_modules_it_imports :: fn() -> v
 }
 
 @test
+test_a_test_is_checked_by_vader_test_alone :: fn() -> void {
+    // Every other command loads the module without its tests, and without the
+    // import only they use: neither the error nor an unused import shows.
+    dir :: scratch_dir("test_checked_alone")
+    write_file(
+        "${dir}/app.vader",
+        r"""
+        module "app"
+
+        main :: fn() -> i32 = 0
+
+        import "std/testing"
+
+        @test
+        test_main :: fn() -> void {
+            wrong: i32: "text"
+            assert_eq(main(), wrong)
+        }
+        """,
+    )
+    checked :: vader_in(dir, ["check", "app.vader"])
+    assert(checked.exit == 0 && checked.stderr == "", checked.stdout + checked.stderr)
+    tested :: vader_in(dir, ["test", "app.vader"])
+    reported :: tested.stdout + tested.stderr
+    assert(tested.exit == 1 && "T3001" in reported, reported)
+}
+
+@test
 test_a_folder_is_tested_within_the_project_above_it :: fn() -> void {
     // Run from inside `app`, which holds no `vader.json`: `helper` is found from
     // the project above.

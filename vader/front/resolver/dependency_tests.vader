@@ -1,14 +1,15 @@
-// vader/front/resolver/dependency_tests: a module the program depends on is
-// loaded without its tests.
+// vader/front/resolver/dependency_tests: a module is loaded without its tests,
+// unless the load runs them.
 //
-// The tests of a dependency are not the program's: nothing runs them in its
-// build, and every pass after the loader would still study them. They go here,
-// right after parsing, with the private declarations only they reach and the
-// impls of the types that go with them. What stays is what the module's own
-// surface reaches by name (`vader/front/reach`), so a declaration is kept when
-// in doubt.
+// Tests exist for `vader test` alone: nothing else runs them, and every pass
+// after the loader would still study them. They go here, right after parsing,
+// with the private declarations only they reach and the impls of the types that
+// go with them. A declaration the module's own surface reaches by name stays
+// (`vader/front/reach`), and so does one nothing reaches: dead code is the lint
+// of dead code's to report.
 //
-// Imports stay: one that only a test needed is still loaded.
+// Imports stay: one that only a test needed is still loaded, and the lint of
+// imports reads the names of what went (`Untested.removed`).
 
 module "vader/front/resolver"
 
@@ -25,8 +26,8 @@ AST :: import "toolchain/ast"
 /// @param files        the module's parsed files.
 /// @param module_name  the module's declared name.
 /// @return             the files, holding the declarations the module's surface
-///                     reaches.
-export without_tests :: fn(files: SourceFile[], module_name: string) -> SourceFile[] {
+///                     reaches, and those that went.
+export without_tests :: fn(files: SourceFile[], module_name: string) -> Untested {
     private_types :: Set<string> {}
     for f in files {
         for d in f.program.decls {
@@ -37,6 +38,7 @@ export without_tests :: fn(files: SourceFile[], module_name: string) -> SourceFi
     }
     refs_by_name :: Map<string, string[]> {}
     root_names: string[]: []
+    test_names: string[]: []
     seed_refs: string[]: []
     for f in files {
         for d in f.program.decls {
@@ -45,7 +47,9 @@ export without_tests :: fn(files: SourceFile[], module_name: string) -> SourceFi
             name :: declared_name(d)
             if name != null {
                 register_refs(refs_by_name, name, refs)
-                if is_surface(d, name, module_name) {
+                if is_test(d) {
+                    test_names.push(name)
+                } else if is_surface(d, name, module_name) {
                     root_names.push(name)
                 }
                 continue
@@ -60,18 +64,33 @@ export without_tests :: fn(files: SourceFile[], module_name: string) -> SourceFi
             }
         }
     }
+    if test_names.len() == 0 {
+        return Untested { .files = files }
+    }
     reachable :: bfs_reachable(root_names, seed_refs, refs_by_name)
-    out: SourceFile[]: []
+    by_tests :: bfs_reachable(test_names, [], refs_by_name)
+    out :: Untested { .files = [] }
     for f in files {
         kept: AST.Decl[]: []
         for d in f.program.decls {
-            if is_reached(d, reachable, private_types) {
+            only_tested :: is_reached(d, by_tests, private_types)
+                && !is_reached(d, reachable, private_types)
+            if is_test(d) || only_tested {
+                out.removed.push(d)
+            } else {
                 kept.push(d)
             }
         }
-        out.push(SourceFile { ...f, .program = AST.Program { ...f.program, .decls = kept } })
+        out.files.push(SourceFile { ...f, .program = AST.Program { ...f.program, .decls = kept } })
     }
     return out
+}
+
+/// A module's files without its tests (`without_tests`).
+export Untested :: struct {
+    files: SourceFile[]
+    /// The tests, and what only they reach.
+    removed: AST.Decl[] = []
 }
 
 // The name `d` declares, null for an impl, an assert or an import.
@@ -88,13 +107,10 @@ declared_name :: fn(d: AST.Decl) -> string | null = match d {
 declares_type :: fn(d: AST.Decl) -> bool =
     d is AST.StructDecl || d is AST.EnumDecl || d is AST.TypeAliasDecl
 
-// Whether the named declaration `d` is reached from outside the module: exported,
-// an entry point, or wired to the host. A test is not.
+// Whether the named declaration `d`, not a test, is reached from outside the
+// module: exported, an entry point, or wired to the host.
 is_surface :: fn(d: AST.Decl, name: string, module_name: string) -> bool {
     decorators :: AST.decl_decorators(d)
-    if AST.has_compiler_decorator(decorators, .Test) {
-        return false
-    }
     return AST.decl_is_public(d) || is_wired_root(decorators, name)
         || module_name == DRIVER_MODULE && name == DRIVER_ENTRY
 }
@@ -151,7 +167,7 @@ left_of :: fn(source: string) -> string {
     parsed :: parse_source(source, "t.vader")
     files :: [SourceFile { .path = "t.vader", .content = source, .program = parsed.program }]
     names: string[]: []
-    for d in without_tests(files, "t")[0].program.decls {
+    for d in without_tests(files, "t").files[0].program.decls {
         if d is AST.ImplDecl {
             target :: d.for_type
             if target is AST.IdentExpr {

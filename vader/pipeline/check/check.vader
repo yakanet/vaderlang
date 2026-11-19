@@ -124,6 +124,7 @@ export FileCheck :: struct {
 ///                     own (`search_roots`).
 /// @param extra_seeds  modules to load and check beside what the entry imports
 ///                     (see `load_project_with_overlay`).
+/// @param under_test   the entry's module keeps its tests, as under `vader test`.
 /// @return             the loaded project, the typed result, and the merged
 ///                     loader + typecheck diagnostics.
 export check_file :: fn(
@@ -134,9 +135,11 @@ export check_file :: fn(
     dump_types: bool,
     selection: Selection | null = null,
     extra_seeds: string[] = [],
+    under_test: bool = false,
 ) -> FileCheck {
     project :: load_project_with_overlay(
         entry_path, overlay, include_path_flags, project_root, selection, extra_seeds,
+        under_test = under_test,
     )
     diags: Diagnostic[]: []
     checked :: check_project(project, diags, dump_types)

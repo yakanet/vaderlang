@@ -52,7 +52,10 @@ export check_unused_imports :: fn(
         }
     }
     for [id, loaded] in project.modules {
-        if loaded.tests_removed {
+        // The toolchain's modules are not the user's to lint ; and what looks
+        // unused in a module cut to what the program reaches may be used by what
+        // went, its tests among them.
+        if loaded.module.origin == .Toolchain || loaded.trimmed {
             continue
         }
         typed :: checked.all_modules[id]
@@ -64,10 +67,16 @@ export check_unused_imports :: fn(
             // Walked for the first import no name serves: most files have none.
             run: ImplsRun | null = null
             names :: names_written(file.program.decls)
-            // A body another platform selects is source of this file too.
+            // A body another platform selects is source of this file too, and so
+            // is a test the load left out.
             for body in loaded.discarded_bodies {
                 if body.span.start.file == file.path {
                     add_names(body, names)
+                }
+            }
+            for removed in loaded.removed_tests {
+                if AST.decl_span(removed).start.file == file.path {
+                    add_names(removed, names)
                 }
             }
             for d in file.program.decls {
