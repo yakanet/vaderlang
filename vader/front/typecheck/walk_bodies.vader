@@ -67,17 +67,18 @@ reset_expr_tables :: fn(typed: TypedProgram) -> void {
 
 // ---- inferred export returns ----------------------------------------------
 
-// W0017: an exported function whose expression body decides its return type,
-// which then follows every edit of the body. Allocates nothing, unlike the warning
-// it gates, which runs on a hit only.
+// An exported function whose expression body decides its return type: refused,
+// since its type is what other modules read, and it would follow every edit of
+// the body. Allocates nothing, unlike the error it gates, which runs on a hit only.
 //
 // `visibility` is the function's own, or for a trait's default, the trait's.
 leaves_export_return_to_inference :: fn(fd: AST.FnDecl, visibility: AST.Visibility) -> bool =
     visibility == .Public && needs_return_inference(fd) && !fd.comptime_synthetic
 
-// Warn about `fd`, naming the type to write. A `never` return has no spelling to
-// write (a `@no_return` function), and an unresolved one already draws T3034.
-warn_inferred_export_return :: fn(
+// Refuse `fd`, naming the type to write. A `never` return has no spelling: a
+// function that never returns says so with `@no_return`, which fixes its type. An
+// unresolved return already draws T3034.
+reject_inferred_export_return :: fn(
     fd: AST.FnDecl,
     typed: TypedProgram,
     diags: Diagnostic[],
@@ -87,10 +88,19 @@ warn_inferred_export_return :: fn(
         return
     }
     ret :: fn_type.return_type
-    if ret !is UnresolvedType && ret !is NeverType {
-        detail :: "write `-> ${display_type(ret)}`"
-        diags.push(warning(.InferredExportReturnType, fd.name_span, detail))
+    marked :: AST.has_compiler_decorator(fd.decorators, .NoReturn)
+    if ret is UnresolvedType || ret is NeverType && marked {
+        return
     }
+    diags.push(typecheck_error(.ExportReturnLeftToInference, fd.name_span, return_to_write(ret)))
+}
+
+// What an export whose body gives `ret` writes instead.
+return_to_write :: fn(ret: Type) -> string {
+    if ret is NeverType {
+        return "it never returns: mark it `@no_return`"
+    }
+    return "write `-> ${display_type(ret)}`"
 }
 
 // ---- body walk ------------------------------------------------------------
@@ -134,7 +144,7 @@ walk_bodies :: fn(
             is AST.FnDecl        -> {
                 walk_fn_body(decl, typed, diags, mode)
                 if mode == .Full && leaves_export_return_to_inference(decl, decl.visibility) {
-                    warn_inferred_export_return(decl, typed, diags)
+                    reject_inferred_export_return(decl, typed, diags)
                 }
             }
             is AST.ConstDecl     -> {
@@ -319,7 +329,7 @@ walk_default_bodies :: fn(
             walk_fn_body(m, typed, diags, mode)
             record_default_return(m, self_sym, typed)
             if mode == .Full && leaves_export_return_to_inference(m, d.visibility) {
-                warn_inferred_export_return(m, typed, diags)
+                reject_inferred_export_return(m, typed, diags)
             }
         }
     }

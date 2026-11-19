@@ -72,6 +72,3 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-
-# Diagnostics
-[11:5] warning[W0017] exported function leaves its return type to inference: write `-> i32`

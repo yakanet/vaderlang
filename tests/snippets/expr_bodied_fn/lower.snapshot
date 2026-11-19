@@ -92,10 +92,3 @@
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
-
-# Diagnostics
-[9:8] warning[W0017] exported function leaves its return type to inference: write `-> i32`
-[11:8] warning[W0017] exported function leaves its return type to inference: write `-> f64`
-[15:8] warning[W0017] exported function leaves its return type to inference: write `-> i32`
-[16:8] warning[W0017] exported function leaves its return type to inference: write `-> i32`
-[19:8] warning[W0017] exported function leaves its return type to inference: write `-> T`

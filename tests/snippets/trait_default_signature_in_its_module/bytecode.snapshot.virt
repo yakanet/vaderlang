@@ -436,6 +436,3 @@ fn 12 std_console$println__string (string) -> void
   call 9   ; std_console$write
   return
 end
-
-# Diagnostics
-[11:5] warning[W0017] exported function leaves its return type to inference: write `-> i32`

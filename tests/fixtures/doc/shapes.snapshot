@@ -134,7 +134,7 @@
       "name": "twice",
       "kind": "fn",
       "signature": "export twice :: fn(n: i32) -> i32",
-      "summary": "`n`, twice: its return type is left to inference.",
+      "summary": "`n`, twice.",
       "owner": ""
     },
     {
@@ -747,14 +747,14 @@
             "text": "i32"
           }
         ],
-        "return_inferred": true
+        "return_inferred": false
       },
       "file": "shapes/geometry/geometry.vader",
       "line": 46,
       "column": 8,
       "doc": {
-        "summary": "`n`, twice: its return type is left to inference.",
-        "prose": "`n`, twice: its return type is left to inference.",
+        "summary": "`n`, twice.",
+        "prose": "`n`, twice.",
         "params": [],
         "returns": [],
         "errors": [],

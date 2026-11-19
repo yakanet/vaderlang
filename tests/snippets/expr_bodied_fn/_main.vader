@@ -6,17 +6,17 @@ module "snippet"
 
 import "std/console"
 
-export square :: fn(x: i32) = x * x
+square :: fn(x: i32) = x * x
 
-export max :: fn(a: f64, b: f64) = if a > b { a } else { b }
+max :: fn(a: f64, b: f64) = if a > b { a } else { b }
 
 // Forward reference: `b` calls `a` declared after it. The fixpoint
 // inference resolves them in dependency order.
-export b :: fn(x: i32) = a(x) + 1
-export a :: fn(x: i32) = x * 10
+b :: fn(x: i32) = a(x) + 1
+a :: fn(x: i32) = x * 10
 
 // Generic one-liner.
-export id :: fn<T>(x: T) = x
+id :: fn<T>(x: T) = x
 
 main :: fn() -> i32 {
     println("${square(7)}")

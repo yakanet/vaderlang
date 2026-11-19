@@ -17,7 +17,7 @@
       {
         "kind": "FnDecl",
         "name": "square",
-        "visibility": "public",
+        "visibility": "private",
         "typeParams": [],
         "params": [
           {
@@ -53,7 +53,7 @@
       {
         "kind": "FnDecl",
         "name": "max",
-        "visibility": "public",
+        "visibility": "private",
         "typeParams": [],
         "params": [
           {
@@ -117,7 +117,7 @@
       {
         "kind": "FnDecl",
         "name": "b",
-        "visibility": "public",
+        "visibility": "private",
         "typeParams": [],
         "params": [
           {
@@ -166,7 +166,7 @@
       {
         "kind": "FnDecl",
         "name": "a",
-        "visibility": "public",
+        "visibility": "private",
         "typeParams": [],
         "params": [
           {
@@ -202,7 +202,7 @@
       {
         "kind": "FnDecl",
         "name": "id",
-        "visibility": "public",
+        "visibility": "private",
         "typeParams": [
           {
             "name": "T",

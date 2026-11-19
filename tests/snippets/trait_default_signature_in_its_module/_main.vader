@@ -1,8 +1,6 @@
 // An inherited member's signature is its trait's, read in the trait's module: an
 // impl in a file that does not import `snippet/units` still inherits defaults
-// whose signatures name `Factor`, and the impl's callers read their types. A
-// default of another module that leaves out its return type is read with the
-// type its body gives.
+// whose signatures name `Factor`, and the impl's callers read their types.
 
 module "snippet"
 

@@ -1,2 +1,0 @@
-[14:8] warning[W0017] exported function leaves its return type to inference: write `-> i32`
-[33:5] warning[W0017] exported function leaves its return type to inference: write `-> i32`

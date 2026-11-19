@@ -1709,7 +1709,7 @@ The compiler warns about an arm whose values the arms above already take: after 
 
 Inference is bidirectional: from the value (`x :: 12` infers `x: i32`), and from the context (the function type a slot expects gives a lambda the types of its parameters).
 
-There is no Hindley-Milner inference across the program: the parameters of a function declaration must be annotated (`self` excepted). An expression-bodied function may leave out its return type, which its expression gives; a block body without one returns nothing. The compiler warns when an exported function leaves its return type out: its public type would then change with its body.
+There is no Hindley-Milner inference across the program: the parameters of a function declaration must be annotated (`self` excepted). An expression-bodied function may leave out its return type, which its expression gives; a block body without one returns nothing. An exported function writes its return type: other modules read it as a contract, which must not change with its body. One that never returns says so with `@no_return` instead (§12 *Decorators*, `@no_return`).
 
 #### Type arguments of a call
 

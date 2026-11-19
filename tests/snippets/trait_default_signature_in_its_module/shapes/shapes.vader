@@ -7,6 +7,5 @@ export Shape :: trait {
     area :: fn(self) -> i32
     scaled :: fn(self, by: Factor) -> i32 = self.area() * by.n
     unit :: fn(self) -> Factor = Factor { .n = self.area() }
-    // Leaves its return to its body: W0017, and every module reads `i32`.
-    double :: fn(self) = self.area() * 2
+    double :: fn(self) -> i32 = self.area() * 2
 }

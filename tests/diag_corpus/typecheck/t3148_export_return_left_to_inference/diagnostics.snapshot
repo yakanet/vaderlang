@@ -1,0 +1,3 @@
+[16:8] error[T3148] an exported function leaves its return type to inference: write `-> i32`
+[28:8] error[T3148] an exported function leaves its return type to inference: it never returns: mark it `@no_return`
+[38:5] error[T3148] an exported function leaves its return type to inference: write `-> i32`

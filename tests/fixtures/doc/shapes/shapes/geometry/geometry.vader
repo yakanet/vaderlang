@@ -42,8 +42,8 @@ export Quadrant :: enum {
 /// The origin of the plane.
 export ORIGIN :: Point { .x = 0.0, .y = 0.0 }
 
-/// `n`, twice: its return type is left to inference.
-export twice :: fn(n: i32) = n * 2
+/// `n`, twice.
+export twice :: fn(n: i32) -> i32 = n * 2
 
 // Private: left out of the data.
 mirror :: fn(p: Point) -> Point = Point { .x = -p.x, .y = -p.y }
