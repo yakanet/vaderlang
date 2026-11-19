@@ -68,8 +68,11 @@ export driver_names :: fn(files: string[], project_root: string | null) -> Drive
         if is_generated_file(file) {
             continue
         }
-        name :: relative_to(normalized_path(file), root)
-        if name != file {
+        // Outside the folder, `relative_to` hands the normalised path back: the file
+        // keeps its name.
+        normalized :: normalized_path(file)
+        name :: relative_to(normalized, root)
+        if name != normalized && name != file {
             names.sent[file] = name
             names.read[name] = file
         }
