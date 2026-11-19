@@ -1635,6 +1635,10 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 
 ## Archived from TODO.md, 2026-11-19
 
+### Priority: next up
+
+- [x] **Two inferred-return fns declared in reverse order leave a `?` type, and `run` panics**, **closed 2026-11-19** (found 2026-10-08): the two inference walks (returns only, then full) settled one level of forward reference, not two, so `h :: fn() = g()` read before `g` left `?` (`emit/bytecode/emit: no field n on ?`), and a chain `a -> b -> c` drew a false T3034 on `a`. A call to a function whose body gives its return now walks that body at once when the walk has not reached it (`settle_return`, `vader/front/typecheck/walk_bodies.vader`), as a const read before its turn is typed then; a call to one being walked is a recursion, the only T3034 left. Since ADR 0161 no module reads a return another infers.
+
 ### 3.1 Concurrency
 
 - [x] **The task check knows its primitives by name**, **closed 2026-11-19** (noted 2026-11-16): `task_primitive` (`vader/core/types/task_runtime.vader`) matched the keys `std/task.launch`, `std/task.join`, `std/runtime/scheduler.park`... and a closed list named the shared structs, so renaming or moving one in the library dropped it from the analysis in silence. Each primitive now says what it is to a task with `@task_primitive`, and each shared struct carries `@task_shared`, two decorators private to `std/task` (`lib/std/task/decorators.vader`); a function that only forwards to a member of `Intrinsic` that parks is a gate by `intrinsic_parks` (ADR 0160).

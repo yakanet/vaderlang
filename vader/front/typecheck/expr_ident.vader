@@ -56,7 +56,7 @@ export declared_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Symbol {
 /// side-tables. Public so other passes (call, field, ...) can reach
 /// it without re-routing through `infer_ident`.
 export type_of_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Type = match sym.kind {
-    .Fn        -> lookup_decl(sym, typed)
+    .Fn        -> settled_fn_type(sym, typed)
     .Struct    -> lookup_decl(sym, typed)
     .Enum      -> lookup_decl(sym, typed)
     .Trait     -> lookup_decl(sym, typed)
@@ -108,6 +108,13 @@ lookup_in :: fn(sym: Symbol, table: Map<u64, Type>) -> Type {
 lookup_decl_in :: fn(sym: Symbol, table: Map<i32, Type>) -> Type {
     ty :: table[sym.id] else return TY_UNRESOLVED
     return ty
+}
+
+// The type of the function `sym`, its return settled first when its body gives it
+// (`settle_return`).
+settled_fn_type :: fn(sym: Symbol, typed: TypedProgram) -> Type {
+    settle_return(sym, typed)
+    return lookup_decl(sym, typed)
 }
 
 /// Lookup with cross-module fallback : when the local `decl_types`

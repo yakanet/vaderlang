@@ -814,6 +814,10 @@ export TypedProgram :: struct {
     /// its turn types it then (`settle_const_read`).
     const_walk: ConstWalk = ConstWalk {}
 
+    /// The functions of the module `walk_bodies` is walking whose body gives their
+    /// return, so a call to one before its turn walks it then (`settle_return`).
+    return_walk: ReturnWalk = ReturnWalk {}
+
     /// Callee node id -> what its call invokes, noted where the typecheck decides it
     /// (`note_callee`).
     callees: Map<i64, Callee> = Map<i64, Callee> {}
@@ -836,6 +840,19 @@ export ConstTyping :: struct {
     decl: AST.ConstDecl
     /// Reached by a read inside a fn body, which runs once every const is set.
     deferred: bool
+}
+
+/// The functions of one walk whose body gives their return, walked or being
+/// walked : each body is walked once per walk, at its turn or at the first call
+/// before it, whichever comes first.
+export ReturnWalk :: struct {
+    /// The functions walked or being walked, by node id : a call to one being
+    /// walked is a recursion, whose return is not known yet.
+    walked: Set<i64> = Set<i64> {}
+    /// The walk's diagnostics, where a body walked early reports. Not
+    /// `const_walk.diags`: the bodies a stage gives late are walked with no const
+    /// walk of their own (`check_late_bodies`).
+    diags: Diagnostic[] = []
 }
 
 /// The consts of one `walk_bodies` walk and where each stands : each is typed once

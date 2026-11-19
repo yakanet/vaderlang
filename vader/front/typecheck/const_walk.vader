@@ -114,6 +114,8 @@ WalkPosition :: struct {
     loop_stack: EnclosingLoop[]
     /// The narrowings in force.
     narrow: NarrowState
+    /// The type parameters of the trait whose default body is walked.
+    default_body_params: Set<i32>
 }
 
 /// Set the walk's position aside, the walk then standing at module level ;
@@ -129,6 +131,7 @@ set_walk_aside :: fn(typed: TypedProgram) -> WalkPosition {
         .overloaded_arg_depth = typed.overloaded_arg_depth,
         .loop_stack = typed.loop_stack,
         .narrow = typed.narrow,
+        .default_body_params = typed.default_body_params,
     }
     typed.current_fn_ctx = null
     typed.callee_field_id = AST.UNASSIGNED_NODE_ID
@@ -137,6 +140,7 @@ set_walk_aside :: fn(typed: TypedProgram) -> WalkPosition {
     typed.overloaded_arg_depth = 0
     typed.loop_stack = []
     typed.narrow = NarrowState {}
+    typed.default_body_params = Set<i32> {}
     return position
 }
 
@@ -151,6 +155,7 @@ resume_walk :: fn(typed: TypedProgram, position: WalkPosition) -> void {
     typed.overloaded_arg_depth = position.overloaded_arg_depth
     typed.loop_stack = position.loop_stack
     typed.narrow = position.narrow
+    typed.default_body_params = position.default_body_params
 }
 
 // Whether a read of the const `cd` (`key`), which is being typed, closes a cycle

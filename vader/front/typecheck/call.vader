@@ -435,6 +435,7 @@ collect_overload_candidates :: fn(
     bucket :: typed.resolved.fn_overloads[name]
     if bucket !is null {
         for sym in bucket {
+            settle_return(sym, typed)
             ft :: typed.decl_types[sym.id] else continue
             if ft is FnType {
                 out.push(FnCandidate {

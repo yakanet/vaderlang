@@ -137,8 +137,10 @@ walk_bodies :: fn(
     for decl in decls.filter_is<AST.ImplDecl>() {
         declare_and_check_impl(decl, typed, diags)
     }
-    // A const is typed at its turn below, or at a read before it (`const_walk`).
+    // A const is typed at its turn below, or at a read before it (`const_walk`) ;
+    // a function whose body gives its return, at its turn or at a call before it.
     open_const_walk(decls, typed, diags)
+    typed.return_walk = ReturnWalk { .diags = diags }
     for decl in decls {
         match decl {
             is AST.FnDecl        -> {
@@ -457,6 +459,7 @@ collect_tested_type :: fn(n: AST.Node, tested: AST.TypeExpr[]) -> AST.Walk {
 /// @param typed  the module's typed program, written in place.
 /// @param diags  receives what the bodies' typing reports.
 export check_late_bodies :: fn(late: LateFn[], typed: TypedProgram, diags: Diagnostic[]) -> void {
+    typed.return_walk = ReturnWalk { .diags = diags }
     files :: Set<string> {}
     for l in late {
         given :: l.decl.body else continue
@@ -501,7 +504,68 @@ walk_fn_body :: fn(
     // bodies here is byte-identical. A non-reset return-only walk would
     // silently leave every skipped body at `:?` (lowerer -> degraded bytecode,
     // no error).
-    if mode == .ReturnsOnly && !needs_return_inference(fd) { return }
+    infers :: needs_return_inference(fd)
+    if mode == .ReturnsOnly && !infers { return }
     body :: fd.body else return
+    // `add` answers false for a body a call ahead of its turn walked already.
+    if infers && !typed.return_walk.walked.add(fd.id) {
+        return
+    }
     check_fn_body(fd, body, typed, diags)
+}
+
+// Walk now the body of the function `sym` of this module when it gives its return
+// and the walk has not reached it : a call ahead of its turn reads the return. Not
+// while a const's value is typed : a body is walked once every const it may read is
+// set (`guard_facts` waits alike). A call to a function being walked is a recursion,
+// whose return stays unknown (T3034).
+settle_return :: fn(sym: Symbol, typed: TypedProgram) -> void {
+    if sym.module != typed.resolved.path || typed.const_walk.typing.len() > 0 {
+        return
+    }
+    // A return the body gives is unresolved until then: a written or settled one
+    // ends here, the common case, before any lookup of the declaration.
+    declared :: typed.decl_types[sym.id]
+    if declared !is FnType || declared.return_type !is UnresolvedType {
+        return
+    }
+    decl :: typed.fn_decls[sym.id] else return
+    body :: decl.body else return
+    walk :: typed.return_walk
+    if !needs_return_inference(decl) || !walk.walked.add(decl.id) {
+        return
+    }
+    position :: set_walk_aside(typed)
+    check_fn_body(decl, body, typed, walk.diags)
+    resume_walk(typed, position)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// The type `checked` holds for its function `name`.
+fn_type_named :: fn(checked: CheckedSource, name: string) -> string {
+    sym :: checked.typed.resolved.symbols.find((s) -> s.name == name) else return "<none>"
+    return display_type(checked.typed.decl_types[sym.id] else TY_UNRESOLVED)
+}
+
+@test
+test_return_left_to_a_body_is_read_through_a_chain_of_calls_ahead :: fn() -> void {
+    checked :: check_source_bodies("a :: fn() = b() + 1\nb :: fn() = c() + 1\nc :: fn() = 1\n")
+    assert_eq(checked.diags.len(), 0)
+    assert_eq(fn_type_named(checked, "a"), "fn() -> i32")
+}
+
+@test
+test_return_left_to_a_body_is_read_through_a_method_call_ahead :: fn() -> void {
+    checked :: check_source_bodies("a :: fn() = 3.twice()\ntwice :: fn(n: i32) = n * 2\n")
+    assert_eq(checked.diags.len(), 0)
+    assert_eq(fn_type_named(checked, "a"), "fn() -> i32")
+}
+
+@test
+test_return_left_to_a_recursive_body_is_refused :: fn() -> void {
+    checked :: check_source_bodies("f :: fn(n: i32) = f(n - 1)\n")
+    assert(has_code(checked.diags, "T3034"), "a recursion has no return to read")
 }
