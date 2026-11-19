@@ -9,6 +9,7 @@
 module "std/task"
 
 /// A value several tasks share, each reaching it through `locked`.
+@task_shared
 export Shared :: struct<T> {
     @internal
     value: T
@@ -22,6 +23,7 @@ export Shared :: struct<T> {
 ///   hits.locked(fn(counts) {
 ///       counts[0] += 1
 ///   })
+@task_primitive(gives = "value")
 export shared :: fn<T>(value: T) -> Shared<T> = Shared<T> { .value = value }
 
 /// Run `body` on the value of `cell`, holding its lock.
@@ -36,9 +38,11 @@ export shared :: fn<T>(value: T) -> Shared<T> = Shared<T> { .value = value }
 /// @example
 ///   names :: shared(["ada"])
 ///   names.locked((all) -> all.len())   // 1
+@task_primitive(exclusive = "body", guards = "value")
 export locked :: fn<T, R>(cell: Shared<T>, body: fn(T) -> R) -> R = body(cell.value)
 
 /// An integer several tasks read and write at once.
+@task_shared
 export AtomicInt :: struct {
     @internal
     value: i64 = 0
@@ -52,6 +56,7 @@ export AtomicInt :: struct {
 ///   done :: AtomicInt {}
 ///   done.fetch_add(2)   // 0
 ///   done.load()         // 2
+@task_primitive(writes = "value")
 export fetch_add :: fn(cell: AtomicInt, n: i64) -> i64 {
     before :: cell.value
     cell.value += n
@@ -61,12 +66,14 @@ export fetch_add :: fn(cell: AtomicInt, n: i64) -> i64 {
 /// What `cell` holds.
 ///
 /// @param cell  the integer to read.
+@task_primitive
 export load :: fn(cell: AtomicInt) -> i64 = cell.value
 
 /// Make `cell` hold `n`.
 ///
 /// @param cell  the integer to write.
 /// @param n     what it holds from now on.
+@task_primitive(writes = "value")
 export store :: fn(cell: AtomicInt, n: i64) -> void {
     cell.value = n
 }
@@ -80,6 +87,7 @@ export store :: fn(cell: AtomicInt, n: i64) -> void {
 ///   owner :: AtomicInt {}
 ///   owner.compare_and_set(0, 7)   // true
 ///   owner.compare_and_set(0, 9)   // false
+@task_primitive(writes = "value")
 export compare_and_set :: fn(cell: AtomicInt, expected: i64, next: i64) -> bool {
     if cell.value != expected {
         return false
@@ -89,6 +97,7 @@ export compare_and_set :: fn(cell: AtomicInt, expected: i64, next: i64) -> bool 
 }
 
 /// A flag several tasks read and write at once.
+@task_shared
 export AtomicBool :: struct {
     @internal
     value: bool = false
@@ -97,12 +106,14 @@ export AtomicBool :: struct {
 /// What `cell` holds.
 ///
 /// @param cell  the flag to read.
+@task_primitive
 export load :: fn(cell: AtomicBool) -> bool = cell.value
 
 /// Make `cell` hold `flag`.
 ///
 /// @param cell  the flag to write.
 /// @param flag  what it holds from now on.
+@task_primitive(writes = "value")
 export store :: fn(cell: AtomicBool, flag: bool) -> void {
     cell.value = flag
 }

@@ -1,11 +1,11 @@
 // vader/front/effects/task_doors: the functions a task goes through.
 //
 // The primitives of `std/task` launch a task, wait for one, hand a message on, hold
-// a lock. What each is to a task is a row of the compiler's closed table
-// (`vader/core/types/task_runtime.vader`), and the row stands for the body a
-// primitive may have: that body shares a task's state with the threads of the
-// runtime, which no task may race on. What a primitive does to what it is lent is
-// read from its row too. A function that calls a primitive is read from its body.
+// a lock. What each is to a task is what its `@task_primitive` says
+// (`task_primitives.vader`), which stands for the body a primitive may have: that
+// body shares a task's state with the threads of the runtime, which no task may race
+// on. What a primitive does to what it is lent is read from its decorator too. A
+// function that calls a primitive is read from its body.
 //
 // A task is a task of `std/task`: a thread started straight through
 // `std/runtime/scheduler`, as the VM runs the threads of the program it runs, is
@@ -24,7 +24,7 @@ AST :: import "toolchain/ast"
 /// What the primitive `p`, declaring `params` parameters, does with each of them.
 ///
 /// @param paths   the summary's paths.
-/// @param p       the primitive's row.
+/// @param p       what the primitive is to a task.
 /// @param params  how many parameters it declares.
 primitive_effects :: fn(paths: PathTable, p: TaskPrimitive, params: i64) -> ParamEffects[] =
     (0..<params).map((q) -> lent_effects(paths, p, q)).collect()

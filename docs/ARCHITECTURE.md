@@ -168,9 +168,12 @@ The rules of SPEC §16 *Values shared between tasks* are checked after typing, o
 the effect summary of every function (`vader/front/effects/`): what it assigns,
 grows, keeps or hands back of what it is lent, path by path under each parameter.
 
-- The gates are the primitives of `std/task`, listed in one closed table
-  (`vader/core/types/task_runtime.vader`), as are the synchronised types
-  (`TASK_SHARED_STRUCTS`).
+- The gates are the primitives of `std/task`, each saying what it is to a task
+  with `@task_primitive`, a decorator private to `std/task`
+  (`vader/front/effects/task_primitives.vader`): the parameters and fields it names
+  are checked, a wrong one stops the compiler. A function that only forwards to a
+  member of `Intrinsic` that parks (`intrinsic_parks`) is a gate too. The
+  synchronised types carry `@task_shared`.
 - A function that hands one of its parameters to a task is a gate for its
   callers: a fixed point over the call graph (`vader/front/effects/tasks.vader`).
 - For each value at a gate, the check crosses what the task touches with what the

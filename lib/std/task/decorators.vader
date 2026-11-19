@@ -1,0 +1,47 @@
+// std/task/decorators: what the primitives of this module are to the task check.
+//
+// The body of a primitive shares a task's state with the threads of the scheduler,
+// which no task may race on: the task check reads its decorator instead of its body.
+// What a primitive does is a contract of the runtime, not a property of its code
+// (`locked` runs its body alone only because the scheduler never preempts it), so it
+// is said where the primitive is declared. Both decorators are private: no other
+// module can claim to be a primitive.
+//
+// A field names a parameter of the primitive, or a field of the struct the primitive
+// is lent first, by its name; `""` names none. The check stops the compiler on a name
+// that does not exist, and reads the values as written, so each one is a literal.
+
+module "std/task"
+
+/// What the function below is to a task. A primitive with no field given does
+/// nothing to a task that the check could see.
+task_primitive :: decorator(.Function) {
+    /// The parameter holding the fn a task runs.
+    runs: string = ""
+    /// The parameter holding a value handed on to other tasks, which may do anything
+    /// with it.
+    gives: string = ""
+    /// The parameter holding the task whose end the call waits for, or the array of
+    /// tasks each of which it waits for. Each task holds what it returned in its field
+    /// `result`.
+    joins: string = ""
+    /// The parameter holding the fn run holding a lock, handed the value `guards`
+    /// names.
+    exclusive: string = ""
+    /// The call may park the task that makes it.
+    parks: bool = false
+    /// The field the call assigns.
+    writes: string = ""
+    /// The array field the call grows.
+    grows: string = ""
+    /// The call returns a value another task handed on, which belongs to the caller
+    /// from then on.
+    takes: bool = false
+    /// The field the lock guards.
+    guards: string = ""
+}
+
+/// The struct below is shared by design: every task holding one reaches the same
+/// value, which the task check does not race and a deep copy keeps instead of
+/// copying.
+task_shared :: decorator(.Struct) {}

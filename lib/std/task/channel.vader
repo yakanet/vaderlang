@@ -19,6 +19,7 @@ import "std/runtime/scheduler"
 /// The capacity is given at creation, `Channel<Job> { .capacity = 64 }`; a channel
 /// that never makes a sender wait takes `UNBOUNDED`. A channel iterates over the
 /// messages it receives until it is closed and drained: `for job in jobs { ... }`.
+@task_shared
 export Channel :: struct<T> {
     /// How many messages the channel holds before a `send` parks: at least 1.
     capacity: i64
@@ -62,6 +63,7 @@ Channel<T> implements<T> Iterator<T> {
 ///   jobs :: Channel<i32> { .capacity = 2 }
 ///   jobs.send(1)
 ///   jobs.receive()   // 1
+@task_primitive(gives = "message", parks = true, grows = "messages")
 export send :: fn<T>(channel: Channel<T>, message: T) -> void {
     if channel.capacity < 1 {
         panic("send: a channel holds at least one message, its capacity is ${channel.capacity}")
@@ -90,6 +92,7 @@ export send :: fn<T>(channel: Channel<T>, message: T) -> void {
 ///   jobs.close()
 ///   jobs.receive()   // 1
 ///   jobs.receive()   // closed
+@task_primitive(parks = true, writes = "messages", takes = true)
 export receive :: fn<T>(channel: Channel<T>) -> T | Closed {
     if channel.messages.is_empty() && !channel.closed {
         await_message(channel)
@@ -109,6 +112,7 @@ export receive :: fn<T>(channel: Channel<T>) -> T | Closed {
 /// Closing a closed channel does nothing.
 ///
 /// @param channel  the channel to close.
+@task_primitive(writes = "closed")
 export close :: fn<T>(channel: Channel<T>) -> void {
     channel.closed = true
     for thread in channel.receivers {

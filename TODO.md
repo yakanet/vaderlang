@@ -249,7 +249,6 @@ flat array in place of a map is worth ≤ 8 % once that lands.
 
 ### 3.1 Concurrency: partial
 - [ ] **A stop runs the defers of the task that stops, not those of the others** (noted 2026-11-08). Natively, `vader_trap`, `vader_panic` and `vader_unreachable` (`runtime/c/rt/defer_traps.c`) drain the running thread's defer stack only: the other tasks end with the process, their defers unrun. SPEC §16 *Cancellation* states the behaviour as it is; running every task's defers needs the stop to cancel each one and let it unwind.
-- [ ] **The task check knows its primitives by name** (noted 2026-11-16). `task_primitive` (`vader/core/types/task_runtime.vader`) matches the keys `std/task.launch`, `std/task.join`, `std/runtime/scheduler.park`... to say what each one does to a task (runs, joins, parks, gives, writes). Renaming or moving one of them in the library silently drops it from the analysis. The library should say it at the declaration instead, the way `Intrinsic` now carries what Vader cannot write (ADR 0155): a design to review before any code.
 - [ ] **A cancelled sleep keeps its timer.** The timer of a task cancelled while it sleeps stays in the heap until it fires, and wakes nothing (`runtime/c/rt/scheduler.c`).
 
 ### 3.2 Tasks over several cores

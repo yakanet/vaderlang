@@ -28,6 +28,7 @@ import "std/time"
 ///
 /// Two tasks are equal when they are the same task. A task shows as `task #N`,
 /// its number in the order the program started them.
+@task_shared
 export Task :: struct<T> {
     @internal
     number: i64
@@ -74,6 +75,7 @@ start_thread :: fn(entry: fn() -> void) -> i64 {
 ///       return 42
 ///   })
 ///   t.join()   // 42, after 10 ms
+@task_primitive(runs = "entry")
 export launch :: fn<T>(entry: fn() -> T) -> Task<T> {
     task :: Task<T> { .number = started().count + 1 }
     task.thread = start_thread(() -> run(task, entry))
@@ -125,6 +127,7 @@ end :: fn<T>(task: Task<T>) -> void {
 ///
 /// @param task  a task `launch` returned.
 /// @return      what the task returned, or `Cancelled` when it was cancelled.
+@task_primitive(joins = "task", parks = true)
 export join :: fn<T>(task: Task<T>) -> T | Cancelled {
     if !task.ended {
         me :: current_thread()
@@ -147,6 +150,7 @@ outcome :: fn<T>(task: Task<T>) -> T | Cancelled {
 /// Whether `task` has ended, so that `join` would not wait.
 ///
 /// @param task  a task `launch` returned.
+@task_primitive
 export is_ready :: fn<T>(task: Task<T>) -> bool = task.ended
 
 /// Cancel `task`: it runs its pending `defer`s and ends, and its `join` gives
@@ -160,6 +164,7 @@ export is_ready :: fn<T>(task: Task<T>) -> bool = task.ended
 /// itself does not come back from it.
 ///
 /// @param task  a task `launch` returned.
+@task_primitive
 export cancel :: fn<T>(task: Task<T>) -> void {
     if task.ended {
         return
@@ -185,6 +190,7 @@ stop_waiting :: fn<T>(task: Task<T>, thread: i64) -> void {
 ///
 /// @param tasks  the tasks to wait for.
 /// @return       what each returned, or `Cancelled`, in the order of `tasks`.
+@task_primitive(joins = "tasks", parks = true)
 export join_all :: fn<T>(tasks: Task<T>[]) -> (T | Cancelled)[] {
     out: (T | Cancelled)[]: []
     for task in tasks {
@@ -201,6 +207,7 @@ export join_all :: fn<T>(tasks: Task<T>[]) -> (T | Cancelled)[] {
 /// @return       what each returned, in the order of `tasks`.
 /// @error        the first error a task ended with, `Cancelled` included, in the
 ///               order they ended.
+@task_primitive(joins = "tasks", parks = true)
 export try_join_all :: fn<T>(tasks: Task<T>[]) -> T[] | Error {
     defer cancel_and_wait(tasks)
     group :: watch(tasks)
@@ -221,6 +228,7 @@ export try_join_all :: fn<T>(tasks: Task<T>[]) -> T[] | Error {
 ///
 /// @param tasks  the tasks to race, at least one.
 /// @return       what the first to end returned, or `Cancelled`.
+@task_primitive(joins = "tasks", parks = true)
 export race :: fn<T>(tasks: Task<T>[]) -> T | Cancelled {
     if tasks.len() == 0 {
         panic("race: no task to wait for")
@@ -238,6 +246,7 @@ export race :: fn<T>(tasks: Task<T>[]) -> T | Cancelled {
 /// @param tasks  the tasks to race for a success, at least one.
 /// @return       what the first to succeed returned, or the error of the last
 ///               to end when every one fails.
+@task_primitive(joins = "tasks", parks = true)
 export join_any :: fn<T>(tasks: Task<T>[]) -> T | Cancelled {
     if tasks.len() == 0 {
         panic("join_any: no task to wait for")
@@ -388,6 +397,7 @@ Alarm :: struct {
 ///   # import "std/time"
 ///   slow :: launch(() -> sleep(50.millis()))
 ///   slow.timeout(10.millis())   // a TimeoutError, after 10 ms
+@task_primitive(joins = "task", parks = true)
 export timeout :: fn<T>(task: Task<T>, d: Duration) -> T | Cancelled | TimeoutError {
     if task.ended {
         return outcome(task)

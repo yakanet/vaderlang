@@ -4,7 +4,7 @@
 // A function with a body is a node of the call graph. A bodyless one does what
 // the compiler knows of it: a member of `Intrinsic` by `member_summary`, an
 // `@extern` by its `@c_out` parameters. So does a primitive of `std/task`
-// (`task_doors.vader`), body or not: what it does to a task is the runtime's, not
+// (`task_primitives.vader`), body or not: what it does to a task is the runtime's, not
 // what its body shows ; and a function that only forwards to a member of
 // `Intrinsic`, which does what the member does (`forwarded_effects`).
 // A member reached through a trait is the member of that name in every impl of the
@@ -213,8 +213,7 @@ inherited_function :: fn(
 // note what it does.
 register :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> void {
     forwarding :: forwarded_operation(decl, typed)
-    key :: index.function_key(decl, typed)
-    door :: door_declared_by(decl, typed, forwarding, key)
+    door :: door_declared_by(decl, typed, forwarding)
     if door != null {
         index.doors[decl.id] = door
         effects :: primitive_effects(index.paths, door, decl.params.len())
@@ -230,7 +229,7 @@ register :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> voi
         index.nodes[decl.id] = index.add_node(Function { .decl = decl, .typed = typed })
         return
     }
-    index.summarised[decl.id] = index.summary_target(decl, key, typed)
+    index.summarised[decl.id] = index.summary_target(decl, typed)
 }
 
 // What `decl` does when it only forwards its parameters to a member of
@@ -253,14 +252,13 @@ forwarded_effects :: fn(
     return member_summary(id, index.paths).params
 }
 
-// What `decl` of key `key`, summarised without its body, does: an `@extern` writes
-// what `@c_out` marks, a member of `Intrinsic` what `member_summary` says ; one
-// neither describes does nothing to a parameter that holds no references, and
-// anything to one that does.
+// What `decl`, summarised without its body, does: an `@extern` writes what `@c_out`
+// marks, a member of `Intrinsic` what `member_summary` says ; one neither describes
+// does nothing to a parameter that holds no references, and anything to one that
+// does.
 summary_target :: fn(
     index: CalleeIndex,
     decl: AST.FnDecl,
-    key: string,
     typed: TypedProgram,
 ) -> CallTarget {
     if AST.has_compiler_decorator(decl.decorators, .Extern) {
@@ -284,7 +282,7 @@ summary_target :: fn(
     if signature is FnType && !signature.params.any_match((t: Type) -> holds_references(t)) {
         return KnownEffects { .params = decl.params.map((_) -> none()).collect() }
     }
-    index.unknown.push(key)
+    index.unknown.push(index.function_key(decl, typed))
     return AnyCallee {}
 }
 
@@ -323,9 +321,8 @@ member_of :: fn(index: CalleeIndex, decl: AST.FnDecl) -> IntrinsicId {
     return intrinsic_id(decl.name)
 }
 
-// The key of a function in the table of `task_primitive` and in the dump of the
-// unknown ones: `trait_key.member` for a member of an impl or of `Intrinsic`,
-// `module.name` for a free function.
+// The key of a function in the dump of the unknown ones: `trait_key.member` for a
+// member of an impl or of `Intrinsic`, `module.name` for a free function.
 function_key :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> string {
     if decl.id in index.intrinsics {
         return vtable_key(INTRINSIC_TRAIT_KEY, decl.name)

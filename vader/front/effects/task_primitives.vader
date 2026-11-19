@@ -49,17 +49,14 @@ PRIMITIVE_FIELDS :: [
     "guards",
 ]
 
-// What `decl` is to a task: what its `@task_primitive` says, a park when it only
-// forwards to a member of `Intrinsic` that parks, or the row of the table that
-// describes a primitive by its key ; null for any other function.
+// What `decl` is to a task: what its `@task_primitive` says, or a park when it only
+// forwards to a member of `Intrinsic` that parks ; null for any other function.
 //
-// `forwarding` is what `decl` forwards to (`forwarded_operation`), `key` its key
-// (`function_key`).
+// `forwarding` is what `decl` forwards to (`forwarded_operation`).
 door_declared_by :: fn(
     decl: AST.FnDecl,
     typed: TypedProgram,
     forwarding: Forwarding | null,
-    key: string,
 ) -> TaskPrimitive | null {
     if typed.resolved.display_path == TASK_MODULE {
         declared :: declared_primitive(decl, typed) else is MalformedPrimitive {
@@ -72,7 +69,7 @@ door_declared_by :: fn(
     if forwarding is AST.FnDecl && intrinsic_parks(intrinsic_id(forwarding.name)) {
         return TaskPrimitive { .parks = true }
     }
-    return task_primitive(key)
+    return null
 }
 
 // What the `@task_primitive` of `decl` says, a decorator the module of `decl`

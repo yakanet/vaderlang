@@ -1632,3 +1632,9 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 ### 3.10 WASM target
 
 - [x] **Slot-typed numeric promotion verifier**, **closed 2026-11-15**: I7013 `StorageMismatch` (`vader/midir/verify.vader`, behind `--verify`) checks that a value agrees with its slot at the CFG level, for every backend. debug-only ; enforces op/slot agreement before emission.
+
+## Archived from TODO.md, 2026-11-19
+
+### 3.1 Concurrency
+
+- [x] **The task check knows its primitives by name**, **closed 2026-11-19** (noted 2026-11-16): `task_primitive` (`vader/core/types/task_runtime.vader`) matched the keys `std/task.launch`, `std/task.join`, `std/runtime/scheduler.park`... and a closed list named the shared structs, so renaming or moving one in the library dropped it from the analysis in silence. Each primitive now says what it is to a task with `@task_primitive`, and each shared struct carries `@task_shared`, two decorators private to `std/task` (`lib/std/task/decorators.vader`); a function that only forwards to a member of `Intrinsic` that parks is a gate by `intrinsic_parks` (ADR 0160).
