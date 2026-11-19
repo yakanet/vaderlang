@@ -93,11 +93,11 @@ native :: fn(path: string) -> string =
 import "std/testing"
 
 @test
-test_doc_reads_the_project_project_names_as_if_it_ran_there :: fn() -> void {
-    // Run from elsewhere, `--project` gives the folder the path is read from,
-    // the data is written to and the files are named from.
+test_doc_reads_the_project_of_its_path_as_if_it_ran_there :: fn() -> void {
+    // Run from elsewhere, the project of the path is the folder the data is
+    // written to and the files are named from.
     dir :: staged("shapes", "project")
-    ran :: vader_in(temp_dir(), ["doc", "--project=${dir}"])
+    ran :: vader_in(temp_dir(), ["doc", dir])
     assert_eq(ran.stderr, "")
     assert_eq(ran.exit, 0)
     expected :: [
@@ -250,7 +250,7 @@ test_doc_says_that_a_folder_without_a_project_documents_nothing :: fn() -> void 
     remove("${dir}/vader.json")
     ran :: doc_shapes(dir)
     assert_eq(ran.exit, 1)
-    assert("the working directory holds no project" in ran.stderr, ran.stderr)
+    assert("no project holds the path" in ran.stderr, ran.stderr)
 }
 
 @test
@@ -335,7 +335,7 @@ test_doc_search_names_the_platforms_of_a_target_group :: fn() -> void {
 test_doc_search_names_the_file_of_a_declaration_from_the_working_directory :: fn() -> void {
     // `<file>:<line>:<column>`, which the terminal of an editor opens.
     dir :: searched()
-    ran :: vader_in("${dir}/shapes/text", ["doc", "--project=${dir}", "--search=pin"])
+    ran :: vader_in("${dir}/shapes/text", ["doc", "--search=pin"])
     assert_eq(ran.exit, 0)
     assert(ran.stdout.starts_with("module shapes/text  pin.vader:8:8\n"), ran.stdout)
 }

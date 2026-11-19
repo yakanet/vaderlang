@@ -1,6 +1,6 @@
 // tools/cli_tests/project/project: `vader build`, `build --run`, `run`, `check`,
-// `info` and `eject` given a project folder, and `vader run` given a file of the
-// project `--project` names.
+// `info` and `eject` given a project folder, and `vader run` given a file of a
+// project, or nothing at all.
 //
 // A folder is described by its `build.vader` or by the `entries` of its
 // `vader.json`, never by both, and the binaries of a project go to
@@ -168,13 +168,43 @@ test_a_file_of_a_project_runs_with_its_search_roots :: fn() -> void {
     alone :: vader(["run", file])
     assert_eq(alone.stderr, "")
     assert_eq(alone.stdout, "greeted\n")
-    within :: vader(["run", "--project=${dir}", file])
-    assert_eq(within.stderr, "")
-    assert_eq(within.exit, 0)
-    assert_eq(within.stdout, "greeted\n")
-    folder :: vader(["run", "--project=${dir}", dir])
-    assert_eq(folder.exit, 2)
-    assert("`--project` names the project of a file" in folder.stderr, folder.stderr)
+    // No path: the project of the working directory.
+    here :: vader_in(dir, ["run"])
+    assert_eq(here.stderr, "")
+    assert_eq(here.stdout, "greeted\n")
+}
+
+@test
+test_a_file_on_its_own_runs_with_the_search_roots_it_is_given :: fn() -> void {
+    libs :: scratch_dir("include_paths_libs")
+    create_dir("${libs}/greet")
+    write_file(
+        "${libs}/greet/greet.vader",
+        r"""
+        module "greet"
+
+        /// The word the program prints.
+        export word :: fn() -> string = "given"
+        """,
+    )
+    file :: "${scratch_dir("include_paths_file")}/main.vader"
+    write_file(
+        file,
+        r"""
+        module "main"
+
+        import "greet"
+        import "std/console"
+
+        main :: fn() -> i32 {
+            println(word())
+            return 0
+        }
+        """,
+    )
+    ran :: vader(["run", "--include-paths=${libs}", file])
+    assert_eq(ran.stderr, "")
+    assert_eq(ran.stdout, "given\n")
 }
 
 @test

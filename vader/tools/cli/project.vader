@@ -129,17 +129,11 @@ project_description :: fn(command: string, dir: string, otherwise: string) -> st
 }
 
 // The one file `command` works on: the file `path` names, within the project
-// folder `--project` names when it names one, or the only entry of the project
-// folder `path` names (the one `--entry` names among several). The exit code
-// after saying why there is none.
+// above it, or the only entry of the project folder `path` names (the one
+// `--entry` names among several). The exit code after saying why there is none.
 single_entry :: fn(command: string, path: Path, parsed: ParsedArgs) -> FileInput | i32 {
     selected :: parsed.string_flag("entry", "")
-    project_dir :: parsed.string_flag("project", "")
-    no_hooks :: parsed.bool_flag("no-hooks")
-    if project_dir != "" {
-        return file_in_project(command, path, project_dir, selected, no_hooks)
-    }
-    input :: resolve_input(command, path, selected, no_hooks)
+    input :: resolve_input(command, path, selected, parsed.bool_flag("no-hooks"))
     if input is i32 {
         return input
     }
@@ -158,31 +152,6 @@ single_entry :: fn(command: string, path: Path, parsed: ParsedArgs) -> FileInput
             return FileInput { .file = entry.file, .project_root = input.dir }
         }
     }
-}
-
-// The file `path`, compiled within the project folder `project`, which `--project`
-// names instead of the one above the file. The exit code after saying why not: 2
-// for a flag that does not apply.
-file_in_project :: fn(
-    command: string,
-    path: Path,
-    project: string,
-    selected: string,
-    no_hooks: bool,
-) -> FileInput | i32 {
-    if is_dir(path.as_string()) {
-        eprintln("vader ${command}: `--project` names the project of a file, and `${path.to_native()}` is a folder")
-        return 2
-    }
-    if selected != "" {
-        eprintln("vader ${command}: `--entry` chooses among a project's entries, and `--project` runs the file named")
-        return 2
-    }
-    if !is_dir(project) {
-        eprintln(not_a_folder(command, project))
-        return 1
-    }
-    return file_within(command, path, project, no_hooks)
 }
 
 // The file `path` within the project folder `project`, null for a file on its
@@ -254,15 +223,6 @@ described_project :: fn(
     // wrote, not in the `build.vader` the user can fix.
     source :: "the description `${join_path(dir, DRIVER_FILENAME).to_native()}` wrote"
     return without_problems(command, source, project)
-}
-
-// The project `vader doc` takes: `dir`, the folder it runs in, when it holds a
-// `vader.json`; null otherwise.
-project_at :: fn(dir: string) -> string | null {
-    if !exists(join_path(dir, MANIFEST_FILENAME)) {
-        return null
-    }
-    return dir
 }
 
 // The `vader.json` of the project `dir`, or null after saying what it gets

@@ -95,8 +95,8 @@ test_graph_refuses_an_unknown_format_and_names_the_others :: fn() -> void {
 }
 
 @test
-test_graph_asks_for_a_file_when_given_none :: fn() -> void {
-    drawn :: run_vader(["graph"]) else panic(drawn.message())
+test_graph_given_no_path_reads_the_working_directory :: fn() -> void {
+    drawn :: vader_in(scratch_dir("graph_no_path"), ["graph"])
     assert_eq(drawn.exit, 1)
-    assert("expected a file or a project folder" in drawn.stderr, drawn.stderr)
+    assert("holds neither a `build.vader` nor a `vader.json`" in drawn.stderr, drawn.stderr)
 }

@@ -98,9 +98,9 @@ test_a_build_never_runs_the_lint_of_the_exports :: fn() -> void {
 }
 
 @test
-test_lint_with_no_file_is_a_usage_error :: fn() -> void {
-    ran :: run_vader(["lint"]) else panic(ran.message())
-    assert("expected a file" in ran.stderr, ran.stderr)
+test_lint_given_no_path_reads_the_working_directory :: fn() -> void {
+    ran :: vader_in(scratch_dir("lint_no_path"), ["lint"])
+    assert("holds neither a `build.vader` nor a `vader.json`" in ran.stderr, ran.stderr)
     assert_eq(ran.exit, 1)
 }
 

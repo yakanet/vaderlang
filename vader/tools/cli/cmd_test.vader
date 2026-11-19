@@ -64,6 +64,7 @@ cmd_test :: fn(args: string[]) -> i32 {
         return within
     }
     project_root :: within.project_root
+    include_path_flags :: given_include_paths(parsed)
     ran :: Set<string> {}
     total_pass := 0
     total_fail := 0
@@ -71,7 +72,7 @@ cmd_test :: fn(args: string[]) -> i32 {
     for entry in entries {
         rep :: entry.path
         diagnostics: Diagnostic[]: []
-        lowered :: entry.lower_tests(project_root, diagnostics)
+        lowered :: entry.lower_tests(include_path_flags, project_root, diagnostics)
         print_diagnostics(diagnostics)
         if lowered == null {
             reporter.module_failed(entry.module, rep, DOES_NOT_COMPILE)

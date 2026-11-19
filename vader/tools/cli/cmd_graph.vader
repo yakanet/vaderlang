@@ -49,11 +49,7 @@ cmd_graph :: fn(args: string[]) -> i32 {
     if reject_extra_positionals("graph", parsed) {
         return 1
     }
-    file :: parsed.action_file()
-    if file == "" {
-        eprintln("vader graph: expected a file or a project folder")
-        return 1
-    }
+    file :: action_input(parsed)
     entry :: single_entry("graph", file, parsed)
     if entry is i32 {
         return entry
@@ -64,7 +60,7 @@ cmd_graph :: fn(args: string[]) -> i32 {
     format :: if parsed.string_flag("format", "mermaid") == "dot" { GraphFormat.Dot }
               else { GraphFormat.Mermaid }
     include_all :: parsed.string_flag("scope", "project") == "all"
-    include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
+    include_path_flags :: given_include_paths(parsed)
 
     loaded :: load_project(entry.file.as_string(), include_path_flags, entry.project_root)
     // A parse or import error leaves a graph with edges missing: the one thing

@@ -27,18 +27,18 @@ cmd_dump :: fn(args: string[]) -> i32 {
     stage :: parsed.string_flag("stage", "")
     annotate :: parsed.bool_flag("annotate")
     line_directives :: parsed.bool_flag("line-directives")
-    file :: parsed.action_file()
+    file :: action_input(parsed)
+    include_path_flags :: given_include_paths(parsed)
     // `--module=a,b` scopes the module-filtered dumps to those modules and their
     // submodules (`--module=vader` for the whole compiler); empty is the entry
     // module's subtree.
-    include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
     module_arg :: parsed.string_flag("module", "")
     module_filter: string[] = []
     if module_arg != "" {
         module_filter = module_arg.split(",")
     }
-    if stage == "" || file == "" {
-        eprintln("vader dump: expected --stage=<stage> <path>")
+    if stage == "" {
+        eprintln("vader dump: expected --stage=<stage> [path]")
         eprintln("run \"vader help dump\" for the stage list")
         return 1
     }

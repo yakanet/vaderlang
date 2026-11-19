@@ -8,7 +8,6 @@
 
 module "vader/tools/cli"
 
-import "cli"
 import "std/console"
 import "std/path"
 import "std/sort"
@@ -30,16 +29,12 @@ cmd_expand :: fn(args: string[]) -> i32 {
     if reject_extra_positionals("expand", parsed) {
         return 1
     }
-    file :: parsed.action_file()
-    if file == "" {
-        eprintln("vader expand: expected a file or a project folder")
-        return 1
-    }
+    file :: action_input(parsed)
     entry :: single_entry("expand", file, parsed)
     if entry is i32 {
         return entry
     }
-    include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
+    include_path_flags :: given_include_paths(parsed)
     loaded :: load_project(entry.file.as_string(), include_path_flags, entry.project_root)
     if any_error_diag(loaded.diags) {
         eprintln(loaded.diags.dump_diagnostics_with_file())

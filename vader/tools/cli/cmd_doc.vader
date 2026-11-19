@@ -135,7 +135,7 @@ search_data :: fn(parsed: ParsedArgs, project: FileInput | null, home: string) -
     }
     rest :: library.filter((m: DiscoveredModule) -> !(m.name in documented)).collect()
     if rest.len() > 0 {
-        inputs :: Doc.doc_inputs(rest, Doc.SYNTHETIC_ENTRY, null, compiler)
+        inputs :: Doc.doc_inputs(rest, Doc.SYNTHETIC_ENTRY, [], null, compiler)
         dirs.push(searchable_data(inputs, home, DOC_LIBRARY_DATA_DIR) else return 2)
     }
     // Colour for a terminal only: a pipe or a file gets the text as it is.
@@ -182,7 +182,14 @@ path_inputs :: fn(
         eprintln("vader doc: ${scope}")
         return 2
     }
-    return Doc.doc_inputs(scope, project.file.as_string(), project.project_root, compiler)
+    include_path_flags :: given_include_paths(parsed)
+    return Doc.doc_inputs(
+        scope,
+        project.file.as_string(),
+        include_path_flags,
+        project.project_root,
+        compiler,
+    )
 }
 
 // The folder `layout` names under `home`, normalized.
@@ -239,23 +246,24 @@ refresh_data :: fn(inputs: Doc.DocInputs, home: string, out_dir: string) -> Refr
 left_out_lines :: fn(left_out: string[]) -> string[] =
     left_out.map((line: string) -> "vader doc: ${line}, left out").collect()
 
-// The project of `vader doc` and the entry its load starts from: the folder
-// `--project` names, else the working directory, and its entry as `vader lint`
-// takes it, `--entry` choosing among several. Without a project, the synthetic
-// entry of `vader/tools/doc`. The exit code after saying why there is no entry.
+// The project of `vader doc` and the entry its load starts from: the project of
+// its path (the working directory without one), as for the other commands, and
+// its entry as `vader lint` takes it, `--entry` choosing among several. Without a
+// project, the synthetic entry of `vader/tools/doc`. The exit code after saying
+// why there is no entry.
 doc_project :: fn(parsed: ParsedArgs) -> FileInput | i32 {
     selected :: parsed.string_flag("entry", "")
-    if parsed.flags["project"] == null && project_at("") == null && find_build_driver("") == null {
+    path :: action_input(parsed).as_string()
+    dir :: find_project_root(path) else {
         if selected != "" {
             eprintln(
-                "vader doc: `--entry` chooses among a project's entries, and the working "
-                    + "directory holds no project",
+                "vader doc: `--entry` chooses among a project's entries, and no project holds "
+                    + "`${path.to_native()}`",
             )
             return 2
         }
         return FileInput { .file = Path(Doc.SYNTHETIC_ENTRY), .project_root = null }
     }
-    dir :: parsed.string_flag("project", ".")
     match input :: resolve_input("doc", Path(dir), selected, parsed.bool_flag("no-hooks")) {
         is i32             -> {
             return input
@@ -292,6 +300,6 @@ without_project_hint :: fn(project_root: string | null) -> string {
     if project_root != null {
         return ""
     }
-    return ": the working directory holds no project, and only the toolchain's modules are "
-        + "read without one; run it in a project folder, or name one with `--project`"
+    return ": no project holds the path, and only the toolchain's modules are "
+        + "read without one; run it in a project folder, or name a path within one"
 }

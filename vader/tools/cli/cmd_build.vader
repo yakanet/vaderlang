@@ -51,10 +51,15 @@ refuses_foreign_executable :: fn(target: Target, cc_flag: string) -> bool {
     return true
 }
 
-// Split a comma-separated `--include-paths=a,b,c` flag value into a list (empty
-// for an absent/empty flag). These prepend the module search order (GCC `-I`).
-parse_include_path_flag :: fn(raw: string) -> string[] =
-    if raw == "" { [] } else { raw.split(",") }
+// The search roots `--include-paths=a,b,c` names, before every other (GCC `-I`);
+// empty without the flag.
+given_include_paths :: fn(parsed: ParsedArgs) -> string[] {
+    raw :: parsed.string_flag("include-paths", "")
+    if raw == "" {
+        return []
+    }
+    return raw.split(",")
+}
 
 // The environment variable that asks a native build of any mode to keep the check
 // of each access the range analysis proves in bounds, under a message of its own,
@@ -133,7 +138,7 @@ cmd_build :: fn(args: string[]) -> i32 {
         .verify_bounds = bounds_verification_enabled(),
         .cc = cc_or_default(cc_flag),
         .ldflags = parsed.string_flag("ldflags", ""),
-        .include_paths = parse_include_path_flag(parsed.string_flag("include-paths", "")),
+        .include_paths = given_include_paths(parsed),
         .target = build_target,
         .seed_targets = seed_targets,
         .no_split = no_split,

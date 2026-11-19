@@ -25,9 +25,9 @@ Each action has a section below, except `test` (*Tests*), `dap` (*Debugging*) an
 
 ### `vader run`
 
-`vader run <path> [args...]` compiles a program and runs it on the VM, `args` being its argv. The path is:
+`vader run [path] [args...]` compiles a program and runs it on the VM, `args` being its argv. The path, the working directory by default, is:
 
-- a `.vader` file, the entry of its program, with the search roots of the project `--project=<folder>` names;
+- a `.vader` file, the entry of its program, within the project above it (*The project of a command*);
 - a project folder, which runs its entry;
 - a `.virt` file, text bytecode, run as it is.
 
@@ -66,9 +66,9 @@ The C goes to `c/` beside the binary and the object files to `obj/` (none under 
 
 ### `vader check` and `vader lint`
 
-`vader check <path>` type-checks a file, or each entry of a project folder, emitting nothing. `--target` checks the `@target` bodies of another platform.
+`vader check [path]` type-checks a file, or each entry of a project folder, emitting nothing. `--target` checks the `@target` bodies of another platform.
 
-`vader lint <path>` runs the lints a build leaves out: the unused-export lint warns about an exported function no root of the project reaches.
+`vader lint [path]` runs the lints a build leaves out: the unused-export lint warns about an exported function no root of the project reaches.
 
 ### `vader fmt`
 
@@ -81,17 +81,17 @@ An empty modifier list is dropped: `import "p" {}` becomes `import "p"`.
 
 ### `vader graph`
 
-`vader graph <path>` prints the module import graph in Mermaid (`--format=mermaid`, the default) or Graphviz (`--format=dot`). It draws the project's own modules, plus the library and toolchain ones under `--scope=all`.
+`vader graph [path]` prints the module import graph in Mermaid (`--format=mermaid`, the default) or Graphviz (`--format=dot`). It draws the project's own modules, plus the library and toolchain ones under `--scope=all`.
 
 ### `vader expand`
 
-`vader expand <path>` prints the code the compiler writes for a file or a project, which no file holds: the wrappers of its interceptors, what a decorator such as `@displayable` adds. Each file opens with a line naming where `vader build` writes it (`// build/expanded/intercept/main.vader`). It only loads the project, so it prints that code even when it does not type-check, and leaves out the bodies body stages give once the comptime has run; the toolchain's own modules are left out too. `--entry`, `--project` and `--include-paths` are `vader build`'s.
+`vader expand [path]` prints the code the compiler writes for a file or a project, which no file holds: the wrappers of its interceptors, what a decorator such as `@displayable` adds. Each file opens with a line naming where `vader build` writes it (`// build/expanded/intercept/main.vader`). It only loads the project, so it prints that code even when it does not type-check, and leaves out the bodies body stages give once the comptime has run; the toolchain's own modules are left out too. `--entry` and `--include-paths` are `vader build`'s.
 
 ### `vader doc`
 
 `vader doc [path]` writes the data of an API reference for the modules under `path`, a folder or the file of a module: each export with its head and its vaderdoc, split by its tags. The data goes to the `build/doc/` of the project.
 
-The modules are read and type-checked as the project's build reads them, from its entry, without evaluating anything at compile time: the project is the working directory, or the folder `--project` names, which `path` defaults to, and its entry the only one of its `vader.json`, or the one `--entry` names. A project its `build.vader` describes is not supported yet. Without a project, only the toolchain's search roots are read, and the data goes to the working directory. A module these roots do not reach, or that another folder of the same name shadows, is named and left out, and a file that does not parse loses only what the parser could not recover.
+The modules are read and type-checked as the project's build reads them, from its entry, without evaluating anything at compile time: the project is the one of `path` (*The project of a command*), which defaults to the project of the working directory, and its entry the only one of its `vader.json`, or the one `--entry` names. A project its `build.vader` describes is not supported yet. Without a project, only the toolchain's search roots are read, and the data goes to the working directory. A module these roots do not reach, or that another folder of the same name shadows, is named and left out, and a file that does not parse loses only what the parser could not recover.
 
 Nothing is rewritten while the data is what the command would write: `build/doc/stamp` holds a key over the files the load read and their folders, the roots it searched, the entry, the path documented, the project's `vader.json` and the compiler. A file no load reaches changes nothing. A run that reports an error writes no stamp, so the next one reports it again; the modules a run leaves out follow from what the key covers, so the stamp keeps them and a run on data still up to date names them again. Deleting `build/doc/` forces a new run.
 
@@ -189,9 +189,9 @@ x: f64
 
 ### `vader dump`
 
-`vader dump --stage=<stage> <path>` prints one stage of the pipeline ([`ARCHITECTURE.md`](ARCHITECTURE.md)). The stages, in order, are `lexer`, `ast`, `resolved-ast`, `typed-ast`, `callees`, `effects`, `evaluated-ast`, `lowered-ast`, `dced-ast`, `targets`, `cfg`, `ranges`, `bytecode`, `c`, `externs` and `wasm` *(planned)*. `ast` prints JSON and `evaluated-ast` Markdown; `vader dump --help` says what each prints. `externs` lists each `@extern` of the modules in scope, called or not, as the C prototype the compiler calls it through, to compare with the header of its library.
+`vader dump --stage=<stage> [path]` prints one stage of the pipeline ([`ARCHITECTURE.md`](ARCHITECTURE.md)). The stages, in order, are `lexer`, `ast`, `resolved-ast`, `typed-ast`, `callees`, `effects`, `evaluated-ast`, `lowered-ast`, `dced-ast`, `targets`, `cfg`, `ranges`, `bytecode`, `c`, `externs` and `wasm` *(planned)*. `ast` prints JSON and `evaluated-ast` Markdown; `vader dump --help` says what each prints. `externs` lists each `@extern` of the modules in scope, called or not, as the C prototype the compiler calls it through, to compare with the header of its library.
 
-`--target`, `--entry`, `--project` and `--include-paths` work as for `run` and `build`.
+`--target`, `--entry` and `--include-paths` work as for `run` and `build`.
 
 ### `vader eject`, `vader info` and `vader doctor`
 
@@ -214,11 +214,12 @@ A project is a folder described by its `vader.json` or by its `build.vader` (SPE
 
 ### The project of a command
 
-A command works on the project its argument names, as an editor does:
+A command works on the project its argument names, as an editor does. Without an argument, it is the working directory:
 
-- a folder handed to `build`, `run`, `check`, `dump`, `lint`, `graph`, `info` or `eject` is the project;
-- a file, or the folder `test` walks, belongs to the nearest project above it (*The project of a file*): the file is the entry and the project gives its search roots. A driven project is prepared first (*Build drivers*), unless `--no-hooks`. The `build.vader` of a project is its driver, which belongs to no project;
-- for `run`, `dump`, `lint` and `graph` given a file, `--project=<folder>` names its project instead.
+- a folder handed to `build`, `run`, `check`, `dump`, `lint`, `graph`, `expand`, `info` or `eject` is the project;
+- a file, or the folder `test` and `doc` walk, belongs to the nearest project above it (*The project of a file*): the file is the entry and the project gives its search roots. A driven project is prepared first (*Build drivers*), unless `--no-hooks`. The `build.vader` of a project is its driver, which belongs to no project.
+
+Every command that compiles the path it is given takes `--include-paths=a,b`, search roots before every other.
 
 A file with no project above it is compiled on its own. A folder holding both a `build.vader` and a `vader.json`, or neither, is refused, as is a malformed `vader.json` or one that declares no entry.
 
@@ -340,7 +341,7 @@ The module is the name its `module "..."` line declares, the file is its name wi
 
 Each task is a thread of the session, named `task #N` after `main`. Everything stops together, each thread shows its stack, and stepping moves only the thread that stopped: another one mid-step stops at its next line when it runs again. A trap in a task stops on the exception, then ends the session.
 
-The debugger finds and reads a file's project as the language server does (*The project of a file*), and prepares a driven one as `--project` does.
+The debugger finds and reads a file's project as the language server does (*The project of a file*), and prepares a driven one as `vader run` does.
 
 A native binary is debugged in C (lldb, gdb), where locals are compiler slots (`l0`, `t0`). A debug build's `#line` directives map the C back to the `.vader` lines; a `--release` build has none. WebAssembly debugging (DWARF, Chrome DevTools, wasmtime) is planned with its backend.
 

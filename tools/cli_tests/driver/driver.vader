@@ -279,7 +279,7 @@ test_no_hooks_runs_no_driver_whatever_the_action :: fn() -> void {
         assert_eq(ran.exit, 1)
     }
     // A file run within the project compiles without the driver preparing it.
-    file :: driven(dir, ["run", "--no-hooks", "--project", ".", "src/main.vader"])
+    file :: driven(dir, ["run", "--no-hooks", "src/main.vader"])
     assert("the driver ran" !in file.stderr, file.stderr)
     assert("ran on its own" in file.stdout, file.stdout)
     assert_eq(file.exit, 0)

@@ -75,14 +75,6 @@ ENTRY_FLAG :: FlagSpec {
     .value_name = "name",
 }
 
-// The project a file belongs to, named by whoever runs one of its files (an
-// editor): the file is the entry, the project gives its search roots.
-PROJECT_FLAG :: FlagSpec {
-    .name = "project",
-    .help = "File only: the project folder the file belongs to, whose search roots it is compiled with",
-    .value_name = "folder",
-}
-
 // Extra module search roots, before every other: every action that loads a
 // project as a build does takes them.
 INCLUDE_PATHS_FLAG :: FlagSpec {
@@ -91,10 +83,10 @@ INCLUDE_PATHS_FLAG :: FlagSpec {
     .value_name = "a,b",
 }
 
-// The flags of an action that takes one program and nothing else: `run`, where
-// every other flag before the path would be one the program never sees, and
-// `lint`.
-ENTRY_FLAGS: FlagSpec[]: [ENTRY_FLAG, PROJECT_FLAG]
+// The flags of an action that takes one program, its search roots and nothing
+// else: `run`, where every other flag before the path would be one the program
+// never sees, and `lint`.
+ENTRY_FLAGS: FlagSpec[]: [ENTRY_FLAG, INCLUDE_PATHS_FLAG]
 
 // `check` takes the platform axis and the search roots, and nothing else: it
 // produces no artefact, so every flag about HOW to emit would be noise.
@@ -118,6 +110,7 @@ TEST_FLAGS: FlagSpec[]: [
         .value_name = "pattern",
         .repeatable = true,
     },
+    INCLUDE_PATHS_FLAG,
     FlagSpec {
         .name = "reporter",
         .help = "How to report the run",
@@ -142,12 +135,7 @@ DOC_FLAGS: FlagSpec[]: [
         .help = "The entry to read the project from, by name, when it declares several",
         .value_name = "name",
     },
-    FlagSpec {
-        .name = "project",
-        .help = "The project folder: where the path is read from and the data written",
-        .value_name = "folder",
-        .default_text = "the working directory",
-    },
+    INCLUDE_PATHS_FLAG,
     FlagSpec {
         .name = "search",
         .help = "Show what a query names, the library included: `io.read_file_bytes`, `IOError.kind`",
@@ -269,7 +257,6 @@ DUMP_STAGES: ValueSpec[]: [
 // `expand` loads the project as a build does, so it takes the build's search roots.
 EXPAND_FLAGS: FlagSpec[]: [
     ENTRY_FLAG,
-    PROJECT_FLAG,
     INCLUDE_PATHS_FLAG,
 ]
 
@@ -285,7 +272,6 @@ GRAPH_SCOPES: ValueSpec[]: [
 
 GRAPH_FLAGS: FlagSpec[]: [
     ENTRY_FLAG,
-    PROJECT_FLAG,
     // Same spelling and meaning as `build`'s: a graph that cannot see the roots
     // a build sees is not drawing the same project.
     INCLUDE_PATHS_FLAG,
@@ -308,7 +294,6 @@ GRAPH_FLAGS: FlagSpec[]: [
 
 DUMP_FLAGS: FlagSpec[]: [
     ENTRY_FLAG,
-    PROJECT_FLAG,
     // Same spelling and meaning as `build`'s: a dump that cannot see the roots a
     // build sees is not dumping the same program. Reaching for a dump is the one
     // way to observe an order-sensitive materialisation bug WITHOUT perturbing
@@ -447,7 +432,7 @@ export COMMANDS: CommandSpec[]: [
     CommandSpec {
         .name = "run",
         .summary = "Compile and run a file or a project on the VM",
-        .usage = "<path> [program args...]",
+        .usage = "[path] [program args...]",
         .flags = ENTRY_FLAGS,
         .tail = .Forward,
     },
@@ -475,28 +460,28 @@ export COMMANDS: CommandSpec[]: [
     CommandSpec {
         .name = "check",
         .summary = "Type-check a file or a project without emitting, for any target",
-        .usage = "<path>",
+        .usage = "[path]",
         .flags = CHECK_FLAGS,
         .tail = .None,
     },
     CommandSpec {
         .name = "lint",
         .summary = "Project-wide lints kept out of the default build",
-        .usage = "<path>",
+        .usage = "[path]",
         .flags = ENTRY_FLAGS,
         .tail = .None,
     },
     CommandSpec {
         .name = "graph",
         .summary = "Print the project's module import graph",
-        .usage = "<path>",
+        .usage = "[path]",
         .flags = GRAPH_FLAGS,
         .tail = .None,
     },
     CommandSpec {
         .name = "expand",
         .summary = "Print the code the compiler writes for a project: interceptors, stages",
-        .usage = "<path>",
+        .usage = "[path]",
         .flags = EXPAND_FLAGS,
         .tail = .None,
     },
@@ -510,7 +495,7 @@ export COMMANDS: CommandSpec[]: [
     CommandSpec {
         .name = "dump",
         .summary = "Dump an IR stage",
-        .usage = "<path>",
+        .usage = "[path]",
         .flags = DUMP_FLAGS,
         .tail = .None,
     },

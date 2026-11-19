@@ -43,17 +43,19 @@ export TestRun :: struct {
 
 /// Lower the module of `entry` and find its tests.
 ///
-/// @param entry         the module to compile (`test_entries`).
-/// @param project_root  the project of the run, null outside one.
-/// @param diagnostics   takes what the front end and the lowering report,
-///                      warnings included.
-/// @return              null when one of them is an error.
+/// @param entry               the module to compile (`test_entries`).
+/// @param include_path_flags  search roots before every other (`--include-paths`).
+/// @param project_root        the project of the run, null outside one.
+/// @param diagnostics         takes what the front end and the lowering report,
+///                            warnings included.
+/// @return                    null when one of them is an error.
 export lower_tests :: fn(
     entry: TestEntry,
+    include_path_flags: string[],
     project_root: string | null,
     diagnostics: Diagnostic[],
 ) -> LoweredTests | null {
-    lowered :: lower_to_entry_with(entry.path, [], project_root, under_test = true)
+    lowered :: lower_to_entry_with(entry.path, include_path_flags, project_root, under_test = true)
     reported :: lowered.pre_diags + lowered.lower_diags
     diagnostics.push_all(reported)
     if any_error_diag(reported) {

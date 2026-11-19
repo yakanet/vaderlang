@@ -48,11 +48,7 @@ export cmd_check :: fn(args: string[]) -> i32 {
     if reject_extra_positionals("check", parsed) {
         return 1
     }
-    file :: action_file(parsed)
-    if file == "" {
-        eprintln("vader check: expected a file or a project folder")
-        return 1
-    }
+    file :: action_input(parsed)
     target_flag :: parsed.string_flag("target", "")
     target: Target | null = null
     if target_flag != "" {
@@ -65,7 +61,7 @@ export cmd_check :: fn(args: string[]) -> i32 {
             target = parsed_target
         }
     }
-    include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
+    include_path_flags :: given_include_paths(parsed)
     selected :: parsed.string_flag("entry", "")
     input :: resolve_input("check", file, selected, parsed.bool_flag("no-hooks"))
     if input is i32 {

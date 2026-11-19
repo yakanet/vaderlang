@@ -63,7 +63,7 @@ export check_scope :: fn(inputs: DocInputs) -> DocCheck {
     project :: load_project_with_overlay(
         inputs.entry,
         doc_overlay(),
-        [],
+        inputs.include_path_flags,
         inputs.project_root,
         extra_seeds = inputs.scope.map((m: DiscoveredModule) -> m.name).collect(),
         keep_docs = true,

@@ -90,11 +90,9 @@ internal class VaderRunConfiguration(
         if (executor.id != DefaultRunExecutor.EXECUTOR_ID) return super.getState(executor, environment)
         return object : CommandLineState(environment) {
             override fun startProcess(): ProcessHandler {
-                // Run from the project root so `std/*` imports resolve.
-                // `vader run <file>` compiles the file on its own: the Vader project
-                // it belongs to is named, found as the language server finds it.
-                val project = vaderProjectOf(file)?.let { "--project=$it" }
-                return startVaderProcess(listOfNotNull("run", project, file), environment.project.basePath)
+                // Run from the project root so `std/*` imports resolve. `vader run
+                // <file>` compiles the file within the Vader project above it.
+                return startVaderProcess(listOfNotNull("run", file), environment.project.basePath)
             }
         }
     }
