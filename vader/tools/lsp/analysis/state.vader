@@ -172,9 +172,6 @@ export ServerState :: struct {
     /// project folder -> what the server knows of a project its `build.vader`
     /// describes: the roots registered, the `vader info` run in flight.
     driven:                     Map<string, DrivenProject>
-    /// Whether every `build.vader` stays unrun (`--no-hooks`): a project it
-    /// describes is analysed with no root of its declaring.
-    no_hooks:                   bool
     /// The copy a build writes under `build/expanded/` of each code the compiler
     /// wrote -> the name that code is parsed under, as the last load found it: a
     /// copy opened is analysed as that code (`analysed_path`).
@@ -184,7 +181,7 @@ export ServerState :: struct {
     expanded_copies:            Map<string, string> = Map<string, string> {}
 }
 
-export new_state :: fn(library_root: string, no_hooks: bool = false) -> ServerState {
+export new_state :: fn(library_root: string) -> ServerState {
     return ServerState {
         .docs                    = Map<string, string> {},
         .cache                   = null,
@@ -204,7 +201,6 @@ export new_state :: fn(library_root: string, no_hooks: bool = false) -> ServerSt
         .virt_listings           = Map<string, Virt.VirtListing | Virt.VirtParseError> {},
         .virt_line_indices       = Map<string, LineIndex> {},
         .driven                  = Map<string, DrivenProject> {},
-        .no_hooks                = no_hooks,
     }
 }
 

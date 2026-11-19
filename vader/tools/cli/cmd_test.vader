@@ -58,8 +58,7 @@ cmd_test :: fn(args: string[]) -> i32 {
     entries :: test_entries(target, files, filters)
     // A folder to walk is not an entry: the project is the one above the target,
     // as for a file.
-    no_hooks :: parsed.bool_flag("no-hooks")
-    within :: file_within("test", target, find_project_root(target.as_string()), no_hooks)
+    within :: file_within("test", target, find_project_root(target.as_string()))
     if within is i32 {
         return within
     }

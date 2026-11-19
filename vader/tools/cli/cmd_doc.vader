@@ -264,7 +264,7 @@ doc_project :: fn(parsed: ParsedArgs) -> FileInput | i32 {
         }
         return FileInput { .file = Path(Doc.SYNTHETIC_ENTRY), .project_root = null }
     }
-    match input :: resolve_input("doc", Path(dir), selected, parsed.bool_flag("no-hooks")) {
+    match input :: resolve_input("doc", Path(dir), selected) {
         is i32             -> {
             return input
         }

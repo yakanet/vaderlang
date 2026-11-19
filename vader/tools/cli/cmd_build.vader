@@ -146,8 +146,7 @@ cmd_build :: fn(args: string[]) -> i32 {
     // No argument is the current folder: a project, described by its
     // `build.vader` or its `vader.json`.
     selected :: parsed.string_flag("entry", "")
-    no_hooks :: parsed.bool_flag("no-hooks")
-    input :: resolve_input("build", action_input(parsed), selected, no_hooks)
+    input :: resolve_input("build", action_input(parsed), selected)
     if input is i32 {
         return input
     }
@@ -162,13 +161,13 @@ cmd_build :: fn(args: string[]) -> i32 {
         return 2
     }
     if !run {
-        return finished(build_input(input, selected, request, no_hooks), request, began)
+        return finished(build_input(input, selected, request), request, began)
     }
     binary :: binary_to_run(input, selected, request)
     if binary is i32 {
         return binary
     }
-    code :: finished(build_input(input, selected, request, no_hooks), request, began)
+    code :: finished(build_input(input, selected, request), request, began)
     if code != 0 {
         return code
     }
@@ -186,12 +185,7 @@ finished :: fn(code: i32, request: BuildRequest, began: Time.Monotonic) -> i32 {
 }
 
 // Build what `input` names, `selected` choosing among a project's entries.
-build_input :: fn(
-    input: ProjectInput,
-    selected: string,
-    request: BuildRequest,
-    no_hooks: bool,
-) -> i32 {
+build_input :: fn(input: ProjectInput, selected: string, request: BuildRequest) -> i32 {
     match input {
         is FileInput -> {
             return build_file(input.file, BuildRequest { ...request, .project_root = input.project_root })

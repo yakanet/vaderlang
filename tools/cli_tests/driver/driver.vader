@@ -78,28 +78,6 @@ DRIVER_THAT_PANICS :: r"""
     }
     """
 
-// A driver that panics in any mode, and the entry beside it.
-DRIVER_IN_ANY_MODE :: r"""
-    module "build"
-
-    import "std/abort"
-
-    build :: fn(args: string[]) -> i32 {
-        panic("the driver ran")
-    }
-    """
-
-ENTRY_ON_ITS_OWN :: r"""
-    module "src"
-
-    import "std/console"
-
-    main :: fn() -> i32 {
-        println("ran on its own")
-        return 0
-    }
-    """
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -243,44 +221,4 @@ test_a_named_file_follows_the_rules_of_its_project :: fn() -> void {
     ran :: driven(dir, ["build", "--emit=c", "--out=-", "src/main.vader"])
     assert("should be PascalCase" in ran.stdout + ran.stderr, ran.stderr)
     assert(ran.exit != 0, "the rule of the driver fails the build")
-}
-
-@test
-test_no_hooks_skips_the_driver_of_the_project :: fn() -> void {
-    dir :: staged_copy("${FIXTURES}/pascal_case_lint", "driver_no_hooks")
-    quiet :: driven(dir, ["build", "--emit=c", "--out=-", "--no-hooks", "src/main.vader"])
-    assert("PascalCase" !in quiet.stdout + quiet.stderr, quiet.stderr)
-    assert_eq(quiet.exit, 0)
-    // With no file either, the folder then describes no build.
-    bare :: driven(dir, ["build", "--no-hooks"])
-    assert("`--no-hooks` ignores" in bare.stderr, bare.stderr)
-    assert_eq(bare.exit, 1)
-}
-
-@test
-test_no_hooks_runs_no_driver_whatever_the_action :: fn() -> void {
-    // The driver panics in any mode: its message on stderr says one ran. A folder
-    // only its driver describes is no project once the driver is ignored.
-    dir :: driven_project("driver_any_action", DRIVER_IN_ANY_MODE, ENTRY_ON_ITS_OWN)
-    actions: string[][]: [
-        ["build"],
-        ["check"],
-        ["run"],
-        ["dump", "--stage=ast"],
-        ["graph"],
-        ["lint"],
-        ["info"],
-        ["doc"],
-    ]
-    for action in actions {
-        ran :: driven(dir, action + ["--no-hooks", "."])
-        said :: "${action[0]}: ${ran.stderr}"
-        assert("the driver ran" !in ran.stderr && "`--no-hooks` ignores" in ran.stderr, said)
-        assert_eq(ran.exit, 1)
-    }
-    // A file run within the project compiles without the driver preparing it.
-    file :: driven(dir, ["run", "--no-hooks", "src/main.vader"])
-    assert("the driver ran" !in file.stderr, file.stderr)
-    assert("ran on its own" in file.stdout, file.stdout)
-    assert_eq(file.exit, 0)
 }
