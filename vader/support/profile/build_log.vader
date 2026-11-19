@@ -1,0 +1,262 @@
+// vader/support/profile/build_log.vader: what `vader build` says of its progress.
+//
+// A build ends with the programs it wrote and how long it took. Under
+// `--verbose`, the build log also prints each step of each program as it ends:
+// the front end, the lowering, the C, `cc` and the link, each with the passes or
+// the counts behind it, and the stages of the driver under the front end. The
+// passes reach it through the brackets of the profiler (`prof_begin`,
+// `prof_end`), which call `log_begin` and `log_end`.
+
+module "vader/support/profile"
+
+import "std/collections"
+import "std/console"
+import "std/iter"
+import "std/numbers"
+import "std/string"
+TTY :: import "std/tty"
+
+// One pass of a step, and the time it took.
+PassTime :: struct {
+    name: string
+    ns: i64
+}
+
+// What a stage of the driver took, for its sources and for its bodies.
+StageTime :: struct {
+    name: string
+    sources_ns: i64 = 0
+    bodies_ns: i64 = 0
+}
+
+// The progress of a build.
+BuildLog :: struct {
+    /// `--verbose`: each step is printed as it ends.
+    verbose: bool = false
+    /// The step under way (`step_of`), -1 between two programs.
+    step: i32 = -1
+    /// The passes of the step under way, in the order they first ran.
+    passes: PassTime[] = []
+    /// What the step under way counted (`note_step`), shown instead of its passes.
+    note: string = ""
+    /// The stages run since the last step printed.
+    stages: StageTime[] = []
+    /// The names of the programs written, for the last line.
+    built: string[] = []
+}
+
+@singleton
+build_log :: fn() -> BuildLog = BuildLog {}
+
+/// Print each step of the build as it ends, from now on.
+export enable_verbose_log :: fn() -> void {
+    build_log().verbose = true
+}
+
+// The steps of a build, in the order they run.
+STEPS :: ["front end", "lowering", "C", "cc", "link"]
+
+// The index in `STEPS` of the step `phase` belongs to.
+step_of :: fn(phase: ProfPhase) -> i32 = match phase {
+    .Load | .Typecheck | .Comptime -> 0
+    .Lower | .Prune | .CfgBuild | .CfgDce | .Escape | .Bytecode | .ValueReturn | .Ranges -> 1
+    .CEmit    -> 2
+    .CCompile -> 3
+    .Link     -> 4
+}
+
+// A pass of `phase` begins. A pass of an earlier step (a comptime evaluation in
+// the middle of the lowering) counts in the step under way: a step is printed
+// once.
+log_begin :: fn(phase: ProfPhase) -> void {
+    log :: build_log()
+    if !log.verbose {
+        return
+    }
+    step :: step_of(phase)
+    if step > log.step {
+        print_step(log)
+        log.step = step
+    }
+}
+
+// A pass of `phase` took `ns`.
+log_end :: fn(phase: ProfPhase, ns: i64) -> void {
+    log :: build_log()
+    if !log.verbose {
+        return
+    }
+    name :: phase_name(phase)
+    for pass in log.passes {
+        if pass.name == name {
+            pass.ns += ns
+            return
+        }
+    }
+    log.passes.push(PassTime { .name = name, .ns = ns })
+}
+
+/// Say what the step under way counted, shown in its place of its passes: the
+/// units of C, the objects `cc` compiles.
+///
+/// @param note  the counts, as `24 units`.
+export note_step :: fn(note: string) -> void {
+    log :: build_log()
+    if log.verbose {
+        log.note = note
+    }
+}
+
+/// Add the time a stage of the driver took to the step under way.
+///
+/// @param name    the stage.
+/// @param bodies  whether it gave bodies, rather than sources.
+/// @param ns      the time it took.
+export note_stage :: fn(name: string, bodies: bool, ns: i64) -> void {
+    log :: build_log()
+    if !log.verbose {
+        return
+    }
+    stage :: log.stages.find((s) -> s.name == name) else {
+        log.stages.push(StageTime { .name = name })
+        log.stages[log.stages.len() - 1]
+    }
+    if bodies {
+        stage.bodies_ns += ns
+    } else {
+        stage.sources_ns += ns
+    }
+}
+
+/// End the program being built, named `name`: under `--verbose`, print its last
+/// step, before the build says what it wrote.
+///
+/// @param name  the program, as the last line names it.
+export end_program :: fn(name: string) -> void {
+    log :: build_log()
+    log.built.push(name)
+    print_step(log)
+    log.step = -1
+}
+
+/// Forget the programs written so far: the last line does not name the driver
+/// of a project, which the build compiles first.
+export forget_programs :: fn() -> void {
+    build_log().built.clear()
+}
+
+/// The last line of a build: the programs it wrote, the profile, how long it
+/// took.
+///
+/// @param profile  `debug` or `release`.
+/// @param ns       the time the build took.
+export built_line :: fn(profile: string, ns: i64) -> string {
+    names :: build_log().built.map((n) -> "`${n}`").collect().join(", ")
+    if names == "" {
+        return "${TTY.green("finished")} (${profile}) in ${display_duration(ns)}"
+    }
+    return "${TTY.green("built")} ${names} (${profile}) in ${display_duration(ns)}"
+}
+
+// Print the step under way, a line under it for each of its passes and for the
+// stages run since the last step, and start the next step from nothing.
+print_step :: fn(log: BuildLog) -> void {
+    if !log.verbose || log.step < 0 {
+        return
+    }
+    total: i64 = 0
+    for pass in log.passes {
+        total += pass.ns
+    }
+    print_line(0, STEPS[log.step], log.note, total)
+    if log.note == "" && log.passes.len() > 1 {
+        for pass in log.passes.filter((p) -> p.ns >= SHOWN_NS) {
+            print_line(1, pass.name, "", pass.ns)
+        }
+    }
+    shown :: log.stages.filter((s) -> s.sources_ns + s.bodies_ns >= SHOWN_NS).collect()
+    if !shown.is_empty() {
+        stages_total: i64 = 0
+        for stage in shown {
+            stages_total += stage.sources_ns + stage.bodies_ns
+        }
+        print_line(1, "stages", "", stages_total)
+        for stage in shown {
+            print_line(2, stage.name, stage_detail(stage), stage.sources_ns + stage.bodies_ns)
+        }
+    }
+    log.passes.clear()
+    log.stages.clear()
+    log.note = ""
+}
+
+// What a pass or a stage must take to be shown: a tenth of a millisecond.
+SHOWN_NS: i64: 100_000
+
+// What a stage took for its sources and for its bodies: `sources 2.0 ms`.
+stage_detail :: fn(stage: StageTime) -> string {
+    parts: string[]: []
+    if stage.sources_ns > 0 {
+        parts.push("sources ${display_duration(stage.sources_ns)}")
+    }
+    if stage.bodies_ns > 0 {
+        parts.push("bodies ${display_duration(stage.bodies_ns)}")
+    }
+    return parts.join(", ")
+}
+
+// One line of the build: its name `depth` levels in, what it holds, how long it
+// took, the names and the times in columns whatever the depth. Each column is
+// padded before it is painted: the escapes of a colour take no room on screen.
+print_line :: fn(depth: i64, label: string, detail: string, ns: i64) -> void {
+    indent :: "".pad_end(2 + 2 * depth, ' ')
+    name :: painted_name(depth, label.pad_end(14 - 2 * depth, ' '))
+    time :: right(display_duration(ns), 7)
+    painted_time :: if ns >= SLOW_NS { TTY.yellow(time) } else { time }
+    eprintln("${indent}${name} ${TTY.dim(detail.pad_end(32, ' '))} ${painted_time}")
+}
+
+// A step stands out, a stage reads apart from a pass.
+painted_name :: fn(depth: i64, name: string) -> string = match depth {
+    0 -> TTY.bold(TTY.cyan(name))
+    2 -> TTY.magenta(name)
+    _ -> name
+}
+
+// What a step or a pass must take to be shown as slow: a second.
+SLOW_NS: i64: 1_000_000_000
+
+/// `ns` nanoseconds for a reader: milliseconds below a second, with a decimal
+/// below ten, seconds with two decimals above.
+///
+/// @param ns  the duration, in nanoseconds.
+export display_duration :: fn(ns: i64) -> string {
+    if ns < 10_000_000 {
+        return "${(f64(ns) / 1.0e6).to_fixed(1)} ms"
+    }
+    if ns < 1_000_000_000 {
+        return "${ns / 1_000_000} ms"
+    }
+    return "${(f64(ns) / 1.0e9).to_fixed(2)} s"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_display_duration_keeps_a_decimal_below_ten_milliseconds :: fn() -> void {
+    assert_eq(display_duration(400_000), "0.4 ms")
+    assert_eq(display_duration(23_000_000), "23 ms")
+    assert_eq(display_duration(1_240_000_000), "1.24 s")
+}
+
+@test
+test_a_stage_says_what_it_took_for_its_sources_and_its_bodies :: fn() -> void {
+    stage :: StageTime {
+        .name = "json",
+        .sources_ns = 2_000_000,
+        .bodies_ns = 4_000_000,
+    }
+    assert_eq(stage_detail(stage), "sources 2.0 ms, bodies 4.0 ms")
+}

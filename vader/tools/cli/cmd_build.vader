@@ -19,6 +19,7 @@ import "std/iter"
 import "std/path"
 import "std/process"
 import "std/string"
+Time :: import "std/time"
 import "cli"
 import "toolchain/project"
 import "vader/support/target"
@@ -28,6 +29,7 @@ import "vader/core/bytecode"
 import "vader/front/virt"
 import "vader/pipeline"
 Server :: import "vader/build_server"
+Prof :: import "vader/support/profile"
 import "vader/emit/c"
 import "std/sort"
 
@@ -63,9 +65,13 @@ VERIFY_BOUNDS_VAR :: "VADER_VERIFY_BOUNDS"
 bounds_verification_enabled :: fn() -> bool = is_env_flag_on(VERIFY_BOUNDS_VAR)
 
 cmd_build :: fn(args: string[]) -> i32 {
+    began :: Time.monotonic()
     parsed :: parse_action("build", args)
     if parsed is i32 {
         return parsed
+    }
+    if parsed.bool_flag("verbose") {
+        Prof.enable_verbose_log()
     }
     // Under `--run`, what follows the path is the program's.
     run :: parsed.bool_flag("run")
@@ -151,17 +157,27 @@ cmd_build :: fn(args: string[]) -> i32 {
         return 2
     }
     if !run {
-        return build_input(input, selected, request, no_hooks)
+        return finished(build_input(input, selected, request, no_hooks), request, began)
     }
     binary :: binary_to_run(input, selected, request)
     if binary is i32 {
         return binary
     }
-    code :: build_input(input, selected, request, no_hooks)
+    code :: finished(build_input(input, selected, request, no_hooks), request, began)
     if code != 0 {
         return code
     }
     return run_built(binary, parsed.positionals.skip(1).collect())
+}
+
+// `code`, the exit code of the build `request` asked for, which began at `began`,
+// after saying what it wrote and how long it took when it succeeded.
+finished :: fn(code: i32, request: BuildRequest, began: Time.Monotonic) -> i32 {
+    if code == 0 {
+        profile :: if request.release { "release" } else { "debug" }
+        eprintln("vader build: ${Prof.built_line(profile, i64(Time.since(began)))}")
+    }
+    return code
 }
 
 // Build what `input` names, `selected` choosing among a project's entries.

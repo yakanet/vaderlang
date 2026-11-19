@@ -3,9 +3,12 @@
 // The compiler brackets each pipeline pass with `prof_begin(phase)` /
 // `prof_end(phase)`. With `$VADER_PROFILE` set, the profiler adds up wall time,
 // peak-RSS growth and GC churn per pass, and `prof_dump` prints the table to
-// stderr. Every call is a cheap no-op otherwise, so the brackets stay in the hot
-// path unconditionally. `bench/profile-build.ts` reads the table from its
-// `[VADER_PROFILE]` line to its `live-set` line.
+// stderr. `vader build --verbose` hands the wall time alone to the build log
+// (`build_log.vader`), which prints it step by step as the build goes. Every call
+// is a cheap no-op otherwise, so the brackets stay in the hot path
+// unconditionally.
+// `bench/profile-build.ts` reads the table from its `[VADER_PROFILE]` line to its
+// `live-set` line.
 
 module "vader/support/profile"
 
@@ -40,6 +43,10 @@ export ProfPhase :: enum {
     Bytecode,
     /// C emission (`emit_c`).
     CEmit,
+    /// The C compiler: the objects of a split build, or the whole program.
+    CCompile,
+    /// The link of the objects of a split build.
+    Link,
     /// Value-ABI return scalarisation (`scalarise_value_returns`).
     ValueReturn,
     /// Range analysis: the accesses a native build marks proven
@@ -59,6 +66,8 @@ phase_name :: fn(phase: ProfPhase) -> string = match phase {
     .Escape      -> "escape"
     .Bytecode    -> "bytecode"
     .CEmit       -> "c-emit"
+    .CCompile    -> "cc"
+    .Link        -> "link"
     .ValueReturn -> "value-ret"
     .Ranges      -> "ranges"
 }
@@ -116,11 +125,15 @@ read_counters :: fn() -> Counters = Counters {
 
 // ---- brackets -------------------------------------------------------------
 
-/// Mark the start of `phase`. A no-op unless `$VADER_PROFILE` is set.
+// Whether the brackets measure: under `$VADER_PROFILE` or `--verbose`.
+measuring :: fn() -> bool = profiling() || build_log().verbose
+
+/// Mark the start of `phase`. A no-op unless `$VADER_PROFILE` is set, or
+/// the build log is verbose (`enable_verbose_log`).
 ///
 /// @param phase  the pass starting.
 export prof_begin :: fn(phase: ProfPhase) -> void {
-    if !profiling() {
+    if !measuring() {
         return
     }
     p :: profiler()
@@ -131,8 +144,11 @@ export prof_begin :: fn(phase: ProfPhase) -> void {
                 + "${phase_name(open)}), timings will misattribute",
         )
     }
+    log_begin(phase)
     p.open = phase
-    p.start = read_counters()
+    if profiling() {
+        p.start = read_counters()
+    }
     // Last, so that taking the readings stays out of the pass's time.
     p.started = monotonic()
 }
@@ -141,7 +157,7 @@ export prof_begin :: fn(phase: ProfPhase) -> void {
 ///
 /// @param phase  the pass ending, as given to the matching `prof_begin`.
 export prof_end :: fn(phase: ProfPhase) -> void {
-    if !profiling() {
+    if !measuring() {
         return
     }
     p :: profiler()
@@ -156,11 +172,15 @@ export prof_end :: fn(phase: ProfPhase) -> void {
         )
         return
     }
+    log_end(phase, i64(elapsed))
+    p.open = null
+    if !profiling() {
+        return
+    }
     totals :: p.totals.get_or_put_with(phase, () -> PassTotals {})
     totals.wall_ns += i64(elapsed)
     totals.calls += 1
     add_change(totals.change, p.start, read_counters())
-    p.open = null
 }
 
 // Add to `sum` how far each counter moved from `before` to `after`.

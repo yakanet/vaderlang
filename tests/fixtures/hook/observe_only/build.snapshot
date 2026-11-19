@@ -3,5 +3,6 @@ observed 1 module(s), built nothing
 # stderr
 vader build: compiling the build driver `build.vader`...
 vader build: wrote <project>/build/driver/driver
+vader build: finished (debug) in <time>
 # exit
 0

@@ -43,9 +43,6 @@ WRITTEN_TREES: [string, string][]: [
 // What the path of the project reads as in a snapshot.
 PROJECT :: "<project>"
 
-// What opens the line saying where a build wrote its driver.
-DRIVER_LINE :: "vader build: wrote <project>/build/driver/"
-
 // What a build writes beside its project for the time it runs.
 BUILD_LEFTOVERS: string[]: ["vader_build_entry.vader", "vader_build_driver"]
 
@@ -186,19 +183,17 @@ declares_tests :: fn(src: string) -> bool {
 
 // `text`, printed by a build of the project in `dir`, with nothing that moves
 // from one run or one host to the next: the path of the project, the host, the
-// suffix of an executable, the hash in the name of a generated module, the
-// number of units a build was split into, and how the driver was linked.
+// suffix of an executable, the hash in the name of a generated module, and how
+// long a build took.
 normalised :: fn(text: string, dir: string) -> string {
     placed :: without_project(slashes(text), dir).replace_all("${host_target()}", "<host>")
     hashed :: replace_matches(without_executable_suffix(placed), HASHED_NAME, "_<hash>.vader")
-    split :: replace_matches(hashed, SPLIT_COUNT, "(split: <n> objects")
-    return split.split("\n").map(driver_line).collect().join("\n")
+    return replace_matches(hashed, DURATION, ") in <time>")
 }
 
-// The hash in the name of a generated module, and the number of units a build
-// was split into.
+// The hash in the name of a generated module, and how long a build took.
 HASHED_NAME :: r"_[0-9a-f]{8,}\.vader"
-SPLIT_COUNT :: r"\(split: \d+ objects"
+DURATION :: r"\) in [0-9.]+ m?s"
 
 slashes :: fn(text: string) -> string = text.replace_all("\\", "/")
 
@@ -226,36 +221,23 @@ replace_matches :: fn(text: string, pattern: string, with: string) -> string {
     return compiled.replace_all(text, with)
 }
 
-// `line`, cut after the name of the driver when it says where a build wrote one:
-// how it was linked depends on the host.
-driver_line :: fn(line: string) -> string {
-    if !line.starts_with(DRIVER_LINE) {
-        return line
-    }
-    halves :: line.split_first(" (") else return line
-    return halves.0
-}
-
 // ---- tests ------------------------------------------------------------------
 
 import "std/testing"
 
 @test
 test_a_build_text_names_no_path_of_its_project :: fn() -> void {
-    text :: "vader build: wrote /tmp/p/build/debug-${host_target()}/app (split: 12 objects)\n"
-    assert_eq(
-        normalised(text, "/tmp/p"),
-        "vader build: wrote <project>/build/debug-<host>/app (split: <n> objects)\n",
-    )
+    text :: "vader build: wrote /tmp/p/build/debug-${host_target()}/app\n"
+    assert_eq(normalised(text, "/tmp/p"), "vader build: wrote <project>/build/debug-<host>/app\n")
+}
+
+@test
+test_a_build_text_says_not_how_long_the_build_took :: fn() -> void {
+    text :: "vader build: built `app` (debug) in 1.24 s"
+    assert_eq(normalised(text, "/tmp/p"), "vader build: built `app` (debug) in <time>")
 }
 
 @test
 test_a_build_text_names_no_hash_of_a_generated_module :: fn() -> void {
     assert_eq(normalised("src/point_0123abcd9f.vader\n", "/tmp/p"), "src/point_<hash>.vader\n")
-}
-
-@test
-test_a_build_text_keeps_the_name_of_its_driver_only :: fn() -> void {
-    text :: "vader build: wrote /tmp/p/build/driver/driver (split: 20 objects compiled)"
-    assert_eq(normalised(text, "/tmp/p"), "vader build: wrote <project>/build/driver/driver")
 }

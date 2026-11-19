@@ -12,6 +12,7 @@ import "std/string"
 import "std/target"
 import "std/task"
 import "vader/emit/c"
+Prof :: import "vader/support/profile"
 
 // An executable, split: emit the program as a header + globals TU + one
 // function TU per Vader module, then compile them concurrently and link. The
@@ -30,11 +31,15 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     }
     work :: intermediate_stem(out) else return 1
     objects :: object_stem(out) else return 1
+    Prof.prof_begin(.CEmit)
     prog :: split_program(b, work)
-    if write_split_files(work, prog) != 0 {
+    written :: write_split_files(work, prog)
+    Prof.prof_end(.CEmit)
+    if written != 0 {
         return 1
     }
     c_units :: split_c_units(work, prog)
+    Prof.note_step("${c_units.len()} units")
     rt :: runtime_or_probe(request.runtime_root)
 
     // The toolchain spells the pointer checks of `cc_opt_flags`, and the link-time
@@ -76,11 +81,15 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     largest_first :: sort(jobs, (x, y) -> x.bytes > y.bytes)
     next :: AtomicInt {}
     tasks: Task<CompileOutcome[]>[]: []
+    Prof.prof_begin(.CCompile)
+    Prof.note_step("${jobs.len()} objects on ${cc_parallelism(cc_jobs)} cores")
     for _ in 0..<cc_parallelism(cc_jobs) {
         tasks.push(launch(() -> compile_from(largest_first, next)))
     }
+    finished :: join_all(tasks)
+    Prof.prof_end(.CCompile)
     outcomes: CompileOutcome[]: []
-    for done in join_all(tasks) {
+    for done in finished {
         if done is Cancelled {
             eprintln("vader build: a `${cc} -c` was cancelled")
             return 1
@@ -106,13 +115,16 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     // Link the objects into the final binary (link is inherently serial).
     // The link runs alone, so it may use what the compiles were bounded to.
     link_jobs :: cc_parallelism(cc_jobs)
+    Prof.prof_begin(.Link)
     lres :: spawn(
         cc_link_argv(cc, obj_files, out, ldflags, release, flavour, link_jobs, native.links, os),
     ) else {
+        Prof.prof_end(.Link)
         eprintln("vader build: ${lres.message()}")
         eprint(lres.stderr)
         return 1
     }
+    Prof.prof_end(.Link)
     if lres.exit != 0 {
         eprintln("vader build: ${cc} link failed (exit ${lres.exit})")
         eprintln(lres.stderr)
@@ -120,8 +132,8 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     }
     // The file that exists, as the unsplit build reports it: `app.exe` on Windows.
     linked :: linked_binary(out.as_string()) else out.as_string()
-    eprintln("vader build: wrote ${linked.to_native()} "
-        + "(split: ${obj_files.len()} objects compiled in parallel)")
+    Prof.end_program(out.filename())
+    eprintln("vader build: wrote ${linked.to_native()}")
     return 0
 }
 

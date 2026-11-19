@@ -35,7 +35,7 @@ First, the default C compiler (*`vader build`*) compiles the adapters its `@exte
 
 ### `vader build`
 
-`vader build [path]` compiles a file or a project folder (*Projects*) to a native binary for this machine. A named file is built within the project above it (*The project of a command*). On a folder its `build.vader` describes, `--no-hooks` is refused.
+`vader build [path]` compiles a file or a project folder (*Projects*) to a native binary for this machine. A named file is built within the project above it (*The project of a command*). On a folder its `build.vader` describes, `--no-hooks` is refused. A build ends with the programs it wrote, its profile and how long it took (`vader build: built `app` (debug) in 805 ms`). `--verbose` (`-v`) also prints each step of each program as it ends, with how long it took: the front end and its passes, the stages of the driver (what each took for its sources and its bodies), the lowering, the C and its units, `cc` and its objects, the link.
 
 `--emit` (`-e`) picks the output:
 

@@ -114,7 +114,8 @@ export entry_problem :: fn(b: CfgBytecode, file: Path) -> string | null {
     return "`${file.to_native()}` declares no `main`, the function a program starts at"
 }
 
-/// Write the artefact `request` asks for.
+/// Write the artefact `request` asks for, and end the program in the build log
+/// (`end_program`): an executable ends there before saying what it wrote.
 ///
 /// @param b        the program, whose diagnostics hold no error and which has
 ///                 an entry (`entry_problem`).
@@ -123,6 +124,15 @@ export entry_problem :: fn(b: CfgBytecode, file: Path) -> string | null {
 /// @param request  the emit kind, the output, the profile, the C toolchain.
 /// @return         0 on success, 1 after saying what failed.
 export emit_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: BuildRequest) -> i32 {
+    code :: write_program(b, file, stem, request)
+    if code == 0 && request.emit != "executable" {
+        Prof.end_program(stem.filename())
+    }
+    return code
+}
+
+// Write the artefact `request` asks for (`emit_program`).
+write_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: BuildRequest) -> i32 {
     resolved :: BuildRequest { ...request, .cc = cc_or_default(request.cc) }
     // Split is the default: one TU per module, compiled concurrently. `--out=-`
     // writes to stdout, which cannot receive one file per module, so it selects
@@ -133,8 +143,10 @@ export emit_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: Build
         if split {
             return build_native_split(b, file, out, resolved)
         }
+        units :: emit_c_of(b)
+        Prof.prof_begin(.CCompile)
         linked :: link_native(
-            emit_c_of(b),
+            units,
             out,
             resolved.cc,
             resolved.release,
@@ -144,12 +156,14 @@ export emit_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: Build
             native_flags(b.module),
             target_os(resolved),
         )
+        Prof.prof_end(.CCompile)
         if linked is LinkFailure {
             for reason in linked.reasons {
                 eprintln("vader build: ${reason}")
             }
             return 1
         }
+        Prof.end_program(out.filename())
         eprintln(
             "vader build: wrote ${linked.binary.to_native()} (and ${linked.c_file.to_native()})",
         )
@@ -157,7 +171,10 @@ export emit_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: Build
     }
     if resolved.emit == "c" {
         if split {
-            return write_split_c(b, output_path(resolved.out, stem))
+            Prof.prof_begin(.CEmit)
+            written :: write_split_c(b, output_path(resolved.out, stem))
+            Prof.prof_end(.CEmit)
+            return written
         }
         if resolved.out == "-" {
             print(emit_c_stream_of(b))

@@ -18,6 +18,7 @@ module "vader/pipeline/check"
 import "std/abort"
 import "std/collections"
 import "std/iter"
+Time :: import "std/time"
 import "toolchain/ast"
 import "toolchain/diagnostics"
 import "toolchain/parser"
@@ -26,6 +27,7 @@ import "vader/core/symbol"
 import "vader/front/comptime"
 import "vader/front/resolver"
 import "vader/front/typecheck"
+Prof :: import "vader/support/profile"
 
 /// Give each function of `loaded` a stage wrote without a body its body.
 ///
@@ -87,6 +89,7 @@ provide_module_bodies :: fn(
     for late in lates {
         // Without a body stage of its name, the load reported it (H6017).
         stage :: ctx.loaded.body_stages.find((s) -> s.describe().name == late.stage) else continue
+        began :: Time.monotonic()
         body :: stage.run(
             BodyRequest {
                 .decl = late.decl,
@@ -95,6 +98,7 @@ provide_module_bodies :: fn(
                 .module_name = module.module.module_name,
             },
         )
+        Prof.note_stage(late.stage, true, i64(Time.since(began)))
         diags.push_all(body.diagnostics)
         parsed :: parsed_body(ctx.loaded, late, module, body.text, diags) else continue
         late.decl.body = parsed

@@ -86,6 +86,22 @@ test_a_file_built_runs_with_what_follows_its_path_and_exits_with_its_code :: fn(
 }
 
 @test
+test_a_build_says_how_long_it_took_and_verbose_how_long_each_step :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    dir :: staged("timings", program("app", 0))
+    quiet :: vader_in(dir, ["build", "main.vader"])
+    assert("vader build: built `main` (debug) in " in quiet.stderr, quiet.stderr)
+    assert("front end" !in quiet.stderr, quiet.stderr)
+    verbose :: vader_in(dir, ["build", "--verbose", "main.vader"])
+    for step in ["front end ", "lowering ", "C ", " units", "cc ", " objects on ", "link "] {
+        assert(step in verbose.stderr, verbose.stderr)
+    }
+    assert_eq(verbose.exit, 0)
+}
+
+@test
 test_a_build_that_fails_runs_nothing :: fn() -> void {
     ran :: vader_in(staged("failed", ILL_TYPED), ["build", "--run", "main.vader"])
     assert_eq(ran.stdout, "")

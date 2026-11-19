@@ -45,6 +45,7 @@ import "toolchain/span"
 import "vader/pipeline"
 import "toolchain/lexer"
 Server :: import "vader/build_server"
+Prof :: import "vader/support/profile"
 
 // ---- discovery ------------------------------------------------------------
 
@@ -431,6 +432,8 @@ rebuild_driver :: fn(
     binary :: driver_binary_path(root)
     eprintln("vader ${command}: compiling the build driver `${DRIVER_FILENAME}`...")
     code :: build_driver_binary(command, Path(entry), Path(binary), request)
+    // The last line of the build names the programs of the project, not its driver.
+    Prof.forget_programs()
     remove_entry(entry)
     if code != 0 {
         return code

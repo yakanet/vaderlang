@@ -26,11 +26,13 @@ import "std/abort"
 import "std/collections"
 import "std/iter"
 import "std/path"
+Time :: import "std/time"
 import "toolchain/ast"
 import "toolchain/diagnostics"
 import "toolchain/parser"
 import "toolchain/span"
 import "toolchain/stage"
+Prof :: import "vader/support/profile"
 
 /// The source stages of the compiler, in the order they are registered.
 source_stages :: fn() -> SourceStage[] = [DisplayableStage {}]
@@ -258,7 +260,9 @@ run_source_stages :: fn(
                     name_declared_decorators(program, m.found.name, declared)
                 }
             }
+            began :: Time.monotonic()
             generated :: stage.run(Sources { .module_name = m.found.name, .files = files })
+            Prof.note_stage(spec.name, false, i64(Time.since(began)))
             diags.push_all(generated.diagnostics)
             if generated.text == "" {
                 continue
