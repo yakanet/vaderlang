@@ -305,19 +305,23 @@ print_line_read :: fn() -> void {
     }
 }
 
-// A thread ticks while main polls stdin: a first poll ends at its deadline,
-// before the next tick, and a second one once the harness writes the line it
-// waits for, on reading the last tick.
+// A thread ticks while main polls stdin: a first poll ends at its deadline, and a
+// second one once the harness writes the line it waits for, on reading the last
+// tick. The thread waits for the first poll to give up before its next tick: a
+// deadline of a few milliseconds may pass the tick on a loaded machine.
 stdin_polls :: fn() -> void {
     spawn(fn() {
-        for i in 0..<3 {
-            println("tick ${i}")
+        println("tick 0")
+        wait_for_release()
+        for i in 1..<3 {
             sleep(40.millis())
+            println("tick ${i}")
         }
     })
     if !poll_stdin(10.millis()) {
         println("a first poll gives up")
     }
+    release_all()
     if poll_stdin(5000.millis()) {
         println("a second poll finds the line")
     }
