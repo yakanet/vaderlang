@@ -212,13 +212,21 @@ inherited_function :: fn(
 // Make `decl` a node when it has a body that is no door of the task check, else
 // note what it does.
 register :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> void {
-    forwarded :: forwarded_effects(index, decl, typed)
+    forwarding :: forwarded_operation(decl, typed)
+    key :: index.function_key(decl, typed)
+    door :: door_declared_by(decl, typed, forwarding, key)
+    if door != null {
+        index.doors[decl.id] = door
+        effects :: primitive_effects(index.paths, door, decl.params.len())
+        index.summarised[decl.id] = KnownEffects { .params = effects }
+        return
+    }
+    forwarded :: forwarded_effects(index, decl, forwarding)
     if forwarded != null {
         index.summarised[decl.id] = KnownEffects { .params = forwarded }
         return
     }
-    key :: index.function_key(decl, typed)
-    if decl.body != null && task_primitive(key) == null {
+    if decl.body != null {
         index.nodes[decl.id] = index.add_node(Function { .decl = decl, .typed = typed })
         return
     }
@@ -226,15 +234,15 @@ register :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> voi
 }
 
 // What `decl` does when it only forwards its parameters to a member of
-// `Intrinsic` (`forwarded_operation`): the member's effects, so a diagnostic
-// names `decl` and the value it was handed, never the member. Null for any other
-// function, a native operator's included: its body says what it does.
+// `Intrinsic`, `forwarding`: the member's effects, so a diagnostic names `decl`
+// and the value it was handed, never the member. Null for any other function, a
+// native operator's included: its body says what it does.
 forwarded_effects :: fn(
     index: CalleeIndex,
     decl: AST.FnDecl,
-    typed: TypedProgram,
+    forwarding: Forwarding | null,
 ) -> ParamEffects[] | null {
-    member :: forwarded_operation(decl, typed) else return null
+    member :: forwarding else return null
     if member is ForwardedOperator {
         return null
     }
@@ -246,9 +254,9 @@ forwarded_effects :: fn(
 }
 
 // What `decl` of key `key`, summarised without its body, does: an `@extern` writes
-// what `@c_out` marks, a primitive of `std/task` what its row says, a member of
-// `Intrinsic` what `member_summary` says ; one none of them describes does nothing
-// to a parameter that holds no references, and anything to one that does.
+// what `@c_out` marks, a member of `Intrinsic` what `member_summary` says ; one
+// neither describes does nothing to a parameter that holds no references, and
+// anything to one that does.
 summary_target :: fn(
     index: CalleeIndex,
     decl: AST.FnDecl,
@@ -266,12 +274,6 @@ summary_target :: fn(
     if known.frozen_view {
         index.frozen_views.add(decl.id)
         index.view = returned_array(signature)
-    }
-    primitive :: task_primitive(key)
-    if primitive != null {
-        index.doors[decl.id] = primitive
-        effects :: primitive_effects(index.paths, primitive, decl.params.len())
-        return KnownEffects { .params = effects }
     }
     if member == .DeepCopy {
         index.deep_copies.add(decl.id)
@@ -321,9 +323,9 @@ member_of :: fn(index: CalleeIndex, decl: AST.FnDecl) -> IntrinsicId {
     return intrinsic_id(decl.name)
 }
 
-// The key of a function in `task_primitive` and in the dump of the unknown ones:
-// `trait_key.member` for a member of an impl or of `Intrinsic`, `module.name` for a
-// free function.
+// The key of a function in the table of `task_primitive` and in the dump of the
+// unknown ones: `trait_key.member` for a member of an impl or of `Intrinsic`,
+// `module.name` for a free function.
 function_key :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> string {
     if decl.id in index.intrinsics {
         return vtable_key(INTRINSIC_TRAIT_KEY, decl.name)

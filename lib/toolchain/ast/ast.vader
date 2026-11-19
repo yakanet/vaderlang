@@ -1243,14 +1243,17 @@ export StringLitText          :: struct { value: string, span: Span, id: i64 = U
 /// An interpolated `${...}` inside a string literal.
 export StringLitInterpolation :: struct { expr:  Expr,   span: Span, id: i64 = UNASSIGNED_NODE_ID }
 
-/// The text of `e` when it is a string literal of one run of text, with no
-/// interpolation: what a name spelled out at build time reads (`@field(x, "n")`).
+/// The text of `e` when it is a string literal with no interpolation, `""`
+/// included: what a name spelled out at build time reads (`@field(x, "n")`).
 ///
 /// @param e  any expression.
 /// @return   null for anything else, an interpolation included.
 export string_literal_text :: fn(e: Expr) -> string | null {
-    if e !is StringLitExpr || e.parts.len() != 1 {
+    if e !is StringLitExpr || e.parts.len() > 1 {
         return null
+    }
+    if e.parts.is_empty() {
+        return ""
     }
     part :: e.parts[0]
     if part is StringLitText {
@@ -1845,4 +1848,16 @@ test_every_operator_is_spelled_back_to_itself :: fn() -> void {
     for op in UnaryOp {
         assert(unary_op_spelled(unary_op_symbol(op)) == op, unary_op_symbol(op))
     }
+}
+
+// A span at the start of a file, for a node built by hand.
+TEST_SPAN :: Span {
+    .start = Position { .file = "t.vader", .offset = 0, .line = 1, .column = 1 },
+    .end = Position { .file = "t.vader", .offset = 0, .line = 1, .column = 1 },
+}
+
+@test
+test_string_literal_text_of_an_empty_literal :: fn() -> void {
+    empty :: StringLitExpr { .span = TEST_SPAN, .parts = [] }
+    assert(string_literal_text(empty) == "", "`\"\"` is a literal")
 }

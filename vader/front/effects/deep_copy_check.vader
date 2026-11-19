@@ -68,7 +68,7 @@ function_path :: fn(walk: FunctionSearch, t: Type) -> string | null = match t {
 }
 
 struct_path :: fn(walk: FunctionSearch, t: StructType) -> string | null {
-    if is_task_shared(t.symbol) {
+    if is_task_shared_type(walk.typed, t) {
         return null
     }
     key :: canonical_key(t)

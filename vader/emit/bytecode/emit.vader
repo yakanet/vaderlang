@@ -128,7 +128,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
             .fields = fields,
             .c_name = c_struct_of(s.origin),
             .symbol_id = sym_id,
-            .shared = is_task_shared(sym),
+            .shared = is_task_shared(sym, struct_decl_of(s.origin)),
         }
         return
     }
@@ -159,11 +159,18 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
 /// @param origin  the lowered struct's monomorphisation entry.
 /// @return        the C type spelling, or `""` for an ordinary Vader struct.
 c_struct_of :: fn(origin: MonoEntry) -> string {
-    d :: origin.decl
-    if d !is StructDecl {
-        return ""
-    }
+    d :: struct_decl_of(origin) else return ""
     return c_struct_spelling(d.decorators, d.name)
+}
+
+// The struct declaration a lowered struct came from ; null when it came from
+// another declaration.
+struct_decl_of :: fn(origin: MonoEntry) -> StructDecl | null {
+    d :: origin.decl
+    if d is StructDecl {
+        return d
+    }
+    return null
 }
 
 /// Copy `sig`, filling `param_by_address` and `param_c_out` from the origin

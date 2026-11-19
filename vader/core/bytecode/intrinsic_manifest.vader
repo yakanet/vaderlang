@@ -216,6 +216,31 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
         | .BufferInternString | .BufferWriteString -> true
 }
 
+/// Whether a call to the member `id` parks the thread that makes it until something
+/// wakes it: what the task check asks of a function that only forwards to a member
+/// (`vader/front/effects/task_primitives.vader`). A wrong `false` hides the parks of
+/// a block holding a lock.
+///
+/// @param id  the member, from `intrinsic_id`.
+export intrinsic_parks :: fn(id: IntrinsicId) -> bool = match id {
+    .SchedulerPark | .SchedulerSleepFor -> true
+    .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
+    // Cancelling another thread returns at once ; cancelling the running one never
+    // returns.
+    .SchedulerCancel -> false
+    .SchedulerSpawn | .SchedulerWake | .SchedulerCurrent | .SchedulerIsCancelled -> false
+    .SchedulerIsLeaving | .SchedulerWatchReadable | .SchedulerWatchExit | .WaitStop -> false
+    .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash | .Bytes | .BytesToString -> false
+    .DeepCopy | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch -> false
+    .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false
+    .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> false
+    .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame | .NotIntrinsic -> false
+    .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
+        | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast | .ArrayClear
+        | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
+        | .BufferInternString | .BufferWriteString -> false
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -237,4 +262,11 @@ import "std/testing"
     assert(!member_collects("string_hash"), "the hash is cached on the atom")
     assert(member_collects("bytes"), "a view allocates its header")
     assert(intrinsic_may_collect(.NotIntrinsic), "no member stays a safepoint")
+}
+
+@test
+test_intrinsic_parks_on_a_wait_and_not_on_a_cancel :: fn() -> void {
+    assert(intrinsic_parks(.WaitReadableFor), "a wait with a deadline parks")
+    assert(intrinsic_parks(.SchedulerSleepFor), "a sleep parks")
+    assert(!intrinsic_parks(.SchedulerCancel), "a cancel returns at once")
 }

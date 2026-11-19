@@ -1,0 +1,388 @@
+// vader/front/effects/task_primitives: what a function of the runtime says it is to a task.
+//
+// A primitive of `std/task` carries `@task_primitive`, a decorator its module declares
+// and keeps private, so no other module can write it. Its fields name the primitive's
+// parameters, and the fields of the struct it is lent first, by name: this file checks
+// each name and turns it into the `TaskPrimitive` the check reads, whose fields are
+// positions. A field the decorator is not given takes the default its declaration
+// writes. Whether a join waits for one task or for an array of them is read from the
+// type of the parameter it names.
+//
+// A function that only forwards to a member of `Intrinsic` that parks
+// (`intrinsic_parks`) parks too, and carries nothing.
+//
+// The check runs before the comptime pass evaluates decorators: a value is read as
+// written, and only a literal is.
+//
+// A wrong `@task_primitive` is a fault of the standard library, not of the program
+// being built: the compiler stops on it instead of reporting it.
+
+module "vader/front/effects"
+
+import "std/abort"
+import "std/collections"
+import "std/iter"
+import "vader/core/bytecode"
+import "vader/core/types"
+import "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+
+/// What is wrong with the `@task_primitive` of a function.
+MalformedPrimitive :: struct {
+    detail: string
+}
+
+MalformedPrimitive implements Error -> self.detail
+
+// The fields of `@task_primitive` the check reads: its declaration declares these and
+// no other.
+PRIMITIVE_FIELDS :: [
+    "runs",
+    "gives",
+    "joins",
+    "exclusive",
+    "parks",
+    "writes",
+    "grows",
+    "takes",
+    "guards",
+]
+
+// What `decl` is to a task: what its `@task_primitive` says, a park when it only
+// forwards to a member of `Intrinsic` that parks, or the row of the table that
+// describes a primitive by its key ; null for any other function.
+//
+// `forwarding` is what `decl` forwards to (`forwarded_operation`), `key` its key
+// (`function_key`).
+door_declared_by :: fn(
+    decl: AST.FnDecl,
+    typed: TypedProgram,
+    forwarding: Forwarding | null,
+    key: string,
+) -> TaskPrimitive | null {
+    if typed.resolved.display_path == TASK_MODULE {
+        declared :: declared_primitive(decl, typed) else is MalformedPrimitive {
+            panic("effects: ${declared.detail}")
+        }
+        if declared != null {
+            return declared
+        }
+    }
+    if forwarding is AST.FnDecl && intrinsic_parks(intrinsic_id(forwarding.name)) {
+        return TaskPrimitive { .parks = true }
+    }
+    return task_primitive(key)
+}
+
+// What the `@task_primitive` of `decl` says, a decorator the module of `decl`
+// declares ; null when `decl` carries none.
+declared_primitive :: fn(
+    decl: AST.FnDecl,
+    typed: TypedProgram,
+) -> TaskPrimitive | MalformedPrimitive | null {
+    written :: decl.decorators.find((d) -> d.name == TASK_PRIMITIVE_DECORATOR) else return null
+    use :: typed.decorator_uses[written.id]
+        else return malformed(decl, "is bound to no declaration")
+    if use.symbol.module_name != typed.resolved.display_path {
+        return malformed(decl, "is bound to `${use.symbol.module_name}.${use.symbol.name}`")
+    }
+    fields :: typed.struct_fields[use.symbol.id]
+        else return malformed(decl, "is bound to a decorator with no fields")
+    signature :: declared_fn_type(typed, decl)
+    if signature !is FnType {
+        return malformed(decl, "is on a function with no type")
+    }
+    reading :: PrimitiveReading {
+        .use = use,
+        .fields = fields,
+        .decl = decl,
+        .params = signature.params,
+        .typed = typed,
+    }
+    for [name, _] in fields {
+        if name !in PRIMITIVE_FIELDS {
+            reading.fail("has a field `${name}` the compiler does not read")
+        }
+    }
+    joins :: reading.parameter("joins")
+    primitive :: TaskPrimitive {
+        .runs = reading.parameter("runs"),
+        .gives = reading.parameter("gives"),
+        .joins = joins,
+        .joins_array = reading.joins_an_array(joins),
+        .exclusive = reading.parameter("exclusive"),
+        .parks = reading.flag("parks"),
+        .writes = reading.lent_field("writes"),
+        .grows = reading.lent_field("grows"),
+        .takes = reading.flag("takes"),
+        .guards = reading.lent_field("guards"),
+    }
+    if reading.fault != "" {
+        return malformed(decl, reading.fault)
+    }
+    return primitive
+}
+
+// The fault `detail` of the `@task_primitive` of `decl`.
+malformed :: fn(decl: AST.FnDecl, detail: string) = MalformedPrimitive {
+    .detail = "the `@${TASK_PRIMITIVE_DECORATOR}` of `${decl.name}` ${detail}",
+}
+
+// The reading of one `@task_primitive`, which keeps the first fault it meets: each
+// read of a faulty field answers as if the field were not given.
+PrimitiveReading :: struct {
+    use: DecoratorUse
+    /// The fields of the decorator's declaration.
+    fields: Map<string, StructFieldInfo>
+    decl: AST.FnDecl
+    /// The types of the parameters of `decl`.
+    params: Type[]
+    typed: TypedProgram
+    fault: string = ""
+}
+
+// Keep `fault`, unless an earlier one is kept already.
+fail :: fn(reading: PrimitiveReading, fault: string) -> void {
+    if reading.fault == "" {
+        reading.fault = fault
+    }
+}
+
+// What the field `name` holds: its argument, else the default the declaration
+// writes ; null, the fault kept, when the declaration has no such field.
+field_value :: fn(reading: PrimitiveReading, name: string) -> AST.Expr | null {
+    field :: reading.fields[name] else {
+        reading.fail("has no field `${name}`")
+        return null
+    }
+    given :: reading.use.arguments[name] else return field.decl.default
+    return given
+}
+
+// The name the field `name` holds ; null for `""`, which names nothing.
+named_by :: fn(reading: PrimitiveReading, name: string) -> string | null {
+    value :: reading.field_value(name) else return null
+    text :: AST.string_literal_text(value) else {
+        reading.fail("gives `${name}` no string literal")
+        return null
+    }
+    if text == "" {
+        return null
+    }
+    return text
+}
+
+// The flag the field `name` holds.
+flag :: fn(reading: PrimitiveReading, name: string) -> bool {
+    value :: reading.field_value(name) else return false
+    if value !is AST.BoolLitExpr {
+        reading.fail("gives `${name}` no `bool` literal")
+        return false
+    }
+    return value.value
+}
+
+// The position of the parameter the field `name` names ; null when it names none.
+parameter :: fn(reading: PrimitiveReading, name: string) -> i64 | null {
+    named :: reading.named_by(name) else return null
+    return param_index_by_name(reading.decl.params, named) else {
+        reading.fail("names `${named}` in `${name}`, which is no parameter")
+        return null
+    }
+}
+
+// The field the field `name` names on the struct the primitive is lent first, `""`
+// for none.
+lent_field :: fn(reading: PrimitiveReading, name: string) -> string {
+    named :: reading.named_by(name) else return ""
+    if !reading.has_field(reading.params.first(), named) {
+        reading.fail("names `${named}` in `${name}`, which is no field of its first parameter")
+        return ""
+    }
+    return named
+}
+
+// Whether the parameter `joins` names holds an array of tasks rather than one, each
+// a struct whose result is `TASK_RESULT`.
+joins_an_array :: fn(reading: PrimitiveReading, joins: i64 | null) -> bool {
+    if joins == null {
+        return false
+    }
+    joined :: reading.params[joins]
+    task :: element_or_self(joined)
+    if !reading.has_field(task, TASK_RESULT) {
+        reading.fail("joins a parameter that holds no field `${TASK_RESULT}`")
+    }
+    return joined is ArrayType
+}
+
+// The element type of the array `t`, or `t` itself.
+element_or_self :: fn(t: Type) -> Type {
+    if t is ArrayType {
+        return t.element
+    }
+    return t
+}
+
+// Whether `t` is a struct that has the field `name`.
+has_field :: fn(reading: PrimitiveReading, t: Type | null, name: string) -> bool {
+    if t !is StructType {
+        return false
+    }
+    fields :: reading.typed.struct_fields[t.symbol.id] else return false
+    return name in fields
+}
+
+/// Whether `t` is a struct tasks share by design (`is_task_shared`).
+///
+/// @param typed  any module of the project: the declarations of structs are the
+///               project's.
+/// @param t      the type, null when unknown.
+is_task_shared_type :: fn(typed: TypedProgram, t: Type | null) -> bool {
+    // The module first: the declaration is looked up for a struct of `std/task` alone.
+    if t !is StructType || t.symbol.module_name != TASK_MODULE {
+        return false
+    }
+    return is_task_shared(t.symbol, typed.struct_decls[t.symbol.id])
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "toolchain/diagnostics"
+import "vader/front/resolver"
+
+// A module declaring `@task_primitive` as `std/task` does, a task, and
+// `primitives` below them: `declared_primitive` reads any module's.
+primitives_module :: fn(primitives: string) -> string = """
+    module "main"
+
+    task_primitive :: decorator(.Function) {
+        runs: string = ""
+        gives: string = ""
+        joins: string = ""
+        exclusive: string = ""
+        parks: bool = false
+        writes: string = ""
+        grows: string = ""
+        takes: bool = false
+        guards: string = ""
+    }
+
+    Task :: struct {
+        result: i32
+        ended: bool
+    }
+
+    """ + primitives
+
+// What the `@task_primitive` of the function `name` of `primitives` says, the module
+// loaded and checked as a project's entry.
+primitive_read :: fn(primitives: string, name: string) -> TaskPrimitive | MalformedPrimitive | null {
+    entry :: "/no/such/vader_task_primitives/main.vader"
+    overlay :: Map<string, string> {}
+    overlay[entry] = primitives_module(primitives)
+    project :: load_project_with_overlay(entry, overlay, [], null)
+    diags: Diagnostic[]: []
+    diags.push_all(project.diags)
+    result :: check_project_with_bodies(project, diags, false)
+    for d in diags.filter((d) -> d.severity == .Error) {
+        panic("the module should check: ${d.code.id} ${d.detail}")
+    }
+    loaded :: project.modules[project.entry] else panic("the entry should load")
+    decls :: loaded.module.files[0].program.decls
+    decl :: decls.filter_is<AST.FnDecl>().find((d) -> d.name == name)
+        else panic("`${name}` should parse")
+    return declared_primitive(decl, result.typed)
+}
+
+// The primitive the function `name` of `primitives` is, which must be well formed.
+primitive_of :: fn(primitives: string, name: string) -> TaskPrimitive {
+    read :: primitive_read(primitives, name)
+    if read is TaskPrimitive {
+        return read
+    }
+    panic("`${name}` should be a primitive")
+}
+
+@test
+test_task_primitive_names_its_parameters :: fn() -> void {
+    source :: """
+        @task_primitive(runs = "entry")
+        launch :: fn(count: i32, entry: fn() -> i32) -> i32 = entry() + count
+        """
+    primitive :: primitive_of(source, "launch")
+    assert(primitive.runs == 1, "the second parameter runs")
+    assert(primitive.joins == null && !primitive.parks, "the defaults of the declaration")
+}
+
+@test
+test_task_primitive_join_of_an_array :: fn() -> void {
+    source :: """
+        @task_primitive(joins = "task", parks = true)
+        join :: fn(task: Task) -> i32 = task.result
+
+        @task_primitive(joins = "tasks", parks = true)
+        join_all :: fn(tasks: Task[]) -> i64 = tasks.len()
+        """
+    one :: primitive_of(source, "join")
+    each :: primitive_of(source, "join_all")
+    assert(!one.joins_array && one.parks, "a join of one task")
+    assert(each.joins_array, "a join of an array of tasks")
+}
+
+@test
+test_task_primitive_names_a_field_of_what_it_is_lent :: fn() -> void {
+    source :: """
+        @task_primitive(writes = "ended")
+        end :: fn(task: Task) -> void {
+            task.ended = true
+        }
+        """
+    assert_eq(primitive_of(source, "end").writes, "ended")
+}
+
+@test
+test_task_primitive_of_an_unknown_parameter_is_malformed :: fn() -> void {
+    source :: """
+        @task_primitive(runs = "entri")
+        launch :: fn(entry: fn() -> i32) -> i32 = entry()
+        """
+    primitive :: primitive_read(source, "launch")
+    if primitive !is MalformedPrimitive {
+        return assert(false, "a malformed primitive")
+    }
+    assert_eq(
+        primitive.detail,
+        "the `@task_primitive` of `launch` names `entri` in `runs`, which is no parameter",
+    )
+}
+
+@test
+test_task_primitive_of_an_unknown_field_is_malformed :: fn() -> void {
+    source :: """
+        @task_primitive(writes = "done")
+        end :: fn(task: Task) -> void {
+            task.ended = true
+        }
+        """
+    assert(primitive_read(source, "end") is MalformedPrimitive, "no field `done`")
+}
+
+@test
+test_task_primitive_join_of_no_task_is_malformed :: fn() -> void {
+    source :: """
+        @task_primitive(joins = "count")
+        wait :: fn(count: i32) -> i32 = count
+        """
+    assert(primitive_read(source, "wait") is MalformedPrimitive, "an `i32` holds no result")
+}
+
+@test
+test_task_primitive_of_an_unmarked_function :: fn() -> void {
+    source :: """
+        helper :: fn(task: Task) -> i32 = task.result
+        """
+    assert(primitive_read(source, "helper") == null, "no decorator")
+}

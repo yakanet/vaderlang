@@ -462,7 +462,7 @@ note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) 
             arg :: site.args[q] else continue
             roots :: body.roots_at(arg)
             lent :: lent_type(body, site, q)
-            if roots.len() == 0 || is_task_shared_type(lent) {
+            if roots.len() == 0 || is_task_shared_type(body.typed, lent) {
                 continue
             }
             sent :: ctx.sending_at(site, q) != null
@@ -555,7 +555,7 @@ crosses_task_shared :: fn(
     at := t
     for step in paths.steps_of(path) {
         at = step_type(typed, at, paths.step_names[step]) else return false
-        if is_task_shared_type(at) {
+        if is_task_shared_type(typed, at) {
             return true
         }
     }

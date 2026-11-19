@@ -509,7 +509,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
         } else {
             seen_named = true
             idx :: param_index_by_name(params, arg_name)
-            if idx < 0 {
+            if idx == null {
                 diags.push(
                     typecheck_error(.UnknownNamedArg, a.span, "no parameter named `${arg_name}`"),
                 )
@@ -574,13 +574,17 @@ in_parameter_order :: fn(params: AST.FnParam[], args: AST.CallArg[]) -> bool {
     return true
 }
 
-param_index_by_name :: fn(params: AST.FnParam[], name: string) -> i64 {
+/// The position of the parameter `name` among `params` ; null when none is so named.
+///
+/// @param params  a function's parameters, in order.
+/// @param name    the name looked for.
+export param_index_by_name :: fn(params: AST.FnParam[], name: string) -> i64 | null {
     for i in 0..<params.len() {
         if params[i].name == name {
             return i
         }
     }
-    return -1
+    return null
 }
 
 // A purely-positional, full-arity call needs no reordering or default fill:
