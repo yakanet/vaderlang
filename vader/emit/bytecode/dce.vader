@@ -146,8 +146,8 @@ export prune_unused_globals :: fn(ctx: EmitterCtx) -> void {
 
 // ---- Functions ------------------------------------------------------------
 
-/// Root-and-walk over `ctx.functions` : start from `is_main` / `is_test`
-/// fns + every export entry + every vtable target, walk every
+/// Root-and-walk over `ctx.functions` : start from `is_main` fns + the fns of
+/// `keep_mangles` + every export entry + every vtable target, walk every
 /// `call`/`fn.ref`/`make_closure` to extend the reachable set, then
 /// drop the fns the walk didn't visit. Surviving fns are renumbered
 /// dense from 0 ; every fn-index reference (in bodies + exports +
@@ -157,8 +157,8 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     reachable :: Map<i32, bool> {}
 
     // Roots : main, export entries, vtable-target fns, and any explicit
-    // keep-mangle (e.g. the `@test` fns under `vader test`, which nothing calls
-    // but must survive to be run by name).
+    // keep-mangle (the entry `vader test` runs the tests through, which nothing
+    // calls but must survive to be run by name).
     for i in 0..<n {
         f :: ctx.functions[i]
         if f.is_main {

@@ -39,7 +39,7 @@ check_tests :: fn(case: Case) -> StageReport | CaseFailure {
     if unfound.len() > 0 {
         return tests_failure("declared, and not found by the compile: ${unfound.join(", ")}")
     }
-    state :: lowered.compile_tests(lowered.tests, REPOSITORY, diagnostics)
+    state :: lowered.compile_tests(REPOSITORY, diagnostics)
         else return does_not_compile(diagnostics)
     if state is ModuleRefused {
         return tests_failure(state.message)
@@ -49,7 +49,7 @@ check_tests :: fn(case: Case) -> StageReport | CaseFailure {
     }
     failed: string[]: []
     for t in lowered.tests {
-        failure :: state.run_test(t).failure
+        failure :: lowered.run_test(state, t).failure
         if failure != null {
             failed.push("  ${t.display}: ${failure}")
         }
@@ -105,7 +105,7 @@ test_a_declared_test_the_compile_does_not_find_is_named :: fn() -> void {
     facts :: [FileFacts { .declared = "m", .test_names = ["test_a", "test_b"] }]
     found :: [
         DiscoveredTest {
-            .mangled = "m.test_a",
+            .rank = 0,
             .display = "test_a",
             .module = "m",
             .path = "m.vader".to_path(),

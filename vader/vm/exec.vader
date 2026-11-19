@@ -433,6 +433,25 @@ build_main_args :: fn(
     return out
 }
 
+// The arguments the entry `entry` is called with: `given` when the host passes
+// them, else the command line a `main` takes (`build_main_args`).
+entry_args :: fn(
+    entry: bc.BcFunction,
+    host_argv: string[],
+    given: Value[] | null,
+    string_array_type_id: i32,
+) -> Value[] | Trap {
+    if given == null {
+        return build_main_args(entry, host_argv, string_array_type_id)
+    }
+    count :: entry.signature.params.len()
+    if given.len() != count {
+        detail :: "takes ${count} parameters; the host passes ${given.len()}"
+        return Trap { .message = "entry function '${entry.name}' ${detail}" }
+    }
+    return given
+}
+
 /// Run `main`. Thin wrapper over `exec_entry`.
 ///
 /// @param state      the prepared VM state.
@@ -442,21 +461,22 @@ build_main_args :: fn(
 export exec :: fn(state: VmState, host_argv: string[]) -> VmResult = exec_entry(state, state.main_index, host_argv, null, false, null)
 
 /// Run the fn named `mangled` as the entry: used by `vader test` to run each
-/// `@test` fn in isolation. A `Trap` (e.g. a failed `assert`) is the test
-/// failure ; `Ok` is a pass. The fn must take no arguments. The threads it
-/// leaves running are cancelled and have ended when this returns, and the test
-/// fails, naming them.
+/// test in isolation. A `Trap` (e.g. a failed `assert`) is the test failure ;
+/// `Ok` is a pass. The threads it leaves running are cancelled and have ended
+/// when this returns, and the test fails, naming them.
 ///
 /// @param state    the prepared VM state.
 /// @param mangled  the target fn's mangled name.
-/// @return         the run outcome, or a `Trap` when no such fn exists.
-export exec_fn :: fn(state: VmState, mangled: string) -> VmResult {
+/// @param args     its arguments, one per parameter.
+/// @return         the run outcome, or a `Trap` when no such fn exists or it
+///                 takes another number of arguments.
+export exec_fn :: fn(state: VmState, mangled: string, args: Value[] = []) -> VmResult {
     idx :: entry_named(state, mangled)
     if idx is Trap {
         return idx
     }
     no_args: string[]: []
-    ran :: run_entry(state, idx, no_args, null, false, null)
+    ran :: run_entry(state, idx, no_args, null, false, null, args)
     return without_frames(after_entry(ran, "the test"))
 }
 
@@ -610,10 +630,11 @@ without_frames :: fn(outcome: VmResult | StackOverflow) -> VmResult {
     return outcome
 }
 
-// `exec_entry`, a call past `MAX_FRAME_DEPTH` keeping the call stack.
+// `exec_entry`, a call past `MAX_FRAME_DEPTH` keeping the call stack. The entry
+// takes `given` when the host passes its arguments, the command line otherwise.
 run_entry :: fn(
     state: VmState, entry_index: i32, host_argv: string[], capture: Value[] | null, is_comptime: bool,
-    debug: DebugController | null,
+    debug: DebugController | null, given: Value[] | null = null,
 ) -> VmResult | StackOverflow {
     if entry_index < 0 || i64(entry_index) >= state.bc.functions.len() {
         return Trap { .message = "no entry function (index=${entry_index})" }
@@ -621,7 +642,7 @@ run_entry :: fn(
     if debug != null && !state.debuggable {
         return Trap { .message = "a debugged run needs a state from `prepare_debug`" }
     }
-    return reg_run(state, state.reg, entry_index, host_argv, capture, is_comptime, debug)
+    return reg_run(state, state.reg, entry_index, host_argv, capture, is_comptime, debug, given)
 }
 
 /// Build an `ArrayVal` of `type_id` with `length` initial elements

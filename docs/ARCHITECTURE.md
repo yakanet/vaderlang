@@ -64,7 +64,13 @@ Once every module is parsed, and before any is collected, the loader runs the
 source stages (`vader/front/resolver/source_stages.vader`, the `Stage` of
 `toolchain/stage` at that point): each reads the files of a module that declare
 something under a decorator it names, and writes source the module gains as a
-file of its own, parsed like the others (`@displayable` is the first). The stages a
+file of its own, parsed like the others (`@displayable` is the first). A module
+is parsed without its tests, and the private declarations only they reach, unless
+the load runs them (`vader/front/resolver/dependency_tests.vader`); in the module
+under test, the stage of `@test` writes `tests$$run`, which calls each test by its
+rank (`vader/front/resolver/tests_stage.vader`), and `vader test` runs that entry
+once per test. A test is then reached from it, as any function is from its
+callers: no later pass knows what a test is. The stages a
 project's driver plugs run in the driver's process: the build server plans a
 stand-in for each beside the compiler's (`vader/build_server/stages.vader`), which
 sends the driver the files and waits for its text, and registers them for the
@@ -307,8 +313,8 @@ the lowerer's own route.
 
 DCE drops the functions unreachable from the roots, keeping structs and constants.
 The roots are `main`, every function with `@extern` or without a body,
-the `@test` functions in a test build, and every function of the entry module when
-the program has no `main`. An impl member is no root: a call through a vtable keeps
+the functions a caller names (`tests$$run` in a test build, what the comptime
+runs), and every function of the entry module when the program has no `main`. An impl member is no root: a call through a vtable keeps
 the members that fill that slot for a struct reachable code holds a value of (one a
 literal builds, a call returns, a constant holds or a root receives), and a receiver
 that is not a struct always counts. The vtable keeps the entries whose function

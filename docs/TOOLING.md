@@ -295,6 +295,7 @@ test_addition :: fn() {
 ```
 
 - A test passes when it returns, and fails when it stops the program: a failed assertion, a `panic`, a run-time check (SPEC §2 *Run-time checks*).
+- A test exists for `vader test` alone: every other command reads a module without its tests and what only they use, so a build neither checks nor compiles them. The language server checks them, as `vader test` does.
 - `std/testing`, not in the prelude, provides `assert`, `assert_eq`, `assert_ne`, `assert_close` and other assertions.
 - Each module is compiled with its own imports, in the project above the path: a test can fail where the program builds, when an impl it needs comes from a module only another module imports.
 - A project its `build.vader` describes is prepared first: the search roots its driver adds (`ctx.include_paths`) are searched, and the modules it generates read.

@@ -78,12 +78,11 @@ cmd_test :: fn(args: string[]) -> i32 {
             total_fail += 1
             continue
         }
-        // Run each unique @test once across the whole invocation.
+        // Run each test once across the whole invocation.
         fresh: DiscoveredTest[]: []
         for t in lowered.tests {
-            if t.mangled !in ran && keeps(filters, t) {
+            if keeps(filters, t) && ran.add("${t.path.as_string()}:${t.line}") {
                 fresh.push(t)
-                ran.add(t.mangled)
             }
         }
         if fresh.len() == 0 {
@@ -98,7 +97,7 @@ cmd_test :: fn(args: string[]) -> i32 {
             continue
         }
         compile_diagnostics: Diagnostic[]: []
-        state :: lowered.compile_tests(fresh, project_root, compile_diagnostics)
+        state :: lowered.compile_tests(project_root, compile_diagnostics)
         print_diagnostics(compile_diagnostics)
         if state == null {
             reporter.module_failed(entry.module, rep, DOES_NOT_COMPILE)
@@ -113,7 +112,7 @@ cmd_test :: fn(args: string[]) -> i32 {
         }
         for t in fresh {
             reporter.started(t)
-            run :: state.run_test(t)
+            run :: lowered.run_test(state, t)
             failure :: run.failure
             if failure == null {
                 reporter.passed(t, run.took)

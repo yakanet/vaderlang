@@ -175,7 +175,7 @@ import "std/testing"
 
 // A test `module:file:name`, for the filter tests.
 probe_test :: fn(module: string, file: string, name: string) -> DiscoveredTest = DiscoveredTest {
-    .mangled = name,
+    .rank = 0,
     .display = name,
     .module = module,
     .path = file.to_path(),

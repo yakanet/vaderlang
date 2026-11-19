@@ -59,7 +59,7 @@ compile_for_dap :: fn(program: string) -> DapProgram {
         }
     }
     le :: lower_to_entry(path, project_root, keep_frames = true)
-    pruned :: prune_unreachable_fns(le.lowered, false)
+    pruned :: prune_unreachable_fns(le.lowered)
     cfg_diags: Diagnostic[]: []
     opts :: EmitOptions { .optimize = false, .keep_mangles = [], .want_debug = true }
     module :: cfg_to_bytecode(pruned, module_name_from_file(path), opts, cfg_diags)

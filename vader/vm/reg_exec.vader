@@ -124,10 +124,10 @@ move_register :: fn(m: RegMachine, to: i64, from: i64) -> void {
 /// Run `code.functions[entry_index]` ; see `exec_entry` for the parameters.
 reg_run :: fn(
     state: VmState, code: RegModule, entry_index: i32, host_argv: string[], capture: Value[] | null,
-    is_comptime: bool, debug: DebugController | null,
+    is_comptime: bool, debug: DebugController | null, given: Value[] | null,
 ) -> VmResult | StackOverflow {
     entry_function :: state.bc.functions[entry_index]
-    args :: build_main_args(entry_function, host_argv, state.string_array_type_id)
+    args :: entry_args(entry_function, host_argv, given, state.string_array_type_id)
     if args is Trap {
         return args
     }

@@ -46,7 +46,7 @@ dced_stage :: fn(input: DumpInput) -> StageOutput {
     scope :: input.scope_of()
     dced := ""
     if !any_error_diag(le.pre_diags) {
-        pruned :: prune_unreachable_fns(le.lowered, false)
+        pruned :: prune_unreachable_fns(le.lowered)
         dced = "${dump_lowered(pruned, pipeline.typed, scope)}\n"
     }
     return with_diags(dced, input.lowered_diagnostics())
@@ -76,7 +76,7 @@ ranges_stage :: fn(input: DumpInput) -> StageOutput {
     ranges := ""
     cfg_diags: Diagnostic[]: []
     if !any_error_diag(le.pre_diags) {
-        pruned :: prune_unreachable_fns(le.lowered, false)
+        pruned :: prune_unreachable_fns(le.lowered)
         ranges = dump_ranges_project(
             build_optimised_cfg(pruned, CfgPassOptions {}, cfg_diags),
             scope,
@@ -139,7 +139,7 @@ externs_stage :: fn(input: DumpInput) -> StageOutput {
     if !any_error_diag(le.pre_diags) {
         // The lowering prune keeps every `@extern` as a root; only the `optimize`
         // passes of the emit drop the imports nothing calls.
-        pruned :: prune_unreachable_fns(le.lowered, false)
+        pruned :: prune_unreachable_fns(le.lowered)
         opts :: EmitOptions { .optimize = false, .keep_mangles = [], .want_debug = false }
         module :: cfg_to_bytecode(pruned, module_name_from_file(input.file), opts, back_end_diags)
         imports :: imports_in_scope(module.imports, pruned, scope)

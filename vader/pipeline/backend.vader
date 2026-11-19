@@ -363,7 +363,7 @@ export prepare_cfg_bytecode_from :: fn(
 ) -> CfgBytecode {
     // profiling brackets: inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
     Prof.prof_begin(.Prune)
-    pruned :: prune_unreachable_fns(le.lowered, false)
+    pruned :: prune_unreachable_fns(le.lowered)
     Prof.prof_end(.Prune)
     // The prune rewrites the decl set, so it gets its own check: a dropped
     // decl something still references is what `I7002` / `I7010` look for.

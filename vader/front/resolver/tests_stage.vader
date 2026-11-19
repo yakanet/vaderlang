@@ -1,0 +1,129 @@
+// vader/front/resolver/tests_stage: the entry `vader test` runs the tests of a
+// module through.
+//
+// A source stage of the compiler (`source_stages.vader`). It writes into a module
+// that declares tests one function, `tests$$run`, which calls the test of the rank
+// it is given: a test is then a private function like any other, reached from that
+// entry, and no pass after the loader needs to know what a test is. Only `vader
+// test` loads a module with its tests (`dependency_tests.vader`), so only there
+// does the stage find one.
+//
+// The harness learns which test a rank names from `tests_declared`, the reading
+// the stage itself writes from: the two agree by construction (ADR 0159).
+
+module "vader/front/resolver"
+
+import "std/iter"
+import "std/string_builder"
+import "toolchain/stage"
+import "vader/core/mangle"
+AST :: import "toolchain/ast"
+
+// The name `TestsStage` describes itself under, and generates under.
+TESTS_STAGE :: "tests"
+
+/// The name of the entry `TestsStage` writes, `generated_name("tests", .Run)`.
+export TESTS_ENTRY :: "tests\$\$run"
+
+/// A test of a module, as `tests_declared` finds it.
+export DeclaredTest :: struct {
+    /// The name of its function.
+    name: string
+    /// The file that declares it, as the compiler read it.
+    file: string
+    /// The line of its name, from 1.
+    line: i32
+}
+
+/// The tests `programs` declare, in the order of their files and of the
+/// declarations in each: the rank of a test there is the one `tests$$run` calls
+/// it by.
+///
+/// @param programs  the files of one module, in the order the load holds them.
+export tests_declared :: fn(programs: AST.Program[]) -> DeclaredTest[] {
+    found: DeclaredTest[]: []
+    for program in programs {
+        for d in program.decls.filter_is<AST.FnDecl>() {
+            if AST.has_compiler_decorator(d.decorators, .Test) {
+                found.push(DeclaredTest {
+                    .name = d.name,
+                    .file = d.span.start.file,
+                    .line = d.name_span.start.line,
+                })
+            }
+        }
+    }
+    return found
+}
+
+// The entry that runs each test of a module by its rank.
+TestsStage :: struct {}
+
+TestsStage implements SourceStage {
+    describe :: fn(self) = SourceSpec {
+        .name = TESTS_STAGE,
+        .given = [DecoratedWith { .marker = .Test }],
+    }
+
+    run :: fn(self, input: Sources) -> Generated {
+        text :: StringBuilder {}
+        text.append("${TESTS_ENTRY} :: fn(rank: i64) -> void {\n")
+        text.append("    match rank {\n")
+        for [test, rank] in tests_declared(input.files).indexed() {
+            text.append("        ${rank} -> ${test.name}()\n")
+        }
+        text.append("        _ -> {}\n    }\n}\n")
+        return Generated { .text = text.to_string() }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/string"
+import "std/testing"
+import "toolchain/parser"
+
+// What `TestsStage` writes for the one-file module `source`.
+written_for :: fn(source: string) -> string {
+    program :: parse_source(source, "t.vader").program
+    return TestsStage {}.run(Sources { .module_name = "t", .files = [program] }).text
+}
+
+@test
+test_tests_stage_calls_each_test_by_its_rank_in_the_file :: fn() -> void {
+    source :: """
+        module "t"
+        @test
+        test_b :: fn() -> void {}
+        helper :: fn() -> void {}
+        @test
+        test_a :: fn() -> void {}
+        """
+    expected :: """
+        tests\$\$run :: fn(rank: i64) -> void {
+            match rank {
+                0 -> test_b()
+                1 -> test_a()
+                _ -> {}
+            }
+        }
+        """
+    assert_eq(written_for(source), expected)
+}
+
+@test
+test_tests_entry_is_named_as_the_compiler_names_what_it_writes :: fn() -> void {
+    assert_eq(TESTS_ENTRY, generated_name("tests", .Run))
+}
+
+@test
+test_tests_declared_gives_the_line_of_each_name :: fn() -> void {
+    source :: """
+        module "t"
+
+        @test
+        test_one :: fn() -> void {}
+        """
+    found :: tests_declared([parse_source(source, "t.vader").program])
+    assert_eq(found.map((t) -> "${t.name}@${t.file}:${t.line}").collect().join(" "), "test_one@t.vader:4")
+}

@@ -14,6 +14,7 @@
 module "vader/front/resolver"
 
 import "std/collections"
+import "std/iter"
 import "toolchain/project"
 import "vader/front/reach"
 AST :: import "toolchain/ast"
@@ -28,6 +29,9 @@ AST :: import "toolchain/ast"
 /// @return             the files, holding the declarations the module's surface
 ///                     reaches, and those that went.
 export without_tests :: fn(files: SourceFile[], module_name: string) -> Untested {
+    if !files.any_match((f) -> f.program.decls.any_match(is_test)) {
+        return Untested { .files = files }
+    }
     private_types :: Set<string> {}
     for f in files {
         for d in f.program.decls {
@@ -64,9 +68,6 @@ export without_tests :: fn(files: SourceFile[], module_name: string) -> Untested
             }
         }
     }
-    if test_names.len() == 0 {
-        return Untested { .files = files }
-    }
     reachable :: bfs_reachable(root_names, seed_refs, refs_by_name)
     by_tests :: bfs_reachable(test_names, [], refs_by_name)
     out :: Untested { .files = [] }
@@ -92,6 +93,9 @@ export Untested :: struct {
     /// The tests, and what only they reach.
     removed: AST.Decl[] = []
 }
+
+// Whether `d` is a test.
+is_test :: fn(d: AST.Decl) -> bool = AST.has_compiler_decorator(AST.decl_decorators(d), .Test)
 
 // The name `d` declares, null for an impl, an assert or an import.
 declared_name :: fn(d: AST.Decl) -> string | null = match d {

@@ -186,8 +186,7 @@ entry_index_for_file :: fn(
 
 // Mangled name of the `main` declared in the named entry file, or "" when the
 // entry module declares no `main` whose source-file basename matches `file`.
-// Reads the lowered fn's origin AST `FnDecl` for its span's file: the same
-// `LoweredFnDecl` / `origin.decl is FnDecl` shape `find_tests` walks.
+// Reads the lowered fn's origin AST `FnDecl` for its span's file.
 named_file_main_mangled :: fn(lowered: LoweredProject, file: Path) -> string {
     md :: lowered.modules[lowered.entry] else return ""
     named_base :: canonicalise(file).filename()

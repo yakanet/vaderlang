@@ -35,7 +35,7 @@ import "toolchain/stage"
 Prof :: import "vader/support/profile"
 
 /// The source stages of the compiler, in the order they are registered.
-source_stages :: fn() -> SourceStage[] = [DisplayableStage {}]
+source_stages :: fn() -> SourceStage[] = [DisplayableStage {}, TestsStage {}]
 
 /// The body stages of the compiler.
 body_stages :: fn() -> BodyStage[] = []

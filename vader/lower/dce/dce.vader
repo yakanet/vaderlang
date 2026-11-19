@@ -1,7 +1,7 @@
 // vader/lower/dce/dce: whole-program dead-function elimination.
 //
 // `prune_unreachable_fns` walks the call graph from the program roots
-// (main, `@extern`, optionally `@test`, plus every fn when
+// (main, `@extern`, the fns a caller names, plus every fn when
 // the project has no `main`) and drops `LoweredFnDecl`s that nothing
 // transitively references. A virtual call reaches the impl fn of a
 // receiver only when reachable code holds a value of that receiver's
@@ -34,17 +34,11 @@ import "vader/lower/ir"
 /// Drop functions unreachable from the program roots, returning a new
 /// `LoweredProject`. Structs and consts survive verbatim.
 ///
-/// @param lp          the lowered project to prune.
-/// @param keep_tests  when true, `@test` fns count as roots (for the
-///                    test-runner build) ; regular run / build drops them.
-/// @param roots       the declarations (node ids) of more fns to keep: what a
-///                    caller runs by itself, which no call of the program reaches.
-/// @return            a new `LoweredProject` with unreachable fns removed.
-export prune_unreachable_fns :: fn(
-    lp: LoweredProject,
-    keep_tests: bool,
-    roots: i64[] = [],
-) -> LoweredProject {
+/// @param lp     the lowered project to prune.
+/// @param roots  the declarations (node ids) of more fns to keep: what a caller
+///               runs by itself, which no call of the program reaches.
+/// @return       a new `LoweredProject` with unreachable fns removed.
+export prune_unreachable_fns :: fn(lp: LoweredProject, roots: i64[] = []) -> LoweredProject {
     by_sym_id :: Map<i32, LoweredDecl> {}
     by_mangle :: Map<string, LoweredDecl> {}
     reachable_sym :: Set<i32> {}
@@ -96,7 +90,7 @@ export prune_unreachable_fns :: fn(
                     // mangle, so index them by mangle.
                     by_mangle[d.mangled] = d
                 }
-                if is_fn_root(d, is_entry, has_main, keep_tests, roots) {
+                if is_fn_root(d, is_entry, has_main, roots) {
                     mark_reachable(d, reachable_sym, reachable_mangle)
                     worklist.push(d)
                     // A root with a body is called from outside the program,
@@ -293,13 +287,11 @@ fn_survives :: fn(
 }
 
 /// Root test : `main`, bodyless fns (`@extern` import shims), any
-/// `@extern` fn, `@test` when `keep_tests`, and (when the
+/// `@extern` fn, the fns of `roots`, and (when the
 /// project exposes no `main`): every fn of the ENTRY module. A no-main build
 /// keeps its own whole surface ; dependencies (every non-entry module) are
 /// pruned to the set reachable from the roots.
-is_fn_root :: fn(
-    fn_decl: LoweredFnDecl, is_entry: bool, has_main: bool, keep_tests: bool, roots: i64[],
-) -> bool {
+is_fn_root :: fn(fn_decl: LoweredFnDecl, is_entry: bool, has_main: bool, roots: i64[]) -> bool {
     if is_entry && !has_main { return true }
     if fn_decl.body == null { return true }
     if fn_decl.origin.is_main { return true }
@@ -310,7 +302,6 @@ is_fn_root :: fn(
         }
         for dec in ast.decorators {
             if dec.is_compiler(.Extern) { return true }
-            if keep_tests && dec.is_compiler(.Test) { return true }
         }
     }
     return false

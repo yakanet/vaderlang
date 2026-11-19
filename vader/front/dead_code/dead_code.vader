@@ -166,9 +166,12 @@ export check_dead_code :: fn(
     for d in decls {
         nd :: collect_decl_refs(d, seed_refs) else continue
         register_refs(refs_by_name, nd.name, nd.refs)
-        if is_root_decl(nd.visibility, nd.decorators, nd.name, module_name) {
+        // What the compiler writes is there because the code asked for it: what
+        // it calls is reached (the tests, from the entry that runs them).
+        written_for :: is_generated_file(nd.name_span.start.file)
+        if written_for || is_root_decl(nd.visibility, nd.decorators, nd.name, module_name) {
             root_names.push(nd.name)
-        } else if !AST.is_comptime_made(d) && !is_generated_file(nd.name_span.start.file) {
+        } else if !AST.is_comptime_made(d) {
             flaggable.push(DeadDecl { .name = nd.name, .name_span = nd.name_span })
         }
     }

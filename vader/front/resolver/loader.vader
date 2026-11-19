@@ -731,10 +731,9 @@ trimmed_to_reached :: fn(ctx: LoadState) -> DeferredModule[] {
 }
 
 // The files `read` of `m` as the load keeps them: without their tests, but in
-// the module whose tests it runs. A module `only_reached` trims loses its tests
-// there instead (`trimmed_to_reached`).
+// the module whose tests it runs.
 tested_or_not :: fn(ctx: LoadState, m: DiscoveredModule, read: SourceFile[]) -> Untested {
-    if m.folder == ctx.tested || ctx.only_reached && is_trimmed(ctx, m) {
+    if m.folder == ctx.tested {
         return Untested { .files = read }
     }
     return without_tests(read, m.name)

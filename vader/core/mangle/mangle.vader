@@ -179,6 +179,8 @@ export GeneratedRole :: enum {
     /// A layer under the outermost one, which the `proceed` of the layer above
     /// calls.
     Proceed
+    /// The entry `vader test` runs each test of a module through, by its rank.
+    Run
 }
 
 /// The name of the declaration `role` the compiler writes for `base`, a name as
@@ -216,6 +218,7 @@ generated_word :: fn(role: GeneratedRole) -> string = match role {
     .Layer       -> "layer"
     .LayerType   -> "Layer"
     .Proceed     -> "proceed"
+    .Run         -> "run"
 }
 
 /// The key a virtual call and the vtable rows it may land on share: the trait's

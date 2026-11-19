@@ -208,7 +208,7 @@ import "std/testing"
 
 // A test of `std/iter` declared at `/repo/window.vader:12`.
 probe_located_test :: fn() -> DiscoveredTest = DiscoveredTest {
-    .mangled = "test_sizes",
+    .rank = 0,
     .display = "test_sizes",
     .module = "std/iter",
     .path = "/repo/window.vader".to_path(),

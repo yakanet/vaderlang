@@ -102,6 +102,21 @@ test_the_server_publishes_an_error_in_a_test_as_vader_test_reports_it :: fn() ->
 }
 
 @test
+test_the_server_publishes_no_w0007_on_a_test_nor_on_what_only_a_test_calls :: fn() -> void {
+    source :: """
+        module "snippet"
+        main :: fn() -> i32 = 0
+        expected :: fn() -> i32 = 0
+        import "std/testing"
+        @test
+        test_main :: fn() -> void {
+            assert_eq(main(), expected())
+        }
+        """
+    assert_eq(coded(diagnostics_for("test_reached", source), "W0007").len(), 0)
+}
+
+@test
 test_the_server_publishes_a_division_by_zero_and_a_cycle_at_compile_time :: fn() -> void {
     source :: """
         module "snippet"

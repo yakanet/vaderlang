@@ -4,7 +4,8 @@
 // A module's tests run only when it is the entry of a compile: only the entry
 // module is lowered with its bodies. So discovery picks ONE entry per module that
 // holds a test, its folder or its file, judged from the source without parsing it
-// (`file_facts`), and each compile names the tests of its entry (`find_tests`).
+// (`file_facts`), and each compile names the tests of its entry
+// (`vader/tools/testing/run.vader`).
 
 module "vader/tools/testing"
 
@@ -13,16 +14,14 @@ import "std/fs"
 import "std/iter"
 import "std/path"
 import "std/string"
-import "toolchain/ast"
 import "toolchain/parser"
 import "vader/front/resolver"
-import "vader/lower/ir"
 import "vader/support/text"
 
-/// One discovered `@test` fn: its mangled name (the VM entry) and the name a
-/// report shows (the fn's source name).
+/// One test of a compile: its rank in the entry the VM runs it through
+/// (`tests$$run`) and the name a report shows (the fn's source name).
 export DiscoveredTest :: struct {
-    mangled: string
+    rank:    i64
     display: string
     /// The module that declares it, as its `module "..."` line names it.
     module:  string
@@ -252,36 +251,6 @@ is_folder_module :: fn(facts: FileFacts[]) -> bool {
         }
     }
     return true
-}
-
-/// Every `@test` fn of the entry module of a lowered project: a `LoweredFnDecl`
-/// with a body whose origin AST `FnDecl` carries a `@test` decorator. Its display
-/// name is the fn's source name (the rare `@test("custom")` string arg is not
-/// surfaced).
-///
-/// @param lp      the lowered project.
-/// @param module  the name the entry module declares.
-find_tests :: fn(lp: LoweredProject, module: string) -> DiscoveredTest[] {
-    out: DiscoveredTest[]: []
-    entry :: lp.modules[lp.entry] else return out
-    for d in entry.decls.filter_is<LoweredFnDecl>() {
-        if d.body == null {
-            continue
-        }
-        ast :: d.origin.decl
-        if ast is FnDecl {
-            if has_compiler_decorator(ast.decorators, .Test) {
-                out.push(DiscoveredTest {
-                    .mangled = d.mangled,
-                    .display = ast.name,
-                    .module = module,
-                    .path = ast.span.start.file.to_path(),
-                    .line = ast.name_span.start.line,
-                })
-            }
-        }
-    }
-    return out
 }
 
 // ---- tests ----------------------------------------------------------------

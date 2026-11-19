@@ -68,9 +68,10 @@ referenced_name :: fn(n: AST.Node, out: string[]) -> AST.Walk {
 /// Whether a declaration is reached from outside its module whatever its
 /// visibility.
 ///
-/// It is when it is an entry point (`main`), wired to the host or to the test
-/// runner (`@test`, `@extern`), or exempted by its author
-/// (`@allow_unused`).
+/// It is when it is an entry point (`main`), wired to the host (`@extern`), or
+/// exempted by its author (`@allow_unused`). A test is reached from the entry
+/// `vader test` runs it through (`tests$$run`), as any function is from its
+/// callers.
 ///
 /// @param decorators  the decorators of the declaration.
 /// @param name        the name it declares.
@@ -81,14 +82,13 @@ export is_wired_root :: fn(decorators: AST.Decorator[], name: string) -> bool {
     return decorators.any_match(wires_a_root)
 }
 
-// Whether `dec` wires its declaration to the host or the test runner, or exempts
-// it.
+// Whether `dec` wires its declaration to the host, or exempts it.
 wires_a_root :: fn(dec: AST.Decorator) -> bool {
     which :: AST.compiler_decorator_of(dec) else return false
     // @partial: every other decorator of the compiler wires nothing.
     return @partial match which {
-        .Test | .Extern | .AllowUnused -> true
-        _                              -> false
+        .Extern | .AllowUnused -> true
+        _                      -> false
     }
 }
 

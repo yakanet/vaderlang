@@ -310,7 +310,7 @@ stage_to_cfg :: fn(
         if !(vr.module_id in eager_modules) { eager_modules.push(vr.module_id) }
     }
     lowered :: lower_project_staged(loaded, typed, evaluated, eager_modules, diags)
-    pruned :: prune_unreachable_fns(lowered, false, roots)
+    pruned :: prune_unreachable_fns(lowered, roots)
     passes :: CfgPassOptions { .instrumented = false, .plain_returns = true }
     return build_optimised_cfg(pruned, passes, diags)
 }

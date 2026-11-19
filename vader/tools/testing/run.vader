@@ -1,17 +1,23 @@
 // vader/tools/testing/run: compile the tests of a module and run them on the VM.
 //
-// The module of an entry is lowered with its tests kept as roots (`lower_tests`),
-// which is all `vader test --list` needs, then compiled to bytecode with the tests
-// to run and prepared for the VM (`compile_tests`). Each test then runs alone on
-// that VM (`run_test`): a trap fails it, a return passes it. What a compile
-// reports goes to the caller, who prints it or shows its errors.
+// The module of an entry is loaded with its tests, and the compiler writes into it
+// the entry that calls each by its rank (`vader/front/resolver/tests_stage.vader`).
+// `lower_tests` lowers it with that entry as a root and names the tests from the
+// reading the entry was written from, which is all `vader test --list` needs;
+// `compile_tests` compiles it to bytecode and prepares the VM. Each test then runs
+// alone on that VM (`run_test`), as a call of the entry: a trap fails it, a return
+// passes it. What a compile reports goes to the caller, who prints it or shows its
+// errors.
 
 module "vader/tools/testing"
 
 import "std/iter"
+import "std/path"
 import "std/time"
+import "toolchain/ast"
 import "toolchain/diagnostics"
 import "vader/emit/bytecode"
+import "vader/front/resolver"
 import "vader/lower/dce"
 import "vader/lower/ir"
 import "vader/pipeline"
@@ -23,7 +29,10 @@ export LoweredTests :: struct {
     entry:   TestEntry
     /// The lowered project, pruned of what neither its entry nor a test reaches.
     project: LoweredProject
-    /// Every `@test` of the entry module.
+    /// The mangled name of the entry the tests run through (`tests$$run`), ""
+    /// when the module declares none.
+    runner:  string
+    /// Every test of the entry module, each at its rank.
     tests:   DiscoveredTest[]
 }
 
@@ -55,27 +64,65 @@ export lower_tests :: fn(
     project_root: string | null,
     diagnostics: Diagnostic[],
 ) -> LoweredTests | null {
-    lowered :: lower_to_entry_with(entry.path, include_path_flags, project_root, under_test = true)
+    pipeline :: prepare_evaluated_project_with(
+        entry.path,
+        include_path_flags,
+        project_root,
+        under_test = true,
+    )
+    declared :: declared_in_entry(pipeline.loaded)
+    lowered :: lower_to_entry_from(pipeline)
     reported :: lowered.pre_diags + lowered.lower_diags
     diagnostics.push_all(reported)
     if any_error_diag(reported) {
         return null
     }
-    // `@test` fns survive this prune; the one of the emit keeps those
-    // `compile_tests` is given.
-    pruned :: prune_unreachable_fns(lowered.lowered, true)
+    runner :: runner_of(lowered.lowered)
+    roots: i64[]: []
+    if runner != null {
+        roots.push(runner.origin.decl.id)
+    }
+    tests: DiscoveredTest[]: []
+    for [test, rank] in declared.indexed() {
+        tests.push(DiscoveredTest {
+            .rank = rank,
+            .display = test.name,
+            .module = entry.module,
+            .path = test.file.to_path(),
+            .line = test.line,
+        })
+    }
     return LoweredTests {
         .entry = entry,
-        .project = pruned,
-        .tests = find_tests(pruned, entry.module),
+        .project = prune_unreachable_fns(lowered.lowered, roots),
+        .runner = if runner == null { "" } else { runner.mangled },
+        .tests = tests,
     }
 }
 
-/// Compile `tests`, tests of `lowered`, to bytecode, and prepare the VM that
-/// runs them.
+// The tests of the entry module of `loaded`, each at the rank the entry the
+// compiler wrote calls it by.
+declared_in_entry :: fn(loaded: LoadedProject) -> DeclaredTest[] {
+    module :: loaded.modules[loaded.entry] else return []
+    return tests_declared(module.module.files.map((f) -> f.program).collect())
+}
+
+// The entry the compiler wrote into the entry module of `lp` to run its tests,
+// null when the module declares none.
+runner_of :: fn(lp: LoweredProject) -> LoweredFnDecl | null {
+    module :: lp.modules[lp.entry] else return null
+    for d in module.decls.filter_is<LoweredFnDecl>() {
+        ast :: d.origin.decl
+        if ast is FnDecl && ast.name == TESTS_ENTRY {
+            return d
+        }
+    }
+    return null
+}
+
+/// Compile the tests of `lowered` to bytecode, and prepare the VM that runs them.
 ///
 /// @param lowered       the tests of a module, lowered (`lower_tests`).
-/// @param tests         those to run: the others are left out of the bytecode.
 /// @param project_root  as for `lower_tests`: its C is what the module's foreign
 ///                      calls reach.
 /// @param diagnostics   takes what the back end reports.
@@ -84,7 +131,6 @@ export lower_tests :: fn(
 ///                      foreign call has no adapter it can reach.
 export compile_tests :: fn(
     lowered: LoweredTests,
-    tests: DiscoveredTest[],
     project_root: string | null,
     diagnostics: Diagnostic[],
 ) -> VmState | ModuleRefused | null {
@@ -94,7 +140,7 @@ export compile_tests :: fn(
         module_name_from_file(lowered.entry.path),
         EmitOptions {
             .optimize = true,
-            .keep_mangles = tests.map((t) -> t.mangled).collect(),
+            .keep_mangles = [lowered.runner],
             .want_debug = false,
         },
         diagnostics,
@@ -112,14 +158,15 @@ export compile_tests :: fn(
     return state
 }
 
-/// Run `test` alone on `state`. The threads it leaves running are cancelled and
-/// fail it (`exec_fn`).
+/// Run `test` alone on `state`, as a call of the entry of `lowered`. The threads it
+/// leaves running are cancelled and fail it (`exec_fn`).
 ///
-/// @param state  the VM `compile_tests` prepared with `test` among its tests.
-/// @param test   the test.
-export run_test :: fn(state: VmState, test: DiscoveredTest) -> TestRun {
+/// @param lowered  the tests of a module, lowered (`lower_tests`).
+/// @param state    the VM `compile_tests` prepared for `lowered`.
+/// @param test     one of the tests of `lowered`.
+export run_test :: fn(lowered: LoweredTests, state: VmState, test: DiscoveredTest) -> TestRun {
     began :: monotonic()
-    outcome :: exec_fn(state, test.mangled)
+    outcome :: exec_fn(state, lowered.runner, [I64Val(test.rank)])
     took :: began.since()
     if outcome is Trap {
         return TestRun { .took = took, .failure = outcome.message }

@@ -3489,7 +3489,7 @@ Decorators are written with `@`. The compiler's own, in the table below, are ins
 | `@c_struct`, `@c_struct("struct name")` | struct | Mirrors a C struct (§13), named by an optional C type name |
 | `@c_variadic` | parameter of an `@extern` fn | C receives the parameter through `...` (§13) |
 | `@main_thread` | `@extern` fn | The C function runs on the main thread only, out of reach of every task (§13) |
-| `@test` | top-level fn | Marks a test, run by `vader test` (`docs/TOOLING.md` *Tests*) |
+| `@test` | top-level fn | Marks a test, run by `vader test` and left out by every other command (`docs/TOOLING.md` *Tests*) |
 | `@deprecated("reason")` | any declaration but an import, a field or a variant | Warns at every use; the code still compiles |
 | `@assert(cond)`, `@assert(cond, "message")` | top level | Fails the build unless `cond` is true at compile time |
 | `@partial` | `match` | Lifts the exhaustiveness check (below) |
