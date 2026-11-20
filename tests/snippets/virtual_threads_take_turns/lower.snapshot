@@ -10,6 +10,7 @@
       if @global(0) == 2 {
           return @global(1)
       }
+      std.runtime.scheduler.monitor_enter_to_publish()
       gate: InitGate = std.runtime.scheduler.gate_or_new(@global(2))
       @global(2) = gate
       if !std.runtime.scheduler.run_gated(gate, snippet$joiner$keep) {
@@ -125,10 +126,13 @@
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0
     fn __defer_std_runtime_scheduler_2
+    fn __defer_std_runtime_scheduler_4
     fn std.runtime.scheduler.await_gate  // std_runtime_scheduler$await_gate
     fn std.runtime.scheduler.gate_or_new  // std_runtime_scheduler$gate_or_new
     fn std.runtime.scheduler.let_go  // std_runtime_scheduler$let_go
+    fn std.runtime.scheduler.monitor_enter_to_publish  // std_runtime_scheduler$monitor_enter_to_publish
     fn std.runtime.scheduler.run_gated  // std_runtime_scheduler$run_gated
     struct __defer_env_std_runtime_scheduler_1
     struct __defer_env_std_runtime_scheduler_3
+    struct __defer_env_std_runtime_scheduler_5
     struct std.runtime.scheduler.InitGate  // std_runtime_scheduler$InitGate

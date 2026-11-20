@@ -466,7 +466,8 @@ member_summary :: fn(id: IntrinsicId, paths: PathTable) -> MemberSummary = match
         | .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations
         | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
         | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
-        | .SchedulerWatchReadable | .SchedulerWatchExit
+        | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMonitorEnter
+        | .SchedulerMonitorExit
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
         | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
         | .FfiOpen | .FfiOpenPath | .FfiSymbol -> MemberSummary {}

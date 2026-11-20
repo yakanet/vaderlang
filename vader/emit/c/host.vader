@@ -984,6 +984,8 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .SchedulerIsLeaving     -> { return [returning("vader_scheduler_is_leaving", [a0])] }
     .SchedulerWatchReadable -> { return [perform("vader_scheduler_watch_readable", [a0])] }
     .SchedulerWatchExit     -> { return [perform("vader_scheduler_watch_exit", [a0])] }
+    .SchedulerMonitorEnter  -> { return [perform("vader_scheduler_monitor_enter", [a0])] }
+    .SchedulerMonitorExit   -> { return [perform("vader_scheduler_monitor_exit", [])] }
     // std/runtime/wait: a read or a write that parks (`runtime/c/rt/scheduler.c`).
     .WaitReadable           -> { return [perform("vader_scheduler_wait_readable", [a0])] }
     .WaitReadableFor        -> { return [returning("vader_scheduler_wait_readable_for", [a0, a1])] }

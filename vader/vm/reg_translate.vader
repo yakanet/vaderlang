@@ -421,7 +421,8 @@ string_import_op :: fn(t: Translation, pc: i64, id: bc.IntrinsicId) -> bool = ma
         | .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations
         | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
         | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
-        | .SchedulerWatchReadable | .SchedulerWatchExit
+        | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMonitorEnter
+        | .SchedulerMonitorExit
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
         | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
         | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> false

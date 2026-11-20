@@ -77,6 +77,8 @@ export IntrinsicId :: enum(MemberName) {
     SchedulerIsLeaving      { .member = "is_leaving" },
     SchedulerWatchReadable  { .member = "watch_readable" },
     SchedulerWatchExit      { .member = "watch_exit" },
+    SchedulerMonitorEnter   { .member = "monitor_enter" },
+    SchedulerMonitorExit    { .member = "monitor_exit" },
     // std/runtime/wait: a read or a write that parks while another thread runs
     WaitReadable            { .member = "wait_readable" },
     WaitReadableFor         { .member = "wait_readable_for" },
@@ -160,7 +162,11 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     // `malloc`, `mmap` and the OS, never the collector.
     .SchedulerSpawn | .SchedulerWake | .SchedulerCurrent | .SchedulerIsCancelled -> false
     .SchedulerIsLeaving | .SchedulerWatchReadable | .SchedulerWatchExit | .WaitStop -> false
-    // Other threads run, and collect, before these return.
+    // Let the monitor go and allocate in the young generation again.
+    .SchedulerMonitorExit -> false
+    // Other threads run, and collect, before these return ; taking the monitor
+    // to publish first empties the young generation of the worker.
+    .SchedulerMonitorEnter -> true
     .SchedulerPark | .SchedulerSleepFor | .SchedulerCancel -> true
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
     // Constants of the runtime's own build.
@@ -198,6 +204,8 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     // Nothing runs before they return.
     .SchedulerSpawn | .SchedulerWake | .SchedulerCurrent | .SchedulerIsCancelled -> false
     .SchedulerIsLeaving | .SchedulerWatchReadable | .SchedulerWatchExit | .WaitStop -> false
+    // No other thread of the worker runs while it waits for the monitor.
+    .SchedulerMonitorEnter | .SchedulerMonitorExit -> false
     // Other threads run before these return, and may shorten any array they
     // reach.
     .SchedulerPark | .SchedulerSleepFor | .SchedulerCancel -> true
@@ -230,6 +238,8 @@ export intrinsic_parks :: fn(id: IntrinsicId) -> bool = match id {
     .SchedulerCancel -> false
     .SchedulerSpawn | .SchedulerWake | .SchedulerCurrent | .SchedulerIsCancelled -> false
     .SchedulerIsLeaving | .SchedulerWatchReadable | .SchedulerWatchExit | .WaitStop -> false
+    // A wait for the monitor blocks the worker, it parks no thread.
+    .SchedulerMonitorEnter | .SchedulerMonitorExit -> false
     .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash | .Bytes | .BytesToString -> false
     .DeepCopy | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch -> false
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false

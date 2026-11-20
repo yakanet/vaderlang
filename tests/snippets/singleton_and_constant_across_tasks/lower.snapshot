@@ -21,6 +21,7 @@
       if @global(0) == 2 {
           return @global(1)
       }
+      std.runtime.scheduler.monitor_enter_to_publish()
       gate: InitGate = std.runtime.scheduler.gate_or_new(@global(2))
       @global(2) = gate
       if !std.runtime.scheduler.run_gated(gate, snippet$config$keep) {
@@ -32,6 +33,7 @@
       if @global(3) == 2 {
           return @global(4)
       }
+      std.runtime.scheduler.monitor_enter_to_publish()
       gate: InitGate = std.runtime.scheduler.gate_or_new(@global(5))
       @global(5) = gate
       if !std.runtime.scheduler.run_gated(gate, snippet$pool$keep) {
@@ -43,6 +45,7 @@
       @global(12) = snippet.compute_answer()
   }
   __const_snippet$ANSWER :: fn() -> i32 {
+      std.runtime.scheduler.monitor_enter_to_publish()
       gate: InitGate = std.runtime.scheduler.gate_or_new(@global(13))
       @global(13) = gate
       if !std.runtime.scheduler.run_gated(gate, __compute_snippet$ANSWER) {
@@ -62,6 +65,7 @@
       if @global(6) == 2 {
           return @global(7)
       }
+      std.runtime.scheduler.monitor_enter_to_publish()
       gate: InitGate = std.runtime.scheduler.gate_or_new(@global(8))
       @global(8) = gate
       if !std.runtime.scheduler.run_gated(gate, snippet$warmup$keep) {
@@ -77,6 +81,7 @@
       @global(14) = snippet.next()
   }
   __const_snippet$LOOP :: fn() -> i32 {
+      std.runtime.scheduler.monitor_enter_to_publish()
       gate: InitGate = std.runtime.scheduler.gate_or_new(@global(15))
       @global(15) = gate
       if !std.runtime.scheduler.run_gated(gate, __compute_snippet$LOOP) {
@@ -269,18 +274,25 @@
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0
     fn __defer_std_runtime_scheduler_2
+    fn __defer_std_runtime_scheduler_4
     fn std.runtime.scheduler.await_gate  // std_runtime_scheduler$await_gate
     fn std.runtime.scheduler.gate_or_new  // std_runtime_scheduler$gate_or_new
     fn std.runtime.scheduler.let_go  // std_runtime_scheduler$let_go
+    fn std.runtime.scheduler.monitor_enter  // std_runtime_scheduler$monitor_enter
+    fn std.runtime.scheduler.monitor_enter_to_publish  // std_runtime_scheduler$monitor_enter_to_publish
     fn std.runtime.scheduler.run_gated  // std_runtime_scheduler$run_gated
     struct __defer_env_std_runtime_scheduler_1
     struct __defer_env_std_runtime_scheduler_3
+    struct __defer_env_std_runtime_scheduler_5
     struct std.runtime.scheduler.InitGate  // std_runtime_scheduler$InitGate
   std/task
     global #9 i32  started.state
     global #10 Started  started.instance
     global #11 InitGate | null  started.gate
     fn __defer_std_task_10
+    fn __defer_std_task_12
+    fn __defer_std_task_14
+    fn __defer_std_task_16
     fn __defer_std_task_4
     fn __defer_std_task_6
     fn __defer_std_task_8
@@ -311,6 +323,9 @@
     fn std_task$started$keep
     fn std_task$started$singleton
     struct __defer_env_std_task_11
+    struct __defer_env_std_task_13
+    struct __defer_env_std_task_15
+    struct __defer_env_std_task_17
     struct __defer_env_std_task_5
     struct __defer_env_std_task_7
     struct __defer_env_std_task_9

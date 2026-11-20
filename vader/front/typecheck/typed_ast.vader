@@ -155,6 +155,9 @@ export GateRuntime :: struct {
     gate_or_new: Symbol
     /// Runs a build holding the gate, once the thread building it lets it go.
     run_gated: Symbol
+    /// Takes the monitor the gate is read and the value built under, which
+    /// `run_gated` lets go.
+    monitor: Symbol
 }
 
 /// The declaration of the fn typecheck chose for the call whose callee is

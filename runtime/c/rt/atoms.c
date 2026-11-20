@@ -14,6 +14,13 @@ static vader_atom_table_t g_atoms = {0};
  * The only pointer to the entries: a copy kept in the table struct would go
  * stale on the next realloc. */
 vader_atom_entry_t* vader_atom_entries = NULL;
+
+/* With several workers: the lock of the table, and the entries, which then
+ * never move, since emitted code reads them with no lock (`vader.h`). The
+ * reservation holds `g_atom_reserved` entries, committed as the table grows. */
+static vader_os_lock_t* g_atom_guard = NULL;
+static vader_u32_t g_atom_reserved = 0;
+#define VADER_ATOM_RESERVED_ENTRIES (1u << 28)
 static int  g_atoms_initialized = 0;
 static int  g_atom_profile = 0;
 
@@ -139,7 +146,7 @@ void vader_atom_shutdown(void) {
             free((void*) e->data);
         }
     }
-    free(vader_atom_entries);
+    if (g_atom_reserved == 0u) free(vader_atom_entries);
     free(g_atoms.buckets);
     free(g_atoms.free_list);
     vader_atom_entries      = NULL;
@@ -313,11 +320,43 @@ static void vader_atom_bucket_add(vader_atom_t a) {
  * array are NOT stable across calls ; every reader rederefs through
  * `vader_atom_entries`, so a realloc that relocates the array is safe. */
 static void vader_atom_grow_entries(void) {
+    if (g_atom_reserved != 0u) {
+        if (g_atoms.capacity >= g_atom_reserved) vader_trap("vader_atom_grow_entries: too many strings");
+        vader_u32_t cap = g_atoms.capacity * 2u;
+        if (cap > g_atom_reserved) cap = g_atom_reserved;
+        if (!vader_os_commit((char*) vader_atom_entries, (size_t) cap * sizeof(vader_atom_entry_t))) {
+            vader_trap("vader_atom_grow_entries: commit failed");
+        }
+        g_atoms.capacity = cap;
+        return;
+    }
     g_atoms.capacity *= 2u;
     vader_atom_entry_t* p = (vader_atom_entry_t*)
         realloc(vader_atom_entries, g_atoms.capacity * sizeof(vader_atom_entry_t));
     if (p == NULL) vader_trap("vader_atom_grow_entries: realloc failed");
     vader_atom_entries = p;
+}
+
+static void vader_atom_pool_start(void) {
+    if (!g_atoms_initialized) vader_trap("vader_atom_pool_start: the table is not initialised");
+    char* reserved = vader_os_reserve((size_t) VADER_ATOM_RESERVED_ENTRIES * sizeof(vader_atom_entry_t));
+    size_t used = (size_t) g_atoms.capacity * sizeof(vader_atom_entry_t);
+    if (reserved == NULL || !vader_os_commit(reserved, used)) {
+        vader_trap("vader_atom_pool_start: no room for the strings");
+    }
+    memcpy(reserved, vader_atom_entries, (size_t) g_atoms.count * sizeof(vader_atom_entry_t));
+    free(vader_atom_entries);
+    vader_atom_entries = (vader_atom_entry_t*) reserved;
+    g_atom_reserved = VADER_ATOM_RESERVED_ENTRIES;
+    g_atom_guard = vader_os_lock_new();
+}
+
+static void vader_atom_lock(void) {
+    if (g_atom_guard != NULL) vader_os_lock(g_atom_guard);
+}
+
+static void vader_atom_unlock(void) {
+    if (g_atom_guard != NULL) vader_os_unlock(g_atom_guard);
 }
 
 /* Allocate a fresh atom slot: reuses a tombstoned id from the free
@@ -359,14 +398,20 @@ vader_atom_t vader_atom_intern(const char* data, size_t len) {
     if (len == 0) return VADER_ATOM_EMPTY;
 
     uint64_t hash = vader_atom_hash64(data, len);
+    vader_atom_lock();
     vader_atom_t found = vader_atom_lookup(data, len, hash);
-    if (found != VADER_ATOM_EMPTY) return found;
+    if (found != VADER_ATOM_EMPTY) {
+        vader_atom_unlock();
+        return found;
+    }
 
     char* buf = (char*) malloc(len + 1u);
     if (buf == NULL) vader_trap("vader_atom_intern: buffer malloc failed");
     memcpy(buf, data, len);
     buf[len] = '\0';
-    return vader_atom_install_owner(buf, len, hash);
+    vader_atom_t a = vader_atom_install_owner(buf, len, hash);
+    vader_atom_unlock();
+    return a;
 }
 
 vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len) {
@@ -401,8 +446,12 @@ vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len) {
      * sharing different bytes that happen to compare equal). */
     const char* candidate = vader_atom_entries[root].data + root_offset;
     uint64_t hash         = vader_atom_hash64(candidate, len);
+    vader_atom_lock();
     vader_atom_t found    = vader_atom_lookup(candidate, len, hash);
-    if (found != VADER_ATOM_EMPTY) return found;
+    if (found != VADER_ATOM_EMPTY) {
+        vader_atom_unlock();
+        return found;
+    }
 
     /* Miss: install as slice atom borrowing from the root owner. No
      * allocation. NUL-term at data[len] is NOT guaranteed (the byte
@@ -422,6 +471,7 @@ vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len) {
     e->hash          = hash;
 
     vader_atom_bucket_add(a);
+    vader_atom_unlock();
     return a;
 }
 

@@ -208,7 +208,12 @@ scheduler_gate_runtime :: fn(project: LoadedProject) -> GateRuntime | null {
     loaded :: project.modules[id] else return null
     gate_or_new :: loaded.collected.symbols[GATE_OR_NEW] else return null
     run_gated :: loaded.collected.symbols[RUN_GATED] else return null
-    return GateRuntime { .gate_or_new = gate_or_new, .run_gated = run_gated }
+    monitor :: loaded.collected.symbols[GATE_MONITOR] else return null
+    return GateRuntime {
+        .gate_or_new = gate_or_new,
+        .run_gated = run_gated,
+        .monitor = monitor,
+    }
 }
 
 populate_core_symbols :: fn(

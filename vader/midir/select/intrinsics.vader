@@ -40,7 +40,8 @@ export member_op :: fn(id: IntrinsicId) -> Op | null = match id {
         | .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations
         | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
         | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
-        | .SchedulerWatchReadable | .SchedulerWatchExit
+        | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMonitorEnter
+        | .SchedulerMonitorExit
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
         | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
         | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> null

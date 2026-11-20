@@ -16,8 +16,10 @@ type 13 array 14
 type 14 scalar u8
 type 15 union 16,0
 type 16 struct std_runtime_scheduler$InitGate { held:10,owner:5,waiters:11 }
-type 17 struct __defer_env_std_runtime_scheduler_1 { cap_0:16 }
-type 18 struct __defer_env_std_runtime_scheduler_3 { cap_0:16,cap_1:5 }
+type 17 struct __defer_env_std_runtime_scheduler_1 {  }
+type 18 struct __defer_env_std_runtime_scheduler_3 { cap_0:16 }
+type 19 struct __defer_env_std_runtime_scheduler_5 { cap_0:16,cap_1:5 }
+type 20 array 17
 string 0 " step "
 string 1 " done"
 string 2 "main is back: "
@@ -27,6 +29,7 @@ string 5 "c runs on a thread of its own: "
 string 6 "true"
 string 7 "false"
 string 8 "\n"
+data 0 agg 1 struct 17 0
 global 0 6 joiner.state
 global 1 1 joiner.instance
 global 2 15 joiner.gate
@@ -36,9 +39,11 @@ import 2 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread res
 import 3 park std_core$Intrinsic$park intrinsic=park result_type=3 () -> void
 import 4 wake std_core$Intrinsic$wake intrinsic=wake result_type=3 param_types=5 param_c_out= param_by_address= (i64) -> void
 import 5 current_thread std_core$Intrinsic$current_thread intrinsic=current_thread result_type=5 () -> i64
-import 6 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=6,13,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 7 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=6 () -> i32
-import 8 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=3 () -> void
+import 6 monitor_enter std_core$Intrinsic$monitor_enter intrinsic=monitor_enter result_type=3 param_types=10 param_c_out= param_by_address= (bool) -> void
+import 7 monitor_exit std_core$Intrinsic$monitor_exit intrinsic=monitor_exit result_type=3 () -> void
+import 8 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=6,13,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 9 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=6 () -> i32
+import 10 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=3 () -> void
 impl 9 std_core$ByteAccess
 export main 4
 
@@ -52,6 +57,7 @@ fn 0 snippet$joiner () -> ref
     global.get 1   ; joiner.instance
     return
   end $L0
+  call 26   ; std_runtime_scheduler$monitor_enter_to_publish
   global.get 2   ; joiner.gate
   call 22   ; std_runtime_scheduler$gate_or_new
   local.tee 0   ; gate
@@ -679,16 +685,16 @@ fn 20 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 6   ; system_posix$sys_write
+  call.import 8   ; system_posix$sys_write
   local.tee 4   ; written
   i64.const 0
   i64.lt
   if $L1 void
-    call.import 7   ; system_posix$sys_last_errno
+    call.import 9   ; system_posix$sys_last_errno
     i32.const 32
     i32.eq
     if $L2 void
-      call.import 8   ; system_posix$sys_end_on_broken_pipe
+      call.import 10   ; system_posix$sys_end_on_broken_pipe
       local.get 4   ; written
       i64.to_i32
       return
@@ -736,6 +742,11 @@ end
 
 fn 23 std_runtime_scheduler$run_gated (ref,ref) -> bool
   local me i64
+  data.const 0 20   ; pool[0] __defer_env_std_runtime_scheduler_1[]
+  i64.const 0
+  array.get 20 safe   ; __defer_env_std_runtime_scheduler_1[]
+  make_closure 24 2   ; __defer_std_runtime_scheduler_0 fn
+  defer.push
   call.import 5   ; std_core$Intrinsic$current_thread
   local.set 2   ; me
   local.field 0 16 0   ; arg 0 std_runtime_scheduler$InitGate.held
@@ -746,6 +757,7 @@ fn 23 std_runtime_scheduler$run_gated (ref,ref) -> bool
     local.get 2   ; me
     i64.eq
     if $L1 void
+      defer.pop_exec 1
       return.lit bool.const false
     end $L1
   end $L0
@@ -754,7 +766,7 @@ fn 23 std_runtime_scheduler$run_gated (ref,ref) -> bool
   if $L2 void
     local.get 0   ; arg 0
     local.get 2   ; me
-    call 25   ; std_runtime_scheduler$await_gate
+    call 27   ; std_runtime_scheduler$await_gate
   end $L2
   local.get 0   ; arg 0
   bool.const true
@@ -763,29 +775,40 @@ fn 23 std_runtime_scheduler$run_gated (ref,ref) -> bool
   local.get 2   ; me
   struct.set 16 1   ; std_runtime_scheduler$InitGate.owner
   local.get 0   ; arg 0
-  struct.new 17   ; __defer_env_std_runtime_scheduler_1
-  make_closure 24 2   ; __defer_std_runtime_scheduler_0 fn
+  struct.new 18   ; __defer_env_std_runtime_scheduler_3
+  make_closure 25 2   ; __defer_std_runtime_scheduler_2 fn
   defer.push
   local.get 1   ; arg 1
   call.indirect 2   ; fn
-  defer.pop_exec 1
+  defer.pop_exec 2
   return.lit bool.const true
 end
 
 fn 24 __defer_std_runtime_scheduler_0 (ref) -> void
-  local.field 0 17 0   ; arg 0 __defer_env_std_runtime_scheduler_1.cap_0
-  call 27   ; std_runtime_scheduler$let_go
+  call.import 7   ; std_core$Intrinsic$monitor_exit
   return
 end
 
-fn 25 std_runtime_scheduler$await_gate (ref,i64) -> void
+fn 25 __defer_std_runtime_scheduler_2 (ref) -> void
+  local.field 0 18 0   ; arg 0 __defer_env_std_runtime_scheduler_3.cap_0
+  call 29   ; std_runtime_scheduler$let_go
+  return
+end
+
+fn 26 std_runtime_scheduler$monitor_enter_to_publish () -> void
+  bool.const true
+  call.import 6   ; std_core$Intrinsic$monitor_enter
+  return
+end
+
+fn 27 std_runtime_scheduler$await_gate (ref,i64) -> void
   local.field 0 16 2   ; arg 0 std_runtime_scheduler$InitGate.waiters
   local.get 1   ; arg 1
   array.push 5   ; i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  struct.new 18   ; __defer_env_std_runtime_scheduler_3
-  make_closure 26 2   ; __defer_std_runtime_scheduler_2 fn
+  struct.new 19   ; __defer_env_std_runtime_scheduler_5
+  make_closure 28 2   ; __defer_std_runtime_scheduler_4 fn
   defer.push
   loop $L0 void
     local.field 0 16 0   ; arg 0 std_runtime_scheduler$InitGate.held
@@ -799,13 +822,13 @@ fn 25 std_runtime_scheduler$await_gate (ref,i64) -> void
   return
 end
 
-fn 26 __defer_std_runtime_scheduler_2 (ref) -> void
+fn 28 __defer_std_runtime_scheduler_4 (ref) -> void
   local $field_2 ref
   local $field_3 i64
-  local.field 0 18 0   ; arg 0 __defer_env_std_runtime_scheduler_3.cap_0
+  local.field 0 19 0   ; arg 0 __defer_env_std_runtime_scheduler_5.cap_0
   struct.get 16 2   ; std_runtime_scheduler$InitGate.waiters
   local.set 1   ; $field_2
-  local.field 0 18 1   ; arg 0 __defer_env_std_runtime_scheduler_3.cap_1
+  local.field 0 19 1   ; arg 0 __defer_env_std_runtime_scheduler_5.cap_1
   ref.cast 5   ; i64
   local.set 2   ; $field_3
   local.get 1   ; $field_2
@@ -815,7 +838,7 @@ fn 26 __defer_std_runtime_scheduler_2 (ref) -> void
   return
 end
 
-fn 27 std_runtime_scheduler$let_go (ref) -> void
+fn 29 std_runtime_scheduler$let_go (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64

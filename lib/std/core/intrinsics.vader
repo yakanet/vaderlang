@@ -135,6 +135,11 @@ export Intrinsic :: trait {
     watch_readable :: fn(fd: i64) -> void
     /// Wake the parked threads once the child `child` has ended.
     watch_exit :: fn(child: i64) -> void
+    /// Take the monitor over the state tasks share, for the running thread ;
+    /// `publishes` when the holder stores in that state values it made before.
+    monitor_enter :: fn(publishes: bool) -> void
+    /// Let go of the monitor once.
+    monitor_exit :: fn() -> void
 
     // ---- waits on a descriptor ------------------------------------------
 

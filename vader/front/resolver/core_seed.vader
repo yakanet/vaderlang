@@ -69,9 +69,13 @@ export GATE_OR_NEW :: "gate_or_new"
 /// scheduler.
 export RUN_GATED :: "run_gated"
 
+/// The function that takes the monitor a gate is read and built under, by its
+/// name in the scheduler.
+export GATE_MONITOR :: "monitor_enter_to_publish"
+
 /// The functions the compiler calls with no source that writes their name: a
 /// load that keeps only what is reached keeps them.
-export GATE_FUNCTIONS: string[]: [GATE_OR_NEW, RUN_GATED]
+export GATE_FUNCTIONS: string[]: [GATE_OR_NEW, RUN_GATED, GATE_MONITOR]
 
 // The id of the loaded module declared as `name`.
 find_module_id :: fn(project: LoadedProject, name: string) -> string | null {

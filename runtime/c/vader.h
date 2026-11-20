@@ -1312,6 +1312,10 @@ typedef struct {
     /* Set once a trap runs the pending defers: a defer that traps in turn
      * aborts at once. */
     int               unwinding;
+    /* How deep in `vader_scheduler_monitor_enter` it is, and whether it let the
+     * monitor go to leave its worker, which takes it back when it returns. */
+    uint32_t          monitor_depth;
+    uint8_t           monitor_away;
 } vader_thread_state_t;
 
 /* A bump region: objects from `base` up to `cur`, room up to `end`. */
@@ -1386,6 +1390,14 @@ typedef struct vader_worker {
     char**                       gray_stack;
     size_t                       gray_len;
     size_t                       gray_cap;
+    /* Whether the thread it runs holds the monitor: it allocates in the old
+     * generation, which keeps its young one empty. */
+    uint8_t                      in_monitor;
+    /* What it allocated in old under the monitor: unmarked, so that no scan
+     * reads them before they are whole, until it lets the monitor go. */
+    char**                       monitor_born;
+    size_t                       monitor_born_len;
+    size_t                       monitor_born_cap;
     /* The collection it runs. */
     vader_cycle_t                cycle;
     /* While it may be stopped for a major (`vader_gc_blocking`): the low end of
@@ -1622,6 +1634,14 @@ void    vader_scheduler_wake(int64_t thread);
 void    vader_scheduler_sleep_for(int64_t nanos);
 void    vader_scheduler_cancel(int64_t thread);
 int64_t vader_scheduler_current(void);
+/* Take and let go of the monitor, which `std/task` holds over the state its
+ * tasks share. With several workers, the worker allocates in the old
+ * generation while it holds it, and taking it to store values the caller made,
+ * `publishes`, first empties the young one: whatever a task stores in that
+ * state is old, which every worker reads. Reentrant, held by the running
+ * thread, let go while the thread is away from its worker. */
+void    vader_scheduler_monitor_enter(bool publishes);
+void    vader_scheduler_monitor_exit(void);
 /* Whether the running thread was cancelled: one cancelled before it started
  * runs its entry all the same, which asks. */
 bool    vader_scheduler_is_cancelled(void);

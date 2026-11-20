@@ -245,9 +245,19 @@ static vader_array_t* vader_array_alloc_cap(uint32_t type_index, size_t length, 
     if (capacity < length) capacity = length;
     size_t struct_bytes = vader_gc_align(sizeof(vader_array_t));
     size_t buf_bytes    = vader_array_buf_bytes(capacity, element_kind);
-    char* block = (char*) vader_gc_alloc_slot_aligned(struct_bytes + buf_bytes);
-    vader_array_t* a = (vader_array_t*) block;
-    vader_array_buf_t* buf = (vader_array_buf_t*) (block + struct_bytes);
+    vader_array_t* a = NULL;
+    vader_array_buf_t* buf = NULL;
+    if (VADER_UNLIKELY(vader_worker.in_monitor)) {
+        /* In old, where a collection walks slots rather than objects, each
+         * object takes a slot of its own. A major that the second allocation
+         * runs finds the first on the C stack. */
+        a = (vader_array_t*) vader_gc_alloc_slot_aligned(struct_bytes);
+        buf = (vader_array_buf_t*) vader_gc_alloc_slot_aligned(buf_bytes);
+    } else {
+        char* block = (char*) vader_gc_alloc_slot_aligned(struct_bytes + buf_bytes);
+        a = (vader_array_t*) block;
+        buf = (vader_array_buf_t*) (block + struct_bytes);
+    }
     vader_obj_header_init(a, type_index);
     vader_array_set_extent(a, length, capacity);
     a->offset   = 0;

@@ -6,9 +6,13 @@
 // which `run_gated` of `std/runtime/scheduler` runs under a gate kept in a global
 // slot of the program:
 //
+//     monitor_enter_to_publish()
 //     gate :: gate_or_new(gate_slot)
 //     gate_slot = gate
 //     if !run_gated(gate, build) { stop: read again while it is built }
+//
+// The monitor, which `run_gated` lets go, covers the read of the slot: two
+// threads that both found it empty would build twice.
 //
 // A thread that finds another building the value parks until that one is done, or
 // cancelled. A program that never loads the scheduler has one thread: the value
@@ -38,6 +42,7 @@ register_gate_fns :: fn(ctx: FnLowerCtx) -> void {
     fns :: ctx.typed.gate_runtime else return
     register_nongeneric_imported_fn(ctx, fns.gate_or_new)
     register_nongeneric_imported_fn(ctx, fns.run_gated)
+    register_nongeneric_imported_fn(ctx, fns.monitor)
 }
 
 // The statements that run the function `build` under a new gate of the value
@@ -68,6 +73,7 @@ gated_build :: fn(
         .else_block = null,
     }
     return [
+        LoweredExprStmt { .span = span, .expr = mk_lowered_call(fns.monitor, [], TY_VOID, span) },
         LoweredLet {
             .span   = span,
             .name   = gate.name,

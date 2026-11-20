@@ -153,6 +153,70 @@ static size_t g_scheduler_watch_cell_cap = 0;
 /* When the OS last answered, on the system clock. */
 static int64_t g_scheduler_asked_at = 0;
 
+/* ---- the monitor ----------------------------------------------------------- */
+
+/* NULL with one worker, where the monitor is nothing. */
+static vader_os_lock_t* g_monitor_guard = NULL;
+
+static void vader_monitor_take(void* unused) {
+    (void) unused;
+    vader_os_lock(g_monitor_guard);
+}
+
+/* Hold the monitor for the running thread. A worker that waits for it counts
+ * as stopped for a major, which the holder may run. */
+static void vader_monitor_hold(void) {
+    vader_worker_t* w = &vader_worker;
+    vader_gc_blocking(vader_monitor_take, NULL, NULL);
+    w->in_monitor = 1;
+    vader_alloc_limit_refresh(w);
+}
+
+static void vader_monitor_let_go(void) {
+    vader_worker_t* w = &vader_worker;
+    vader_gc_mark_monitor_born(w);
+    w->in_monitor = 0;
+    vader_alloc_limit_refresh(w);
+    vader_os_unlock(g_monitor_guard);
+}
+
+/* The running thread leaves its worker for another thread: it lets the
+ * monitor go, and takes it back as it returns (`vader_scheduler_unlock`), not
+ * before, since the holder may wait for the scheduler's lock. Whatever it holds
+ * is old, so it takes it back with no minor. */
+static void vader_monitor_step_away(void) {
+    if (!vader_worker.in_monitor) return;
+    vader_monitor_let_go();
+    vader_worker.running.monitor_away = 1;
+}
+
+static size_t vader_scheduler_pool_size(void);
+static void vader_scheduler_start(void);
+
+void vader_scheduler_monitor_enter(bool publishes) {
+    if (g_monitor_guard == NULL) {
+        /* The pool starts here at the latest, so that the first task launched
+         * can run on another worker. Else one worker runs all: no monitor. */
+        if (g_scheduler_started || vader_scheduler_pool_size() == 1u) return;
+        vader_scheduler_start();
+    }
+    vader_thread_state_t* r = &vader_worker.running;
+    r->monitor_depth++;
+    /* Held already, the worker allocates in old: its young generation holds
+     * only what it made before. */
+    if (publishes) vader_gc_empty_young(&vader_worker);
+    if (!vader_worker.in_monitor) vader_monitor_hold();
+}
+
+void vader_scheduler_monitor_exit(void) {
+    if (g_monitor_guard == NULL) return;
+    vader_thread_state_t* r = &vader_worker.running;
+    if (r->monitor_depth == 0u) vader_trap("virtual threads: the monitor let go more often than taken");
+    r->monitor_depth--;
+    if (r->monitor_depth > 0u || !vader_worker.in_monitor) return;
+    vader_monitor_let_go();
+}
+
 /* ---- the lock -------------------------------------------------------------- */
 
 /* The scheduler's part of the calling worker. */
@@ -175,6 +239,10 @@ static void vader_scheduler_unlock(void) {
     if (g_scheduler_guard == NULL) return;
     vader_scheduler_me()->holds_guard = 0;
     vader_os_unlock(g_scheduler_guard);
+    if (VADER_UNLIKELY(vader_worker.running.monitor_away)) {
+        vader_worker.running.monitor_away = 0;
+        vader_monitor_hold();
+    }
 }
 
 /* A wait on the condition of a worker, as `vader_gc_blocking` runs it. */
@@ -238,22 +306,48 @@ static void vader_scheduler_grow_ready(vader_scheduler_worker_t* w) {
     w->cap = cap;
 }
 
+/* `w` stops resting, which it does while it has nothing to run. */
+static void vader_scheduler_rouse(vader_scheduler_worker_t* w) {
+    w->resting = 0;
+    g_scheduler_resting--;
+    if (w->wake != NULL) vader_os_cond_signal(w->wake);
+}
+
 /* Make the live thread `thread` ready, once, on its worker, which stops
  * resting. */
 static void vader_scheduler_enqueue(int64_t thread) {
+    vader_scheduler_slot_t* s = vader_scheduler_slot_of(thread);
+    /* Queued already, or among the threads no worker started, which runs once
+     * one takes it. */
+    if (s->queued) return;
     vader_worker_t* owner = vader_virtual_thread_worker(thread);
     if (owner == NULL) vader_trap("virtual threads: a thread that has ended was made ready");
-    vader_scheduler_slot_t* s = vader_scheduler_slot_of(thread);
-    if (s->queued) return;
     s->queued = 1;
     vader_scheduler_worker_t* w = &g_scheduler_workers[owner->index];
     if (w->len == w->cap) vader_scheduler_grow_ready(w);
     w->ready[(w->head + w->len) & (w->cap - 1u)] = thread;
     w->len++;
-    if (!w->resting) return;
-    w->resting = 0;
-    g_scheduler_resting--;
-    if (w->wake != NULL) vader_os_cond_signal(w->wake);
+    if (w->resting) vader_scheduler_rouse(w);
+}
+
+/* `thread`, which no worker started, waits among those any worker may take: a
+ * resting worker stops resting to take it. */
+static void vader_scheduler_offer(int64_t thread) {
+    vader_scheduler_slot_of(thread)->queued = 1;
+    for (uint32_t i = 0; i < g_scheduler_threads; i++) {
+        vader_scheduler_worker_t* w = &g_scheduler_workers[i];
+        if (!w->resting) continue;
+        vader_scheduler_rouse(w);
+        return;
+    }
+}
+
+/* The oldest thread no worker started, made one of the calling worker's, into
+ * `*thread`; 0 when none is. */
+static int vader_scheduler_take_unstarted(int64_t* thread) {
+    if (!vader_virtual_thread_adopt_unstarted(thread)) return 0;
+    vader_scheduler_slot_of(*thread)->queued = 0;
+    return 1;
 }
 
 /* The next ready thread of `w` that has not ended, into `*thread`; 0 when none
@@ -378,9 +472,14 @@ static int64_t vader_scheduler_deadline_in(const vader_scheduler_heap_t* heap, i
 
 /* ---- what the OS reports --------------------------------------------------- */
 
+/* Whether `watch` still wakes its thread: parked in the park it was made for, or
+ * not parked yet. Between a watch and its park, which are separate calls, another
+ * worker may hear from the OS: the thread is then made ready ahead, and its park
+ * returns at once. */
 static int vader_scheduler_watch_wakes(const vader_scheduler_watch_t* watch) {
     if (!vader_virtual_thread_is_live(watch->thread)) return 0;
-    return vader_scheduler_slot_of(watch->thread)->sleep == watch->sleep;
+    uint32_t sleep = vader_scheduler_slot_of(watch->thread)->sleep;
+    return watch->sleep == sleep || watch->sleep == sleep + 1u;
 }
 
 /* The cell a watch of `id` as `kind` is looked for from. */
@@ -708,6 +807,10 @@ static void vader_scheduler_loop(void) {
             vader_virtual_thread_switch(next);
             continue;
         }
+        if (vader_scheduler_take_unstarted(&next)) {
+            vader_virtual_thread_switch(next);
+            continue;
+        }
         int64_t main = vader_virtual_thread_main();
         if (g_scheduler_exiting && vader_virtual_thread_count() == 0u
             && !vader_scheduler_slot_of(main)->queued) {
@@ -730,14 +833,25 @@ static void vader_scheduler_worker_main(void* arg) {
     vader_scheduler_loop();
 }
 
+/* The workers `VADER_THREADS` asks for, read once. */
+static size_t vader_scheduler_pool_size(void) {
+    static size_t threads = 0;
+    if (threads == 0u) {
+        threads = vader_gc_env_count("VADER_THREADS", 1u, 1u, VADER_WORKERS_MAX,
+                                     "a whole number of workers, from 1 to 256");
+    }
+    return threads;
+}
+
 /* Start the workers `VADER_THREADS` asks for beside the main thread's, and
  * wait until each has joined. */
 static void vader_scheduler_start_pool(void) {
-    size_t threads = vader_gc_env_count("VADER_THREADS", 1u, 1u, VADER_WORKERS_MAX,
-                                        "a whole number of workers, from 1 to 256");
+    size_t threads = vader_scheduler_pool_size();
     if (threads == 1u) return;
     vader_gc_pool_start();
+    vader_atom_pool_start();
     g_scheduler_guard = vader_os_lock_new();
+    g_monitor_guard = vader_os_lock_new();
     for (size_t i = 0; i < threads; i++) g_scheduler_workers[i].wake = vader_os_cond_new();
     g_scheduler_threads = (uint32_t) threads;
     vader_scheduler_lock();
@@ -825,6 +939,7 @@ static int vader_scheduler_must_unwind(const vader_scheduler_slot_t* s) {
  * is launched, so the slot is read again after the switch. */
 static void vader_scheduler_block(vader_scheduler_slot_t* s) {
     if (vader_scheduler_must_unwind(s)) vader_scheduler_unwind();
+    vader_monitor_step_away();
     vader_virtual_thread_switch_to_scheduler();
     if (vader_scheduler_must_unwind(vader_scheduler_slot_of(vader_virtual_thread_current()))) {
         vader_scheduler_unwind();
@@ -832,6 +947,7 @@ static void vader_scheduler_block(vader_scheduler_slot_t* s) {
 }
 
 static void vader_scheduler_ending(void) {
+    if (vader_worker.in_monitor) vader_trap("virtual threads: a thread ended holding the monitor");
     int64_t parent = vader_scheduler_slot_of(vader_virtual_thread_current())->parent;
     if (!vader_virtual_thread_is_live(parent)) return;
     vader_scheduler_slot_t* p = vader_scheduler_slot_of(parent);
@@ -938,12 +1054,23 @@ static bool vader_scheduler_wait_for(int kind, int64_t fd, int64_t nanos) {
 int64_t vader_scheduler_spawn(vader_fn_t* entry) {
     vader_scheduler_enter();
     int64_t launcher = vader_virtual_thread_current();
-    int64_t thread = vader_virtual_thread_create(entry);
+    /* Launched under the monitor, its entry is old: any worker may run it. */
+    int stealable = vader_worker.in_monitor;
+    int64_t thread = 0;
+    if (stealable) {
+        thread = vader_virtual_thread_create_unstarted(entry);
+    } else {
+        thread = vader_virtual_thread_create(entry);
+    }
     vader_scheduler_fresh_slot(thread, ++g_scheduler_numbered);
     vader_scheduler_slot_of(thread)->parent = launcher;
     vader_scheduler_slot_of(thread)->outlives = vader_scheduler_slot_of(launcher)->unwinding;
     vader_scheduler_slot_of(launcher)->children++;
-    vader_scheduler_enqueue(thread);
+    if (stealable) {
+        vader_scheduler_offer(thread);
+    } else {
+        vader_scheduler_enqueue(thread);
+    }
     vader_scheduler_unlock();
     return thread;
 }

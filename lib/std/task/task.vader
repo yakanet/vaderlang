@@ -6,6 +6,11 @@
 // The threads are the runtime's (`std/runtime/scheduler`); this module keeps
 // what a task is to the program: its number, its result, who waits for it.
 //
+// What tasks share, this module touches holding the monitor of
+// `std/runtime/scheduler`, taken to publish where a value the caller made goes
+// in (the captures of `launch`, the result and the end of a task): any system
+// thread may then run a task launched, and read what another task left.
+//
 // Every thread this module starts counts in `started()`, a task's and a timer
 // of `timeout`'s alike: the runtime numbers its threads in the order they
 // start, so a task's number is the one the runtime's reports give it, as long
@@ -77,8 +82,10 @@ start_thread :: fn(entry: fn() -> void) -> i64 {
 ///   t.join()   // 42, after 10 ms
 @task_primitive(runs = "entry")
 export launch :: fn<T>(entry: fn() -> T) -> Task<T> {
+    monitor_enter_to_publish()
     task :: Task<T> { .number = started().count + 1 }
     task.thread = start_thread(() -> run(task, entry))
+    monitor_exit()
     return task
 }
 
@@ -107,8 +114,11 @@ Group :: struct {
     taken: i64 = 0
 }
 
-// `task` ended, returned or cancelled: wake who waits for it.
+// `task` ended, returned or cancelled: wake who waits for it. Its result, and
+// what it wrote in the values it was given, become readable from every system
+// thread.
 end :: fn<T>(task: Task<T>) -> void {
+    monitor_enter_to_publish()
     task.ended = true
     for waiter in task.waiters {
         group :: waiter.group
@@ -117,6 +127,7 @@ end :: fn<T>(task: Task<T>) -> void {
         }
         wake(waiter.thread)
     }
+    monitor_exit()
 }
 
 /// Wait for the end of `task`, and give back what it returned.
@@ -129,6 +140,8 @@ end :: fn<T>(task: Task<T>) -> void {
 /// @return      what the task returned, or `Cancelled` when it was cancelled.
 @task_primitive(joins = "task", parks = true)
 export join :: fn<T>(task: Task<T>) -> T | Cancelled {
+    monitor_enter()
+    defer monitor_exit()
     if !task.ended {
         me :: current_thread()
         task.waiters.push(Waiter { .thread = me })
@@ -151,7 +164,12 @@ outcome :: fn<T>(task: Task<T>) -> T | Cancelled {
 ///
 /// @param task  a task `launch` returned.
 @task_primitive
-export is_ready :: fn<T>(task: Task<T>) -> bool = task.ended
+export is_ready :: fn<T>(task: Task<T>) -> bool {
+    monitor_enter()
+    ended :: task.ended
+    monitor_exit()
+    return ended
+}
 
 /// Cancel `task`: it runs its pending `defer`s and ends, and its `join` gives
 /// back `Cancelled`. A task that has ended stays as it was; one that has not
@@ -166,6 +184,8 @@ export is_ready :: fn<T>(task: Task<T>) -> bool = task.ended
 /// @param task  a task `launch` returned.
 @task_primitive
 export cancel :: fn<T>(task: Task<T>) -> void {
+    monitor_enter()
+    defer monitor_exit()
     if task.ended {
         return
     }
@@ -209,6 +229,8 @@ export join_all :: fn<T>(tasks: Task<T>[]) -> (T | Cancelled)[] {
 ///               order they ended.
 @task_primitive(joins = "tasks", parks = true)
 export try_join_all :: fn<T>(tasks: Task<T>[]) -> T[] | Error {
+    monitor_enter()
+    defer monitor_exit()
     defer cancel_and_wait(tasks)
     group :: watch(tasks)
     defer stop_waiting_all(tasks)
@@ -233,6 +255,8 @@ export race :: fn<T>(tasks: Task<T>[]) -> T | Cancelled {
     if tasks.len() == 0 {
         panic("race: no task to wait for")
     }
+    monitor_enter()
+    defer monitor_exit()
     defer cancel_and_wait(tasks)
     group :: watch(tasks)
     defer stop_waiting_all(tasks)
@@ -251,6 +275,8 @@ export join_any :: fn<T>(tasks: Task<T>[]) -> T | Cancelled {
     if tasks.len() == 0 {
         panic("join_any: no task to wait for")
     }
+    monitor_enter()
+    defer monitor_exit()
     defer cancel_and_wait(tasks)
     group :: watch(tasks)
     defer stop_waiting_all(tasks)
@@ -399,6 +425,8 @@ Alarm :: struct {
 ///   slow.timeout(10.millis())   // a TimeoutError, after 10 ms
 @task_primitive(joins = "task", parks = true)
 export timeout :: fn<T>(task: Task<T>, d: Duration) -> T | Cancelled | TimeoutError {
+    monitor_enter()
+    defer monitor_exit()
     if task.ended {
         return outcome(task)
     }
@@ -410,8 +438,10 @@ export timeout :: fn<T>(task: Task<T>, d: Duration) -> T | Cancelled | TimeoutEr
             return
         }
         sleep_for(i64(d))
+        monitor_enter()
         alarm.rang = true
         wake(me)
+        monitor_exit()
     })
     defer cancel_thread(timer)
     task.waiters.push(Waiter { .thread = me })

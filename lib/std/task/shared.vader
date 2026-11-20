@@ -2,11 +2,14 @@
 //
 // A value tasks only read needs nothing: the task check lets every task read it.
 // A value several tasks write goes in a `Shared`, reached through `locked` only, or
-// is an `AtomicInt` / `AtomicBool`. The tasks run on one OS thread and give way to
-// one another only where they park: a `locked` body runs to its end, since nothing
-// may park there, and an atomic operation is a plain one.
+// is an `AtomicInt` / `AtomicBool`. Both hold the monitor of `std/runtime/scheduler`,
+// which one task holds at a time, whatever system thread runs it: a `locked` body
+// runs to its end, since nothing may park there, and an atomic operation is one
+// step.
 
 module "std/task"
+
+import "std/runtime/scheduler"
 
 /// A value several tasks share, each reaching it through `locked`.
 @task_shared
@@ -24,7 +27,12 @@ export Shared :: struct<T> {
 ///       counts[0] += 1
 ///   })
 @task_primitive(gives = "value")
-export shared :: fn<T>(value: T) -> Shared<T> = Shared<T> { .value = value }
+export shared :: fn<T>(value: T) -> Shared<T> {
+    monitor_enter_to_publish()
+    cell :: Shared<T> { .value = value }
+    monitor_exit()
+    return cell
+}
 
 /// Run `body` on the value of `cell`, holding its lock.
 ///
@@ -39,7 +47,11 @@ export shared :: fn<T>(value: T) -> Shared<T> = Shared<T> { .value = value }
 ///   names :: shared(["ada"])
 ///   names.locked((all) -> all.len())   // 1
 @task_primitive(exclusive = "body", guards = "value")
-export locked :: fn<T, R>(cell: Shared<T>, body: fn(T) -> R) -> R = body(cell.value)
+export locked :: fn<T, R>(cell: Shared<T>, body: fn(T) -> R) -> R {
+    monitor_enter_to_publish()
+    defer monitor_exit()
+    return body(cell.value)
+}
 
 /// An integer several tasks read and write at once.
 @task_shared
@@ -58,8 +70,10 @@ export AtomicInt :: struct {
 ///   done.load()         // 2
 @task_primitive(writes = "value")
 export fetch_add :: fn(cell: AtomicInt, n: i64) -> i64 {
+    monitor_enter()
     before :: cell.value
     cell.value += n
+    monitor_exit()
     return before
 }
 
@@ -67,7 +81,12 @@ export fetch_add :: fn(cell: AtomicInt, n: i64) -> i64 {
 ///
 /// @param cell  the integer to read.
 @task_primitive
-export load :: fn(cell: AtomicInt) -> i64 = cell.value
+export load :: fn(cell: AtomicInt) -> i64 {
+    monitor_enter()
+    value :: cell.value
+    monitor_exit()
+    return value
+}
 
 /// Make `cell` hold `n`.
 ///
@@ -75,7 +94,9 @@ export load :: fn(cell: AtomicInt) -> i64 = cell.value
 /// @param n     what it holds from now on.
 @task_primitive(writes = "value")
 export store :: fn(cell: AtomicInt, n: i64) -> void {
+    monitor_enter()
     cell.value = n
+    monitor_exit()
 }
 
 /// Make `cell` hold `next` when it holds `expected` ; whether it did.
@@ -89,11 +110,13 @@ export store :: fn(cell: AtomicInt, n: i64) -> void {
 ///   owner.compare_and_set(0, 9)   // false
 @task_primitive(writes = "value")
 export compare_and_set :: fn(cell: AtomicInt, expected: i64, next: i64) -> bool {
-    if cell.value != expected {
-        return false
+    monitor_enter()
+    set :: cell.value == expected
+    if set {
+        cell.value = next
     }
-    cell.value = next
-    return true
+    monitor_exit()
+    return set
 }
 
 /// A flag several tasks read and write at once.
@@ -107,7 +130,12 @@ export AtomicBool :: struct {
 ///
 /// @param cell  the flag to read.
 @task_primitive
-export load :: fn(cell: AtomicBool) -> bool = cell.value
+export load :: fn(cell: AtomicBool) -> bool {
+    monitor_enter()
+    flag :: cell.value
+    monitor_exit()
+    return flag
+}
 
 /// Make `cell` hold `flag`.
 ///
@@ -115,7 +143,9 @@ export load :: fn(cell: AtomicBool) -> bool = cell.value
 /// @param flag  what it holds from now on.
 @task_primitive(writes = "value")
 export store :: fn(cell: AtomicBool, flag: bool) -> void {
+    monitor_enter()
     cell.value = flag
+    monitor_exit()
 }
 
 // ---- tests ----------------------------------------------------------------

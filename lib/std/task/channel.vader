@@ -65,6 +65,8 @@ Channel<T> implements<T> Iterator<T> {
 ///   jobs.receive()   // 1
 @task_primitive(gives = "message", parks = true, grows = "messages")
 export send :: fn<T>(channel: Channel<T>, message: T) -> void {
+    monitor_enter_to_publish()
+    defer monitor_exit()
     if channel.capacity < 1 {
         panic("send: a channel holds at least one message, its capacity is ${channel.capacity}")
     }
@@ -94,6 +96,8 @@ export send :: fn<T>(channel: Channel<T>, message: T) -> void {
 ///   jobs.receive()   // closed
 @task_primitive(parks = true, writes = "messages", takes = true)
 export receive :: fn<T>(channel: Channel<T>) -> T | Closed {
+    monitor_enter()
+    defer monitor_exit()
     if channel.messages.is_empty() && !channel.closed {
         await_message(channel)
     }
@@ -114,6 +118,7 @@ export receive :: fn<T>(channel: Channel<T>) -> T | Closed {
 /// @param channel  the channel to close.
 @task_primitive(writes = "closed")
 export close :: fn<T>(channel: Channel<T>) -> void {
+    monitor_enter()
     channel.closed = true
     for thread in channel.receivers {
         wake(thread)
@@ -121,6 +126,7 @@ export close :: fn<T>(channel: Channel<T>) -> void {
     for thread in channel.senders {
         wake(thread)
     }
+    monitor_exit()
 }
 
 // Park until `channel` has room or is closed.

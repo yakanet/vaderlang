@@ -87,7 +87,8 @@ typedef struct vader_virtual_thread {
     uint32_t generation;
     size_t   live_slot;     /* in its worker's `live`, while not free */
     /* The worker that runs it, from its start to its end: the worker of the
-     * thread that created it. */
+     * thread that created it, or the first to take it from the threads no
+     * worker started, NULL until then. */
     vader_worker_t* worker;
     uint8_t  state;
     /* Windows: whether its fiber can run the next thread, which it does from
@@ -113,6 +114,12 @@ static size_t g_virtual_thread_bare_len = 0;
 static size_t g_virtual_thread_bare_cap = 0;
 /* The threads `vader_virtual_thread_create` started that have not ended. */
 static size_t g_virtual_thread_count = 0;
+/* The threads no worker started yet, oldest first, in [head, end): any worker
+ * may take one. */
+static vader_virtual_thread_t** g_virtual_thread_unstarted = NULL;
+static size_t g_virtual_thread_unstarted_head = 0;
+static size_t g_virtual_thread_unstarted_end = 0;
+static size_t g_virtual_thread_unstarted_cap = 0;
 
 static void vader_virtual_thread_push(vader_virtual_thread_t*** items, size_t* len, size_t* cap,
                                       vader_virtual_thread_t* t) {
@@ -396,9 +403,11 @@ static void vader_virtual_thread_adopt(vader_virtual_thread_t* t) {
     vader_worker.current = t;
 }
 
-/* List `t` among the live threads of the calling worker; its removal is the
- * swap with the last one that `t->live_slot` makes possible. */
+/* Make `t` one of the live threads of the calling worker, which runs it until
+ * it ends; its removal is the swap with the last one that `t->live_slot` makes
+ * possible. */
 static void vader_virtual_thread_live_add(vader_virtual_thread_t* t) {
+    t->worker = &vader_worker;
     t->live_slot = vader_worker.live_count;
     vader_virtual_thread_push(&vader_worker.live, &vader_worker.live_count,
             &vader_worker.live_cap, t);
@@ -445,10 +454,10 @@ static vader_virtual_thread_t* vader_virtual_thread_take(vader_fn_t* entry) {
     }
     t->entry = entry;
     t->saved.gc_top = &t->entry_frame;
-    t->worker = &vader_worker;
+    t->saved.monitor_depth = 0u;
+    t->saved.monitor_away = 0u;
     t->state = VADER_VIRTUAL_THREAD_LIVE;
     t->reusable = 1;
-    vader_virtual_thread_live_add(t);
     vader_virtual_thread_prepare(t);
     return t;
 }
@@ -539,13 +548,48 @@ static void vader_virtual_thread_start_scheduler(void) {
     vader_virtual_thread_init();
     if (vader_worker.scheduler == NULL) {
         vader_worker.scheduler = vader_virtual_thread_take(NULL);
+        vader_virtual_thread_live_add(vader_worker.scheduler);
     }
 }
 
 static int64_t vader_virtual_thread_create(vader_fn_t* entry) {
     vader_virtual_thread_init();
     g_virtual_thread_count++;
-    return vader_virtual_thread_handle(vader_virtual_thread_take(entry));
+    vader_virtual_thread_t* t = vader_virtual_thread_take(entry);
+    vader_virtual_thread_live_add(t);
+    return vader_virtual_thread_handle(t);
+}
+
+static int64_t vader_virtual_thread_create_unstarted(vader_fn_t* entry) {
+    vader_virtual_thread_init();
+    g_virtual_thread_count++;
+    vader_virtual_thread_t* t = vader_virtual_thread_take(entry);
+    t->worker = NULL;
+    /* Room taken already at the start goes to the new one before the array grows. */
+    if (g_virtual_thread_unstarted_end == g_virtual_thread_unstarted_cap
+        && g_virtual_thread_unstarted_head > 0u) {
+        size_t waiting = g_virtual_thread_unstarted_end - g_virtual_thread_unstarted_head;
+        memmove(g_virtual_thread_unstarted, g_virtual_thread_unstarted + g_virtual_thread_unstarted_head,
+                waiting * sizeof(vader_virtual_thread_t*));
+        g_virtual_thread_unstarted_head = 0u;
+        g_virtual_thread_unstarted_end = waiting;
+    }
+    vader_virtual_thread_push(&g_virtual_thread_unstarted, &g_virtual_thread_unstarted_end,
+            &g_virtual_thread_unstarted_cap, t);
+    return vader_virtual_thread_handle(t);
+}
+
+static int vader_virtual_thread_adopt_unstarted(int64_t* handle) {
+    if (g_virtual_thread_unstarted_head == g_virtual_thread_unstarted_end) return 0;
+    vader_virtual_thread_t* t = g_virtual_thread_unstarted[g_virtual_thread_unstarted_head++];
+    /* Taken all: the next one goes back to the start. */
+    if (g_virtual_thread_unstarted_head == g_virtual_thread_unstarted_end) {
+        g_virtual_thread_unstarted_head = 0u;
+        g_virtual_thread_unstarted_end = 0u;
+    }
+    vader_virtual_thread_live_add(t);
+    *handle = vader_virtual_thread_handle(t);
+    return 1;
 }
 
 static void vader_virtual_thread_switch(int64_t to) {
@@ -600,6 +644,9 @@ static void vader_virtual_thread_each_live(void (*fn)(int64_t handle)) {
             fn(vader_virtual_thread_handle(t));
         }
     }
+    for (size_t i = g_virtual_thread_unstarted_head; i < g_virtual_thread_unstarted_end; i++) {
+        fn(vader_virtual_thread_handle(g_virtual_thread_unstarted[i]));
+    }
 }
 
 static void vader_virtual_thread_give_back_cold(void) {
@@ -642,6 +689,15 @@ static void vader_virtual_thread_each_waiting(const vader_worker_t* w,
     }
 }
 
+static void vader_virtual_thread_each_unstarted(void (*fn)(const vader_virtual_thread_roots_t*, void* ctx),
+                                                void* ctx) {
+    vader_virtual_thread_roots_t r;
+    for (size_t i = g_virtual_thread_unstarted_head; i < g_virtual_thread_unstarted_end; i++) {
+        vader_virtual_thread_roots_of(g_virtual_thread_unstarted[i], &r);
+        fn(&r, ctx);
+    }
+}
+
 #else
 
 static void vader_virtual_thread_start_scheduler(void) {
@@ -660,6 +716,15 @@ static vader_worker_t* vader_virtual_thread_worker(int64_t handle) {
 static int64_t vader_virtual_thread_create(vader_fn_t* entry) {
     (void) entry;
     vader_trap("virtual threads: no stack switch on this target");
+}
+
+static int64_t vader_virtual_thread_create_unstarted(vader_fn_t* entry) {
+    return vader_virtual_thread_create(entry);
+}
+
+static int vader_virtual_thread_adopt_unstarted(int64_t* handle) {
+    (void) handle;
+    return 0;
 }
 
 static void vader_virtual_thread_switch(int64_t to) {
@@ -707,6 +772,12 @@ static void vader_virtual_thread_each_waiting(const vader_worker_t* w,
                                               void (*fn)(const vader_virtual_thread_roots_t*, void* ctx),
                                               void* ctx) {
     (void) w;
+    (void) fn;
+    (void) ctx;
+}
+
+static void vader_virtual_thread_each_unstarted(void (*fn)(const vader_virtual_thread_roots_t*, void* ctx),
+                                                void* ctx) {
     (void) fn;
     (void) ctx;
 }

@@ -127,13 +127,14 @@ static size_t        g_young_cap = 0;
 static int g_count_allocations = 0;
 
 /* Set `w->alloc_limit`: NULL before init, under the stress modes, once
- * allocations are counted, which act on or count every allocation, and while a
- * major waits for the workers to stop at the slow path. Refreshed
+ * allocations are counted, which act on or count every allocation, while the
+ * worker allocates in old under the monitor, and while a major waits for the
+ * workers to stop at the slow path. Refreshed
  * whenever `w->young.from` moves and when counting turns on; the stress flags
  * are set before the first carve. */
 static void vader_alloc_limit_refresh(vader_worker_t* w) {
     char* limit = w->young.from.end;
-    if (g_gc_stress || g_gc_stress_major || g_count_allocations) limit = NULL;
+    if (g_gc_stress || g_gc_stress_major || g_count_allocations || w->in_monitor) limit = NULL;
     atomic_store(&w->alloc_limit, limit);
     /* After the store: a major that asked before it sets the limit to NULL
      * after it, or is seen here. */
@@ -740,6 +741,59 @@ static void vader_old_maybe_major(void) {
     }
 }
 
+/* Run a major to free room in the old generation, and forget that a carve hit
+ * its cap before. */
+static void vader_old_make_room(void) {
+    vader_major_collect();
+    g_old_alloc_failed_at_cap = 0;
+}
+
+/* `bytes` in the old generation for `w`, which holds the monitor, and which a
+ * major makes room in when it is full. An old slot starts on the alignment of
+ * an array buffer. The object stays unmarked until `w` lets the monitor go
+ * (`vader_gc_mark_monitor_born`). */
+static void* vader_gc_alloc_old(vader_worker_t* w, size_t bytes) {
+    void* p = vader_old_alloc(bytes);
+    if (p == NULL) {
+        vader_old_make_room();
+        p = vader_old_alloc(bytes);
+    }
+    if (p == NULL) vader_trap("vader_gc_alloc: old reservation exhausted at cap (VADER_GC_OLD_MAX)");
+    if (w->monitor_born_len == w->monitor_born_cap) {
+        size_t cap = 64u;
+        if (w->monitor_born_cap != 0u) cap = w->monitor_born_cap * 2u;
+        char** grown = (char**) realloc(w->monitor_born, cap * sizeof(char*));
+        if (grown == NULL) vader_trap("vader_gc_alloc: out of memory");
+        w->monitor_born = grown;
+        w->monitor_born_cap = cap;
+    }
+    w->monitor_born[w->monitor_born_len++] = (char*) p;
+    return p;
+}
+
+/* Mark live what `w` allocated under the monitor, whole by now: from here on a
+ * minor scans them under a dirty card, and their writes go through the
+ * barrier as any old object's. */
+static void vader_gc_mark_monitor_born(vader_worker_t* w) {
+    for (size_t i = 0; i < w->monitor_born_len; i++) {
+        ((vader_obj_header_t*) w->monitor_born[i])->mark = g_mark_value;
+    }
+    w->monitor_born_len = 0u;
+}
+
+/* Leave the young generation of `w` empty: a minor promotes every survivor,
+ * unless the old generation is full, which a major makes room in. */
+static void vader_gc_empty_young(vader_worker_t* w) {
+    if (!g_gc_initialized || w->young.from.cur == w->young.from.base) return;
+    vader_gc_minor(w);
+    if (w->young.from.cur == w->young.from.base) return;
+    vader_old_make_room();
+    vader_gc_minor(w);
+    if (w->young.from.cur != w->young.from.base) {
+        vader_trap("vader_gc: the old reservation is full, a value cannot pass to another worker");
+    }
+}
+
 /* Everything the fast path of `vader_gc_alloc` leaves out: init, counters,
  * stress, collection and growth. Out of line so the fast path needs no stack
  * frame. */
@@ -751,6 +805,7 @@ static VADER_NOINLINE void* vader_gc_alloc_slow(vader_worker_t* w, size_t bytes)
      * report an alloc'd-vs-survived ratio. One increment per call. */
     w->counts.alloc_bytes += bytes;
     w->counts.alloc_count += 1;
+    if (VADER_UNLIKELY(w->in_monitor)) return vader_gc_alloc_old(w, bytes);
     size_t aligned = vader_gc_align(bytes);
     /* A single object bigger than a young semi-space can never fit, however
      * much we collect: grow young to hold it (relocating the live set into a
@@ -845,6 +900,8 @@ static VADER_NOINLINE void* vader_gc_alloc_slot_aligned(size_t bytes) {
         w->young.from.cur = cur + pad + aligned;
         return cur + pad;
     }
+    /* An old slot is aligned already. */
+    if (VADER_UNLIKELY(w->in_monitor)) return vader_gc_alloc_slow(w, bytes);
     /* The slow path bumps the young cursor last, so a block that lands on the
      * boundary hands its spare filler back. */
     char* block = (char*) vader_gc_alloc_slow(w, bytes + VADER_GC_ALIGN);

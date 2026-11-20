@@ -715,6 +715,13 @@ static void vader_gc_resume_world(void) {
     vader_os_unlock(g_gc_stop_guard);
 }
 
+/* The roots of the threads no worker started yet: their entries, which a
+ * worker that collects young never sees, since they are old. */
+static void vader_gc_scan_unstarted(vader_worker_t* w) {
+    vader_gc_root_visit_t visit = { vader_gc_scan_root_thread, w };
+    vader_virtual_thread_each_unstarted(vader_gc_visit_waiting_roots, &visit);
+}
+
 /* ---- the major ----------------------------------------------------------- */
 
 void vader_major_collect(void) {
@@ -750,6 +757,7 @@ void vader_major_collect(void) {
         vader_gc_scan_roots(w, x);
         (void) vader_gc_drain(w, x->young.from.base, &x->young.from);
     }
+    vader_gc_scan_unstarted(w);
     /* Conservatively mark old objects reachable only from C locals / registers
      * (the shadow stack doesn't precisely root old refs, see the function).
      * `VADER_GC_NO_CSTACK_SCAN=1` skips it so the gaps in the PRECISE rooting
@@ -760,8 +768,10 @@ void vader_major_collect(void) {
     char* gray = NULL;
     while (vader_gray_pop(w, &gray)) (void) vader_gc_scan_object(w, gray);
 
-    /* 4. Sweep: rebuild every free list from the unmarked slots. */
+    /* 4. Sweep: rebuild every free list from the unmarked slots. What a worker
+     * allocated under the monitor is marked now, or freed. */
     vader_old_sweep();
+    for (size_t i = 0; i < g_worker_count; i++) g_workers[i]->monitor_born_len = 0u;
     g_old_live_after_major = g_old_live_bytes;   /* reclamation-trigger baseline */
     vader_gc_old_histogram();
 

@@ -106,6 +106,29 @@ export watch_readable :: fn(fd: i64) -> void = Intrinsic.watch_readable(fd)
 ///               handle.
 export watch_exit :: fn(child: i64) -> void = Intrinsic.watch_exit(child)
 
+// ---- the monitor ------------------------------------------------------------
+
+/// Take the monitor over the state the tasks of `std/task` share, for the
+/// running thread: one thread at a time holds it, whichever system thread runs
+/// it.
+///
+/// It is reentrant: a thread lets it go as often as it took it. A thread that
+/// parks lets it go meanwhile, and takes it back before it runs again. What the
+/// holder allocates stays readable from every system thread; a value it made
+/// before it took the monitor does not, and goes in through
+/// `monitor_enter_to_publish`.
+export monitor_enter :: fn() -> void = Intrinsic.monitor_enter(false)
+
+/// Take the monitor as `monitor_enter` does, to store in the shared state values
+/// the running thread made before: the captures of a task, a message, a result.
+/// Every system thread can then read them.
+export monitor_enter_to_publish :: fn() -> void = Intrinsic.monitor_enter(true)
+
+/// Let go of the monitor once.
+///
+/// @error  stops the program when the running thread does not hold it.
+export monitor_exit :: fn() -> void = Intrinsic.monitor_exit()
+
 // ---- gates ----------------------------------------------------------------
 
 /// What a value built on first use waits on while a thread builds it: the
@@ -123,7 +146,10 @@ export InitGate :: struct {
     waiters: i64[] = []
 }
 
-/// `gate`, or a new gate when there is none yet.
+/// `gate`, or a new gate when there is none yet. The caller holds the monitor
+/// (`monitor_enter_to_publish`) from its read of `gate`, stores the gate where
+/// the next reader finds it, then hands it to `run_gated`, which lets the
+/// monitor go.
 ///
 /// @param gate  the gate of a value, null until its first build.
 export gate_or_new :: fn(gate: InitGate | null) -> InitGate = gate else InitGate {}
@@ -135,11 +161,16 @@ export gate_or_new :: fn(gate: InitGate | null) -> InitGate = gate else InitGate
 /// takes it: `build` checks whether the value was built meanwhile. A thread
 /// cancelled while it holds `gate` lets it go, and the next one builds.
 ///
+/// `build` runs holding the monitor its caller took to read the gate, which
+/// `run_gated` lets go: the value it builds is readable from every system
+/// thread once it is stored.
+///
 /// @param gate   the gate of the value.
 /// @param build  builds the value, unless it is built already.
 /// @return       false when the running thread reads the value again while it
 ///               builds it.
 export run_gated :: fn(gate: InitGate, build: fn() -> void) -> bool {
+    defer monitor_exit()
     me :: current_thread()
     if gate.held && gate.owner == me {
         return false
@@ -175,6 +206,13 @@ let_go :: fn(gate: InitGate) -> void {
 
 import "std/testing"
 
+// `gate`, with the monitor taken, as the compiler reads a gate before
+// `run_gated`.
+gated :: fn(gate: InitGate) -> InitGate {
+    monitor_enter_to_publish()
+    return gate
+}
+
 // Let the ready threads run, then go on.
 yield_turn :: fn() -> void {
     wake(current_thread())
@@ -189,7 +227,7 @@ launch_parked :: fn(handle: i64[]) -> void {
 
 // Build under `gate`, parking until a `wake` in the middle of the build.
 build_parked :: fn(gate: InitGate, log: string[]) -> void {
-    gate.run_gated(fn() {
+    gated(gate).run_gated(fn() {
         log.push("first builds")
         park()
         log.push("first done")
@@ -200,7 +238,7 @@ build_parked :: fn(gate: InitGate, log: string[]) -> void {
 test_run_gated_runs_the_build :: fn() -> void {
     gate :: InitGate {}
     built :: [false]
-    assert(gate.run_gated(fn() {
+    assert(gated(gate).run_gated(fn() {
         built[0] = true
     }), "the gate was free")
     assert(built[0], "the build ran")
@@ -210,8 +248,8 @@ test_run_gated_runs_the_build :: fn() -> void {
 test_run_gated_refuses_the_thread_holding_the_gate :: fn() -> void {
     gate :: InitGate {}
     again :: [true]
-    gate.run_gated(fn() {
-        again[0] = gate.run_gated(fn() {})
+    gated(gate).run_gated(fn() {
+        again[0] = gated(gate).run_gated(fn() {})
     })
     assert(!again[0], "the holder reads the value again")
 }
@@ -223,7 +261,7 @@ test_gate_makes_another_thread_wait_for_the_build :: fn() -> void {
     main :: current_thread()
     first :: spawn_thread(() -> build_parked(gate, log))
     spawn_thread(fn() {
-        gate.run_gated(() -> log.push("second builds"))
+        gated(gate).run_gated(() -> log.push("second builds"))
         wake(main)
     })
     yield_turn()
@@ -239,7 +277,7 @@ test_cancelled_holder_lets_the_gate_go :: fn() -> void {
     main :: current_thread()
     first :: spawn_thread(() -> build_parked(gate, log))
     spawn_thread(fn() {
-        gate.run_gated(() -> log.push("second builds"))
+        gated(gate).run_gated(() -> log.push("second builds"))
         wake(main)
     })
     yield_turn()

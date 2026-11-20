@@ -111,6 +111,10 @@ static void vader_gc_blocking(void (*op)(void* arg), void* arg, vader_os_lock_t*
 /* Stop here if another worker collects, letting go of `held` meanwhile, a
  * lock the caller holds, or NULL (`vader_gc_blocking`). */
 static void vader_gc_safepoint(vader_os_lock_t* held);
+/* Leave the young generation of `w`, the calling worker, empty. */
+static void vader_gc_empty_young(vader_worker_t* w);
+/* Mark live what `w` allocated in old under the monitor, as it lets it go. */
+static void vader_gc_mark_monitor_born(vader_worker_t* w);
 /* Call `fn` with the range of each C stack a conservative scan reads during a
  * major: the stack each worker runs on (the collector's from its spilled
  * registers, another's from where it stopped), and each waiting thread's. */
@@ -181,6 +185,8 @@ static vader_atom_table_t g_atoms;
 static int g_atoms_initialized;
 
 static vader_u16_t vader_atom_ascii_flag(const char* data, size_t len);
+/* With several workers: entries that never move, and a lock over the rest. */
+static void vader_atom_pool_start(void);
 static void vader_atom_bucket_install(vader_atom_t a);
 
 /* ---- arrays.c ------------------------------------------------------------ */
@@ -210,6 +216,9 @@ static char* vader_virtual_thread_stack_top(const vader_worker_t* w);
 static void vader_virtual_thread_each_waiting(const vader_worker_t* w,
                                               void (*fn)(const vader_virtual_thread_roots_t*, void* ctx),
                                               void* ctx);
+/* Call `fn` with the roots of each thread no worker started yet. */
+static void vader_virtual_thread_each_unstarted(void (*fn)(const vader_virtual_thread_roots_t*, void* ctx),
+                                                void* ctx);
 
 /* What rt/scheduler.c drives. A handle names a thread until it ends; the main
  * thread has one from the start. One thread is the scheduler's, which runs
@@ -220,10 +229,17 @@ static void vader_virtual_thread_start_scheduler(void);
 /* On a system thread of the pool other than the main thread: its own stack
  * runs its scheduler. */
 static void vader_virtual_thread_init_worker(void);
-/* The worker that runs the live thread `handle`. */
+/* The worker that runs the live thread `handle`, NULL while no worker started it. */
 static vader_worker_t* vader_virtual_thread_worker(int64_t handle);
-/* A thread that runs `entry` from the first switch to it; its handle. */
+/* A thread of the calling worker that runs `entry` from the first switch to
+ * it; its handle. */
 static int64_t vader_virtual_thread_create(vader_fn_t* entry);
+/* A thread that runs `entry` and that no worker runs yet: the first to take it
+ * runs it to its end. Its handle. */
+static int64_t vader_virtual_thread_create_unstarted(vader_fn_t* entry);
+/* Make the oldest thread no worker started one of the calling worker's, its
+ * handle into `*handle`; 0 when there is none. */
+static int vader_virtual_thread_adopt_unstarted(int64_t* handle);
 /* Leave the running thread for the live thread `to`. */
 static void vader_virtual_thread_switch(int64_t to);
 /* Leave the running thread for the scheduler's. */
