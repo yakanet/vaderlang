@@ -159,35 +159,63 @@ static void vader_gc_profile_dump(void);
  * value ever observed in a live slot stays a valid lookup target, just possibly
  * with reused content. Comptime atoms are PERM-flagged and never collected. */
 
+/* The hash index of one shard: open addressing, linear probing. `slots[i]` holds
+ * the atom id installed at slot `i` in its low 32 bits and the low 32 bits of
+ * that atom's hash above them, or 0 for an empty slot. The empty atom (id 0) is
+ * never installed, so an occupied slot is never 0. A slot is written once its
+ * entry is whole, and read without a lock. */
+typedef struct vader_atom_index {
+    /* What `free` takes: the index sits on a 64-byte boundary inside it. */
+    void*       block;
+    /* The index this one replaced, which a reader may still probe: freed at the
+     * next sweep, when no reader runs. */
+    struct vader_atom_index* retired;
+    vader_u32_t capacity;          /* a power of two */
+    uint64_t    slots[];
+} vader_atom_index_t;
+
+/* What the writers of a shard share: the spin lock they take once the pool
+ * starts, held for a few stores, and the slots its index has taken. On a cache
+ * line of its own, away from what readers read. */
 typedef struct {
+    _Alignas(64) vader_u32_t busy;
+    vader_u32_t used;
+} vader_atom_writer_t;
+
+#define VADER_ATOM_SHARD_BITS 8u
+#define VADER_ATOM_SHARDS     (1u << VADER_ATOM_SHARD_BITS)
+
+typedef struct {
+    /* Ids handed out so far, the tombstones and those workers hold included:
+     * every id below it names an entry. Written under the lock of the ids. */
     vader_u32_t         count;
     vader_u32_t         capacity;
 
-    /* Open-addressing hash : intern lookup. `buckets[i]` holds the atom id
-     * installed at hash slot `i` in its low 32 bits and the high 32 bits of
-     * that atom's hash above them, or 0 for an empty slot. The empty atom
-     * (id 0) is never installed, so an occupied slot is never 0. */
-    uint64_t*    buckets;
-    vader_u32_t  bucket_capacity;
-    vader_u32_t  bucket_count;     /* occupied slots: for load factor check */
+    /* A shard holds the atoms whose hash starts with one value of its top
+     * bits: its index, read without a lock, and its writers. A reader loads the
+     * index as one word, its address with the log2 of its capacity in the low
+     * six bits, which the alignment of the index leaves free. */
+    uintptr_t           indexes[VADER_ATOM_SHARDS];
+    vader_atom_writer_t writers[VADER_ATOM_SHARDS];
 
-    /* Free list of tombstone indices (atoms freed by GC). Reused by the
-     * next owner-style intern before growing `entries[]`. */
+    /* Free list of tombstone indices (atoms freed by GC), handed to the workers
+     * by batches before `entries[]` grows. */
     vader_u32_t* free_list;
     vader_u32_t  free_count;
     vader_u32_t  free_capacity;
-
-    /* Total bytes held by owner atoms: for profiling. */
-    size_t       owner_bytes;
 } vader_atom_table_t;
 
 static vader_atom_table_t g_atoms;
 static int g_atoms_initialized;
 
 static vader_u16_t vader_atom_ascii_flag(const char* data, size_t len);
-/* With several workers: entries that never move, and a lock over the rest. */
+/* With several workers: entries that never move, a lock per shard and one over
+ * the ids. */
 static void vader_atom_pool_start(void);
-static void vader_atom_bucket_install(vader_atom_t a);
+static vader_u32_t vader_atom_shard_of(uint64_t hash);
+static vader_atom_index_t* vader_atom_index_of(vader_u32_t shard);
+static void vader_atom_index_put(vader_atom_index_t* index, vader_atom_t a, uint64_t hash);
+static void vader_atom_index_free(vader_atom_index_t* index);
 
 /* ---- arrays.c ------------------------------------------------------------ */
 
@@ -329,6 +357,10 @@ static char* vader_os_stack_base(void);
 static vader_os_lock_t* vader_os_lock_new(void);
 static void vader_os_lock(vader_os_lock_t* lock);
 static void vader_os_unlock(vader_os_lock_t* lock);
+/* Give the processor to another thread, as a lock that spun too long does. */
+static void vader_os_yield(void);
+/* Tell the processor that this thread spins on a lock. */
+static void vader_os_spin_pause(void);
 static vader_os_cond_t* vader_os_cond_new(void);
 /* Let `lock` go and wait for `cond`, at most `timeout_ns` when not negative,
  * then take `lock` again. It may return before either. */

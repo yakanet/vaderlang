@@ -172,19 +172,17 @@ static void vader_atom_free_list_push(vader_u32_t id) {
 }
 
 static void vader_atom_sweep(void) {
-    size_t freed_bytes = 0;
     for (vader_u32_t i = 1; i < g_atoms.count; i++) {
         vader_atom_entry_t* e = &vader_atom_entries[i];
         if (e->flags & VADER_ATOM_FLAG_PERM) continue;
-        /* Skip already-tombstoned slots (data NULL means reclaimed in a
-         * previous sweep ; they live in the free list). */
+        /* Skip tombstones: reclaimed by a previous sweep (in the free list,
+         * or among the ids a thread holds for its next atoms), or never used. */
         if (e->data == NULL && e->len == 0 && e->parent == 0) continue;
         if (e->flags & VADER_ATOM_FLAG_MARK) {
             e->flags &= ~VADER_ATOM_FLAG_MARK;
             continue;
         }
         if (e->parent == 0 && e->data != NULL && e->len > 0) {
-            freed_bytes += e->len;
             free((void*) e->data);
         }
         e->parent        = 0;
@@ -194,17 +192,23 @@ static void vader_atom_sweep(void) {
         e->data          = NULL;
         vader_atom_free_list_push(i);
     }
-    if (freed_bytes > g_atoms.owner_bytes) g_atoms.owner_bytes = 0;
-    else g_atoms.owner_bytes -= freed_bytes;
 
     /* Rebuild the hash index over the surviving atoms: clearing single slots
-     * would break the probe chains that run through them. */
-    memset(g_atoms.buckets, 0, g_atoms.bucket_capacity * sizeof(uint64_t));
-    g_atoms.bucket_count = 0;
+     * would break the probe chains that run through them. No reader runs, so
+     * the indexes the shards replaced go too. */
+    for (vader_u32_t i = 0; i < VADER_ATOM_SHARDS; i++) {
+        vader_atom_index_t* index = vader_atom_index_of(i);
+        vader_atom_index_free(index->retired);
+        index->retired = NULL;
+        memset(index->slots, 0, (size_t) index->capacity * sizeof(uint64_t));
+        g_atoms.writers[i].used = 0;
+    }
     for (vader_u32_t i = 1; i < g_atoms.count; i++) {
         const vader_atom_entry_t* e = &vader_atom_entries[i];
         if (e->data == NULL) continue;
-        vader_atom_bucket_install(i);
+        vader_u32_t shard = vader_atom_shard_of(e->hash);
+        vader_atom_index_put(vader_atom_index_of(shard), i, e->hash);
+        g_atoms.writers[shard].used++;
     }
 }
 

@@ -561,6 +561,14 @@ static void vader_os_unlock(vader_os_lock_t* lock) {
     ReleaseSRWLockExclusive(&lock->lock);
 }
 
+static void vader_os_yield(void) {
+    SwitchToThread();
+}
+
+static void vader_os_spin_pause(void) {
+    YieldProcessor();
+}
+
 static vader_os_cond_t* vader_os_cond_new(void) {
     vader_os_cond_t* cond = (vader_os_cond_t*) malloc(sizeof(vader_os_cond_t));
     if (cond == NULL) vader_trap("threads: no condition could be made");

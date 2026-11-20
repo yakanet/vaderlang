@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <pthread.h>
+#include <sched.h>
 #include <signal.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -336,6 +337,18 @@ static void vader_os_lock(vader_os_lock_t* lock) {
 
 static void vader_os_unlock(vader_os_lock_t* lock) {
     pthread_mutex_unlock(&lock->mutex);
+}
+
+static void vader_os_yield(void) {
+    sched_yield();
+}
+
+static void vader_os_spin_pause(void) {
+#if defined(__aarch64__)
+    __asm__ __volatile__("yield");
+#elif defined(__x86_64__)
+    __builtin_ia32_pause();
+#endif
 }
 
 /* A timed wait counts on a clock the wall clock does not move: Linux binds the
