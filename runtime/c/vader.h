@@ -1350,7 +1350,9 @@ typedef enum {
     VADER_CYCLE_MINOR,            /* standalone minor */
     VADER_CYCLE_MAJOR_DRAIN,      /* minor running as the first step of a major */
     VADER_CYCLE_MAJOR,            /* mark phase of a major (old objects marked in place, never copied) */
+    VADER_CYCLE_VERIFY,           /* `VADER_GC_VERIFY` walk of a major: moves and marks nothing */
 } vader_cycle_t;
+/* The two cycles of a major come last: `vader_gc_forward` tests them at once. */
 
 /* What one worker of the runtime, a system thread, holds: each system thread has
  * its own, so a task always reads the state of the worker it runs on. */

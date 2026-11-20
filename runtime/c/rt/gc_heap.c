@@ -513,6 +513,7 @@ void vader_gc_init(void) {
     g_gc_check_box    = vader_gc_env_bool("VADER_GC_CHECK_BOX");
     g_gc_scan_all_old = vader_gc_env_bool("VADER_GC_SCAN_ALL_OLD");
     g_gc_poison       = vader_gc_env_bool("VADER_GC_POISON");
+    g_gc_verify       = vader_gc_env_bool("VADER_GC_VERIFY");
     g_gc_no_cstack_scan = vader_gc_env_bool("VADER_GC_NO_CSTACK_SCAN");
 
     /* VADER_GC_PROFILE : at exit, walk young and old and dump the live set

@@ -498,6 +498,7 @@ in every build ([ADR 0002](adr/0002-gc-diagnostics-are-runtime-flags.md)):
 | `VADER_GC_CHECK_BOX` | traps on a box whose tag is out of range |
 | `VADER_GC_POISON` | fills the abandoned semi-space after each minor |
 | `VADER_GC_SCAN_ALL_OLD` | every card counts as dirty |
+| `VADER_GC_VERIFY` | at each major, traps when a worker reaches the young generation of another, or an unstarted task any young object |
 | `VADER_GC_NO_CSTACK_SCAN` | skips the conservative scan for objects (not atoms), to find what only it keeps alive |
 | `VADER_GC_HISTOGRAM` | the old live set after a major, at each new high |
 | `VADER_GC_PROFILE`, `VADER_ALLOC_BY_TYPE`, `VADER_ATOM_PROFILE` | reports at exit: the live set by type, allocations by type, the atom table |

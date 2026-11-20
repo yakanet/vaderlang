@@ -295,7 +295,11 @@ static inline void* vader_gc_forward(vader_worker_t* w, void* obj, uint32_t type
     if (obj == NULL) return NULL;
     if (VADER_UNLIKELY(g_gc_check_box)) vader_gc_check_object_alignment(obj, type_index);
 
-    if (w->cycle == VADER_CYCLE_MAJOR) {
+    if (w->cycle >= VADER_CYCLE_MAJOR) {
+        if (VADER_UNLIKELY(w->cycle == VADER_CYCLE_VERIFY)) {
+            vader_gc_verify_reach(w, obj);
+            return obj;
+        }
         /* Mark phase: only old objects are sweepable. Young survivors and
          * immortals are dead-ends here (young is kept whole during the old
          * pass; immortals are read-only, never write a mark to them). */
@@ -366,7 +370,9 @@ static void vader_gc_scan_box(vader_worker_t* w, vader_box_t* boxp) {
 static void vader_gc_scan_raw(vader_worker_t* w, void** slot) {
     if (slot == NULL || *slot == NULL) return;
     void* obj = *slot;
-    if (vader_in_young_from(w, obj)) {
+    if (VADER_UNLIKELY(w->cycle == VADER_CYCLE_VERIFY)) {
+        vader_gc_verify_reach(w, obj);
+    } else if (vader_in_young_from(w, obj)) {
         void* moved = vader_gc_forward(w, obj, ((vader_obj_header_t*) obj)->type_index);
         *slot = moved;
         if (vader_in_young(w, moved)) vader_gc_dirty_card(w, slot);
@@ -731,12 +737,137 @@ static void vader_gc_scan_unstarted(vader_worker_t* w) {
     vader_virtual_thread_each_unstarted(vader_gc_visit_waiting_roots, &visit);
 }
 
+/* ---- verification (VADER_GC_VERIFY) -------------------------------------- */
+
+/* A walk of what one worker reaches, or the unstarted threads (`owner` NULL),
+ * which any worker may adopt: the objects seen so far, in an open-addressing
+ * set. The objects left to scan wait on the gray worklist of the collector. */
+typedef struct {
+    const vader_worker_t* owner;
+    char**                seen;
+    size_t                seen_len;
+    size_t                seen_cap;
+} vader_gc_verify_walk_t;
+
+static vader_gc_verify_walk_t g_verify_walk;
+
+/* The index of `x` among the workers, or the worker count for NULL. */
+static size_t vader_gc_verify_worker_index(const vader_worker_t* x) {
+    for (size_t i = 0; i < g_worker_count; i++) {
+        if (g_workers[i] == x) return i;
+    }
+    return g_worker_count;
+}
+
+static VADER_NORETURN void vader_gc_verify_fail(const vader_worker_t* young_of, const void* obj) {
+    fprintf(stderr, "VADER_GC_VERIFY: walk %zu (%zu: the unstarted threads) reaches %p, "
+            "young in worker %zu\n", vader_gc_verify_worker_index(g_verify_walk.owner),
+            g_worker_count, obj, vader_gc_verify_worker_index(young_of));
+    vader_trap("VADER_GC_VERIFY: a worker reaches the young generation of another");
+}
+
+/* The home slot of `obj` in a set of `log2_cap` bits: the high bits of the
+ * product, which every bit of the address reaches. */
+static size_t vader_gc_verify_slot_of(const char* obj, unsigned log2_cap) {
+    return (size_t) ((((uintptr_t) obj >> 4) * UINT64_C(0x9E3779B97F4A7C15)) >> (64u - log2_cap));
+}
+
+static unsigned vader_gc_verify_log2(size_t cap) {
+    unsigned bits = 0u;
+    while (((size_t) 1u << bits) < cap) bits++;
+    return bits;
+}
+
+/* Add `obj` to the set: 1 when it was not in it. */
+static int vader_gc_verify_first_visit(char* obj) {
+    vader_gc_verify_walk_t* v = &g_verify_walk;
+    if (2u * (v->seen_len + 1u) > v->seen_cap) {
+        size_t cap = 1024u;
+        if (v->seen_cap != 0u) cap = v->seen_cap * 2u;
+        unsigned bits = vader_gc_verify_log2(cap);
+        char** grown = (char**) calloc(cap, sizeof(char*));
+        if (grown == NULL) vader_trap("VADER_GC_VERIFY: out of memory");
+        for (size_t i = 0; i < v->seen_cap; i++) {
+            char* o = v->seen[i];
+            if (o == NULL) continue;
+            size_t at = vader_gc_verify_slot_of(o, bits);
+            while (grown[at] != NULL) at = (at + 1u) & (cap - 1u);
+            grown[at] = o;
+        }
+        free(v->seen);
+        v->seen = grown;
+        v->seen_cap = cap;
+    }
+    size_t at = vader_gc_verify_slot_of(obj, vader_gc_verify_log2(v->seen_cap));
+    while (v->seen[at] != NULL) {
+        if (v->seen[at] == obj) return 0;
+        at = (at + 1u) & (v->seen_cap - 1u);
+    }
+    v->seen[at] = obj;
+    v->seen_len++;
+    return 1;
+}
+
+/* What the walk does with each slot `w` reads: trap on the young generation of
+ * another worker, and queue an old or own young object once. An immortal or
+ * off-heap pointer ends the walk there. */
+static void vader_gc_verify_reach(vader_worker_t* w, void* p) {
+    if (p == NULL) return;
+    if (!vader_in_old(p)) {
+        int young = 0;
+        for (size_t i = 0; i < g_worker_count && !young; i++) {
+            const vader_worker_t* x = g_workers[i];
+            if (!vader_in_young(x, p)) continue;
+            if (x != g_verify_walk.owner) vader_gc_verify_fail(x, p);
+            young = 1;
+        }
+        if (!young) return;
+    }
+    if (vader_gc_verify_first_visit((char*) p)) vader_gray_push(w, (char*) p);
+}
+
+/* Forget the objects seen by the walk before, for a walk of what `owner`
+ * reaches. */
+static void vader_gc_verify_begin(const vader_worker_t* owner) {
+    vader_gc_verify_walk_t* v = &g_verify_walk;
+    v->owner = owner;
+    v->seen_len = 0u;
+    if (v->seen != NULL) memset(v->seen, 0, v->seen_cap * sizeof(char*));
+}
+
+/* Scan everything the roots queued, and what it reaches in turn. */
+static void vader_gc_verify_drain(vader_worker_t* w) {
+    char* obj = NULL;
+    while (vader_gray_pop(w, &obj)) (void) vader_gc_scan_object(w, obj);
+}
+
+/* What a worker reaches lies in no young generation of another, and the
+ * unstarted threads reach none: what passes between workers is old, since
+ * each door of std/task publishes it. Run by `w` with the world stopped, no
+ * minor under way and its gray worklist empty. The conservative scan of the
+ * C stacks is left out: a stale word there is no reference. */
+static void vader_gc_verify_workers(vader_worker_t* w) {
+    vader_cycle_t saved = w->cycle;
+    w->cycle = VADER_CYCLE_VERIFY;
+    for (size_t i = 0; i < g_worker_count; i++) {
+        vader_gc_verify_begin(g_workers[i]);
+        vader_gc_scan_roots(w, g_workers[i]);
+        vader_gc_verify_drain(w);
+    }
+    vader_gc_verify_begin(NULL);
+    vader_gc_scan_unstarted(w);
+    vader_gc_verify_drain(w);
+    w->cycle = saved;
+}
+
 /* ---- the major ----------------------------------------------------------- */
 
 void vader_major_collect(void) {
     if (!g_gc_initialized) return;
     vader_worker_t* w = &vader_worker;
     if (!vader_gc_stop_world()) return;
+    /* Before the drain: each young generation still holds all it made. */
+    if (VADER_UNLIKELY(g_gc_verify)) vader_gc_verify_workers(w);
 
     /* 1. Drain every young generation (a minor each, with its own roots).
      * Survivors that earned tenure promote into the slab via vader_old_alloc;

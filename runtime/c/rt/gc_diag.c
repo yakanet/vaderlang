@@ -61,6 +61,11 @@ static int g_gc_scan_all_old = 0;
  * abandoned object fails at once (docs/adr/0107). Off by default. */
 static int g_gc_poison = 0;
 
+/* Set via `VADER_GC_VERIFY=1`: each major checks, the world stopped, that what
+ * a worker reaches lies in no young generation of another
+ * (`vader_gc_verify_workers`). Off by default. */
+static int g_gc_verify = 0;
+
 static int g_gc_profile = 0;
 
 /* ---- per-type allocation counter (VADER_ALLOC_BY_TYPE) ------------------- */

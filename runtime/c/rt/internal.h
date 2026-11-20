@@ -95,6 +95,8 @@ static size_t g_card_count;
 
 /* A minor over the young generation of `w`, with its roots. */
 static void vader_gc_minor(vader_worker_t* w);
+/* What the `VADER_GC_VERIFY` walk does with each slot it reads. */
+static void vader_gc_verify_reach(vader_worker_t* w, void* p);
 /* Make ready, once the pool starts, what a major needs to stop the other
  * workers. */
 static void vader_gc_pool_start(void);
@@ -149,6 +151,7 @@ static int g_gc_check_box;
 static int g_gc_no_cstack_scan;
 static int g_gc_scan_all_old;
 static int g_gc_poison;
+static int g_gc_verify;
 static int g_gc_profile;
 
 static void vader_alloc_by_type_dump(void);
