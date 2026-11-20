@@ -299,9 +299,14 @@ static vader_old_region_t* vader_old_carve_region(size_t region_bytes, size_t sl
     r->class_idx = class_idx;
     r->freed     = 0u;
     r->free_next = NULL;
+    /* A large region holds its one object from the start. */
+    if (class_idx < 0) r->cur = r->end;
     r->next      = g_old_regions;
-    g_old_regions = r;
-    g_old_bump   += region_bytes;
+    /* The bump first, then the region, released: a minor of another worker
+     * reads the list without the lock (`vader_gc_scan_old_dirty_cards`), and
+     * finds every region it reaches whole and under the bump. */
+    __atomic_store_n(&g_old_bump, g_old_bump + region_bytes, __ATOMIC_RELAXED);
+    __atomic_store_n(&g_old_regions, r, __ATOMIC_RELEASE);
     return r;
 }
 
@@ -326,7 +331,7 @@ static void* vader_old_alloc_held(size_t bytes) {
             c->current = r;
         }
         char* slot = c->current->cur;
-        c->current->cur += slot_size;
+        __atomic_store_n(&c->current->cur, slot + slot_size, __ATOMIC_RELAXED);
         g_old_live_bytes += slot_size;
         return slot;
     }
@@ -345,7 +350,6 @@ static void* vader_old_alloc_held(size_t bytes) {
     }
     vader_old_region_t* r = vader_old_carve_region(aligned, aligned, -1);
     if (r == NULL) { g_old_alloc_failed_at_cap = 1; return NULL; }
-    r->cur = r->base + aligned;       /* the single slot is now in use */
     g_old_live_bytes += aligned;
     return r->base;
 }
@@ -777,7 +781,7 @@ static void* vader_gc_alloc_old(vader_worker_t* w, size_t bytes) {
  * barrier as any old object's. */
 static void vader_gc_mark_monitor_born(vader_worker_t* w) {
     for (size_t i = 0; i < w->monitor_born_len; i++) {
-        ((vader_obj_header_t*) w->monitor_born[i])->mark = g_mark_value;
+        vader_obj_publish_mark((vader_obj_header_t*) w->monitor_born[i]);
     }
     w->monitor_born_len = 0u;
 }

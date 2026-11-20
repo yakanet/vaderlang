@@ -93,6 +93,20 @@ static VADER_NOINLINE void* vader_gc_alloc_slot_aligned(size_t bytes);
 static uint8_t g_mark_value;
 static size_t g_card_count;
 
+/* Mark `h` live in the current epoch once its object is written whole: a
+ * minor of another worker that reads the mark by `vader_obj_is_published` sees
+ * every write made before. */
+static inline void vader_obj_publish_mark(vader_obj_header_t* h) {
+    __atomic_store_n(&h->mark, g_mark_value, __ATOMIC_RELEASE);
+}
+
+/* Whether `h` is marked in the current epoch, with the writes its publication
+ * covers when it is. An acquire load and not a fence: ThreadSanitizer models
+ * the one and not the other. */
+static inline int vader_obj_is_published(const vader_obj_header_t* h) {
+    return __atomic_load_n(&h->mark, __ATOMIC_ACQUIRE) == g_mark_value;
+}
+
 /* A minor over the young generation of `w`, with its roots. */
 static void vader_gc_minor(vader_worker_t* w);
 /* What the `VADER_GC_VERIFY` walk does with each slot it reads. */

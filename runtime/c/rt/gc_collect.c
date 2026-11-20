@@ -36,7 +36,8 @@ static size_t g_card_count = 0;
  * of the table. The minor scan bounds its table sweep to this (the uncommitted
  * reservation tail holds no objects). */
 static inline size_t vader_old_used_cards(void) {
-    return ((size_t)(g_old_bump - g_old_block) + VADER_CARD_BYTES - 1u) / VADER_CARD_BYTES;
+    char* bump = __atomic_load_n(&g_old_bump, __ATOMIC_RELAXED);
+    return ((size_t)(bump - g_old_block) + VADER_CARD_BYTES - 1u) / VADER_CARD_BYTES;
 }
 
 /* Grow the gray worklist geometrically. Out of line, so that the push it serves
@@ -241,7 +242,7 @@ static void* vader_gc_promote(void* obj, size_t bytes, uint8_t age) {
     vader_obj_forward_to(obj, dst);
     vader_obj_header_t* dh = (vader_obj_header_t*) dst;
     dh->age  = age;
-    dh->mark = g_mark_value;                         /* live in the current old epoch */
+    vader_obj_publish_mark(dh);                      /* live in the current old epoch */
     return dst;
 }
 
@@ -513,7 +514,12 @@ static inline size_t vader_next_dirty_card(const uint8_t* dirty, size_t c, size_
  * a dirty snapshot card: none is missed. `VADER_GC_SCAN_ALL_OLD` skips the
  * snapshot and the clear, and scans every card. */
 static void vader_gc_scan_old_dirty_cards(vader_worker_t* w) {
-    if (g_old_regions == NULL || g_old_bump == g_old_block) return;
+    /* Other workers carve and fill old meanwhile, each region published whole
+     * under the bump (`vader_old_carve_region`) and each object by its mark
+     * (`vader_obj_publish_mark`): a slot read here is scanned only once its
+     * mark says the object in it is written. */
+    vader_old_region_t* regions = __atomic_load_n(&g_old_regions, __ATOMIC_ACQUIRE);
+    if (regions == NULL) return;
     size_t used_cards = vader_old_used_cards();
 
     /* Snapshot, then clear. Clearing here is safe because the only forwarding
@@ -529,11 +535,12 @@ static void vader_gc_scan_old_dirty_cards(vader_worker_t* w) {
         dirty = w->card_shadow;                         /* what to scan; live table = redirty target */
     }
 
-    for (vader_old_region_t* r = g_old_regions; r != NULL; r = r->next) {
-        if (r->cur == r->base) continue;                /* nothing carved yet */
+    for (vader_old_region_t* r = regions; r != NULL; r = r->next) {
+        char* used_end = __atomic_load_n(&r->cur, __ATOMIC_RELAXED);
+        if (used_end == r->base) continue;              /* nothing carved yet */
         uintptr_t rbase_off = (uintptr_t) r->base - vader_old_base;
         size_t    card_lo   = rbase_off / VADER_CARD_BYTES;
-        size_t    card_hi   = ((uintptr_t) r->cur - 1u - vader_old_base) / VADER_CARD_BYTES;
+        size_t    card_hi   = ((uintptr_t) used_end - 1u - vader_old_base) / VADER_CARD_BYTES;
         char*     cursor    = r->base;                  /* slots below are already scanned */
         for (size_t c = card_lo; c <= card_hi; c++) {
             if (dirty != NULL) {                        /* clean cards: skip their slots wholesale */
@@ -549,9 +556,9 @@ static void vader_gc_scan_old_dirty_cards(vader_worker_t* w) {
             char* s = r->base + (into / r->slot_size) * r->slot_size;
             if (s < cursor) s = cursor;
             char* card_end = (char*)(vader_old_base + card_start_off + VADER_CARD_BYTES);
-            for (; s < card_end && s < r->cur; s += r->slot_size) {
+            for (; s < card_end && s < used_end; s += r->slot_size) {
                 vader_obj_header_t* hdr = (vader_obj_header_t*) s;
-                if (hdr->mark == g_mark_value) (void) vader_gc_scan_object(w, s);
+                if (vader_obj_is_published(hdr)) (void) vader_gc_scan_object(w, s);
             }
             cursor = s;
         }
