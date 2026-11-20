@@ -92,6 +92,10 @@ static VADER_NOINLINE void* vader_gc_alloc_slot_aligned(size_t bytes);
 
 static uint8_t g_mark_value;
 static size_t g_card_count;
+/* The groups of `cards` cards. */
+static inline size_t vader_card_groups_of(size_t cards) {
+    return (cards + VADER_CARD_GROUP - 1u) / VADER_CARD_GROUP;
+}
 
 /* Mark `h` live in the current epoch once its object is written whole: a
  * minor of another worker that reads the mark by `vader_obj_is_published` sees

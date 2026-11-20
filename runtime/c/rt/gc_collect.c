@@ -72,7 +72,7 @@ static inline bool vader_gray_pop(vader_worker_t* w, char** obj) {
  * referent there may be another worker's, whose card table is its own. */
 static inline void vader_gc_dirty_card(vader_worker_t* w, const void* slot) {
     if (w->cycle == VADER_CYCLE_MAJOR) return;
-    VADER_CARD_MARK(w->cards, slot);
+    VADER_CARD_MARK(w, slot);
 }
 
 /* Map an interior old-gen pointer to the start of its containing slot, or NULL
@@ -478,17 +478,54 @@ static void vader_gc_scan_roots(vader_worker_t* w, const vader_worker_t* x) {
     vader_gc_each_root_thread(x, vader_gc_scan_root_thread, w);
 }
 
-/* The first card in [c, hi] marked in `dirty`, or hi + 1. Steps over clean
- * cards eight at a time: most of the old generation is clean at every minor. */
-static inline size_t vader_next_dirty_card(const uint8_t* dirty, size_t c, size_t hi) {
-    while (c + 8u <= hi + 1u) {
+/* The first index in [i, hi] marked in `table`, or hi + 1. Steps over unmarked
+ * bytes eight at a time. */
+static inline size_t vader_next_marked(const uint8_t* table, size_t i, size_t hi) {
+    while (i + 8u <= hi + 1u) {
         uint64_t word;
-        memcpy(&word, dirty + c, sizeof word);
+        memcpy(&word, table + i, sizeof word);
         if (word != 0u) break;
-        c += 8u;
+        i += 8u;
     }
-    while (c <= hi && dirty[c] == 0u) c++;
-    return c;
+    while (i <= hi && table[i] == 0u) i++;
+    return i;
+}
+
+/* The first card in [c, hi] marked in `dirty` within a group marked in
+ * `groups`, or hi + 1: the cards of a clean group are not read, since only
+ * those of dirty groups were copied into `dirty`. */
+static inline size_t vader_next_dirty_card(const uint8_t* dirty, const uint8_t* groups,
+                                           size_t c, size_t hi) {
+    size_t last_group = hi / VADER_CARD_GROUP;
+    while (c <= hi) {
+        size_t group = vader_next_marked(groups, c / VADER_CARD_GROUP, last_group);
+        if (group > last_group) break;
+        size_t first = group * VADER_CARD_GROUP;
+        if (first > c) c = first;
+        size_t last = first + VADER_CARD_GROUP - 1u;
+        if (last > hi) last = hi;
+        size_t found = vader_next_marked(dirty, c, last);
+        if (found <= last) return found;
+        c = last + 1u;
+    }
+    return hi + 1u;
+}
+
+/* Copy into the shadows the groups of `w` and the cards of its dirty groups
+ * among the first `used_cards`, and clean what was copied. */
+static void vader_gc_snapshot_cards(vader_worker_t* w, size_t used_cards) {
+    size_t used_groups = vader_card_groups_of(used_cards);
+    if (used_groups == 0u) return;
+    memcpy(w->card_group_shadow, w->card_groups, used_groups);
+    memset(w->card_groups, 0, used_groups);
+    size_t last_group = used_groups - 1u;
+    size_t group = vader_next_marked(w->card_group_shadow, 0u, last_group);
+    while (group <= last_group) {
+        size_t first = group * VADER_CARD_GROUP;
+        memcpy(w->card_shadow + first, w->cards + first, VADER_CARD_GROUP);
+        memset(w->cards + first, 0, VADER_CARD_GROUP);
+        group = vader_next_marked(w->card_group_shadow, group + 1u, last_group);
+    }
 }
 
 /* Forward every old->young pointer, then leave the card table holding EXACTLY
@@ -530,8 +567,7 @@ static void vader_gc_scan_old_dirty_cards(vader_worker_t* w) {
      * clear. */
     const uint8_t* dirty = NULL;
     if (!g_gc_scan_all_old) {
-        memcpy(w->card_shadow, w->cards, used_cards);
-        memset(w->cards, 0, used_cards);
+        vader_gc_snapshot_cards(w, used_cards);
         dirty = w->card_shadow;                         /* what to scan; live table = redirty target */
     }
 
@@ -544,7 +580,7 @@ static void vader_gc_scan_old_dirty_cards(vader_worker_t* w) {
         char*     cursor    = r->base;                  /* slots below are already scanned */
         for (size_t c = card_lo; c <= card_hi; c++) {
             if (dirty != NULL) {                        /* clean cards: skip their slots wholesale */
-                c = vader_next_dirty_card(dirty, c, card_hi);
+                c = vader_next_dirty_card(dirty, w->card_group_shadow, c, card_hi);
                 if (c > card_hi) break;
             }
 

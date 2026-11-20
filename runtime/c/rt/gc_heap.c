@@ -475,10 +475,16 @@ static void vader_gc_worker_init(vader_worker_t* w) {
     char* young_block = (char*) malloc(g_young_initial_bytes * 2u);
     if (young_block == NULL) vader_trap("vader_gc_init: young arena malloc failed");
     vader_young_carve(w, young_block, g_young_initial_bytes, young_block);
-    w->cards = (uint8_t*) calloc(g_card_count, 1u);
+    /* The card tables end on a whole group, which a minor copies at once. */
+    size_t groups = vader_card_groups_of(g_card_count);
+    w->cards = (uint8_t*) calloc(groups * VADER_CARD_GROUP, 1u);
     if (w->cards == NULL) vader_trap("vader_gc_init: card-table calloc failed");
-    w->card_shadow = (uint8_t*) malloc(g_card_count);
+    w->card_shadow = (uint8_t*) malloc(groups * VADER_CARD_GROUP);
     if (w->card_shadow == NULL) vader_trap("vader_gc_init: card-shadow malloc failed");
+    w->card_groups = (uint8_t*) calloc(groups, 1u);
+    if (w->card_groups == NULL) vader_trap("vader_gc_init: card-group calloc failed");
+    w->card_group_shadow = (uint8_t*) malloc(groups);
+    if (w->card_group_shadow == NULL) vader_trap("vader_gc_init: card-group-shadow malloc failed");
     g_workers[g_worker_count++] = w;
 }
 
@@ -615,9 +621,13 @@ void vader_gc_shutdown(void) {
         vader_alloc_limit_refresh(w);
         free(w->cards);
         free(w->card_shadow);
+        free(w->card_groups);
+        free(w->card_group_shadow);
         free(w->gray_stack);
         w->cards = NULL;
         w->card_shadow = NULL;
+        w->card_groups = NULL;
+        w->card_group_shadow = NULL;
         w->gray_stack = NULL;
         w->gray_len = w->gray_cap = 0;
     }

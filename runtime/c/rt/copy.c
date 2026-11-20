@@ -177,13 +177,13 @@ static vader_box_t vader_copy_box(vader_copy_t* c, vader_box_t value) {
 /* Point the reference at `slot` of a copy at the copy of its referent. */
 static void vader_copy_ref_slot(vader_copy_t* c, void** slot) {
     *slot = vader_copy_ref(c, *slot);
-    if (*slot != NULL && vader_in_young(c->worker, *slot)) VADER_CARD_MARK(c->worker->cards, slot);
+    if (*slot != NULL && vader_in_young(c->worker, *slot)) VADER_CARD_MARK(c->worker, slot);
 }
 
 static void vader_copy_box_slot(vader_copy_t* c, vader_box_t* slot) {
     *slot = vader_copy_box(c, *slot);
     if (vader_box_holds_object(*slot) && vader_in_young(c->worker, slot->payload.obj)) {
-        VADER_CARD_MARK(c->worker->cards, slot);
+        VADER_CARD_MARK(c->worker, slot);
     }
 }
 

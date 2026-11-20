@@ -1196,6 +1196,9 @@ void           vader_array_clear(vader_array_t* a);
 #ifndef VADER_CARD_BYTES
 #define VADER_CARD_BYTES     512u                    /* one card per 512 bytes of old */
 #endif
+#ifndef VADER_CARD_GROUP
+#define VADER_CARD_GROUP     64u                     /* cards per byte of the group table */
+#endif
 
 /* Old-gen reclamation headroom. The non-moving slab never compacts, so a major
  * (which sweeps dead old in place) fires once the old footprint exceeds
@@ -1392,6 +1395,10 @@ typedef struct vader_worker {
      * `card_shadow` is the copy a minor scans while it cleans the table. */
     uint8_t*                     cards;
     uint8_t*                     card_shadow;
+    /* One byte per `VADER_CARD_GROUP` cards, dirty where one of them may be:
+     * a minor reads and cleans only the cards of dirty groups. */
+    uint8_t*                     card_groups;
+    uint8_t*                     card_group_shadow;
     /* The objects a collection it runs still has to scan. */
     char**                       gray_stack;
     size_t                       gray_len;
@@ -1434,15 +1441,19 @@ extern uintptr_t  vader_old_end;
  * the object may not have (strict aliasing). */
 #define VADER_UNION_FIELD(T, S, f, p) (*(T*)((char*)(p) + offsetof(S, f)))
 
-/* Mark dirty, in the card table `cards`, the card of `obj` when it lies in old. */
-#define VADER_CARD_MARK(cards, obj) do {                                       \
+/* Mark dirty, in the card table of the worker `w`, the card of `obj` and its
+ * group when it lies in old. */
+#define VADER_CARD_MARK(w, obj) do {                                           \
     uintptr_t __vb = (uintptr_t)(obj);                                         \
     if (__vb >= vader_old_base && __vb < vader_old_end) {                      \
-        (cards)[(__vb - vader_old_base) / VADER_CARD_BYTES] = 1u;              \
+        vader_worker_t* __vw = (w);                                            \
+        size_t __card = (__vb - vader_old_base) / VADER_CARD_BYTES;            \
+        __vw->cards[__card] = 1u;                                              \
+        __vw->card_groups[__card / VADER_CARD_GROUP] = 1u;                     \
     }                                                                          \
 } while (0)
 
-#define VADER_WRITE_BARRIER(obj) VADER_CARD_MARK(vader_worker.cards, obj)
+#define VADER_WRITE_BARRIER(obj) VADER_CARD_MARK(&vader_worker, obj)
 
 /* Whether the next element of `a` goes in place in `buf`, its buffer, through a
  * ref or box store: room left (see `vader_array_t`) and a BOXED or REF buffer.
