@@ -441,6 +441,9 @@ meanwhile. The sleeps and those bounds are two heaps of timers: a sleep runs on
 the program's clock, a bound on the system's whatever the program's, as the
 deadline of a timed wait and the 2 ms after which a refused watch checks again
 do. Of two sleeps that end together, the one that began first wakes first.
+`VADER_SCHEDULER_SLOW_END` makes a thread whose entry returned wait a
+millisecond before it leaves the runtime, for the tests of what `main` returning
+sees of the thread of a task that has ended.
 A read of stdin through `std/console` parks only while another thread exists,
 and so does `poll_stdin`, whose deadline is a timer armed for the park its
 watch ends. On Windows, the reader's read of a stdin pipe outlives a wait given up,
