@@ -385,6 +385,8 @@ static char* vader_os_stack_base(void);
 static vader_os_lock_t* vader_os_lock_new(void);
 static void vader_os_lock(vader_os_lock_t* lock);
 static void vader_os_unlock(vader_os_lock_t* lock);
+/* Take `lock` when it is free: 1, else 0 at once. */
+static int vader_os_try_lock(vader_os_lock_t* lock);
 /* Give the processor to another thread, as a lock that spun too long does. */
 static void vader_os_yield(void);
 /* Tell the processor that this thread spins on a lock. */

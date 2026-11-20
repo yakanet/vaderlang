@@ -163,11 +163,24 @@ static void vader_monitor_take(void* unused) {
     vader_os_lock(g_monitor_guard);
 }
 
+/* How many times a worker tries the monitor before it waits in the kernel. */
+#define VADER_MONITOR_SPINS 1000
+
+/* Take the monitor if it comes free within a bounded spin: a door holds it for
+ * a short body, while a wait in the kernel costs a sleep and a wake. */
+static int vader_monitor_take_spinning(void) {
+    for (int i = 0; i < VADER_MONITOR_SPINS; i++) {
+        if (vader_os_try_lock(g_monitor_guard)) return 1;
+        vader_os_spin_pause();
+    }
+    return 0;
+}
+
 /* Hold the monitor for the running thread. A worker that waits for it counts
  * as stopped for a major, which the holder may run. */
 static void vader_monitor_hold(void) {
     vader_worker_t* w = &vader_worker;
-    vader_gc_blocking(vader_monitor_take, NULL, NULL);
+    if (!vader_monitor_take_spinning()) vader_gc_blocking(vader_monitor_take, NULL, NULL);
     w->in_monitor = 1;
     vader_alloc_limit_refresh(w);
 }

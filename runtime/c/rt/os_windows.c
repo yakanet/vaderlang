@@ -561,6 +561,10 @@ static void vader_os_unlock(vader_os_lock_t* lock) {
     ReleaseSRWLockExclusive(&lock->lock);
 }
 
+static int vader_os_try_lock(vader_os_lock_t* lock) {
+    return TryAcquireSRWLockExclusive(&lock->lock) != 0;
+}
+
 static void vader_os_yield(void) {
     SwitchToThread();
 }
