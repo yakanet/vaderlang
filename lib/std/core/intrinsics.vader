@@ -143,6 +143,15 @@ export Intrinsic :: trait {
     monitor_give :: fn<T>(value: T) -> void
     /// Let go of the monitor once.
     monitor_exit :: fn() -> void
+    /// Make `value`, and what it reaches, readable from every system thread.
+    publish :: fn<T>(value: T) -> void
+    /// Take `mutex`, a `Mutex` of `std/runtime/scheduler`, which `std/core`
+    /// cannot name.
+    mutex_lock :: fn<T>(mutex: T) -> void
+    /// Let go of `mutex`.
+    mutex_unlock :: fn<T>(mutex: T) -> void
+    /// Let go of `mutex`, park, then take it back.
+    mutex_wait :: fn<T>(mutex: T) -> void
 
     // ---- waits on a descriptor ------------------------------------------
 

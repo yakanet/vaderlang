@@ -1,0 +1,85 @@
+// Tasks wait on channels and half of them are cancelled meanwhile: receivers on
+// an empty channel, senders on a full one. Every message sent is received once,
+// whoever takes it: a task cancelled before it parks may still take or send one.
+module "snippet"
+
+import "std/console"
+import "std/task"
+
+// Receivers, half cancelled, then the messages 1 to 4 and a close: the sum of what
+// the receivers took.
+receivers_round :: fn() -> i64 {
+    ch :: Channel<i64> { .capacity = 1 }
+    tasks: Task<i64 | Closed>[]: []
+    for _ in 0..<8 {
+        tasks.push(launch(() -> ch.receive()))
+    }
+    for i in 0..<8 {
+        if i % 2 == 0 {
+            tasks[i].cancel()
+        }
+    }
+    for k in 1..=4 {
+        ch.send(k)
+    }
+    ch.close()
+    sum: i64 = 0
+    for t in tasks {
+        r :: t.join()
+        if r is i64 {
+            sum += r
+        }
+    }
+    return sum
+}
+
+// Senders on a full channel, half cancelled, then a drainer: it drains the first
+// message and one per sender whose send completed.
+senders_round :: fn() -> bool {
+    ch :: Channel<i64> { .capacity = 1 }
+    ch.send(1)
+    tasks: Task<i64>[]: []
+    for 0..<8 {
+        tasks.push(launch(() -> {
+            ch.send(1)
+            return 1
+        }))
+    }
+    for i in 0..<8 {
+        if i % 2 == 0 {
+            tasks[i].cancel()
+        }
+    }
+    drainer :: launch(() -> {
+        n: i64 = 0
+        for v in ch {
+            n += v
+        }
+        return n
+    })
+    sent: i64 = 1
+    for t in tasks {
+        r :: t.join()
+        if r is i64 {
+            sent += r
+        }
+    }
+    ch.close()
+    drained :: drainer.join()
+    return drained is i64 && drained == sent
+}
+
+main :: fn() -> i32 {
+    bad_receivers: i64 = 0
+    bad_senders: i64 = 0
+    for _ in 0..<300 {
+        if receivers_round() != 10 {
+            bad_receivers += 1
+        }
+        if !senders_round() {
+            bad_senders += 1
+        }
+    }
+    println("bad receivers ${bad_receivers}, bad senders ${bad_senders}")
+    return 0
+}

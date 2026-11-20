@@ -136,6 +136,52 @@ export monitor_enter_to_give :: fn<T>(value: T) -> void = Intrinsic.monitor_give
 /// @error  stops the program when the running thread does not hold it.
 export monitor_exit :: fn() -> void = Intrinsic.monitor_exit()
 
+// ---- mutexes and publication ----------------------------------------------
+
+/// Make `value`, and all it reaches, readable from every system thread: what
+/// the running thread does before it stores `value` where a thread of another
+/// system thread reads it, such as a message in a channel. A scalar, a string
+/// or a value every system thread reads already publishes nothing.
+///
+/// @param value  what the running thread is about to store in shared state.
+export publish :: fn<T>(value: T) -> void = Intrinsic.publish(value)
+
+/// An exclusive lock over the state of one value, which one thread holds at a
+/// time, whichever system thread runs it: a channel has one. What the holder
+/// allocates is readable from every system thread.
+///
+/// It serves the standard library, for a short body over a value's state: it
+/// is not reentrant, and it is a leaf. Its holder takes no other mutex and not
+/// the monitor, and does not park: `wait` lets it go to park. A thread may hold
+/// the monitor when it takes one.
+export Mutex :: struct {
+    /// Free, held, or held while another system thread waits for it: the
+    /// runtime alone reads and writes it.
+    @internal
+    word: u32 = 0
+}
+
+/// Take `mutex` for the running thread, waiting while another holds it.
+///
+/// @param mutex  the mutex of the value whose state the thread reads or writes.
+/// @error        stops the program when the running thread holds a mutex already.
+export lock :: fn(mutex: Mutex) -> void = Intrinsic.mutex_lock(mutex)
+
+/// Let go of `mutex`.
+///
+/// @param mutex  a mutex the running thread holds.
+/// @error        stops the program when the running thread does not hold it.
+export unlock :: fn(mutex: Mutex) -> void = Intrinsic.mutex_unlock(mutex)
+
+/// Let go of `mutex`, park until a `wake` names the running thread, then take
+/// it back: the wait of a thread that holds a mutex. A wake that comes before
+/// the park ends it at once, so a thread waits in a loop that checks what it
+/// waits for. A thread cancelled during the park takes it back before its
+/// defers run: they unwind a body that held it.
+///
+/// @param mutex  a mutex the running thread holds.
+export wait :: fn(mutex: Mutex) -> void = Intrinsic.mutex_wait(mutex)
+
 // ---- gates ----------------------------------------------------------------
 
 /// What a value built on first use waits on while a thread builds it: the

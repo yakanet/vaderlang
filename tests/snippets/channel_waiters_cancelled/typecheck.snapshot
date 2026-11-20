@@ -1,0 +1,123 @@
+# Typecheck
+
+## tests/snippets/channel_waiters_cancelled
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         receivers_round      :: fn() -> i64
+  FnDecl         senders_round        :: fn() -> bool
+  expr 12:11    StructLitExpr  :: Channel<i64>
+  expr 13:34    SeqLitExpr     :: Task<Closed | i64>[]
+  expr 14:14    RangeExpr      :: Range<i32>
+  expr 15:20    CallExpr       :: Task<Closed | i64>
+  expr 15:20    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 15:27    LambdaExpr     :: fn() -> Closed | i64
+  expr 15:33    CallExpr       :: Closed | i64
+  expr 15:33    FieldExpr      :: fn() -> Closed | i64
+  expr 15:33    IdentExpr      :: Channel<i64>
+  expr 15:9     CallExpr       :: void
+  expr 15:9     FieldExpr      :: fn(Task<Closed | i64>) -> void
+  expr 15:9     IdentExpr      :: Task<Closed | i64>[]
+  expr 17:14    RangeExpr      :: Range<i32>
+  expr 18:12    BinaryExpr     :: bool
+  expr 18:12    BinaryExpr     :: i32
+  expr 18:12    IdentExpr      :: i32
+  expr 18:9     IfExpr         :: void
+  expr 19:13    CallExpr       :: void
+  expr 19:13    FieldExpr      :: fn() -> void
+  expr 19:13    IdentExpr      :: Task<Closed | i64>[]
+  expr 19:13    IndexExpr      :: Task<Closed | i64>
+  expr 19:19    IdentExpr      :: i32
+  expr 22:14    RangeExpr      :: Range<i32>
+  expr 23:17    IdentExpr      :: i32
+  expr 23:9     CallExpr       :: void
+  expr 23:9     FieldExpr      :: fn(i64) -> void
+  expr 23:9     IdentExpr      :: Channel<i64>
+  expr 25:5     CallExpr       :: void
+  expr 25:5     FieldExpr      :: fn() -> void
+  expr 25:5     IdentExpr      :: Channel<i64>
+  expr 27:14    IdentExpr      :: Task<Closed | i64>[]
+  expr 28:14    CallExpr       :: Cancelled | Closed | i64
+  expr 28:14    FieldExpr      :: fn() -> Cancelled | Closed | i64
+  expr 28:14    IdentExpr      :: Task<Closed | i64>
+  expr 29:12    BinaryExpr     :: bool
+  expr 29:12    IdentExpr      :: Cancelled | Closed | i64
+  expr 29:17    IdentExpr      :: i64
+  expr 29:9     IfExpr         :: void
+  expr 30:13    BinaryExpr     :: i64
+  expr 30:13    IdentExpr      :: i64
+  expr 30:20    IdentExpr      :: i64
+  expr 33:12    IdentExpr      :: i64
+  expr 39:11    StructLitExpr  :: Channel<i64>
+  expr 40:5     CallExpr       :: void
+  expr 40:5     FieldExpr      :: fn(i64) -> void
+  expr 40:5     IdentExpr      :: Channel<i64>
+  expr 41:25    SeqLitExpr     :: Task<i64>[]
+  expr 42:9     RangeExpr      :: Range<i32>
+  expr 43:20    CallExpr       :: Task<i64>
+  expr 43:20    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 43:27    LambdaExpr     :: fn() -> i64
+  expr 43:9     CallExpr       :: void
+  expr 43:9     FieldExpr      :: fn(Task<i64>) -> void
+  expr 43:9     IdentExpr      :: Task<i64>[]
+  expr 44:13    CallExpr       :: void
+  expr 44:13    FieldExpr      :: fn(i64) -> void
+  expr 44:13    IdentExpr      :: Channel<i64>
+  expr 48:14    RangeExpr      :: Range<i32>
+  expr 49:12    BinaryExpr     :: bool
+  expr 49:12    BinaryExpr     :: i32
+  expr 49:12    IdentExpr      :: i32
+  expr 49:9     IfExpr         :: void
+  expr 50:13    CallExpr       :: void
+  expr 50:13    FieldExpr      :: fn() -> void
+  expr 50:13    IdentExpr      :: Task<i64>[]
+  expr 50:13    IndexExpr      :: Task<i64>
+  expr 50:19    IdentExpr      :: i32
+  expr 53:16    CallExpr       :: Task<i64>
+  expr 53:16    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 53:23    LambdaExpr     :: fn() -> i64
+  expr 55:18    IdentExpr      :: Channel<i64>
+  expr 56:13    BinaryExpr     :: i64
+  expr 56:13    IdentExpr      :: i64
+  expr 56:18    IdentExpr      :: i64
+  expr 58:16    IdentExpr      :: i64
+  expr 61:14    IdentExpr      :: Task<i64>[]
+  expr 62:14    CallExpr       :: Cancelled | i64
+  expr 62:14    FieldExpr      :: fn() -> Cancelled | i64
+  expr 62:14    IdentExpr      :: Task<i64>
+  expr 63:12    BinaryExpr     :: bool
+  expr 63:12    IdentExpr      :: Cancelled | i64
+  expr 63:17    IdentExpr      :: i64
+  expr 63:9     IfExpr         :: void
+  expr 64:13    BinaryExpr     :: i64
+  expr 64:13    IdentExpr      :: i64
+  expr 64:21    IdentExpr      :: i64
+  expr 67:5     CallExpr       :: void
+  expr 67:5     FieldExpr      :: fn() -> void
+  expr 67:5     IdentExpr      :: Channel<i64>
+  expr 68:16    CallExpr       :: Cancelled | i64
+  expr 68:16    FieldExpr      :: fn() -> Cancelled | i64
+  expr 68:16    IdentExpr      :: Task<i64>
+  expr 69:12    BinaryExpr     :: bool
+  expr 69:12    BinaryExpr     :: bool
+  expr 69:12    IdentExpr      :: Cancelled | i64
+  expr 69:23    IdentExpr      :: i64
+  expr 69:30    BinaryExpr     :: bool
+  expr 69:30    IdentExpr      :: i64
+  expr 69:41    IdentExpr      :: i64
+  expr 75:14    RangeExpr      :: Range<i32>
+  expr 76:12    BinaryExpr     :: bool
+  expr 76:12    CallExpr       :: i64
+  expr 76:12    IdentExpr      :: fn() -> i64
+  expr 76:9     IfExpr         :: void
+  expr 77:13    BinaryExpr     :: i64
+  expr 77:13    IdentExpr      :: i64
+  expr 79:12    UnaryExpr      :: bool
+  expr 79:13    CallExpr       :: bool
+  expr 79:13    IdentExpr      :: fn() -> bool
+  expr 79:9     IfExpr         :: void
+  expr 80:13    BinaryExpr     :: i64
+  expr 80:13    IdentExpr      :: i64
+  expr 83:13    StringLitExpr  :: string
+  expr 83:30    IdentExpr      :: i64
+  expr 83:5     CallExpr       :: void
+  expr 83:5     IdentExpr      :: fn(T) -> void
+  expr 83:60    IdentExpr      :: i64

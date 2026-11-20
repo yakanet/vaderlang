@@ -23,6 +23,9 @@ import "std/runtime/scheduler"
 export Channel :: struct<T> {
     /// How many messages the channel holds before a `send` parks: at least 1.
     capacity: i64
+    /// Held over the state below, by `send`, `receive` and `close`.
+    @internal
+    mutex: Mutex = Mutex {}
     @internal
     messages: Queue<T> = Queue<T> {}
     @internal
@@ -65,8 +68,11 @@ Channel<T> implements<T> Iterator<T> {
 ///   jobs.receive()   // 1
 @task_primitive(gives = "message", parks = true, grows = "messages")
 export send :: fn<T>(channel: Channel<T>, message: T) -> void {
-    monitor_enter_to_give(message)
-    defer monitor_exit()
+    publish(message)
+    // Before the lock: a defer allocates, and what the holder allocates goes
+    // to the old generation, whose lock every system thread shares.
+    defer channel.mutex.unlock()
+    channel.mutex.lock()
     if channel.capacity < 1 {
         panic("send: a channel holds at least one message, its capacity is ${channel.capacity}")
     }
@@ -96,8 +102,9 @@ export send :: fn<T>(channel: Channel<T>, message: T) -> void {
 ///   jobs.receive()   // closed
 @task_primitive(parks = true, writes = "messages", takes = true)
 export receive :: fn<T>(channel: Channel<T>) -> T | Closed {
-    monitor_enter()
-    defer monitor_exit()
+    // Before the lock, as in `send`.
+    defer channel.mutex.unlock()
+    channel.mutex.lock()
     if channel.messages.is_empty() && !channel.closed {
         await_message(channel)
     }
@@ -118,7 +125,7 @@ export receive :: fn<T>(channel: Channel<T>) -> T | Closed {
 /// @param channel  the channel to close.
 @task_primitive(writes = "closed")
 export close :: fn<T>(channel: Channel<T>) -> void {
-    monitor_enter()
+    channel.mutex.lock()
     channel.closed = true
     for thread in channel.receivers {
         wake(thread)
@@ -126,7 +133,7 @@ export close :: fn<T>(channel: Channel<T>) -> void {
     for thread in channel.senders {
         wake(thread)
     }
-    monitor_exit()
+    channel.mutex.unlock()
 }
 
 // Park until `channel` has room or is closed.
@@ -135,7 +142,7 @@ await_room :: fn<T>(channel: Channel<T>) -> void {
     channel.senders.push(me)
     defer gave_up_sending(channel, me)
     for channel.messages.len() >= channel.capacity && !channel.closed {
-        park()
+        channel.mutex.wait()
     }
     channel.senders.remove_value(me)
 }
@@ -146,7 +153,7 @@ await_message :: fn<T>(channel: Channel<T>) -> void {
     channel.receivers.push(me)
     defer gave_up_receiving(channel, me)
     for channel.messages.is_empty() && !channel.closed {
-        park()
+        channel.mutex.wait()
     }
     channel.receivers.remove_value(me)
 }

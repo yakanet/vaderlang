@@ -26,6 +26,7 @@
       pipes: Pipes = Pipes {
           .jobs = Channel<i64> {
               .capacity = i64(2),
+              .mutex = Mutex { .word = u32(0) },
               .messages = Queue<i64> {
                   .items = [] :i64[],
                   .head = i64(0),
@@ -37,6 +38,7 @@
           },
           .results = Channel<i64> {
               .capacity = i64(9223372036854775807),
+              .mutex = Mutex { .word = u32(0) },
               .messages = Queue<i64> {
                   .items = [] :i64[],
                   .head = i64(0),
@@ -246,6 +248,7 @@
     struct __defer_env_std_runtime_scheduler_3
     struct __defer_env_std_runtime_scheduler_5
     struct std.runtime.scheduler.InitGate  // std_runtime_scheduler$InitGate
+    struct std.runtime.scheduler.Mutex  // std_runtime_scheduler$Mutex
   std/string
     fn std.string.join  // std_string$join
   std/string_builder
