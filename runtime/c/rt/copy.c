@@ -161,8 +161,7 @@ static void* vader_copy_ref(vader_copy_t* c, void* obj) {
     return obj;
 }
 
-/* Whether a boxed value holds an object: a buffer, or a value of a heap kind. */
-static int vader_copy_holds_object(vader_box_t value) {
+static int vader_box_holds_object(vader_box_t value) {
     if (value.tag == VADER_TYPE_INDEX_BUFFER) return 1;
     if (value.tag >= vader_type_info_count) return 0;
     return vader_type_info_table[value.tag].kind != VADER_TYPE_KIND_NONE;
@@ -171,7 +170,7 @@ static int vader_copy_holds_object(vader_box_t value) {
 /* The copy of a boxed value: its object's copy, or the value itself when it
  * holds no object. */
 static vader_box_t vader_copy_box(vader_copy_t* c, vader_box_t value) {
-    if (vader_copy_holds_object(value)) value.payload.obj = vader_copy_ref(c, value.payload.obj);
+    if (vader_box_holds_object(value)) value.payload.obj = vader_copy_ref(c, value.payload.obj);
     return value;
 }
 
@@ -183,7 +182,7 @@ static void vader_copy_ref_slot(vader_copy_t* c, void** slot) {
 
 static void vader_copy_box_slot(vader_copy_t* c, vader_box_t* slot) {
     *slot = vader_copy_box(c, *slot);
-    if (vader_copy_holds_object(*slot) && vader_in_young(c->worker, slot->payload.obj)) {
+    if (vader_box_holds_object(*slot) && vader_in_young(c->worker, slot->payload.obj)) {
         VADER_CARD_MARK(c->worker->cards, slot);
     }
 }

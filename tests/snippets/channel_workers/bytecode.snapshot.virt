@@ -124,12 +124,14 @@ import 4 wake std_core$Intrinsic$wake intrinsic=wake result_type=7 param_types=3
 import 5 current_thread std_core$Intrinsic$current_thread intrinsic=current_thread result_type=3 () -> i64
 import 6 is_cancelled std_core$Intrinsic$is_cancelled intrinsic=is_cancelled result_type=23 () -> bool
 import 7 monitor_enter std_core$Intrinsic$monitor_enter intrinsic=monitor_enter result_type=7 param_types=23 param_c_out= param_by_address= (bool) -> void
-import 8 monitor_exit std_core$Intrinsic$monitor_exit intrinsic=monitor_exit result_type=7 () -> void
-import 9 panic std_core$Intrinsic$panic intrinsic=panic result_type=7 param_types=2 param_c_out= param_by_address= (string) -> void
-import 10 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=2 param_types=27 param_c_out= param_by_address= (ref) -> string
-import 11 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=4,27,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 12 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=4 () -> i32
-import 13 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=7 () -> void
+import 8 monitor_give std_core$Intrinsic$monitor_give__i64 intrinsic=monitor_give result_type=7 param_types=3 param_c_out= param_by_address= (i64) -> void
+import 9 monitor_give std_core$Intrinsic$monitor_give__string__ intrinsic=monitor_give result_type=7 param_types=6 param_c_out= param_by_address= (ref) -> void
+import 10 monitor_exit std_core$Intrinsic$monitor_exit intrinsic=monitor_exit result_type=7 () -> void
+import 11 panic std_core$Intrinsic$panic intrinsic=panic result_type=7 param_types=2 param_c_out= param_by_address= (string) -> void
+import 12 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=2 param_types=27 param_c_out= param_by_address= (ref) -> string
+import 13 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=4,27,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 14 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=4 () -> i32
+import 15 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=7 () -> void
 impl 12 std_core$Display
 impl 13 std_core$Iterator
 impl 10 std_core$Display
@@ -852,7 +854,7 @@ end
 fn 22 std_core$char$Display$to_string (char) -> string
   local.get 0   ; arg 0
   call 29   ; std_core$utf8_encode
-  call.import 10   ; std_core$Intrinsic$bytes_to_string
+  call.import 12   ; std_core$Intrinsic$bytes_to_string
   return
 end
 
@@ -3697,16 +3699,16 @@ fn 62 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 11   ; system_posix$sys_write
+  call.import 13   ; system_posix$sys_write
   local.tee 4   ; written
   i64.const 0
   i64.lt
   if $L1 void
-    call.import 12   ; system_posix$sys_last_errno
+    call.import 14   ; system_posix$sys_last_errno
     i32.const 32
     i32.eq
     if $L2 void
-      call.import 13   ; system_posix$sys_end_on_broken_pipe
+      call.import 15   ; system_posix$sys_end_on_broken_pipe
       local.get 4   ; written
       i64.to_i32
       return
@@ -3840,7 +3842,7 @@ fn 67 std_task$fetch_add (ref,i64) -> i64
   local.get 0   ; arg 0
   local.get 3   ; $add_checked_5
   struct.set 14 0   ; std_task$AtomicInt.value
-  call.import 8   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Intrinsic$monitor_exit
   local.get 2   ; before
   return
 end
@@ -3851,7 +3853,7 @@ fn 68 std_task$load (ref) -> i64
   local.field 0 14 0   ; arg 0 std_task$AtomicInt.value
   ref.cast 3   ; i64
   local.set 1   ; value
-  call.import 8   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Intrinsic$monitor_exit
   local.get 1   ; value
   return
 end
@@ -3954,7 +3956,8 @@ fn 75 std_task$send__i64 (ref,i64) -> void
   local __buf_1 ref
   local __off_2 i64
   local $field_16 i64
-  call 110   ; std_runtime_scheduler$monitor_enter_to_publish
+  local.get 1   ; arg 1
+  call.import 8   ; std_core$Intrinsic$monitor_give__i64
   data.const 5 67   ; pool[5] __defer_env_std_task_1[]
   i64.const 0
   array.get 67 safe   ; __defer_env_std_task_1[]
@@ -3986,7 +3989,7 @@ fn 75 std_task$send__i64 (ref,i64) -> void
     local.get 2   ; __buf_1
     local.get 3   ; __off_2
     call 8   ; std_core$finish_buffer
-    call.import 9   ; std_core$Intrinsic$panic
+    call.import 11   ; std_core$Intrinsic$panic
     unreachable "a no-return call returned"
   else
     local.field 0 13 1   ; arg 0 std_task$Channel__i64.messages
@@ -4011,7 +4014,7 @@ fn 75 std_task$send__i64 (ref,i64) -> void
     ref.cast 23   ; bool
     if $L3 void
       string.const 23   ; "send: the channel is closed"
-      call.import 9   ; std_core$Intrinsic$panic
+      call.import 11   ; std_core$Intrinsic$panic
       unreachable "a no-return call returned"
     else
       local.field 0 13 1   ; arg 0 std_task$Channel__i64.messages
@@ -4041,7 +4044,7 @@ fn 75 std_task$send__i64 (ref,i64) -> void
 end
 
 fn 76 __defer_std_task_0 (ref) -> void
-  call.import 8   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Intrinsic$monitor_exit
   return
 end
 
@@ -4098,7 +4101,7 @@ fn 77 std_task$receive__i64 (ref) -> any
 end
 
 fn 78 __defer_std_task_8 (ref) -> void
-  call.import 8   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Intrinsic$monitor_exit
   return
 end
 
@@ -4154,7 +4157,7 @@ fn 79 std_task$close__i64 (ref) -> void
       br $L2
     end $L3
   end $L2
-  call.import 8   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Intrinsic$monitor_exit
   return
 end
 
@@ -4306,11 +4309,12 @@ end
 
 fn 86 std_task$shared__string__ (ref) -> ref
   local cell ref
-  call 110   ; std_runtime_scheduler$monitor_enter_to_publish
+  local.get 0   ; arg 0
+  call.import 9   ; std_core$Intrinsic$monitor_give__string__
   local.get 0   ; arg 0
   struct.new 15   ; std_task$Shared__string__
   local.set 1   ; cell
-  call.import 8   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Intrinsic$monitor_exit
   local.get 1   ; cell
   return
 end
@@ -4333,7 +4337,7 @@ fn 87 std_task$locked__string____string (ref,ref) -> string
 end
 
 fn 88 __defer_std_task_6 (ref) -> void
-  call.import 8   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Intrinsic$monitor_exit
   return
 end
 
@@ -4352,7 +4356,7 @@ fn 89 std_task$locked__string____void (ref,ref) -> void
 end
 
 fn 90 __defer_std_task_2 (ref) -> void
-  call.import 8   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Intrinsic$monitor_exit
   return
 end
 
@@ -4395,7 +4399,7 @@ fn 91 std_task$launch__i64 (ref) -> ref
   local.get 1   ; if_res
   local.get 2   ; $add_checked_9
   struct.set 10 1   ; std_task$Task__i64.thread
-  call.import 8   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Intrinsic$monitor_exit
   local.get 1   ; if_res
   return
 end
@@ -4497,7 +4501,7 @@ fn 95 std_task$end__i64 (ref) -> void
       br $L0
     end $L1
   end $L0
-  call.import 8   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Intrinsic$monitor_exit
   return
 end
 
@@ -4553,7 +4557,7 @@ fn 96 std_task$join__i64 (ref) -> any
 end
 
 fn 97 __defer_std_task_14 (ref) -> void
-  call.import 8   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Intrinsic$monitor_exit
   return
 end
 
@@ -4818,7 +4822,7 @@ fn 104 std_collections$remove_first__i64 (ref) -> i64
   i64.eq
   if $L0 void
     string.const 24   ; "remove_first: the queue is empty"
-    call.import 9   ; std_core$Intrinsic$panic
+    call.import 11   ; std_core$Intrinsic$panic
     unreachable "a no-return call returned"
   else
     local.field 0 54 0   ; arg 0 std_collections$Queue__i64.items
@@ -5081,7 +5085,7 @@ fn 113 std_runtime_scheduler$run_gated (ref,ref) -> bool
 end
 
 fn 114 __defer_std_runtime_scheduler_0 (ref) -> void
-  call.import 8   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Intrinsic$monitor_exit
   return
 end
 

@@ -28,7 +28,7 @@ export Shared :: struct<T> {
 ///   })
 @task_primitive(gives = "value")
 export shared :: fn<T>(value: T) -> Shared<T> {
-    monitor_enter_to_publish()
+    monitor_enter_to_give(value)
     cell :: Shared<T> { .value = value }
     monitor_exit()
     return cell

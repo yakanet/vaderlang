@@ -985,6 +985,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .SchedulerWatchReadable -> { return [perform("vader_scheduler_watch_readable", [a0])] }
     .SchedulerWatchExit     -> { return [perform("vader_scheduler_watch_exit", [a0])] }
     .SchedulerMonitorEnter  -> { return [perform("vader_scheduler_monitor_enter", [a0])] }
+    .SchedulerMonitorGive   -> { return [monitor_give(imp.signature.params[0])] }
     .SchedulerMonitorExit   -> { return [perform("vader_scheduler_monitor_exit", [])] }
     // std/runtime/wait: a read or a write that parks (`runtime/c/rt/scheduler.c`).
     .WaitReadable           -> { return [perform("vader_scheduler_wait_readable", [a0])] }
@@ -1056,6 +1057,21 @@ deep_copy_return :: fn(carried: ValType) -> CStatement = match carried {
     .I8 | .I16 | .I32 | .I64 | .U8 | .U16 | .U32 | .U64 -> CReturn { .value = argument(0) }
     .F32 | .F64 | .Bool | .Char | .String | .Void | .Pointer -> CReturn { .value = argument(0) }
 }
+
+// What taking the monitor to give `a0`, carried as `carried`, performs: a
+// reference or a box goes to the runtime, which empties the young generation
+// when it lies there; any other value reaches none, and takes the monitor alone.
+monitor_give :: fn(carried: ValType) -> CStatement = match carried {
+    .Ref         -> perform("vader_scheduler_monitor_give_ref", [argument(0)])
+    .Any | .Null -> perform("vader_scheduler_monitor_give_box", [argument(0)])
+    .I8 | .I16 | .I32 | .I64 | .U8 | .U16 | .U32 | .U64 -> monitor_take_alone()
+    .F32 | .F64 | .Bool | .Char | .String | .Void | .Pointer -> monitor_take_alone()
+}
+
+monitor_take_alone :: fn() -> CStatement = perform(
+    "vader_scheduler_monitor_enter",
+    [verbatim("false")],
+)
 
 // `vader_trap("message");`: a runtime abort naming what went wrong.
 trap :: fn(message: string) -> CStatement = perform("vader_trap", [verbatim(c_string_lit(message))])

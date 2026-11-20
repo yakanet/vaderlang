@@ -1655,6 +1655,14 @@ static void vader_host_std_core$Intrinsic$monitor_enter(bool a0) {
     vader_scheduler_monitor_enter(a0);
 }
 
+static void vader_host_std_core$Intrinsic$monitor_give__i64(int64_t a0) {
+    vader_scheduler_monitor_enter(false);
+}
+
+static void vader_host_std_core$Intrinsic$monitor_give__string__(void* a0) {
+    vader_scheduler_monitor_give_ref(a0);
+}
+
 static void vader_host_std_core$Intrinsic$monitor_exit(void) {
     vader_scheduler_monitor_exit();
 }
@@ -3807,7 +3815,7 @@ static void std_task$send__i64(void* l0, int64_t l1) {
         vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    std_runtime_scheduler$monitor_enter_to_publish();
+    vader_host_std_core$Intrinsic$monitor_give__i64(l1);
     t0 = (void*) &vader_data_5;
     vader_array_t* _a0_slotarr = ((vader_array_t*) t0);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
@@ -4074,7 +4082,7 @@ static void* std_task$shared__string__(void* l0) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    std_runtime_scheduler$monitor_enter_to_publish();
+    vader_host_std_core$Intrinsic$monitor_give__string__(l0);
     vader_struct_std_task$Shared__string___t* _a0_obj = (vader_struct_std_task$Shared__string___t*) vader_gc_alloc(sizeof(vader_struct_std_task$Shared__string___t));
     vader_obj_header_init(_a0_obj, 15u);
     _a0_obj->f_value = l0;

@@ -193,6 +193,8 @@ static void vader_monitor_step_away(void) {
 static size_t vader_scheduler_pool_size(void);
 static void vader_scheduler_start(void);
 
+/* Take the monitor for the running thread, first emptying the young generation
+ * of the worker when `publishes`. */
 void vader_scheduler_monitor_enter(bool publishes) {
     if (g_monitor_guard == NULL) {
         /* The pool starts here at the latest, so that the first task launched
@@ -206,6 +208,21 @@ void vader_scheduler_monitor_enter(bool publishes) {
      * only what it made before. */
     if (publishes) vader_gc_empty_young(&vader_worker);
     if (!vader_worker.in_monitor) vader_monitor_hold();
+}
+
+/* What the holder gives publishes only when it reaches the young generation:
+ * young itself, or old, whose fields may point there. Nothing that NULL or an
+ * immortal object reaches is young. */
+void vader_scheduler_monitor_give_ref(void* value) {
+    vader_scheduler_monitor_enter(value != NULL && (vader_in_young(&vader_worker, value) || vader_in_old(value)));
+}
+
+void vader_scheduler_monitor_give_box(vader_box_t value) {
+    if (!vader_box_holds_object(value)) {
+        vader_scheduler_monitor_enter(false);
+        return;
+    }
+    vader_scheduler_monitor_give_ref(value.payload.obj);
 }
 
 void vader_scheduler_monitor_exit(void) {

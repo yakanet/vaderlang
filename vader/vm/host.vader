@@ -191,7 +191,9 @@ export dispatch_import :: fn(
     .RuntimeAllocations      -> { return HostOk { .value = I64Val(0) } }
     .RuntimeCountAllocations -> { return HostOk { .value = NullVal {} } }
     // One system thread runs every guest thread: no other worker to keep out.
-    .SchedulerMonitorEnter | .SchedulerMonitorExit -> { return HostOk { .value = NullVal {} } }
+    .SchedulerMonitorEnter | .SchedulerMonitorGive | .SchedulerMonitorExit -> {
+        return HostOk { .value = NullVal {} }
+    }
     .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor | .SchedulerCancel
         | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving | .SchedulerWatchReadable
         | .SchedulerWatchExit | .WaitReadable | .WaitReadableFor | .WaitWritable
@@ -1167,7 +1169,7 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor -> null
     .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving -> null
     .SchedulerWatchReadable | .SchedulerWatchExit -> null
-    .SchedulerMonitorEnter | .SchedulerMonitorExit -> null
+    .SchedulerMonitorEnter | .SchedulerMonitorGive | .SchedulerMonitorExit -> null
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop -> null
     .AbortPanic -> null
     // Served by an op, never called as an import.

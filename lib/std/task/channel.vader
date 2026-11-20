@@ -65,7 +65,7 @@ Channel<T> implements<T> Iterator<T> {
 ///   jobs.receive()   // 1
 @task_primitive(gives = "message", parks = true, grows = "messages")
 export send :: fn<T>(channel: Channel<T>, message: T) -> void {
-    monitor_enter_to_publish()
+    monitor_enter_to_give(message)
     defer monitor_exit()
     if channel.capacity < 1 {
         panic("send: a channel holds at least one message, its capacity is ${channel.capacity}")

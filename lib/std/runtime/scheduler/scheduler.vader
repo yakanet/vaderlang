@@ -124,6 +124,13 @@ export monitor_enter :: fn() -> void = Intrinsic.monitor_enter(false)
 /// Every system thread can then read them.
 export monitor_enter_to_publish :: fn() -> void = Intrinsic.monitor_enter(true)
 
+/// Take the monitor to store `value` in the shared state, as
+/// `monitor_enter_to_publish` does, but only as far as `value` needs: a scalar, a
+/// string or a value every system thread reads already publishes nothing.
+///
+/// @param value  what the holder stores, a message or a shared value.
+export monitor_enter_to_give :: fn<T>(value: T) -> void = Intrinsic.monitor_give(value)
+
 /// Let go of the monitor once.
 ///
 /// @error  stops the program when the running thread does not hold it.

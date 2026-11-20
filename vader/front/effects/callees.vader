@@ -471,6 +471,8 @@ member_summary :: fn(id: IntrinsicId, paths: PathTable) -> MemberSummary = match
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
         | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
         | .FfiOpen | .FfiOpenPath | .FfiSymbol -> MemberSummary {}
+    // Reads where its value lies, and writes none of it.
+    .SchedulerMonitorGive -> MemberSummary { .params = [none()] }
 }
 
 // `self.push(value)` and `self.push_all(other)`: `self` grows, and keeps the value

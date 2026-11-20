@@ -1641,6 +1641,8 @@ int64_t vader_scheduler_current(void);
  * state is old, which every worker reads. Reentrant, held by the running
  * thread, let go while the thread is away from its worker. */
 void    vader_scheduler_monitor_enter(bool publishes);
+void    vader_scheduler_monitor_give_ref(void* value);
+void    vader_scheduler_monitor_give_box(vader_box_t value);
 void    vader_scheduler_monitor_exit(void);
 /* Whether the running thread was cancelled: one cancelled before it started
  * runs its entry all the same, which asks. */

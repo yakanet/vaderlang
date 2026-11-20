@@ -138,6 +138,9 @@ export Intrinsic :: trait {
     /// Take the monitor over the state tasks share, for the running thread ;
     /// `publishes` when the holder stores in that state values it made before.
     monitor_enter :: fn(publishes: bool) -> void
+    /// Take the monitor as `monitor_enter` does, to store `value` in that state:
+    /// publishes only when `value` reaches what the holder made before.
+    monitor_give :: fn<T>(value: T) -> void
     /// Let go of the monitor once.
     monitor_exit :: fn() -> void
 
