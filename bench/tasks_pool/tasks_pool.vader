@@ -1,0 +1,67 @@
+// Tasks on several cores behind channels: eight workers take jobs from one
+// channel and send each result on another, as a pool of workers does. A job is
+// long enough for the workers to run side by side; how many do depends on where
+// the runtime runs each worker.
+
+module "main"
+
+import "std/abort"
+import "std/console"
+import "std/task"
+
+WORKERS: i64: 8
+JOBS: i64: 20_000
+STEPS: i64: 5_000
+MODULUS: i64: 1_000_000_007
+
+/// The job `n`: `STEPS` rounds of a modular recurrence seeded with `n`.
+work :: fn(n: i64) -> i64 {
+    acc: i64 = n
+    for i in 0..<STEPS {
+        acc = (acc * 31 + i) % MODULUS
+    }
+    return acc
+}
+
+/// Do the jobs `jobs` brings until it closes, sending each result on `results`.
+worker :: fn(jobs: Channel<i64>, results: Channel<i64>) -> i64 {
+    done: i64 = 0
+    for job in jobs {
+        results.send(work(job))
+        done += 1
+    }
+    return done
+}
+
+/// Send every job on `jobs`, then close it.
+feed :: fn(jobs: Channel<i64>) -> i64 {
+    for n in 0..<JOBS {
+        jobs.send(n)
+    }
+    jobs.close()
+    return JOBS
+}
+
+main :: fn() -> i32 {
+    jobs :: Channel<i64> { .capacity = 64 }
+    results :: Channel<i64> { .capacity = 64 }
+    workers: Task<i64>[]: []
+    for _ in 0..<WORKERS {
+        workers.push(launch(() -> worker(jobs, results)))
+    }
+    feeder :: launch(() -> feed(jobs))
+    sum: i64 = 0
+    for _ in 0..<JOBS {
+        result :: results.receive()
+        if result is i64 {
+            sum = (sum + result) % MODULUS
+        }
+    }
+    feeder.join() else panic("the feeder was cancelled")
+    done: i64 = 0
+    for w in workers {
+        done += w.join() else panic("a worker was cancelled")
+    }
+    println("tasks_pool done=${done} sum=${sum}")
+    return 0
+}

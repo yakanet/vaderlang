@@ -1,0 +1,47 @@
+// Tasks on several cores, pure arithmetic: sixteen tasks each search a slice of
+// the integers for the longest Collatz chain, and `main` keeps the best. No task
+// allocates nor waits on another, so the run time divides by the number of cores
+// the runtime gives the tasks (`VADER_THREADS`).
+
+module "main"
+
+import "std/abort"
+import "std/console"
+import "std/math"
+import "std/task"
+
+TASKS: i64: 16
+CHUNK: i64: 125_000
+
+/// The most steps a Collatz chain starting in `lo..<hi` takes to reach 1.
+longest_chain :: fn(lo: i64, hi: i64) -> i64 {
+    best: i64 = 0
+    for n in lo..<hi {
+        x := n
+        steps: i64 = 0
+        for x != 1 {
+            if x % 2 == 0 {
+                x = x / 2
+            } else {
+                x = 3 * x + 1
+            }
+            steps += 1
+        }
+        best = max(best, steps)
+    }
+    return best
+}
+
+main :: fn() -> i32 {
+    tasks: Task<i64>[]: []
+    for k in 0..<TASKS {
+        lo :: 1 + k * CHUNK
+        tasks.push(launch(() -> longest_chain(lo, lo + CHUNK)))
+    }
+    best: i64 = 0
+    for task in tasks {
+        best = max(best, task.join() else panic("the task was cancelled"))
+    }
+    println("tasks_compute best=${best}")
+    return 0
+}

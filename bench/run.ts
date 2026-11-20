@@ -49,6 +49,10 @@ interface Workload {
   /** Caps the timed runs of a workload whose single run takes seconds, where
    *  the minimum settles within a handful of samples. */
   readonly maxRuns?: number;
+  /** The core counts a workload that spreads tasks over the cores runs at, one
+   *  row each, every runtime given that many cores. Without it, a workload runs
+   *  once with each runtime's own default. */
+  readonly threads?: readonly number[];
 }
 
 const WORKLOADS: readonly Workload[] = [
@@ -79,6 +83,10 @@ const WORKLOADS: readonly Workload[] = [
   { name: "parse_float",    description: "655 k correctly-rounded decimal → f64 parses",         outputMatch: "parse_float" },
   { name: "sort_by",        description: "24 stable comparator sorts of 20 k i64",               outputMatch: "sort_by" },
   { name: "split_join",     description: "24 × split a 20 k-field line, filter, rejoin",         outputMatch: "split_join" },
+  // Tasks on several cores: one row per core count.
+  { name: "tasks_compute",  description: "16 tasks search 2 M Collatz chains, no allocation",    outputMatch: "tasks_compute", maxRuns: 5, threads: [1, 2, 4, 8] },
+  { name: "tasks_alloc",    description: "16 tasks build and join 480 k short strings",          outputMatch: "tasks_alloc",   maxRuns: 5, threads: [1, 2, 4, 8] },
+  { name: "tasks_pool",     description: "8 workers take 20 k jobs from one channel",            outputMatch: "tasks_pool",    maxRuns: 5, threads: [1, 2, 4, 8] },
   // plb2 (github.com/attractivechaos/plb2) at its published sizes, so the rows
   // compare with its own tables: one to three seconds a run.
   { name: "plb2_nqueen", description: "plb2: count the 15-queens solutions by bitmask backtracking",  outputMatch: "plb2_nqueen", maxRuns: 5 },
@@ -125,6 +133,9 @@ interface Impl {
   build?: (workload: string) => Promise<void>;
   /** Command + args to invoke for a single timed run. */
   run: (workload: string) => { cmd: string; args: readonly string[] };
+  /** The environment that gives this runtime `threads` cores for its tasks,
+   *  added to the harness's own on a row of a workload with `threads`. */
+  threadsEnv?: (threads: number) => NodeJS.ProcessEnv;
 }
 
 /** The Bun source of a workload: its TypeScript port, or the upstream
@@ -176,6 +187,7 @@ const IMPLS: readonly Impl[] = [
       // updated with this change rather than the measurement bent to fit it.
       ? { cmd: "./build/vader", args: ["build", "--emit=c", "--release", "--out=build/_bench_selfcompile", "vader/tools/cli/main.vader"] }
       : { cmd: `./bench/${w}/${w}`, args: [] },
+    threadsEnv: (threads) => ({ VADER_THREADS: String(threads) }),
   },
   {
     name: "vader-vm",
@@ -195,23 +207,38 @@ const IMPLS: readonly Impl[] = [
     name: "bun-ts",
     source: bunSource,
     run: (w) => ({ cmd: "bun", args: [bunSource(w)] }),
+    threadsEnv: (threads) => ({ BENCH_THREADS: String(threads) }),
   },
   {
     name: "go",
     source: (w) => `bench/${w}/${w}.go`,
     build: (w) => runBuild("go", ["build", "-o", `bench/${w}/${w}_go`, `bench/${w}/${w}.go`], `go build for ${w}`),
     run: (w) => ({ cmd: `./bench/${w}/${w}_go`, args: [] }),
+    threadsEnv: (threads) => ({ GOMAXPROCS: String(threads) }),
   },
   {
     name: "java",
     source: (w) => `bench/${w}/${w}.java`,
     build: (w) => runBuild("javac", ["--release", "25", "-d", `bench/${w}`, `bench/${w}/${w}.java`], `javac for ${w}`),
     run: (w) => ({ cmd: "java", args: ["-cp", `bench/${w}`, w] }),
+    // The parallelism caps the carriers of the virtual threads; the processor
+    // count caps the JIT and GC threads too, as GOMAXPROCS does Go's.
+    threadsEnv: (threads) => ({
+      JAVA_TOOL_OPTIONS: [
+        process.env.JAVA_TOOL_OPTIONS ?? "",
+        `-Djdk.virtualThreadScheduler.parallelism=${threads}`,
+        `-XX:ActiveProcessorCount=${threads}`,
+      ].join(" ").trim(),
+    }),
   },
 ];
 
 interface SampleResult {
   readonly workload: string;
+  /** The cores every runtime had, null for a workload with no `threads`. */
+  readonly threads: number | null;
+  /** Keys the table and the baseline, see `rowKey`. */
+  readonly row: string;
   readonly impl: string;
   readonly medianMs: number;
   readonly minMs: number;
@@ -219,10 +246,16 @@ interface SampleResult {
   readonly checksum: string;
 }
 
-function timedRun(impl: Impl, workload: string): { ms: number; stdout: string } {
+/** The row of `workload` at `threads` cores: its name alone for a workload with
+ *  no `threads`. Keys the table and the baseline. */
+function rowKey(workload: string, threads: number | null): string {
+  return threads === null ? workload : `${workload}@${threads}`;
+}
+
+function timedRun(impl: Impl, workload: string, runEnv: NodeJS.ProcessEnv): { ms: number; stdout: string } {
   const { cmd, args } = impl.run(workload);
   const start = performance.now();
-  const r = spawnSync(cmd, args, { cwd: REPO, encoding: "utf8" });
+  const r = spawnSync(cmd, args, { cwd: REPO, encoding: "utf8", env: runEnv });
   const ms = performance.now() - start;
   if (r.status !== 0) {
     throw new Error(`${impl.name} ${workload} exited ${r.status}: ${r.stderr ?? ""}`);
@@ -236,22 +269,27 @@ function median(xs: readonly number[]): number {
   return m % 2 === 1 ? sorted[(m - 1) >>> 1]! : 0.5 * (sorted[m / 2 - 1]! + sorted[m / 2]!);
 }
 
-function measure(impl: Impl, workload: Workload, runs: number): SampleResult {
+function measure(impl: Impl, workload: Workload, runs: number, threads: number | null): SampleResult {
   // Build steps already ran upfront in parallel, see `buildAll` below.
   // One warmup invocation so JIT-ish runtimes (Bun) and OS caches are warm,
   // then `runs` measured samples, capped by the workload's `maxRuns`.
-  timedRun(impl, workload.name);
+  const env = threads === null || impl.threadsEnv === undefined
+    ? process.env
+    : { ...process.env, ...impl.threadsEnv(threads) };
+  timedRun(impl, workload.name, env);
   const samples: number[] = [];
   let lastStdout = "";
   const timedRuns = Math.min(runs, workload.maxRuns ?? runs);
   for (let i = 0; i < timedRuns; i++) {
-    const { ms, stdout } = timedRun(impl, workload.name);
+    const { ms, stdout } = timedRun(impl, workload.name, env);
     samples.push(ms);
     lastStdout = stdout;
   }
   const line = lastStdout.split("\n").find((l) => l.includes(workload.outputMatch.split(" ")[0]!)) ?? "";
   return {
     workload: workload.name,
+    threads,
+    row: rowKey(workload.name, threads),
     impl: impl.name,
     medianMs: median(samples),
     minMs: Math.min(...samples),
@@ -260,18 +298,28 @@ function measure(impl: Impl, workload: Workload, runs: number): SampleResult {
   };
 }
 
+/** A cell of the table: the best time, and on a row at several cores, how many
+ *  times faster than the same run on one core when it was measured. */
+function formatCell(r: SampleResult, results: readonly SampleResult[]): string {
+  const time = `${r.minMs.toFixed(1)} ms`;
+  if (r.threads === 1) return time;
+  const single = results.find((x) => x.workload === r.workload && x.impl === r.impl && x.threads === 1);
+  if (single === undefined) return time;
+  return `${time} (x${(single.minMs / r.minMs).toFixed(1)})`;
+}
+
 function formatTable(results: readonly SampleResult[]): string {
-  const workloads = [...new Set(results.map((r) => r.workload))];
+  const rows = [...new Set(results.map((r) => r.row))];
   const impls = [...new Set(results.map((r) => r.impl))];
   const lines: string[] = [];
   lines.push(`| workload | ${impls.join(" | ")} |`);
   lines.push(`|---|${impls.map(() => "---").join("|")}|`);
-  for (const w of workloads) {
+  for (const key of rows) {
     const row = impls.map((i) => {
-      const r = results.find((x) => x.workload === w && x.impl === i);
-      return r ? `${r.minMs.toFixed(1)} ms` : "-";
+      const r = results.find((x) => x.row === key && x.impl === i);
+      return r ? formatCell(r, results) : "-";
     });
-    lines.push(`| **${w}** | ${row.join(" | ")} |`);
+    lines.push(`| **${key}** | ${row.join(" | ")} |`);
   }
   return lines.join("\n");
 }
@@ -289,18 +337,22 @@ function loadBaseline(): Baseline | null {
   return JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as Baseline;
 }
 
-/** Writes the measured rows in `WORKLOADS` order. A run narrowed by
- *  `--workload` keeps every row it did not measure from `previous`. */
+/** Writes the measured rows in `WORKLOADS` order, the rows of a workload with
+ *  `threads` in the order it lists them. A run narrowed by `--workload` keeps
+ *  every row it did not measure from `previous`. */
 function writeBaseline(results: readonly SampleResult[], previous: Baseline | null): void {
   const fresh: Baseline = {};
   for (const r of results) {
-    fresh[r.workload] ??= {};
-    fresh[r.workload]![r.impl] = { minMs: r.minMs, checksum: r.checksum };
+    fresh[r.row] ??= {};
+    fresh[r.row]![r.impl] = { minMs: r.minMs, checksum: r.checksum };
   }
   const out: Baseline = {};
-  for (const { name } of WORKLOADS) {
-    const row = fresh[name] ?? previous?.[name];
-    if (row !== undefined) out[name] = row;
+  for (const w of WORKLOADS) {
+    for (const threads of w.threads ?? [null]) {
+      const key = rowKey(w.name, threads);
+      const row = fresh[key] ?? previous?.[key];
+      if (row !== undefined) out[key] = row;
+    }
   }
   writeFileSync(BASELINE_PATH, JSON.stringify(out, null, 2) + "\n");
 }
@@ -309,15 +361,15 @@ function compareWithBaseline(results: readonly SampleResult[], baseline: Baselin
   const regressions: string[] = [];
   const checksumDrift: string[] = [];
   for (const r of results) {
-    const ref = baseline[r.workload]?.[r.impl];
+    const ref = baseline[r.row]?.[r.impl];
     if (ref === undefined) continue;
     if (ref.checksum !== r.checksum) {
-      checksumDrift.push(`${r.workload}/${r.impl}: baseline "${ref.checksum}" vs current "${r.checksum}"`);
+      checksumDrift.push(`${r.row}/${r.impl}: baseline "${ref.checksum}" vs current "${r.checksum}"`);
     }
     if (ref.minMs < MIN_REGRESSION_MS) continue;
     const ratio = r.minMs / ref.minMs - 1;
     if (ratio > THRESHOLD) {
-      regressions.push(`${r.workload}/${r.impl}: ${r.minMs.toFixed(1)} ms vs ${ref.minMs.toFixed(1)} ms baseline (+${(ratio * 100).toFixed(1)} %)`);
+      regressions.push(`${r.row}/${r.impl}: ${r.minMs.toFixed(1)} ms vs ${ref.minMs.toFixed(1)} ms baseline (+${(ratio * 100).toFixed(1)} %)`);
     }
   }
   return { regressions, checksumDrift };
@@ -347,12 +399,14 @@ async function main(): Promise<void> {
   await buildAll(workloads);
   const results: SampleResult[] = [];
   for (const w of workloads) {
-    for (const impl of IMPLS) {
-      if (!implHasSource(impl, w.name)) continue;
-      console.log(`# ${w.name}/${impl.name} ...`);
-      const r = measure(impl, w, args.runs);
-      results.push(r);
-      console.log(`  median ${r.medianMs.toFixed(1)} ms  min ${r.minMs.toFixed(1)} ms  ${r.checksum}`);
+    for (const threads of w.threads ?? [null]) {
+      for (const impl of IMPLS) {
+        if (!implHasSource(impl, w.name)) continue;
+        console.log(`# ${rowKey(w.name, threads)}/${impl.name} ...`);
+        const r = measure(impl, w, args.runs, threads);
+        results.push(r);
+        console.log(`  median ${r.medianMs.toFixed(1)} ms  min ${r.minMs.toFixed(1)} ms  ${r.checksum}`);
+      }
     }
   }
   console.log("");

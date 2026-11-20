@@ -1,0 +1,40 @@
+// Tasks on several cores, allocating: sixteen tasks each build many short-lived
+// strings and arrays, so each core's young generation does the work. No task
+// waits on another: what stops the run time from dividing by the cores is the
+// memory the tasks share.
+
+module "main"
+
+import "std/abort"
+import "std/console"
+import "std/string"
+import "std/task"
+
+TASKS: i64: 16
+ROUNDS: i64: 30_000
+
+/// Join four short strings `ROUNDS` times, and add up the lengths.
+churn :: fn(seed: i64) -> i64 {
+    total: i64 = 0
+    for i in 0..<ROUNDS {
+        parts: string[]: []
+        for j in 0..<4 {
+            parts.push("${seed}-${i}-${j}")
+        }
+        total += parts.join(",").byte_len()
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    tasks: Task<i64>[]: []
+    for k in 0..<TASKS {
+        tasks.push(launch(() -> churn(k)))
+    }
+    total: i64 = 0
+    for task in tasks {
+        total += task.join() else panic("the task was cancelled")
+    }
+    println("tasks_alloc total=${total}")
+    return 0
+}

@@ -485,6 +485,150 @@
       "checksum": "split_join fields=20000 passes=24 pieces=43752 length=261480"
     }
   },
+  "tasks_compute@1": {
+    "vader-native": {
+      "minMs": 231.88383299999987,
+      "checksum": "tasks_compute best=556"
+    },
+    "bun-ts": {
+      "minMs": 776.5821660000001,
+      "checksum": "tasks_compute best=556"
+    },
+    "go": {
+      "minMs": 341.21962500000154,
+      "checksum": "tasks_compute best=556"
+    },
+    "java": {
+      "minMs": 401.08020899999974,
+      "checksum": "tasks_compute best=556"
+    }
+  },
+  "tasks_compute@2": {
+    "vader-native": {
+      "minMs": 119.66429199999948,
+      "checksum": "tasks_compute best=556"
+    },
+    "bun-ts": {
+      "minMs": 412.3099999999995,
+      "checksum": "tasks_compute best=556"
+    },
+    "go": {
+      "minMs": 174.37491599999703,
+      "checksum": "tasks_compute best=556"
+    },
+    "java": {
+      "minMs": 237.23366700000042,
+      "checksum": "tasks_compute best=556"
+    }
+  },
+  "tasks_compute@4": {
+    "vader-native": {
+      "minMs": 63.73612499999945,
+      "checksum": "tasks_compute best=556"
+    },
+    "bun-ts": {
+      "minMs": 222.95808300000135,
+      "checksum": "tasks_compute best=556"
+    },
+    "go": {
+      "minMs": 95.57012499999837,
+      "checksum": "tasks_compute best=556"
+    },
+    "java": {
+      "minMs": 156.8508750000001,
+      "checksum": "tasks_compute best=556"
+    }
+  },
+  "tasks_compute@8": {
+    "vader-native": {
+      "minMs": 34.933750000000146,
+      "checksum": "tasks_compute best=556"
+    },
+    "bun-ts": {
+      "minMs": 128.7132500000007,
+      "checksum": "tasks_compute best=556"
+    },
+    "go": {
+      "minMs": 55.44833299999664,
+      "checksum": "tasks_compute best=556"
+    },
+    "java": {
+      "minMs": 117.18899999999849,
+      "checksum": "tasks_compute best=556"
+    }
+  },
+  "tasks_alloc@1": {
+    "vader-native": {
+      "minMs": 327.2142500000009,
+      "checksum": "tasks_alloc total=18728960"
+    },
+    "bun-ts": {
+      "minMs": 63.664082999999664,
+      "checksum": "tasks_alloc total=18728960"
+    },
+    "go": {
+      "minMs": 140.9222090000003,
+      "checksum": "tasks_alloc total=18728960"
+    },
+    "java": {
+      "minMs": 195.98754199999894,
+      "checksum": "tasks_alloc total=18728960"
+    }
+  },
+  "tasks_alloc@2": {
+    "vader-native": {
+      "minMs": 197.55924999999843,
+      "checksum": "tasks_alloc total=18728960"
+    },
+    "bun-ts": {
+      "minMs": 45.14775000000009,
+      "checksum": "tasks_alloc total=18728960"
+    },
+    "go": {
+      "minMs": 76.6069580000003,
+      "checksum": "tasks_alloc total=18728960"
+    },
+    "java": {
+      "minMs": 293.7227500000008,
+      "checksum": "tasks_alloc total=18728960"
+    }
+  },
+  "tasks_alloc@4": {
+    "vader-native": {
+      "minMs": 160.6869580000057,
+      "checksum": "tasks_alloc total=18728960"
+    },
+    "bun-ts": {
+      "minMs": 37.44049999999697,
+      "checksum": "tasks_alloc total=18728960"
+    },
+    "go": {
+      "minMs": 45.8994160000002,
+      "checksum": "tasks_alloc total=18728960"
+    },
+    "java": {
+      "minMs": 326.9353339999943,
+      "checksum": "tasks_alloc total=18728960"
+    }
+  },
+  "tasks_alloc@8": {
+    "vader-native": {
+      "minMs": 119.56424999999581,
+      "checksum": "tasks_alloc total=18728960"
+    },
+    "bun-ts": {
+      "minMs": 38.78349999999773,
+      "checksum": "tasks_alloc total=18728960"
+    },
+    "go": {
+      "minMs": 35.933665999997174,
+      "checksum": "tasks_alloc total=18728960"
+    },
+    "java": {
+      "minMs": 265.11220799999865,
+      "checksum": "tasks_alloc total=18728960"
+    }
+  },
   "plb2_nqueen": {
     "vader-native": {
       "minMs": 2557.7314590000005,

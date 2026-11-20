@@ -41,3 +41,6 @@ c/
 /plb2_matmul/plb2_matmul
 /plb2_sudoku/plb2_sudoku
 /plb2_bedcov/plb2_bedcov
+/tasks_compute/tasks_compute
+/tasks_alloc/tasks_alloc
+/tasks_pool/tasks_pool

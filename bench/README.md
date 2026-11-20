@@ -1,6 +1,6 @@
 # Vader benchmarks
 
-Thirty-one cross-language workloads spanning float CPU, integer CPU, iterator chains, non-tail recursion / call overhead, GC throughput, hash-map build + probe, string-runtime throughput, byte scanning, sorting by hand and through a comparator, array accessors, nested-array indexing, string interning, split / join, float formatting and parsing, trait dispatch, closed-union tag dispatch, captured closures and switching between tasks, plus four programs taken from an outside suite (plb2, below), so a perf change in any of those subsystems trips a regression. Every one carries all four languages.
+Thirty-four cross-language workloads spanning float CPU, integer CPU, iterator chains, non-tail recursion / call overhead, GC throughput, hash-map build + probe, string-runtime throughput, byte scanning, sorting by hand and through a comparator, array accessors, nested-array indexing, string interning, split / join, float formatting and parsing, trait dispatch, closed-union tag dispatch, captured closures, switching between tasks and tasks spread over several cores, plus four programs taken from an outside suite (plb2, below), so a perf change in any of those subsystems trips a regression. Every one carries all four languages.
 
 Every workload lives in its own directory `bench/<name>/` with all four language implementations colocated, `<name>.vader`, `<name>.ts` (`<name>.js` for the plb2 rows), `<name>.go`, `<name>.java`, alongside the compiled artefacts the harness produces.
 
@@ -33,12 +33,19 @@ Every workload lives in its own directory `bench/<name>/` with all four language
 | `parse_float`    | decimal → f64, correctly rounded (pure Vader)    | parse 4 096 varied decimal strings, sum the result bit patterns         | 655 k parses                  |
 | `sort_by`        | stdlib sort through a fn-value comparator        | stable sort of `i64` on a derived key, array rebuilt each pass          | 20 k items × 24 passes        |
 | `split_join`     | `split` into an array, filter, `join` back       | cut a 20 k-field line, keep the odd-length pieces, rejoin them          | 20 k fields × 24 passes       |
+| `tasks_compute`  | tasks on several cores, pure arithmetic          | 16 tasks each find the longest Collatz chain of a slice of the integers | 2 M starts, at 1, 2, 4 and 8 cores |
+| `tasks_alloc`    | tasks on several cores, young-generation churn   | 16 tasks each join four short strings again and again, summing the lengths | 480 k joins, at 1, 2, 4 and 8 cores |
+| `tasks_pool`     | a pool of workers behind two channels            | 8 workers take jobs from one channel, send results on another   | 20 k jobs, at 1, 2, 4 and 8 cores     |
 | `plb2_nqueen`    | bitmask backtracking, integer ops                | count the solutions of the 15-queens problem                            | N = 15                        |
 | `plb2_matmul`    | f64 multiply-add streaming two rows              | i-k-j multiply of two generated square matrices                         | 1500 × 1500                   |
 | `plb2_sudoku`    | exact-cover search over small-integer tables     | solve hard sudokus, branching on the most constrained constraint        | 20 puzzles × 200              |
 | `plb2_bedcov`    | radix sort, then binary-search-like array walks  | sort intervals into an implicit interval tree, then cover queries       | 1 M intervals, 1 M queries    |
 
 Every program prints a one-line checksum so cross-language equivalence is verifiable.
+
+### Tasks on several cores
+
+A workload that lists `threads` in `bench/run.ts` (the `tasks_*` rows) runs once per core count, each a row of its own (`tasks_pool@4`), and the table shows how many times faster than the same program on one core each count runs. The count reaches each runtime through its own knob: `VADER_THREADS` for Vader, `GOMAXPROCS` for Go, `jdk.virtualThreadScheduler.parallelism` for Java's virtual threads (passed in `JAVA_TOOL_OPTIONS`), and `BENCH_THREADS` for the TypeScript peers, which size a pool of `node:worker_threads` with it since JavaScript shares no memory between threads (starting each worker counts in their time). Java also gets `-XX:ActiveProcessorCount`, so its JIT and GC threads keep to the same cores. Every other workload runs once, with each runtime's own default.
 
 ### Taken from plb2
 
