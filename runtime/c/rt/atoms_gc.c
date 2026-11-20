@@ -195,21 +195,20 @@ static void vader_atom_sweep(void) {
 
     /* Rebuild the hash index over the surviving atoms: clearing single slots
      * would break the probe chains that run through them. No reader runs, so
-     * the indexes the shards replaced go too. */
-    for (vader_u32_t i = 0; i < VADER_ATOM_SHARDS; i++) {
-        vader_atom_index_t* index = vader_atom_index_of(i);
-        vader_atom_index_free(index->retired);
-        index->retired = NULL;
-        memset(index->slots, 0, (size_t) index->capacity * sizeof(uint64_t));
-        g_atoms.writers[i].used = 0;
-    }
+     * the indexes this one replaced go too. */
+    vader_atom_index_t* index = vader_atom_index_current();
+    vader_atom_index_free(index->retired);
+    index->retired = NULL;
+    memset((void*) index->slots, 0, (size_t) index->capacity * sizeof(uint64_t));
+    vader_u32_t used = 0;
     for (vader_u32_t i = 1; i < g_atoms.count; i++) {
         const vader_atom_entry_t* e = &vader_atom_entries[i];
         if (e->data == NULL) continue;
-        vader_u32_t shard = vader_atom_shard_of(e->hash);
-        vader_atom_index_put(vader_atom_index_of(shard), i, e->hash);
-        g_atoms.writers[shard].used++;
+        vader_atom_index_put(index, i, e->hash);
+        used++;
     }
+    atomic_store_explicit(&g_atoms.writer.used, used, memory_order_relaxed);
+    atomic_fetch_add_explicit(&g_atoms.writer.epoch, 1u, memory_order_relaxed);
 }
 
 void vader_atom_gc_collect(void) {

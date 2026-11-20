@@ -1,0 +1,48 @@
+// Eight tasks make the same strings at the same time, by interpolation and by
+// slicing them. Equal strings are one string whatever task made it: each task's
+// strings compare equal to the first task's and to those `main` makes alone.
+module "snippet"
+
+import "std/console"
+import "std/task"
+
+COUNT :: 20_000
+
+// The strings `k<i>-tail` for each `i`, then the slice `k<i>` of each.
+make :: fn() -> string[] {
+    out: string[]: []
+    for i in 0..<COUNT {
+        out.push("k${i}-tail")
+    }
+    for i in 0..<COUNT {
+        whole :: out[i]
+        out.push(whole.byte_slice(0, whole.byte_len() - 5))
+    }
+    return out
+}
+
+main :: fn() -> i32 {
+    tasks: Task<string[]>[]: []
+    for _ in 0..<8 {
+        tasks.push(launch(() -> make()))
+    }
+    made: string[][]: []
+    for t in tasks {
+        strings :: t.join()
+        if strings is string[] {
+            made.push(strings)
+        }
+    }
+    mismatches := 0
+    for i in 0..<COUNT {
+        whole :: "k${i}-tail"
+        part :: "k${i}"
+        for strings in made {
+            if strings[i] != whole || strings[COUNT + i] != part {
+                mismatches += 1
+            }
+        }
+    }
+    println("tasks ${made.len()} strings ${COUNT * 2} mismatches ${mismatches}")
+    return 0
+}

@@ -21,12 +21,14 @@ vader_atom_entry_t* vader_atom_entries = NULL;
  * `g_atom_reserved` entries, committed as the table grows. */
 static vader_os_lock_t* g_atom_guard = NULL;
 
-/* The pool runs: the shards take their spin locks, and an index a shard leaves
- * stays until the next sweep. */
+/* The pool runs: writers publish through `vader_atom_publish`, and an index the
+ * table leaves stays until the next sweep. */
 static int vader_atom_pooled(void) {
     return g_atom_guard != NULL;
 }
 static vader_u32_t g_atom_reserved = 0;
+/* The workers of the pool, whose flags a growth waits on. */
+static vader_u32_t g_atom_workers = 0;
 #define VADER_ATOM_RESERVED_ENTRIES (1u << 28)
 static int  g_atoms_initialized = 0;
 static int  g_atom_profile = 0;
@@ -35,7 +37,7 @@ static int  g_atom_profile = 0;
  * comptime atom count raises both to fit it:
  * `vader_atom_init_with_comptime`. */
 #define VADER_ATOM_INITIAL_CAPACITY    256u
-#define VADER_ATOM_INITIAL_SLOTS       1024u   /* over all shards: a power of two */
+#define VADER_ATOM_INITIAL_SLOTS       1024u   /* a power of two */
 
 /* The ids a thread takes from the table at once, so that creating an atom takes
  * the lock over the ids once per batch. */
@@ -49,7 +51,7 @@ static uint64_t    vader_atom_hash64(const char* data, size_t len);
 static void        vader_atom_profile_dump(void);
 static vader_atom_index_t* vader_atom_index_new(vader_u32_t capacity);
 static uintptr_t   vader_atom_index_word(const vader_atom_index_t* index);
-static void        vader_atom_shard_add(vader_u32_t shard, vader_atom_t a, uint64_t hash);
+static void        vader_atom_index_add(vader_atom_t a, uint64_t hash);
 
 void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
                                    vader_u32_t count) {
@@ -93,13 +95,12 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
         vader_u32_t target = (count + 1u) * 4u;
         while (want_slots < target) want_slots *= 2u;
     }
-    vader_u32_t shard_slots = want_slots / VADER_ATOM_SHARDS;
-    if (shard_slots < 16u) shard_slots = 16u;
-    for (vader_u32_t i = 0; i < VADER_ATOM_SHARDS; i++) {
-        g_atoms.indexes[i] = vader_atom_index_word(vader_atom_index_new(shard_slots));
-        g_atoms.writers[i].busy = 0;
-        g_atoms.writers[i].used = 0;
-    }
+    atomic_store_explicit(&g_atoms.index, vader_atom_index_word(vader_atom_index_new(want_slots)),
+                          memory_order_relaxed);
+    atomic_store_explicit(&g_atoms.writer.busy, 0u, memory_order_relaxed);
+    atomic_store_explicit(&g_atoms.writer.used, 0u, memory_order_relaxed);
+    atomic_store_explicit(&g_atoms.writer.growing, 0u, memory_order_relaxed);
+    atomic_store_explicit(&g_atoms.writer.epoch, 0u, memory_order_relaxed);
 
     g_atoms.free_list     = NULL;
     g_atoms.free_count    = 0;
@@ -129,7 +130,7 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
              * atoms read like any interned string. */
             e->hash   = vader_atom_hash64(e->data, e->len);
             e->flags |= vader_atom_ascii_flag(e->data, e->len);
-            vader_atom_shard_add(vader_atom_shard_of(e->hash), i, e->hash);
+            vader_atom_index_add(i, e->hash);
         }
     }
 }
@@ -165,10 +166,8 @@ void vader_atom_shutdown(void) {
         }
     }
     if (g_atom_reserved == 0u) free(vader_atom_entries);
-    for (vader_u32_t i = 0; i < VADER_ATOM_SHARDS; i++) {
-        vader_atom_index_free(vader_atom_index_of(i));
-        g_atoms.indexes[i] = 0;
-    }
+    vader_atom_index_free(vader_atom_index_current());
+    atomic_store_explicit(&g_atoms.index, 0u, memory_order_relaxed);
     free(g_atoms.free_list);
     vader_atom_entries      = NULL;
     g_atoms.free_list       = NULL;
@@ -202,10 +201,9 @@ static inline uint64_t vader_wy_mix(uint64_t a, uint64_t b) {
 /* The atom table's ONE hash, with the structure of wyhash (final version 4,
  * public domain): eight bytes at a time, each block folded through a 128-bit
  * multiply. Computed once at insert: cached on the entry (returned O(1) by
- * `vader_string_hash` for `string`'s `Hash` trait), its top bits pick the shard
- * of the table and its low 32 bits the slot, which keeps them, so the probe
- * passes over other atoms without reading their entries. Both ends must stay
- * well mixed. The VM reads the same cached value, so the native and
+ * `vader_string_hash` for `string`'s `Hash` trait), its low 32 bits pick the
+ * slot of the index, which keeps them, so the probe passes over other atoms
+ * without reading their entries: they must stay well mixed. The VM reads the same cached value, so the native and
  * VM backends agree on every string's `hash()`. Every target must also compute
  * the same value from the same bytes: a value the compiler computes reaches the
  * program through `@comptime` data, and `content.hash()` names generated files
@@ -267,12 +265,6 @@ static vader_u16_t vader_atom_ascii_flag(const char* data, size_t len) {
     return VADER_ATOM_FLAG_ASCII;
 }
 
-/* The shard of the atoms whose hash is `hash`: its top bits, which the slot
- * index of a shard, taken from the low bits, leaves well mixed. */
-static vader_u32_t vader_atom_shard_of(uint64_t hash) {
-    return (vader_u32_t) (hash >> (64u - VADER_ATOM_SHARD_BITS));
-}
-
 #define VADER_ATOM_INDEX_ALIGN 64u
 
 static vader_atom_index_t* vader_atom_index_new(vader_u32_t capacity) {
@@ -307,35 +299,33 @@ static vader_atom_index_t* vader_atom_index_in(uintptr_t word) {
     return (vader_atom_index_t*) (word & ~(uintptr_t) (VADER_ATOM_INDEX_ALIGN - 1u));
 }
 
-/* The index of `shard`, for its writers or while no reader runs. */
-static vader_atom_index_t* vader_atom_index_of(vader_u32_t shard) {
-    return vader_atom_index_in(g_atoms.indexes[shard]);
+/* The index, for its writers or while no reader runs. */
+static vader_atom_index_t* vader_atom_index_current(void) {
+    return vader_atom_index_in(atomic_load_explicit(&g_atoms.index, memory_order_relaxed));
 }
 
-/* Probe the index of `shard`: the matching atom id, or VADER_ATOM_EMPTY (0) on
- * a miss. Callers short-circuit len==0 before reaching this: the empty atom has
- * no slot. The low 32 bits of the hash pick the slot and sit in it, so a slot
+/* Probe the index: the matching atom id, or VADER_ATOM_EMPTY (0) on a miss.
+ * Callers short-circuit len==0 before reaching this: the empty atom has no
+ * slot. The low 32 bits of the hash pick the slot and sit in it, so a slot
  * holding another hash is passed over without reading `entries[]`.
  *
  * Runs without a lock: an index is published once it is whole, and a slot once
- * its entry is, so each is read past an acquire fence, which one worker, alone
- * to write, does without. An atom installed meanwhile, or in an index that
- * replaced this one, is found again under the lock of the shard. */
-static vader_atom_t vader_atom_lookup(vader_u32_t shard, const char* data, size_t len,
-                                      uint64_t hash) {
-    const int pooled = vader_atom_pooled();
-    uintptr_t word = __atomic_load_n(&g_atoms.indexes[shard], __ATOMIC_RELAXED);
-    if (pooled) __atomic_thread_fence(__ATOMIC_ACQUIRE);
+ * its entry is, so each is read with acquire. An atom published meanwhile, or
+ * in an index that replaced this one, is a miss here: `vader_atom_publish`
+ * finds it, since it compares every taken slot it passes in the current index.
+ * The word of the index does not depend on the hash, so its load overlaps the
+ * hash. */
+static vader_atom_t vader_atom_lookup(const char* data, size_t len, uint64_t hash) {
+    uintptr_t word = atomic_load_explicit(&g_atoms.index, memory_order_acquire);
     const vader_atom_index_t* index = vader_atom_index_in(word);
     const vader_u32_t mask = ((vader_u32_t) 1u << (word & (VADER_ATOM_INDEX_ALIGN - 1u))) - 1u;
     /* The entries move only before the pool starts, when no other thread runs. */
     const vader_atom_entry_t* entries = vader_atom_entries;
     vader_u32_t i = (vader_u32_t) hash & mask;
     for (;;) {
-        uint64_t slot = __atomic_load_n(&index->slots[i], __ATOMIC_RELAXED);
+        uint64_t slot = atomic_load_explicit(&index->slots[i], memory_order_acquire);
         if (slot == 0) return VADER_ATOM_EMPTY;
         if ((slot >> 32) == (vader_u32_t) hash) {
-            if (pooled) __atomic_thread_fence(__ATOMIC_ACQUIRE);
             vader_atom_t a = (vader_atom_t) slot;
             const vader_atom_entry_t* e = &entries[a];
             if (e->len == len && memcmp(e->data, data, len) == 0) return a;
@@ -344,50 +334,65 @@ static vader_atom_t vader_atom_lookup(vader_u32_t shard, const char* data, size_
     }
 }
 
-/* The free slot of `index` for an atom whose hash is `hash`, and what the slot
- * holds once atom `a` takes it: only the low 32 bits of `hash` count. */
-static uint64_t* vader_atom_index_room(vader_atom_index_t* index, uint64_t hash) {
-    const vader_u32_t mask = index->capacity - 1u;
-    vader_u32_t i = (vader_u32_t) hash & mask;
-    while (index->slots[i] != 0) {
-        i = (i + 1u) & mask;
-    }
-    return &index->slots[i];
-}
-
+/* The slot value of atom `a`, whose hash is `hash`: only the low 32 bits of the
+ * hash count, which also pick the slot. */
 static uint64_t vader_atom_slot_value(vader_atom_t a, uint64_t hash) {
     return ((uint64_t) (vader_u32_t) hash << 32) | a;
 }
 
 /* Install atom `a` in `index`, which no reader sees yet, or while none runs. */
 static void vader_atom_index_put(vader_atom_index_t* index, vader_atom_t a, uint64_t hash) {
-    *vader_atom_index_room(index, hash) = vader_atom_slot_value(a, hash);
+    const vader_u32_t mask = index->capacity - 1u;
+    vader_u32_t i = (vader_u32_t) hash & mask;
+    while (atomic_load_explicit(&index->slots[i], memory_order_relaxed) != 0u) {
+        i = (i + 1u) & mask;
+    }
+    atomic_store_explicit(&index->slots[i], vader_atom_slot_value(a, hash), memory_order_relaxed);
 }
 
-/* Index a freshly minted atom in `shard`, whose writers' lock the caller holds.
- * Past a 0.75 load the shard moves to an index twice as large; a reader may
- * still probe the old one, which is kept until the next sweep, or freed at once
- * while no other worker runs. */
-static void vader_atom_shard_add(vader_u32_t shard, vader_atom_t a, uint64_t hash) {
-    vader_atom_index_t* index = vader_atom_index_of(shard);
-    vader_atom_writer_t* writer = &g_atoms.writers[shard];
-    __atomic_store_n(vader_atom_index_room(index, hash), vader_atom_slot_value(a, hash),
-                     __ATOMIC_RELEASE);
-    writer->used++;
-    if (writer->used * 4u <= index->capacity * 3u) return;
-    vader_atom_index_t* grown = vader_atom_index_new(index->capacity * 2u);
-    for (vader_u32_t i = 0; i < index->capacity; i++) {
-        uint64_t slot = index->slots[i];
-        if (slot != 0u) vader_atom_index_put(grown, (vader_atom_t) slot, slot >> 32);
+/* How many slots of `index` may be taken: past it the index grows, so a probe
+ * always meets an empty slot. */
+static vader_u32_t vader_atom_index_limit(const vader_atom_index_t* index) {
+    return index->capacity / 4u * 3u;
+}
+
+/* An index twice as large as `index`, holding the atoms it holds, the old one
+ * kept in its `retired`, and their count into `*used`. The caller has the
+ * writers out of `index`. */
+static vader_atom_index_t* vader_atom_index_doubled(vader_atom_index_t* index, vader_u32_t* used) {
+    const vader_u32_t capacity = index->capacity;
+    vader_atom_index_t* grown = vader_atom_index_new(capacity * 2u);
+    const vader_u32_t mask = capacity * 2u - 1u;
+    vader_u32_t count = 0;
+    for (vader_u32_t i = 0; i < capacity; i++) {
+        uint64_t slot = atomic_load_explicit(&index->slots[i], memory_order_relaxed);
+        if (slot == 0u) continue;
+        vader_u32_t at = (vader_u32_t) (slot >> 32) & mask;
+        while (atomic_load_explicit(&grown->slots[at], memory_order_relaxed) != 0u) {
+            at = (at + 1u) & mask;
+        }
+        atomic_store_explicit(&grown->slots[at], slot, memory_order_relaxed);
+        count++;
     }
-    if (!vader_atom_pooled()) {
+    grown->retired = index;
+    *used = count;
+    return grown;
+}
+
+/* Index a freshly minted atom while no other worker runs. Past the limit the
+ * table moves to an index twice as large, and the old one goes at once. */
+static void vader_atom_index_add(vader_atom_t a, uint64_t hash) {
+    vader_atom_index_t* index = vader_atom_index_current();
+    vader_atom_index_put(index, a, hash);
+    vader_u32_t used = atomic_load_explicit(&g_atoms.writer.used, memory_order_relaxed) + 1u;
+    if (used > vader_atom_index_limit(index)) {
+        vader_atom_index_t* grown = vader_atom_index_doubled(index, &used);
         grown->retired = index->retired;
         index->retired = NULL;
         vader_atom_index_free(index);
-    } else {
-        grown->retired = index;
+        atomic_store_explicit(&g_atoms.index, vader_atom_index_word(grown), memory_order_relaxed);
     }
-    __atomic_store_n(&g_atoms.indexes[shard], vader_atom_index_word(grown), __ATOMIC_RELEASE);
+    atomic_store_explicit(&g_atoms.writer.used, used, memory_order_relaxed);
 }
 
 /* Entries grow: double capacity, realloc in place. Pointers into the
@@ -411,7 +416,7 @@ static void vader_atom_grow_entries(void) {
     vader_atom_entries = p;
 }
 
-static void vader_atom_pool_start(void) {
+static void vader_atom_pool_start(vader_u32_t workers) {
     if (!g_atoms_initialized) vader_trap("vader_atom_pool_start: the table is not initialised");
     char* reserved = vader_os_reserve((size_t) VADER_ATOM_RESERVED_ENTRIES * sizeof(vader_atom_entry_t));
     size_t used = (size_t) g_atoms.capacity * sizeof(vader_atom_entry_t);
@@ -422,31 +427,135 @@ static void vader_atom_pool_start(void) {
     free(vader_atom_entries);
     vader_atom_entries = (vader_atom_entry_t*) reserved;
     g_atom_reserved = VADER_ATOM_RESERVED_ENTRIES;
+    g_atom_workers = workers;
     g_atom_guard = vader_os_lock_new();
 }
 
-/* How many times a shard's lock is tried before its thread gives the processor
+/* How many times a busy word is read before its thread gives the processor
  * away: a holder that the OS took off its core holds it for a while. */
 #define VADER_ATOM_SPINS 128u
 
-static void vader_atom_shard_lock(vader_u32_t shard) {
-    vader_u32_t* busy = &g_atoms.writers[shard].busy;
+/* The slots a worker reserves at once, so that the count of the index is
+ * written once per batch rather than once per atom. */
+#define VADER_ATOM_SLOT_BATCH 64u
+
+/* Wait until `word` reads 0, an acquire. */
+static void vader_atom_wait_clear(_Atomic vader_u32_t* word) {
     vader_u32_t spins = 0;
-    while (__atomic_exchange_n(busy, 1u, __ATOMIC_ACQUIRE) != 0u) {
-        while (__atomic_load_n(busy, __ATOMIC_RELAXED) != 0u) {
-            if (++spins < VADER_ATOM_SPINS) {
-                vader_os_spin_pause();
-            } else {
-                spins = 0;
-                vader_os_yield();
-            }
+    while (atomic_load_explicit(word, memory_order_acquire) != 0u) {
+        if (++spins < VADER_ATOM_SPINS) {
+            vader_os_spin_pause();
+        } else {
+            spins = 0;
+            vader_os_yield();
         }
     }
 }
 
-static void vader_atom_shard_unlock(vader_u32_t shard) {
-    if (vader_atom_pooled()) __atomic_store_n(&g_atoms.writers[shard].busy, 0u, __ATOMIC_RELEASE);
+/* Raise `flag`, the one of this worker, once no growth runs. The flag goes up
+ * before `growing` is read, and a growth raises `growing` before it reads the
+ * flags, both sequentially consistent: of a writer and a growth that start
+ * together, one at least sees the other. */
+static void vader_atom_enter(_Atomic vader_u32_t* flag) {
+    for (;;) {
+        atomic_store_explicit(flag, 1u, memory_order_seq_cst);
+        if (atomic_load_explicit(&g_atoms.writer.growing, memory_order_seq_cst) == 0u) return;
+        atomic_store_explicit(flag, 0u, memory_order_release);
+        vader_atom_wait_clear(&g_atoms.writer.growing);
+    }
 }
+
+/* Move the table to an index twice as large, unless another worker did since
+ * this one saw the index `seen` full. The writers wait outside meanwhile; the
+ * readers keep probing `seen`, which stays until the next sweep. */
+static void vader_atom_grow_shared(uintptr_t seen) {
+    vader_u32_t expected = 0u;
+    while (!atomic_compare_exchange_weak_explicit(&g_atoms.writer.busy, &expected, 1u,
+                                                  memory_order_acquire, memory_order_relaxed)) {
+        expected = 0u;
+        vader_atom_wait_clear(&g_atoms.writer.busy);
+    }
+    vader_atom_index_t* index = vader_atom_index_in(seen);
+    if (atomic_load_explicit(&g_atoms.index, memory_order_relaxed) == seen
+        && atomic_load_explicit(&g_atoms.writer.used, memory_order_relaxed) + VADER_ATOM_SLOT_BATCH
+               > vader_atom_index_limit(index)) {
+        atomic_store_explicit(&g_atoms.writer.growing, 1u, memory_order_seq_cst);
+        for (vader_u32_t w = 0; w < g_atom_workers; w++) {
+            vader_atom_wait_clear(&g_atoms.inserters[w].inserting);
+        }
+        vader_u32_t used = 0;
+        vader_atom_index_t* grown = vader_atom_index_doubled(index, &used);
+        atomic_store_explicit(&g_atoms.writer.used, used, memory_order_relaxed);
+        atomic_fetch_add_explicit(&g_atoms.writer.epoch, 1u, memory_order_relaxed);
+        atomic_store_explicit(&g_atoms.index, vader_atom_index_word(grown), memory_order_release);
+        atomic_store_explicit(&g_atoms.writer.growing, 0u, memory_order_release);
+    }
+    atomic_store_explicit(&g_atoms.writer.busy, 0u, memory_order_release);
+}
+
+/* Take an empty slot of `index` for `value`, the slot value of an atom whose
+ * entry is whole and whose bytes are `data[0..len]`: that atom; or the atom of
+ * the same bytes another worker published first. Two writers of the same bytes
+ * probe the same slots, and pass a taken slot only once they compared it, so
+ * the second meets the first. */
+static vader_atom_t vader_atom_index_claim(vader_atom_index_t* index, uint64_t value,
+                                           const char* data, size_t len) {
+    const vader_u32_t mask = index->capacity - 1u;
+    vader_u32_t i = (vader_u32_t) (value >> 32) & mask;
+    for (;;) {
+        uint64_t slot = atomic_load_explicit(&index->slots[i], memory_order_acquire);
+        if (slot == 0u
+            && atomic_compare_exchange_strong_explicit(&index->slots[i], &slot, value,
+                                                       memory_order_release,
+                                                       memory_order_acquire)) {
+            return (vader_atom_t) value;
+        }
+        if ((slot >> 32) == (value >> 32)) {
+            const vader_atom_entry_t* e = &vader_atom_entries[(vader_atom_t) slot];
+            if (e->len == len && memcmp(e->data, data, len) == 0) return (vader_atom_t) slot;
+        }
+        i = (i + 1u) & mask;
+    }
+}
+
+/* Publish atom `a`, whose entry is whole and whose hash is `hash`, with several
+ * workers: `a`, or the atom of the same bytes another worker published first.
+ * The slot comes from the worker's batch, reserved in the count of the index
+ * before any of it is taken. No allocation and no safepoint between the flag
+ * raised and lowered, so a growth waiting on it waits for a writer that always
+ * finishes. */
+static vader_atom_t vader_atom_publish(vader_atom_t a, uint64_t hash, const char* data, size_t len) {
+    vader_atom_inserter_t* me = &g_atoms.inserters[vader_worker.index];
+    const uint64_t value = vader_atom_slot_value(a, hash);
+    for (;;) {
+        vader_atom_enter(&me->inserting);
+        uintptr_t word = atomic_load_explicit(&g_atoms.index, memory_order_acquire);
+        vader_atom_index_t* index = vader_atom_index_in(word);
+        vader_u32_t epoch = atomic_load_explicit(&g_atoms.writer.epoch, memory_order_relaxed);
+        if (me->batch_epoch != epoch) {
+            me->batch = 0;
+            me->batch_epoch = epoch;
+        }
+        if (me->batch == 0u) {
+            vader_u32_t reserved = atomic_fetch_add_explicit(&g_atoms.writer.used,
+                                                             VADER_ATOM_SLOT_BATCH,
+                                                             memory_order_relaxed);
+            if (reserved + VADER_ATOM_SLOT_BATCH > vader_atom_index_limit(index)) {
+                atomic_fetch_sub_explicit(&g_atoms.writer.used, VADER_ATOM_SLOT_BATCH,
+                                          memory_order_relaxed);
+                atomic_store_explicit(&me->inserting, 0u, memory_order_release);
+                vader_atom_grow_shared(word);
+                continue;
+            }
+            me->batch = VADER_ATOM_SLOT_BATCH;
+        }
+        vader_atom_t found = vader_atom_index_claim(index, value, data, len);
+        if (found == a) me->batch--;
+        atomic_store_explicit(&me->inserting, 0u, memory_order_release);
+        return found;
+    }
+}
+
 
 /* Fill the ids of this thread, with several workers: tombstones from the free
  * list first, else fresh ids past `count`. Those are tombstones already, which
@@ -483,21 +592,32 @@ static vader_atom_t vader_atom_alloc_slot(void) {
     return g_atoms.count++;
 }
 
-/* Begin installing the atom of `data[0..len]`, which a look without a lock
- * missed: an id for it into `*id`, then, with several workers, the lock of
- * `shard`, under which a second look catches an atom another worker installed
- * meanwhile. That atom then, with the id given back and the lock let go; else
- * VADER_ATOM_EMPTY, the caller installing the atom and letting the lock go. The
- * id comes first, since a refill of this thread's ids takes another lock. */
-static vader_atom_t vader_atom_claim(vader_u32_t shard, const char* data, size_t len,
-                                     uint64_t hash, vader_atom_t* id) {
-    *id = vader_atom_alloc_slot();
-    if (!vader_atom_pooled()) return VADER_ATOM_EMPTY;
-    vader_atom_shard_lock(shard);
-    vader_atom_t found = vader_atom_lookup(shard, data, len, hash);
-    if (found != VADER_ATOM_EMPTY) {
-        vader_atom_shard_unlock(shard);
-        t_atom_ids[t_atom_ids_len++] = *id;
+/* Write every field of the entry of atom `a`. */
+static void vader_atom_entry_set(vader_atom_t a, vader_atom_t parent, size_t parent_offset,
+                                 const char* data, size_t len, vader_u16_t flags, uint64_t hash) {
+    vader_atom_entry_t* e = &vader_atom_entries[a];
+    e->parent        = parent;
+    e->parent_offset = (vader_u32_t) parent_offset;
+    e->len           = (vader_u32_t) len;
+    e->flags         = flags;
+    e->_pad          = 0;
+    e->data          = data;
+    e->hash          = hash;
+}
+
+/* Index atom `a`, whose entry is whole, which a look without a lock missed:
+ * `a`, or the atom of the same bytes another worker published first, `a` then
+ * a tombstone again, as the sweep expects of the ids a thread holds, and given
+ * back to this thread. */
+static vader_atom_t vader_atom_install(vader_atom_t a, uint64_t hash, const char* data, size_t len) {
+    if (!vader_atom_pooled()) {
+        vader_atom_index_add(a, hash);
+        return a;
+    }
+    vader_atom_t found = vader_atom_publish(a, hash, data, len);
+    if (found != a) {
+        vader_atom_entry_set(a, 0, 0, NULL, 0, 0, 0);
+        t_atom_ids[t_atom_ids_len++] = a;
     }
     return found;
 }
@@ -507,51 +627,36 @@ static vader_atom_t vader_atom_claim(vader_u32_t shard, const char* data, size_t
 /* Install the atom of `data[0..len]`, whose hash is `hash`, which a look
  * without a lock missed. Out of line, so that a lookup that finds its atom, by
  * far the most frequent, saves no more registers than it needs. */
-static VADER_NOINLINE vader_atom_t vader_atom_intern_missed(vader_u32_t shard, const char* data,
-                                                            size_t len, uint64_t hash) {
+static VADER_NOINLINE vader_atom_t vader_atom_intern_missed(const char* data, size_t len,
+                                                            uint64_t hash) {
     char* buf = (char*) malloc(len + 1u);
     if (buf == NULL) vader_trap("vader_atom_intern: buffer malloc failed");
     memcpy(buf, data, len);
     buf[len] = '\0';
-    vader_atom_t a = VADER_ATOM_EMPTY;
-    vader_atom_t found = vader_atom_claim(shard, data, len, hash, &a);
-    if (found != VADER_ATOM_EMPTY) {
-        free(buf);
-        return found;
-    }
-    vader_atom_entry_t* e = &vader_atom_entries[a];
-    e->parent        = 0;
-    e->parent_offset = 0;
-    e->len           = (vader_u32_t) len;
-    e->flags         = vader_atom_ascii_flag(buf, len);
-    e->_pad          = 0;
-    e->data          = buf;
-    e->hash          = hash;
-    vader_atom_shard_add(shard, a, hash);
-    vader_atom_shard_unlock(shard);
-    return a;
+    vader_atom_t a = vader_atom_alloc_slot();
+    vader_atom_entry_set(a, 0, 0, buf, len, vader_atom_ascii_flag(buf, len), hash);
+    vader_atom_t found = vader_atom_install(a, hash, data, len);
+    if (found != a) free(buf);
+    return found;
 }
 
 vader_atom_t vader_atom_intern(const char* data, size_t len) {
     if (len == 0) return VADER_ATOM_EMPTY;
 
     uint64_t hash = vader_atom_hash64(data, len);
-    vader_u32_t shard = vader_atom_shard_of(hash);
-    vader_atom_t found = vader_atom_lookup(shard, data, len, hash);
+    vader_atom_t found = vader_atom_lookup(data, len, hash);
     if (found != VADER_ATOM_EMPTY) return found;
-    return vader_atom_intern_missed(shard, data, len, hash);
+    return vader_atom_intern_missed(data, len, hash);
 }
 
 /* Install the slice `[root_offset, root_offset + len)` of owner `root`, taken
  * through `parent`, whose hash is `hash`, which a look without a lock missed.
  * Out of line for the reason `vader_atom_intern_missed` is. */
-static VADER_NOINLINE vader_atom_t vader_atom_slice_missed(vader_u32_t shard, vader_atom_t parent,
-                                                           vader_atom_t root, size_t root_offset,
-                                                           size_t len, uint64_t hash) {
+static VADER_NOINLINE vader_atom_t vader_atom_slice_missed(vader_atom_t parent, vader_atom_t root,
+                                                           size_t root_offset, size_t len,
+                                                           uint64_t hash) {
     const char* candidate = vader_atom_entries[root].data + root_offset;
-    vader_atom_t a = VADER_ATOM_EMPTY;
-    vader_atom_t found = vader_atom_claim(shard, candidate, len, hash, &a);
-    if (found != VADER_ATOM_EMPTY) return found;
+    vader_atom_t a = vader_atom_alloc_slot();
 
     /* Miss: install as slice atom borrowing from the root owner. No
      * allocation. NUL-term at data[len] is NOT guaranteed (the byte
@@ -560,18 +665,8 @@ static VADER_NOINLINE vader_atom_t vader_atom_slice_missed(vader_u32_t shard, va
      * to a heap NUL-term copy. A slice of ASCII bytes is ASCII. */
     vader_u16_t ascii = vader_atom_entries[parent].flags & VADER_ATOM_FLAG_ASCII;
     if (ascii == 0) ascii = vader_atom_ascii_flag(candidate, len);
-    vader_atom_entry_t* e = &vader_atom_entries[a];
-    e->parent        = root;
-    e->parent_offset = (vader_u32_t) root_offset;
-    e->len           = (vader_u32_t) len;
-    e->flags         = ascii;
-    e->_pad          = 0;
-    e->data          = candidate;
-    e->hash          = hash;
-
-    vader_atom_shard_add(shard, a, hash);
-    vader_atom_shard_unlock(shard);
-    return a;
+    vader_atom_entry_set(a, root, root_offset, candidate, len, ascii, hash);
+    return vader_atom_install(a, hash, candidate, len);
 }
 
 
@@ -607,10 +702,9 @@ vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len) {
      * sharing different bytes that happen to compare equal). */
     const char* candidate = vader_atom_entries[root].data + root_offset;
     uint64_t hash         = vader_atom_hash64(candidate, len);
-    vader_u32_t shard     = vader_atom_shard_of(hash);
-    vader_atom_t found    = vader_atom_lookup(shard, candidate, len, hash);
+    vader_atom_t found    = vader_atom_lookup(candidate, len, hash);
     if (found != VADER_ATOM_EMPTY) return found;
-    return vader_atom_slice_missed(shard, parent, root, root_offset, len, hash);
+    return vader_atom_slice_missed(parent, root, root_offset, len, hash);
 }
 
 const char* vader_atom_to_cstr(vader_atom_t a) {
@@ -639,12 +733,8 @@ void vader_cstr_free_for(vader_string_t s, const char* p) {
  * owner bytes and the free slots. `vader_atom_shutdown` calls it when
  * `VADER_ATOM_PROFILE=1` was set at program start. */
 static void vader_atom_profile_dump(void) {
-    size_t used = 0;
-    size_t slots = 0;
-    for (vader_u32_t i = 0; i < VADER_ATOM_SHARDS; i++) {
-        used += g_atoms.writers[i].used;
-        slots += vader_atom_index_of(i)->capacity;
-    }
+    size_t used = atomic_load_explicit(&g_atoms.writer.used, memory_order_relaxed);
+    size_t slots = vader_atom_index_current()->capacity;
     size_t owner_bytes = 0;
     for (vader_u32_t i = 1; i < g_atoms.count; i++) {
         const vader_atom_entry_t* e = &vader_atom_entries[i];

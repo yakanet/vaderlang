@@ -879,7 +879,7 @@ static void vader_scheduler_start_pool(void) {
     size_t threads = vader_scheduler_pool_size();
     if (threads == 1u) return;
     vader_gc_pool_start();
-    vader_atom_pool_start();
+    vader_atom_pool_start((vader_u32_t) threads);
     g_scheduler_guard = vader_os_lock_new();
     g_monitor_guard = vader_os_lock_new();
     for (size_t i = 0; i < threads; i++) g_scheduler_workers[i].wake = vader_os_cond_new();

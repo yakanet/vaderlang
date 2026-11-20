@@ -182,7 +182,7 @@ static void vader_gc_profile_dump(void);
  * value ever observed in a live slot stays a valid lookup target, just possibly
  * with reused content. Comptime atoms are PERM-flagged and never collected. */
 
-/* The hash index of one shard: open addressing, linear probing. `slots[i]` holds
+/* The hash index of the table: open addressing, linear probing. `slots[i]` holds
  * the atom id installed at slot `i` in its low 32 bits and the low 32 bits of
  * that atom's hash above them, or 0 for an empty slot. The empty atom (id 0) is
  * never installed, so an occupied slot is never 0. A slot is written once its
@@ -194,19 +194,36 @@ typedef struct vader_atom_index {
      * next sweep, when no reader runs. */
     struct vader_atom_index* retired;
     vader_u32_t capacity;          /* a power of two */
-    uint64_t    slots[];
+    _Atomic uint64_t slots[];
 } vader_atom_index_t;
 
-/* What the writers of a shard share: the spin lock they take once the pool
- * starts, held for a few stores, and the slots its index has taken. On a cache
- * line of its own, away from what readers read. */
+/* What the writers of the index share, away from what readers read. */
 typedef struct {
-    _Alignas(64) vader_u32_t busy;
-    vader_u32_t used;
+    /* The lock of a growth, one at a time. */
+    _Alignas(64) _Atomic vader_u32_t busy;
+    /* The slots of the index taken or reserved, the workers' batches included:
+     * kept under 3/4 of its capacity, so a probe always meets an empty slot. */
+    _Atomic vader_u32_t used;
+    /* 1 while a growth copies the index: no writer enters it then. Read by
+     * every writer, written by a growth alone: on a line of its own, apart from
+     * `used`, which each new batch writes. */
+    _Alignas(64) _Atomic vader_u32_t growing;
+    /* Moves on at each growth and each sweep, which count `used` again from the
+     * slots: a batch reserved before is void. */
+    _Atomic vader_u32_t epoch;
 } vader_atom_writer_t;
 
-#define VADER_ATOM_SHARD_BITS 8u
-#define VADER_ATOM_SHARDS     (1u << VADER_ATOM_SHARD_BITS)
+/* What one worker publishes with, on a line of its own. */
+typedef struct {
+    /* Raised while it publishes in the index: a growth waits for every flag to
+     * fall. */
+    _Alignas(64) _Atomic vader_u32_t inserting;
+    /* The slots it reserved and has not taken yet, in the epoch `batch_epoch`
+     * of the writers: void in a later one. Read and written by this worker
+     * alone. */
+    vader_u32_t batch;
+    vader_u32_t batch_epoch;
+} vader_atom_inserter_t;
 
 typedef struct {
     /* Ids handed out so far, the tombstones and those workers hold included:
@@ -214,12 +231,15 @@ typedef struct {
     vader_u32_t         count;
     vader_u32_t         capacity;
 
-    /* A shard holds the atoms whose hash starts with one value of its top
-     * bits: its index, read without a lock, and its writers. A reader loads the
-     * index as one word, its address with the log2 of its capacity in the low
-     * six bits, which the alignment of the index leaves free. */
-    uintptr_t           indexes[VADER_ATOM_SHARDS];
-    vader_atom_writer_t writers[VADER_ATOM_SHARDS];
+    /* The index, read without a lock, as one word: its address with the log2
+     * of its capacity in the low six bits, which the alignment of the index
+     * leaves free. A reader loads it apart from the hash it probes with, so the
+     * two loads overlap. On a line of its own, away from `count`, which each
+     * batch of ids writes. */
+    _Alignas(64) _Atomic uintptr_t index;
+    vader_atom_writer_t   writer;
+    /* By `vader_worker.index`, with several workers. */
+    vader_atom_inserter_t inserters[VADER_WORKERS_MAX];
 
     /* Free list of tombstone indices (atoms freed by GC), handed to the workers
      * by batches before `entries[]` grows. */
@@ -232,11 +252,10 @@ static vader_atom_table_t g_atoms;
 static int g_atoms_initialized;
 
 static vader_u16_t vader_atom_ascii_flag(const char* data, size_t len);
-/* With several workers: entries that never move, a lock per shard and one over
- * the ids. */
-static void vader_atom_pool_start(void);
-static vader_u32_t vader_atom_shard_of(uint64_t hash);
-static vader_atom_index_t* vader_atom_index_of(vader_u32_t shard);
+/* With several workers: entries that never move, a lock over the growths of
+ * the index and one over the ids. */
+static void vader_atom_pool_start(vader_u32_t workers);
+static vader_atom_index_t* vader_atom_index_current(void);
 static void vader_atom_index_put(vader_atom_index_t* index, vader_atom_t a, uint64_t hash);
 static void vader_atom_index_free(vader_atom_index_t* index);
 
