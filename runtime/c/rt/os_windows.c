@@ -536,6 +536,13 @@ static int vader_os_only_reports(int64_t id) {
     return vader_os_socket_of(id) != NULL;
 }
 
+/* What the completion port posts for a socket is taken by the next ask
+ * (`vader_os_socket_take`), which a wait must make. */
+static int vader_os_reports_by_level(int64_t id) {
+    (void) id;
+    return 0;
+}
+
 /* ---- threads ------------------------------------------------------------- */
 
 struct vader_os_lock {

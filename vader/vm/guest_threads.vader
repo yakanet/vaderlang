@@ -77,6 +77,10 @@ serve_thread_primitive :: fn(
     .WaitReadableFor        -> serve_wait_readable_for(state, args, origin)
     .WaitWritable           -> on_i64(args[0], origin, "wait_writable", (n) -> wait_writable(n))
     .WaitWritableFor        -> serve_wait_writable_for(args, origin)
+    // The host's own wait asks the descriptor first, which is right for one that
+    // would block too.
+    .WaitBlockedReadFor     -> serve_wait_readable_for(state, args, origin)
+    .WaitBlockedWriteFor    -> serve_wait_writable_for(args, origin)
     .WaitStop               -> on_i64(args[0], origin, "stop_waiting", (n) -> stop_waiting(n))
     .SchedulerCancel        -> cancel_guest_thread(args[0], origin)
     .SchedulerCurrent       -> HostOk { .value = I64Val(current_thread()) }

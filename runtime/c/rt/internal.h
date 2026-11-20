@@ -410,6 +410,10 @@ static int vader_os_writable_now(int64_t fd);
  * wait on it parks even when no other thread runs, since its caller has
  * nothing to wait on by itself. */
 static int vader_os_only_reports(int64_t id);
+/* Whether a watch of `id` reports a state rather than an event: one set while
+ * the state holds reports at once. A thread that found `id` would block needs
+ * not ask before it watches, nor again once the report woke it. */
+static int vader_os_reports_by_level(int64_t id);
 /* Highest address of the calling system thread's C stack, NULL when unknown.
  * The stack grows down, so [current sp, base) covers every live frame. */
 static char* vader_os_stack_base(void);

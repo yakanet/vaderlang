@@ -198,7 +198,7 @@ export dispatch_import :: fn(
     .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor | .SchedulerCancel
         | .SchedulerMutexWait | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving | .SchedulerWatchReadable
         | .SchedulerWatchExit | .WaitReadable | .WaitReadableFor | .WaitWritable
-        | .WaitWritableFor | .WaitStop -> {
+        | .WaitWritableFor | .WaitBlockedReadFor | .WaitBlockedWriteFor | .WaitStop -> {
         message :: "${info.mangled_name}: a thread primitive reached the host dispatch"
         return Trap { .message = message }
     }
@@ -1174,6 +1174,7 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .SchedulerTaskEnded -> null
     .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerMutexWait -> null
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop -> null
+    .WaitBlockedReadFor | .WaitBlockedWriteFor -> null
     .AbortPanic -> null
     // Served by an op, never called as an import.
     .NotIntrinsic

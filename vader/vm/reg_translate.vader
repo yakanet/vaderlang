@@ -425,6 +425,7 @@ string_import_op :: fn(t: Translation, pc: i64, id: bc.IntrinsicId) -> bool = ma
         | .SchedulerMonitorGive | .SchedulerMonitorExit | .SchedulerTaskEnded
         | .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerMutexWait
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
+        | .WaitBlockedReadFor | .WaitBlockedWriteFor
         | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
         | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> false
 }

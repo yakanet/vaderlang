@@ -469,6 +469,7 @@ member_summary :: fn(id: IntrinsicId, paths: PathTable) -> MemberSummary = match
         | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMonitorEnter
         | .SchedulerMonitorExit | .SchedulerTaskEnded
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
+        | .WaitBlockedReadFor | .WaitBlockedWriteFor
         | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
         | .FfiOpen | .FfiOpenPath | .FfiSymbol -> MemberSummary {}
     // Reads where its value lies, and writes none of it.

@@ -997,6 +997,12 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .WaitReadableFor        -> { return [returning("vader_scheduler_wait_readable_for", [a0, a1])] }
     .WaitWritable           -> { return [perform("vader_scheduler_wait_writable", [a0])] }
     .WaitWritableFor        -> { return [returning("vader_scheduler_wait_writable_for", [a0, a1])] }
+    .WaitBlockedReadFor     -> {
+        return [returning("vader_scheduler_wait_blocked_read_for", [a0, a1])]
+    }
+    .WaitBlockedWriteFor    -> {
+        return [returning("vader_scheduler_wait_blocked_write_for", [a0, a1])]
+    }
     .WaitStop               -> { return [perform("vader_scheduler_stop_waiting", [a0])] }
 
     // Dynamic foreign calls (vader/vm/ffi.vader). The call shims take the

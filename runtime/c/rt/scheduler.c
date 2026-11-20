@@ -49,6 +49,7 @@ typedef struct {
     uint8_t  outlives;      /* launched by a defer of its launcher's cancellation */
     uint8_t  released;      /* the descriptor it waited for is no longer waited on */
     uint8_t  task_ended;    /* its task ended: it leaves the runtime, then ends */
+    uint8_t  reported;      /* what the OS reported ended its last park */
 } vader_scheduler_slot_t;
 
 typedef struct {
@@ -764,7 +765,10 @@ static void vader_scheduler_grow_watches(void) {
 static void vader_scheduler_on_event(int kind, int64_t id) {
     vader_scheduler_watch_t* w = vader_scheduler_watch_of(kind, id);
     if (w == NULL) return;
-    if (vader_scheduler_watch_wakes(w)) vader_scheduler_enqueue(w->thread);
+    if (vader_scheduler_watch_wakes(w)) {
+        vader_scheduler_slot_of(w->thread)->reported = 1;
+        vader_scheduler_enqueue(w->thread);
+    }
     vader_scheduler_drop_watch(w);
 }
 
@@ -1227,15 +1231,21 @@ static int vader_scheduler_ready_now(int kind, int64_t fd) {
 /* Park until `fd` is as `kind` waits for, at most `nanos` when not negative:
  * false once they have passed. The wait ends too once `fd` is released
  * (`vader_scheduler_stop_waiting`): its number may name another descriptor by
- * then, which is not asked. */
-static bool vader_scheduler_wait_for_locked(int kind, int64_t fd, int64_t nanos) {
+ * then, which is not asked. `blocked` when the caller found `fd` would block. */
+static bool vader_scheduler_wait_for_locked(int kind, int64_t fd, int64_t nanos, int blocked) {
     int64_t thread = vader_virtual_thread_current();
+    vader_scheduler_slot_t* s = vader_scheduler_slot_of(thread);
     int timed = nanos >= 0;
     int64_t deadline = vader_scheduler_deadline_in(&g_scheduler_bounds, nanos);
     uint64_t began = ++g_scheduler_sleeps_begun;
-    vader_scheduler_slot_of(thread)->released = 0;
-    while (!vader_scheduler_ready_now(kind, fd)) {
+    int by_level = vader_os_reports_by_level(fd);
+    int ask = !blocked || !by_level;
+    s->released = 0;
+    for (;;) {
+        if (ask && vader_scheduler_ready_now(kind, fd)) return true;
+        ask = 1;
         if (timed && g_scheduler_bounds.now() >= deadline) return false;
+        s->reported = 0;
         vader_scheduler_watch(kind, fd);
         /* The timer ends the park the watch ends, whichever comes first. */
         if (timed) {
@@ -1244,18 +1254,20 @@ static bool vader_scheduler_wait_for_locked(int kind, int64_t fd, int64_t nanos)
                                 (vader_scheduler_timer_t) { deadline, began, thread, sleep });
         }
         vader_scheduler_park_locked();
-        if (vader_scheduler_slot_of(thread)->released) return true;
+        /* The slot may have moved: a park lets other threads launch. */
+        s = vader_scheduler_slot_of(thread);
+        if (s->released) return true;
+        if (s->reported && by_level) return true;
     }
-    return true;
 }
 
-static bool vader_scheduler_wait_for(int kind, int64_t fd, int64_t nanos) {
+static bool vader_scheduler_wait_for(int kind, int64_t fd, int64_t nanos, int blocked) {
     /* Before the scheduler starts, no other thread runs. */
     if (!g_scheduler_started && !vader_os_only_reports(fd)) return true;
     vader_scheduler_enter();
     bool ready = true;
     if (vader_virtual_thread_count() > 0u || vader_os_only_reports(fd)) {
-        ready = vader_scheduler_wait_for_locked(kind, fd, nanos);
+        ready = vader_scheduler_wait_for_locked(kind, fd, nanos, blocked);
     }
     vader_scheduler_unlock();
     return ready;
@@ -1351,19 +1363,27 @@ void vader_scheduler_watch_exit(int64_t child) {
 }
 
 bool vader_scheduler_wait_readable_for(int64_t fd, int64_t nanos) {
-    return vader_scheduler_wait_for(VADER_WATCH_READABLE, fd, nanos);
+    return vader_scheduler_wait_for(VADER_WATCH_READABLE, fd, nanos, 0);
 }
 
 void vader_scheduler_wait_readable(int64_t fd) {
-    (void) vader_scheduler_wait_for(VADER_WATCH_READABLE, fd, -1);
+    (void) vader_scheduler_wait_for(VADER_WATCH_READABLE, fd, -1, 0);
 }
 
 bool vader_scheduler_wait_writable_for(int64_t fd, int64_t nanos) {
-    return vader_scheduler_wait_for(VADER_WATCH_WRITABLE, fd, nanos);
+    return vader_scheduler_wait_for(VADER_WATCH_WRITABLE, fd, nanos, 0);
 }
 
 void vader_scheduler_wait_writable(int64_t fd) {
-    (void) vader_scheduler_wait_for(VADER_WATCH_WRITABLE, fd, -1);
+    (void) vader_scheduler_wait_for(VADER_WATCH_WRITABLE, fd, -1, 0);
+}
+
+bool vader_scheduler_wait_blocked_read_for(int64_t fd, int64_t nanos) {
+    return vader_scheduler_wait_for(VADER_WATCH_READABLE, fd, nanos, 1);
+}
+
+bool vader_scheduler_wait_blocked_write_for(int64_t fd, int64_t nanos) {
+    return vader_scheduler_wait_for(VADER_WATCH_WRITABLE, fd, nanos, 1);
 }
 
 void vader_scheduler_stop_waiting(int64_t fd) {

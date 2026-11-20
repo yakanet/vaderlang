@@ -90,6 +90,8 @@ export IntrinsicId :: enum(MemberName) {
     WaitReadableFor         { .member = "wait_readable_for" },
     WaitWritable            { .member = "wait_writable" },
     WaitWritableFor         { .member = "wait_writable_for" },
+    WaitBlockedReadFor      { .member = "wait_blocked_read_for" },
+    WaitBlockedWriteFor     { .member = "wait_blocked_write_for" },
     WaitStop                { .member = "stop_waiting" },
     // std/abort
     AbortPanic              { .member = "panic" },
@@ -181,6 +183,7 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     .SchedulerMutexUnlock -> false
     .SchedulerPark | .SchedulerSleepFor | .SchedulerCancel | .SchedulerMutexWait -> true
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
+    .WaitBlockedReadFor | .WaitBlockedWriteFor -> true
     // Constants of the runtime's own build.
     .TargetCurrentOs | .TargetCurrentArch -> false
     // Allocate: a view header, an interned string, the rendered text, a copy.
@@ -224,6 +227,7 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     // reach.
     .SchedulerPark | .SchedulerSleepFor | .SchedulerCancel | .SchedulerMutexWait -> true
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
+    .WaitBlockedReadFor | .WaitBlockedWriteFor -> true
     // Constants of the build ; `panic` never returns.
     .TargetCurrentOs | .TargetCurrentArch | .AbortPanic -> false
     // Foreign code is lent a buffer, never the header that holds its length.
@@ -247,6 +251,7 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
 export intrinsic_parks :: fn(id: IntrinsicId) -> bool = match id {
     .SchedulerPark | .SchedulerSleepFor | .SchedulerMutexWait -> true
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
+    .WaitBlockedReadFor | .WaitBlockedWriteFor -> true
     // Cancelling another thread returns at once ; cancelling the running one never
     // returns.
     .SchedulerCancel -> false

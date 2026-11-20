@@ -139,6 +139,12 @@ static int vader_os_only_reports(int64_t id) {
     return 0;
 }
 
+/* kqueue and epoll watch without `EV_CLEAR` or `EPOLLET`. */
+static int vader_os_reports_by_level(int64_t id) {
+    (void) id;
+    return 1;
+}
+
 #if defined(__APPLE__)
 
 static int g_os_queue = -1;
