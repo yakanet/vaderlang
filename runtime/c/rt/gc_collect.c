@@ -316,6 +316,17 @@ static inline void* vader_gc_forward(vader_worker_t* w, void* obj, uint32_t type
     return vader_gc_evacuate(w, obj, hdr, type_index);
 }
 
+/* Forward the referent of `boxp`, of type `type_index`, and write the slot back
+ * only when the referent moved. A minor scans the dirty cards of its worker
+ * while another worker, holding the monitor, may store into the same shared old
+ * object: writing back the value read would undo that store. */
+static void vader_gc_forward_box(vader_worker_t* w, vader_box_t* boxp, uint32_t type_index) {
+    void* obj = boxp->payload.obj;
+    void* moved = vader_gc_forward(w, obj, type_index);
+    if (moved != obj) boxp->payload.obj = moved;
+    if (vader_in_young(w, moved)) vader_gc_dirty_card(w, boxp);
+}
+
 /* Scan a `vader_box_t` slot: if the tag identifies a heap-allocated kind and
  * the payload holds a pointer, forward it and update the slot in place.
  *
@@ -333,8 +344,7 @@ static void vader_gc_scan_box(vader_worker_t* w, vader_box_t* boxp) {
          * sentinel (sizes off the header) and apply the same old->young card
          * barrier as the ordinary ref path. A buffer holds no inner refs, so
          * there is nothing further to scan. */
-        boxp->payload.obj = vader_gc_forward(w, boxp->payload.obj, VADER_TYPE_INDEX_BUFFER);
-        if (vader_in_young(w, boxp->payload.obj)) vader_gc_dirty_card(w, boxp);
+        vader_gc_forward_box(w, boxp, VADER_TYPE_INDEX_BUFFER);
         return;
     }
     if (boxp->tag >= vader_type_info_count) {
@@ -343,8 +353,7 @@ static void vader_gc_scan_box(vader_worker_t* w, vader_box_t* boxp) {
     }
     const vader_type_info_t* info = &vader_type_info_table[boxp->tag];
     if (info->kind == VADER_TYPE_KIND_NONE) return;
-    boxp->payload.obj = vader_gc_forward(w, boxp->payload.obj, boxp->tag);
-    if (vader_in_young(w, boxp->payload.obj)) vader_gc_dirty_card(w, boxp);
+    vader_gc_forward_box(w, boxp, boxp->tag);
 }
 
 /* Scan a raw `void*` slot whose pointee is a heap object. Reads the pointee's
