@@ -249,10 +249,18 @@ static vader_array_t* vader_array_alloc_cap(uint32_t type_index, size_t length, 
     vader_array_buf_t* buf = NULL;
     if (VADER_UNLIKELY(vader_worker.in_monitor)) {
         /* In old, where a collection walks slots rather than objects, each
-         * object takes a slot of its own. A major that the second allocation
-         * runs finds the first on the C stack. */
+         * object takes a slot of its own. A major may stop the second
+         * allocation: the header is whole and rooted by then, since the
+         * conservative scan passes over a slot whose header is not written. */
         a = (vader_array_t*) vader_gc_alloc_slot_aligned(struct_bytes);
+        vader_obj_header_init(a, type_index);
+        vader_array_set_extent(a, 0, 0);
+        a->offset = 0;
+        a->buf    = NULL;
+        void** roots[1] = { (void**) &a };
+        VADER_GC_PUSH_RAW(frame, roots, 1);
         buf = (vader_array_buf_t*) vader_gc_alloc_slot_aligned(buf_bytes);
+        VADER_GC_POP_FRAME(frame);
     } else {
         char* block = (char*) vader_gc_alloc_slot_aligned(struct_bytes + buf_bytes);
         a = (vader_array_t*) block;
