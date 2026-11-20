@@ -155,7 +155,9 @@ static vader_virtual_thread_t* vader_virtual_thread_of(int64_t handle) {
 /* ---- the switch ------------------------------------------------------------ */
 
 #if VADER_VIRTUAL_THREAD_FIBERS
-#  define VADER_VIRTUAL_THREAD_RUN_LINKAGE static
+/* Out of line: a warm fiber calls it again on the system thread that adopted
+ * it, which may not be the one it ran on before (`vader_virtual_thread_switch_to`). */
+#  define VADER_VIRTUAL_THREAD_RUN_LINKAGE static VADER_NOINLINE
 #else
 /* `vader_virtual_thread_boot` reaches it from assembly. */
 #  define VADER_VIRTUAL_THREAD_RUN_LINKAGE __attribute__((used, visibility("hidden")))
@@ -462,8 +464,9 @@ static vader_virtual_thread_t* vader_virtual_thread_take(vader_fn_t* entry) {
     return t;
 }
 
-/* Free the thread that ended, now that its stack no longer runs. */
-static void vader_virtual_thread_release_ended(void) {
+/* Free the thread that ended, now that its stack no longer runs. Out of line,
+ * so that it reads the worker of the system thread it runs on afresh. */
+static VADER_NOINLINE void vader_virtual_thread_release_ended(void) {
     vader_virtual_thread_t* t = vader_worker.ended;
     if (t == NULL) return;
     vader_worker.ended = NULL;
@@ -514,6 +517,9 @@ static void vader_virtual_thread_switch_to(vader_virtual_thread_t* next) {
 #  else
     vader_virtual_thread_swap(&cur->sp, next->sp);
 #  endif
+    /* A warm fiber resumes here on the system thread that adopted it, which may
+     * not be the one that ran its last thread: `worker` may name another's, so
+     * nothing below may read it, and the worker is read again out of line. */
     vader_virtual_thread_release_ended();
 }
 
