@@ -191,11 +191,12 @@ export dispatch_import :: fn(
     .RuntimeAllocations      -> { return HostOk { .value = I64Val(0) } }
     .RuntimeCountAllocations -> { return HostOk { .value = NullVal {} } }
     // One system thread runs every guest thread: no other worker to keep out.
-    .SchedulerMonitorEnter | .SchedulerMonitorGive | .SchedulerMonitorExit -> {
+    .SchedulerMonitorEnter | .SchedulerMonitorGive | .SchedulerMonitorExit | .SchedulerPublish
+        | .SchedulerMutexLock | .SchedulerMutexUnlock -> {
         return HostOk { .value = NullVal {} }
     }
     .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor | .SchedulerCancel
-        | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving | .SchedulerWatchReadable
+        | .SchedulerMutexWait | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving | .SchedulerWatchReadable
         | .SchedulerWatchExit | .WaitReadable | .WaitReadableFor | .WaitWritable
         | .WaitWritableFor | .WaitStop -> {
         message :: "${info.mangled_name}: a thread primitive reached the host dispatch"
@@ -1170,6 +1171,7 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving -> null
     .SchedulerWatchReadable | .SchedulerWatchExit -> null
     .SchedulerMonitorEnter | .SchedulerMonitorGive | .SchedulerMonitorExit -> null
+    .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerMutexWait -> null
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop -> null
     .AbortPanic -> null
     // Served by an op, never called as an import.

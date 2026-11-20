@@ -337,6 +337,11 @@ static void vader_virtual_thread_give_back_cold(void);
 
 /* ---- scheduler.c --------------------------------------------------------- */
 
+/* The bits of `vader_worker_t.in_monitor`, one per kind of lock the running
+ * thread holds. */
+#define VADER_HOLDS_MONITOR 1u
+#define VADER_HOLDS_MUTEX   2u
+
 /* The scheduler's thread: runs the ready threads, never returns. */
 static void vader_scheduler_loop(void);
 /* On an ending thread's stack, once it has run its last defer. */

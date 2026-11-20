@@ -473,6 +473,12 @@ member_summary :: fn(id: IntrinsicId, paths: PathTable) -> MemberSummary = match
         | .FfiOpen | .FfiOpenPath | .FfiSymbol -> MemberSummary {}
     // Reads where its value lies, and writes none of it.
     .SchedulerMonitorGive -> MemberSummary { .params = [none()] }
+    // Read where their value lies, or take and let go of a mutex its holder
+    // alone writes, which no task sees as a write of the value.
+    .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock
+        | .SchedulerMutexWait -> MemberSummary {
+        .params = [none()],
+    }
 }
 
 // `self.push(value)` and `self.push_all(other)`: `self` grows, and keeps the value

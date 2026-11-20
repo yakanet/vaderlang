@@ -458,6 +458,7 @@ static vader_virtual_thread_t* vader_virtual_thread_take(vader_fn_t* entry) {
     t->saved.gc_top = &t->entry_frame;
     t->saved.monitor_depth = 0u;
     t->saved.monitor_away = 0u;
+    t->saved.mutex_away = NULL;
     t->state = VADER_VIRTUAL_THREAD_LIVE;
     t->reusable = 1;
     vader_virtual_thread_prepare(t);

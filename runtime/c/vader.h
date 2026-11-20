@@ -1316,6 +1316,10 @@ typedef struct {
      * monitor go to leave its worker, which takes it back when it returns. */
     uint32_t          monitor_depth;
     uint8_t           monitor_away;
+    /* The root that holds the mutex it let go to park, in
+     * `vader_scheduler_mutex_wait`, which takes it back as the thread returns
+     * there or before the defers of its cancellation run: NULL otherwise. */
+    void**            mutex_away;
 } vader_thread_state_t;
 
 /* A bump region: objects from `base` up to `cur`, room up to `end`. */
@@ -1392,11 +1396,13 @@ typedef struct vader_worker {
     char**                       gray_stack;
     size_t                       gray_len;
     size_t                       gray_cap;
-    /* Whether the thread it runs holds the monitor: it allocates in the old
-     * generation, which keeps its young one empty. */
+    /* What the thread it runs holds over shared state: the monitor, a mutex,
+     * as the bits `VADER_HOLDS_MONITOR` and `VADER_HOLDS_MUTEX` (rt/internal.h).
+     * Either one, it allocates in the old generation, which keeps its young one
+     * empty. */
     uint8_t                      in_monitor;
-    /* What it allocated in old under the monitor: unmarked, so that no scan
-     * reads them before they are whole, until it lets the monitor go. */
+    /* What it allocated in old under the monitor or a mutex: unmarked, so that
+     * no scan reads them before they are whole, until it lets them go. */
     char**                       monitor_born;
     size_t                       monitor_born_len;
     size_t                       monitor_born_cap;
@@ -1646,6 +1652,21 @@ void    vader_scheduler_monitor_enter(bool publishes);
 void    vader_scheduler_monitor_give_ref(void* value);
 void    vader_scheduler_monitor_give_box(vader_box_t value);
 void    vader_scheduler_monitor_exit(void);
+/* Make `value`, and all it reaches, readable from every worker, before the
+ * caller stores it in shared state: with several workers, the young generation
+ * of the worker is emptied when `value` leads into it. */
+void    vader_scheduler_publish_ref(void* value);
+void    vader_scheduler_publish_box(vader_box_t value);
+/* Take and let go of `mutex`, a `Mutex` of `std/runtime/scheduler`: an
+ * exclusive lock over the state of one value. With several workers, the worker
+ * allocates in the old generation while it holds it. A leaf: its holder takes
+ * no other mutex nor the monitor, and does not park; taking it under the
+ * monitor is allowed. With one worker, nothing. */
+void    vader_scheduler_mutex_lock(void* mutex);
+void    vader_scheduler_mutex_unlock(void* mutex);
+/* Let go of `mutex`, park, then take it back; a thread cancelled meanwhile
+ * takes it back before its defers run. */
+void    vader_scheduler_mutex_wait(void* mutex);
 /* Whether the running thread was cancelled: one cancelled before it started
  * runs its entry all the same, which asks. */
 bool    vader_scheduler_is_cancelled(void);

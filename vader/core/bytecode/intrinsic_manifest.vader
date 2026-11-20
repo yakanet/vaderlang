@@ -80,6 +80,10 @@ export IntrinsicId :: enum(MemberName) {
     SchedulerMonitorEnter   { .member = "monitor_enter" },
     SchedulerMonitorGive    { .member = "monitor_give" },
     SchedulerMonitorExit    { .member = "monitor_exit" },
+    SchedulerPublish        { .member = "publish" },
+    SchedulerMutexLock      { .member = "mutex_lock" },
+    SchedulerMutexUnlock    { .member = "mutex_unlock" },
+    SchedulerMutexWait      { .member = "mutex_wait" },
     // std/runtime/wait: a read or a write that parks while another thread runs
     WaitReadable            { .member = "wait_readable" },
     WaitReadableFor         { .member = "wait_readable_for" },
@@ -169,7 +173,11 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     // to publish, or to give a value that reaches the young generation, first
     // empties the young generation of the worker.
     .SchedulerMonitorEnter | .SchedulerMonitorGive -> true
-    .SchedulerPark | .SchedulerSleepFor | .SchedulerCancel -> true
+    // Publishing empties the young generation of the worker ; a worker that
+    // waits for a mutex counts as stopped, and a major runs meanwhile.
+    .SchedulerPublish | .SchedulerMutexLock -> true
+    .SchedulerMutexUnlock -> false
+    .SchedulerPark | .SchedulerSleepFor | .SchedulerCancel | .SchedulerMutexWait -> true
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
     // Constants of the runtime's own build.
     .TargetCurrentOs | .TargetCurrentArch -> false
@@ -208,9 +216,10 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     .SchedulerIsLeaving | .SchedulerWatchReadable | .SchedulerWatchExit | .WaitStop -> false
     // No other thread of the worker runs while it waits for the monitor.
     .SchedulerMonitorEnter | .SchedulerMonitorGive | .SchedulerMonitorExit -> false
+    .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock -> false
     // Other threads run before these return, and may shorten any array they
     // reach.
-    .SchedulerPark | .SchedulerSleepFor | .SchedulerCancel -> true
+    .SchedulerPark | .SchedulerSleepFor | .SchedulerCancel | .SchedulerMutexWait -> true
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
     // Constants of the build ; `panic` never returns.
     .TargetCurrentOs | .TargetCurrentArch | .AbortPanic -> false
@@ -233,15 +242,16 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
 ///
 /// @param id  the member, from `intrinsic_id`.
 export intrinsic_parks :: fn(id: IntrinsicId) -> bool = match id {
-    .SchedulerPark | .SchedulerSleepFor -> true
+    .SchedulerPark | .SchedulerSleepFor | .SchedulerMutexWait -> true
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
     // Cancelling another thread returns at once ; cancelling the running one never
     // returns.
     .SchedulerCancel -> false
     .SchedulerSpawn | .SchedulerWake | .SchedulerCurrent | .SchedulerIsCancelled -> false
     .SchedulerIsLeaving | .SchedulerWatchReadable | .SchedulerWatchExit | .WaitStop -> false
-    // A wait for the monitor blocks the worker, it parks no thread.
+    // A wait for the monitor or a mutex blocks the worker, it parks no thread.
     .SchedulerMonitorEnter | .SchedulerMonitorGive | .SchedulerMonitorExit -> false
+    .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock -> false
     .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash | .Bytes | .BytesToString -> false
     .DeepCopy | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch -> false
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false

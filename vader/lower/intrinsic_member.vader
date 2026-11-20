@@ -170,6 +170,7 @@ array_member_op :: fn(id: Bc.IntrinsicId) -> ArrayOp | null = match id {
         | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
         | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMonitorEnter
         | .SchedulerMonitorGive | .SchedulerMonitorExit
+        | .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerMutexWait
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
         | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
         | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> null

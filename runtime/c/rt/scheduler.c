@@ -181,14 +181,14 @@ static int vader_monitor_take_spinning(void) {
 static void vader_monitor_hold(void) {
     vader_worker_t* w = &vader_worker;
     if (!vader_monitor_take_spinning()) vader_gc_blocking(vader_monitor_take, NULL, NULL);
-    w->in_monitor = 1;
+    w->in_monitor |= VADER_HOLDS_MONITOR;
     vader_alloc_limit_refresh(w);
 }
 
 static void vader_monitor_let_go(void) {
     vader_worker_t* w = &vader_worker;
     vader_gc_mark_monitor_born(w);
-    w->in_monitor = 0;
+    w->in_monitor &= (uint8_t) ~VADER_HOLDS_MONITOR;
     vader_alloc_limit_refresh(w);
     vader_os_unlock(g_monitor_guard);
 }
@@ -198,7 +198,10 @@ static void vader_monitor_let_go(void) {
  * before, since the holder may wait for the scheduler's lock. Whatever it holds
  * is old, so it takes it back with no minor. */
 static void vader_monitor_step_away(void) {
-    if (!vader_worker.in_monitor) return;
+    if (vader_worker.in_monitor & VADER_HOLDS_MUTEX) {
+        vader_trap("virtual threads: a thread parked holding a mutex");
+    }
+    if (!(vader_worker.in_monitor & VADER_HOLDS_MONITOR)) return;
     vader_monitor_let_go();
     vader_worker.running.monitor_away = 1;
 }
@@ -215,19 +218,26 @@ void vader_scheduler_monitor_enter(bool publishes) {
         if (g_scheduler_started || vader_scheduler_pool_size() == 1u) return;
         vader_scheduler_start();
     }
+    if (vader_worker.in_monitor & VADER_HOLDS_MUTEX) {
+        vader_trap("virtual threads: the monitor taken by a thread that holds a mutex");
+    }
     vader_thread_state_t* r = &vader_worker.running;
     r->monitor_depth++;
     /* Held already, the worker allocates in old: its young generation holds
      * only what it made before. */
     if (publishes) vader_gc_empty_young(&vader_worker);
-    if (!vader_worker.in_monitor) vader_monitor_hold();
+    if (!(vader_worker.in_monitor & VADER_HOLDS_MONITOR)) vader_monitor_hold();
 }
 
-/* What the holder gives publishes only when it reaches the young generation:
- * young itself, or old, whose fields may point there. Nothing that NULL or an
- * immortal object reaches is young. */
+/* Whether `value` leads into the young generation of the worker: young itself,
+ * or old, whose fields may point there. Nothing that NULL or an immortal object
+ * reaches is young. */
+static int vader_scheduler_reaches_young(void* value) {
+    return value != NULL && (vader_in_young(&vader_worker, value) || vader_in_old(value));
+}
+
 void vader_scheduler_monitor_give_ref(void* value) {
-    vader_scheduler_monitor_enter(value != NULL && (vader_in_young(&vader_worker, value) || vader_in_old(value)));
+    vader_scheduler_monitor_enter(vader_scheduler_reaches_young(value));
 }
 
 void vader_scheduler_monitor_give_box(vader_box_t value) {
@@ -243,8 +253,133 @@ void vader_scheduler_monitor_exit(void) {
     vader_thread_state_t* r = &vader_worker.running;
     if (r->monitor_depth == 0u) vader_trap("virtual threads: the monitor let go more often than taken");
     r->monitor_depth--;
-    if (r->monitor_depth > 0u || !vader_worker.in_monitor) return;
+    if (r->monitor_depth > 0u || !(vader_worker.in_monitor & VADER_HOLDS_MONITOR)) return;
     vader_monitor_let_go();
+}
+
+/* ---- publication and mutexes --------------------------------------------- */
+
+void vader_scheduler_publish_ref(void* value) {
+    if (g_monitor_guard == NULL) return;
+    if (vader_scheduler_reaches_young(value)) vader_gc_empty_young(&vader_worker);
+}
+
+void vader_scheduler_publish_box(vader_box_t value) {
+    if (!vader_box_holds_object(value)) return;
+    vader_scheduler_publish_ref(value.payload.obj);
+}
+
+/* The word of a mutex: the field of the `Mutex` struct, right after its header.
+ * 0 when free, 1 when held, 2 when held while another worker may wait. */
+static _Atomic uint32_t* vader_mutex_word(void* mutex) {
+    return (_Atomic uint32_t*) ((char*) mutex + sizeof(vader_obj_header_t));
+}
+
+/* Where the workers that wait for a mutex sleep: a bucket picked by the
+ * address of its word, shared by the mutexes that land there. */
+#define VADER_MUTEX_BUCKETS 64u
+
+typedef struct {
+    vader_os_lock_t* lock;
+    vader_os_cond_t* cond;
+} vader_mutex_bucket_t;
+
+static vader_mutex_bucket_t g_mutex_buckets[VADER_MUTEX_BUCKETS];
+
+static void vader_mutex_buckets_start(void) {
+    for (uint32_t i = 0; i < VADER_MUTEX_BUCKETS; i++) {
+        g_mutex_buckets[i].lock = vader_os_lock_new();
+        g_mutex_buckets[i].cond = vader_os_cond_new();
+    }
+}
+
+static vader_mutex_bucket_t* vader_mutex_bucket_of(_Atomic uint32_t* word) {
+    uintptr_t at = (uintptr_t) word;
+    return &g_mutex_buckets[(at >> 4 ^ at >> 10) & (VADER_MUTEX_BUCKETS - 1u)];
+}
+
+/* Sleep while the word reads 2, as `vader_gc_blocking` runs it: the word reads
+ * again under the lock of the bucket, which the unlocker takes to wake it, so
+ * no wake falls between the read and the sleep. */
+static void vader_mutex_sleep(void* raw) {
+    _Atomic uint32_t* word = (_Atomic uint32_t*) raw;
+    vader_mutex_bucket_t* bucket = vader_mutex_bucket_of(word);
+    vader_os_lock(bucket->lock);
+    while (atomic_load_explicit(word, memory_order_relaxed) == 2u) {
+        vader_os_cond_wait(bucket->cond, bucket->lock, -1);
+    }
+    vader_os_unlock(bucket->lock);
+}
+
+static int vader_mutex_try(_Atomic uint32_t* word) {
+    uint32_t free_word = 0u;
+    return atomic_compare_exchange_strong_explicit(word, &free_word, 1u, memory_order_acquire,
+                                                   memory_order_relaxed);
+}
+
+/* Take the word: a bounded spin, then a sleep marked by 2, which the unlocker
+ * sees. A worker that sleeps counts as stopped for a major. */
+static void vader_mutex_take(_Atomic uint32_t* word) {
+    for (int i = 0; i < VADER_MONITOR_SPINS; i++) {
+        if (vader_mutex_try(word)) return;
+        vader_os_spin_pause();
+    }
+    while (atomic_exchange_explicit(word, 2u, memory_order_acquire) != 0u) {
+        vader_gc_blocking(vader_mutex_sleep, (void*) word, NULL);
+    }
+}
+
+void vader_scheduler_mutex_lock(void* mutex) {
+    if (g_monitor_guard == NULL) return;
+    vader_worker_t* w = &vader_worker;
+    if (w->in_monitor & VADER_HOLDS_MUTEX) {
+        vader_trap("virtual threads: a mutex taken by a thread that holds one");
+    }
+    vader_mutex_take(vader_mutex_word(mutex));
+    w->in_monitor |= VADER_HOLDS_MUTEX;
+    vader_alloc_limit_refresh(w);
+}
+
+/* What the holder allocated is marked whole before another worker can take the
+ * mutex and read it. */
+void vader_scheduler_mutex_unlock(void* mutex) {
+    if (g_monitor_guard == NULL) return;
+    vader_worker_t* w = &vader_worker;
+    if (!(w->in_monitor & VADER_HOLDS_MUTEX)) {
+        vader_trap("virtual threads: a mutex let go by a thread that does not hold it");
+    }
+    vader_gc_mark_monitor_born(w);
+    w->in_monitor &= (uint8_t) ~VADER_HOLDS_MUTEX;
+    vader_alloc_limit_refresh(w);
+    _Atomic uint32_t* word = vader_mutex_word(mutex);
+    if (atomic_exchange_explicit(word, 0u, memory_order_release) != 2u) return;
+    vader_mutex_bucket_t* bucket = vader_mutex_bucket_of(word);
+    vader_os_lock(bucket->lock);
+    vader_os_cond_broadcast(bucket->cond);
+    vader_os_unlock(bucket->lock);
+}
+
+/* The mutex sits in a root while the thread is away, since a minor may move it
+ * meanwhile, and `mutex_away` names the root to the unwinding of a
+ * cancellation (`vader_mutex_take_back`). */
+void vader_scheduler_mutex_wait(void* mutex) {
+    void** raw[1] = { &mutex };
+    VADER_GC_PUSH_RAW(frame, raw, 1);
+    vader_scheduler_mutex_unlock(mutex);
+    vader_worker.running.mutex_away = &mutex;
+    vader_scheduler_park();
+    vader_worker.running.mutex_away = NULL;
+    vader_scheduler_mutex_lock(mutex);
+    VADER_GC_POP_FRAME(frame);
+}
+
+/* A thread cancelled in `vader_scheduler_mutex_wait` takes the mutex back
+ * before its defers run: they unwind a body that held it. */
+static void vader_mutex_take_back(void) {
+    void** held = vader_worker.running.mutex_away;
+    if (held == NULL) return;
+    vader_worker.running.mutex_away = NULL;
+    vader_scheduler_mutex_lock(*held);
 }
 
 /* ---- the lock -------------------------------------------------------------- */
@@ -882,6 +1017,7 @@ static void vader_scheduler_start_pool(void) {
     vader_atom_pool_start((vader_u32_t) threads);
     g_scheduler_guard = vader_os_lock_new();
     g_monitor_guard = vader_os_lock_new();
+    vader_mutex_buckets_start();
     for (size_t i = 0; i < threads; i++) g_scheduler_workers[i].wake = vader_os_cond_new();
     g_scheduler_threads = (uint32_t) threads;
     vader_scheduler_lock();
@@ -953,6 +1089,7 @@ static void vader_scheduler_unwind(void) {
     vader_scheduler_slot_of(thread)->unwinding = 1;
     vader_scheduler_cancel_children(thread);
     vader_scheduler_unlock();
+    vader_mutex_take_back();
     vader_run_pending_defers();
     vader_scheduler_lock();
     vader_virtual_thread_end();
@@ -977,6 +1114,9 @@ static void vader_scheduler_block(vader_scheduler_slot_t* s) {
 }
 
 static void vader_scheduler_ending(void) {
+    if (vader_worker.in_monitor & VADER_HOLDS_MUTEX) {
+        vader_trap("virtual threads: a thread ended holding a mutex");
+    }
     if (vader_worker.in_monitor) vader_trap("virtual threads: a thread ended holding the monitor");
     int64_t parent = vader_scheduler_slot_of(vader_virtual_thread_current())->parent;
     if (!vader_virtual_thread_is_live(parent)) return;

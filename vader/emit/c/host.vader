@@ -987,6 +987,10 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .SchedulerMonitorEnter  -> { return [perform("vader_scheduler_monitor_enter", [a0])] }
     .SchedulerMonitorGive   -> { return [monitor_give(imp.signature.params[0])] }
     .SchedulerMonitorExit   -> { return [perform("vader_scheduler_monitor_exit", [])] }
+    .SchedulerPublish       -> { return publish(imp.signature.params[0]) }
+    .SchedulerMutexLock     -> { return [perform("vader_scheduler_mutex_lock", [a0])] }
+    .SchedulerMutexUnlock   -> { return [perform("vader_scheduler_mutex_unlock", [a0])] }
+    .SchedulerMutexWait     -> { return [perform("vader_scheduler_mutex_wait", [a0])] }
     // std/runtime/wait: a read or a write that parks (`runtime/c/rt/scheduler.c`).
     .WaitReadable           -> { return [perform("vader_scheduler_wait_readable", [a0])] }
     .WaitReadableFor        -> { return [returning("vader_scheduler_wait_readable_for", [a0, a1])] }
@@ -1066,6 +1070,16 @@ monitor_give :: fn(carried: ValType) -> CStatement = match carried {
     .Any | .Null -> perform("vader_scheduler_monitor_give_box", [argument(0)])
     .I8 | .I16 | .I32 | .I64 | .U8 | .U16 | .U32 | .U64 -> monitor_take_alone()
     .F32 | .F64 | .Bool | .Char | .String | .Void | .Pointer -> monitor_take_alone()
+}
+
+// What publishing `a0`, carried as `carried`, performs: a reference or a box
+// goes to the runtime, which empties the young generation when it leads there;
+// any other value reaches none.
+publish :: fn(carried: ValType) -> CStatement[] = match carried {
+    .Ref         -> [perform("vader_scheduler_publish_ref", [argument(0)])]
+    .Any | .Null -> [perform("vader_scheduler_publish_box", [argument(0)])]
+    .I8 | .I16 | .I32 | .I64 | .U8 | .U16 | .U32 | .U64 -> []
+    .F32 | .F64 | .Bool | .Char | .String | .Void | .Pointer -> []
 }
 
 monitor_take_alone :: fn() -> CStatement = perform(
