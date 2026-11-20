@@ -12,15 +12,15 @@ static int64_t vader_core_bytecode$value_cell(uint8_t l0, int64_t l1);
 
 uint8_t vader_core_bytecode$array_kind_from_name(vader_string_t l0) {
     uint8_t l1;
-    if (l0 == 3288u) {
+    if (l0 == 3292u) {
         l1 = (uint8_t) 1;
         return l1;
     }
-    if (l0 == 3267u) {
+    if (l0 == 3271u) {
         l1 = (uint8_t) 2;
-    } else if (l0 == 3268u) {
+    } else if (l0 == 3272u) {
         l1 = (uint8_t) 3;
-    } else if (l0 == 3278u) {
+    } else if (l0 == 3282u) {
         l1 = (uint8_t) 4;
     } else if (l0 == 2565u) {
         l1 = (uint8_t) 5;
@@ -38,7 +38,7 @@ uint8_t vader_core_bytecode$array_kind_from_name(vader_string_t l0) {
         l1 = (uint8_t) 11;
     } else if (l0 == 2002u) {
         l1 = (uint8_t) 12;
-    } else if (l0 == 2970u) {
+    } else if (l0 == 2974u) {
         l1 = (uint8_t) 13;
     } else {
         l1 = (uint8_t) 0;
@@ -88,7 +88,7 @@ int32_t vader_core_bytecode$array_kind_index(uint8_t l0) {
 vader_string_t vader_core_bytecode$array_kind_name(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(1)) {
-        l1 = 3288u;
+        l1 = 3292u;
         return l1;
     }
     if (l0 == INT32_C(5)) {
@@ -96,11 +96,11 @@ vader_string_t vader_core_bytecode$array_kind_name(uint8_t l0) {
     } else if (l0 == INT32_C(12)) {
         l1 = 2002u;
     } else if (l0 == INT32_C(2)) {
-        l1 = 3267u;
+        l1 = 3271u;
     } else if (l0 == INT32_C(6)) {
         l1 = 2520u;
     } else if (l0 == INT32_C(3)) {
-        l1 = 3268u;
+        l1 = 3272u;
     } else if (l0 == INT32_C(7)) {
         l1 = 2521u;
     } else if (l0 == INT32_C(9)) {
@@ -108,13 +108,13 @@ vader_string_t vader_core_bytecode$array_kind_name(uint8_t l0) {
     } else if (l0 == INT32_C(11)) {
         l1 = 2139u;
     } else if (l0 == INT32_C(4)) {
-        l1 = 3278u;
+        l1 = 3282u;
     } else if (l0 == INT32_C(8)) {
         l1 = 2543u;
     } else if (l0 == INT32_C(10)) {
         l1 = 2379u;
     } else if (l0 == INT32_C(13)) {
-        l1 = 2970u;
+        l1 = 2974u;
     } else {
         if (!(l0 == INT32_C(0))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
@@ -335,7 +335,7 @@ vader_string_t vader_core_bytecode$bc_type_key(void* l0, int32_t l1) {
     if (l5.tag == 1186u) {
         l8 = (void*) vader_buffer_new((size_t) INT64_C(22));
         l3 = INT64_C(0);
-        l3 = std_core$write_string_at(l8, l3, 2916u);
+        l3 = std_core$write_string_at(l8, l3, 2919u);
         t0 = l6.payload.obj;
         l4 = ((int64_t) (int32_t) ((int32_t) (uint8_t) ((vader_struct_vader_core_bytecode$BcScalar_t*) t0)->f_val));
         l3 = std_core$write_int(l8, l3, l4);
@@ -345,11 +345,11 @@ vader_string_t vader_core_bytecode$bc_type_key(void* l0, int32_t l1) {
     if (l5.tag == 1189u) {
         t0 = l6.payload.obj;
         l9 = ((vader_struct_vader_core_bytecode$BcStruct_t*) t0)->f_name;
-        l7 = concat_2(3011u, l9);
+        l7 = concat_2(3015u, l9);
     } else if (l5.tag == 1185u) {
         t0 = l6.payload.obj;
         l9 = ((vader_struct_vader_core_bytecode$BcRef_t*) t0)->f_trait_name;
-        l7 = concat_2(2954u, l9);
+        l7 = concat_2(2958u, l9);
     } else if (l5.tag == 1176u) {
         t0 = l6.payload.obj;
         l10 = ((vader_struct_vader_core_bytecode$BcArray_t*) t0)->f_element;
@@ -358,15 +358,15 @@ vader_string_t vader_core_bytecode$bc_type_key(void* l0, int32_t l1) {
     } else if (l5.tag == 1190u) {
         t0 = l6.payload.obj;
         l8 = ((vader_struct_vader_core_bytecode$BcUnion_t*) t0)->f_variants;
-        l9 = vader_core_bytecode$key_join(l0, l8, 3599u);
-        l7 = concat_3(3289u, l9, 606u);
+        l9 = vader_core_bytecode$key_join(l0, l8, 3608u);
+        l7 = concat_3(3293u, l9, 606u);
     } else {
         if (!(l5.tag == 1179u)) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
         t0 = l6.payload.obj;
         l8 = ((vader_struct_vader_core_bytecode$BcFn_t*) t0)->f_params;
-        l9 = vader_core_bytecode$key_join(l0, l8, 3599u);
+        l9 = vader_core_bytecode$key_join(l0, l8, 3608u);
         t0 = l6.payload.obj;
         l10 = ((vader_struct_vader_core_bytecode$BcFn_t*) t0)->f_return_type;
         l11 = vader_core_bytecode$bc_type_key(l0, l10);
@@ -653,7 +653,7 @@ vader_string_t vader_core_bytecode$checked_op_name(uint8_t l0) {
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 3121u;
+        l1 = 3125u;
     } else {
         if (!(l0 == INT32_C(2))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
@@ -855,33 +855,37 @@ uint8_t vader_core_bytecode$intrinsic_id(vader_string_t l0) {
         vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(26u, 58u, 0u, 576u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 57u] = vader_box_string(576u, 2398u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 56u] = vader_box_string(576u, 2397u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 55u] = vader_box_string(576u, 2403u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 54u] = vader_box_string(576u, 2401u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 53u] = vader_box_string(576u, 2399u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 52u] = vader_box_string(576u, 2212u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 51u] = vader_box_string(576u, 2213u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 50u] = vader_box_string(576u, 2917u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 49u] = vader_box_string(576u, 3073u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 48u] = vader_box_string(576u, 3533u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 47u] = vader_box_string(576u, 3532u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 46u] = vader_box_string(576u, 3531u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 45u] = vader_box_string(576u, 3530u);
+    vader_array_t* _a0_arr = vader_array_new(26u, 62u, 0u, 576u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 61u] = vader_box_string(576u, 2398u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 60u] = vader_box_string(576u, 2397u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 59u] = vader_box_string(576u, 2403u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 58u] = vader_box_string(576u, 2401u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 57u] = vader_box_string(576u, 2399u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 56u] = vader_box_string(576u, 2212u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 55u] = vader_box_string(576u, 2213u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 54u] = vader_box_string(576u, 2920u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 53u] = vader_box_string(576u, 3077u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 52u] = vader_box_string(576u, 3542u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 51u] = vader_box_string(576u, 3541u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 50u] = vader_box_string(576u, 3540u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 49u] = vader_box_string(576u, 3539u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 48u] = vader_box_string(576u, 2819u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 47u] = vader_box_string(576u, 2818u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 46u] = vader_box_string(576u, 2817u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 45u] = vader_box_string(576u, 2954u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 44u] = vader_box_string(576u, 2810u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 43u] = vader_box_string(576u, 2811u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 42u] = vader_box_string(576u, 2808u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 41u] = vader_box_string(576u, 3538u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 40u] = vader_box_string(576u, 3539u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 41u] = vader_box_string(576u, 3547u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 40u] = vader_box_string(576u, 3548u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 39u] = vader_box_string(576u, 2665u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 38u] = vader_box_string(576u, 2664u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 37u] = vader_box_string(576u, 2214u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 36u] = vader_box_string(576u, 2105u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 35u] = vader_box_string(576u, 3041u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 34u] = vader_box_string(576u, 3534u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 33u] = vader_box_string(576u, 2923u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 32u] = vader_box_string(576u, 3050u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 35u] = vader_box_string(576u, 3045u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 34u] = vader_box_string(576u, 3543u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 33u] = vader_box_string(576u, 2926u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 32u] = vader_box_string(576u, 3054u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 31u] = vader_box_string(576u, 2209u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 30u] = vader_box_string(576u, 1871u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 29u] = vader_box_string(576u, 1870u);
@@ -894,7 +898,7 @@ uint8_t vader_core_bytecode$intrinsic_id(vader_string_t l0) {
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 22u] = vader_box_string(576u, 2029u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 21u] = vader_box_string(576u, 2030u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 20u] = vader_box_string(576u, 2028u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 19u] = vader_box_string(576u, 2835u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 19u] = vader_box_string(576u, 2838u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 18u] = vader_box_string(576u, 1962u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 17u] = vader_box_string(576u, 1968u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 16u] = vader_box_string(576u, 1963u);
@@ -906,8 +910,8 @@ uint8_t vader_core_bytecode$intrinsic_id(vader_string_t l0) {
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 10u] = vader_box_string(576u, 2378u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 9u] = vader_box_string(576u, 1996u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 8u] = vader_box_string(576u, 2392u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 7u] = vader_box_string(576u, 3095u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 6u] = vader_box_string(576u, 3096u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 7u] = vader_box_string(576u, 3099u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 6u] = vader_box_string(576u, 3100u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 5u] = vader_box_string(576u, 2068u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 4u] = vader_box_string(576u, 2063u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 3u] = vader_box_string(576u, 2663u);
@@ -915,7 +919,11 @@ uint8_t vader_core_bytecode$intrinsic_id(vader_string_t l0) {
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 1u] = vader_box_string(576u, 2053u);
     vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 0u] = vader_box_string(576u, 2054u);
     l1 = (void*) _a0_arr;
-    vader_array_t* _a1_arr = vader_array_new(29u, 58u, 1u, 581u);
+    vader_array_t* _a1_arr = vader_array_new(29u, 62u, 1u, 581u);
+    ((uint8_t*) _a1_arr->buf->slots)[vader_array_offset(_a1_arr) + 61u] = (uint8_t) INT32_C(62);
+    ((uint8_t*) _a1_arr->buf->slots)[vader_array_offset(_a1_arr) + 60u] = (uint8_t) INT32_C(61);
+    ((uint8_t*) _a1_arr->buf->slots)[vader_array_offset(_a1_arr) + 59u] = (uint8_t) INT32_C(60);
+    ((uint8_t*) _a1_arr->buf->slots)[vader_array_offset(_a1_arr) + 58u] = (uint8_t) INT32_C(59);
     ((uint8_t*) _a1_arr->buf->slots)[vader_array_offset(_a1_arr) + 57u] = (uint8_t) INT32_C(58);
     ((uint8_t*) _a1_arr->buf->slots)[vader_array_offset(_a1_arr) + 56u] = (uint8_t) INT32_C(57);
     ((uint8_t*) _a1_arr->buf->slots)[vader_array_offset(_a1_arr) + 55u] = (uint8_t) INT32_C(56);
@@ -977,10 +985,10 @@ uint8_t vader_core_bytecode$intrinsic_id(vader_string_t l0) {
     l2 = (void*) _a1_arr;
     vader_array_t* _a2_arr = vader_array_new(27u, 128u, 7u, 579u);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 127u] = (int32_t) INT32_C(41);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 126u] = (int32_t) INT32_C(57);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 126u] = (int32_t) INT32_C(61);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 125u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 124u] = (int32_t) INT32_C(0);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 123u] = (int32_t) INT32_C(0);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 123u] = (int32_t) INT32_C(49);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 122u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 121u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 120u] = (int32_t) INT32_C(0);
@@ -988,7 +996,7 @@ uint8_t vader_core_bytecode$intrinsic_id(vader_string_t l0) {
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 118u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 117u] = (int32_t) INT32_C(25);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 116u] = (int32_t) INT32_C(26);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 115u] = (int32_t) INT32_C(0);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 115u] = (int32_t) INT32_C(46);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 114u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 113u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 112u] = (int32_t) INT32_C(0);
@@ -1007,16 +1015,16 @@ uint8_t vader_core_bytecode$intrinsic_id(vader_string_t l0) {
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 99u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 98u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 97u] = (int32_t) INT32_C(23);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 96u] = (int32_t) INT32_C(46);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 96u] = (int32_t) INT32_C(50);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 95u] = (int32_t) INT32_C(0);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 94u] = (int32_t) INT32_C(56);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 94u] = (int32_t) INT32_C(60);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 93u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 92u] = (int32_t) INT32_C(11);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 91u] = (int32_t) INT32_C(6);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 90u] = (int32_t) INT32_C(3);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 89u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 88u] = (int32_t) INT32_C(8);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 87u] = (int32_t) INT32_C(52);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 87u] = (int32_t) INT32_C(56);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 86u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 85u] = (int32_t) INT32_C(10);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 84u] = (int32_t) INT32_C(27);
@@ -1028,11 +1036,11 @@ uint8_t vader_core_bytecode$intrinsic_id(vader_string_t l0) {
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 78u] = (int32_t) INT32_C(1);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 77u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 76u] = (int32_t) INT32_C(0);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 75u] = (int32_t) INT32_C(0);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 75u] = (int32_t) INT32_C(47);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 74u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 73u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 72u] = (int32_t) INT32_C(18);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 71u] = (int32_t) INT32_C(53);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 71u] = (int32_t) INT32_C(57);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 70u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 69u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 68u] = (int32_t) INT32_C(0);
@@ -1057,9 +1065,9 @@ uint8_t vader_core_bytecode$intrinsic_id(vader_string_t l0) {
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 49u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 48u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 47u] = (int32_t) INT32_C(42);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 46u] = (int32_t) INT32_C(0);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 45u] = (int32_t) INT32_C(48);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 44u] = (int32_t) INT32_C(55);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 46u] = (int32_t) INT32_C(48);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 45u] = (int32_t) INT32_C(52);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 44u] = (int32_t) INT32_C(59);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 43u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 42u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 41u] = (int32_t) INT32_C(0);
@@ -1075,19 +1083,19 @@ uint8_t vader_core_bytecode$intrinsic_id(vader_string_t l0) {
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 31u] = (int32_t) INT32_C(34);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 30u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 29u] = (int32_t) INT32_C(29);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 28u] = (int32_t) INT32_C(51);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 28u] = (int32_t) INT32_C(55);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 27u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 26u] = (int32_t) INT32_C(17);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 25u] = (int32_t) INT32_C(54);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 25u] = (int32_t) INT32_C(58);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 24u] = (int32_t) INT32_C(32);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 23u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 22u] = (int32_t) INT32_C(12);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 21u] = (int32_t) INT32_C(45);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 20u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 19u] = (int32_t) INT32_C(0);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 18u] = (int32_t) INT32_C(50);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 17u] = (int32_t) INT32_C(47);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 16u] = (int32_t) INT32_C(58);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 18u] = (int32_t) INT32_C(54);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 17u] = (int32_t) INT32_C(51);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 16u] = (int32_t) INT32_C(62);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 15u] = (int32_t) INT32_C(37);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 14u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 13u] = (int32_t) INT32_C(2);
@@ -1099,7 +1107,7 @@ uint8_t vader_core_bytecode$intrinsic_id(vader_string_t l0) {
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 7u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 6u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 5u] = (int32_t) INT32_C(36);
-    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 4u] = (int32_t) INT32_C(49);
+    ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 4u] = (int32_t) INT32_C(53);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 3u] = (int32_t) INT32_C(0);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 2u] = (int32_t) INT32_C(13);
     ((int32_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 1u] = (int32_t) INT32_C(33);
@@ -1112,7 +1120,7 @@ uint8_t vader_core_bytecode$intrinsic_id(vader_string_t l0) {
     _a3_obj->f_index = l3;
     _a3_obj->f_mask = INT64_C(127);
     _a3_obj->f_grow_at = INT64_C(96);
-    _a3_obj->f_size = INT64_C(58);
+    _a3_obj->f_size = INT64_C(62);
     _a3_obj->f_tombs = INT64_C(0);
     t0 = (void*) _a3_obj;
     l4 = std_collections$Map$std_core$Index$at__string__vader_core_bytecode_IntrinsicId(t0, l0);
@@ -1178,7 +1186,7 @@ bool vader_core_bytecode$intrinsic_may_collect(uint8_t l0) {
             if (l2) {
                 l2 = true;
             } else {
-                l2 = l0 == INT32_C(50);
+                l2 = l0 == INT32_C(54);
             }
             if (l2) {
                 l1 = false;
@@ -1193,28 +1201,25 @@ bool vader_core_bytecode$intrinsic_may_collect(uint8_t l0) {
                 if (l2) {
                     l1 = true;
                 } else {
-                    if (l0 == INT32_C(34)) {
+                    if (l0 == INT32_C(46)) {
                         l2 = true;
                     } else {
-                        l2 = l0 == INT32_C(36);
-                    }
-                    if (l2) {
-                        l2 = true;
-                    } else {
-                        l2 = l0 == INT32_C(37);
+                        l2 = l0 == INT32_C(47);
                     }
                     if (l2) {
                         l1 = true;
+                    } else if (l0 == INT32_C(48)) {
+                        l1 = false;
                     } else {
-                        if (l0 == INT32_C(46)) {
+                        if (l0 == INT32_C(34)) {
                             l2 = true;
                         } else {
-                            l2 = l0 == INT32_C(47);
+                            l2 = l0 == INT32_C(36);
                         }
                         if (l2) {
                             l2 = true;
                         } else {
-                            l2 = l0 == INT32_C(48);
+                            l2 = l0 == INT32_C(37);
                         }
                         if (l2) {
                             l2 = true;
@@ -1224,172 +1229,191 @@ bool vader_core_bytecode$intrinsic_may_collect(uint8_t l0) {
                         if (l2) {
                             l1 = true;
                         } else {
-                            if (l0 == INT32_C(52)) {
+                            if (l0 == INT32_C(50)) {
+                                l2 = true;
+                            } else {
+                                l2 = l0 == INT32_C(51);
+                            }
+                            if (l2) {
+                                l2 = true;
+                            } else {
+                                l2 = l0 == INT32_C(52);
+                            }
+                            if (l2) {
                                 l2 = true;
                             } else {
                                 l2 = l0 == INT32_C(53);
                             }
                             if (l2) {
-                                l1 = false;
+                                l1 = true;
                             } else {
-                                if (l0 == INT32_C(5)) {
+                                if (l0 == INT32_C(56)) {
                                     l2 = true;
                                 } else {
-                                    l2 = l0 == INT32_C(6);
+                                    l2 = l0 == INT32_C(57);
                                 }
                                 if (l2) {
-                                    l2 = true;
+                                    l1 = false;
                                 } else {
-                                    l2 = l0 == INT32_C(13);
-                                }
-                                if (l2) {
-                                    l1 = true;
-                                } else {
-                                    if (l0 == INT32_C(26)) {
+                                    if (l0 == INT32_C(5)) {
                                         l2 = true;
                                     } else {
-                                        l2 = l0 == INT32_C(27);
+                                        l2 = l0 == INT32_C(6);
                                     }
                                     if (l2) {
                                         l2 = true;
                                     } else {
-                                        l2 = l0 == INT32_C(28);
-                                    }
-                                    if (l2) {
-                                        l2 = true;
-                                    } else {
-                                        l2 = l0 == INT32_C(29);
+                                        l2 = l0 == INT32_C(13);
                                     }
                                     if (l2) {
                                         l1 = true;
                                     } else {
-                                        if (l0 == INT32_C(30)) {
+                                        if (l0 == INT32_C(26)) {
                                             l2 = true;
                                         } else {
-                                            l2 = l0 == INT32_C(31);
+                                            l2 = l0 == INT32_C(27);
                                         }
                                         if (l2) {
                                             l2 = true;
                                         } else {
-                                            l2 = l0 == INT32_C(32);
+                                            l2 = l0 == INT32_C(28);
+                                        }
+                                        if (l2) {
+                                            l2 = true;
+                                        } else {
+                                            l2 = l0 == INT32_C(29);
                                         }
                                         if (l2) {
                                             l1 = true;
-                                        } else if (l0 == INT32_C(51)) {
-                                            l1 = true;
                                         } else {
-                                            if (l0 == INT32_C(54)) {
+                                            if (l0 == INT32_C(30)) {
                                                 l2 = true;
                                             } else {
-                                                l2 = l0 == INT32_C(55);
+                                                l2 = l0 == INT32_C(31);
                                             }
                                             if (l2) {
                                                 l2 = true;
                                             } else {
-                                                l2 = l0 == INT32_C(56);
-                                            }
-                                            if (l2) {
-                                                l2 = true;
-                                            } else {
-                                                l2 = l0 == INT32_C(57);
-                                            }
-                                            if (l2) {
-                                                l2 = true;
-                                            } else {
-                                                l2 = l0 == INT32_C(58);
-                                            }
-                                            if (l2) {
-                                                l2 = true;
-                                            } else {
-                                                l2 = l0 == INT32_C(0);
+                                                l2 = l0 == INT32_C(32);
                                             }
                                             if (l2) {
                                                 l1 = true;
-                                            } else {
-                                                if (l0 == INT32_C(8)) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(9);
-                                                }
-                                                if (l2) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(10);
-                                                }
-                                                if (l2) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(11);
-                                                }
-                                                if (l2) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(12);
-                                                }
-                                                if (l2) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(14);
-                                                }
-                                                if (l2) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(15);
-                                                }
-                                                if (l2) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(16);
-                                                }
-                                                if (l2) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(17);
-                                                }
-                                                if (l2) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(18);
-                                                }
-                                                if (l2) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(19);
-                                                }
-                                                if (l2) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(20);
-                                                }
-                                                if (l2) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(21);
-                                                }
-                                                if (l2) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(22);
-                                                }
-                                                if (l2) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(23);
-                                                }
-                                                if (l2) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(24);
-                                                }
-                                                if (l2) {
-                                                    l2 = true;
-                                                } else {
-                                                    l2 = l0 == INT32_C(25);
-                                                }
-                                                if (!(l2)) {
-                                                    vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-                                                }
+                                            } else if (l0 == INT32_C(55)) {
                                                 l1 = true;
+                                            } else {
+                                                if (l0 == INT32_C(58)) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(59);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(60);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(61);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(62);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(0);
+                                                }
+                                                if (l2) {
+                                                    l1 = true;
+                                                } else {
+                                                    if (l0 == INT32_C(8)) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(9);
+                                                    }
+                                                    if (l2) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(10);
+                                                    }
+                                                    if (l2) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(11);
+                                                    }
+                                                    if (l2) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(12);
+                                                    }
+                                                    if (l2) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(14);
+                                                    }
+                                                    if (l2) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(15);
+                                                    }
+                                                    if (l2) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(16);
+                                                    }
+                                                    if (l2) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(17);
+                                                    }
+                                                    if (l2) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(18);
+                                                    }
+                                                    if (l2) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(19);
+                                                    }
+                                                    if (l2) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(20);
+                                                    }
+                                                    if (l2) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(21);
+                                                    }
+                                                    if (l2) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(22);
+                                                    }
+                                                    if (l2) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(23);
+                                                    }
+                                                    if (l2) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(24);
+                                                    }
+                                                    if (l2) {
+                                                        l2 = true;
+                                                    } else {
+                                                        l2 = l0 == INT32_C(25);
+                                                    }
+                                                    if (!(l2)) {
+                                                        vader_unreachable("non-exhaustive match (T3013 should have caught this)");
+                                                    }
+                                                    l1 = true;
+                                                }
                                             }
                                         }
                                     }
@@ -1502,7 +1526,7 @@ bool vader_core_bytecode$intrinsic_may_shorten_array(uint8_t l0) {
                     if (l2) {
                         l2 = true;
                     } else {
-                        l2 = l0 == INT32_C(50);
+                        l2 = l0 == INT32_C(54);
                     }
                     if (l2) {
                         l1 = false;
@@ -1520,28 +1544,28 @@ bool vader_core_bytecode$intrinsic_may_shorten_array(uint8_t l0) {
                         if (l2) {
                             l1 = false;
                         } else {
-                            if (l0 == INT32_C(34)) {
+                            if (l0 == INT32_C(46)) {
                                 l2 = true;
                             } else {
-                                l2 = l0 == INT32_C(36);
+                                l2 = l0 == INT32_C(47);
                             }
                             if (l2) {
                                 l2 = true;
                             } else {
-                                l2 = l0 == INT32_C(37);
+                                l2 = l0 == INT32_C(48);
                             }
                             if (l2) {
-                                l1 = true;
+                                l1 = false;
                             } else {
-                                if (l0 == INT32_C(46)) {
+                                if (l0 == INT32_C(34)) {
                                     l2 = true;
                                 } else {
-                                    l2 = l0 == INT32_C(47);
+                                    l2 = l0 == INT32_C(36);
                                 }
                                 if (l2) {
                                     l2 = true;
                                 } else {
-                                    l2 = l0 == INT32_C(48);
+                                    l2 = l0 == INT32_C(37);
                                 }
                                 if (l2) {
                                     l2 = true;
@@ -1551,30 +1575,25 @@ bool vader_core_bytecode$intrinsic_may_shorten_array(uint8_t l0) {
                                 if (l2) {
                                     l1 = true;
                                 } else {
-                                    if (l0 == INT32_C(52)) {
-                                        l2 = true;
-                                    } else {
-                                        l2 = l0 == INT32_C(53);
-                                    }
-                                    if (l2) {
+                                    if (l0 == INT32_C(50)) {
                                         l2 = true;
                                     } else {
                                         l2 = l0 == INT32_C(51);
                                     }
                                     if (l2) {
-                                        l1 = false;
+                                        l2 = true;
                                     } else {
-                                        if (l0 == INT32_C(54)) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(55);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(56);
-                                        }
-                                        if (l2) {
+                                        l2 = l0 == INT32_C(52);
+                                    }
+                                    if (l2) {
+                                        l2 = true;
+                                    } else {
+                                        l2 = l0 == INT32_C(53);
+                                    }
+                                    if (l2) {
+                                        l1 = true;
+                                    } else {
+                                        if (l0 == INT32_C(56)) {
                                             l2 = true;
                                         } else {
                                             l2 = l0 == INT32_C(57);
@@ -1582,12 +1601,341 @@ bool vader_core_bytecode$intrinsic_may_shorten_array(uint8_t l0) {
                                         if (l2) {
                                             l2 = true;
                                         } else {
-                                            l2 = l0 == INT32_C(58);
+                                            l2 = l0 == INT32_C(55);
                                         }
                                         if (l2) {
                                             l1 = false;
-                                        } else if (l0 == INT32_C(0)) {
-                                            l1 = true;
+                                        } else {
+                                            if (l0 == INT32_C(58)) {
+                                                l2 = true;
+                                            } else {
+                                                l2 = l0 == INT32_C(59);
+                                            }
+                                            if (l2) {
+                                                l2 = true;
+                                            } else {
+                                                l2 = l0 == INT32_C(60);
+                                            }
+                                            if (l2) {
+                                                l2 = true;
+                                            } else {
+                                                l2 = l0 == INT32_C(61);
+                                            }
+                                            if (l2) {
+                                                l2 = true;
+                                            } else {
+                                                l2 = l0 == INT32_C(62);
+                                            }
+                                            if (l2) {
+                                                l1 = false;
+                                            } else if (l0 == INT32_C(0)) {
+                                                l1 = true;
+                                            } else {
+                                                if (l0 == INT32_C(8)) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(9);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(10);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(11);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(12);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(14);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(15);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(16);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(17);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(18);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(19);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(20);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(21);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(22);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(23);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(24);
+                                                }
+                                                if (l2) {
+                                                    l2 = true;
+                                                } else {
+                                                    l2 = l0 == INT32_C(25);
+                                                }
+                                                if (!(l2)) {
+                                                    vader_unreachable("non-exhaustive match (T3013 should have caught this)");
+                                                }
+                                                l1 = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return l1;
+}
+
+bool vader_core_bytecode$intrinsic_parks(uint8_t l0) {
+    bool l1, l2;
+    if (l0 == INT32_C(34)) {
+        l1 = true;
+    } else {
+        l1 = l0 == INT32_C(36);
+    }
+    if (l1) {
+        l2 = true;
+    } else {
+        l2 = l0 == INT32_C(49);
+    }
+    if (l2) {
+        l1 = true;
+        return l1;
+    }
+    if (l0 == INT32_C(50)) {
+        l2 = true;
+    } else {
+        l2 = l0 == INT32_C(51);
+    }
+    if (l2) {
+        l2 = true;
+    } else {
+        l2 = l0 == INT32_C(52);
+    }
+    if (l2) {
+        l2 = true;
+    } else {
+        l2 = l0 == INT32_C(53);
+    }
+    if (l2) {
+        l1 = true;
+    } else if (l0 == INT32_C(37)) {
+        l1 = false;
+    } else {
+        if (l0 == INT32_C(33)) {
+            l2 = true;
+        } else {
+            l2 = l0 == INT32_C(35);
+        }
+        if (l2) {
+            l2 = true;
+        } else {
+            l2 = l0 == INT32_C(38);
+        }
+        if (l2) {
+            l2 = true;
+        } else {
+            l2 = l0 == INT32_C(39);
+        }
+        if (l2) {
+            l1 = false;
+        } else {
+            if (l0 == INT32_C(40)) {
+                l2 = true;
+            } else {
+                l2 = l0 == INT32_C(41);
+            }
+            if (l2) {
+                l2 = true;
+            } else {
+                l2 = l0 == INT32_C(42);
+            }
+            if (l2) {
+                l2 = true;
+            } else {
+                l2 = l0 == INT32_C(54);
+            }
+            if (l2) {
+                l1 = false;
+            } else {
+                if (l0 == INT32_C(43)) {
+                    l2 = true;
+                } else {
+                    l2 = l0 == INT32_C(44);
+                }
+                if (l2) {
+                    l2 = true;
+                } else {
+                    l2 = l0 == INT32_C(45);
+                }
+                if (l2) {
+                    l1 = false;
+                } else {
+                    if (l0 == INT32_C(46)) {
+                        l2 = true;
+                    } else {
+                        l2 = l0 == INT32_C(47);
+                    }
+                    if (l2) {
+                        l2 = true;
+                    } else {
+                        l2 = l0 == INT32_C(48);
+                    }
+                    if (l2) {
+                        l1 = false;
+                    } else {
+                        if (l0 == INT32_C(1)) {
+                            l2 = true;
+                        } else {
+                            l2 = l0 == INT32_C(2);
+                        }
+                        if (l2) {
+                            l2 = true;
+                        } else {
+                            l2 = l0 == INT32_C(3);
+                        }
+                        if (l2) {
+                            l2 = true;
+                        } else {
+                            l2 = l0 == INT32_C(4);
+                        }
+                        if (l2) {
+                            l2 = true;
+                        } else {
+                            l2 = l0 == INT32_C(7);
+                        }
+                        if (l2) {
+                            l2 = true;
+                        } else {
+                            l2 = l0 == INT32_C(5);
+                        }
+                        if (l2) {
+                            l2 = true;
+                        } else {
+                            l2 = l0 == INT32_C(6);
+                        }
+                        if (l2) {
+                            l1 = false;
+                        } else {
+                            if (l0 == INT32_C(13)) {
+                                l2 = true;
+                            } else {
+                                l2 = l0 == INT32_C(55);
+                            }
+                            if (l2) {
+                                l2 = true;
+                            } else {
+                                l2 = l0 == INT32_C(56);
+                            }
+                            if (l2) {
+                                l2 = true;
+                            } else {
+                                l2 = l0 == INT32_C(57);
+                            }
+                            if (l2) {
+                                l1 = false;
+                            } else {
+                                if (l0 == INT32_C(26)) {
+                                    l2 = true;
+                                } else {
+                                    l2 = l0 == INT32_C(27);
+                                }
+                                if (l2) {
+                                    l2 = true;
+                                } else {
+                                    l2 = l0 == INT32_C(28);
+                                }
+                                if (l2) {
+                                    l2 = true;
+                                } else {
+                                    l2 = l0 == INT32_C(29);
+                                }
+                                if (l2) {
+                                    l1 = false;
+                                } else {
+                                    if (l0 == INT32_C(30)) {
+                                        l2 = true;
+                                    } else {
+                                        l2 = l0 == INT32_C(31);
+                                    }
+                                    if (l2) {
+                                        l2 = true;
+                                    } else {
+                                        l2 = l0 == INT32_C(32);
+                                    }
+                                    if (l2) {
+                                        l1 = false;
+                                    } else {
+                                        if (l0 == INT32_C(58)) {
+                                            l2 = true;
+                                        } else {
+                                            l2 = l0 == INT32_C(59);
+                                        }
+                                        if (l2) {
+                                            l2 = true;
+                                        } else {
+                                            l2 = l0 == INT32_C(60);
+                                        }
+                                        if (l2) {
+                                            l2 = true;
+                                        } else {
+                                            l2 = l0 == INT32_C(61);
+                                        }
+                                        if (l2) {
+                                            l2 = true;
+                                        } else {
+                                            l2 = l0 == INT32_C(62);
+                                        }
+                                        if (l2) {
+                                            l2 = true;
+                                        } else {
+                                            l2 = l0 == INT32_C(0);
+                                        }
+                                        if (l2) {
+                                            l1 = false;
                                         } else {
                                             if (l0 == INT32_C(8)) {
                                                 l2 = true;
@@ -1672,294 +2020,8 @@ bool vader_core_bytecode$intrinsic_may_shorten_array(uint8_t l0) {
                                             if (!(l2)) {
                                                 vader_unreachable("non-exhaustive match (T3013 should have caught this)");
                                             }
-                                            l1 = true;
+                                            l1 = false;
                                         }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return l1;
-}
-
-bool vader_core_bytecode$intrinsic_parks(uint8_t l0) {
-    bool l1, l2;
-    if (l0 == INT32_C(34)) {
-        l1 = true;
-    } else {
-        l1 = l0 == INT32_C(36);
-    }
-    if (l1) {
-        l1 = true;
-        return l1;
-    }
-    if (l0 == INT32_C(46)) {
-        l2 = true;
-    } else {
-        l2 = l0 == INT32_C(47);
-    }
-    if (l2) {
-        l2 = true;
-    } else {
-        l2 = l0 == INT32_C(48);
-    }
-    if (l2) {
-        l2 = true;
-    } else {
-        l2 = l0 == INT32_C(49);
-    }
-    if (l2) {
-        l1 = true;
-    } else if (l0 == INT32_C(37)) {
-        l1 = false;
-    } else {
-        if (l0 == INT32_C(33)) {
-            l2 = true;
-        } else {
-            l2 = l0 == INT32_C(35);
-        }
-        if (l2) {
-            l2 = true;
-        } else {
-            l2 = l0 == INT32_C(38);
-        }
-        if (l2) {
-            l2 = true;
-        } else {
-            l2 = l0 == INT32_C(39);
-        }
-        if (l2) {
-            l1 = false;
-        } else {
-            if (l0 == INT32_C(40)) {
-                l2 = true;
-            } else {
-                l2 = l0 == INT32_C(41);
-            }
-            if (l2) {
-                l2 = true;
-            } else {
-                l2 = l0 == INT32_C(42);
-            }
-            if (l2) {
-                l2 = true;
-            } else {
-                l2 = l0 == INT32_C(50);
-            }
-            if (l2) {
-                l1 = false;
-            } else {
-                if (l0 == INT32_C(43)) {
-                    l2 = true;
-                } else {
-                    l2 = l0 == INT32_C(44);
-                }
-                if (l2) {
-                    l2 = true;
-                } else {
-                    l2 = l0 == INT32_C(45);
-                }
-                if (l2) {
-                    l1 = false;
-                } else {
-                    if (l0 == INT32_C(1)) {
-                        l2 = true;
-                    } else {
-                        l2 = l0 == INT32_C(2);
-                    }
-                    if (l2) {
-                        l2 = true;
-                    } else {
-                        l2 = l0 == INT32_C(3);
-                    }
-                    if (l2) {
-                        l2 = true;
-                    } else {
-                        l2 = l0 == INT32_C(4);
-                    }
-                    if (l2) {
-                        l2 = true;
-                    } else {
-                        l2 = l0 == INT32_C(7);
-                    }
-                    if (l2) {
-                        l2 = true;
-                    } else {
-                        l2 = l0 == INT32_C(5);
-                    }
-                    if (l2) {
-                        l2 = true;
-                    } else {
-                        l2 = l0 == INT32_C(6);
-                    }
-                    if (l2) {
-                        l1 = false;
-                    } else {
-                        if (l0 == INT32_C(13)) {
-                            l2 = true;
-                        } else {
-                            l2 = l0 == INT32_C(51);
-                        }
-                        if (l2) {
-                            l2 = true;
-                        } else {
-                            l2 = l0 == INT32_C(52);
-                        }
-                        if (l2) {
-                            l2 = true;
-                        } else {
-                            l2 = l0 == INT32_C(53);
-                        }
-                        if (l2) {
-                            l1 = false;
-                        } else {
-                            if (l0 == INT32_C(26)) {
-                                l2 = true;
-                            } else {
-                                l2 = l0 == INT32_C(27);
-                            }
-                            if (l2) {
-                                l2 = true;
-                            } else {
-                                l2 = l0 == INT32_C(28);
-                            }
-                            if (l2) {
-                                l2 = true;
-                            } else {
-                                l2 = l0 == INT32_C(29);
-                            }
-                            if (l2) {
-                                l1 = false;
-                            } else {
-                                if (l0 == INT32_C(30)) {
-                                    l2 = true;
-                                } else {
-                                    l2 = l0 == INT32_C(31);
-                                }
-                                if (l2) {
-                                    l2 = true;
-                                } else {
-                                    l2 = l0 == INT32_C(32);
-                                }
-                                if (l2) {
-                                    l1 = false;
-                                } else {
-                                    if (l0 == INT32_C(54)) {
-                                        l2 = true;
-                                    } else {
-                                        l2 = l0 == INT32_C(55);
-                                    }
-                                    if (l2) {
-                                        l2 = true;
-                                    } else {
-                                        l2 = l0 == INT32_C(56);
-                                    }
-                                    if (l2) {
-                                        l2 = true;
-                                    } else {
-                                        l2 = l0 == INT32_C(57);
-                                    }
-                                    if (l2) {
-                                        l2 = true;
-                                    } else {
-                                        l2 = l0 == INT32_C(58);
-                                    }
-                                    if (l2) {
-                                        l2 = true;
-                                    } else {
-                                        l2 = l0 == INT32_C(0);
-                                    }
-                                    if (l2) {
-                                        l1 = false;
-                                    } else {
-                                        if (l0 == INT32_C(8)) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(9);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(10);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(11);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(12);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(14);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(15);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(16);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(17);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(18);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(19);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(20);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(21);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(22);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(23);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(24);
-                                        }
-                                        if (l2) {
-                                            l2 = true;
-                                        } else {
-                                            l2 = l0 == INT32_C(25);
-                                        }
-                                        if (!(l2)) {
-                                            vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-                                        }
-                                        l1 = false;
                                     }
                                 }
                             }
@@ -2799,13 +2861,13 @@ vader_box_t vader_core_bytecode$parse_val_type(vader_string_t l0) {
         l1 = vader_box_i32(581u, INT32_C(2));
     } else if (l0 == 2543u) {
         l1 = vader_box_i32(581u, INT32_C(3));
-    } else if (l0 == 3288u) {
+    } else if (l0 == 3292u) {
         l1 = vader_box_i32(581u, INT32_C(4));
-    } else if (l0 == 3267u) {
+    } else if (l0 == 3271u) {
         l1 = vader_box_i32(581u, INT32_C(5));
-    } else if (l0 == 3268u) {
+    } else if (l0 == 3272u) {
         l1 = vader_box_i32(581u, INT32_C(6));
-    } else if (l0 == 3278u) {
+    } else if (l0 == 3282u) {
         l1 = vader_box_i32(581u, INT32_C(7));
     } else if (l0 == 2377u) {
         l1 = vader_box_i32(581u, INT32_C(8));
@@ -2815,15 +2877,15 @@ vader_box_t vader_core_bytecode$parse_val_type(vader_string_t l0) {
         l1 = vader_box_i32(581u, INT32_C(10));
     } else if (l0 == 2139u) {
         l1 = vader_box_i32(581u, INT32_C(11));
-    } else if (l0 == 3087u) {
+    } else if (l0 == 3091u) {
         l1 = vader_box_i32(581u, INT32_C(12));
-    } else if (l0 == 2877u) {
+    } else if (l0 == 2880u) {
         l1 = vader_box_i32(581u, INT32_C(13));
-    } else if (l0 == 3523u) {
+    } else if (l0 == 3532u) {
         l1 = vader_box_i32(581u, INT32_C(14));
-    } else if (l0 == 2940u) {
+    } else if (l0 == 2943u) {
         l1 = vader_box_i32(581u, INT32_C(15));
-    } else if (l0 == 2970u) {
+    } else if (l0 == 2974u) {
         l1 = vader_box_i32(581u, INT32_C(16));
     } else if (l0 == 1913u) {
         l1 = vader_box_i32(581u, INT32_C(17));
@@ -3116,13 +3178,13 @@ vader_string_t vader_core_bytecode$val_type_name(uint8_t l0) {
     } else if (l0 == INT32_C(3)) {
         l1 = 2543u;
     } else if (l0 == INT32_C(4)) {
-        l1 = 3288u;
+        l1 = 3292u;
     } else if (l0 == INT32_C(5)) {
-        l1 = 3267u;
+        l1 = 3271u;
     } else if (l0 == INT32_C(6)) {
-        l1 = 3268u;
+        l1 = 3272u;
     } else if (l0 == INT32_C(7)) {
-        l1 = 3278u;
+        l1 = 3282u;
     } else if (l0 == INT32_C(8)) {
         l1 = 2377u;
     } else if (l0 == INT32_C(9)) {
@@ -3132,15 +3194,15 @@ vader_string_t vader_core_bytecode$val_type_name(uint8_t l0) {
     } else if (l0 == INT32_C(11)) {
         l1 = 2139u;
     } else if (l0 == INT32_C(12)) {
-        l1 = 3087u;
+        l1 = 3091u;
     } else if (l0 == INT32_C(13)) {
-        l1 = 2877u;
+        l1 = 2880u;
     } else if (l0 == INT32_C(14)) {
-        l1 = 3523u;
+        l1 = 3532u;
     } else if (l0 == INT32_C(15)) {
-        l1 = 2940u;
+        l1 = 2943u;
     } else if (l0 == INT32_C(16)) {
-        l1 = 2970u;
+        l1 = 2974u;
     } else {
         if (!(l0 == INT32_C(17))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");

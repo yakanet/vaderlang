@@ -56,21 +56,21 @@ static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l
         return l2;
     }
     if (l0 == INT32_C(2)) {
-        l2 = 2935u;
+        l2 = 2938u;
     } else if (l0 == INT32_C(3)) {
         l2 = 2631u;
     } else if (l0 == INT32_C(4)) {
         l2 = 1873u;
     } else if (l0 == INT32_C(5)) {
-        l2 = 2868u;
+        l2 = 2871u;
     } else if (l0 == INT32_C(6)) {
         l2 = 2656u;
     } else if (l0 == INT32_C(7)) {
-        l2 = 3556u;
+        l2 = 3565u;
     } else if (l0 == INT32_C(8)) {
         l2 = 2019u;
     } else if (l0 == INT32_C(9)) {
-        l2 = 2859u;
+        l2 = 2862u;
     } else if (l0 == INT32_C(10)) {
         l2 = 2644u;
     } else if (l0 == INT32_C(11)) {
@@ -88,11 +88,11 @@ static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l
     } else if (l0 == INT32_C(17)) {
         l2 = 1864u;
     } else if (l0 == INT32_C(18)) {
-        l2 = 2870u;
+        l2 = 2873u;
     } else if (l0 == INT32_C(19)) {
-        l2 = 3205u;
+        l2 = 3209u;
     } else if (l0 == INT32_C(20)) {
-        l2 = 3210u;
+        l2 = 3214u;
     } else {
         if (!(l0 == INT32_C(0))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");

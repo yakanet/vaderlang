@@ -154,7 +154,7 @@ void* vader_pipeline_check$TaskFaults$toolchain_stage$Stage$describe(void* l0) {
     vader_gc_top = &gc_frame;
     vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
     vader_obj_header_init(_a0_obj, 1901u);
-    _a0_obj->f_name = 3141u;
+    _a0_obj->f_name = 3145u;
     _a0_obj->f_purpose = (uint8_t) 0;
     _a0_obj->f_needs = (uint8_t) 1;
     _a0_obj->f_per = (uint8_t) 0;
@@ -188,7 +188,7 @@ void* vader_pipeline_check$UnusedExports$toolchain_stage$Stage$describe(void* l0
     vader_gc_top = &gc_frame;
     vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
     vader_obj_header_init(_a0_obj, 1901u);
-    _a0_obj->f_name = 3335u;
+    _a0_obj->f_name = 3339u;
     _a0_obj->f_purpose = (uint8_t) 1;
     _a0_obj->f_needs = (uint8_t) 0;
     _a0_obj->f_per = (uint8_t) 0;
@@ -214,7 +214,7 @@ void* vader_pipeline_check$UnusedImports$toolchain_stage$Stage$describe(void* l0
     vader_gc_top = &gc_frame;
     vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
     vader_obj_header_init(_a0_obj, 1901u);
-    _a0_obj->f_name = 3336u;
+    _a0_obj->f_name = 3340u;
     _a0_obj->f_purpose = (uint8_t) 0;
     _a0_obj->f_needs = (uint8_t) 1;
     _a0_obj->f_per = (uint8_t) 0;
@@ -251,7 +251,7 @@ void* vader_pipeline_check$Widening$toolchain_stage$Stage$describe(void* l0) {
     vader_gc_top = &gc_frame;
     vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
     vader_obj_header_init(_a0_obj, 1901u);
-    _a0_obj->f_name = 3550u;
+    _a0_obj->f_name = 3559u;
     _a0_obj->f_purpose = (uint8_t) 0;
     _a0_obj->f_needs = (uint8_t) 1;
     _a0_obj->f_per = (uint8_t) 0;

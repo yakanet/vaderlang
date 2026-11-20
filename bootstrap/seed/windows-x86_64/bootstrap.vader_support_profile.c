@@ -356,7 +356,7 @@ static vader_string_t vader_support_profile$open_name(vader_box_t l0) {
         t1 = vader_support_profile$phase_name(t0);
         return t1;
     }
-    return 2867u;
+    return 2870u;
 }
 
 static vader_string_t vader_support_profile$painted_name(int64_t l0, vader_string_t l1) {
@@ -385,13 +385,13 @@ static vader_string_t vader_support_profile$phase_name(uint8_t l0) {
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 3256u;
+        l1 = 3260u;
     } else if (l0 == INT32_C(2)) {
         l1 = 2169u;
     } else if (l0 == INT32_C(3)) {
         l1 = 2737u;
     } else if (l0 == INT32_C(4)) {
-        l1 = 2948u;
+        l1 = 2951u;
     } else if (l0 == INT32_C(5)) {
         l1 = 2134u;
     } else if (l0 == INT32_C(6)) {
@@ -407,12 +407,12 @@ static vader_string_t vader_support_profile$phase_name(uint8_t l0) {
     } else if (l0 == INT32_C(11)) {
         l1 = 2712u;
     } else if (l0 == INT32_C(12)) {
-        l1 = 3503u;
+        l1 = 3512u;
     } else {
         if (!(l0 == INT32_C(13))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 2958u;
+        l1 = 2962u;
     }
     return l1;
 }
@@ -554,7 +554,7 @@ static void vader_support_profile$print_step(void* l0) {
                 l1 = vader_chk_add(i64, l1, l14);
                 l4 = (l4 + INT64_C(1));
             }
-            vader_support_profile$print_line(INT64_C(1), 3055u, 0u, l1);
+            vader_support_profile$print_line(INT64_C(1), 3059u, 0u, l1);
             l1 = vader_array_length(((vader_array_t*) l2));
             l3 = INT64_C(0);
             while ((l3 < l1)) {
@@ -901,7 +901,7 @@ static vader_string_t vader_support_profile$stage_detail(void* l0) {
     if ((t0 > INT64_C(0))) {
         t0 = ((vader_struct_vader_support_profile$StageTime_t*) l0)->f_sources_ns;
         l2 = vader_support_profile$display_duration(t0);
-        l2 = concat_2(3049u, l2);
+        l2 = concat_2(3053u, l2);
         vader_array_push_scalar((vader_array_t*) l1, vader_box_string(576u, l2));
     }
     t0 = ((vader_struct_vader_support_profile$StageTime_t*) l0)->f_bodies_ns;

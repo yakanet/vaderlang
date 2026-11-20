@@ -89,9 +89,9 @@ static void* vader_midir_pipeline$through_value_returns(void* l0, void* l1, void
         vader_midir_pipeline$measure_begin(l0, (uint8_t) 12);
         l3 = vader_midir_value__return$scalarise_value_returns(l1);
         vader_midir_pipeline$measure_end(l0, (uint8_t) 12);
-        vader_midir_pipeline$verify_after(l0, l3, 3014u, l2);
+        vader_midir_pipeline$verify_after(l0, l3, 3018u, l2);
         l3 = vader_midir_value__return$struct_field_forward_project(l3);
-        vader_midir_pipeline$verify_after(l0, l3, 3119u, l2);
+        vader_midir_pipeline$verify_after(l0, l3, 3123u, l2);
         { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
