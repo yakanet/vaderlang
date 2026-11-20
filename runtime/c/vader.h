@@ -1365,12 +1365,18 @@ typedef struct vader_worker {
     /* A thread of its own whose entry returned: its scheduler frees the stack
      * on arrival, since a stack cannot be freed while it runs. */
     struct vader_virtual_thread* ended;
+    /* Its threads that are not free, whatever they do: its own minors read
+     * them, and only it adds or removes one. */
+    struct vader_virtual_thread** live;
+    size_t                       live_count;
+    size_t                       live_cap;
     /* Its young generation, which only its own minors collect: no other worker
      * holds a pointer into it. */
     vader_gen_t                  young;
     /* The bound the inline bump of `vader_gc_alloc` tests against: the end of
-     * `young.from`, or NULL to send every allocation to the slow path. */
-    char*                        alloc_limit;
+     * `young.from`, or NULL to send every allocation to the slow path. A major
+     * of another worker sets it to NULL to stop this one there. */
+    _Atomic(char*)               alloc_limit;
     /* Its card table, one byte per `VADER_CARD_BYTES` of the old reservation: a
      * card is dirty where an old object may point into its young generation.
      * `card_shadow` is the copy a minor scans while it cleans the table. */
@@ -1382,6 +1388,9 @@ typedef struct vader_worker {
     size_t                       gray_cap;
     /* The collection it runs. */
     vader_cycle_t                cycle;
+    /* While it may be stopped for a major (`vader_gc_blocking`): the low end of
+     * its C stack, under the registers it stored there. */
+    char*                        stop_sp;
     vader_gc_counts_t            counts;
 } vader_worker_t;
 

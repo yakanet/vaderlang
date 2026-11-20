@@ -49,24 +49,13 @@ static void vader_atom_mark_box(const vader_box_t* bp) {
  * positives only retain a small atom). A live atom held only in a C local must
  * be found here, or its bytes get freed under a still-live `bytes()` view.
  * Scanned 4-byte-aligned because a u32 local need not be 8-aligned. */
-static void vader_atom_mark_stack_range(char* lo, char* base) {
+static void vader_atom_mark_stack_range(char* lo, char* base, void* unused) {
+    (void) unused;
     if (lo == NULL || base == NULL) return;
     lo = (char*) ((uintptr_t) lo & ~(uintptr_t)3u);
     for (char* p = lo; p + sizeof(uint32_t) <= base; p += sizeof(uint32_t)) {
         vader_atom_mark((vader_atom_t) *(uint32_t volatile*) p);
     }
-}
-
-static void vader_atom_mark_waiting_stack(const vader_virtual_thread_roots_t* r, void* unused) {
-    (void) unused;
-    vader_atom_mark_stack_range(r->sp, r->hi);
-}
-
-static void vader_atom_mark_cstack_conservative(void) {
-    jmp_buf regs;
-    (void) setjmp(regs);
-    vader_atom_mark_stack_range((char*) &regs, vader_virtual_thread_stack_top());
-    vader_virtual_thread_each_waiting(&vader_worker, vader_atom_mark_waiting_stack, NULL);
 }
 
 /* Forward decl: the stack-object root walk below needs it, and its definition
@@ -113,16 +102,18 @@ static void vader_atom_mark_thread(vader_gc_frame_t* top, vader_box_t* defers, s
     }
 }
 
-static void vader_atom_mark_waiting(const vader_virtual_thread_roots_t* r, void* unused) {
+static void vader_atom_mark_root_thread(vader_gc_frame_t* top, vader_box_t* defers,
+                                        size_t ndefers, void* unused) {
     (void) unused;
-    vader_atom_mark_thread(r->top, r->defers, r->ndefers);
+    vader_atom_mark_thread(top, defers, ndefers);
 }
 
+/* The roots of every worker: the major that collects atoms has stopped them. */
 static void vader_atom_mark_roots(void) {
-    const vader_thread_state_t* running = &vader_worker.running;
-    vader_atom_mark_thread(running->gc_top, running->defer_stack, running->defer_len);
-    vader_virtual_thread_each_waiting(&vader_worker, vader_atom_mark_waiting, NULL);
-    vader_atom_mark_cstack_conservative();
+    for (size_t i = 0; i < g_worker_count; i++) {
+        vader_gc_each_root_thread(g_workers[i], vader_atom_mark_root_thread, NULL);
+    }
+    vader_gc_each_stack(vader_atom_mark_stack_range, NULL);
 }
 
 /* Mark every atom referenced by one heap object's slots (string fields, borrowed

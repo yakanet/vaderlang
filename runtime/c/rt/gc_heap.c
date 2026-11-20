@@ -126,21 +126,33 @@ static size_t        g_young_cap = 0;
 /* Set by `vader_gc_count_allocations`, never cleared. */
 static int g_count_allocations = 0;
 
-/* Set `w->alloc_limit`: NULL before init, under the stress modes, and once
- * allocations are counted, which act on or count every allocation. Refreshed
+/* Set `w->alloc_limit`: NULL before init, under the stress modes, once
+ * allocations are counted, which act on or count every allocation, and while a
+ * major waits for the workers to stop at the slow path. Refreshed
  * whenever `w->young.from` moves and when counting turns on; the stress flags
  * are set before the first carve. */
 static void vader_alloc_limit_refresh(vader_worker_t* w) {
-    if (g_gc_stress || g_gc_stress_major || g_count_allocations) {
-        w->alloc_limit = NULL;
-    } else {
-        w->alloc_limit = w->young.from.end;
-    }
+    char* limit = w->young.from.end;
+    if (g_gc_stress || g_gc_stress_major || g_count_allocations) limit = NULL;
+    atomic_store(&w->alloc_limit, limit);
+    /* After the store: a major that asked before it sets the limit to NULL
+     * after it, or is seen here. */
+    if (atomic_load(&g_gc_stop_requested)) atomic_store(&w->alloc_limit, NULL);
+}
+
+/* The bound of the inline bump, as its owner reads it. */
+static inline char* vader_alloc_limit_of(vader_worker_t* w) {
+    return atomic_load_explicit(&w->alloc_limit, memory_order_relaxed);
+}
+
+/* `vader_alloc_limit_refresh` on every worker. */
+static void vader_alloc_limit_refresh_all(void) {
+    for (size_t i = 0; i < g_worker_count; i++) vader_alloc_limit_refresh(g_workers[i]);
 }
 
 void vader_gc_count_allocations(void) {
     g_count_allocations = 1;
-    for (size_t i = 0; i < g_worker_count; i++) vader_alloc_limit_refresh(g_workers[i]);
+    vader_alloc_limit_refresh_all();
 }
 
 static size_t vader_gc_align(size_t n) {
@@ -295,7 +307,7 @@ static vader_old_region_t* vader_old_carve_region(size_t region_bytes, size_t sl
 /* Allocate `bytes` of old-gen storage (the promotion path). Returns raw,
  * uninitialised slot memory (caller writes the object + header) or NULL when the
  * reservation is exhausted at the cap (caller keeps the object in young). */
-static void* vader_old_alloc(size_t bytes) {
+static void* vader_old_alloc_held(size_t bytes) {
     size_t aligned = vader_gc_align(bytes);
     if (aligned <= VADER_OLD_SMALL_MAX) {
         size_t ci = (aligned - 1u) / VADER_OLD_CLASS_GRAN;     /* 0..NUM_CLASSES-1 */
@@ -335,6 +347,21 @@ static void* vader_old_alloc(size_t bytes) {
     r->cur = r->base + aligned;       /* the single slot is now in use */
     g_old_live_bytes += aligned;
     return r->base;
+}
+
+/* Serialises the allocations in old of several workers. NULL with one. */
+static vader_os_lock_t* g_old_guard = NULL;
+
+static void vader_old_pool_start(void) {
+    g_old_guard = vader_os_lock_new();
+}
+
+static void* vader_old_alloc(size_t bytes) {
+    if (g_old_guard == NULL) return vader_old_alloc_held(bytes);
+    vader_os_lock(g_old_guard);
+    void* p = vader_old_alloc_held(bytes);
+    vader_os_unlock(g_old_guard);
+    return p;
 }
 
 /* Walk every LIVE old object (mark == g_mark_value) and invoke `fn`. Used by the
@@ -718,6 +745,7 @@ static void vader_old_maybe_major(void) {
  * frame. */
 static VADER_NOINLINE void* vader_gc_alloc_slow(vader_worker_t* w, size_t bytes) {
     if (VADER_UNLIKELY(!g_gc_initialized)) vader_gc_init();
+    vader_gc_safepoint(NULL);
     vader_arena_t* from = &w->young.from;
     /* Count raw requested bytes (same basis as `copied`) so the profiler can
      * report an alloc'd-vs-survived ratio. One increment per call. */
@@ -785,7 +813,7 @@ VADER_NOINLINE void* vader_gc_alloc(size_t bytes) {
     vader_worker_t* w = &vader_worker;
     bytes = vader_obj_bytes(bytes);
     size_t aligned = vader_gc_align(bytes);
-    if (VADER_LIKELY((uintptr_t) w->young.from.cur + aligned < (uintptr_t) w->alloc_limit)) {
+    if (VADER_LIKELY((uintptr_t) w->young.from.cur + aligned < (uintptr_t) vader_alloc_limit_of(w))) {
         return vader_gc_alloc_young_unchecked(w, aligned);
     }
     return vader_gc_alloc_slow(w, bytes);
@@ -812,7 +840,7 @@ static VADER_NOINLINE void* vader_gc_alloc_slot_aligned(size_t bytes) {
     size_t aligned = vader_gc_align(bytes);
     char*  cur     = w->young.from.cur;
     size_t pad     = vader_gc_slot_pad(cur);
-    if (VADER_LIKELY((uintptr_t) cur + pad + aligned < (uintptr_t) w->alloc_limit)) {
+    if (VADER_LIKELY((uintptr_t) cur + pad + aligned < (uintptr_t) vader_alloc_limit_of(w))) {
         if (pad != 0u) vader_gc_put_filler(cur);
         w->young.from.cur = cur + pad + aligned;
         return cur + pad;

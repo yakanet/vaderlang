@@ -576,6 +576,10 @@ static void vader_os_cond_signal(vader_os_cond_t* cond) {
     WakeConditionVariable(&cond->cond);
 }
 
+static void vader_os_cond_broadcast(vader_os_cond_t* cond) {
+    WakeAllConditionVariable(&cond->cond);
+}
+
 static DWORD WINAPI vader_os_thread_main(LPVOID raw) {
     vader_os_thread_start_t start = *(vader_os_thread_start_t*) raw;
     free(raw);

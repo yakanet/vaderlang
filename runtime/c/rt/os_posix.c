@@ -372,6 +372,10 @@ static void vader_os_cond_signal(vader_os_cond_t* cond) {
     pthread_cond_signal(&cond->cond);
 }
 
+static void vader_os_cond_broadcast(vader_os_cond_t* cond) {
+    pthread_cond_broadcast(&cond->cond);
+}
+
 static void* vader_os_thread_main(void* raw) {
     vader_os_thread_start_t start = *(vader_os_thread_start_t*) raw;
     free(raw);

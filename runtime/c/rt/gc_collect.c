@@ -94,7 +94,8 @@ static char* vader_old_slot_of(void* p) {
  * The precise shadow stack does not root every live OLD pointer at every
  * safepoint: a live old ref can sit only in a C local / register. The old gen
  * reuses freed slots eagerly, so the major must find those refs. We do it
- * conservatively: flush callee-saved registers (setjmp), then walk the C stack
+ * conservatively: flush callee-saved registers (setjmp), then walk the C stacks
+ * of every worker and of every thread that waits (`vader_gc_each_stack`)
  * word-by-word and MARK every old object any word points at (interior pointers
  * map to their slot). Old objects never move, so a false positive merely
  * retains a dead object: no pinning, no correctness risk. Found objects are
@@ -120,16 +121,56 @@ static void vader_gc_mark_stack_range(vader_worker_t* w, char* lo, char* base) {
     }
 }
 
+/* What `vader_gc_each_stack` calls back, with the range of one stack. */
+typedef struct {
+    void (*fn)(char* lo, char* hi, void* ctx);
+    void* ctx;
+} vader_gc_stack_visit_t;
+
 /* A thread that is not running: its switch stored its registers at `sp`. */
-static void vader_gc_mark_waiting_stack(const vader_virtual_thread_roots_t* r, void* w) {
-    vader_gc_mark_stack_range((vader_worker_t*) w, r->sp, r->hi);
+static void vader_gc_visit_waiting_stack(const vader_virtual_thread_roots_t* r, void* raw) {
+    const vader_gc_stack_visit_t* visit = (const vader_gc_stack_visit_t*) raw;
+    visit->fn(r->sp, r->hi, visit->ctx);
 }
 
-static void vader_gc_mark_cstack_conservative(vader_worker_t* w) {
+static VADER_NOINLINE void vader_gc_each_stack(void (*fn)(char* lo, char* hi, void* ctx), void* ctx) {
     jmp_buf regs;
-    (void) setjmp(regs);                 /* spill callee-saved registers onto the stack */
-    vader_gc_mark_stack_range(w, (char*) &regs, vader_virtual_thread_stack_top());
-    vader_virtual_thread_each_waiting(w, vader_gc_mark_waiting_stack, w);
+    VADER_SPILL_REGISTERS(regs);
+    vader_gc_stack_visit_t visit = { fn, ctx };
+    for (size_t i = 0; i < g_worker_count; i++) {
+        vader_worker_t* x = g_workers[i];
+        /* The collector's own stack from its spilled registers up; another
+         * worker's from where it stopped. */
+        char* lo = x->stop_sp;
+        if (x == &vader_worker) lo = (char*) &regs;
+        fn(lo, vader_virtual_thread_stack_top(x), ctx);
+        vader_virtual_thread_each_waiting(x, vader_gc_visit_waiting_stack, &visit);
+    }
+}
+
+static void vader_gc_mark_range(char* lo, char* hi, void* w) {
+    vader_gc_mark_stack_range((vader_worker_t*) w, lo, hi);
+}
+
+/* What `vader_gc_each_root_thread` calls back, with the roots of one thread. */
+typedef struct {
+    void (*fn)(vader_gc_frame_t* top, vader_box_t* defers, size_t ndefers, void* ctx);
+    void* ctx;
+} vader_gc_root_visit_t;
+
+static void vader_gc_visit_waiting_roots(const vader_virtual_thread_roots_t* r, void* raw) {
+    const vader_gc_root_visit_t* visit = (const vader_gc_root_visit_t*) raw;
+    visit->fn(r->top, r->defers, r->ndefers, visit->ctx);
+}
+
+static void vader_gc_each_root_thread(const vader_worker_t* x,
+                                      void (*fn)(vader_gc_frame_t* top, vader_box_t* defers,
+                                                 size_t ndefers, void* ctx),
+                                      void* ctx) {
+    const vader_thread_state_t* running = &x->running;
+    fn(running->gc_top, running->defer_stack, running->defer_len, ctx);
+    vader_gc_root_visit_t visit = { fn, ctx };
+    vader_virtual_thread_each_waiting(x, vader_gc_visit_waiting_roots, &visit);
 }
 
 /* ---- generational GC: copying young, mark-sweep old ---------------------- */
@@ -409,16 +450,16 @@ static void vader_gc_scan_thread(vader_worker_t* w, vader_gc_frame_t* top, vader
     }
 }
 
-static void vader_gc_scan_waiting(const vader_virtual_thread_roots_t* r, void* w) {
-    vader_gc_scan_thread((vader_worker_t*) w, r->top, r->defers, r->ndefers);
+static void vader_gc_scan_root_thread(vader_gc_frame_t* top, vader_box_t* defers, size_t ndefers,
+                                      void* w) {
+    vader_gc_scan_thread((vader_worker_t*) w, top, defers, ndefers);
 }
 
-/* Walk the shadow stack of every thread of `w` and forward every root cell.
- * Used by both cycles. */
-static void vader_gc_scan_roots(vader_worker_t* w) {
-    const vader_thread_state_t* running = &w->running;
-    vader_gc_scan_thread(w, running->gc_top, running->defer_stack, running->defer_len);
-    vader_virtual_thread_each_waiting(w, vader_gc_scan_waiting, w);
+/* Walk the shadow stack of every thread of `x` and forward every root cell, as
+ * the collection `w` runs: `x` itself for a minor, every worker for the mark
+ * of a major. */
+static void vader_gc_scan_roots(vader_worker_t* w, const vader_worker_t* x) {
+    vader_gc_each_root_thread(x, vader_gc_scan_root_thread, w);
 }
 
 /* The first card in [c, hi] marked in `dirty`, or hi + 1. Steps over clean
@@ -526,7 +567,7 @@ static void vader_gc_minor(vader_worker_t* w) {
     char* young_scan = young->to.base;
     w->gray_len = 0;                                     /* promotions queue here */
 
-    vader_gc_scan_roots(w);
+    vader_gc_scan_roots(w, w);
     vader_gc_scan_old_dirty_cards(w);
 
     /* Drain young.to and the gray worklist until neither advances: forwarding a
@@ -578,15 +619,118 @@ void vader_minor_collect(void) {
     vader_gc_minor(&vader_worker);
 }
 
+/* ---- stopping the world -------------------------------------------------- */
+
+/* With several workers, a major first stops every other one: at the slow path
+ * of an allocation, or in a wait of the runtime (`vader_gc_blocking`). NULL
+ * with one worker. */
+static vader_os_lock_t* g_gc_stop_guard = NULL;
+/* The collector waits on `stopped` for the others, which wait on `resumed`. */
+static vader_os_cond_t* g_gc_stopped = NULL;
+static vader_os_cond_t* g_gc_resumed = NULL;
+static _Atomic int g_gc_stop_requested = 0;
+/* The workers that count as stopped. */
+static size_t g_gc_outside = 0;
+/* The majors run so far: a worker that waited through another's needs none. */
+static size_t g_gc_majors = 0;
+
+static void vader_gc_pool_start(void) {
+    vader_old_pool_start();
+    g_gc_stop_guard = vader_os_lock_new();
+    g_gc_stopped = vader_os_cond_new();
+    g_gc_resumed = vader_os_cond_new();
+}
+
+static VADER_NOINLINE void vader_gc_blocking(void (*op)(void* arg), void* arg, vader_os_lock_t* held) {
+    if (g_gc_stop_guard == NULL) {
+        if (op != NULL) op(arg);
+        return;
+    }
+    vader_worker_t* w = &vader_worker;
+    jmp_buf regs;
+    VADER_SPILL_REGISTERS(regs);
+    vader_os_lock(g_gc_stop_guard);
+    w->stop_sp = (char*) &regs;
+    g_gc_outside++;
+    if (atomic_load(&g_gc_stop_requested)) vader_os_cond_signal(g_gc_stopped);
+    vader_os_unlock(g_gc_stop_guard);
+    if (op != NULL) op(arg);
+    vader_os_lock(g_gc_stop_guard);
+    while (atomic_load(&g_gc_stop_requested)) {
+        /* Never wait for a major holding `held`: a worker that waits to take it
+         * would never stop. It is taken back before the guard, in the order
+         * every other taker follows. */
+        if (held != NULL) vader_os_unlock(held);
+        while (atomic_load(&g_gc_stop_requested)) vader_os_cond_wait(g_gc_resumed, g_gc_stop_guard, -1);
+        if (held == NULL) break;
+        vader_os_unlock(g_gc_stop_guard);
+        vader_os_lock(held);
+        vader_os_lock(g_gc_stop_guard);
+    }
+    g_gc_outside--;
+    w->stop_sp = NULL;
+    vader_os_unlock(g_gc_stop_guard);
+}
+
+static void vader_gc_safepoint(vader_os_lock_t* held) {
+    if (atomic_load_explicit(&g_gc_stop_requested, memory_order_relaxed)) {
+        vader_gc_blocking(NULL, NULL, held);
+    }
+}
+
+/* Stop every other worker; false, with none stopped, when another worker
+ * collected while this one waited for it to finish, so that no major is due.
+ * With one worker there is nothing to stop. */
+static bool vader_gc_stop_world(void) {
+    if (g_gc_stop_guard == NULL) return true;
+    vader_os_lock(g_gc_stop_guard);
+    size_t seen = g_gc_majors;
+    while (atomic_load(&g_gc_stop_requested)) {
+        vader_os_unlock(g_gc_stop_guard);
+        vader_gc_safepoint(NULL);
+        vader_os_lock(g_gc_stop_guard);
+    }
+    if (g_gc_majors != seen) {
+        vader_os_unlock(g_gc_stop_guard);
+        return false;
+    }
+    atomic_store(&g_gc_stop_requested, 1);
+    /* A worker that allocates without leaving the inline path takes the slow
+     * one, where it stops. */
+    vader_alloc_limit_refresh_all();
+    while (g_gc_outside + 1u < g_worker_count) {
+        vader_os_cond_wait(g_gc_stopped, g_gc_stop_guard, -1);
+    }
+    vader_os_unlock(g_gc_stop_guard);
+    return true;
+}
+
+static void vader_gc_resume_world(void) {
+    if (g_gc_stop_guard == NULL) return;
+    vader_os_lock(g_gc_stop_guard);
+    g_gc_majors++;
+    atomic_store(&g_gc_stop_requested, 0);
+    vader_alloc_limit_refresh_all();
+    vader_os_cond_broadcast(g_gc_resumed);
+    vader_os_unlock(g_gc_stop_guard);
+}
+
+/* ---- the major ----------------------------------------------------------- */
+
 void vader_major_collect(void) {
     if (!g_gc_initialized) return;
     vader_worker_t* w = &vader_worker;
+    if (!vader_gc_stop_world()) return;
 
-    /* 1. Drain young (a minor). Survivors that earned tenure promote into the
-     * slab via vader_old_alloc; the rest, and any the slab cannot take, stay in
-     * young.from. */
-    w->cycle = VADER_CYCLE_MAJOR_DRAIN;
-    vader_gc_minor(w);
+    /* 1. Drain every young generation (a minor each, with its own roots).
+     * Survivors that earned tenure promote into the slab via vader_old_alloc;
+     * the rest, and any the slab cannot take, stay in young.from. */
+    for (size_t i = 0; i < g_worker_count; i++) {
+        vader_worker_t* x = g_workers[i];
+        x->cycle = VADER_CYCLE_MAJOR_DRAIN;
+        vader_gc_minor(x);
+        x->cycle = VADER_CYCLE_NONE;
+    }
 
     /* 2. Toggle the epoch mark value. Last epoch's live objects carry the old
      * value, so they now read as "unmarked" with no clear pass; the mark phase
@@ -595,20 +739,23 @@ void vader_major_collect(void) {
     g_mark_value = (g_mark_value == 1u) ? 2u : 1u;
 
     /* 3. Mark. Old objects don't move: vader_gc_forward sets the mark bit and
-     * pushes to the gray worklist instead of copying. Seed from roots + every
-     * young survivor (kept whole during the old pass; scanning them marks the
-     * old objects they reference), then drain the gray worklist for the
-     * transitive old->old closure. */
+     * pushes to the gray worklist instead of copying. Seed from the roots of
+     * every worker + every young survivor (kept whole during the old pass;
+     * scanning them marks the old objects they reference), then drain the gray
+     * worklist for the transitive old->old closure. */
     w->cycle = VADER_CYCLE_MAJOR;
     w->gray_len = 0;
-    vader_gc_scan_roots(w);
-    (void) vader_gc_drain(w, w->young.from.base, &w->young.from);
+    for (size_t i = 0; i < g_worker_count; i++) {
+        vader_worker_t* x = g_workers[i];
+        vader_gc_scan_roots(w, x);
+        (void) vader_gc_drain(w, x->young.from.base, &x->young.from);
+    }
     /* Conservatively mark old objects reachable only from C locals / registers
      * (the shadow stack doesn't precisely root old refs, see the function).
      * `VADER_GC_NO_CSTACK_SCAN=1` skips it so the gaps in the PRECISE rooting
      * surface as failures instead of being papered over, see the flag. */
     if (!g_gc_no_cstack_scan) {
-        vader_gc_mark_cstack_conservative(w);
+        vader_gc_each_stack(vader_gc_mark_range, w);
     }
     char* gray = NULL;
     while (vader_gray_pop(w, &gray)) (void) vader_gc_scan_object(w, gray);
@@ -625,6 +772,7 @@ void vader_major_collect(void) {
     w->cycle = VADER_CYCLE_NONE;
     w->counts.collections++;
     vader_atom_gc_collect();
+    vader_gc_resume_world();
 }
 
 /* Public alias. `runtime.collect()` in Vader maps here; tests rely on it

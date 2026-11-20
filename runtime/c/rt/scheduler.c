@@ -160,6 +160,9 @@ static vader_scheduler_worker_t* vader_scheduler_me(void) {
     return &g_scheduler_workers[vader_worker.index];
 }
 
+/* A worker that waits for the lock does not stop for a major: an entry such as
+ * `wake` holds young references the collector does not see. No worker waits
+ * for a major holding the lock (`vader_gc_blocking`), so the wait is short. */
 static void vader_scheduler_lock(void) {
     if (g_scheduler_guard == NULL) return;
     vader_scheduler_worker_t* me = vader_scheduler_me();
@@ -174,11 +177,24 @@ static void vader_scheduler_unlock(void) {
     vader_os_unlock(g_scheduler_guard);
 }
 
+/* A wait on the condition of a worker, as `vader_gc_blocking` runs it. */
+typedef struct {
+    vader_os_cond_t* cond;
+    int64_t          timeout_ns;
+} vader_scheduler_wait_t;
+
+static void vader_scheduler_wait_cond(void* raw) {
+    const vader_scheduler_wait_t* wait = (const vader_scheduler_wait_t*) raw;
+    vader_os_cond_wait(wait->cond, g_scheduler_guard, wait->timeout_ns);
+}
+
 /* Let the lock go and wait on `w`'s condition, at most `timeout_ns` when not
- * negative, then take the lock again. */
+ * negative, then take the lock again. A worker waiting counts as stopped for a
+ * major. */
 static void vader_scheduler_wait_on(vader_scheduler_worker_t* w, int64_t timeout_ns) {
+    vader_scheduler_wait_t wait = { w->wake, timeout_ns };
     w->holds_guard = 0;
-    vader_os_cond_wait(w->wake, g_scheduler_guard, timeout_ns);
+    vader_gc_blocking(vader_scheduler_wait_cond, &wait, g_scheduler_guard);
     w->holds_guard = 1;
 }
 
@@ -475,10 +491,20 @@ static int vader_scheduler_waits_on_os(void) {
     return vader_scheduler_watching() || vader_scheduler_next_deadline(&g_scheduler_bounds, &bound);
 }
 
+static void vader_scheduler_wait_events(void* timeout_ns) {
+    vader_os_wait_events(*(const int64_t*) timeout_ns);
+}
+
 /* Ask the OS what it has, waiting at most `timeout_ns`. The threads it makes
- * ready, with those already ready on `w`, run before `w` asks again. */
+ * ready, with those already ready on `w`, run before `w` asks again. A worker
+ * that waits on the OS counts as stopped for a major: it holds the lock, but the
+ * other workers all rest. */
 static void vader_scheduler_ask_os(vader_scheduler_worker_t* w, int64_t timeout_ns) {
-    vader_os_wait_events(timeout_ns);
+    if (timeout_ns == 0) {
+        vader_os_wait_events(0);
+    } else {
+        vader_gc_blocking(vader_scheduler_wait_events, &timeout_ns, g_scheduler_guard);
+    }
     g_scheduler_asked_at = vader_os_monotonic_ns();
     w->turn_left = w->len;
 }
@@ -669,6 +695,8 @@ static void vader_scheduler_deadlock(void) {
 static void vader_scheduler_loop(void) {
     vader_scheduler_worker_t* me = vader_scheduler_me();
     for (;;) {
+        /* A worker whose threads take turns without allocating stops here. */
+        vader_gc_safepoint(g_scheduler_guard);
         vader_scheduler_fire_due_timers(&g_scheduler_sleeps);
         vader_scheduler_fire_due_timers(&g_scheduler_bounds);
         if (me->turn_left == 0u && me->len > 0u && vader_scheduler_watching()) {
@@ -708,7 +736,7 @@ static void vader_scheduler_start_pool(void) {
     size_t threads = vader_gc_env_count("VADER_THREADS", 1u, 1u, VADER_WORKERS_MAX,
                                         "a whole number of workers, from 1 to 256");
     if (threads == 1u) return;
-    if (!g_gc_initialized) vader_gc_init();
+    vader_gc_pool_start();
     g_scheduler_guard = vader_os_lock_new();
     for (size_t i = 0; i < threads; i++) g_scheduler_workers[i].wake = vader_os_cond_new();
     g_scheduler_threads = (uint32_t) threads;
@@ -733,6 +761,9 @@ static void vader_scheduler_read_clock(void) {
 static void vader_scheduler_start(void) {
     if (g_scheduler_started) return;
     g_scheduler_started = 1;
+    /* Lists the main thread's worker among the workers, whose threads the
+     * scheduler walks. */
+    if (!g_gc_initialized) vader_gc_init();
     vader_scheduler_read_clock();
     vader_virtual_thread_start_scheduler();
     vader_scheduler_fresh_slot(vader_virtual_thread_main(), 0u);

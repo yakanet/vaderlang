@@ -24,7 +24,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdatomic.h>
 #include <setjmp.h>   /* setjmp: flush callee-saved registers for the conservative old-gen stack scan */
+
+/* A lock of the OS, and a condition a thread waits on under it
+ * (rt/os_posix.c, rt/os_windows.c). */
+typedef struct vader_os_lock vader_os_lock_t;
+typedef struct vader_os_cond vader_os_cond_t;
 
 /* ---- defer_traps.c ------------------------------------------------------- */
 
@@ -60,6 +66,7 @@ static vader_worker_t* g_workers[VADER_WORKERS_MAX];
 static size_t g_worker_count;
 
 static void vader_alloc_limit_refresh(vader_worker_t* w);
+static void vader_alloc_limit_refresh_all(void);
 /* Give `w` a heap of its own and list it among the workers. */
 static void vader_gc_worker_init(vader_worker_t* w);
 /* Read the whole number in `env_name`, from `min` to `max`; `fallback` when
@@ -74,6 +81,8 @@ static int vader_in_young(const vader_worker_t* w, const void* p);
 static int vader_in_old(const void* p);
 static int vader_gc_env_bool(const char* env_name);
 static void* vader_old_alloc(size_t bytes);
+/* With several workers, promotions into old take a lock. */
+static void vader_old_pool_start(void);
 static void vader_old_foreach_live(void (*fn)(char* obj, uint32_t type_index, void* ctx), void* ctx);
 static void vader_young_foreach(void (*fn)(char* obj, uint32_t type_index, void* ctx), void* ctx);
 static void vader_old_sweep(void);
@@ -86,6 +95,35 @@ static size_t g_card_count;
 
 /* A minor over the young generation of `w`, with its roots. */
 static void vader_gc_minor(vader_worker_t* w);
+/* Make ready, once the pool starts, what a major needs to stop the other
+ * workers. */
+static void vader_gc_pool_start(void);
+/* Run `op(arg)`, a wait of the runtime, as a stretch where the calling worker
+ * counts as stopped for a major: its registers on its stack, which the
+ * collector reads from there up. It returns once no major runs. `op` runs no
+ * Vader code and allocates nothing. `held` is a lock `op` returns holding, or
+ * NULL: it is let go while a major runs. With one worker it only runs `op`. */
+static void vader_gc_blocking(void (*op)(void* arg), void* arg, vader_os_lock_t* held);
+/* Store every callee-saved register of the calling frame on its stack, in
+ * `regs` among others, for a conservative scan from `&regs` up: `setjmp`
+ * alone mangles some. */
+#define VADER_SPILL_REGISTERS(regs) do { __builtin_unwind_init(); (void) setjmp(regs); } while (0)
+/* Stop here if another worker collects, letting go of `held` meanwhile, a
+ * lock the caller holds, or NULL (`vader_gc_blocking`). */
+static void vader_gc_safepoint(vader_os_lock_t* held);
+/* Call `fn` with the range of each C stack a conservative scan reads during a
+ * major: the stack each worker runs on (the collector's from its spilled
+ * registers, another's from where it stopped), and each waiting thread's. */
+static void vader_gc_each_stack(void (*fn)(char* lo, char* hi, void* ctx), void* ctx);
+/* Call `fn` with the precise roots of each thread of `x`: the one it runs, then
+ * those that wait. */
+static void vader_gc_each_root_thread(const vader_worker_t* x,
+                                      void (*fn)(vader_gc_frame_t* top, vader_box_t* defers,
+                                                 size_t ndefers, void* ctx),
+                                      void* ctx);
+/* A major waits for every other worker to stop. Read without a lock by the
+ * slow path of the allocation. */
+static _Atomic int g_gc_stop_requested;
 
 static size_t vader_gc_obj_size(void* obj, uint32_t type_index);
 static void* vader_gc_force_tenure(void* obj);
@@ -165,8 +203,9 @@ typedef struct {
     char*             hi;
 } vader_virtual_thread_roots_t;
 
-/* The top of the running thread's stack, where its conservative scan stops. */
-static char* vader_virtual_thread_stack_top(void);
+/* The top of the stack of the thread `w` runs, where its conservative scan
+ * stops. */
+static char* vader_virtual_thread_stack_top(const vader_worker_t* w);
 /* Call `fn` with the roots of each thread of `w` alive but the one it runs. */
 static void vader_virtual_thread_each_waiting(const vader_worker_t* w,
                                               void (*fn)(const vader_virtual_thread_roots_t*, void* ctx),
@@ -271,9 +310,6 @@ static int vader_os_only_reports(int64_t id);
 /* Highest address of the calling system thread's C stack, NULL when unknown.
  * The stack grows down, so [current sp, base) covers every live frame. */
 static char* vader_os_stack_base(void);
-/* A lock, and a condition a thread waits on under it. */
-typedef struct vader_os_lock vader_os_lock_t;
-typedef struct vader_os_cond vader_os_cond_t;
 static vader_os_lock_t* vader_os_lock_new(void);
 static void vader_os_lock(vader_os_lock_t* lock);
 static void vader_os_unlock(vader_os_lock_t* lock);
@@ -282,6 +318,7 @@ static vader_os_cond_t* vader_os_cond_new(void);
  * then take `lock` again. It may return before either. */
 static void vader_os_cond_wait(vader_os_cond_t* cond, vader_os_lock_t* lock, int64_t timeout_ns);
 static void vader_os_cond_signal(vader_os_cond_t* cond);
+static void vader_os_cond_broadcast(vader_os_cond_t* cond);
 /* Run `entry(arg)` on a new system thread, which nothing joins. Its C stack,
  * `VADER_OS_THREAD_STACK_BYTES`, runs a worker's scheduler: the virtual threads
  * have stacks of their own. */
