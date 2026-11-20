@@ -1685,6 +1685,9 @@ bool    vader_scheduler_is_cancelled(void);
  * it: it was cancelled, or the thread that launched it is leaving and a defer
  * of that thread's cancellation did not launch it. */
 bool    vader_scheduler_is_leaving(int64_t thread);
+/* The running thread's task has ended, whoever waits for it may go on: `main`
+ * returning waits for the thread without naming it. */
+void    vader_scheduler_task_ended(void);
 /* Wake the running thread's next park once `fd` reads without blocking or has
  * reached its end, or once the child process `child` has ended. What the OS
  * will not watch wakes it after a short sleep. */

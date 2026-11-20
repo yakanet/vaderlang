@@ -75,6 +75,7 @@ export IntrinsicId :: enum(MemberName) {
     SchedulerCurrent        { .member = "current_thread" },
     SchedulerIsCancelled    { .member = "is_cancelled" },
     SchedulerIsLeaving      { .member = "is_leaving" },
+    SchedulerTaskEnded      { .member = "task_ended" },
     SchedulerWatchReadable  { .member = "watch_readable" },
     SchedulerWatchExit      { .member = "watch_exit" },
     SchedulerMonitorEnter   { .member = "monitor_enter" },
@@ -167,6 +168,7 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     // `malloc`, `mmap` and the OS, never the collector.
     .SchedulerSpawn | .SchedulerWake | .SchedulerCurrent | .SchedulerIsCancelled -> false
     .SchedulerIsLeaving | .SchedulerWatchReadable | .SchedulerWatchExit | .WaitStop -> false
+    .SchedulerTaskEnded -> false
     // Let the monitor go and allocate in the young generation again.
     .SchedulerMonitorExit -> false
     // Other threads run, and collect, before these return ; taking the monitor
@@ -214,6 +216,7 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     // Nothing runs before they return.
     .SchedulerSpawn | .SchedulerWake | .SchedulerCurrent | .SchedulerIsCancelled -> false
     .SchedulerIsLeaving | .SchedulerWatchReadable | .SchedulerWatchExit | .WaitStop -> false
+    .SchedulerTaskEnded -> false
     // No other thread of the worker runs while it waits for the monitor.
     .SchedulerMonitorEnter | .SchedulerMonitorGive | .SchedulerMonitorExit -> false
     .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock -> false
@@ -249,6 +252,7 @@ export intrinsic_parks :: fn(id: IntrinsicId) -> bool = match id {
     .SchedulerCancel -> false
     .SchedulerSpawn | .SchedulerWake | .SchedulerCurrent | .SchedulerIsCancelled -> false
     .SchedulerIsLeaving | .SchedulerWatchReadable | .SchedulerWatchExit | .WaitStop -> false
+    .SchedulerTaskEnded -> false
     // A wait for the monitor or a mutex blocks the worker, it parks no thread.
     .SchedulerMonitorEnter | .SchedulerMonitorGive | .SchedulerMonitorExit -> false
     .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock -> false

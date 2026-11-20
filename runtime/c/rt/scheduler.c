@@ -48,6 +48,7 @@ typedef struct {
     uint8_t  reaping;       /* waits for its children to end */
     uint8_t  outlives;      /* launched by a defer of its launcher's cancellation */
     uint8_t  released;      /* the descriptor it waited for is no longer waited on */
+    uint8_t  task_ended;    /* its task ended: it leaves the runtime, then ends */
 } vader_scheduler_slot_t;
 
 typedef struct {
@@ -1404,6 +1405,12 @@ static bool vader_scheduler_is_leaving_locked(int64_t thread) {
     return false;
 }
 
+void vader_scheduler_task_ended(void) {
+    vader_scheduler_enter();
+    vader_scheduler_slot_of(vader_virtual_thread_current())->task_ended = 1;
+    vader_scheduler_unlock();
+}
+
 bool vader_scheduler_is_leaving(int64_t thread) {
     if (!g_scheduler_started) return false;
     vader_scheduler_lock();
@@ -1412,8 +1419,11 @@ bool vader_scheduler_is_leaving(int64_t thread) {
     return leaving;
 }
 
+/* A thread whose task ended may still run on another worker as `main` returns:
+ * only what follows its task's end is left of it, and it is waited for. */
 static void vader_scheduler_name_at_exit(int64_t thread) {
     if (thread == vader_virtual_thread_main() || vader_scheduler_is_leaving_locked(thread)) return;
+    if (vader_scheduler_slot_of(thread)->task_ended) return;
     char name[32];
     vader_scheduler_name(thread, name, sizeof(name));
     const char* what = " still runs when main returns: cancelled";

@@ -192,7 +192,7 @@ export dispatch_import :: fn(
     .RuntimeCountAllocations -> { return HostOk { .value = NullVal {} } }
     // One system thread runs every guest thread: no other worker to keep out.
     .SchedulerMonitorEnter | .SchedulerMonitorGive | .SchedulerMonitorExit | .SchedulerPublish
-        | .SchedulerMutexLock | .SchedulerMutexUnlock -> {
+        | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerTaskEnded -> {
         return HostOk { .value = NullVal {} }
     }
     .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor | .SchedulerCancel
@@ -1171,6 +1171,7 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving -> null
     .SchedulerWatchReadable | .SchedulerWatchExit -> null
     .SchedulerMonitorEnter | .SchedulerMonitorGive | .SchedulerMonitorExit -> null
+    .SchedulerTaskEnded -> null
     .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerMutexWait -> null
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop -> null
     .AbortPanic -> null

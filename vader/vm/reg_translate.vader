@@ -422,7 +422,7 @@ string_import_op :: fn(t: Translation, pc: i64, id: bc.IntrinsicId) -> bool = ma
         | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
         | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
         | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMonitorEnter
-        | .SchedulerMonitorGive | .SchedulerMonitorExit
+        | .SchedulerMonitorGive | .SchedulerMonitorExit | .SchedulerTaskEnded
         | .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerMutexWait
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
         | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch

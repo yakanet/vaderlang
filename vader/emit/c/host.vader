@@ -987,6 +987,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .SchedulerMonitorEnter  -> { return [perform("vader_scheduler_monitor_enter", [a0])] }
     .SchedulerMonitorGive   -> { return [monitor_give(imp.signature.params[0])] }
     .SchedulerMonitorExit   -> { return [perform("vader_scheduler_monitor_exit", [])] }
+    .SchedulerTaskEnded     -> { return [perform("vader_scheduler_task_ended", [])] }
     .SchedulerPublish       -> { return publish(imp.signature.params[0]) }
     .SchedulerMutexLock     -> { return [perform("vader_scheduler_mutex_lock", [a0])] }
     .SchedulerMutexUnlock   -> { return [perform("vader_scheduler_mutex_unlock", [a0])] }
