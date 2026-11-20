@@ -66,7 +66,7 @@ static void vader_atom_mark_cstack_conservative(void) {
     jmp_buf regs;
     (void) setjmp(regs);
     vader_atom_mark_stack_range((char*) &regs, vader_virtual_thread_stack_top());
-    vader_virtual_thread_each_waiting(vader_atom_mark_waiting_stack, NULL);
+    vader_virtual_thread_each_waiting(&vader_worker, vader_atom_mark_waiting_stack, NULL);
 }
 
 /* Forward decl: the stack-object root walk below needs it, and its definition
@@ -121,7 +121,7 @@ static void vader_atom_mark_waiting(const vader_virtual_thread_roots_t* r, void*
 static void vader_atom_mark_roots(void) {
     const vader_thread_state_t* running = &vader_worker.running;
     vader_atom_mark_thread(running->gc_top, running->defer_stack, running->defer_len);
-    vader_virtual_thread_each_waiting(vader_atom_mark_waiting, NULL);
+    vader_virtual_thread_each_waiting(&vader_worker, vader_atom_mark_waiting, NULL);
     vader_atom_mark_cstack_conservative();
 }
 

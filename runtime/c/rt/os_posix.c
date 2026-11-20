@@ -89,11 +89,16 @@ static int64_t vader_os_monotonic_ns(void) {
     return (int64_t) ts.tv_sec * 1000000000 + (int64_t) ts.tv_nsec;
 }
 
+static struct timespec vader_os_timespec_of(int64_t ns) {
+    struct timespec t;
+    t.tv_sec = (time_t) (ns / 1000000000);
+    t.tv_nsec = (long) (ns % 1000000000);
+    return t;
+}
+
 static void vader_os_sleep_ns(int64_t ns) {
-    struct timespec req;
+    struct timespec req = vader_os_timespec_of(ns);
     struct timespec rem;
-    req.tv_sec = (time_t) (ns / 1000000000);
-    req.tv_nsec = (long) (ns % 1000000000);
     /* A signal cuts the wait short and leaves what is left in `rem`. */
     while (nanosleep(&req, &rem) != 0 && errno == EINTR) req = rem;
 }
@@ -158,8 +163,7 @@ static void vader_os_wait_events(int64_t timeout_ns) {
     struct timespec limit;
     struct timespec* until = NULL;
     if (timeout_ns >= 0) {
-        limit.tv_sec = (time_t) (timeout_ns / 1000000000);
-        limit.tv_nsec = (long) (timeout_ns % 1000000000);
+        limit = vader_os_timespec_of(timeout_ns);
         until = &limit;
     }
     struct kevent events[VADER_OS_EVENTS];
@@ -307,6 +311,88 @@ static void vader_os_wait_events(int64_t timeout_ns) {
 }
 
 #endif
+
+/* ---- threads ------------------------------------------------------------- */
+
+struct vader_os_lock {
+    pthread_mutex_t mutex;
+};
+
+struct vader_os_cond {
+    pthread_cond_t cond;
+};
+
+static vader_os_lock_t* vader_os_lock_new(void) {
+    vader_os_lock_t* lock = (vader_os_lock_t*) malloc(sizeof(vader_os_lock_t));
+    if (lock == NULL || pthread_mutex_init(&lock->mutex, NULL) != 0) {
+        vader_trap("threads: no lock could be made");
+    }
+    return lock;
+}
+
+static void vader_os_lock(vader_os_lock_t* lock) {
+    pthread_mutex_lock(&lock->mutex);
+}
+
+static void vader_os_unlock(vader_os_lock_t* lock) {
+    pthread_mutex_unlock(&lock->mutex);
+}
+
+/* A timed wait counts on a clock the wall clock does not move: Linux binds the
+ * condition to the monotonic one, Darwin waits for a relative time. */
+static vader_os_cond_t* vader_os_cond_new(void) {
+    vader_os_cond_t* cond = (vader_os_cond_t*) malloc(sizeof(vader_os_cond_t));
+    if (cond == NULL) vader_trap("threads: no condition could be made");
+    pthread_condattr_t attr;
+    pthread_condattr_init(&attr);
+#if !defined(__APPLE__)
+    pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
+#endif
+    int failed = pthread_cond_init(&cond->cond, &attr);
+    pthread_condattr_destroy(&attr);
+    if (failed != 0) vader_trap("threads: no condition could be made");
+    return cond;
+}
+
+static void vader_os_cond_wait(vader_os_cond_t* cond, vader_os_lock_t* lock, int64_t timeout_ns) {
+    if (timeout_ns < 0) {
+        pthread_cond_wait(&cond->cond, &lock->mutex);
+        return;
+    }
+#if defined(__APPLE__)
+    struct timespec wait = vader_os_timespec_of(timeout_ns);
+    pthread_cond_timedwait_relative_np(&cond->cond, &lock->mutex, &wait);
+#else
+    struct timespec until = vader_os_timespec_of(vader_os_monotonic_ns() + timeout_ns);
+    pthread_cond_timedwait(&cond->cond, &lock->mutex, &until);
+#endif
+}
+
+static void vader_os_cond_signal(vader_os_cond_t* cond) {
+    pthread_cond_signal(&cond->cond);
+}
+
+static void* vader_os_thread_main(void* raw) {
+    vader_os_thread_start_t start = *(vader_os_thread_start_t*) raw;
+    free(raw);
+    start.entry(start.arg);
+    return NULL;
+}
+
+static void vader_os_thread_start(void (*entry)(void* arg), void* arg) {
+    vader_os_thread_start_t* start = (vader_os_thread_start_t*) malloc(sizeof(vader_os_thread_start_t));
+    if (start == NULL) vader_trap("threads: out of memory");
+    start->entry = entry;
+    start->arg = arg;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    pthread_attr_setstacksize(&attr, VADER_OS_THREAD_STACK_BYTES);
+    pthread_t thread;
+    int failed = pthread_create(&thread, &attr, vader_os_thread_main, start);
+    pthread_attr_destroy(&attr);
+    if (failed != 0) vader_trap("threads: no system thread could be started");
+}
 
 /* ---- stack --------------------------------------------------------------- */
 

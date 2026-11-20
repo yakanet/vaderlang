@@ -221,14 +221,17 @@ static size_t vader_gc_env_bytes(const char* env_name, size_t fallback) {
     return (size_t) count << shift;
 }
 
-/* Read the whole number in `env_name`. `fallback` when unset or empty; a trap
- * for anything else that is not digits alone. */
-static size_t vader_gc_env_count(const char* env_name, size_t fallback, const char* expected) {
+/* Read the whole number in `env_name`, from `min` to `max`. `fallback` when
+ * unset or empty; a trap naming `expected` for anything else. */
+static size_t vader_gc_env_count(const char* env_name, size_t fallback, size_t min, size_t max,
+                                 const char* expected) {
     const char* raw = getenv(env_name);
     if (raw == NULL || raw[0] == '\0') return fallback;
     unsigned long long count = 0;
     const char* end = vader_gc_read_digits(raw, &count);
-    if (end == NULL || *end != '\0') vader_gc_env_refuse(env_name, raw, expected);
+    if (end == NULL || *end != '\0' || count < min || count > max) {
+        vader_gc_env_refuse(env_name, raw, expected);
+    }
     return (size_t) count;
 }
 
@@ -529,7 +532,7 @@ void vader_gc_init(void) {
 
     /* Adaptive young-sizing divisor (young_target = old_live / ratio). Default
      * 2 (young ~ half the old live set); 0 turns the heuristic off. */
-    g_young_ratio = vader_gc_env_count("VADER_GC_YOUNG_RATIO", g_young_ratio,
+    g_young_ratio = vader_gc_env_count("VADER_GC_YOUNG_RATIO", g_young_ratio, 0u, SIZE_MAX,
         "a whole number, 0 to turn adaptive young sizing off");
 
     /* Ceiling on the adaptive young target (byte size). */

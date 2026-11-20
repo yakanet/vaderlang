@@ -1357,9 +1357,14 @@ typedef struct vader_worker {
      * `@extern` counts its call. A switch traps above zero, since another thread
      * would run over the C frames under it, and what they hold. */
     int                          foreign_depth;
+    /* Its place in the pool, 0 for the main thread's. */
+    uint32_t                     index;
     /* The virtual thread it runs, and the one that runs its scheduler. */
     struct vader_virtual_thread* current;
     struct vader_virtual_thread* scheduler;
+    /* A thread of its own whose entry returned: its scheduler frees the stack
+     * on arrival, since a stack cannot be freed while it runs. */
+    struct vader_virtual_thread* ended;
     /* Its young generation, which only its own minors collect: no other worker
      * holds a pointer into it. */
     vader_gen_t                  young;

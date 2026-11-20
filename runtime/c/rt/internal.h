@@ -60,6 +60,12 @@ static vader_worker_t* g_workers[VADER_WORKERS_MAX];
 static size_t g_worker_count;
 
 static void vader_alloc_limit_refresh(vader_worker_t* w);
+/* Give `w` a heap of its own and list it among the workers. */
+static void vader_gc_worker_init(vader_worker_t* w);
+/* Read the whole number in `env_name`, from `min` to `max`; `fallback` when
+ * unset or empty, a trap naming `expected` for anything else. */
+static size_t vader_gc_env_count(const char* env_name, size_t fallback, size_t min, size_t max,
+                                 const char* expected);
 static size_t vader_gc_align(size_t n);
 /* Whether `p` lies in the young generation of `w`: its from-space, or either
  * half. */
@@ -161,8 +167,9 @@ typedef struct {
 
 /* The top of the running thread's stack, where its conservative scan stops. */
 static char* vader_virtual_thread_stack_top(void);
-/* Call `fn` with the roots of each thread alive but the running one. */
-static void vader_virtual_thread_each_waiting(void (*fn)(const vader_virtual_thread_roots_t*, void* ctx),
+/* Call `fn` with the roots of each thread of `w` alive but the one it runs. */
+static void vader_virtual_thread_each_waiting(const vader_worker_t* w,
+                                              void (*fn)(const vader_virtual_thread_roots_t*, void* ctx),
                                               void* ctx);
 
 /* What rt/scheduler.c drives. A handle names a thread until it ends; the main
@@ -171,6 +178,11 @@ static void vader_virtual_thread_each_waiting(void (*fn)(const vader_virtual_thr
 
 /* Make the scheduler's thread, once. */
 static void vader_virtual_thread_start_scheduler(void);
+/* On a system thread of the pool other than the main thread: its own stack
+ * runs its scheduler. */
+static void vader_virtual_thread_init_worker(void);
+/* The worker that runs the live thread `handle`. */
+static vader_worker_t* vader_virtual_thread_worker(int64_t handle);
 /* A thread that runs `entry` from the first switch to it; its handle. */
 static int64_t vader_virtual_thread_create(vader_fn_t* entry);
 /* Leave the running thread for the live thread `to`. */
@@ -199,6 +211,13 @@ static void vader_virtual_thread_give_back_cold(void);
 static void vader_scheduler_loop(void);
 /* On an ending thread's stack, once it has run its last defer. */
 static void vader_scheduler_ending(void);
+/* Take and let go the scheduler's lock, which guards every state of the
+ * scheduler and of the threads. A worker holds it from an entry of the
+ * scheduler to its return, across the switches in between: a thread a switch
+ * goes to lets it go once it returns to its own code. With one worker there is
+ * no lock to take. */
+static void vader_scheduler_lock(void);
+static void vader_scheduler_unlock(void);
 
 /* What a thread waits for the OS to report: a descriptor that reads without
  * blocking or has reached its end, a child process that has ended, a
@@ -249,9 +268,30 @@ static int vader_os_writable_now(int64_t fd);
  * wait on it parks even when no other thread runs, since its caller has
  * nothing to wait on by itself. */
 static int vader_os_only_reports(int64_t id);
-/* Highest address of the main thread's C stack, NULL when unknown. The stack
- * grows down, so [current sp, base) covers every live frame. */
+/* Highest address of the calling system thread's C stack, NULL when unknown.
+ * The stack grows down, so [current sp, base) covers every live frame. */
 static char* vader_os_stack_base(void);
+/* A lock, and a condition a thread waits on under it. */
+typedef struct vader_os_lock vader_os_lock_t;
+typedef struct vader_os_cond vader_os_cond_t;
+static vader_os_lock_t* vader_os_lock_new(void);
+static void vader_os_lock(vader_os_lock_t* lock);
+static void vader_os_unlock(vader_os_lock_t* lock);
+static vader_os_cond_t* vader_os_cond_new(void);
+/* Let `lock` go and wait for `cond`, at most `timeout_ns` when not negative,
+ * then take `lock` again. It may return before either. */
+static void vader_os_cond_wait(vader_os_cond_t* cond, vader_os_lock_t* lock, int64_t timeout_ns);
+static void vader_os_cond_signal(vader_os_cond_t* cond);
+/* Run `entry(arg)` on a new system thread, which nothing joins. Its C stack,
+ * `VADER_OS_THREAD_STACK_BYTES`, runs a worker's scheduler: the virtual threads
+ * have stacks of their own. */
+static void vader_os_thread_start(void (*entry)(void* arg), void* arg);
+#define VADER_OS_THREAD_STACK_BYTES (1024u * 1024u)
+/* What a thread of `vader_os_thread_start` runs. */
+typedef struct {
+    void (*entry)(void* arg);
+    void* arg;
+} vader_os_thread_start_t;
 /* Put stdin, stdout and stderr in binary mode, on an OS that has another one.
  * Idempotent. */
 static void vader_os_ensure_stdio_binary(void);

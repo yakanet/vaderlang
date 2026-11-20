@@ -50,6 +50,15 @@ static int64_t vader_os_ms_rounded_up(int64_t ns) {
     return ms;
 }
 
+/* A wait of `timeout_ns` as Win32 takes it: INFINITE for a negative one, else
+ * rounded up and kept below INFINITE. */
+static DWORD vader_os_wait_ms(int64_t timeout_ns) {
+    if (timeout_ns < 0) return INFINITE;
+    int64_t ms = vader_os_ms_rounded_up(timeout_ns);
+    if (ms < (int64_t) (INFINITE - 1u)) return (DWORD) ms;
+    return INFINITE - 1u;
+}
+
 static void vader_os_sleep_ns(int64_t ns) {
     int64_t ms = vader_os_ms_rounded_up(ns);
     while (ms > 0) {
@@ -501,12 +510,7 @@ static void vader_os_report(ULONG_PTR key, OVERLAPPED* overlapped) {
 }
 
 static void vader_os_wait_events(int64_t timeout_ns) {
-    DWORD timeout_ms = INFINITE;
-    if (timeout_ns >= 0) {
-        int64_t ms = vader_os_ms_rounded_up(timeout_ns);
-        timeout_ms = INFINITE - 1u;
-        if (ms < (int64_t) timeout_ms) timeout_ms = (DWORD) ms;
-    }
+    DWORD timeout_ms = vader_os_wait_ms(timeout_ns);
     OVERLAPPED_ENTRY events[VADER_OS_EVENTS];
     ULONG got = 0;
     if (!GetQueuedCompletionStatusEx(g_os_port, events, VADER_OS_EVENTS, &got, timeout_ms, FALSE)) return;
@@ -530,6 +534,64 @@ static int vader_os_writable_now(int64_t fd) {
 
 static int vader_os_only_reports(int64_t id) {
     return vader_os_socket_of(id) != NULL;
+}
+
+/* ---- threads ------------------------------------------------------------- */
+
+struct vader_os_lock {
+    SRWLOCK lock;
+};
+
+struct vader_os_cond {
+    CONDITION_VARIABLE cond;
+};
+
+static vader_os_lock_t* vader_os_lock_new(void) {
+    vader_os_lock_t* lock = (vader_os_lock_t*) malloc(sizeof(vader_os_lock_t));
+    if (lock == NULL) vader_trap("threads: no lock could be made");
+    InitializeSRWLock(&lock->lock);
+    return lock;
+}
+
+static void vader_os_lock(vader_os_lock_t* lock) {
+    AcquireSRWLockExclusive(&lock->lock);
+}
+
+static void vader_os_unlock(vader_os_lock_t* lock) {
+    ReleaseSRWLockExclusive(&lock->lock);
+}
+
+static vader_os_cond_t* vader_os_cond_new(void) {
+    vader_os_cond_t* cond = (vader_os_cond_t*) malloc(sizeof(vader_os_cond_t));
+    if (cond == NULL) vader_trap("threads: no condition could be made");
+    InitializeConditionVariable(&cond->cond);
+    return cond;
+}
+
+static void vader_os_cond_wait(vader_os_cond_t* cond, vader_os_lock_t* lock, int64_t timeout_ns) {
+    SleepConditionVariableSRW(&cond->cond, &lock->lock, vader_os_wait_ms(timeout_ns), 0);
+}
+
+static void vader_os_cond_signal(vader_os_cond_t* cond) {
+    WakeConditionVariable(&cond->cond);
+}
+
+static DWORD WINAPI vader_os_thread_main(LPVOID raw) {
+    vader_os_thread_start_t start = *(vader_os_thread_start_t*) raw;
+    free(raw);
+    start.entry(start.arg);
+    return 0;
+}
+
+static void vader_os_thread_start(void (*entry)(void* arg), void* arg) {
+    vader_os_thread_start_t* start = (vader_os_thread_start_t*) malloc(sizeof(vader_os_thread_start_t));
+    if (start == NULL) vader_trap("threads: out of memory");
+    start->entry = entry;
+    start->arg = arg;
+    HANDLE thread = CreateThread(NULL, VADER_OS_THREAD_STACK_BYTES, vader_os_thread_main, start,
+                                 STACK_SIZE_PARAM_IS_A_RESERVATION, NULL);
+    if (thread == NULL) vader_trap("threads: no system thread could be started");
+    CloseHandle(thread);
 }
 
 /* ---- stack --------------------------------------------------------------- */

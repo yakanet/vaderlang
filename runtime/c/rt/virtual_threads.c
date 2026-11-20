@@ -86,6 +86,9 @@ typedef struct vader_virtual_thread {
     uint32_t index;         /* in `g_virtual_thread_records` */
     uint32_t generation;
     size_t   live_slot;     /* in `g_virtual_thread_live`, while not free */
+    /* The worker that runs it, from its start to its end: the worker of the
+     * thread that created it. */
+    vader_worker_t* worker;
     uint8_t  state;
     /* Windows: whether its fiber can run the next thread, which it does from
      * where the last one ended. One that ended deep in its stack cannot. */
@@ -112,8 +115,6 @@ static size_t g_virtual_thread_cold_cap = 0;
 static vader_virtual_thread_t** g_virtual_thread_bare = NULL;
 static size_t g_virtual_thread_bare_len = 0;
 static size_t g_virtual_thread_bare_cap = 0;
-/* A thread whose entry returned, whose stack the scheduler frees on arrival. */
-static vader_virtual_thread_t* g_virtual_thread_ended = NULL;
 /* The threads `vader_virtual_thread_create` started that have not ended. */
 static size_t g_virtual_thread_count = 0;
 
@@ -344,15 +345,14 @@ static void vader_virtual_thread_prepare(vader_virtual_thread_t* t) {
     (void) t;
 }
 
-static void vader_virtual_thread_init_main(void) {
+/* The fiber of the calling system thread, which `t` names from now on. */
+static void vader_virtual_thread_adopt_stack(vader_virtual_thread_t* t) {
     if (IsThreadAFiber()) {
-        g_virtual_thread_main.fiber = GetCurrentFiber();
+        t->fiber = GetCurrentFiber();
     } else {
-        g_virtual_thread_main.fiber = ConvertThreadToFiberEx(NULL, FIBER_FLAG_FLOAT_SWITCH);
+        t->fiber = ConvertThreadToFiberEx(NULL, FIBER_FLAG_FLOAT_SWITCH);
     }
-    if (g_virtual_thread_main.fiber == NULL) {
-        vader_trap("virtual threads: the main thread cannot become a fiber");
-    }
+    if (t->fiber == NULL) vader_trap("virtual threads: a system thread cannot become a fiber");
 }
 
 #  else
@@ -385,23 +385,39 @@ static void vader_virtual_thread_prepare(vader_virtual_thread_t* t) {
     vader_virtual_thread_first_frame(t);
 }
 
-static void vader_virtual_thread_init_main(void) {
+static void vader_virtual_thread_adopt_stack(vader_virtual_thread_t* t) {
+    (void) t;
 }
 
 #  endif
 
+/* Make `t` the thread that runs on the calling system thread's own stack. */
+static void vader_virtual_thread_adopt(vader_virtual_thread_t* t) {
+    vader_virtual_thread_adopt_stack(t);
+    t->hi = vader_os_stack_base();
+    t->state = VADER_VIRTUAL_THREAD_LIVE;
+    t->worker = &vader_worker;
+    vader_worker.current = t;
+}
+
 static void vader_virtual_thread_init(void) {
     if (vader_worker.current != NULL) return;
-    vader_virtual_thread_init_main();
-    g_virtual_thread_main.hi = vader_os_stack_base();
-    g_virtual_thread_main.state = VADER_VIRTUAL_THREAD_LIVE;
+    vader_virtual_thread_adopt(&g_virtual_thread_main);
     g_virtual_thread_main.index = (uint32_t) g_virtual_thread_record_count;
     vader_virtual_thread_push(&g_virtual_thread_records, &g_virtual_thread_record_count,
             &g_virtual_thread_record_cap, &g_virtual_thread_main);
     g_virtual_thread_main.live_slot = g_virtual_thread_live_count;
     vader_virtual_thread_push(&g_virtual_thread_live, &g_virtual_thread_live_count,
             &g_virtual_thread_live_cap, &g_virtual_thread_main);
-    vader_worker.current = &g_virtual_thread_main;
+}
+
+/* The calling system thread, a worker of the pool other than the main thread,
+ * runs its scheduler on its own stack. No handle names that thread. */
+static void vader_virtual_thread_init_worker(void) {
+    vader_virtual_thread_t* t = (vader_virtual_thread_t*) calloc(1, sizeof(vader_virtual_thread_t));
+    if (t == NULL) vader_trap("virtual threads: out of memory");
+    vader_virtual_thread_adopt(t);
+    vader_worker.scheduler = t;
 }
 
 /* A record with a stack, ready to run `entry`: a warm one, a cold one, a bare
@@ -427,6 +443,7 @@ static vader_virtual_thread_t* vader_virtual_thread_take(vader_fn_t* entry) {
     }
     t->entry = entry;
     t->saved.gc_top = &t->entry_frame;
+    t->worker = &vader_worker;
     t->state = VADER_VIRTUAL_THREAD_LIVE;
     t->reusable = 1;
     t->live_slot = g_virtual_thread_live_count;
@@ -438,9 +455,9 @@ static vader_virtual_thread_t* vader_virtual_thread_take(vader_fn_t* entry) {
 
 /* Free the thread that ended, now that its stack no longer runs. */
 static void vader_virtual_thread_release_ended(void) {
-    vader_virtual_thread_t* t = g_virtual_thread_ended;
+    vader_virtual_thread_t* t = vader_worker.ended;
     if (t == NULL) return;
-    g_virtual_thread_ended = NULL;
+    vader_worker.ended = NULL;
     vader_virtual_thread_t* last = g_virtual_thread_live[--g_virtual_thread_live_count];
     g_virtual_thread_live[t->live_slot] = last;
     last->live_slot = t->live_slot;
@@ -450,6 +467,7 @@ static void vader_virtual_thread_release_ended(void) {
     t->saved.defer_cap = 0u;
     t->saved.unwinding = 0;
     t->entry = NULL;
+    t->worker = NULL;
     t->state = VADER_VIRTUAL_THREAD_FREE;
     t->generation++;
     if (!t->reusable) {
@@ -493,16 +511,20 @@ static void vader_virtual_thread_finish(vader_virtual_thread_t* t) {
     vader_scheduler_ending();
     t->state = VADER_VIRTUAL_THREAD_ENDED;
     g_virtual_thread_count--;
-    g_virtual_thread_ended = t;
+    vader_worker.ended = t;
     vader_virtual_thread_switch_to(vader_worker.scheduler);
 }
 
 /* A thread's body, on its own stack: run the entry, then leave for the
- * scheduler for good. The scheduler's thread runs the scheduler instead. */
+ * scheduler for good. The scheduler's thread runs the scheduler instead. The
+ * switch to a thread comes with the scheduler's lock, which its entry runs
+ * without. */
 VADER_VIRTUAL_THREAD_RUN_LINKAGE void vader_virtual_thread_run(vader_virtual_thread_t* t) {
     vader_virtual_thread_release_ended();
     if (t == vader_worker.scheduler) vader_scheduler_loop();
+    vader_scheduler_unlock();
     ((vader_box_t (*)(void*)) t->entry->code)(t->entry->env);
+    vader_scheduler_lock();
     vader_virtual_thread_finish(t);
 #  if !VADER_VIRTUAL_THREAD_FIBERS
     vader_trap("virtual threads: an ended thread was resumed");
@@ -556,6 +578,11 @@ static int vader_virtual_thread_is_live(int64_t handle) {
     return vader_virtual_thread_of(handle) != NULL;
 }
 
+/* The worker of the live thread `handle`. */
+static vader_worker_t* vader_virtual_thread_worker(int64_t handle) {
+    return g_virtual_thread_records[vader_virtual_thread_index(handle)]->worker;
+}
+
 static size_t vader_virtual_thread_count(void) {
     return g_virtual_thread_count;
 }
@@ -564,7 +591,7 @@ static size_t vader_virtual_thread_count(void) {
 static void vader_virtual_thread_each_live(void (*fn)(int64_t handle)) {
     for (size_t i = 0; i < g_virtual_thread_live_count; i++) {
         vader_virtual_thread_t* t = g_virtual_thread_live[i];
-        if (t == vader_worker.scheduler || t->state != VADER_VIRTUAL_THREAD_LIVE) continue;
+        if (t == t->worker->scheduler || t->state != VADER_VIRTUAL_THREAD_LIVE) continue;
         fn(vader_virtual_thread_handle(t));
     }
 }
@@ -594,12 +621,13 @@ static void vader_virtual_thread_roots_of(const vader_virtual_thread_t* t,
     r->hi = t->hi;
 }
 
-static void vader_virtual_thread_each_waiting(void (*fn)(const vader_virtual_thread_roots_t*, void* ctx),
+static void vader_virtual_thread_each_waiting(const vader_worker_t* w,
+                                              void (*fn)(const vader_virtual_thread_roots_t*, void* ctx),
                                               void* ctx) {
     vader_virtual_thread_roots_t r;
     for (size_t i = 0; i < g_virtual_thread_live_count; i++) {
         vader_virtual_thread_t* t = g_virtual_thread_live[i];
-        if (t == vader_worker.current || t->state != VADER_VIRTUAL_THREAD_LIVE) continue;
+        if (t->worker != w || t == w->current || t->state != VADER_VIRTUAL_THREAD_LIVE) continue;
         vader_virtual_thread_roots_of(t, &r);
         fn(&r, ctx);
     }
@@ -609,6 +637,15 @@ static void vader_virtual_thread_each_waiting(void (*fn)(const vader_virtual_thr
 
 static void vader_virtual_thread_start_scheduler(void) {
     vader_trap("virtual threads: no stack switch on this target");
+}
+
+static void vader_virtual_thread_init_worker(void) {
+    vader_trap("virtual threads: no stack switch on this target");
+}
+
+static vader_worker_t* vader_virtual_thread_worker(int64_t handle) {
+    (void) handle;
+    return &vader_worker;
 }
 
 static int64_t vader_virtual_thread_create(vader_fn_t* entry) {
@@ -656,8 +693,10 @@ static char* vader_virtual_thread_stack_top(void) {
     return vader_os_stack_base();
 }
 
-static void vader_virtual_thread_each_waiting(void (*fn)(const vader_virtual_thread_roots_t*, void* ctx),
+static void vader_virtual_thread_each_waiting(const vader_worker_t* w,
+                                              void (*fn)(const vader_virtual_thread_roots_t*, void* ctx),
                                               void* ctx) {
+    (void) w;
     (void) fn;
     (void) ctx;
 }

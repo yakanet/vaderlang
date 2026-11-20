@@ -129,7 +129,7 @@ static void vader_gc_mark_cstack_conservative(vader_worker_t* w) {
     jmp_buf regs;
     (void) setjmp(regs);                 /* spill callee-saved registers onto the stack */
     vader_gc_mark_stack_range(w, (char*) &regs, vader_virtual_thread_stack_top());
-    vader_virtual_thread_each_waiting(vader_gc_mark_waiting_stack, w);
+    vader_virtual_thread_each_waiting(w, vader_gc_mark_waiting_stack, w);
 }
 
 /* ---- generational GC: copying young, mark-sweep old ---------------------- */
@@ -418,7 +418,7 @@ static void vader_gc_scan_waiting(const vader_virtual_thread_roots_t* r, void* w
 static void vader_gc_scan_roots(vader_worker_t* w) {
     const vader_thread_state_t* running = &w->running;
     vader_gc_scan_thread(w, running->gc_top, running->defer_stack, running->defer_len);
-    vader_virtual_thread_each_waiting(vader_gc_scan_waiting, w);
+    vader_virtual_thread_each_waiting(w, vader_gc_scan_waiting, w);
 }
 
 /* The first card in [c, hi] marked in `dirty`, or hi + 1. Steps over clean
