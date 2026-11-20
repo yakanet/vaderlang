@@ -312,9 +312,11 @@ static int64_t vader_virtual_thread_create(vader_fn_t* entry);
 /* A thread that runs `entry` and that no worker runs yet: the first to take it
  * runs it to its end. Its handle. */
 static int64_t vader_virtual_thread_create_unstarted(vader_fn_t* entry);
-/* Make the oldest thread no worker started one of the calling worker's, its
- * handle into `*handle`; 0 when there is none. */
-static int vader_virtual_thread_adopt_unstarted(int64_t* handle);
+/* Whether a thread waits that no worker started. */
+static int vader_virtual_thread_has_unstarted(void);
+/* Make the oldest thread no worker started one of the calling worker's: its
+ * handle. One waits. */
+static int64_t vader_virtual_thread_adopt_unstarted(void);
 /* Leave the running thread for the live thread `to`. */
 static void vader_virtual_thread_switch(int64_t to);
 /* Leave the running thread for the scheduler's. */

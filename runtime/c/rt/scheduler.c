@@ -93,8 +93,12 @@ typedef struct {
     size_t   turn_left;
     /* What it rests on, with several workers. */
     vader_os_cond_t* wake;
+    /* Its threads that have not ended, parked ones included. */
+    uint32_t tasks;
     /* It has nothing to run. */
     uint8_t  resting;
+    /* It was roused and has not looked for work since. */
+    uint8_t  arriving;
     /* It holds the lock: taking it twice is a bug of the runtime, which would
      * hang. */
     uint8_t  holds_guard;
@@ -474,6 +478,7 @@ static void vader_scheduler_grow_ready(vader_scheduler_worker_t* w) {
 /* `w` stops resting, which it does while it has nothing to run. */
 static void vader_scheduler_rouse(vader_scheduler_worker_t* w) {
     w->resting = 0;
+    w->arriving = 1;
     g_scheduler_resting--;
     if (w->wake != NULL) vader_os_cond_signal(w->wake);
 }
@@ -495,10 +500,8 @@ static void vader_scheduler_enqueue(int64_t thread) {
     if (w->resting) vader_scheduler_rouse(w);
 }
 
-/* `thread`, which no worker started, waits among those any worker may take: a
- * resting worker stops resting to take it. */
-static void vader_scheduler_offer(int64_t thread) {
-    vader_scheduler_slot_of(thread)->queued = 1;
+/* The first resting worker stops resting, if one rests. */
+static void vader_scheduler_rouse_one(void) {
     for (uint32_t i = 0; i < g_scheduler_threads; i++) {
         vader_scheduler_worker_t* w = &g_scheduler_workers[i];
         if (!w->resting) continue;
@@ -507,11 +510,37 @@ static void vader_scheduler_offer(int64_t thread) {
     }
 }
 
-/* The oldest thread no worker started, made one of the calling worker's, into
- * `*thread`; 0 when none is. */
-static int vader_scheduler_take_unstarted(int64_t* thread) {
-    if (!vader_virtual_thread_adopt_unstarted(thread)) return 0;
+/* `thread`, which no worker started, waits among those any worker may take: a
+ * resting worker stops resting to take it. */
+static void vader_scheduler_offer(int64_t thread) {
+    vader_scheduler_slot_of(thread)->queued = 1;
+    vader_scheduler_rouse_one();
+}
+
+/* Whether `me` leaves the threads no worker started to a worker that has fewer
+ * threads and nothing to run, or is on its way to look; a resting one is
+ * roused. A thread stays on the worker that starts it: the first worker to look
+ * must not take every thread launched together. */
+static int vader_scheduler_leaves_unstarted(const vader_scheduler_worker_t* me) {
+    for (uint32_t i = 0; i < g_scheduler_threads; i++) {
+        vader_scheduler_worker_t* w = &g_scheduler_workers[i];
+        if (w->tasks >= me->tasks) continue;
+        if (w->arriving) return 1;
+        if (!w->resting) continue;
+        vader_scheduler_rouse(w);
+        return 1;
+    }
+    return 0;
+}
+
+/* The oldest thread no worker started, made one of `me`'s, into `*thread`; 0
+ * when none is, or when `me` leaves it to another worker. */
+static int vader_scheduler_take_unstarted(vader_scheduler_worker_t* me, int64_t* thread) {
+    if (!vader_virtual_thread_has_unstarted()) return 0;
+    if (vader_scheduler_leaves_unstarted(me)) return 0;
+    *thread = vader_virtual_thread_adopt_unstarted();
     vader_scheduler_slot_of(*thread)->queued = 0;
+    me->tasks++;
     return 1;
 }
 
@@ -869,6 +898,7 @@ static void vader_scheduler_rest(vader_scheduler_worker_t* w) {
         vader_virtual_thread_give_back_cold();
         vader_scheduler_idle(w, sleeping, deadline);
     }
+    w->arriving = 0;
     if (!w->resting) return;
     w->resting = 0;
     g_scheduler_resting--;
@@ -969,10 +999,15 @@ static void vader_scheduler_loop(void) {
         int64_t next = 0;
         if (vader_scheduler_pop_ready(me, &next)) {
             if (me->turn_left > 0u) me->turn_left--;
+            /* A worker that left them to this one may rest by now, and the
+             * thread may run without parking. */
+            if (g_scheduler_resting > 0u && vader_virtual_thread_has_unstarted()) {
+                vader_scheduler_rouse_one();
+            }
             vader_virtual_thread_switch(next);
             continue;
         }
-        if (vader_scheduler_take_unstarted(&next)) {
+        if (vader_scheduler_take_unstarted(me, &next)) {
             vader_virtual_thread_switch(next);
             continue;
         }
@@ -1118,6 +1153,7 @@ static void vader_scheduler_ending(void) {
         vader_trap("virtual threads: a thread ended holding a mutex");
     }
     if (vader_worker.in_monitor) vader_trap("virtual threads: a thread ended holding the monitor");
+    vader_scheduler_me()->tasks--;
     int64_t parent = vader_scheduler_slot_of(vader_virtual_thread_current())->parent;
     if (!vader_virtual_thread_is_live(parent)) return;
     vader_scheduler_slot_t* p = vader_scheduler_slot_of(parent);
@@ -1239,6 +1275,7 @@ int64_t vader_scheduler_spawn(vader_fn_t* entry) {
     if (stealable) {
         vader_scheduler_offer(thread);
     } else {
+        vader_scheduler_me()->tasks++;
         vader_scheduler_enqueue(thread);
     }
     vader_scheduler_unlock();

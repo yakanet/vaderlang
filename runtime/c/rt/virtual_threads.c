@@ -586,8 +586,11 @@ static int64_t vader_virtual_thread_create_unstarted(vader_fn_t* entry) {
     return vader_virtual_thread_handle(t);
 }
 
-static int vader_virtual_thread_adopt_unstarted(int64_t* handle) {
-    if (g_virtual_thread_unstarted_head == g_virtual_thread_unstarted_end) return 0;
+static int vader_virtual_thread_has_unstarted(void) {
+    return g_virtual_thread_unstarted_head != g_virtual_thread_unstarted_end;
+}
+
+static int64_t vader_virtual_thread_adopt_unstarted(void) {
     vader_virtual_thread_t* t = g_virtual_thread_unstarted[g_virtual_thread_unstarted_head++];
     /* Taken all: the next one goes back to the start. */
     if (g_virtual_thread_unstarted_head == g_virtual_thread_unstarted_end) {
@@ -595,8 +598,7 @@ static int vader_virtual_thread_adopt_unstarted(int64_t* handle) {
         g_virtual_thread_unstarted_end = 0u;
     }
     vader_virtual_thread_live_add(t);
-    *handle = vader_virtual_thread_handle(t);
-    return 1;
+    return vader_virtual_thread_handle(t);
 }
 
 static void vader_virtual_thread_switch(int64_t to) {
@@ -729,9 +731,12 @@ static int64_t vader_virtual_thread_create_unstarted(vader_fn_t* entry) {
     return vader_virtual_thread_create(entry);
 }
 
-static int vader_virtual_thread_adopt_unstarted(int64_t* handle) {
-    (void) handle;
+static int vader_virtual_thread_has_unstarted(void) {
     return 0;
+}
+
+static int64_t vader_virtual_thread_adopt_unstarted(void) {
+    vader_trap("virtual threads: no stack switch on this target");
 }
 
 static void vader_virtual_thread_switch(int64_t to) {
