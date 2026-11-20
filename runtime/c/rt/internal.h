@@ -106,8 +106,14 @@ static void vader_gc_pool_start(void);
 static void vader_gc_blocking(void (*op)(void* arg), void* arg, vader_os_lock_t* held);
 /* Store every callee-saved register of the calling frame on its stack, in
  * `regs` among others, for a conservative scan from `&regs` up: `setjmp`
- * alone mangles some. */
-#define VADER_SPILL_REGISTERS(regs) do { __builtin_unwind_init(); (void) setjmp(regs); } while (0)
+ * alone mangles some. POSIX `_setjmp` leaves the signal mask alone, which
+ * `setjmp` saves on Darwin by two system calls; Windows has no such mask. */
+#if defined(_WIN32)
+#  define VADER_SETJMP(regs) setjmp(regs)
+#else
+#  define VADER_SETJMP(regs) _setjmp(regs)
+#endif
+#define VADER_SPILL_REGISTERS(regs) do { __builtin_unwind_init(); (void) VADER_SETJMP(regs); } while (0)
 /* Stop here if another worker collects, letting go of `held` meanwhile, a
  * lock the caller holds, or NULL (`vader_gc_blocking`). */
 static void vader_gc_safepoint(vader_os_lock_t* held);
