@@ -1338,19 +1338,19 @@ vader_string_t vader_core_types$display_type(vader_box_t l0) {
                 { vader_gc_top = gc_frame.prev; return 2837u; }
             }
             if (l0.tag == 1354u) {
-                { vader_gc_top = gc_frame.prev; return 3606u; }
+                { vader_gc_top = gc_frame.prev; return 3608u; }
             }
             if (l0.tag == 1353u) {
-                { vader_gc_top = gc_frame.prev; return 3605u; }
+                { vader_gc_top = gc_frame.prev; return 3607u; }
             }
             if (l0.tag == 1352u) {
-                { vader_gc_top = gc_frame.prev; return 3604u; }
+                { vader_gc_top = gc_frame.prev; return 3606u; }
             }
             if (l0.tag == 1361u) {
                 { vader_gc_top = gc_frame.prev; return 962u; }
             }
             if (l0.tag == 1367u) {
-                { vader_gc_top = gc_frame.prev; return 3239u; }
+                { vader_gc_top = gc_frame.prev; return 3240u; }
             }
             if (l0.tag == 1347u) {
                 { vader_gc_top = gc_frame.prev; return 645u; }
@@ -3062,7 +3062,7 @@ bool vader_core_types$is_void(vader_box_t l0) {
     }
     t0 = l0.payload.obj;
     t1 = ((vader_struct_vader_core_types$PrimitiveType_t*) t0)->f_name;
-    return t1 == 3532u;
+    return t1 == 3534u;
 }
 
 static void* vader_core_types$joined_ranges(vader_box_t l0, void* l1) {
@@ -3649,7 +3649,7 @@ vader_box_t vader_core_types$primitive_from_name(vader_string_t l0) {
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (l0 == 3239u) {
+    if (l0 == 3240u) {
         t0 = (void*) &vader_data_47;
         vader_array_t* _a0_slotarr = ((vader_array_t*) t0);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
@@ -5744,7 +5744,7 @@ static void vader_core_types$write_type(void* l0, vader_box_t l1) {
         l3 = ((vader_struct_vader_core_symbol$Symbol_t*) ((vader_struct_vader_core_types$TypeParamType_t*) t0)->f_symbol)->f_name;
         std_string__builder$append(l2, l3);
     } else if (l1.tag == 1367u) {
-        std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 3239u);
+        std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 3240u);
     } else if (l1.tag == 1361u) {
         std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 962u);
     } else if (l1.tag == 1372u) {
@@ -5752,11 +5752,11 @@ static void vader_core_types$write_type(void* l0, vader_box_t l1) {
     } else if (l1.tag == 1357u) {
         std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 2837u);
     } else if (l1.tag == 1354u) {
-        std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 3606u);
+        std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 3608u);
     } else if (l1.tag == 1353u) {
-        std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 3605u);
+        std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 3607u);
     } else if (l1.tag == 1352u) {
-        std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 3604u);
+        std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 3606u);
     } else if (l1.tag == 1348u) {
         t0 = l1.payload.obj;
         if (((vader_struct_vader_core_types$ArrayType_t*) t0)->f_element.tag == 1371u) {

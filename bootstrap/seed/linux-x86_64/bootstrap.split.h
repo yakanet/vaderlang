@@ -12114,7 +12114,7 @@ vader_box_t toolchain_stage$Stage$run$$dispatch(vader_box_t recv, vader_box_t a0
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3616u
+#define VADER_COMPTIME_ATOM_COUNT 3618u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;

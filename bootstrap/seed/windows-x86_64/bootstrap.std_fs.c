@@ -61,7 +61,7 @@ static vader_box_t std_fs$File$std_io$Writer$write(void* l0, vader_box_t l1) {
             if (l5 == INT64_C(0)) {
                 vader_struct_std_io$IOError_t* _a2_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
                 vader_obj_header_init(_a2_obj, 1004u);
-                _a2_obj->f_msg = 3579u;
+                _a2_obj->f_msg = 3581u;
                 _a2_obj->f_kind = (uint8_t) 0;
                 _a2_obj->f_code = INT32_C(0);
                 t1 = (void*) _a2_obj;
@@ -699,7 +699,7 @@ static vader_box_t std_fs$refusal_of(vader_string_t l0, void* l1) {
     if (t0) {
         t0 = ((vader_struct_std_fs$OpenOptions_t*) l1)->f_write;
         if (!(t0)) {
-            t1 = std_fs$invalid_options(3229u);
+            t1 = std_fs$invalid_options(3230u);
             { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
         }
     }
@@ -707,7 +707,7 @@ static vader_box_t std_fs$refusal_of(vader_string_t l0, void* l1) {
     if (t0) {
         t0 = ((vader_struct_std_fs$OpenOptions_t*) l1)->f_append;
         if (t0) {
-            t1 = std_fs$invalid_options(3228u);
+            t1 = std_fs$invalid_options(3229u);
             { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
         }
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
@@ -848,7 +848,7 @@ static vader_box_t std_fs$system_write(vader_box_t l0, void* l1) {
     t3 = std_fs$handle_of(l0);
     t4 = vader_host_system_windows$write_file(t3, l1, l3, l2, vader_box_obj(0u, NULL));
     if (!(t4)) {
-        t5 = std_io$last_io_error(3578u);
+        t5 = std_io$last_io_error(3580u);
         { vader_box_t __vret = vader_ref_box(t5); vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_array_t* _a1_slotarr = ((vader_array_t*) l2);

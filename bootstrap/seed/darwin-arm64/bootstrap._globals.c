@@ -3146,6 +3146,7 @@ const char vader_atom_blob[] =
     "task " "\0"
     "task #" "\0"
     "task runs a function value whose captures are unknown" "\0"
+    "task_ended" "\0"
     "task_faults" "\0"
     "task_primitive" "\0"
     "task_shared" "\0"
@@ -3476,6 +3477,7 @@ const char vader_atom_blob[] =
     "vader_scheduler_sleep_for" "\0"
     "vader_scheduler_spawn" "\0"
     "vader_scheduler_stop_waiting" "\0"
+    "vader_scheduler_task_ended" "\0"
     "vader_scheduler_wait_readable" "\0"
     "vader_scheduler_wait_readable_for" "\0"
     "vader_scheduler_wait_writable" "\0"
@@ -6764,481 +6766,483 @@ const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63728] },
     { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63734] },
     { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63741] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63795] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63807] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63822] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63834] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63880] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63885] },
-    { 0u, 0u, 67u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63891] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63959] },
-    { 0u, 0u, 74u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64010] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64085] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64091] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64130] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64135] },
-    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64166] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64227] },
-    { 0u, 0u, 82u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64254] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64337] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64357] },
-    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64389] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64450] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64480] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63795] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63806] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63818] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63833] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63845] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63891] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63896] },
+    { 0u, 0u, 67u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63902] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63970] },
+    { 0u, 0u, 74u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64021] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64096] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64102] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64141] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64146] },
+    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64177] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64238] },
+    { 0u, 0u, 82u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64265] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64348] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64368] },
+    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64400] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64461] },
     { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64491] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64502] },
-    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64514] },
-    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64576] },
-    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64620] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64672] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64686] },
-    { 0u, 0u, 99u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64701] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64801] },
-    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64816] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64868] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64882] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64930] },
-    { 0u, 0u, 67u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64968] },
-    { 0u, 0u, 75u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65036] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65112] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65149] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65176] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65196] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65212] },
-    { 0u, 0u, 146u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65265] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65412] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65431] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65474] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65519] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65538] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65565] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65610] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65615] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65620] },
-    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65659] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65701] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65718] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65737] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65783] },
-    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65819] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65878] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65904] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65926] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65975] },
-    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66004] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66058] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66092] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66132] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66142] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66188] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66198] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66230] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66261] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66281] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66299] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66317] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66335] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66348] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66355] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66392] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66398] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66406] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66417] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66454] },
-    { 0u, 0u, 97u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66474] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66572] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66577] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66598] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66621] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66625] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66631] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66677] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66723] },
-    { 0u, 0u, 64u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66768] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66833] },
-    { 0u, 0u, 70u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66860] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66931] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66954] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66959] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67006] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67017] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67031] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67048] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64502] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64513] },
+    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64525] },
+    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64587] },
+    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64631] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64683] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64697] },
+    { 0u, 0u, 99u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64712] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64812] },
+    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64827] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64879] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64893] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64941] },
+    { 0u, 0u, 67u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64979] },
+    { 0u, 0u, 75u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65047] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65123] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65160] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65187] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65207] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65223] },
+    { 0u, 0u, 146u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65276] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65423] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65442] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65485] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65530] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65549] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65576] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65621] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65626] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65631] },
+    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65670] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65712] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65729] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65748] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65794] },
+    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65830] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65889] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65915] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65937] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[65986] },
+    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66015] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66069] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66103] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66143] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66153] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66199] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66209] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66241] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66272] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66292] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66310] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66328] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66346] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66359] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66366] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66403] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66409] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66417] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66428] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66465] },
+    { 0u, 0u, 97u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66485] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66583] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66588] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66609] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66632] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66636] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66642] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66688] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66734] },
+    { 0u, 0u, 64u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66779] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66844] },
+    { 0u, 0u, 70u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66871] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66942] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66965] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[66970] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67017] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67028] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67042] },
     { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67059] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67070] },
-    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67086] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67141] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67170] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67181] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67191] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67070] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67081] },
+    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67097] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67152] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67181] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67192] },
     { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67202] },
     { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67213] },
     { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67224] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67235] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67245] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67279] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67289] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67323] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67331] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67341] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67382] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67394] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67417] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67425] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67434] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67450] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67452] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67455] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67477] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67486] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67490] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67494] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67502] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67525] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67532] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67539] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67546] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67553] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67561] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67584] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67592] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67596] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67604] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67627] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67634] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67641] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67648] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67655] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67663] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67686] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67694] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67697] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67701] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67710] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67719] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67728] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67736] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67742] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67750] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67772] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67789] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67799] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67827] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67848] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67872] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67889] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67895] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67905] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67915] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67923] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67932] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67960] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67981] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67996] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68013] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68027] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68041] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68064] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68088] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68106] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68111] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68121] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68133] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68150] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68173] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68191] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68213] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68234] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68244] },
-    { 0u, 0u, 138u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68253] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68392] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68411] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68438] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68469] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68489] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68509] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68529] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68557] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68572] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68587] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68634] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68680] },
-    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68710] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68784] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68812] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68820] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68831] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68866] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68873] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68906] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68920] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68927] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68949] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68967] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68988] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69006] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69023] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69047] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69066] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69082] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69101] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69118] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69139] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69161] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69182] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69203] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69224] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69245] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69266] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69286] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69307] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69331] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69352] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69372] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69392] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69417] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69442] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69466] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69488] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69514] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69538] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69557] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69577] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69600] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69618] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69632] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69647] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69663] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69689] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69708] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69738] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69756] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69776] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69787] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69800] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69815] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69829] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69844] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69856] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69869] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69896] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69918] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69940] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69962] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69983] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70008] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70025] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70048] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70071] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70094] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70116] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70132] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70158] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70169] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70183] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70203] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70222] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70239] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70251] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70271] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70291] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70312] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70329] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70350] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70367] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70393] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70408] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70428] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70445] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70466] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70481] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70502] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70519] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70530] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70542] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70558] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70578] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70593] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70610] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70637] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70654] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70673] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70691] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70704] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70718] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70742] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70765] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70784] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70807] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70819] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70841] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70860] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70880] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70892] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70906] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70925] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70948] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70972] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70993] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71022] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71049] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71079] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71108] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71141] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71174] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71201] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71230] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71257] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71278] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71306] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71334] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71360] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71382] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71411] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71441] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71475] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71505] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71539] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71560] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71587] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71618] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71632] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71655] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71676] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71698] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71722] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71746] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71767] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71785] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71807] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71822] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71838] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71859] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71873] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71884] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71906] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71924] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71946] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71964] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71970] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71977] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71985] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72038] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72050] },
-    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72081] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72125] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72159] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72187] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72218] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72253] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72306] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72316] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72323] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72332] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72340] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72349] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72359] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72390] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72441] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72454] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72477] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72515] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72552] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72566] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72604] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72610] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72618] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72627] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72680] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72694] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72709] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72714] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72720] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72727] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72736] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72755] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72771] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72787] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72801] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72819] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72833] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72851] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72856] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72864] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72869] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72876] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72887] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72902] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72921] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72949] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72984] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73031] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73061] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73067] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73075] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73112] },
-    { 0u, 0u, 110u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73132] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73243] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73252] },
-    { 0u, 0u, 117u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73261] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73379] },
-    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73387] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73437] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73457] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73469] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73475] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73483] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73494] },
-    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73503] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73560] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73574] },
-    { 0u, 0u, 71u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73614] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73686] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73699] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73709] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73720] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73732] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73745] },
-    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73775] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73833] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73866] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73877] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73887] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73900] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73916] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73931] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73938] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73945] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73971] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74007] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74038] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74045] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74049] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74055] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74086] },
-    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74094] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74157] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74164] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74166] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74169] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74172] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74176] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74180] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74187] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74195] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74205] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74208] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74210] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74213] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74215] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74218] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74221] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74233] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74242] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67235] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67246] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67256] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67290] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67300] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67334] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67342] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67352] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67393] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67405] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67428] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67436] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67445] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67461] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67463] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67466] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67488] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67497] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67501] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67505] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67513] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67536] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67543] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67550] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67557] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67564] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67572] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67595] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67603] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67607] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67615] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67638] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67645] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67652] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67659] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67666] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67674] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67697] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67705] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67708] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67712] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67721] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67730] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67739] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67747] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67753] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67761] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67783] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67800] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67810] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67838] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67859] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67883] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67900] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67906] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67916] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67926] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67934] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67943] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67971] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67992] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68007] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68024] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68038] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68052] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68075] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68099] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68117] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68122] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68132] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68144] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68161] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68184] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68202] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68224] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68245] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68255] },
+    { 0u, 0u, 138u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68264] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68403] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68422] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68449] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68480] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68500] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68520] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68540] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68568] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68583] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68598] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68645] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68691] },
+    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68721] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68795] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68823] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68831] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68842] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68877] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68884] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68917] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68931] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68938] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68960] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68978] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[68999] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69017] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69034] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69058] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69077] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69093] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69112] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69129] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69150] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69172] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69193] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69214] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69235] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69256] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69277] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69297] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69318] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69342] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69363] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69383] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69403] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69428] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69453] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69477] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69499] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69525] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69549] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69568] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69588] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69611] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69629] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69643] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69658] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69674] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69700] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69719] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69749] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69767] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69787] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69798] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69811] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69826] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69840] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69855] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69867] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69880] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69907] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69929] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69951] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69973] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[69994] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70019] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70036] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70059] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70082] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70105] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70127] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70143] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70169] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70180] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70194] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70214] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70233] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70250] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70262] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70282] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70302] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70323] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70340] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70361] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70378] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70404] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70419] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70439] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70456] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70477] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70492] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70513] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70530] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70541] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70553] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70569] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70589] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70604] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70621] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70648] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70665] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70684] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70702] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70715] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70729] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70753] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70776] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70795] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70818] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70830] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70852] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70871] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70891] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70903] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70917] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70936] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70959] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70983] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71004] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71033] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71060] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71090] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71119] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71152] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71185] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71212] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71241] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71268] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71289] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71317] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71345] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71371] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71393] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71422] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71449] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71479] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71513] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71543] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71577] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71598] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71625] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71656] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71670] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71693] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71714] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71736] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71760] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71784] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71805] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71823] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71845] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71860] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71876] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71897] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71911] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71922] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71944] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71962] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71984] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72002] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72008] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72015] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72023] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72076] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72088] },
+    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72119] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72163] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72197] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72225] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72256] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72291] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72344] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72354] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72361] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72370] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72378] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72387] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72397] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72428] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72479] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72492] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72515] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72553] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72590] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72604] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72642] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72648] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72656] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72665] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72718] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72732] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72747] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72752] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72758] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72765] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72774] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72793] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72809] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72825] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72839] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72857] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72871] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72889] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72894] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72902] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72907] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72914] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72925] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72940] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72959] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[72987] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73022] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73069] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73099] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73105] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73113] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73150] },
+    { 0u, 0u, 110u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73170] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73281] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73290] },
+    { 0u, 0u, 117u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73299] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73417] },
+    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73425] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73475] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73495] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73507] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73513] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73521] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73532] },
+    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73541] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73598] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73612] },
+    { 0u, 0u, 71u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73652] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73724] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73737] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73747] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73758] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73770] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73783] },
+    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73813] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73871] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73904] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73915] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73925] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73938] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73954] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73969] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73976] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[73983] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74009] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74045] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74076] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74083] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74087] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74093] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74124] },
+    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74132] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74195] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74202] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74204] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74207] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74210] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74214] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74218] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74225] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74233] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74243] },
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74246] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74248] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74251] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74253] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74256] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74259] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74271] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74280] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[74284] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 3616u
+#define VADER_COMPTIME_ATOM_COUNT 3618u
 
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
@@ -8590,7 +8594,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_3_e2 = {
     VADER_STATIC_HEADER(1109u), 771u, 2409u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_3_e3 = {
-    VADER_STATIC_HEADER(1109u), 772u, 3148u,
+    VADER_STATIC_HEADER(1109u), 772u, 3149u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_3_e4 = {
     VADER_STATIC_HEADER(1109u), 773u, 2613u,
@@ -8710,16 +8714,16 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e4 = {
     VADER_STATIC_HEADER(1109u), 917u, 2583u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e5 = {
-    VADER_STATIC_HEADER(1109u), 918u, 3327u,
+    VADER_STATIC_HEADER(1109u), 918u, 3328u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e6 = {
-    VADER_STATIC_HEADER(1109u), 919u, 3328u,
+    VADER_STATIC_HEADER(1109u), 919u, 3329u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e7 = {
     VADER_STATIC_HEADER(1109u), 920u, 3130u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e8 = {
-    VADER_STATIC_HEADER(1109u), 921u, 3224u,
+    VADER_STATIC_HEADER(1109u), 921u, 3225u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e9 = {
     VADER_STATIC_HEADER(1109u), 922u, 2852u,
@@ -8728,7 +8732,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e10 = {
     VADER_STATIC_HEADER(1109u), 923u, 2262u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e11 = {
-    VADER_STATIC_HEADER(1109u), 924u, 3348u,
+    VADER_STATIC_HEADER(1109u), 924u, 3349u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e12 = {
     VADER_STATIC_HEADER(1109u), 925u, 3034u,
@@ -8764,7 +8768,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e22 = {
     VADER_STATIC_HEADER(1109u), 935u, 2822u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e23 = {
-    VADER_STATIC_HEADER(1109u), 936u, 3185u,
+    VADER_STATIC_HEADER(1109u), 936u, 3186u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e24 = {
     VADER_STATIC_HEADER(1109u), 937u, 1808u,
@@ -8773,7 +8777,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e25 = {
     VADER_STATIC_HEADER(1109u), 938u, 1818u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e26 = {
-    VADER_STATIC_HEADER(1109u), 939u, 3319u,
+    VADER_STATIC_HEADER(1109u), 939u, 3320u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e27 = {
     VADER_STATIC_HEADER(1109u), 940u, 1663u,
@@ -8782,7 +8786,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e28 = {
     VADER_STATIC_HEADER(1109u), 941u, 1661u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e29 = {
-    VADER_STATIC_HEADER(1109u), 942u, 3234u,
+    VADER_STATIC_HEADER(1109u), 942u, 3235u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e30 = {
     VADER_STATIC_HEADER(1109u), 943u, 2260u,
@@ -8797,13 +8801,13 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e33 = {
     VADER_STATIC_HEADER(1109u), 946u, 1739u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e34 = {
-    VADER_STATIC_HEADER(1109u), 947u, 3204u,
+    VADER_STATIC_HEADER(1109u), 947u, 3205u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e35 = {
     VADER_STATIC_HEADER(1109u), 948u, 1907u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_4_e36 = {
-    VADER_STATIC_HEADER(1109u), 949u, 3200u,
+    VADER_STATIC_HEADER(1109u), 949u, 3201u,
 };
 const VADER_ARRAY_STATIC_BUF(vader_box_t, 37) vader_data_4_buf = {
     VADER_STATIC_BUF_HEADER(1109u, 0u, 37u),
@@ -9064,10 +9068,10 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_5_e9 = {
     VADER_STATIC_HEADER(1109u), 676u, 1728u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_5_e10 = {
-    VADER_STATIC_HEADER(1109u), 677u, 3235u,
+    VADER_STATIC_HEADER(1109u), 677u, 3236u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_5_e11 = {
-    VADER_STATIC_HEADER(1109u), 678u, 3233u,
+    VADER_STATIC_HEADER(1109u), 678u, 3234u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_5_e12 = {
     VADER_STATIC_HEADER(1109u), 679u, 1847u,
@@ -9172,13 +9176,13 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_6_e1 = {
     VADER_STATIC_HEADER(1109u), 750u, 2642u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_6_e2 = {
-    VADER_STATIC_HEADER(1109u), 751u, 3162u,
+    VADER_STATIC_HEADER(1109u), 751u, 3163u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_6_e3 = {
     VADER_STATIC_HEADER(1109u), 752u, 2040u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_6_e4 = {
-    VADER_STATIC_HEADER(1109u), 753u, 3236u,
+    VADER_STATIC_HEADER(1109u), 753u, 3237u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_6_e5 = {
     VADER_STATIC_HEADER(1109u), 754u, 2153u,
@@ -9190,7 +9194,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_6_e7 = {
     VADER_STATIC_HEADER(1109u), 756u, 2123u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_6_e8 = {
-    VADER_STATIC_HEADER(1109u), 757u, 3164u,
+    VADER_STATIC_HEADER(1109u), 757u, 3165u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_6_e9 = {
     VADER_STATIC_HEADER(1109u), 758u, 1972u,
@@ -9208,10 +9212,10 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_6_e13 = {
     VADER_STATIC_HEADER(1109u), 762u, 1783u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_6_e14 = {
-    VADER_STATIC_HEADER(1109u), 763u, 3188u,
+    VADER_STATIC_HEADER(1109u), 763u, 3189u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_6_e15 = {
-    VADER_STATIC_HEADER(1109u), 764u, 3168u,
+    VADER_STATIC_HEADER(1109u), 764u, 3169u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_6_e16 = {
     VADER_STATIC_HEADER(1109u), 765u, 1772u,
@@ -9325,22 +9329,22 @@ const VADER_ARRAY_STATIC_BUF(vader_box_t, 17) vader_data_6_buf = {
 };
 const vader_array_t vader_data_6 = VADER_STATIC_ARRAY(80u, 17u, &vader_data_6_buf);
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e0 = {
-    VADER_STATIC_HEADER(1109u), 985u, 3242u,
+    VADER_STATIC_HEADER(1109u), 985u, 3243u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e1 = {
     VADER_STATIC_HEADER(1109u), 986u, 2347u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e2 = {
-    VADER_STATIC_HEADER(1109u), 987u, 3589u,
+    VADER_STATIC_HEADER(1109u), 987u, 3591u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e3 = {
-    VADER_STATIC_HEADER(1109u), 988u, 3318u,
+    VADER_STATIC_HEADER(1109u), 988u, 3319u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e4 = {
     VADER_STATIC_HEADER(1109u), 989u, 2798u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e5 = {
-    VADER_STATIC_HEADER(1109u), 990u, 3225u,
+    VADER_STATIC_HEADER(1109u), 990u, 3226u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e6 = {
     VADER_STATIC_HEADER(1109u), 991u, 2369u,
@@ -9373,7 +9377,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e15 = {
     VADER_STATIC_HEADER(1109u), 1000u, 2462u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e16 = {
-    VADER_STATIC_HEADER(1109u), 1001u, 3342u,
+    VADER_STATIC_HEADER(1109u), 1001u, 3343u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e17 = {
     VADER_STATIC_HEADER(1109u), 1002u, 2465u,
@@ -9382,7 +9386,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e18 = {
     VADER_STATIC_HEADER(1109u), 1003u, 1882u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e19 = {
-    VADER_STATIC_HEADER(1109u), 1004u, 3313u,
+    VADER_STATIC_HEADER(1109u), 1004u, 3314u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e20 = {
     VADER_STATIC_HEADER(1109u), 1005u, 2112u,
@@ -9406,7 +9410,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e26 = {
     VADER_STATIC_HEADER(1109u), 1011u, 2971u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e27 = {
-    VADER_STATIC_HEADER(1109u), 1012u, 3247u,
+    VADER_STATIC_HEADER(1109u), 1012u, 3248u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e28 = {
     VADER_STATIC_HEADER(1109u), 1013u, 2577u,
@@ -9421,7 +9425,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e31 = {
     VADER_STATIC_HEADER(1109u), 1016u, 1666u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e32 = {
-    VADER_STATIC_HEADER(1109u), 1017u, 3151u,
+    VADER_STATIC_HEADER(1109u), 1017u, 3152u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e33 = {
     VADER_STATIC_HEADER(1109u), 1018u, 2121u,
@@ -9463,7 +9467,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e45 = {
     VADER_STATIC_HEADER(1109u), 1029u, 1682u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e46 = {
-    VADER_STATIC_HEADER(1109u), 1030u, 3597u,
+    VADER_STATIC_HEADER(1109u), 1030u, 3599u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e47 = {
     VADER_STATIC_HEADER(1109u), 1031u, 1738u,
@@ -9487,7 +9491,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e53 = {
     VADER_STATIC_HEADER(1109u), 1038u, 1770u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e54 = {
-    VADER_STATIC_HEADER(1109u), 1039u, 3201u,
+    VADER_STATIC_HEADER(1109u), 1039u, 3202u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e55 = {
     VADER_STATIC_HEADER(1109u), 1040u, 2229u,
@@ -9496,7 +9500,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e56 = {
     VADER_STATIC_HEADER(1109u), 1041u, 2102u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e57 = {
-    VADER_STATIC_HEADER(1109u), 1042u, 3503u,
+    VADER_STATIC_HEADER(1109u), 1042u, 3505u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e58 = {
     VADER_STATIC_HEADER(1109u), 1043u, 2872u,
@@ -9508,13 +9512,13 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e60 = {
     VADER_STATIC_HEADER(1109u), 1045u, 2311u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e61 = {
-    VADER_STATIC_HEADER(1109u), 1046u, 3519u,
+    VADER_STATIC_HEADER(1109u), 1046u, 3521u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e62 = {
     VADER_STATIC_HEADER(1109u), 1047u, 1842u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e63 = {
-    VADER_STATIC_HEADER(1109u), 1048u, 3179u,
+    VADER_STATIC_HEADER(1109u), 1048u, 3180u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e64 = {
     VADER_STATIC_HEADER(1109u), 1049u, 2875u,
@@ -9541,7 +9545,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e71 = {
     VADER_STATIC_HEADER(1109u), 1056u, 1896u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e72 = {
-    VADER_STATIC_HEADER(1109u), 1057u, 3518u,
+    VADER_STATIC_HEADER(1109u), 1057u, 3520u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e73 = {
     VADER_STATIC_HEADER(1109u), 1058u, 1839u,
@@ -9562,13 +9566,13 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e78 = {
     VADER_STATIC_HEADER(1109u), 1063u, 1929u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e79 = {
-    VADER_STATIC_HEADER(1109u), 1064u, 3178u,
+    VADER_STATIC_HEADER(1109u), 1064u, 3179u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e80 = {
     VADER_STATIC_HEADER(1109u), 1065u, 1786u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e81 = {
-    VADER_STATIC_HEADER(1109u), 1066u, 3591u,
+    VADER_STATIC_HEADER(1109u), 1066u, 3593u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e82 = {
     VADER_STATIC_HEADER(1109u), 1067u, 1697u,
@@ -9628,7 +9632,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e100 = {
     VADER_STATIC_HEADER(1109u), 1085u, 1824u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e101 = {
-    VADER_STATIC_HEADER(1109u), 1086u, 3237u,
+    VADER_STATIC_HEADER(1109u), 1086u, 3238u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e102 = {
     VADER_STATIC_HEADER(1109u), 1087u, 1767u,
@@ -9637,16 +9641,16 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e103 = {
     VADER_STATIC_HEADER(1109u), 1088u, 1826u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e104 = {
-    VADER_STATIC_HEADER(1109u), 1089u, 3510u,
+    VADER_STATIC_HEADER(1109u), 1089u, 3512u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e105 = {
-    VADER_STATIC_HEADER(1109u), 1090u, 3509u,
+    VADER_STATIC_HEADER(1109u), 1090u, 3511u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e106 = {
     VADER_STATIC_HEADER(1109u), 1091u, 2126u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e107 = {
-    VADER_STATIC_HEADER(1109u), 1092u, 3505u,
+    VADER_STATIC_HEADER(1109u), 1092u, 3507u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e108 = {
     VADER_STATIC_HEADER(1109u), 1093u, 3030u,
@@ -9661,7 +9665,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e111 = {
     VADER_STATIC_HEADER(1109u), 1096u, 1782u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e112 = {
-    VADER_STATIC_HEADER(1109u), 1097u, 3195u,
+    VADER_STATIC_HEADER(1109u), 1097u, 3196u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e113 = {
     VADER_STATIC_HEADER(1109u), 1098u, 2330u,
@@ -9670,16 +9674,16 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e114 = {
     VADER_STATIC_HEADER(1109u), 1099u, 1636u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e115 = {
-    VADER_STATIC_HEADER(1109u), 1100u, 3207u,
+    VADER_STATIC_HEADER(1109u), 1100u, 3208u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e116 = {
     VADER_STATIC_HEADER(1109u), 1101u, 1758u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e117 = {
-    VADER_STATIC_HEADER(1109u), 1102u, 3205u,
+    VADER_STATIC_HEADER(1109u), 1102u, 3206u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e118 = {
-    VADER_STATIC_HEADER(1109u), 1103u, 3199u,
+    VADER_STATIC_HEADER(1109u), 1103u, 3200u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_7_e119 = {
     VADER_STATIC_HEADER(1109u), 1104u, 1759u,
@@ -10465,13 +10469,13 @@ const VADER_ARRAY_STATIC_BUF(vader_box_t, 126) vader_data_7_buf = {
 };
 const vader_array_t vader_data_7 = VADER_STATIC_ARRAY(80u, 126u, &vader_data_7_buf);
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_8_e0 = {
-    VADER_STATIC_HEADER(1109u), 1155u, 3343u,
+    VADER_STATIC_HEADER(1109u), 1155u, 3344u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_8_e1 = {
-    VADER_STATIC_HEADER(1109u), 1156u, 3324u,
+    VADER_STATIC_HEADER(1109u), 1156u, 3325u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_8_e2 = {
-    VADER_STATIC_HEADER(1109u), 1157u, 3561u,
+    VADER_STATIC_HEADER(1109u), 1157u, 3563u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_8_e3 = {
     VADER_STATIC_HEADER(1109u), 1158u, 2584u,
@@ -10504,7 +10508,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_8_e12 = {
     VADER_STATIC_HEADER(1109u), 1167u, 2727u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_8_e13 = {
-    VADER_STATIC_HEADER(1109u), 1168u, 3173u,
+    VADER_STATIC_HEADER(1109u), 1168u, 3174u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_8_e14 = {
     VADER_STATIC_HEADER(1109u), 1169u, 1852u,
@@ -10684,13 +10688,13 @@ const VADER_ARRAY_STATIC_BUF(vader_box_t, 5) vader_data_9_buf = {
 };
 const vader_array_t vader_data_9 = VADER_STATIC_ARRAY(80u, 5u, &vader_data_9_buf);
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_10_e0 = {
-    VADER_STATIC_HEADER(1109u), 832u, 3304u,
+    VADER_STATIC_HEADER(1109u), 832u, 3305u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_10_e1 = {
-    VADER_STATIC_HEADER(1109u), 833u, 3338u,
+    VADER_STATIC_HEADER(1109u), 833u, 3339u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_10_e2 = {
-    VADER_STATIC_HEADER(1109u), 834u, 3333u,
+    VADER_STATIC_HEADER(1109u), 834u, 3334u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_10_e3 = {
     VADER_STATIC_HEADER(1109u), 835u, 2649u,
@@ -10789,7 +10793,7 @@ const VADER_ARRAY_STATIC_BUF(vader_box_t, 11) vader_data_10_buf = {
 };
 const vader_array_t vader_data_10 = VADER_STATIC_ARRAY(80u, 11u, &vader_data_10_buf);
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_11_e0 = {
-    VADER_STATIC_HEADER(1109u), 877u, 3306u,
+    VADER_STATIC_HEADER(1109u), 877u, 3307u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_11_e1 = {
     VADER_STATIC_HEADER(1109u), 878u, 2355u,
@@ -10813,7 +10817,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_11_e7 = {
     VADER_STATIC_HEADER(1109u), 884u, 3107u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_11_e8 = {
-    VADER_STATIC_HEADER(1109u), 885u, 3312u,
+    VADER_STATIC_HEADER(1109u), 885u, 3313u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_11_e9 = {
     VADER_STATIC_HEADER(1109u), 886u, 2796u,
@@ -10825,7 +10829,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_11_e11 = {
     VADER_STATIC_HEADER(1109u), 888u, 1795u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_11_e12 = {
-    VADER_STATIC_HEADER(1109u), 889u, 3212u,
+    VADER_STATIC_HEADER(1109u), 889u, 3213u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_11_e13 = {
     VADER_STATIC_HEADER(1109u), 890u, 1681u,
@@ -10837,7 +10841,7 @@ const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_11_e15 = {
     VADER_STATIC_HEADER(1109u), 892u, 2371u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_11_e16 = {
-    VADER_STATIC_HEADER(1109u), 893u, 3590u,
+    VADER_STATIC_HEADER(1109u), 893u, 3592u,
 };
 const struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_data_11_e17 = {
     VADER_STATIC_HEADER(1109u), 894u, 2227u,
@@ -11050,7 +11054,7 @@ const VADER_ARRAY_STATIC_BUF(vader_box_t, 5) vader_data_13_buf = {
     VADER_STATIC_BUF_HEADER(576u, 0u, 5u),
     .slots = {
         { 576u, 0u, { .s = 2820u } },
-        { 576u, 0u, { .s = 3527u } },
+        { 576u, 0u, { .s = 3529u } },
         { 576u, 0u, { .s = 2597u } },
         { 576u, 0u, { .s = 2300u } },
         { 576u, 0u, { .s = 1973u } },
@@ -11061,7 +11065,7 @@ const VADER_ARRAY_STATIC_BUF(vader_box_t, 3) vader_data_14_buf = {
     VADER_STATIC_BUF_HEADER(576u, 0u, 3u),
     .slots = {
         { 576u, 0u, { .s = 962u } },
-        { 576u, 0u, { .s = 3239u } },
+        { 576u, 0u, { .s = 3240u } },
         { 576u, 0u, { .s = 796u } },
     },
 };
@@ -11312,7 +11316,7 @@ const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e34 = {
     VADER_STATIC_HEADER(1298u), 2926u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e35 = {
-    VADER_STATIC_HEADER(1298u), 3543u,
+    VADER_STATIC_HEADER(1298u), 3545u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e36 = {
     VADER_STATIC_HEADER(1298u), 3045u,
@@ -11330,73 +11334,76 @@ const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e40 = {
     VADER_STATIC_HEADER(1298u), 2665u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e41 = {
-    VADER_STATIC_HEADER(1298u), 3548u,
+    VADER_STATIC_HEADER(1298u), 3145u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e42 = {
-    VADER_STATIC_HEADER(1298u), 3547u,
+    VADER_STATIC_HEADER(1298u), 3550u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e43 = {
-    VADER_STATIC_HEADER(1298u), 2808u,
+    VADER_STATIC_HEADER(1298u), 3549u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e44 = {
-    VADER_STATIC_HEADER(1298u), 2811u,
+    VADER_STATIC_HEADER(1298u), 2808u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e45 = {
-    VADER_STATIC_HEADER(1298u), 2810u,
+    VADER_STATIC_HEADER(1298u), 2811u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e46 = {
-    VADER_STATIC_HEADER(1298u), 2954u,
+    VADER_STATIC_HEADER(1298u), 2810u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e47 = {
-    VADER_STATIC_HEADER(1298u), 2817u,
+    VADER_STATIC_HEADER(1298u), 2954u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e48 = {
-    VADER_STATIC_HEADER(1298u), 2818u,
+    VADER_STATIC_HEADER(1298u), 2817u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e49 = {
-    VADER_STATIC_HEADER(1298u), 2819u,
+    VADER_STATIC_HEADER(1298u), 2818u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e50 = {
-    VADER_STATIC_HEADER(1298u), 3539u,
+    VADER_STATIC_HEADER(1298u), 2819u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e51 = {
-    VADER_STATIC_HEADER(1298u), 3540u,
-};
-const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e52 = {
     VADER_STATIC_HEADER(1298u), 3541u,
 };
-const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e53 = {
+const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e52 = {
     VADER_STATIC_HEADER(1298u), 3542u,
 };
+const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e53 = {
+    VADER_STATIC_HEADER(1298u), 3543u,
+};
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e54 = {
-    VADER_STATIC_HEADER(1298u), 3077u,
+    VADER_STATIC_HEADER(1298u), 3544u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e55 = {
-    VADER_STATIC_HEADER(1298u), 2920u,
+    VADER_STATIC_HEADER(1298u), 3077u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e56 = {
-    VADER_STATIC_HEADER(1298u), 2213u,
+    VADER_STATIC_HEADER(1298u), 2920u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e57 = {
-    VADER_STATIC_HEADER(1298u), 2212u,
+    VADER_STATIC_HEADER(1298u), 2213u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e58 = {
-    VADER_STATIC_HEADER(1298u), 2399u,
+    VADER_STATIC_HEADER(1298u), 2212u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e59 = {
-    VADER_STATIC_HEADER(1298u), 2401u,
+    VADER_STATIC_HEADER(1298u), 2399u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e60 = {
-    VADER_STATIC_HEADER(1298u), 2403u,
+    VADER_STATIC_HEADER(1298u), 2401u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e61 = {
-    VADER_STATIC_HEADER(1298u), 2397u,
+    VADER_STATIC_HEADER(1298u), 2403u,
 };
 const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e62 = {
+    VADER_STATIC_HEADER(1298u), 2397u,
+};
+const struct vader_struct_vader_core_bytecode$MemberName_t vader_data_26_e63 = {
     VADER_STATIC_HEADER(1298u), 2398u,
 };
-const VADER_ARRAY_STATIC_BUF(vader_box_t, 63) vader_data_26_buf = {
-    VADER_STATIC_BUF_HEADER(1298u, 0u, 63u),
+const VADER_ARRAY_STATIC_BUF(vader_box_t, 64) vader_data_26_buf = {
+    VADER_STATIC_BUF_HEADER(1298u, 0u, 64u),
     .slots = {
         {
             1298u, 0u,
@@ -11776,9 +11783,15 @@ const VADER_ARRAY_STATIC_BUF(vader_box_t, 63) vader_data_26_buf = {
                 .obj = (void*) (struct vader_struct_vader_core_bytecode$MemberName_t*) &vader_data_26_e62,
             },
         },
+        {
+            1298u, 0u,
+            {
+                .obj = (void*) (struct vader_struct_vader_core_bytecode$MemberName_t*) &vader_data_26_e63,
+            },
+        },
     },
 };
-const vader_array_t vader_data_26 = VADER_STATIC_ARRAY(179u, 63u, &vader_data_26_buf);
+const vader_array_t vader_data_26 = VADER_STATIC_ARRAY(179u, 64u, &vader_data_26_buf);
 const VADER_ARRAY_STATIC_BUF(vader_box_t, 5) vader_data_27_buf = {
     VADER_STATIC_BUF_HEADER(576u, 0u, 5u),
     .slots = {
@@ -11841,12 +11854,12 @@ const VADER_ARRAY_STATIC_BUF(vader_box_t, 44) vader_data_30_buf = {
         { 576u, 0u, { .s = 3063u } },
         { 576u, 0u, { .s = 3103u } },
         { 576u, 0u, { .s = 3127u } },
-        { 576u, 0u, { .s = 3264u } },
-        { 576u, 0u, { .s = 3307u } },
-        { 576u, 0u, { .s = 3330u } },
-        { 576u, 0u, { .s = 3532u } },
-        { 576u, 0u, { .s = 3535u } },
-        { 576u, 0u, { .s = 3554u } },
+        { 576u, 0u, { .s = 3265u } },
+        { 576u, 0u, { .s = 3308u } },
+        { 576u, 0u, { .s = 3331u } },
+        { 576u, 0u, { .s = 3534u } },
+        { 576u, 0u, { .s = 3537u } },
+        { 576u, 0u, { .s = 3556u } },
         { 576u, 0u, { .s = 1201u } },
         { 576u, 0u, { .s = 1202u } },
         { 576u, 0u, { .s = 1203u } },
@@ -11954,13 +11967,13 @@ const struct vader_struct_vader_core_symbol$SymbolKindInfo_t vader_data_37_e2 = 
     VADER_STATIC_HEADER(1346u), 2305u,
 };
 const struct vader_struct_vader_core_symbol$SymbolKindInfo_t vader_data_37_e3 = {
-    VADER_STATIC_HEADER(1346u), 3221u,
+    VADER_STATIC_HEADER(1346u), 3222u,
 };
 const struct vader_struct_vader_core_symbol$SymbolKindInfo_t vader_data_37_e4 = {
     VADER_STATIC_HEADER(1346u), 2576u,
 };
 const struct vader_struct_vader_core_symbol$SymbolKindInfo_t vader_data_37_e5 = {
-    VADER_STATIC_HEADER(1346u), 3244u,
+    VADER_STATIC_HEADER(1346u), 3245u,
 };
 const struct vader_struct_vader_core_symbol$SymbolKindInfo_t vader_data_37_e6 = {
     VADER_STATIC_HEADER(1346u), 2189u,
@@ -11972,7 +11985,7 @@ const struct vader_struct_vader_core_symbol$SymbolKindInfo_t vader_data_37_e8 = 
     VADER_STATIC_HEADER(1346u), 2923u,
 };
 const struct vader_struct_vader_core_symbol$SymbolKindInfo_t vader_data_37_e9 = {
-    VADER_STATIC_HEADER(1346u), 3245u,
+    VADER_STATIC_HEADER(1346u), 3246u,
 };
 const struct vader_struct_vader_core_symbol$SymbolKindInfo_t vader_data_37_e10 = {
     VADER_STATIC_HEADER(1346u), 2725u,
@@ -12101,16 +12114,16 @@ const struct vader_struct_toolchain_ast$IntrinsicInfo_t vader_data_38_e1 = {
     VADER_STATIC_HEADER(1063u), 1868u, 2543u, 616u, 642u,
 };
 const struct vader_struct_toolchain_ast$IntrinsicInfo_t vader_data_38_e2 = {
-    VADER_STATIC_HEADER(1063u), 3257u, 3091u, 634u, 912u,
+    VADER_STATIC_HEADER(1063u), 3258u, 3091u, 634u, 912u,
 };
 const struct vader_struct_toolchain_ast$IntrinsicInfo_t vader_data_38_e3 = {
-    VADER_STATIC_HEADER(1063u), 3255u, 3091u, 633u, 1116u,
+    VADER_STATIC_HEADER(1063u), 3256u, 3091u, 633u, 1116u,
 };
 const struct vader_struct_toolchain_ast$IntrinsicInfo_t vader_data_38_e4 = {
     VADER_STATIC_HEADER(1063u), 2419u, 2543u, 621u, 872u,
 };
 const struct vader_struct_toolchain_ast$IntrinsicInfo_t vader_data_38_e5 = {
-    VADER_STATIC_HEADER(1063u), 3524u, 2543u, 637u, 873u,
+    VADER_STATIC_HEADER(1063u), 3526u, 2543u, 637u, 873u,
 };
 const struct vader_struct_toolchain_ast$IntrinsicInfo_t vader_data_38_e6 = {
     VADER_STATIC_HEADER(1063u), 2421u, 2543u, 622u, 529u,
@@ -12125,13 +12138,13 @@ const struct vader_struct_toolchain_ast$IntrinsicInfo_t vader_data_38_e9 = {
     VADER_STATIC_HEADER(1063u), 2770u, 3022u, 627u, 1114u,
 };
 const struct vader_struct_toolchain_ast$IntrinsicInfo_t vader_data_38_e10 = {
-    VADER_STATIC_HEADER(1063u), 3259u, 3239u, 635u, 1117u,
+    VADER_STATIC_HEADER(1063u), 3260u, 3240u, 635u, 1117u,
 };
 const struct vader_struct_toolchain_ast$IntrinsicInfo_t vader_data_38_e11 = {
     VADER_STATIC_HEADER(1063u), 2425u, 2418u, 626u, 1113u,
 };
 const struct vader_struct_toolchain_ast$IntrinsicInfo_t vader_data_38_e12 = {
-    VADER_STATIC_HEADER(1063u), 3250u, 3251u, 632u, 1118u,
+    VADER_STATIC_HEADER(1063u), 3251u, 3252u, 632u, 1118u,
 };
 const struct vader_struct_toolchain_ast$IntrinsicInfo_t vader_data_38_e13 = {
     VADER_STATIC_HEADER(1063u), 2406u, 2406u, 620u, 1112u,
@@ -12279,7 +12292,7 @@ const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_41_buf = {
 };
 const vader_array_t vader_data_41 = VADER_STATIC_ARRAY(215u, 1u, &vader_data_41_buf);
 const struct vader_struct_vader_core_types$PrimitiveType_t vader_data_42_e0 = {
-    VADER_STATIC_HEADER(1359u), 3532u,
+    VADER_STATIC_HEADER(1359u), 3534u,
 };
 const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_42_buf = {
     VADER_STATIC_BUF_HEADER(1359u, 0u, 1u),
@@ -12371,7 +12384,7 @@ const struct vader_struct_vader_core_types$PrimitiveMeta_t vader_data_46_e4 = {
     (uint8_t) UINT64_C(1),
 };
 const struct vader_struct_vader_core_types$PrimitiveMeta_t vader_data_46_e5 = {
-    VADER_STATIC_HEADER(1358u), 3532u, (int64_t) UINT64_C(0), (uint8_t) UINT64_C(0),
+    VADER_STATIC_HEADER(1358u), 3534u, (int64_t) UINT64_C(0), (uint8_t) UINT64_C(0),
     (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_core_types$PrimitiveMeta_t vader_data_46_e6 = {
@@ -12665,7 +12678,7 @@ const struct vader_struct_toolchain_lexer$TokenInfo_t vader_data_59_e12 = {
     VADER_STATIC_HEADER(1119u), 3103u,
 };
 const struct vader_struct_toolchain_lexer$TokenInfo_t vader_data_59_e13 = {
-    VADER_STATIC_HEADER(1119u), 3221u,
+    VADER_STATIC_HEADER(1119u), 3222u,
 };
 const struct vader_struct_toolchain_lexer$TokenInfo_t vader_data_59_e14 = {
     VADER_STATIC_HEADER(1119u), 2579u,
@@ -12698,7 +12711,7 @@ const struct vader_struct_toolchain_lexer$TokenInfo_t vader_data_59_e23 = {
     VADER_STATIC_HEADER(1119u), 3001u,
 };
 const struct vader_struct_toolchain_lexer$TokenInfo_t vader_data_59_e24 = {
-    VADER_STATIC_HEADER(1119u), 3594u,
+    VADER_STATIC_HEADER(1119u), 3596u,
 };
 const struct vader_struct_toolchain_lexer$TokenInfo_t vader_data_59_e25 = {
     VADER_STATIC_HEADER(1119u), 2235u,
@@ -12719,7 +12732,7 @@ const struct vader_struct_toolchain_lexer$TokenInfo_t vader_data_59_e30 = {
     VADER_STATIC_HEADER(1119u), 2358u,
 };
 const struct vader_struct_toolchain_lexer$TokenInfo_t vader_data_59_e31 = {
-    VADER_STATIC_HEADER(1119u), 3227u,
+    VADER_STATIC_HEADER(1119u), 3228u,
 };
 const struct vader_struct_toolchain_lexer$TokenInfo_t vader_data_59_e32 = {
     VADER_STATIC_HEADER(1119u), 2396u,
@@ -13446,7 +13459,7 @@ const struct vader_struct_vader_support_integer$Interval_t vader_data_61_e4_f3 =
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint64_t) UINT64_C(0),
 };
 const struct vader_struct_vader_support_integer$MachineInteger_t vader_data_61_e4 = {
-    VADER_STATIC_HEADER(1919u), 3292u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(0),
+    VADER_STATIC_HEADER(1919u), 3293u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(0),
     (void*) (struct vader_struct_vader_support_integer$Interval_t*) &vader_data_61_e4_f3,
 };
 const struct vader_struct_vader_support_integer$Interval_t vader_data_61_e5_f3 = {
@@ -13454,7 +13467,7 @@ const struct vader_struct_vader_support_integer$Interval_t vader_data_61_e5_f3 =
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint64_t) UINT64_C(0),
 };
 const struct vader_struct_vader_support_integer$MachineInteger_t vader_data_61_e5 = {
-    VADER_STATIC_HEADER(1919u), 3271u, (int64_t) UINT64_C(16), (uint8_t) UINT64_C(0),
+    VADER_STATIC_HEADER(1919u), 3272u, (int64_t) UINT64_C(16), (uint8_t) UINT64_C(0),
     (void*) (struct vader_struct_vader_support_integer$Interval_t*) &vader_data_61_e5_f3,
 };
 const struct vader_struct_vader_support_integer$Interval_t vader_data_61_e6_f3 = {
@@ -13462,7 +13475,7 @@ const struct vader_struct_vader_support_integer$Interval_t vader_data_61_e6_f3 =
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint64_t) UINT64_C(0),
 };
 const struct vader_struct_vader_support_integer$MachineInteger_t vader_data_61_e6 = {
-    VADER_STATIC_HEADER(1919u), 3272u, (int64_t) UINT64_C(32), (uint8_t) UINT64_C(0),
+    VADER_STATIC_HEADER(1919u), 3273u, (int64_t) UINT64_C(32), (uint8_t) UINT64_C(0),
     (void*) (struct vader_struct_vader_support_integer$Interval_t*) &vader_data_61_e6_f3,
 };
 const struct vader_struct_vader_support_integer$Interval_t vader_data_61_e7_f3 = {
@@ -13470,7 +13483,7 @@ const struct vader_struct_vader_support_integer$Interval_t vader_data_61_e7_f3 =
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(1), (uint64_t) UINT64_C(9223372036854775808),
 };
 const struct vader_struct_vader_support_integer$MachineInteger_t vader_data_61_e7 = {
-    VADER_STATIC_HEADER(1919u), 3282u, (int64_t) UINT64_C(64), (uint8_t) UINT64_C(0),
+    VADER_STATIC_HEADER(1919u), 3283u, (int64_t) UINT64_C(64), (uint8_t) UINT64_C(0),
     (void*) (struct vader_struct_vader_support_integer$Interval_t*) &vader_data_61_e7_f3,
 };
 const VADER_ARRAY_STATIC_BUF(vader_box_t, 8) vader_data_61_buf = {
@@ -13677,13 +13690,13 @@ const struct vader_struct_vader_emit_c_ast$COperatorInfo_t vader_data_69_e14 = {
     VADER_STATIC_HEADER(1443u), 1199u, (int32_t) UINT64_C(4),
 };
 const struct vader_struct_vader_emit_c_ast$COperatorInfo_t vader_data_69_e15 = {
-    VADER_STATIC_HEADER(1443u), 3608u, (int32_t) UINT64_C(3),
+    VADER_STATIC_HEADER(1443u), 3610u, (int32_t) UINT64_C(3),
 };
 const struct vader_struct_vader_emit_c_ast$COperatorInfo_t vader_data_69_e16 = {
     VADER_STATIC_HEADER(1443u), 340u, (int32_t) UINT64_C(2),
 };
 const struct vader_struct_vader_emit_c_ast$COperatorInfo_t vader_data_69_e17 = {
-    VADER_STATIC_HEADER(1443u), 3609u, (int32_t) UINT64_C(1),
+    VADER_STATIC_HEADER(1443u), 3611u, (int32_t) UINT64_C(1),
 };
 const VADER_ARRAY_STATIC_BUF(vader_box_t, 18) vader_data_69_buf = {
     VADER_STATIC_BUF_HEADER(1443u, 0u, 18u),
@@ -13807,7 +13820,7 @@ const VADER_ARRAY_STATIC_BUF(vader_box_t, 9) vader_data_70_buf = {
         { 576u, 0u, { .s = 2691u } },
         { 576u, 0u, { .s = 2333u } },
         { 576u, 0u, { .s = 2927u } },
-        { 576u, 0u, { .s = 3588u } },
+        { 576u, 0u, { .s = 3590u } },
         { 576u, 0u, { .s = 2505u } },
         { 576u, 0u, { .s = 3136u } },
         { 576u, 0u, { .s = 2508u } },

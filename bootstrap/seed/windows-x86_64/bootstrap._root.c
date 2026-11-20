@@ -255,7 +255,7 @@ bool __lambda_toolchain_stage_8(void* l0, vader_box_t l1) {
 bool __lambda_vader_core_types_0(void* l0) {
     vader_string_t t0;
     t0 = ((vader_struct_toolchain_ast$Decorator_t*) l0)->f_name;
-    return t0 == 3147u;
+    return t0 == 3148u;
 }
 
 bool __lambda_vader_core_types_1(vader_box_t l0) {
@@ -1490,7 +1490,7 @@ void* __lambda_vader_front_effects_52(void* l0) {
 bool __lambda_vader_front_effects_53(void* l0) {
     vader_string_t t0;
     t0 = ((vader_struct_toolchain_ast$Decorator_t*) l0)->f_name;
-    return t0 == 3146u;
+    return t0 == 3147u;
 }
 
 bool __lambda_vader_front_effects_54(void* l0, void* l1) {
@@ -3156,7 +3156,7 @@ void __lambda_vader_lower_dce_5(void* l0, vader_string_t l1, vader_string_t l2) 
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l3 = concat_3(l1, 3608u, l2);
+    l3 = concat_3(l1, 3610u, l2);
     t0 = std_collections$add__string(((vader_struct___lambda_env_vader_lower_dce_6_t*) l0)->f_cap_0, l3);
     if (t0) {
         vader_array_push_scalar((vader_array_t*) ((vader_struct___lambda_env_vader_lower_dce_6_t*) l0)->f_cap_1, vader_box_string(576u, l3));

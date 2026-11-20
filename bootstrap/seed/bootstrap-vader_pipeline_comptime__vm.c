@@ -195,7 +195,7 @@ static void* vader_pipeline_comptime__vm$bake_decl(void* l0, vader_string_t l1, 
     l10 = std_collections$Map$std_core$Index$at__string__Any(l12, l7);
     if (l10.tag == 0u) {
         l12 = ((vader_struct_vader_front_comptime$VmRequiredDecl_t*) l2)->f_span;
-        l12 = toolchain_diagnostics$comptime_error((uint8_t) 0, l12, 3181u);
+        l12 = toolchain_diagnostics$comptime_error((uint8_t) 0, l12, 3182u);
         vader_array_push_ref((vader_array_t*) l6, l12);
         vader_array_t* _a4_arr = vader_array_new(26u, 1u, 0u, 576u);
         vader_array_box_slots(_a4_arr->buf)[vader_array_offset(_a4_arr) + 0u] = vader_box_string(576u, l1);
@@ -315,7 +315,7 @@ void vader_pipeline_comptime__vm$copy_baked_values(void* l0, void* l1, void* l2)
             continue;
         }
         l10 = ((vader_struct_vader_front_comptime$VmRequiredDecl_t*) l5)->f_span;
-        l11 = toolchain_diagnostics$comptime_error((uint8_t) 0, l10, 3163u);
+        l11 = toolchain_diagnostics$comptime_error((uint8_t) 0, l10, 3164u);
         vader_array_push_ref((vader_array_t*) l2, l11);
         l7 = (l7 + INT64_C(1));
     }

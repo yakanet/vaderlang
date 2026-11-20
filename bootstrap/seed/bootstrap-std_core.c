@@ -3397,7 +3397,7 @@ int64_t std_core$write_bool(void* l0, int64_t l1, bool l2) {
         t0 = std_core$write_string_at(l0, l1, 2396u);
         return t0;
     }
-    t0 = std_core$write_string_at(l0, l1, 3227u);
+    t0 = std_core$write_string_at(l0, l1, 3228u);
     return t0;
 }
 
