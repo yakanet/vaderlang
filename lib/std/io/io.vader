@@ -263,6 +263,31 @@ export wait_writable :: fn(d: Descriptor) -> void = Wait.wait_writable(descripto
 export wait_writable_for :: fn(d: Descriptor, timeout: Duration) -> bool =
     Wait.wait_writable_for(descriptor_word(d), timeout.to_nanos())
 
+/// Park the running task as `wait_readable_for` does, after a read of `d`
+/// found it would block.
+///
+/// The wait may then park without asking `d` first. Called before any read, it
+/// could park on input that already arrived.
+///
+/// @param d        what to wait on, set not to block, whose last read failed
+///                 for want of input.
+/// @param timeout  the longest wait; a negative one waits with no deadline.
+/// @return         `false` once `timeout` has passed with nothing to read on `d`.
+export wait_blocked_read_for :: fn(d: Descriptor, timeout: Duration) -> bool =
+    Wait.wait_blocked_read_for(descriptor_word(d), timeout.to_nanos())
+
+/// Park the running task as `wait_writable_for` does, after a write to `d`
+/// found it would block.
+///
+/// The wait may then park without asking `d` first.
+///
+/// @param d        what to wait on, set not to block, whose last write failed
+///                 for want of room.
+/// @param timeout  the longest wait; a negative one waits with no deadline.
+/// @return         `false` once `timeout` has passed with no room on `d`.
+export wait_blocked_write_for :: fn(d: Descriptor, timeout: Duration) -> bool =
+    Wait.wait_blocked_write_for(descriptor_word(d), timeout.to_nanos())
+
 /// `timeout` in the whole milliseconds a system poll takes: rounded up, so
 /// that the poll never ends before `timeout`, and at most the largest `i32`.
 ///

@@ -165,6 +165,12 @@ export Intrinsic :: trait {
     wait_writable :: fn(fd: i64) -> void
     /// Park until `fd` has room to write, `nanos` at most.
     wait_writable_for :: fn(fd: i64, nanos: i64) -> bool
+    /// Park as `wait_readable_for` does, without asking `fd` first: its read
+    /// just found it would block.
+    wait_blocked_read_for :: fn(fd: i64, nanos: i64) -> bool
+    /// Park as `wait_writable_for` does, without asking `fd` first: its write
+    /// just found it would block.
+    wait_blocked_write_for :: fn(fd: i64, nanos: i64) -> bool
     /// Forget what the threads parked on `fd` wait for.
     stop_waiting :: fn(fd: i64) -> void
 

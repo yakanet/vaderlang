@@ -803,13 +803,14 @@ park :: fn(socket: Socket, to_write: bool, closed: AtomicBool, deadline: i64) ->
     return null
 }
 
-// Wait as `std/io` does until `d` has input, or takes a write when `to_write`,
-// for `left` at most, a negative one being no limit; false once it passed.
+// Wait as `std/io` does after a read of `d` found it would block, or a write
+// when `to_write`, for `left` at most, a negative one being no limit; false
+// once it passed.
 awaited :: fn(d: Descriptor, to_write: bool, left: Duration) -> bool {
     if to_write {
-        return wait_writable_for(d, left)
+        return wait_blocked_write_for(d, left)
     }
-    return wait_readable_for(d, left)
+    return wait_blocked_read_for(d, left)
 }
 
 // Wait on the system thread, where the wait of `std/io` did not: it returns

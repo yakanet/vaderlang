@@ -43,6 +43,32 @@ export wait_writable :: fn(fd: i64) -> void = Intrinsic.wait_writable(fd)
 /// @return       `false` once `nanos` have passed with no room on `fd`.
 export wait_writable_for :: fn(fd: i64, nanos: i64) -> bool = Intrinsic.wait_writable_for(fd, nanos)
 
+/// Park the running thread as `wait_readable_for` does, after a read of `fd`
+/// found it would block.
+///
+/// The wait may then park without asking `fd` first, and trust what the system
+/// reports when it wakes. Called before any read, it could park on input that
+/// already arrived.
+///
+/// @param fd     a descriptor of the process set not to block, whose last read
+///               failed with `EAGAIN`.
+/// @param nanos  the longest wait; a negative one waits with no deadline.
+/// @return       `false` once `nanos` have passed with nothing to read on `fd`.
+export wait_blocked_read_for :: fn(fd: i64, nanos: i64) -> bool =
+    Intrinsic.wait_blocked_read_for(fd, nanos)
+
+/// Park the running thread as `wait_writable_for` does, after a write to `fd`
+/// found it would block.
+///
+/// The wait skips the asks `wait_blocked_read_for` skips, on the same terms.
+///
+/// @param fd     a descriptor of the process set not to block, whose last
+///               write failed with `EAGAIN`.
+/// @param nanos  the longest wait; a negative one waits with no deadline.
+/// @return       `false` once `nanos` have passed with no room on `fd`.
+export wait_blocked_write_for :: fn(fd: i64, nanos: i64) -> bool =
+    Intrinsic.wait_blocked_write_for(fd, nanos)
+
 /// End the waits of the threads parked on descriptor `fd`: each returns as if
 /// `fd` were ready, and asks what it waited for again. Called before `fd` is
 /// closed, since the system hands its number out again.
