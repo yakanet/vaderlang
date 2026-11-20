@@ -1248,12 +1248,149 @@ void vader_minor_collect(void);
  * (`vader_old_maybe_major`), and when the program calls `runtime.collect()`. */
 void vader_major_collect(void);
 
+/* Shadow stack frame: emitted at the entry of a C function whose own slots must
+ * survive a safepoint (`needs_frame`, `vader/emit/c/frame.vader`). A fn the
+ * emitter proves cannot allocate pushes none, and neither does a tail forwarder
+ * (ADR 0106). That is one reason
+ * the major collection scans the C stack conservatively. The frames that
+ * exist chain through `prev` to form the precise root list the GC walks at
+ * collection time.
+ *
+ * Indirect layout: each frame holds a `ptrs` array pointing to the calling
+ * C function's ref-typed locals/tmps. Taking their address pins them to the
+ * C stack, which a precise GC needs. */
+typedef struct vader_gc_frame {
+    struct vader_gc_frame* prev;
+    uint32_t               nrefs;
+    /* Count of raw-ref roots: `void*` locals carrying a concrete ref unboxed.
+     * Third, so a positional frame initializer `{ prev, nrefs, 0u, ptrs }`
+     * reads `nraw = 0` and (via C partial-init) `raw = NULL`. */
+    uint32_t               nraw;
+    vader_box_t**          ptrs;
+    /* Raw-ref roots : `raw[i]` is a `void**` addressing a `void*` local that
+     * holds a concrete ref. Scanned via `vader_gc_scan_raw` (forwards the
+     * referent, handles NULL, fires the write barrier). NULL in a frame with no
+     * raw-ref local. */
+    void***                raw;
+    /* Count of stack-object roots: GC structs the escape analysis proved
+     * non-escaping and stack-allocated (a `StructNew.stack` in the emit). */
+    uint32_t               nstack;
+    /* Stack-object roots : `stack_objs[i]` is a `void*` to a GC struct living
+     * on the C stack. Scanned via `vader_gc_scan_object` so its pointer FIELDS
+     * are forwarded across a collection: the object itself never moves. A stack
+     * address is off-arena, so `vader_gc_forward` skips the object entirely;
+     * without this its captured heap refs go stale. NULL until codegen registers
+     * the object once fully initialised. After `raw`, so a positional initializer
+     * `{ prev, nrefs, nraw, ptrs, raw }` reads nstack=0 / stack_objs=NULL. */
+    void**                 stack_objs;
+    /* Count of atom roots: `string` locals and parameters. */
+    uint32_t               natoms;
+    /* Atom roots : `atoms[i]` addresses a `vader_string_t` local. A string is an
+     * atom ID (`uint32_t`), not a pointer, so it CANNOT live in `ptrs` or `raw`:
+     * both are pointer arrays. The conservative C-stack scan is no substitute:
+     * it finds an ID only if the C compiler spilled it rather than kept it in a
+     * register, and a string must survive a collection point between two reads
+     * (`concat_N` reads its parameters' lengths, allocates the output buffer,
+     * then reads their bytes).
+     *
+     * Last, so a shorter positional initializer reads natoms=0 / atoms=NULL. */
+    vader_string_t**       atoms;
+} vader_gc_frame_t;
+
+/* What a virtual thread carries from one run to the next. The worker that runs
+ * it holds it while it runs; a switch stores it in the thread it leaves and
+ * loads the one of the next. */
+typedef struct {
+    /* Shadow-stack head. Each emitted C function pushes/pops a frame chained
+     * through `prev`; the GC walks this list at collection time to enumerate
+     * precise roots. */
+    vader_gc_frame_t* gc_top;
+    /* The pending `defer` closures, LIFO (`rt/defer_traps.c`). */
+    vader_box_t*      defer_stack;
+    size_t            defer_len;
+    size_t            defer_cap;
+    /* Set once a trap runs the pending defers: a defer that traps in turn
+     * aborts at once. */
+    int               unwinding;
+} vader_thread_state_t;
+
+/* A bump region: objects from `base` up to `cur`, room up to `end`. */
+typedef struct {
+    char* base;
+    char* cur;
+    char* end;
+} vader_arena_t;
+
+/* A young generation: a pair of semi-spaces that swap roles at each minor. */
+typedef struct {
+    vader_arena_t from;
+    vader_arena_t to;
+    char*         block;        /* malloc'd contiguous backing: span both semi-spaces */
+    size_t        half_bytes;   /* size of one semi-space */
+} vader_gen_t;
+
+/* What the collector counts for one worker; a reading sums every worker's. */
+typedef struct {
+    size_t collections;
+    /* Bytes a collection copied, young to young or young to old. */
+    size_t copied;
+    /* Bytes requested, as requested, and the calls: only the slow path counts
+     * (`vader_gc_count_allocations`). */
+    size_t alloc_bytes;
+    size_t alloc_count;
+} vader_gc_counts_t;
+
+/* The collection a worker runs. */
+typedef enum {
+    VADER_CYCLE_NONE = 0,         /* no cycle running */
+    VADER_CYCLE_MINOR,            /* standalone minor */
+    VADER_CYCLE_MAJOR_DRAIN,      /* minor running as the first step of a major */
+    VADER_CYCLE_MAJOR,            /* mark phase of a major (old objects marked in place, never copied) */
+} vader_cycle_t;
+
+/* What one worker of the runtime, a system thread, holds: each system thread has
+ * its own, so a task always reads the state of the worker it runs on. */
+typedef struct vader_worker {
+    /* The state of the virtual thread it runs. */
+    vader_thread_state_t         running;
+    /* How many calls into C the running code is inside of: the shim of each
+     * `@extern` counts its call. A switch traps above zero, since another thread
+     * would run over the C frames under it, and what they hold. */
+    int                          foreign_depth;
+    /* The virtual thread it runs, and the one that runs its scheduler. */
+    struct vader_virtual_thread* current;
+    struct vader_virtual_thread* scheduler;
+    /* Its young generation, which only its own minors collect: no other worker
+     * holds a pointer into it. */
+    vader_gen_t                  young;
+    /* The bound the inline bump of `vader_gc_alloc` tests against: the end of
+     * `young.from`, or NULL to send every allocation to the slow path. */
+    char*                        alloc_limit;
+    /* Its card table, one byte per `VADER_CARD_BYTES` of the old reservation: a
+     * card is dirty where an old object may point into its young generation.
+     * `card_shadow` is the copy a minor scans while it cleans the table. */
+    uint8_t*                     cards;
+    uint8_t*                     card_shadow;
+    /* The objects a collection it runs still has to scan. */
+    char**                       gray_stack;
+    size_t                       gray_len;
+    size_t                       gray_cap;
+    /* The collection it runs. */
+    vader_cycle_t                cycle;
+    vader_gc_counts_t            counts;
+} vader_worker_t;
+
+extern _Thread_local vader_worker_t vader_worker;
+
+/* The names the emitted C writes. */
+#define vader_gc_top        (vader_worker.running.gc_top)
+#define vader_foreign_depth (vader_worker.foreign_depth)
+
 /* Card-table write barrier: called by the C-emit after every store of a
  * pointer-bearing field into a heap object. No-op for objects outside the
  * old generation (young objects can freely point anywhere; minor scans
  * young fully). Inlined as a macro so the hot path is a range check and an
- * optional byte store. */
-extern uint8_t*   vader_card_table;
+ * optional byte store, in the card table of the worker that stores. */
 extern uintptr_t  vader_old_base;
 extern uintptr_t  vader_old_end;
 
@@ -1263,12 +1400,15 @@ extern uintptr_t  vader_old_end;
  * the object may not have (strict aliasing). */
 #define VADER_UNION_FIELD(T, S, f, p) (*(T*)((char*)(p) + offsetof(S, f)))
 
-#define VADER_WRITE_BARRIER(obj) do {                                          \
+/* Mark dirty, in the card table `cards`, the card of `obj` when it lies in old. */
+#define VADER_CARD_MARK(cards, obj) do {                                       \
     uintptr_t __vb = (uintptr_t)(obj);                                         \
     if (__vb >= vader_old_base && __vb < vader_old_end) {                      \
-        vader_card_table[(__vb - vader_old_base) / VADER_CARD_BYTES] = 1u;     \
+        (cards)[(__vb - vader_old_base) / VADER_CARD_BYTES] = 1u;              \
     }                                                                          \
 } while (0)
+
+#define VADER_WRITE_BARRIER(obj) VADER_CARD_MARK(vader_worker.cards, obj)
 
 /* Whether the next element of `a` goes in place in `buf`, its buffer, through a
  * ref or box store: room left (see `vader_array_t`) and a BOXED or REF buffer.
@@ -1401,92 +1541,6 @@ extern const size_t             vader_type_info_count;
  * on a function value. Never collects. */
 void*       vader_deep_copy_ref(void* obj);
 vader_box_t vader_deep_copy_box(vader_box_t value);
-
-/* Shadow stack frame: emitted at the entry of a C function whose own slots must
- * survive a safepoint (`needs_frame`, `vader/emit/c/frame.vader`). A fn the
- * emitter proves cannot allocate pushes none, and neither does a tail forwarder
- * (ADR 0106). That is one reason
- * the major collection scans the C stack conservatively. The frames that
- * exist chain through `prev` to form the precise root list the GC walks at
- * collection time.
- *
- * Indirect layout: each frame holds a `ptrs` array pointing to the calling
- * C function's ref-typed locals/tmps. Taking their address pins them to the
- * C stack, which a precise GC needs. */
-typedef struct vader_gc_frame {
-    struct vader_gc_frame* prev;
-    uint32_t               nrefs;
-    /* Count of raw-ref roots: `void*` locals carrying a concrete ref unboxed.
-     * Third, so a positional frame initializer `{ prev, nrefs, 0u, ptrs }`
-     * reads `nraw = 0` and (via C partial-init) `raw = NULL`. */
-    uint32_t               nraw;
-    vader_box_t**          ptrs;
-    /* Raw-ref roots : `raw[i]` is a `void**` addressing a `void*` local that
-     * holds a concrete ref. Scanned via `vader_gc_scan_raw` (forwards the
-     * referent, handles NULL, fires the write barrier). NULL in a frame with no
-     * raw-ref local. */
-    void***                raw;
-    /* Count of stack-object roots: GC structs the escape analysis proved
-     * non-escaping and stack-allocated (a `StructNew.stack` in the emit). */
-    uint32_t               nstack;
-    /* Stack-object roots : `stack_objs[i]` is a `void*` to a GC struct living
-     * on the C stack. Scanned via `vader_gc_scan_object` so its pointer FIELDS
-     * are forwarded across a collection: the object itself never moves. A stack
-     * address is off-arena, so `vader_gc_forward` skips the object entirely;
-     * without this its captured heap refs go stale. NULL until codegen registers
-     * the object once fully initialised. After `raw`, so a positional initializer
-     * `{ prev, nrefs, nraw, ptrs, raw }` reads nstack=0 / stack_objs=NULL. */
-    void**                 stack_objs;
-    /* Count of atom roots: `string` locals and parameters. */
-    uint32_t               natoms;
-    /* Atom roots : `atoms[i]` addresses a `vader_string_t` local. A string is an
-     * atom ID (`uint32_t`), not a pointer, so it CANNOT live in `ptrs` or `raw`:
-     * both are pointer arrays. The conservative C-stack scan is no substitute:
-     * it finds an ID only if the C compiler spilled it rather than kept it in a
-     * register, and a string must survive a collection point between two reads
-     * (`concat_N` reads its parameters' lengths, allocates the output buffer,
-     * then reads their bytes).
-     *
-     * Last, so a shorter positional initializer reads natoms=0 / atoms=NULL. */
-    vader_string_t**       atoms;
-} vader_gc_frame_t;
-
-/* What a virtual thread carries from one run to the next. The worker that runs
- * it holds it while it runs; a switch stores it in the thread it leaves and
- * loads the one of the next. */
-typedef struct {
-    /* Shadow-stack head. Each emitted C function pushes/pops a frame chained
-     * through `prev`; the GC walks this list at collection time to enumerate
-     * precise roots. */
-    vader_gc_frame_t* gc_top;
-    /* The pending `defer` closures, LIFO (`rt/defer_traps.c`). */
-    vader_box_t*      defer_stack;
-    size_t            defer_len;
-    size_t            defer_cap;
-    /* Set once a trap runs the pending defers: a defer that traps in turn
-     * aborts at once. */
-    int               unwinding;
-} vader_thread_state_t;
-
-/* What one worker of the runtime, a system thread, holds: each system thread has
- * its own, so a task always reads the state of the worker it runs on. */
-typedef struct vader_worker {
-    /* The state of the virtual thread it runs. */
-    vader_thread_state_t         running;
-    /* How many calls into C the running code is inside of: the shim of each
-     * `@extern` counts its call. A switch traps above zero, since another thread
-     * would run over the C frames under it, and what they hold. */
-    int                          foreign_depth;
-    /* The virtual thread it runs, and the one that runs its scheduler. */
-    struct vader_virtual_thread* current;
-    struct vader_virtual_thread* scheduler;
-} vader_worker_t;
-
-extern _Thread_local vader_worker_t vader_worker;
-
-/* The names the emitted C writes. */
-#define vader_gc_top        (vader_worker.running.gc_top)
-#define vader_foreign_depth (vader_worker.foreign_depth)
 
 /* Push a one-slot shadow-stack frame around a `vader_box_t` on the C stack.
  * Used by runtime helpers that allocate (and thus may collect) after binding

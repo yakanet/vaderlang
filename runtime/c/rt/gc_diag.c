@@ -130,10 +130,10 @@ static VADER_NOINLINE void vader_gc_check_object_alignment(const void* obj, uint
         "Every arena slot is %u-aligned, so this is stray bytes read from a root\n"
         "cell, not an object. Forwarding it would WRITE the forwarding pointer\n"
         "into it. Run under a debugger to see which root cell holds it.\n",
-        VADER_GC_ALIGN, g_cycle,
+        VADER_GC_ALIGN, vader_worker.cycle,
         obj, (unsigned)((uintptr_t) obj & (uintptr_t)(VADER_GC_ALIGN - 1u)), VADER_GC_ALIGN,
         type_index,
-        vader_in_young_from(obj) ? "yes" : "no",
+        vader_in_young_from(&vader_worker, obj) ? "yes" : "no",
         vader_in_old(obj)        ? "yes" : "no",
         VADER_GC_ALIGN);
     vader_trap("VADER_GC_CHECK_BOX: root candidate is not object-aligned");
@@ -146,21 +146,21 @@ static VADER_NOINLINE void vader_gc_check_object_alignment(const void* obj, uint
  * the box's tag while the payload survived), which narrows the culprit write. */
 static void vader_gc_box_tag_corrupt(const vader_box_t* boxp) {
     const char* box_loc =
-        vader_in_young_from(boxp) ? "young-from" :
+        vader_in_young_from(&vader_worker, boxp) ? "young-from" :
         vader_in_old(boxp)        ? "old"        : "off-heap (root/stack)";
     void* payload = boxp->payload.obj;
     int pl_live = payload != NULL
-        && (vader_in_young_from(payload) || vader_in_old(payload));
+        && (vader_in_young_from(&vader_worker, payload) || vader_in_old(payload));
     const char* pl_loc =
         payload == NULL              ? "NULL" :
-        vader_in_young_from(payload) ? "young-from" :
+        vader_in_young_from(&vader_worker, payload) ? "young-from" :
         vader_in_old(payload)        ? "old" : "off-heap/garbage";
     fprintf(stderr,
         "\n[VADER_GC_CHECK_BOX] corrupt box tag during scan (cycle=%d)\n"
         "  box @ %p (%s)\n"
         "  tag = %u (0x%08x)  [valid range 0..%zu)\n"
         "  payload bits = 0x%016llx -> %p (%s)\n",
-        (int) g_cycle, (const void*) boxp, box_loc,
+        (int) vader_worker.cycle, (const void*) boxp, box_loc,
         boxp->tag, boxp->tag, (size_t) vader_type_info_count,
         (unsigned long long) boxp->payload.i, payload, pl_loc);
     if (pl_live) {
@@ -207,7 +207,7 @@ static void vader_gc_old_histogram(void) {
     size_t bump_used = (size_t)(g_old_bump - g_old_block);
     fprintf(stderr, "[GC-HISTO] old live-set: %zu objs, %.1f MB live ; bump=%.1f MB / reservation %.0f MB ; collections=%zu\n",
             total_objs, total_bytes / 1048576.0, bump_used / 1048576.0,
-            g_old_capacity / 1048576.0, g_total_collections);
+            g_old_capacity / 1048576.0, vader_gc_get_stats().total_collections);
     for (int i = 0; i < 8; i++) {
         if (bcount[i] == 0) continue;
         fprintf(stderr, "[GC-HISTO]   %-5s : %8zu objs  %7.1f MB  (%.1f%% bytes)\n",
@@ -343,7 +343,7 @@ static void vader_gc_profile_dump(void) {
     fprintf(stderr, "\n=== vader_gc_profile : live-set breakdown ===\n");
     fprintf(stderr, "young from-space : %.2f MB live (of %zu MB arena)\n",
             (double) totals[0] / (1024.0 * 1024.0),
-            g_young.half_bytes / (1024u * 1024u));
+            vader_worker.young.half_bytes / (1024u * 1024u));
     fprintf(stderr, "old   slab       : %.2f MB live (bump %.2f MB / reservation %.0f MB)\n",
             (double) totals[1] / (1024.0 * 1024.0),
             (double) (size_t)(g_old_bump - g_old_block) / (1024.0 * 1024.0),

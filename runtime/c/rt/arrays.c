@@ -95,7 +95,7 @@ vader_array_t* vader_array_slice(vader_array_t* a, int64_t lo_bound, int64_t hi_
      * stays unmarked, since it may sit in read-only memory: the compiler copies
      * a constant before any code that could shrink it. Invariants: vader.h,
      * `vader_array_t` and `VADER_ARRAY_RESOLVE_BUF`. */
-    int young = vader_in_young_from(a->buf);
+    int young = vader_in_young_from(&vader_worker, a->buf);
     if (young && vader_ffi_callback_escaped) {
         a->buf = (vader_array_buf_t*) vader_gc_force_tenure(a->buf);
     }

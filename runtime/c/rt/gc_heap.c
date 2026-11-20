@@ -47,7 +47,6 @@ typedef struct {
     vader_old_region_t* current;     /* region we bump-allocate from */
 } vader_old_class_t;
 
-static vader_gen_t g_young = { {NULL,NULL,NULL}, {NULL,NULL,NULL}, NULL, 0 };
 
 static char*  g_old_block     = NULL;   /* reservation base */
 static char*  g_old_bump      = NULL;   /* global region-carve cursor (never retreats) */
@@ -93,16 +92,14 @@ static vader_old_region_t** vader_old_large_fit(size_t aligned) {
 }
 
 static int           g_gc_initialized = 0;
-static size_t        g_total_collections = 0;
-static size_t        g_total_copied = 0;
-/* Allocation volume: every vader_gc_alloc request, surviving or not. Distinct
- * from g_total_copied (which counts only bytes that SURVIVED a collection):
- * short-lived garbage is invisible to total_copied but shows up here. The
- * per-pass profiler uses this to attribute raw allocation pressure. Only the
- * slow path counts, so the totals are complete only while the profiler routes
- * every allocation there. */
-static size_t        g_total_alloc_bytes = 0;
-static size_t        g_total_alloc_count = 0;
+
+/* Every worker whose heap the collector knows, the main thread's first. */
+static vader_worker_t* g_workers[VADER_WORKERS_MAX];
+static size_t          g_worker_count = 0;
+
+/* The young semi-space a worker starts with (`VADER_GC_YOUNG_BYTES`). Set once
+ * in `vader_gc_init`. */
+static size_t        g_young_initial_bytes = 0;
 
 /* Hard caps: the size of the old reservation and of one young semi-space.
  * Env-tunable (VADER_GC_OLD_MAX / VADER_GC_YOUNG_MAX) so a too-large live set
@@ -126,43 +123,40 @@ static size_t        g_young_ratio = 2;
  * takes a positive byte size. Set once in `vader_gc_init`. */
 static size_t        g_young_cap = 0;
 
-/* The bound the inline bump of `vader_gc_alloc` tests against: the young
- * from-space end, or NULL to send every allocation to the slow path: before
- * init, under the stress modes, and once allocations are counted, which act on
- * or count every allocation. Refreshed whenever `g_young.from` moves and when
- * counting turns on; the stress flags are set before the first carve. */
-static char* g_alloc_limit = NULL;
-
 /* Set by `vader_gc_count_allocations`, never cleared. */
 static int g_count_allocations = 0;
 
-static void vader_alloc_limit_refresh(void) {
+/* Set `w->alloc_limit`: NULL before init, under the stress modes, and once
+ * allocations are counted, which act on or count every allocation. Refreshed
+ * whenever `w->young.from` moves and when counting turns on; the stress flags
+ * are set before the first carve. */
+static void vader_alloc_limit_refresh(vader_worker_t* w) {
     if (g_gc_stress || g_gc_stress_major || g_count_allocations) {
-        g_alloc_limit = NULL;
+        w->alloc_limit = NULL;
     } else {
-        g_alloc_limit = g_young.from.end;
+        w->alloc_limit = w->young.from.end;
     }
 }
 
 void vader_gc_count_allocations(void) {
     g_count_allocations = 1;
-    vader_alloc_limit_refresh();
+    for (size_t i = 0; i < g_worker_count; i++) vader_alloc_limit_refresh(g_workers[i]);
 }
 
 static size_t vader_gc_align(size_t n) {
     return (n + (VADER_GC_ALIGN - 1u)) & ~(size_t)(VADER_GC_ALIGN - 1u);
 }
 
-static int vader_in_young_from(const void* p) {
-    return (const char*)p >= g_young.from.base && (const char*)p < g_young.from.end;
+static int vader_in_young_from(const vader_worker_t* w, const void* p) {
+    return (const char*)p >= w->young.from.base && (const char*)p < w->young.from.end;
 }
 
 /* Membership in either half of the young generation : `to` is where a minor
  * forwards a referent it does not promote, and a major leaves young referents
  * in `from`. An immortal (`.rodata`) or off-heap pointer is in neither. */
-static int vader_in_young(const void* p) {
-    return ((const char*)p >= g_young.to.base && (const char*)p < g_young.to.end)
-        || vader_in_young_from(p);
+static int vader_in_young(const vader_worker_t* w, const void* p) {
+    return ((const char*)p >= w->young.to.base && (const char*)p < w->young.to.end)
+        || vader_in_young_from(w, p);
 }
 
 /* Membership in the non-moving old gen: a pointer is an old object iff it falls
@@ -352,20 +346,23 @@ static void vader_old_foreach_live(void (*fn)(char* obj, uint32_t type_index, vo
     }
 }
 
-/* Invoke `fn` on every object of young from-space, one contiguous run, stepping
- * over the fillers. */
+/* Invoke `fn` on every object of the young from-space of every worker, one
+ * contiguous run each, stepping over the fillers. */
 static void vader_young_foreach(void (*fn)(char* obj, uint32_t type_index, void* ctx), void* ctx) {
-    char* scan = g_young.from.base;
-    while (scan < g_young.from.cur) {
-        vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
-        if (hdr->type_index == VADER_TYPE_INDEX_FILLER) {
-            scan += VADER_GC_ALIGN;
-            continue;
+    for (size_t i = 0; i < g_worker_count; i++) {
+        const vader_arena_t* from = &g_workers[i]->young.from;
+        char* scan = from->base;
+        while (scan < from->cur) {
+            vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
+            if (hdr->type_index == VADER_TYPE_INDEX_FILLER) {
+                scan += VADER_GC_ALIGN;
+                continue;
+            }
+            size_t bytes = vader_gc_obj_size(scan, hdr->type_index);
+            if (bytes == 0) break;
+            fn(scan, hdr->type_index, ctx);
+            scan += vader_gc_align(bytes);
         }
-        size_t bytes = vader_gc_obj_size(scan, hdr->type_index);
-        if (bytes == 0) break;
-        fn(scan, hdr->type_index, ctx);
-        scan += vader_gc_align(bytes);
     }
 }
 
@@ -421,18 +418,33 @@ static size_t vader_clamp_size(size_t x, size_t lo, size_t hi) {
     return x < lo ? lo : (x > hi ? hi : x);
 }
 
-/* Lay both young halves out over `block`: from-space first, allocation resuming
- * at `from_cur`, then an empty to-space. */
-static void vader_young_carve(char* block, size_t half, char* from_cur) {
-    g_young.block      = block;
-    g_young.half_bytes = half;
-    g_young.from.base  = block;
-    g_young.from.cur   = from_cur;
-    g_young.from.end   = block + half;
-    g_young.to.base    = block + half;
-    g_young.to.cur     = g_young.to.base;
-    g_young.to.end     = g_young.to.base + half;
-    vader_alloc_limit_refresh();
+/* Lay both halves of `w`'s young generation out over `block`: from-space first,
+ * allocation resuming at `from_cur`, then an empty to-space. */
+static void vader_young_carve(vader_worker_t* w, char* block, size_t half, char* from_cur) {
+    vader_gen_t* young = &w->young;
+    young->block      = block;
+    young->half_bytes = half;
+    young->from.base  = block;
+    young->from.cur   = from_cur;
+    young->from.end   = block + half;
+    young->to.base    = block + half;
+    young->to.cur     = young->to.base;
+    young->to.end     = young->to.base + half;
+    vader_alloc_limit_refresh(w);
+}
+
+/* Give `w` a heap of its own: a young generation and a card table over the old
+ * reservation, which it dirties alone. Untouched, the table costs no memory. */
+static void vader_gc_worker_init(vader_worker_t* w) {
+    if (g_worker_count == VADER_WORKERS_MAX) vader_trap("vader_gc: too many workers");
+    char* young_block = (char*) malloc(g_young_initial_bytes * 2u);
+    if (young_block == NULL) vader_trap("vader_gc_init: young arena malloc failed");
+    vader_young_carve(w, young_block, g_young_initial_bytes, young_block);
+    w->cards = (uint8_t*) calloc(g_card_count, 1u);
+    if (w->cards == NULL) vader_trap("vader_gc_init: card-table calloc failed");
+    w->card_shadow = (uint8_t*) malloc(g_card_count);
+    if (w->card_shadow == NULL) vader_trap("vader_gc_init: card-shadow malloc failed");
+    g_workers[g_worker_count++] = w;
 }
 
 void vader_gc_init(void) {
@@ -523,11 +535,8 @@ void vader_gc_init(void) {
     /* Ceiling on the adaptive young target (byte size). */
     g_young_cap = vader_gc_env_bytes("VADER_GC_YOUNG_CAP", VADER_GC_YOUNG_CAP_DEFAULT);
 
-    /* Young: one malloc spanning both semi-spaces. */
-    size_t young_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_BYTES", (size_t)VADER_GC_YOUNG_BYTES);
-    char* young_block = (char*) malloc(young_bytes * 2u);
-    if (young_block == NULL) vader_trap("vader_gc_init: young arena malloc failed");
-    vader_young_carve(young_block, young_bytes, young_block);
+    /* Young: one malloc spanning both semi-spaces, per worker. */
+    g_young_initial_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_BYTES", (size_t)VADER_GC_YOUNG_BYTES);
 
     /* Old: a single non-moving reservation at the cap, lazily committed. Objects
      * are bump-carved into class regions and never move, so there is no to-space
@@ -551,22 +560,32 @@ void vader_gc_init(void) {
     g_old_live_after_major = 0;
     g_mark_value     = 1u;
 
-    /* Card table covers the whole reservation, one byte per VADER_CARD_BYTES.
+    /* A card table covers the whole reservation, one byte per VADER_CARD_BYTES.
      * Old objects never move, so it is sized once and never relocated. */
     g_card_count = (g_old_capacity + VADER_CARD_BYTES - 1u) / VADER_CARD_BYTES;
-    vader_card_table = (uint8_t*) calloc(g_card_count, 1u);
-    if (vader_card_table == NULL) vader_trap("vader_gc_init: card-table calloc failed");
-    g_card_shadow = (uint8_t*) malloc(g_card_count);
-    if (g_card_shadow == NULL) vader_trap("vader_gc_init: card-shadow malloc failed");
     vader_old_base = (uintptr_t) g_old_block;
     vader_old_end  = (uintptr_t) g_old_block_end;
 
+    vader_gc_worker_init(&vader_worker);
     g_gc_initialized = 1;
 }
 
 void vader_gc_shutdown(void) {
     if (!g_gc_initialized) return;
-    free(g_young.block);
+    for (size_t i = 0; i < g_worker_count; i++) {
+        vader_worker_t* w = g_workers[i];
+        free(w->young.block);
+        memset(&w->young, 0, sizeof w->young);
+        vader_alloc_limit_refresh(w);
+        free(w->cards);
+        free(w->card_shadow);
+        free(w->gray_stack);
+        w->cards = NULL;
+        w->card_shadow = NULL;
+        w->gray_stack = NULL;
+        w->gray_len = w->gray_cap = 0;
+    }
+    g_worker_count = 0;
     /* Release the old-gen reservation and its region metadata. */
     if (g_old_block != NULL) {
         vader_os_release(g_old_block, g_old_capacity);
@@ -576,13 +595,6 @@ void vader_gc_shutdown(void) {
         free(r);
         r = next;
     }
-    free(g_gray_stack);
-    free(vader_card_table);
-    free(g_card_shadow);
-    g_young.block = NULL;
-    g_young.from.base = g_young.from.cur = g_young.from.end = NULL;
-    g_young.to.base   = g_young.to.cur   = g_young.to.end   = NULL;
-    vader_alloc_limit_refresh();
     g_old_block = g_old_bump = g_old_committed = g_old_block_end = NULL;
     g_old_capacity = g_old_live_bytes = g_old_live_after_major = 0;
     g_old_regions = NULL;
@@ -592,10 +604,6 @@ void vader_gc_shutdown(void) {
         g_old_classes[i].free_head = NULL;
         g_old_classes[i].current   = NULL;
     }
-    g_gray_stack = NULL;
-    g_gray_len = g_gray_cap = 0;
-    vader_card_table  = NULL;
-    g_card_shadow     = NULL;
     vader_old_base    = 0;
     vader_old_end     = 0;
     g_card_count      = 0;
@@ -604,19 +612,20 @@ void vader_gc_shutdown(void) {
 
 /* ---- allocation ---------------------------------------------------------- */
 
-/* Internal bump in the young from-space. Caller must have ensured capacity. */
-static void* vader_gc_alloc_young_unchecked(size_t aligned) {
-    void* p = g_young.from.cur;
-    g_young.from.cur += aligned;
+/* Internal bump in `w`'s young from-space. Caller must have ensured capacity. */
+static void* vader_gc_alloc_young_unchecked(vader_worker_t* w, size_t aligned) {
+    void* p = w->young.from.cur;
+    w->young.from.cur += aligned;
     return p;
 }
 
-/* Grow the young generation to `new_half` per semi-space: point `g_young.to` at
+/* Grow the young generation to `new_half` per semi-space: point its to-space at
  * a fresh, larger block and run a minor, which copies into it every live young
  * object that does not promote (forwarding fixes the pointers). Then free the
  * old block and carve both halves out of the new one. Young carries no card
  * table or write-barrier bounds. NULL malloc is the real RAM ceiling. */
-static void vader_young_grow_to(size_t new_half) {
+static void vader_young_grow_to(vader_worker_t* w, size_t new_half) {
+    vader_gen_t* young = &w->young;
     char* new_block = (char*) malloc(new_half * 2u);
     if (new_block == NULL) {
         fprintf(stderr,
@@ -626,18 +635,18 @@ static void vader_young_grow_to(size_t new_half) {
             g_young_max_bytes / (1024u * 1024u));
         vader_trap("vader_young_grow: out of memory (RAM ceiling)");
     }
-    char* old_block = g_young.block;
-    g_young.to.base = new_block;
-    g_young.to.cur  = new_block;
-    g_young.to.end  = new_block + new_half;
-    vader_minor_collect();
-    /* With survivors, the minor swapped and g_young.from is the new block's
-     * first half; without, that half is empty and g_young.from still names the
-     * old block, freed below. */
+    char* old_block = young->block;
+    young->to.base = new_block;
+    young->to.cur  = new_block;
+    young->to.end  = new_block + new_half;
+    vader_gc_minor(w);
+    /* With survivors, the minor swapped and `from` is the new block's first
+     * half; without, that half is empty and `from` still names the old block,
+     * freed below. */
     char* survivors_end = new_block;
-    if (g_young.from.base == new_block) survivors_end = g_young.from.cur;
+    if (young->from.base == new_block) survivors_end = young->from.cur;
     free(old_block);
-    vader_young_carve(new_block, new_half, survivors_end);
+    vader_young_carve(w, new_block, new_half, survivors_end);
 }
 
 /* Pick a new young semi-space size large enough that, after a relocating
@@ -645,10 +654,10 @@ static void vader_young_grow_to(size_t new_half) {
  * bounded by the current occupancy, so `occupancy + aligned` is a safe target;
  * grow geometrically (x2) past it. Caps at VADER_GC_YOUNG_MAX: trap there is
  * the real ceiling. Returns without growing if the current half already fits. */
-static void vader_young_grow_for(size_t aligned) {
-    size_t occupancy = (size_t)(g_young.from.cur - g_young.from.base);
+static void vader_young_grow_for(vader_worker_t* w, size_t aligned) {
+    size_t occupancy = (size_t)(w->young.from.cur - w->young.from.base);
     size_t want = occupancy + aligned;
-    size_t new_half = g_young.half_bytes * 2u;
+    size_t new_half = w->young.half_bytes * 2u;
     if (new_half < want) new_half = want;
     if (new_half > g_young_max_bytes) new_half = g_young_max_bytes;
     if (new_half < want) {
@@ -662,7 +671,7 @@ static void vader_young_grow_for(size_t aligned) {
         if (g_gc_profile) vader_gc_profile_dump();
         vader_trap("vader_young_grow: object + live set exceeds young cap");
     }
-    if (new_half > g_young.half_bytes) vader_young_grow_to(new_half);
+    if (new_half > w->young.half_bytes) vader_young_grow_to(w, new_half);
 }
 
 /* Adaptive young sizing: call after a standalone minor collect from the
@@ -672,16 +681,16 @@ static void vader_young_grow_for(size_t aligned) {
  * reallocations; growth never shrinks, so an explicit VADER_GC_YOUNG_BYTES
  * floor is preserved. Disabled when the ratio is 0. `vader_young_grow_to`
  * relocates survivors via an internal minor collect, so this MUST run outside
- * `vader_minor_collect` (hence the call site is the allocator, not the
+ * `vader_gc_minor` (hence the call site is the allocator, not the
  * collector: calling it from within a collect would recurse). */
-static void vader_young_maybe_grow_adaptive(void) {
+static void vader_young_maybe_grow_adaptive(vader_worker_t* w) {
     if (g_young_ratio == 0u) return;
     size_t old_live = g_old_live_bytes;
     size_t target = old_live / g_young_ratio;
     if (g_young_cap != 0u && target > g_young_cap) target = g_young_cap;
     if (target > g_young_max_bytes) target = g_young_max_bytes;
-    if (target > g_young.half_bytes + g_young.half_bytes / 2u) {
-        vader_young_grow_to(target);
+    if (target > w->young.half_bytes + w->young.half_bytes / 2u) {
+        vader_young_grow_to(w, target);
     }
 }
 
@@ -704,25 +713,26 @@ static void vader_old_maybe_major(void) {
 /* Everything the fast path of `vader_gc_alloc` leaves out: init, counters,
  * stress, collection and growth. Out of line so the fast path needs no stack
  * frame. */
-static VADER_NOINLINE void* vader_gc_alloc_slow(size_t bytes) {
+static VADER_NOINLINE void* vader_gc_alloc_slow(vader_worker_t* w, size_t bytes) {
     if (VADER_UNLIKELY(!g_gc_initialized)) vader_gc_init();
-    /* Count raw requested bytes (same basis as g_total_copied) so the profiler
-     * can report an alloc'd-vs-survived ratio. One increment per call. */
-    g_total_alloc_bytes += bytes;
-    g_total_alloc_count += 1;
+    vader_arena_t* from = &w->young.from;
+    /* Count raw requested bytes (same basis as `copied`) so the profiler can
+     * report an alloc'd-vs-survived ratio. One increment per call. */
+    w->counts.alloc_bytes += bytes;
+    w->counts.alloc_count += 1;
     size_t aligned = vader_gc_align(bytes);
     /* A single object bigger than a young semi-space can never fit, however
      * much we collect: grow young to hold it (relocating the live set into a
      * larger block) before proceeding. */
-    if (VADER_UNLIKELY(aligned > g_young.half_bytes)) {
-        vader_young_grow_for(aligned);
+    if (VADER_UNLIKELY(aligned > w->young.half_bytes)) {
+        vader_young_grow_for(w, aligned);
     }
     /* Major-stress forces a full mark+sweep at every safepoint (debug-only). */
     if (VADER_UNLIKELY(g_gc_stress_major)) vader_major_collect();
-    int young_full = (g_young.from.cur + aligned > g_young.from.end);
+    int young_full = (from->cur + aligned > from->end);
     if (VADER_UNLIKELY(young_full || g_gc_stress)) {
-        vader_minor_collect();
-        if (VADER_UNLIKELY(g_young.from.cur + aligned > g_young.from.end)) {
+        vader_gc_minor(w);
+        if (VADER_UNLIKELY(from->cur + aligned > from->end)) {
             /* Minor didn't free enough: young still holds survivors that did
              * not promote, because the old slab was full or they have not
              * reached tenure. Force a major to open promotion room and retry. */
@@ -732,10 +742,10 @@ static VADER_NOINLINE void* vader_gc_alloc_slow(size_t bytes) {
              * promote during the major's preliminary minor. Reset the cap-failure
              * flag first so it reflects only this post-sweep promotion attempt. */
             g_old_alloc_failed_at_cap = 0;
-            if (VADER_UNLIKELY(g_young.from.cur + aligned > g_young.from.end)) {
-                vader_minor_collect();
+            if (VADER_UNLIKELY(from->cur + aligned > from->end)) {
+                vader_gc_minor(w);
             }
-            if (VADER_UNLIKELY(g_young.from.cur + aligned > g_young.from.end)) {
+            if (VADER_UNLIKELY(from->cur + aligned > from->end)) {
                 /* Even a full collection left no room. Two causes: a young
                  * working set larger than the semi-space (grow young), or the old
                  * reservation exhausted at its cap so survivors can't promote and
@@ -752,29 +762,30 @@ static VADER_NOINLINE void* vader_gc_alloc_slow(size_t bytes) {
                 }
                 /* Otherwise the young working set genuinely exceeds the semi-
                  * space: grow young to fit it (capped) rather than failing. */
-                vader_young_grow_for(aligned);
+                vader_young_grow_for(w, aligned);
             }
         }
         /* A collect just ran: re-size young toward old so the next round of
          * churn triggers far fewer (expensive, O(old)) minors. */
-        vader_young_maybe_grow_adaptive();
+        vader_young_maybe_grow_adaptive(w);
         /* Reclaim dead old in place once it has grown past live x headroom (the
          * non-moving slab never compacts, so nothing else frees it). */
         vader_old_maybe_major();
     }
-    return vader_gc_alloc_young_unchecked(aligned);
+    return vader_gc_alloc_young_unchecked(w, aligned);
 }
 
 /* The test is strict, so the uninitialised state (cursor and limit both NULL)
  * fails it even for zero bytes. Kept out of line: link-time optimisation would
  * otherwise copy it into every allocation site. */
 VADER_NOINLINE void* vader_gc_alloc(size_t bytes) {
+    vader_worker_t* w = &vader_worker;
     bytes = vader_obj_bytes(bytes);
     size_t aligned = vader_gc_align(bytes);
-    if (VADER_LIKELY((uintptr_t) g_young.from.cur + aligned < (uintptr_t) g_alloc_limit)) {
-        return vader_gc_alloc_young_unchecked(aligned);
+    if (VADER_LIKELY((uintptr_t) w->young.from.cur + aligned < (uintptr_t) w->alloc_limit)) {
+        return vader_gc_alloc_young_unchecked(w, aligned);
     }
-    return vader_gc_alloc_slow(bytes);
+    return vader_gc_alloc_slow(w, bytes);
 }
 
 _Static_assert(VADER_ARRAY_SLOT_ALIGN == 2u * VADER_GC_ALIGN,
@@ -794,20 +805,21 @@ static inline void vader_gc_put_filler(char* at) {
  * in one block: the block starts on `VADER_ARRAY_SLOT_ALIGN`, behind a filler
  * when the cursor is off it. */
 static VADER_NOINLINE void* vader_gc_alloc_slot_aligned(size_t bytes) {
+    vader_worker_t* w = &vader_worker;
     size_t aligned = vader_gc_align(bytes);
-    char*  cur     = g_young.from.cur;
+    char*  cur     = w->young.from.cur;
     size_t pad     = vader_gc_slot_pad(cur);
-    if (VADER_LIKELY((uintptr_t) cur + pad + aligned < (uintptr_t) g_alloc_limit)) {
+    if (VADER_LIKELY((uintptr_t) cur + pad + aligned < (uintptr_t) w->alloc_limit)) {
         if (pad != 0u) vader_gc_put_filler(cur);
-        g_young.from.cur = cur + pad + aligned;
+        w->young.from.cur = cur + pad + aligned;
         return cur + pad;
     }
     /* The slow path bumps the young cursor last, so a block that lands on the
      * boundary hands its spare filler back. */
-    char* block = (char*) vader_gc_alloc_slow(bytes + VADER_GC_ALIGN);
+    char* block = (char*) vader_gc_alloc_slow(w, bytes + VADER_GC_ALIGN);
     if (vader_gc_slot_pad(block) == 0u) {
-        g_young.from.cur    -= VADER_GC_ALIGN;
-        g_total_alloc_bytes -= VADER_GC_ALIGN;
+        w->young.from.cur       -= VADER_GC_ALIGN;
+        w->counts.alloc_bytes   -= VADER_GC_ALIGN;
         return block;
     }
     vader_gc_put_filler(block);

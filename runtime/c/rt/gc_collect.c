@@ -23,31 +23,14 @@ uint8_t vader_ffi_callback_escaped = 0u;
  * buffer is promoted, whatever its age. */
 static uint8_t g_minor_promote_shared = 0u;
 
-/* Gray worklist: objects whose slots still need scanning. Reused by both
- * cycles: minor pushes freshly-promoted old objects (to forward their young
- * refs); major pushes freshly-marked old objects (to mark their children). */
-static char**  g_gray_stack = NULL;
-static size_t  g_gray_len   = 0;
-static size_t  g_gray_cap   = 0;
-static vader_cycle_t g_cycle = VADER_CYCLE_NONE;
-
-/* Card table: one byte per VADER_CARD_BYTES of the old-gen reservation. The old
- * gen is non-moving, so the table is sized once over the whole reservation and
- * never relocated. Exposed (non-static) because the inline `VADER_WRITE_BARRIER`
- * macro needs the address from emitted C code. */
-uint8_t*   vader_card_table = NULL;
+/* The old-gen reservation the card tables cover, one byte per VADER_CARD_BYTES
+ * in each worker's table (`vader_worker_t.cards`). The old gen is non-moving,
+ * so a table is sized once over the whole reservation and never relocated.
+ * Exposed (non-static) because the inline `VADER_WRITE_BARRIER` macro reads
+ * the bounds from emitted C code. */
 uintptr_t  vader_old_base   = 0;
 uintptr_t  vader_old_end    = 0;
 static size_t g_card_count = 0;
-
-/* Per-minor snapshot of the card table (same size as `vader_card_table`). The
- * minor card scan copies the live dirty set here, clears the live table, and
- * scans the objects under cards marked dirty in this snapshot; the forwarding
- * path (`vader_gc_scan_box`/`_raw`) re-dirties the LIVE table for any slot that
- * still points young after forwarding. Snapshotting decouples the clear from
- * the scan so a redirty can never be wiped by clearing a later card the same
- * object spans, see `vader_gc_scan_old_dirty_cards`. */
-static uint8_t* g_card_shadow = NULL;
 
 /* Cards spanning the carved old prefix [g_old_block, g_old_bump): the live part
  * of the table. The minor scan bounds its table sweep to this (the uncommitted
@@ -58,17 +41,37 @@ static inline size_t vader_old_used_cards(void) {
 
 /* Grow the gray worklist geometrically. Out of line, so that the push it serves
  * costs no stack frame in the collector's loops. */
-static VADER_NOINLINE void vader_gray_grow(void) {
-    size_t new_cap = g_gray_cap == 0u ? 4096u : g_gray_cap * 2u;
-    char** ns = (char**) realloc(g_gray_stack, new_cap * sizeof(char*));
+static VADER_NOINLINE void vader_gray_grow(vader_worker_t* w) {
+    size_t new_cap = w->gray_cap == 0u ? 4096u : w->gray_cap * 2u;
+    char** ns = (char**) realloc(w->gray_stack, new_cap * sizeof(char*));
     if (ns == NULL) vader_trap("vader_gray_push: realloc failed");
-    g_gray_stack = ns;
-    g_gray_cap   = new_cap;
+    w->gray_stack = ns;
+    w->gray_cap   = new_cap;
 }
 
-static inline void vader_gray_push(char* obj) {
-    if (VADER_UNLIKELY(g_gray_len == g_gray_cap)) vader_gray_grow();
-    g_gray_stack[g_gray_len++] = obj;
+/* A worker's gray worklist holds the objects whose slots a collection it runs
+ * still has to scan: a minor pushes freshly-promoted old objects (to forward
+ * their young refs); a major pushes freshly-marked old objects (to mark their
+ * children). */
+static inline void vader_gray_push(vader_worker_t* w, char* obj) {
+    if (VADER_UNLIKELY(w->gray_len == w->gray_cap)) vader_gray_grow(w);
+    w->gray_stack[w->gray_len++] = obj;
+}
+
+/* The pop of `vader_gray_push`: false once the worklist is empty. */
+static inline bool vader_gray_pop(vader_worker_t* w, char** obj) {
+    if (w->gray_len == 0u) return false;
+    *obj = w->gray_stack[--w->gray_len];
+    return true;
+}
+
+/* Mark dirty, in `w`'s card table, the card of `slot` when it lies in old and
+ * points into `w`'s young generation after forwarding. Not in the mark of a
+ * major: the minor that drained young left every card exact, and a young
+ * referent there may be another worker's, whose card table is its own. */
+static inline void vader_gc_dirty_card(vader_worker_t* w, const void* slot) {
+    if (w->cycle == VADER_CYCLE_MAJOR) return;
+    VADER_CARD_MARK(w->cards, slot);
 }
 
 /* Map an interior old-gen pointer to the start of its containing slot, or NULL
@@ -100,33 +103,33 @@ static char* vader_old_slot_of(void* p) {
  * Young is deliberately NOT scanned conservatively: its rooting is already
  * precise (minors require it) and young objects MOVE, which a conservative
  * (maybe-not-a-pointer) root cannot tolerate. */
-static void vader_gc_mark_stack_range(char* lo, char* base) {
+static void vader_gc_mark_stack_range(vader_worker_t* w, char* lo, char* base) {
     if (lo == NULL || base == NULL || lo >= base) return;
     /* Align down to a pointer boundary, then scan word-aligned slots. */
     lo = (char*) ((uintptr_t) lo & ~(uintptr_t)(sizeof(void*) - 1u));
     for (char* p = lo; p + sizeof(void*) <= base; p += sizeof(void*)) {
-        void* w = *(void* volatile*) p;
-        if ((char*) w < g_old_block || (char*) w >= g_old_bump) continue;
-        char* slot = vader_old_slot_of(w);
+        void* word = *(void* volatile*) p;
+        if ((char*) word < g_old_block || (char*) word >= g_old_bump) continue;
+        char* slot = vader_old_slot_of(word);
         if (slot == NULL) continue;
         vader_obj_header_t* h = (vader_obj_header_t*) slot;
         if (h->mark != g_mark_value && h->type_index != VADER_TYPE_INDEX_FREE) {
             h->mark = g_mark_value;
-            vader_gray_push(slot);
+            vader_gray_push(w, slot);
         }
     }
 }
 
 /* A thread that is not running: its switch stored its registers at `sp`. */
-static void vader_gc_mark_waiting_stack(const vader_virtual_thread_roots_t* r) {
-    vader_gc_mark_stack_range(r->sp, r->hi);
+static void vader_gc_mark_waiting_stack(const vader_virtual_thread_roots_t* r, void* w) {
+    vader_gc_mark_stack_range((vader_worker_t*) w, r->sp, r->hi);
 }
 
-static void vader_gc_mark_cstack_conservative(void) {
+static void vader_gc_mark_cstack_conservative(vader_worker_t* w) {
     jmp_buf regs;
     (void) setjmp(regs);                 /* spill callee-saved registers onto the stack */
-    vader_gc_mark_stack_range((char*) &regs, vader_virtual_thread_stack_top());
-    vader_virtual_thread_each_waiting(vader_gc_mark_waiting_stack);
+    vader_gc_mark_stack_range(w, (char*) &regs, vader_virtual_thread_stack_top());
+    vader_virtual_thread_each_waiting(vader_gc_mark_waiting_stack, w);
 }
 
 /* ---- generational GC: copying young, mark-sweep old ---------------------- */
@@ -175,13 +178,13 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
  * Never leaves a filler ahead of an array buffer, unlike its allocation: the
  * copies then take no more room than the from-space held, which the size of the
  * to-space counts on. */
-static void* vader_gc_copy_into(void* obj, size_t bytes, vader_arena_t* target) {
+static void* vader_gc_copy_into(vader_worker_t* w, void* obj, size_t bytes, vader_arena_t* target) {
     size_t aligned = vader_gc_align(bytes);
     if (target->cur + aligned > target->end) return NULL;
     void* dst = target->cur;
     target->cur += aligned;
     memcpy(dst, obj, bytes);
-    g_total_copied += bytes;
+    w->counts.copied += bytes;
     vader_obj_forward_to(obj, dst);
     return dst;
 }
@@ -204,7 +207,7 @@ static void* vader_gc_promote(void* obj, size_t bytes, uint8_t age) {
 /* Move a young object a minor has not moved yet: promote it or copy it into
  * young.to. Out of line, so the checks of `vader_gc_forward` that send most
  * referents back unchanged need no stack frame. */
-static VADER_NOINLINE void* vader_gc_evacuate(void* obj, vader_obj_header_t* hdr, uint32_t type_index) {
+static VADER_NOINLINE void* vader_gc_evacuate(vader_worker_t* w, void* obj, vader_obj_header_t* hdr, uint32_t type_index) {
     size_t bytes = vader_gc_obj_size(obj, type_index);
     if (bytes == 0) return obj;
 
@@ -218,20 +221,20 @@ static VADER_NOINLINE void* vader_gc_evacuate(void* obj, vader_obj_header_t* hdr
             && vader_array_buf_is_shared((vader_array_buf_t*) obj))) {
         void* dst = vader_gc_promote(obj, bytes, (uint8_t)(hdr->age + 1u));
         if (dst != NULL) {
-            g_total_copied += bytes;
-            vader_gray_push((char*) dst);                /* scan its slots for young refs */
+            w->counts.copied += bytes;
+            vader_gray_push(w, (char*) dst);                /* scan its slots for young refs */
             return dst;
         }
         /* else: old full, keep in young.to this cycle. */
     }
 
-    void* dst = vader_gc_copy_into(obj, bytes, &g_young.to);
+    void* dst = vader_gc_copy_into(w, obj, bytes, &w->young.to);
     if (dst == NULL) vader_trap("vader_gc: young to-space overflow during minor");
     ((vader_obj_header_t*) dst)->age = (uint8_t)(hdr->age + 1u);
     return dst;
 }
 
-/* Forward-process `obj` (typed by `type_index`) following `g_cycle`:
+/* Forward-process `obj` (typed by `type_index`) following `w->cycle`:
  *
  *   minor or major-drain : young objects promote into the slab old gen via
  *     `vader_old_alloc` once their age reaches tenure, and move to young.to
@@ -247,11 +250,11 @@ static VADER_NOINLINE void* vader_gc_evacuate(void* obj, vader_obj_header_t* hdr
  * Constraint: a static object MUST NOT contain any pointer to a dynamic
  * (arena-allocated) object: the trace never visits it, so any inner dynamic
  * ref would be missed and freed under your feet. */
-static inline void* vader_gc_forward(void* obj, uint32_t type_index) {
+static inline void* vader_gc_forward(vader_worker_t* w, void* obj, uint32_t type_index) {
     if (obj == NULL) return NULL;
     if (VADER_UNLIKELY(g_gc_check_box)) vader_gc_check_object_alignment(obj, type_index);
 
-    if (g_cycle == VADER_CYCLE_MAJOR) {
+    if (w->cycle == VADER_CYCLE_MAJOR) {
         /* Mark phase: only old objects are sweepable. Young survivors and
          * immortals are dead-ends here (young is kept whole during the old
          * pass; immortals are read-only, never write a mark to them). */
@@ -259,27 +262,27 @@ static inline void* vader_gc_forward(void* obj, uint32_t type_index) {
         vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
         if (hdr->mark == g_mark_value) return obj;      /* already marked */
         hdr->mark = g_mark_value;
-        vader_gray_push((char*) obj);
+        vader_gray_push(w, (char*) obj);
         return obj;
     }
 
     /* An old object does not move during a minor, and an immortal never does. */
-    if (!vader_in_young_from(obj)) return obj;
+    if (!vader_in_young_from(w, obj)) return obj;
 
     vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
     void* copy = vader_obj_forwarded_to(obj);
     if (copy != NULL) return copy;
-    return vader_gc_evacuate(obj, hdr, type_index);
+    return vader_gc_evacuate(w, obj, hdr, type_index);
 }
 
 /* Scan a `vader_box_t` slot: if the tag identifies a heap-allocated kind and
  * the payload holds a pointer, forward it and update the slot in place.
  *
- * If `boxp` lives in an old-gen object (`VADER_WRITE_BARRIER` tests it) and the
- * forwarded ref ends up in young, mark the card dirty: future minors must
- * rescan this slot, and neither the mutator's write barrier (fired on a store,
- * not on this Cheney write) nor scan_old_dirty_cards covers it. */
-static void vader_gc_scan_box(vader_box_t* boxp) {
+ * If `boxp` lives in an old-gen object and the forwarded ref ends up in young,
+ * mark its card dirty in `w`'s table: future minors must rescan this slot, and
+ * neither the mutator's write barrier (fired on a store, not on this Cheney
+ * write) nor scan_old_dirty_cards covers it. */
+static void vader_gc_scan_box(vader_worker_t* w, vader_box_t* boxp) {
     if (boxp == NULL) return;
     if (boxp->tag == VADER_TYPE_INDEX_BUFFER) {
         /* Buffer box : the sentinel tag has no type-info row, so the generic
@@ -289,10 +292,8 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
          * sentinel (sizes off the header) and apply the same old->young card
          * barrier as the ordinary ref path. A buffer holds no inner refs, so
          * there is nothing further to scan. */
-        boxp->payload.obj = vader_gc_forward(boxp->payload.obj, VADER_TYPE_INDEX_BUFFER);
-        if (vader_in_young(boxp->payload.obj)) {
-            VADER_WRITE_BARRIER(boxp);
-        }
+        boxp->payload.obj = vader_gc_forward(w, boxp->payload.obj, VADER_TYPE_INDEX_BUFFER);
+        if (vader_in_young(w, boxp->payload.obj)) vader_gc_dirty_card(w, boxp);
         return;
     }
     if (boxp->tag >= vader_type_info_count) {
@@ -301,10 +302,8 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
     }
     const vader_type_info_t* info = &vader_type_info_table[boxp->tag];
     if (info->kind == VADER_TYPE_KIND_NONE) return;
-    boxp->payload.obj = vader_gc_forward(boxp->payload.obj, boxp->tag);
-    if (vader_in_young(boxp->payload.obj)) {
-        VADER_WRITE_BARRIER(boxp);
-    }
+    boxp->payload.obj = vader_gc_forward(w, boxp->payload.obj, boxp->tag);
+    if (vader_in_young(w, boxp->payload.obj)) vader_gc_dirty_card(w, boxp);
 }
 
 /* Scan a raw `void*` slot whose pointee is a heap object. Reads the pointee's
@@ -314,17 +313,15 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
  * Membership BEFORE the header read: a slot may hold a non-heap address (a
  * `.text` one in `fn.addr`), whose bytes are no header and must not be written
  * back as a forwarding pointer. An old object only matters to the major. */
-static void vader_gc_scan_raw(void** slot) {
+static void vader_gc_scan_raw(vader_worker_t* w, void** slot) {
     if (slot == NULL || *slot == NULL) return;
     void* obj = *slot;
-    if (vader_in_young_from(obj)) {
-        void* moved = vader_gc_forward(obj, ((vader_obj_header_t*) obj)->type_index);
+    if (vader_in_young_from(w, obj)) {
+        void* moved = vader_gc_forward(w, obj, ((vader_obj_header_t*) obj)->type_index);
         *slot = moved;
-        if (vader_in_young(moved)) {
-            VADER_WRITE_BARRIER(slot);
-        }
-    } else if (g_cycle == VADER_CYCLE_MAJOR && vader_in_old(obj)) {
-        (void) vader_gc_forward(obj, ((vader_obj_header_t*) obj)->type_index);
+        if (vader_in_young(w, moved)) vader_gc_dirty_card(w, slot);
+    } else if (w->cycle == VADER_CYCLE_MAJOR && vader_in_old(obj)) {
+        (void) vader_gc_forward(w, obj, ((vader_obj_header_t*) obj)->type_index);
     }
 }
 
@@ -335,7 +332,7 @@ static void vader_gc_scan_raw(void** slot) {
  * Scan one heap object's pointer-bearing slots and forward whatever they
  * reference. Returns the byte length of the object so a Cheney scan can
  * advance its cursor. */
-static size_t vader_gc_scan_object(char* scan) {
+static size_t vader_gc_scan_object(vader_worker_t* w, char* scan) {
     vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
     uint32_t type_index = hdr->type_index;
     if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
@@ -344,14 +341,14 @@ static size_t vader_gc_scan_object(char* scan) {
         if (buf->element_kind == VADER_ARRAY_KIND_BOXED) {
             vader_box_t* slots = vader_array_box_slots(buf);
             for (size_t i = 0; i < buf->length; i++) {
-                vader_gc_scan_box(&slots[i]);
+                vader_gc_scan_box(w, &slots[i]);
             }
         } else if (buf->element_kind == VADER_ARRAY_KIND_REF) {
             /* 8-byte raw-ref slots: forward each via scan_raw (handles
              * NULL slots + the old->young write barrier). */
             void** slots = (void**) buf->slots;
             for (size_t i = 0; i < buf->length; i++) {
-                vader_gc_scan_raw(&slots[i]);
+                vader_gc_scan_raw(w, &slots[i]);
             }
         }
         return vader_gc_align(sizeof(vader_array_buf_t) + buf->capacity * elem_size);
@@ -366,28 +363,28 @@ static size_t vader_gc_scan_object(char* scan) {
     }
     const vader_type_info_t* info = &vader_type_info_table[type_index];
     for (uint16_t i = 0; i < info->ptr_count; i++) {
-        vader_gc_scan_box((vader_box_t*) (scan + info->ptr_offsets[i]));
+        vader_gc_scan_box(w, (vader_box_t*) (scan + info->ptr_offsets[i]));
     }
     for (uint16_t i = 0; i < info->ref_count; i++) {
-        vader_gc_scan_raw((void**) (scan + info->ref_offsets[i]));
+        vader_gc_scan_raw(w, (void**) (scan + info->ref_offsets[i]));
     }
     return vader_gc_align(vader_obj_bytes(info->size));
 }
 
 /* Forward every root cell of one thread: its shadow stack from `top`, then its
  * pending defers. */
-static void vader_gc_scan_thread(vader_gc_frame_t* top, vader_box_t* defers, size_t ndefers) {
+static void vader_gc_scan_thread(vader_worker_t* w, vader_gc_frame_t* top, vader_box_t* defers, size_t ndefers) {
     for (vader_gc_frame_t* fr = top; fr != NULL; fr = fr->prev) {
         if (fr->ptrs != NULL) {
             for (uint32_t i = 0; i < fr->nrefs; i++) {
-                vader_gc_scan_box(fr->ptrs[i]);
+                vader_gc_scan_box(w, fr->ptrs[i]);
             }
         }
         // Raw-ref roots: `void*` locals carrying a concrete ref unboxed. NULL /
         // 0 in a frame with none.
         if (fr->raw != NULL) {
             for (uint32_t i = 0; i < fr->nraw; i++) {
-                vader_gc_scan_raw(fr->raw[i]);
+                vader_gc_scan_raw(w, fr->raw[i]);
             }
         }
         // Stack-object roots: GC structs the escape analysis stack-allocated.
@@ -399,7 +396,7 @@ static void vader_gc_scan_thread(vader_gc_frame_t* top, vader_box_t* defers, siz
         if (fr->stack_objs != NULL) {
             for (uint32_t i = 0; i < fr->nstack; i++) {
                 if (fr->stack_objs[i] != NULL) {
-                    (void) vader_gc_scan_object((char*) fr->stack_objs[i]);
+                    (void) vader_gc_scan_object(w, (char*) fr->stack_objs[i]);
                 }
             }
         }
@@ -408,20 +405,20 @@ static void vader_gc_scan_thread(vader_gc_frame_t* top, vader_box_t* defers, siz
      * captures heap-promoted cells. Without rooting here, a GC between
      * defer.push and defer.pop_exec would collect the captures. */
     for (size_t i = 0; i < ndefers; i++) {
-        vader_gc_scan_box(&defers[i]);
+        vader_gc_scan_box(w, &defers[i]);
     }
 }
 
-static void vader_gc_scan_waiting(const vader_virtual_thread_roots_t* r) {
-    vader_gc_scan_thread(r->top, r->defers, r->ndefers);
+static void vader_gc_scan_waiting(const vader_virtual_thread_roots_t* r, void* w) {
+    vader_gc_scan_thread((vader_worker_t*) w, r->top, r->defers, r->ndefers);
 }
 
-/* Walk the shadow stack of every thread and forward every root cell. Used by
- * both cycles. */
-static void vader_gc_scan_roots(void) {
-    const vader_thread_state_t* running = &vader_worker.running;
-    vader_gc_scan_thread(running->gc_top, running->defer_stack, running->defer_len);
-    vader_virtual_thread_each_waiting(vader_gc_scan_waiting);
+/* Walk the shadow stack of every thread of `w` and forward every root cell.
+ * Used by both cycles. */
+static void vader_gc_scan_roots(vader_worker_t* w) {
+    const vader_thread_state_t* running = &w->running;
+    vader_gc_scan_thread(w, running->gc_top, running->defer_stack, running->defer_len);
+    vader_virtual_thread_each_waiting(vader_gc_scan_waiting, w);
 }
 
 /* The first card in [c, hi] marked in `dirty`, or hi + 1. Steps over clean
@@ -441,7 +438,7 @@ static inline size_t vader_next_dirty_card(const uint8_t* dirty, size_t c, size_
  * the cards whose old objects still point young: the write barrier MARKS, the
  * minor CLEANS + REDIRTIES.
  *
- * Snapshot the live dirty set into `g_card_shadow`, clear the live table, and
+ * Snapshot the live dirty set into `w->card_shadow`, clear the live table, and
  * card-drive the scan: per region, skip clean (snapshot) cards without touching
  * their slots, and scan only the live objects under dirty cards. Forwarding a
  * slot that still references young re-dirties its LIVE card via the barrier in
@@ -459,7 +456,7 @@ static inline size_t vader_next_dirty_card(const uint8_t* dirty, size_t c, size_
  * old->young store, so before the minor every live old->young field sits under
  * a dirty snapshot card: none is missed. `VADER_GC_SCAN_ALL_OLD` skips the
  * snapshot and the clear, and scans every card. */
-static void vader_gc_scan_old_dirty_cards(void) {
+static void vader_gc_scan_old_dirty_cards(vader_worker_t* w) {
     if (g_old_regions == NULL || g_old_bump == g_old_block) return;
     size_t used_cards = vader_old_used_cards();
 
@@ -471,9 +468,9 @@ static void vader_gc_scan_old_dirty_cards(void) {
      * clear. */
     const uint8_t* dirty = NULL;
     if (!g_gc_scan_all_old) {
-        memcpy(g_card_shadow, vader_card_table, used_cards);
-        memset(vader_card_table, 0, used_cards);
-        dirty = g_card_shadow;                          /* what to scan; live table = redirty target */
+        memcpy(w->card_shadow, w->cards, used_cards);
+        memset(w->cards, 0, used_cards);
+        dirty = w->card_shadow;                         /* what to scan; live table = redirty target */
     }
 
     for (vader_old_region_t* r = g_old_regions; r != NULL; r = r->next) {
@@ -498,7 +495,7 @@ static void vader_gc_scan_old_dirty_cards(void) {
             char* card_end = (char*)(vader_old_base + card_start_off + VADER_CARD_BYTES);
             for (; s < card_end && s < r->cur; s += r->slot_size) {
                 vader_obj_header_t* hdr = (vader_obj_header_t*) s;
-                if (hdr->mark == g_mark_value) (void) vader_gc_scan_object(s);
+                if (hdr->mark == g_mark_value) (void) vader_gc_scan_object(w, s);
             }
             cursor = s;
         }
@@ -509,27 +506,28 @@ static void vader_gc_scan_old_dirty_cards(void) {
  * reads `arena->cur` each iteration so objects appended by forwarding
  * during the scan are picked up before the loop ends. Returns the final
  * scan position. */
-static char* vader_gc_drain(char* scan, const vader_arena_t* arena) {
+static char* vader_gc_drain(vader_worker_t* w, char* scan, const vader_arena_t* arena) {
     while (scan < arena->cur) {
-        size_t step = vader_gc_scan_object(scan);
+        size_t step = vader_gc_scan_object(w, scan);
         if (step == 0) break;
         scan += step;
     }
     return scan;
 }
 
-void vader_minor_collect(void) {
+static void vader_gc_minor(vader_worker_t* w) {
     if (!g_gc_initialized) return;
-    vader_cycle_t saved = g_cycle;
-    if (saved == VADER_CYCLE_NONE) g_cycle = VADER_CYCLE_MINOR;
+    vader_gen_t* young = &w->young;
+    vader_cycle_t saved = w->cycle;
+    if (saved == VADER_CYCLE_NONE) w->cycle = VADER_CYCLE_MINOR;
     /* MAJOR_DRAIN is preserved if the caller is `vader_major_collect`. */
 
-    g_young.to.cur = g_young.to.base;
-    char* young_scan = g_young.to.base;
-    g_gray_len = 0;                                      /* promotions queue here */
+    young->to.cur = young->to.base;
+    char* young_scan = young->to.base;
+    w->gray_len = 0;                                     /* promotions queue here */
 
-    vader_gc_scan_roots();
-    vader_gc_scan_old_dirty_cards();
+    vader_gc_scan_roots(w);
+    vader_gc_scan_old_dirty_cards(w);
 
     /* Drain young.to and the gray worklist until neither advances: forwarding a
      * young root can promote into the (scattered, non-contiguous) slab, and
@@ -538,11 +536,11 @@ void vader_minor_collect(void) {
      * (they're spread across class regions), so they go through the gray stack. */
     for (;;) {
         char* y0 = young_scan;
-        young_scan = vader_gc_drain(young_scan, &g_young.to);
+        young_scan = vader_gc_drain(w, young_scan, &young->to);
         int drained_gray = 0;
-        while (g_gray_len > 0) {
-            char* obj = g_gray_stack[--g_gray_len];
-            (void) vader_gc_scan_object(obj);           /* forward its young refs into young.to */
+        char* obj = NULL;
+        while (vader_gray_pop(w, &obj)) {
+            (void) vader_gc_scan_object(w, obj);         /* forward its young refs into young.to */
             drained_gray = 1;
         }
         if (young_scan == y0 && !drained_gray) break;
@@ -553,22 +551,22 @@ void vader_minor_collect(void) {
      * the minor abandoned. So a forwarding header does not outlive the minor
      * that wrote it: a pointer read after a collection must come from a root the
      * collection rewrote, never from a forward (docs/adr/0107). */
-    vader_arena_t abandoned = g_young.from;
-    if (g_young.to.cur != g_young.to.base) {
-        g_young.from   = g_young.to;
-        g_young.to     = abandoned;
-        g_young.to.cur = g_young.to.base;
+    vader_arena_t abandoned = young->from;
+    if (young->to.cur != young->to.base) {
+        young->from   = young->to;
+        young->to     = abandoned;
+        young->to.cur = young->to.base;
     } else {
-        g_young.from.cur = g_young.from.base;
+        young->from.cur = young->from.base;
     }
-    vader_alloc_limit_refresh();
+    vader_alloc_limit_refresh(w);
     if (VADER_UNLIKELY(g_gc_poison)) {
         memset(abandoned.base, VADER_GC_POISON_BYTE, (size_t)(abandoned.cur - abandoned.base));
     }
 
     /* A preliminary minor inside a major counts as part of that major. */
-    if (saved == VADER_CYCLE_NONE) g_total_collections++;
-    g_cycle = saved;
+    if (saved == VADER_CYCLE_NONE) w->counts.collections++;
+    w->cycle = saved;
 
     /* Atoms are collected by the MAJOR cycle only (`vader_atom_gc_collect`, called
      * from `vader_major_collect`): a minor never touches them. A string is a
@@ -576,14 +574,19 @@ void vader_minor_collect(void) {
      * ignores. */
 }
 
+void vader_minor_collect(void) {
+    vader_gc_minor(&vader_worker);
+}
+
 void vader_major_collect(void) {
     if (!g_gc_initialized) return;
+    vader_worker_t* w = &vader_worker;
 
     /* 1. Drain young (a minor). Survivors that earned tenure promote into the
      * slab via vader_old_alloc; the rest, and any the slab cannot take, stay in
      * young.from. */
-    g_cycle = VADER_CYCLE_MAJOR_DRAIN;
-    vader_minor_collect();
+    w->cycle = VADER_CYCLE_MAJOR_DRAIN;
+    vader_gc_minor(w);
 
     /* 2. Toggle the epoch mark value. Last epoch's live objects carry the old
      * value, so they now read as "unmarked" with no clear pass; the mark phase
@@ -596,21 +599,19 @@ void vader_major_collect(void) {
      * young survivor (kept whole during the old pass; scanning them marks the
      * old objects they reference), then drain the gray worklist for the
      * transitive old->old closure. */
-    g_cycle = VADER_CYCLE_MAJOR;
-    g_gray_len = 0;
-    vader_gc_scan_roots();
-    (void) vader_gc_drain(g_young.from.base, &g_young.from);
+    w->cycle = VADER_CYCLE_MAJOR;
+    w->gray_len = 0;
+    vader_gc_scan_roots(w);
+    (void) vader_gc_drain(w, w->young.from.base, &w->young.from);
     /* Conservatively mark old objects reachable only from C locals / registers
      * (the shadow stack doesn't precisely root old refs, see the function).
      * `VADER_GC_NO_CSTACK_SCAN=1` skips it so the gaps in the PRECISE rooting
      * surface as failures instead of being papered over, see the flag. */
     if (!g_gc_no_cstack_scan) {
-        vader_gc_mark_cstack_conservative();
+        vader_gc_mark_cstack_conservative(w);
     }
-    while (g_gray_len > 0) {
-        char* obj = g_gray_stack[--g_gray_len];
-        (void) vader_gc_scan_object(obj);
-    }
+    char* gray = NULL;
+    while (vader_gray_pop(w, &gray)) (void) vader_gc_scan_object(w, gray);
 
     /* 4. Sweep: rebuild every free list from the unmarked slots. */
     vader_old_sweep();
@@ -618,12 +619,11 @@ void vader_major_collect(void) {
     vader_gc_old_histogram();
 
     /* The card table stays as it is. Step 1's minor left a card dirty exactly
-     * where an old object points young; the mark moves nothing, and its scans
-     * re-dirty those cards anyway (`vader_gc_scan_box`/`_raw`). Dirtying more
-     * would make the next minor rescan every live old object. */
+     * where an old object points young, and the mark moves nothing. Dirtying
+     * more would make the next minor rescan every live old object. */
 
-    g_cycle = VADER_CYCLE_NONE;
-    g_total_collections++;
+    w->cycle = VADER_CYCLE_NONE;
+    w->counts.collections++;
     vader_atom_gc_collect();
 }
 
@@ -634,20 +634,20 @@ void vader_gc_collect(void) {
 }
 
 vader_gc_stats_t vader_gc_get_stats(void) {
-    vader_gc_stats_t s;
+    vader_gc_stats_t s = {0};
     s.arena_size = g_old_capacity;
-    if (g_gc_initialized) {
-        /* Allocation high-water, NOT a live count, see `bytes_used`'s note in
-         * vader.h for what the two halves mean and why they differ. */
-        size_t young_used = (size_t)(g_young.from.cur - g_young.from.base);
-        s.bytes_used = young_used + g_old_live_bytes;
-    } else {
-        s.bytes_used = 0;
+    /* Old live bytes plus each young generation's allocation high-water, NOT a
+     * live count, see `bytes_used`'s note in vader.h for what the two halves
+     * mean and why they differ. */
+    s.bytes_used = g_old_live_bytes;
+    for (size_t i = 0; i < g_worker_count; i++) {
+        const vader_worker_t* w = g_workers[i];
+        s.bytes_used += (size_t)(w->young.from.cur - w->young.from.base);
+        s.total_collections += w->counts.collections;
+        s.total_copied += w->counts.copied;
+        s.total_alloc_bytes += w->counts.alloc_bytes;
+        s.total_alloc_count += w->counts.alloc_count;
     }
-    s.total_collections = g_total_collections;
-    s.total_copied = g_total_copied;
-    s.total_alloc_bytes = g_total_alloc_bytes;
-    s.total_alloc_count = g_total_alloc_count;
     return s;
 }
 
@@ -657,7 +657,7 @@ vader_gc_stats_t vader_gc_get_stats(void) {
 void vader_ffi_callback_first_escape(void) {
     vader_ffi_callback_escaped = 1u;
     g_minor_promote_shared = 1u;
-    vader_minor_collect();
+    vader_gc_minor(&vader_worker);
     g_minor_promote_shared = 0u;
 }
 
@@ -680,7 +680,7 @@ void vader_ffi_callback_first_escape(void) {
  * Returns the tenured address, or the original when the old generation is at its
  * cap: the object then stays movable. */
 static void* vader_gc_force_tenure(void* obj) {
-    if (!vader_in_young_from(obj)) return obj;   /* old or immortal: already still */
+    if (!vader_in_young_from(&vader_worker, obj)) return obj;   /* old or immortal: already still */
     vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
     void* copy = vader_obj_forwarded_to(obj);
     if (copy != NULL) return copy;

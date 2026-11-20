@@ -33,20 +33,6 @@ static void vader_run_pending_defers(void);
 
 /* ---- gc_heap.c ----------------------------------------------------------- */
 
-typedef struct {
-    char* base;
-    char* cur;
-    char* end;
-} vader_arena_t;
-
-/* The young generation: a pair of semi-spaces that swap roles at each minor. */
-typedef struct {
-    vader_arena_t from;
-    vader_arena_t to;
-    char*         block;        /* malloc'd contiguous backing: span both semi-spaces */
-    size_t        half_bytes;   /* size of one semi-space */
-} vader_gen_t;
-
 /* One carved extent of the reservation. Small regions hold many fixed-size
  * slots of one class; large regions hold exactly one object. */
 typedef struct vader_old_region {
@@ -60,7 +46,9 @@ typedef struct vader_old_region {
     struct vader_old_region* free_next;  /* large free bin link */
 } vader_old_region_t;
 
-static vader_gen_t g_young;
+/* The most workers a program runs, the main thread's included. */
+#define VADER_WORKERS_MAX 256u
+
 static char* g_old_block;
 static char* g_old_bump;
 static size_t g_old_capacity;
@@ -68,15 +56,15 @@ static size_t g_old_live_bytes;
 static size_t g_old_live_after_major;
 static vader_old_region_t* g_old_regions;
 static int g_gc_initialized;
-static size_t g_total_collections;
-static size_t g_total_copied;
-static size_t g_total_alloc_bytes;
-static size_t g_total_alloc_count;
+static vader_worker_t* g_workers[VADER_WORKERS_MAX];
+static size_t g_worker_count;
 
-static void vader_alloc_limit_refresh(void);
+static void vader_alloc_limit_refresh(vader_worker_t* w);
 static size_t vader_gc_align(size_t n);
-static int vader_in_young_from(const void* p);
-static int vader_in_young(const void* p);
+/* Whether `p` lies in the young generation of `w`: its from-space, or either
+ * half. */
+static int vader_in_young_from(const vader_worker_t* w, const void* p);
+static int vader_in_young(const vader_worker_t* w, const void* p);
 static int vader_in_old(const void* p);
 static int vader_gc_env_bool(const char* env_name);
 static void* vader_old_alloc(size_t bytes);
@@ -87,22 +75,11 @@ static VADER_NOINLINE void* vader_gc_alloc_slot_aligned(size_t bytes);
 
 /* ---- gc_collect.c -------------------------------------------------------- */
 
-/* Current cycle. Drives both `vader_gc_forward` (which arena to copy into)
- * and the collection counter (sub-cycles don't bump it independently). */
-typedef enum {
-    VADER_CYCLE_NONE = 0,         /* no cycle running */
-    VADER_CYCLE_MINOR,            /* standalone minor */
-    VADER_CYCLE_MAJOR_DRAIN,      /* minor running as the first step of a major */
-    VADER_CYCLE_MAJOR,            /* mark phase of a major (old objects marked in place, never copied) */
-} vader_cycle_t;
-
 static uint8_t g_mark_value;
-static char** g_gray_stack;
-static size_t g_gray_len;
-static size_t g_gray_cap;
-static vader_cycle_t g_cycle;
 static size_t g_card_count;
-static uint8_t* g_card_shadow;
+
+/* A minor over the young generation of `w`, with its roots. */
+static void vader_gc_minor(vader_worker_t* w);
 
 static size_t vader_gc_obj_size(void* obj, uint32_t type_index);
 static void* vader_gc_force_tenure(void* obj);
@@ -185,7 +162,8 @@ typedef struct {
 /* The top of the running thread's stack, where its conservative scan stops. */
 static char* vader_virtual_thread_stack_top(void);
 /* Call `fn` with the roots of each thread alive but the running one. */
-static void vader_virtual_thread_each_waiting(void (*fn)(const vader_virtual_thread_roots_t*));
+static void vader_virtual_thread_each_waiting(void (*fn)(const vader_virtual_thread_roots_t*, void* ctx),
+                                              void* ctx);
 
 /* What rt/scheduler.c drives. A handle names a thread until it ends; the main
  * thread has one from the start. One thread is the scheduler's, which runs

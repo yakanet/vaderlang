@@ -26,6 +26,8 @@ typedef struct {
     void**  pending;
     size_t  pending_len;
     size_t  pending_cap;
+    /* The worker that copies: the copies' cards are marked in its table. */
+    vader_worker_t* worker;
 } vader_copy_t;
 
 static void* vader_copy_calloc(size_t count, size_t size) {
@@ -176,13 +178,13 @@ static vader_box_t vader_copy_box(vader_copy_t* c, vader_box_t value) {
 /* Point the reference at `slot` of a copy at the copy of its referent. */
 static void vader_copy_ref_slot(vader_copy_t* c, void** slot) {
     *slot = vader_copy_ref(c, *slot);
-    if (*slot != NULL && vader_in_young(*slot)) VADER_WRITE_BARRIER(slot);
+    if (*slot != NULL && vader_in_young(c->worker, *slot)) VADER_CARD_MARK(c->worker->cards, slot);
 }
 
 static void vader_copy_box_slot(vader_copy_t* c, vader_box_t* slot) {
     *slot = vader_copy_box(c, *slot);
-    if (vader_copy_holds_object(*slot) && vader_in_young(slot->payload.obj)) {
-        VADER_WRITE_BARRIER(slot);
+    if (vader_copy_holds_object(*slot) && vader_in_young(c->worker, slot->payload.obj)) {
+        VADER_CARD_MARK(c->worker->cards, slot);
     }
 }
 
@@ -212,6 +214,7 @@ static void vader_copy_references(vader_copy_t* c, char* copy) {
 
 static void vader_copy_open(vader_copy_t* c) {
     if (VADER_UNLIKELY(!g_gc_initialized)) vader_gc_init();
+    c->worker = &vader_worker;
     c->capacity = 64u;
     c->count = 0;
     c->from = (void**) vader_copy_calloc(c->capacity, sizeof(void*));

@@ -594,13 +594,14 @@ static void vader_virtual_thread_roots_of(const vader_virtual_thread_t* t,
     r->hi = t->hi;
 }
 
-static void vader_virtual_thread_each_waiting(void (*fn)(const vader_virtual_thread_roots_t*)) {
+static void vader_virtual_thread_each_waiting(void (*fn)(const vader_virtual_thread_roots_t*, void* ctx),
+                                              void* ctx) {
     vader_virtual_thread_roots_t r;
     for (size_t i = 0; i < g_virtual_thread_live_count; i++) {
         vader_virtual_thread_t* t = g_virtual_thread_live[i];
         if (t == vader_worker.current || t->state != VADER_VIRTUAL_THREAD_LIVE) continue;
         vader_virtual_thread_roots_of(t, &r);
-        fn(&r);
+        fn(&r, ctx);
     }
 }
 
@@ -655,8 +656,10 @@ static char* vader_virtual_thread_stack_top(void) {
     return vader_os_stack_base();
 }
 
-static void vader_virtual_thread_each_waiting(void (*fn)(const vader_virtual_thread_roots_t*)) {
+static void vader_virtual_thread_each_waiting(void (*fn)(const vader_virtual_thread_roots_t*, void* ctx),
+                                              void* ctx) {
     (void) fn;
+    (void) ctx;
 }
 
 #endif
