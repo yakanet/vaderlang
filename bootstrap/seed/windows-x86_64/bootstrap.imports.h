@@ -4,6 +4,9 @@
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include "vader.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static inline int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
 }
@@ -21,7 +24,7 @@ static inline bool vader_host_std_core$Intrinsic$is_ascii(vader_string_t a0) {
 }
 
 static inline void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 29u, 541u);
+    return (void*) vader_string_bytes_view(a0, 29u, 581u);
 }
 
 static inline vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
@@ -90,6 +93,14 @@ static inline void vader_host_std_core$Intrinsic$watch_readable(int64_t a0) {
 
 static inline void vader_host_std_core$Intrinsic$watch_exit(int64_t a0) {
     vader_scheduler_watch_exit(a0);
+}
+
+static inline void vader_host_std_core$Intrinsic$monitor_enter(bool a0) {
+    vader_scheduler_monitor_enter(a0);
+}
+
+static inline void vader_host_std_core$Intrinsic$monitor_exit(void) {
+    vader_scheduler_monitor_exit();
 }
 
 static inline void vader_host_std_core$Intrinsic$wait_readable(int64_t a0) {
@@ -170,6 +181,8 @@ static inline void vader_host_system_windows$find_data_attributes(void* a0, void
     vader_foreign_depth -= 1;
     return;
 }
+
+#pragma GCC diagnostic pop
 
 /* Shims defined in a unit of their own: a `CLibrary`'s, or the headerless one. */
 extern void* vader_host_system_windows$get_std_handle(uint32_t a0);

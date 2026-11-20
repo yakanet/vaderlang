@@ -7,6 +7,9 @@
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <windows.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 void* vader_host_system_windows$get_std_handle(uint32_t a0) {
     vader_foreign_depth += 1;
     void* r = GetStdHandle(a0);
@@ -200,3 +203,5 @@ bool vader_host_system_windows$query_performance_frequency(void* a0) {
     vader_foreign_depth -= 1;
     return r;
 }
+
+#pragma GCC diagnostic pop
