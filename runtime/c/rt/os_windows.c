@@ -532,6 +532,16 @@ static int vader_os_writable_now(int64_t fd) {
     return 1;
 }
 
+/* A socket, the one descriptor waited for once it would block, is waited for
+ * by the scheduler (`vader_os_only_reports`); anything else waits in the read
+ * or the write that follows. */
+static int vader_os_block_until(int kind, int64_t fd, int64_t nanos) {
+    (void) kind;
+    (void) fd;
+    (void) nanos;
+    return 1;
+}
+
 static int vader_os_only_reports(int64_t id) {
     return vader_os_socket_of(id) != NULL;
 }

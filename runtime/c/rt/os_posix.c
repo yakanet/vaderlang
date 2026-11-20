@@ -116,22 +116,38 @@ static size_t vader_os_physical_ram(void) {
 /* The most events one wait takes; the rest wait for the next. */
 #define VADER_OS_EVENTS 64
 
-/* A read that fails is ready too: the read then reports the failure. */
-static int vader_os_readable_now(int64_t fd) {
-    struct pollfd probe;
-    probe.fd = (int) fd;
-    probe.events = POLLIN;
-    probe.revents = 0;
-    return poll(&probe, 1, 0) != 0;
+/* `timeout_ns` in the milliseconds of `poll` and `epoll_wait`, rounded up so
+ * the wait is never shorter; a negative one is no limit. */
+static int vader_os_timeout_ms(int64_t timeout_ns) {
+    if (timeout_ns < 0) return -1;
+    int64_t ms = timeout_ns / 1000000;
+    if (timeout_ns % 1000000 != 0) ms += 1;
+    if (ms > 0x7FFFFFFF) return 0x7FFFFFFF;
+    return (int) ms;
 }
 
-/* A write that fails is ready too: the write then reports the failure. */
-static int vader_os_writable_now(int64_t fd) {
+/* Whether `fd` is as `events` say within `timeout_ms`. A poll that fails
+ * answers yes: the read or write that follows reports the failure. */
+static int vader_os_poll_one(int64_t fd, short events, int timeout_ms) {
     struct pollfd probe;
     probe.fd = (int) fd;
-    probe.events = POLLOUT;
+    probe.events = events;
     probe.revents = 0;
-    return poll(&probe, 1, 0) != 0;
+    return poll(&probe, 1, timeout_ms) != 0;
+}
+
+static int vader_os_readable_now(int64_t fd) {
+    return vader_os_poll_one(fd, POLLIN, 0);
+}
+
+static int vader_os_writable_now(int64_t fd) {
+    return vader_os_poll_one(fd, POLLOUT, 0);
+}
+
+static int vader_os_block_until(int kind, int64_t fd, int64_t nanos) {
+    short events = POLLIN;
+    if (kind == VADER_WATCH_WRITABLE) events = POLLOUT;
+    return vader_os_poll_one(fd, events, vader_os_timeout_ms(nanos));
 }
 
 static int vader_os_only_reports(int64_t id) {
@@ -282,16 +298,8 @@ static void vader_os_close_pidfd(int64_t child) {
 }
 
 static void vader_os_wait_events(int64_t timeout_ns) {
-    /* In milliseconds, rounded up so the wait is never shorter. */
-    int timeout_ms = -1;
-    if (timeout_ns >= 0) {
-        int64_t ms = timeout_ns / 1000000;
-        if (timeout_ns % 1000000 != 0) ms += 1;
-        timeout_ms = 0x7FFFFFFF;
-        if (ms < (int64_t) timeout_ms) timeout_ms = (int) ms;
-    }
     struct epoll_event events[VADER_OS_EVENTS];
-    int got = epoll_wait(g_os_queue, events, VADER_OS_EVENTS, timeout_ms);
+    int got = epoll_wait(g_os_queue, events, VADER_OS_EVENTS, vader_os_timeout_ms(timeout_ns));
     for (int i = 0; i < got; i++) {
         int child = (int) (events[i].data.u64 >> 32);
         int64_t id = (int64_t) (uint32_t) events[i].data.u64;

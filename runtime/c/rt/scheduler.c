@@ -1261,14 +1261,24 @@ static bool vader_scheduler_wait_for_locked(int kind, int64_t fd, int64_t nanos,
     }
 }
 
+/* With no other thread to run, a caller that found `fd` would block waits on
+ * the system thread; any other then asks the system itself. */
+static bool vader_scheduler_wait_alone(int kind, int64_t fd, int64_t nanos, int blocked) {
+    if (!blocked) return true;
+    return vader_os_block_until(kind, fd, nanos);
+}
+
 static bool vader_scheduler_wait_for(int kind, int64_t fd, int64_t nanos, int blocked) {
     /* Before the scheduler starts, no other thread runs. */
-    if (!g_scheduler_started && !vader_os_only_reports(fd)) return true;
-    vader_scheduler_enter();
-    bool ready = true;
-    if (vader_virtual_thread_count() > 0u || vader_os_only_reports(fd)) {
-        ready = vader_scheduler_wait_for_locked(kind, fd, nanos, blocked);
+    if (!g_scheduler_started && !vader_os_only_reports(fd)) {
+        return vader_scheduler_wait_alone(kind, fd, nanos, blocked);
     }
+    vader_scheduler_enter();
+    if (vader_virtual_thread_count() == 0u && !vader_os_only_reports(fd)) {
+        vader_scheduler_unlock();
+        return vader_scheduler_wait_alone(kind, fd, nanos, blocked);
+    }
+    bool ready = vader_scheduler_wait_for_locked(kind, fd, nanos, blocked);
     vader_scheduler_unlock();
     return ready;
 }

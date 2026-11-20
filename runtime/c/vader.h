@@ -1704,7 +1704,8 @@ bool    vader_scheduler_wait_readable_for(int64_t fd, int64_t nanos);
 void    vader_scheduler_wait_writable(int64_t fd);
 bool    vader_scheduler_wait_writable_for(int64_t fd, int64_t nanos);
 /* The timed waits above, for a caller whose read or write of `fd`, a descriptor
- * that does not block, just found it would: the wait does not ask `fd` first. */
+ * that does not block, just found it would: the wait does not ask `fd` first,
+ * and when no other thread could run, it waits on the system thread. */
 bool    vader_scheduler_wait_blocked_read_for(int64_t fd, int64_t nanos);
 bool    vader_scheduler_wait_blocked_write_for(int64_t fd, int64_t nanos);
 /* End the waits of the threads parked on `fd`, each returning as if `fd` were

@@ -267,7 +267,8 @@ export wait_writable_for :: fn(d: Descriptor, timeout: Duration) -> bool =
 /// found it would block.
 ///
 /// The wait may then park without asking `d` first. Called before any read, it
-/// could park on input that already arrived.
+/// could park on input that already arrived. With no other task, it waits on
+/// the system thread.
 ///
 /// @param d        what to wait on, set not to block, whose last read failed
 ///                 for want of input.
@@ -279,7 +280,8 @@ export wait_blocked_read_for :: fn(d: Descriptor, timeout: Duration) -> bool =
 /// Park the running task as `wait_writable_for` does, after a write to `d`
 /// found it would block.
 ///
-/// The wait may then park without asking `d` first.
+/// The wait may then park without asking `d` first. With no other task, it
+/// waits on the system thread.
 ///
 /// @param d        what to wait on, set not to block, whose last write failed
 ///                 for want of room.

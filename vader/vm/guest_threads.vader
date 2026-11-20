@@ -74,13 +74,11 @@ serve_thread_primitive :: fn(
     .SchedulerWatchReadable -> on_i64(args[0], origin, "watch_readable", (n) -> watch_readable(n))
     .SchedulerWatchExit     -> on_i64(args[0], origin, "watch_exit", (n) -> watch_exit(n))
     .WaitReadable           -> serve_wait_readable(state, args[0], origin)
-    .WaitReadableFor        -> serve_wait_readable_for(state, args, origin)
+    .WaitReadableFor        -> serve_wait_readable_for(state, args, origin, false)
     .WaitWritable           -> on_i64(args[0], origin, "wait_writable", (n) -> wait_writable(n))
-    .WaitWritableFor        -> serve_wait_writable_for(args, origin)
-    // The host's own wait asks the descriptor first, which is right for one that
-    // would block too.
-    .WaitBlockedReadFor     -> serve_wait_readable_for(state, args, origin)
-    .WaitBlockedWriteFor    -> serve_wait_writable_for(args, origin)
+    .WaitWritableFor        -> serve_wait_writable_for(args, origin, false)
+    .WaitBlockedReadFor     -> serve_wait_readable_for(state, args, origin, true)
+    .WaitBlockedWriteFor    -> serve_wait_writable_for(args, origin, true)
     .WaitStop               -> on_i64(args[0], origin, "stop_waiting", (n) -> stop_waiting(n))
     .SchedulerCancel        -> cancel_guest_thread(args[0], origin)
     .SchedulerCurrent       -> HostOk { .value = I64Val(current_thread()) }
@@ -160,8 +158,14 @@ serve_wait_readable :: fn(state: VmState, fd: Value, origin: i32) -> HostCallRes
 }
 
 // Run the host's own `wait_readable_for` on the two `i64` the guest handed it,
-// unless it waits on the stdin the VM serves.
-serve_wait_readable_for :: fn(state: VmState, args: Value[], origin: i32) -> HostCallResult {
+// or `wait_blocked_read_for` when `blocked`, unless it waits on the stdin the
+// VM serves.
+serve_wait_readable_for :: fn(
+    state: VmState,
+    args: Value[],
+    origin: i32,
+    blocked: bool,
+) -> HostCallResult {
     fd :: read_i64(args[0], origin, "wait_readable_for")
     if fd is Trap {
         return fd
@@ -173,11 +177,15 @@ serve_wait_readable_for :: fn(state: VmState, args: Value[], origin: i32) -> Hos
     if nanos is Trap {
         return nanos
     }
+    if blocked {
+        return HostOk { .value = BoolVal(wait_blocked_read_for(i64(fd), i64(nanos))) }
+    }
     return HostOk { .value = BoolVal(wait_readable_for(i64(fd), i64(nanos))) }
 }
 
-// Run the host's own `wait_writable_for` on the two `i64` the guest handed it.
-serve_wait_writable_for :: fn(args: Value[], origin: i32) -> HostCallResult {
+// Run the host's own `wait_writable_for` on the two `i64` the guest handed it,
+// or `wait_blocked_write_for` when `blocked`.
+serve_wait_writable_for :: fn(args: Value[], origin: i32, blocked: bool) -> HostCallResult {
     fd :: read_i64(args[0], origin, "wait_writable_for")
     if fd is Trap {
         return fd
@@ -185,6 +193,9 @@ serve_wait_writable_for :: fn(args: Value[], origin: i32) -> HostCallResult {
     nanos :: read_i64(args[1], origin, "wait_writable_for")
     if nanos is Trap {
         return nanos
+    }
+    if blocked {
+        return HostOk { .value = BoolVal(wait_blocked_write_for(i64(fd), i64(nanos))) }
     }
     return HostOk { .value = BoolVal(wait_writable_for(i64(fd), i64(nanos))) }
 }

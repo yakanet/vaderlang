@@ -430,8 +430,7 @@ system_connect :: fn(address: SocketAddress) -> Socket | IOError {
     if code != EINPROGRESS && code != EINTR {
         return closing(fd, io_error_of(code, "cannot connect to ${address}"))
     }
-    wait_writable(Fd(fd))
-    block_until(fd, POLLOUT, NO_LIMIT)
+    wait_blocked_write_for(Fd(fd), NO_LIMIT)
     // Writable once the connection is made or has failed: the socket holds
     // which.
     failure: i32[]: [0]
@@ -797,7 +796,7 @@ park :: fn(socket: Socket, to_write: bool, closed: AtomicBool, deadline: i64) ->
     if closed.load() {
         return SOCKET_CLOSED
     }
-    if !in_time || !waited_out(socket, to_write, left) {
+    if !in_time {
         return TIMED_OUT
     }
     return null
@@ -811,28 +810,6 @@ awaited :: fn(d: Descriptor, to_write: bool, left: Duration) -> bool {
         return wait_blocked_write_for(d, left)
     }
     return wait_blocked_read_for(d, left)
-}
-
-// Wait on the system thread, where the wait of `std/io` did not: it returns
-// at once when no other task runs, a socket of Windows apart, which the
-// scheduler waits on itself. False once `left` passed.
-@target
-waited_out :: fn(socket: Socket, to_write: bool, left: Duration) -> bool
-
-@target(.Linux, .Darwin)
-waited_out :: fn(socket: Socket, to_write: bool, left: Duration) -> bool {
-    events :: if to_write { POLLOUT } else { POLLIN }
-    return block_until(fd_of(socket), events, left)
-}
-
-@target(.Windows)
-waited_out :: fn(socket: Socket, to_write: bool, left: Duration) -> bool = true
-
-// Wait on the system thread until `fd` is as `events` say, for `left` at
-// most, a negative one being no limit; false once it passed.
-block_until :: fn(fd: i32, events: i16, left: Duration) -> bool {
-    watched :: Pollfd { .fd = fd, .events = events, .revents = 0 }
-    return sys_poll_one(watched, 1, poll_milliseconds(left)) != 0
 }
 
 // ---- tests ----------------------------------------------------------------

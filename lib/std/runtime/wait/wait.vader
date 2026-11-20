@@ -48,7 +48,9 @@ export wait_writable_for :: fn(fd: i64, nanos: i64) -> bool = Intrinsic.wait_wri
 ///
 /// The wait may then park without asking `fd` first, and trust what the system
 /// reports when it wakes. Called before any read, it could park on input that
-/// already arrived.
+/// already arrived. With no other thread, it waits on the system thread; on
+/// Windows, a descriptor other than a socket returns at once, and the read
+/// waits.
 ///
 /// @param fd     a descriptor of the process set not to block, whose last read
 ///               failed with `EAGAIN`.
@@ -60,7 +62,8 @@ export wait_blocked_read_for :: fn(fd: i64, nanos: i64) -> bool =
 /// Park the running thread as `wait_writable_for` does, after a write to `fd`
 /// found it would block.
 ///
-/// The wait skips the asks `wait_blocked_read_for` skips, on the same terms.
+/// The wait skips the asks `wait_blocked_read_for` skips, and waits as it does
+/// when no other thread runs.
 ///
 /// @param fd     a descriptor of the process set not to block, whose last
 ///               write failed with `EAGAIN`.
