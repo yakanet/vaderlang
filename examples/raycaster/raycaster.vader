@@ -264,16 +264,16 @@ lower_case :: fn(code: i32) -> char {
 // on, or Q leaves.
 next_phase :: fn(phase: Phase, typed: char[]) -> Phase {
     match phase {
-        .Title -> {
+        .Title   -> {
             if is_key_pressed(.Enter)  { return .Playing }
             if is_key_pressed(.Escape) { return .Leaving }
         }
-        .Playing   -> {
+        .Playing -> {
             if is_key_pressed(.Escape) {
                 return .Paused
             }
         }
-        .Paused -> {
+        .Paused  -> {
             if is_key_pressed(.Escape) { return .Playing }
             if 'q' in typed            { return .Leaving }
         }
@@ -481,16 +481,16 @@ Sounds :: struct {
 }
 
 // The sound files, from Freedoom, read by the build.
-PISTOL_WAV: u8[]: @comptime read_sound("assets/sounds/dspistol.wav")
-SIGHT_WAV: u8[]: @comptime read_sound("assets/sounds/dsposit1.wav")
-PAIN_WAV: u8[]: @comptime read_sound("assets/sounds/dspopain.wav")
-DEATH_WAV: u8[]: @comptime read_sound("assets/sounds/dspodth1.wav")
-PLAYER_PAIN_WAV: u8[]: @comptime read_sound("assets/sounds/dsplpain.wav")
-PLAYER_DEATH_WAV: u8[]: @comptime read_sound("assets/sounds/dspldeth.wav")
-DOOR_OPENS_WAV: u8[]: @comptime read_sound("assets/sounds/dsdoropn.wav")
-DOOR_CLOSES_WAV: u8[]: @comptime read_sound("assets/sounds/dsdorcls.wav")
-PICK_UP_WAV: u8[]: @comptime read_sound("assets/sounds/dsitemup.wav")
-EXIT_WAV: u8[]: @comptime read_sound("assets/sounds/dsswtchx.wav")
+PISTOL_WAV :: @comptime read_sound("assets/sounds/dspistol.wav")
+SIGHT_WAV :: @comptime read_sound("assets/sounds/dsposit1.wav")
+PAIN_WAV :: @comptime read_sound("assets/sounds/dspopain.wav")
+DEATH_WAV :: @comptime read_sound("assets/sounds/dspodth1.wav")
+PLAYER_PAIN_WAV :: @comptime read_sound("assets/sounds/dsplpain.wav")
+PLAYER_DEATH_WAV :: @comptime read_sound("assets/sounds/dspldeth.wav")
+DOOR_OPENS_WAV :: @comptime read_sound("assets/sounds/dsdoropn.wav")
+DOOR_CLOSES_WAV :: @comptime read_sound("assets/sounds/dsdorcls.wav")
+PICK_UP_WAV :: @comptime read_sound("assets/sounds/dsitemup.wav")
+EXIT_WAV :: @comptime read_sound("assets/sounds/dsswtchx.wav")
 
 // The bytes of the sound file at `path`, relative to this source file: one that
 // is missing stops the build.
