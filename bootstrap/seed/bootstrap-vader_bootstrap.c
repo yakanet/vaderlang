@@ -19,7 +19,7 @@ int32_t vader_bootstrap$main(void* l0) {
     vader_gc_top = &gc_frame;
     t0 = vader_array_length(((vader_array_t*) l0));
     if ((t0 < INT64_C(3))) {
-        std_console$eprintln__string(3336u);
+        std_console$eprintln__string(3337u);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
     vader_array_t* _a0_slotarr = ((vader_array_t*) l0);

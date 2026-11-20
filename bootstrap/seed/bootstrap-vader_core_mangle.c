@@ -106,12 +106,12 @@ static vader_string_t vader_core_mangle$generated_word(uint8_t l0) {
     } else if (l0 == INT32_C(2)) {
         l1 = 847u;
     } else if (l0 == INT32_C(3)) {
-        l1 = 2944u;
+        l1 = 2945u;
     } else {
         if (!(l0 == INT32_C(4))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 3005u;
+        l1 = 3006u;
     }
     return l1;
 }

@@ -1852,7 +1852,7 @@ static vader_string_t std_core$format_f64(double l0) {
     l1 = (uint64_t) (int64_t) t0;
     if (l1 == INT64_C(2047)) {
         if (l3 != INT64_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 2825u; }
+            { vader_gc_top = gc_frame.prev; return 2826u; }
         }
         if (l2) {
             { vader_gc_top = gc_frame.prev; return 470u; }
@@ -3397,7 +3397,7 @@ int64_t std_core$write_bool(void* l0, int64_t l1, bool l2) {
         t0 = std_core$write_string_at(l0, l1, 2396u);
         return t0;
     }
-    t0 = std_core$write_string_at(l0, l1, 3222u);
+    t0 = std_core$write_string_at(l0, l1, 3223u);
     return t0;
 }
 

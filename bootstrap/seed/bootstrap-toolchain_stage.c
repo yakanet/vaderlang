@@ -181,7 +181,7 @@ static vader_box_t toolchain_stage$plan_order__toolchain_stage_SourceSpec(void* 
         t1 = std_collections$add__string(l2, l7);
         if (!(t1)) {
             l8 = toolchain_stage$SourceSpec$Placed$stage_name(l4);
-            t2 = concat_3(3233u, l8, 1258u);
+            t2 = concat_3(3234u, l8, 1258u);
             vader_struct_toolchain_stage$PlanError_t* _a6_obj = (vader_struct_toolchain_stage$PlanError_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_stage$PlanError_t));
             vader_obj_header_init(_a6_obj, 1160u);
             _a6_obj->f_message = t2;
@@ -238,7 +238,7 @@ static vader_box_t toolchain_stage$plan_order__toolchain_stage_SourceSpec(void* 
             l10 = toolchain_stage$first_free(l2, l9);
             if (l10.tag == 0u) {
                 l7 = toolchain_stage$waits__toolchain_stage_SourceSpec(l0, l2, l3, l9);
-                t2 = concat_2(2855u, l7);
+                t2 = concat_2(2856u, l7);
                 vader_struct_toolchain_stage$PlanError_t* _a13_obj = (vader_struct_toolchain_stage$PlanError_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_stage$PlanError_t));
                 vader_obj_header_init(_a13_obj, 1160u);
                 _a13_obj->f_message = t2;
@@ -310,7 +310,7 @@ static vader_box_t toolchain_stage$plan_order__vader_emit_bytecode_BytecodeSpec(
         t1 = std_collections$add__string(l2, l7);
         if (!(t1)) {
             l8 = vader_emit_bytecode$BytecodeSpec$toolchain_stage$Placed$stage_name(l4);
-            t2 = concat_3(3233u, l8, 1258u);
+            t2 = concat_3(3234u, l8, 1258u);
             vader_struct_toolchain_stage$PlanError_t* _a6_obj = (vader_struct_toolchain_stage$PlanError_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_stage$PlanError_t));
             vader_obj_header_init(_a6_obj, 1160u);
             _a6_obj->f_message = t2;
@@ -367,7 +367,7 @@ static vader_box_t toolchain_stage$plan_order__vader_emit_bytecode_BytecodeSpec(
             l10 = toolchain_stage$first_free(l2, l9);
             if (l10.tag == 0u) {
                 l7 = toolchain_stage$waits__vader_emit_bytecode_BytecodeSpec(l0, l2, l3, l9);
-                t2 = concat_2(2855u, l7);
+                t2 = concat_2(2856u, l7);
                 vader_struct_toolchain_stage$PlanError_t* _a13_obj = (vader_struct_toolchain_stage$PlanError_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_stage$PlanError_t));
                 vader_obj_header_init(_a13_obj, 1160u);
                 _a13_obj->f_message = t2;
@@ -439,7 +439,7 @@ static vader_box_t toolchain_stage$plan_order__vader_pipeline_check_CheckSpec(vo
         t1 = std_collections$add__string(l2, l7);
         if (!(t1)) {
             l8 = vader_pipeline_check$CheckSpec$toolchain_stage$Placed$stage_name(l4);
-            t2 = concat_3(3233u, l8, 1258u);
+            t2 = concat_3(3234u, l8, 1258u);
             vader_struct_toolchain_stage$PlanError_t* _a6_obj = (vader_struct_toolchain_stage$PlanError_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_stage$PlanError_t));
             vader_obj_header_init(_a6_obj, 1160u);
             _a6_obj->f_message = t2;
@@ -496,7 +496,7 @@ static vader_box_t toolchain_stage$plan_order__vader_pipeline_check_CheckSpec(vo
             l10 = toolchain_stage$first_free(l2, l9);
             if (l10.tag == 0u) {
                 l7 = toolchain_stage$waits__vader_pipeline_check_CheckSpec(l0, l2, l3, l9);
-                t2 = concat_2(2855u, l7);
+                t2 = concat_2(2856u, l7);
                 vader_struct_toolchain_stage$PlanError_t* _a13_obj = (vader_struct_toolchain_stage$PlanError_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_stage$PlanError_t));
                 vader_obj_header_init(_a13_obj, 1160u);
                 _a13_obj->f_message = t2;
