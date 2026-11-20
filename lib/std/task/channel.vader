@@ -4,8 +4,9 @@
 // until a `receive` takes one, so a producer runs at the pace of its consumers.
 //
 // The threads parked on a channel wait in the order they came. A `send` wakes the
-// first receiver, a `receive` the first sender, and a thread woken for what it no
-// longer takes (it was cancelled before it ran) wakes the next one in its place.
+// first receiver, a `receive` the first sender, and neither wakes again while the
+// one it woke has not run. A thread woken for what it no longer takes (it was
+// cancelled before it ran) wakes the next one in its place.
 
 module "std/task"
 
@@ -36,6 +37,12 @@ export Channel :: struct<T> {
     /// The threads parked on an empty channel, in the order they came.
     @internal
     receivers: i64[] = []
+    /// A sender was woken and has not run since: no other wake is due.
+    @internal
+    sender_woken: bool = false
+    /// A receiver was woken and has not run since: no other wake is due.
+    @internal
+    receiver_woken: bool = false
 }
 
 /// The capacity of a channel that never makes a sender wait.
@@ -83,9 +90,9 @@ export send :: fn<T>(channel: Channel<T>, message: T) -> void {
         panic("send: the channel is closed")
     }
     channel.messages.push(message)
-    wake_first(channel.receivers)
+    wake_receiver(channel)
     if channel.messages.len() < channel.capacity {
-        wake_first(channel.senders)
+        wake_sender(channel)
     }
 }
 
@@ -112,9 +119,9 @@ export receive :: fn<T>(channel: Channel<T>) -> T | Closed {
         return Closed {}
     }
     message :: channel.messages.remove_first()
-    wake_first(channel.senders)
+    wake_sender(channel)
     if !channel.messages.is_empty() {
-        wake_first(channel.receivers)
+        wake_receiver(channel)
     }
     return message
 }
@@ -143,6 +150,7 @@ await_room :: fn<T>(channel: Channel<T>) -> void {
     defer gave_up_sending(channel, me)
     for channel.messages.len() >= channel.capacity && !channel.closed {
         channel.mutex.wait()
+        channel.sender_woken = false
     }
     channel.senders.remove_value(me)
 }
@@ -154,6 +162,7 @@ await_message :: fn<T>(channel: Channel<T>) -> void {
     defer gave_up_receiving(channel, me)
     for channel.messages.is_empty() && !channel.closed {
         channel.mutex.wait()
+        channel.receiver_woken = false
     }
     channel.receivers.remove_value(me)
 }
@@ -161,23 +170,40 @@ await_message :: fn<T>(channel: Channel<T>) -> void {
 // `me` stopped waiting for room without taking it, cancelled: room a `receive`
 // woke it for goes to the next sender.
 gave_up_sending :: fn<T>(channel: Channel<T>, me: i64) -> void {
-    if channel.senders.remove_value(me) && channel.messages.len() < channel.capacity {
-        wake_first(channel.senders)
+    if !channel.senders.remove_value(me) {
+        return
+    }
+    channel.sender_woken = false
+    if channel.messages.len() < channel.capacity {
+        wake_sender(channel)
     }
 }
 
 // `me` stopped waiting for a message without taking it, cancelled: a message a
 // `send` woke it for goes to the next receiver.
 gave_up_receiving :: fn<T>(channel: Channel<T>, me: i64) -> void {
-    if channel.receivers.remove_value(me) && !channel.messages.is_empty() {
-        wake_first(channel.receivers)
+    if !channel.receivers.remove_value(me) {
+        return
+    }
+    channel.receiver_woken = false
+    if !channel.messages.is_empty() {
+        wake_receiver(channel)
     }
 }
 
-// Wake the first of `threads`, when there is one: it takes itself out once it ran.
-wake_first :: fn(threads: i64[]) -> void {
-    if threads.len() > 0 {
-        wake(threads[0])
+// Wake the first parked sender, unless a sender woken before has not run yet.
+wake_sender :: fn<T>(channel: Channel<T>) -> void {
+    if !channel.sender_woken && channel.senders.len() > 0 {
+        channel.sender_woken = true
+        wake(channel.senders[0])
+    }
+}
+
+// Wake the first parked receiver, as `wake_sender` does a sender.
+wake_receiver :: fn<T>(channel: Channel<T>) -> void {
+    if !channel.receiver_woken && channel.receivers.len() > 0 {
+        channel.receiver_woken = true
+        wake(channel.receivers[0])
     }
 }
 

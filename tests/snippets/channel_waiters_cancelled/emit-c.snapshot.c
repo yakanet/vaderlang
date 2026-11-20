@@ -62,6 +62,8 @@ struct vader_struct_std_task$Channel__i64_t {
     bool f_closed;
     void* f_senders;
     void* f_receivers;
+    bool f_sender_woken;
+    bool f_receiver_woken;
 };
 struct vader_struct_std_core$Buffer_t {
     vader_obj_header_t header;
@@ -347,7 +349,6 @@ static void* std_task$started(void);
 static void* std_task$started$singleton(void);
 static void std_task$started$keep(void);
 static int64_t std_task$start_thread(void* l0);
-static void std_task$wake_first(void* l0);
 static void std_task$send__i64(void* l0, int64_t l1);
 static void __defer_std_task_6(void* l0);
 static vader_box_t std_task$receive__i64(void* l0);
@@ -359,6 +360,8 @@ static void std_task$await_message__i64(void* l0);
 static void __defer_std_task_22(void* l0);
 static void std_task$gave_up_sending__i64(void* l0, int64_t l1);
 static void std_task$gave_up_receiving__i64(void* l0, int64_t l1);
+static void std_task$wake_sender__i64(void* l0);
+static void std_task$wake_receiver__i64(void* l0);
 static void* std_task$launch__i64(void* l0);
 static void __lambda_std_task_12(void* l0);
 static void* std_task$launch__std_task_Closed___i64(void* l0);
@@ -912,6 +915,8 @@ static int64_t snippet$receivers_round(void) {
     _a5_obj->f_closed = false;
     _a5_obj->f_senders = l2;
     _a5_obj->f_receivers = l3;
+    _a5_obj->f_sender_woken = false;
+    _a5_obj->f_receiver_woken = false;
     l0 = (void*) _a5_obj;
     vader_array_t* _a6_arr = vader_array_reserve(57u, (int64_t) INT64_C(8), 13u, 48u);
     l1 = (void*) _a6_arr;
@@ -1007,6 +1012,8 @@ static bool snippet$senders_round(void) {
     _a5_obj->f_closed = false;
     _a5_obj->f_senders = l2;
     _a5_obj->f_receivers = l3;
+    _a5_obj->f_sender_woken = false;
+    _a5_obj->f_receiver_woken = false;
     l0 = (void*) _a5_obj;
     std_task$send__i64(l0, INT64_C(1));
     vader_array_t* _a6_arr = vader_array_reserve(60u, (int64_t) INT64_C(8), 13u, 28u);
@@ -1442,20 +1449,6 @@ static int64_t std_task$start_thread(void* l0) {
     { int64_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void std_task$wake_first(void* l0) {
-    int64_t t0;
-    t0 = vader_array_length(((vader_array_t*) l0));
-    if ((t0 > INT64_C(0))) {
-        vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
-        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(0))
-        t0 = ((int64_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) INT32_C(0)];
-        vader_host_std_core$Intrinsic$wake(t0);
-        return;
-    }
-    return;
-}
-
 static void std_task$send__i64(void* l0, int64_t l1) {
     void* l2 = NULL;
     int64_t l3, l4;
@@ -1506,11 +1499,11 @@ static void std_task$send__i64(void* l0, int64_t l1) {
             vader_unreachable("a no-return call returned");
         } else {
             std_collections$push__i64(((vader_struct_std_task$Channel__i64_t*) l0)->f_messages, l1);
-            std_task$wake_first(((vader_struct_std_task$Channel__i64_t*) l0)->f_receivers);
+            std_task$wake_receiver__i64(l0);
             l3 = std_collections$len__i64(((vader_struct_std_task$Channel__i64_t*) l0)->f_messages);
             l4 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_capacity;
             if ((l3 < l4)) {
-                std_task$wake_first(((vader_struct_std_task$Channel__i64_t*) l0)->f_senders);
+                std_task$wake_sender__i64(l0);
                 vader_defer_pop_exec(1u);
                 { vader_gc_top = gc_frame.prev; return; }
             }
@@ -1562,13 +1555,13 @@ static vader_box_t std_task$receive__i64(void* l0) {
         { vader_box_t __vret = vader_ref_box(l1); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l2 = std_collections$remove_first__i64(((vader_struct_std_task$Channel__i64_t*) l0)->f_messages);
-    std_task$wake_first(((vader_struct_std_task$Channel__i64_t*) l0)->f_senders);
+    std_task$wake_sender__i64(l0);
     t1 = std_collections$is_empty__i64(((vader_struct_std_task$Channel__i64_t*) l0)->f_messages);
     if (t1) {
         vader_defer_pop_exec(1u);
         { vader_box_t __vret = vader_box_i64(1u, l2); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    std_task$wake_first(((vader_struct_std_task$Channel__i64_t*) l0)->f_receivers);
+    std_task$wake_receiver__i64(l0);
     vader_defer_pop_exec(1u);
     { vader_box_t __vret = vader_box_i64(1u, l2); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1640,6 +1633,7 @@ static void std_task$await_room__i64(void* l0) {
             t1 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_closed;
             if (t1) break;
             vader_host_std_core$Intrinsic$mutex_wait__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+            ((vader_struct_std_task$Channel__i64_t*) l0)->f_sender_woken = false;
             continue;
         }
         break;
@@ -1684,6 +1678,7 @@ static void std_task$await_message__i64(void* l0) {
             t1 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_closed;
             if (t1) break;
             vader_host_std_core$Intrinsic$mutex_wait__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+            ((vader_struct_std_task$Channel__i64_t*) l0)->f_receiver_woken = false;
             continue;
         }
         break;
@@ -1706,13 +1701,14 @@ static void std_task$gave_up_sending__i64(void* l0, int64_t l1) {
     int64_t l2, l3;
     bool t0;
     t0 = std_core$remove_value__i64(((vader_struct_std_task$Channel__i64_t*) l0)->f_senders, l1);
-    if (t0) {
-        l2 = std_collections$len__i64(((vader_struct_std_task$Channel__i64_t*) l0)->f_messages);
-        l3 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_capacity;
-        if ((l2 < l3)) {
-            std_task$wake_first(((vader_struct_std_task$Channel__i64_t*) l0)->f_senders);
-            return;
-        }
+    if (!(t0)) {
+        return;
+    }
+    ((vader_struct_std_task$Channel__i64_t*) l0)->f_sender_woken = false;
+    l2 = std_collections$len__i64(((vader_struct_std_task$Channel__i64_t*) l0)->f_messages);
+    l3 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_capacity;
+    if ((l2 < l3)) {
+        std_task$wake_sender__i64(l0);
         return;
     }
     return;
@@ -1721,12 +1717,53 @@ static void std_task$gave_up_sending__i64(void* l0, int64_t l1) {
 static void std_task$gave_up_receiving__i64(void* l0, int64_t l1) {
     bool t0;
     t0 = std_core$remove_value__i64(((vader_struct_std_task$Channel__i64_t*) l0)->f_receivers, l1);
+    if (!(t0)) {
+        return;
+    }
+    ((vader_struct_std_task$Channel__i64_t*) l0)->f_receiver_woken = false;
+    t0 = std_collections$is_empty__i64(((vader_struct_std_task$Channel__i64_t*) l0)->f_messages);
     if (t0) {
-        t0 = std_collections$is_empty__i64(((vader_struct_std_task$Channel__i64_t*) l0)->f_messages);
-        if (t0) {
-            return;
-        }
-        std_task$wake_first(((vader_struct_std_task$Channel__i64_t*) l0)->f_receivers);
+        return;
+    }
+    std_task$wake_receiver__i64(l0);
+    return;
+}
+
+static void std_task$wake_sender__i64(void* l0) {
+    bool t0;
+    int64_t t1;
+    t0 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_sender_woken;
+    if (t0) {
+        return;
+    }
+    t1 = vader_array_length(((vader_array_t*) ((vader_struct_std_task$Channel__i64_t*) l0)->f_senders));
+    if ((t1 > INT64_C(0))) {
+        ((vader_struct_std_task$Channel__i64_t*) l0)->f_sender_woken = true;
+        vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_task$Channel__i64_t*) l0)->f_senders);
+        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(0))
+        t1 = ((int64_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) INT32_C(0)];
+        vader_host_std_core$Intrinsic$wake(t1);
+        return;
+    }
+    return;
+}
+
+static void std_task$wake_receiver__i64(void* l0) {
+    bool t0;
+    int64_t t1;
+    t0 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_receiver_woken;
+    if (t0) {
+        return;
+    }
+    t1 = vader_array_length(((vader_array_t*) ((vader_struct_std_task$Channel__i64_t*) l0)->f_receivers));
+    if ((t1 > INT64_C(0))) {
+        ((vader_struct_std_task$Channel__i64_t*) l0)->f_receiver_woken = true;
+        vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_task$Channel__i64_t*) l0)->f_receivers);
+        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(0))
+        t1 = ((int64_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) INT32_C(0)];
+        vader_host_std_core$Intrinsic$wake(t1);
         return;
     }
     return;

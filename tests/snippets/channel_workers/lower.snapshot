@@ -35,6 +35,8 @@
               .closed = false,
               .senders = [] :i64[],
               .receivers = [] :i64[],
+              .sender_woken = false,
+              .receiver_woken = false,
           },
           .results = Channel<i64> {
               .capacity = i64(9223372036854775807),
@@ -47,6 +49,8 @@
               .closed = false,
               .senders = [] :i64[],
               .receivers = [] :i64[],
+              .sender_woken = false,
+              .receiver_woken = false,
           },
           .done = AtomicInt { .value = i64(0) },
           .log = std.task.shared<string[]>(lines),
@@ -295,7 +299,8 @@
     fn std.task.start_thread  // std_task$start_thread
     fn std.task.started  // std_task$started
     fn std.task.stop_waiting<i64>  // std_task$stop_waiting__i64
-    fn std.task.wake_first  // std_task$wake_first
+    fn std.task.wake_receiver<i64>  // std_task$wake_receiver__i64
+    fn std.task.wake_sender<i64>  // std_task$wake_sender__i64
     fn std_task$Task$std_core$Equals$equals__i64$guard
     fn std_task$started$keep
     fn std_task$started$singleton

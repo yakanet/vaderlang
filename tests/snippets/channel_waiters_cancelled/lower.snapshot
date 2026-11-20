@@ -13,6 +13,8 @@
           .closed = false,
           .senders = [] :i64[],
           .receivers = [] :i64[],
+          .sender_woken = false,
+          .receiver_woken = false,
       }
       tasks: Task<Closed | i64>[] = @array.reserve(i64(8))
       {
@@ -71,6 +73,8 @@
           .closed = false,
           .senders = [] :i64[],
           .receivers = [] :i64[],
+          .sender_woken = false,
+          .receiver_woken = false,
       }
       std.task.send<i64>(ch, i64(1))
       tasks: Task<i64>[] = @array.reserve(i64(8))
@@ -260,7 +264,8 @@
     fn std.task.started  // std_task$started
     fn std.task.stop_waiting<Any>  // std_task$stop_waiting__Any
     fn std.task.stop_waiting<i64>  // std_task$stop_waiting__i64
-    fn std.task.wake_first  // std_task$wake_first
+    fn std.task.wake_receiver<i64>  // std_task$wake_receiver__i64
+    fn std.task.wake_sender<i64>  // std_task$wake_sender__i64
     fn std_task$Task$std_core$Equals$equals__i64$guard
     fn std_task$started$keep
     fn std_task$started$singleton
