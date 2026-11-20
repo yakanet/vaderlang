@@ -251,7 +251,7 @@ void* vader_pipeline_check$Widening$toolchain_stage$Stage$describe(void* l0) {
     vader_gc_top = &gc_frame;
     vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
     vader_obj_header_init(_a0_obj, 1901u);
-    _a0_obj->f_name = 3561u;
+    _a0_obj->f_name = 3565u;
     _a0_obj->f_purpose = (uint8_t) 0;
     _a0_obj->f_needs = (uint8_t) 1;
     _a0_obj->f_per = (uint8_t) 0;

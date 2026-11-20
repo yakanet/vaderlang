@@ -142,13 +142,13 @@ vader_string_t vader_lower_ir$binary_op_symbol(uint8_t l0) {
         } else if (l0 == INT32_C(7)) {
             l1 = 339u;
         } else if (l0 == INT32_C(8)) {
-            l1 = 3610u;
+            l1 = 3614u;
         } else if (l0 == INT32_C(9)) {
             l1 = 1199u;
         } else if (l0 == INT32_C(10)) {
             l1 = 340u;
         } else if (l0 == INT32_C(11)) {
-            l1 = 3611u;
+            l1 = 3615u;
         } else if (l0 == INT32_C(12)) {
             l1 = 603u;
         } else if (l0 == INT32_C(13)) {

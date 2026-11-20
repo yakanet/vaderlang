@@ -372,7 +372,7 @@ static void vader_emit_virt$write_op_refs(void* l0, void* l1, vader_box_t l2) {
         l4 = vader_host_std_core$Intrinsic$byte_len(l6);
         l3 = (void*) vader_buffer_new((size_t) (INT64_C(38) + l4));
         l4 = INT64_C(0);
-        l4 = std_core$write_string_at(l3, l4, 3532u);
+        l4 = std_core$write_string_at(l3, l4, 3534u);
         l5 = ((int64_t) (int32_t) l9);
         l4 = std_core$write_int(l3, l4, l5);
         l4 = std_core$write_string_at(l3, l4, 16u);

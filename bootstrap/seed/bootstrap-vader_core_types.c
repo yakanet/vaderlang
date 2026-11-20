@@ -1338,13 +1338,13 @@ vader_string_t vader_core_types$display_type(vader_box_t l0) {
                 { vader_gc_top = gc_frame.prev; return 2837u; }
             }
             if (l0.tag == 1354u) {
-                { vader_gc_top = gc_frame.prev; return 3608u; }
+                { vader_gc_top = gc_frame.prev; return 3612u; }
             }
             if (l0.tag == 1353u) {
-                { vader_gc_top = gc_frame.prev; return 3607u; }
+                { vader_gc_top = gc_frame.prev; return 3611u; }
             }
             if (l0.tag == 1352u) {
-                { vader_gc_top = gc_frame.prev; return 3606u; }
+                { vader_gc_top = gc_frame.prev; return 3610u; }
             }
             if (l0.tag == 1361u) {
                 { vader_gc_top = gc_frame.prev; return 962u; }
@@ -3062,7 +3062,7 @@ bool vader_core_types$is_void(vader_box_t l0) {
     }
     t0 = l0.payload.obj;
     t1 = ((vader_struct_vader_core_types$PrimitiveType_t*) t0)->f_name;
-    return t1 == 3534u;
+    return t1 == 3536u;
 }
 
 static void* vader_core_types$joined_ranges(vader_box_t l0, void* l1) {
@@ -5752,11 +5752,11 @@ static void vader_core_types$write_type(void* l0, vader_box_t l1) {
     } else if (l1.tag == 1357u) {
         std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 2837u);
     } else if (l1.tag == 1354u) {
-        std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 3608u);
+        std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 3612u);
     } else if (l1.tag == 1353u) {
-        std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 3607u);
+        std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 3611u);
     } else if (l1.tag == 1352u) {
-        std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 3606u);
+        std_string__builder$append(((vader_struct_vader_core_types$TypeWriter_t*) l0)->f_sb, 3610u);
     } else if (l1.tag == 1348u) {
         t0 = l1.payload.obj;
         if (((vader_struct_vader_core_types$ArrayType_t*) t0)->f_element.tag == 1371u) {

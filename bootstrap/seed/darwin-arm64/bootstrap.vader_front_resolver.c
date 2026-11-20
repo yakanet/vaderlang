@@ -445,7 +445,7 @@ void* vader_front_resolver$ReplayedBodyStage$toolchain_stage$Stage$run(void* l0,
     l6 = (void*) _a0_arr;
     vader_struct_toolchain_stage$Body_t* _a1_obj = (vader_struct_toolchain_stage$Body_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_stage$Body_t));
     vader_obj_header_init(_a1_obj, 1154u);
-    _a1_obj->f_text = 3609u;
+    _a1_obj->f_text = 3613u;
     _a1_obj->f_diagnostics = l6;
     l6 = (void*) _a1_obj;
     l4 = ((vader_struct_vader_front_resolver$ReplayedBodyStage_t*) l0)->f_project_root;
@@ -953,7 +953,7 @@ static vader_box_t vader_front_resolver$around_of(void* l0, void* l1, void* l2, 
     }
     if (!(l4.tag == 1051u)) {
         l5 = VADER_UNION_FIELD(void*, vader_struct_toolchain_ast$ArrayTypeExpr_t, f_span, l4.payload.obj);
-        l5 = toolchain_diagnostics$resolver_error((uint8_t) 35, l5, 3582u);
+        l5 = toolchain_diagnostics$resolver_error((uint8_t) 35, l5, 3586u);
         vader_array_push_ref((vader_array_t*) l3, l5);
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
@@ -2171,7 +2171,7 @@ static void vader_front_resolver$check_groups(void* l0, void* l1) {
                     l35 = ((uint8_t) t2.payload.i);
                     l36 = ((vader_struct_toolchain_ast$FnDecl_t*) l11)->f_name;
                     l37 = std_target$Os$std_core$Display$to_string(l35);
-                    l38 = concat_3(l36, 3610u, l37);
+                    l38 = concat_3(l36, 3614u, l37);
                     l39 = std_collections$Map$std_core$Index$at__string__Any(l3, l38);
                     if (l39.tag == 0u) {
                         l50 = ((vader_struct_toolchain_ast$FnDecl_t*) l11)->f_name_span;
@@ -6676,7 +6676,7 @@ static vader_string_t vader_front_resolver$layer_text(void* l0, vader_string_t l
     std_string__builder$append(l9, l21);
     l21 = concat_3(41u, l16, 607u);
     std_string__builder$append(l9, l21);
-    std_string__builder$append(l9, 3613u);
+    std_string__builder$append(l9, 3617u);
     std_string__builder$append(l9, 630u);
     l20 = concat_4(l19, 91u, l20, 290u);
     std_string__builder$append(l9, l20);
@@ -6697,7 +6697,7 @@ static vader_string_t vader_front_resolver$layer_text(void* l0, vader_string_t l
     l14 = concat_5(29u, l18, 423u, l16, 401u);
     std_string__builder$append(l9, l14);
     std_string__builder$append(l9, 45u);
-    std_string__builder$append(l9, 3613u);
+    std_string__builder$append(l9, 3617u);
     if (l5 == INT64_C(1)) {
         if (((vader_struct_toolchain_ast$FnDecl_t*) l2)->f_visibility == INT32_C(0)) {
             std_string__builder$append(l9, 2359u);
@@ -6723,7 +6723,7 @@ static vader_string_t vader_front_resolver$layer_text(void* l0, vader_string_t l
     l7 = vader_front_resolver$spread(t0);
     l6 = concat_6(l6, 424u, l16, 360u, l7, 399u);
     std_string__builder$append(l9, l6);
-    std_string__builder$append(l9, 3613u);
+    std_string__builder$append(l9, 3617u);
     t2 = std_string__builder$StringBuilder$std_core$Display$to_string(l9);
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -8076,7 +8076,7 @@ static void* vader_front_resolver$mint_local(void* l0, uint8_t l1, vader_string_
         vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (l2 == 3534u) {
+    if (l2 == 3536u) {
         l4 = ((vader_struct_vader_front_resolver$ResolveState_t*) l0)->f_diags;
         l5 = concat_3(1258u, l2, 1258u);
         l6 = toolchain_diagnostics$resolver_error((uint8_t) 14, l3, l5);
@@ -9272,7 +9272,7 @@ static void* vader_front_resolver$parse_manifest(vader_string_t l0) {
     ((vader_struct_vader_front_resolver$Manifest_t*) l1)->f_name = l7;
     l2 = l5.payload.obj;
     l3 = ((vader_struct_vader_front_resolver$Manifest_t*) l1)->f_problems;
-    l7 = vader_front_resolver$string_at(l2, 3529u, l3);
+    l7 = vader_front_resolver$string_at(l2, 3531u, l3);
     ((vader_struct_vader_front_resolver$Manifest_t*) l1)->f_version = l7;
     l2 = ((vader_struct_vader_front_resolver$Manifest_t*) l1)->f_include_paths;
     l3 = l5.payload.obj;

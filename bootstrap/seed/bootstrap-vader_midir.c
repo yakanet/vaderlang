@@ -3796,7 +3796,7 @@ static vader_box_t vader_midir$build_virtual_call(void* l0, void* l1) {
         l2 = vader_box_obj(0u, NULL);
     } else {
         l8 = ((vader_struct_vader_lower_ir$LoweredVirtualCall_t*) l1)->f_type;
-        t1 = vader_midir$fresh_tmp(l0, 3528u, l8);
+        t1 = vader_midir$fresh_tmp(l0, 3530u, l8);
         l2 = vader_box_i32(579u, t1);
     }
     l5 = ((vader_struct_vader_lower_ir$LoweredVirtualCall_t*) l1)->f_span;

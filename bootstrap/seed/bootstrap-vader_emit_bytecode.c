@@ -2585,7 +2585,7 @@ static void* vader_emit_bytecode$build_impl_table_from_vtable(void* l0, void* l1
                 l23 = INT64_C(0);
                 l24 = ((int64_t) (int32_t) l11);
                 l23 = std_core$write_int(l22, l23, l24);
-                l23 = std_core$write_string_at(l22, l23, 3610u);
+                l23 = std_core$write_string_at(l22, l23, 3614u);
                 l23 = std_core$write_string_at(l22, l23, l20);
                 l19 = std_core$finish_buffer(l22, l23);
                 t0 = std_collections$Map$std_core$Index$at__string__bool(l4, l19);
@@ -2635,7 +2635,7 @@ static void* vader_emit_bytecode$build_impl_table_from_vtable(void* l0, void* l1
                 l6 = (void*) vader_buffer_new((size_t) (INT64_C(21) + l16));
                 l17 = INT64_C(0);
                 l17 = std_core$write_int(l6, l17, l7);
-                l17 = std_core$write_string_at(l6, l17, 3610u);
+                l17 = std_core$write_string_at(l6, l17, 3614u);
                 l17 = std_core$write_string_at(l6, l17, l19);
                 l18 = std_core$finish_buffer(l6, l17);
                 t0 = std_collections$Map$std_core$Index$at__string__bool(l4, l18);
@@ -7261,7 +7261,7 @@ static int32_t vader_emit_bytecode$intern_cell_type(vader_box_t l0, void* l1) {
     if (!(l6 != l5)) {
         vader_struct_vader_core_bytecode$BcField_t* _a0_obj = (vader_struct_vader_core_bytecode$BcField_t*) vader_gc_alloc(sizeof(vader_struct_vader_core_bytecode$BcField_t));
         vader_obj_header_init(_a0_obj, 1178u);
-        _a0_obj->f_name = 3502u;
+        _a0_obj->f_name = 3504u;
         _a0_obj->f_type_index = l2;
         l7 = (void*) _a0_obj;
         vader_array_t* _a1_arr = vader_array_new(101u, 0u, 13u, 1178u);

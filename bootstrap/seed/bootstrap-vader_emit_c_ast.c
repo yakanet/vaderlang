@@ -2871,11 +2871,11 @@ static void vader_emit_c_ast$write_closer(void* l0, vader_string_t l1, int32_t l
     };
     vader_gc_top = &gc_frame;
     if (l1 == 0u) {
-        l3 = 3612u;
+        l3 = 3616u;
         vader_emit_c_ast$write_line(l0, l3, l2);
         { vader_gc_top = gc_frame.prev; return; }
     }
-    l3 = concat_3(3614u, l1, 543u);
+    l3 = concat_3(3618u, l1, 543u);
     vader_emit_c_ast$write_line(l0, l3, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -3065,7 +3065,7 @@ static void vader_emit_c_ast$write_else_chain(void* l0, void* l1, vader_string_t
         l9 = false;
     }
     if (!(l9)) {
-        vader_emit_c_ast$write_line(l0, 3616u, l3);
+        vader_emit_c_ast$write_line(l0, 3620u, l3);
         l8 = vader_array_length(((vader_array_t*) l4));
         l12 = vader_chk_add(i32, l3, INT32_C(1));
         vader_emit_c_ast$write_statements(l0, l4, l6, l8, l12);
@@ -3074,7 +3074,7 @@ static void vader_emit_c_ast$write_else_chain(void* l0, void* l1, vader_string_t
     }
     t0 = l5.payload.obj;
     l10 = ((vader_struct_vader_emit_c_ast$CIf_t*) t0)->f_condition;
-    vader_emit_c_ast$write_if_head(l0, 3615u, l10, l3);
+    vader_emit_c_ast$write_if_head(l0, 3619u, l10, l3);
     t0 = l5.payload.obj;
     l11 = ((vader_struct_vader_emit_c_ast$CIf_t*) t0)->f_then_block;
     l12 = vader_chk_add(i32, l3, INT32_C(1));
@@ -3309,9 +3309,9 @@ static void vader_emit_c_ast$write_expression(void* l0, vader_box_t l1) {
             t0 = l1.payload.obj;
             t5 = vader_array_length(((vader_array_t*) ((vader_struct_vader_emit_c_ast$CInitializerList_t*) t0)->f_elements));
             if (t5 == INT64_C(0)) {
-                std_string__builder$append(l0, 3604u);
+                std_string__builder$append(l0, 3608u);
             } else {
-                std_string__builder$append(l0, 3603u);
+                std_string__builder$append(l0, 3607u);
                 t0 = l1.payload.obj;
                 l2 = ((vader_struct_vader_emit_c_ast$CInitializerList_t*) t0)->f_elements;
                 vader_emit_c_ast$write_list(l0, l2);
@@ -3410,7 +3410,7 @@ static void vader_emit_c_ast$write_function(void* l0, void* l1) {
     vader_emit_c_ast$write_statements(l0, l2, INT64_C(0), l3, INT32_C(1));
     l2 = ((vader_struct_vader_emit_c_ast$CFunction_t*) l1)->f_body;
     vader_emit_c_ast$write_block(l0, l2, INT32_C(1));
-    vader_emit_c_ast$write_line(l0, 3612u, INT32_C(0));
+    vader_emit_c_ast$write_line(l0, 3616u, INT32_C(0));
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -3611,7 +3611,7 @@ static void vader_emit_c_ast$write_laid_out(void* l0, vader_box_t l1, vader_stri
         std_string__builder$append(l0, l2);
         { vader_gc_top = gc_frame.prev; return; }
     }
-    std_string__builder$append(l0, 3602u);
+    std_string__builder$append(l0, 3606u);
     t0 = l1.payload.obj;
     t1 = vader_emit_c_ast$is_table(((vader_struct_vader_emit_c_ast$CInitializerList_t*) t0)->f_elements);
     if (t1) {
@@ -3637,7 +3637,7 @@ static void vader_emit_c_ast$write_laid_out(void* l0, vader_box_t l1, vader_stri
         vader_emit_c_ast$write_filled(l0, l6, l10);
     }
     vader_emit_c_ast$indent(l0, l4);
-    std_string__builder$append(l0, 3612u);
+    std_string__builder$append(l0, 3616u);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -3724,7 +3724,7 @@ static void vader_emit_c_ast$write_parameters(void* l0, void* l1) {
     vader_gc_top = &gc_frame;
     t0 = vader_array_length(((vader_array_t*) l1));
     if (t0 == INT64_C(0)) {
-        std_string__builder$append(l0, 3534u);
+        std_string__builder$append(l0, 3536u);
     }
     l2 = INT64_C(0);
     l3 = vader_array_length(((vader_array_t*) l1));
@@ -3777,7 +3777,7 @@ static void vader_emit_c_ast$write_return_text(void* l0, void* l1) {
     vader_gc_top = &gc_frame;
     t0 = ((vader_struct_vader_emit_c_ast$CReturn_t*) l1)->f_pops_frame;
     if (t0) {
-        std_string__builder$append(l0, 3603u);
+        std_string__builder$append(l0, 3607u);
     }
     l2 = ((vader_struct_vader_emit_c_ast$CReturn_t*) l1)->f_stores;
     l3 = vader_array_length(((vader_array_t*) l2));
@@ -3954,7 +3954,7 @@ static void vader_emit_c_ast$write_statements(void* l0, void* l1, int64_t l2, in
         } else if (l6.tag == 1450u) {
             t0 = l6.payload.obj;
             t1 = ((vader_struct_vader_emit_c_ast$CScope_t*) t0)->f_label;
-            l16 = vader_emit_c_ast$labelled(t1, 3601u);
+            l16 = vader_emit_c_ast$labelled(t1, 3605u);
             vader_emit_c_ast$write_line(l0, l16, l4);
             t0 = l6.payload.obj;
             l17 = ((vader_struct_vader_emit_c_ast$CScope_t*) t0)->f_body;
@@ -3967,7 +3967,7 @@ static void vader_emit_c_ast$write_statements(void* l0, void* l1, int64_t l2, in
             vader_emit_c_ast$indent(l0, l4);
             t0 = l6.payload.obj;
             t1 = ((vader_struct_vader_emit_c_ast$CWhile_t*) t0)->f_label;
-            l20 = vader_emit_c_ast$labelled(t1, 3557u);
+            l20 = vader_emit_c_ast$labelled(t1, 3561u);
             std_string__builder$append(l0, l20);
             t0 = l6.payload.obj;
             l21 = ((vader_struct_vader_emit_c_ast$CWhile_t*) t0)->f_condition;
@@ -4059,7 +4059,7 @@ static void vader_emit_c_ast$write_switch(void* l0, void* l1, int32_t l2) {
         l4 = (l4 + INT64_C(1));
     }
     if (l3.tag == 0u) {
-        l13 = 3612u;
+        l13 = 3616u;
         vader_emit_c_ast$write_line(l0, l13, l2);
         { vader_gc_top = gc_frame.prev; return; }
     }
@@ -4068,7 +4068,7 @@ static void vader_emit_c_ast$write_switch(void* l0, void* l1, int32_t l2) {
     std_string__builder$append(l0, 2234u);
     l6 = l3.payload.obj;
     vader_emit_c_ast$write_case_body(l0, l6, true);
-    l13 = 3612u;
+    l13 = 3616u;
     vader_emit_c_ast$write_line(l0, l13, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -4132,7 +4132,7 @@ static void vader_emit_c_ast$write_top_level(void* l0, vader_box_t l1) {
             vader_emit_c_ast$write_line(l0, l9, INT32_C(1));
             l7 = (l7 + INT64_C(1));
         }
-        std_string__builder$append(l0, 3617u);
+        std_string__builder$append(l0, 3621u);
     } else if (l1.tag == 1432u) {
         t0 = l1.payload.obj;
         t1 = ((vader_struct_vader_emit_c_ast$CGlobal_t*) t0)->f_constant;

@@ -407,7 +407,7 @@ static vader_string_t vader_support_profile$phase_name(uint8_t l0) {
     } else if (l0 == INT32_C(11)) {
         l1 = 2712u;
     } else if (l0 == INT32_C(12)) {
-        l1 = 3514u;
+        l1 = 3516u;
     } else {
         if (!(l0 == INT32_C(13))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");

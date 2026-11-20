@@ -136,7 +136,7 @@ static vader_string_t vader_midir_select$argument_keys(void* l0) {
         t0 = vader_array_ref_load_box(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) l5);
         l6 = vader_midir_select$argument_key(t0);
         l1 = concat_3(l1, l2, l6);
-        l2 = 3610u;
+        l2 = 3614u;
         l5 = (l5 + INT64_C(1));
     }
     { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -336,7 +336,7 @@ vader_box_t vader_midir_select$binary_op_for(uint8_t l0, uint8_t l1) {
     } else if (l0 == INT32_C(8)) {
         l2 = vader_midir_select$bit_op(l1, 2912u);
     } else if (l0 == INT32_C(9)) {
-        l2 = vader_midir_select$bit_op(l1, 3595u);
+        l2 = vader_midir_select$bit_op(l1, 3599u);
     } else if (l0 == INT32_C(10)) {
         t0 = (void*) &vader_data_134;
         vader_array_t* _a0_slotarr = ((vader_array_t*) t0);
@@ -1270,17 +1270,17 @@ vader_box_t vader_midir_select$member_op(uint8_t l0) {
             if (l2) {
                 l2 = true;
             } else {
+                l2 = l0 == INT32_C(57);
+            }
+            if (l2) {
+                l2 = true;
+            } else {
                 l2 = l0 == INT32_C(55);
             }
             if (l2) {
                 l2 = true;
             } else {
                 l2 = l0 == INT32_C(56);
-            }
-            if (l2) {
-                l2 = true;
-            } else {
-                l2 = l0 == INT32_C(57);
             }
             if (l2) {
                 l2 = true;
@@ -1311,6 +1311,16 @@ vader_box_t vader_midir_select$member_op(uint8_t l0) {
                 l2 = true;
             } else {
                 l2 = l0 == INT32_C(63);
+            }
+            if (l2) {
+                l2 = true;
+            } else {
+                l2 = l0 == INT32_C(64);
+            }
+            if (l2) {
+                l2 = true;
+            } else {
+                l2 = l0 == INT32_C(65);
             }
             if (!(l2)) {
                 vader_unreachable("non-exhaustive match (T3013 should have caught this)");
@@ -2147,11 +2157,11 @@ vader_string_t vader_midir_select$type_intern_key(vader_box_t l0) {
         l1 = concat_3(648u, l2, 606u);
     } else if (l0.tag == 1371u) {
         t0 = l0.payload.obj;
-        l2 = vader_midir_select$type_key_join(((vader_struct_vader_core_types$UnionType_t*) t0)->f_variants, 3610u);
+        l2 = vader_midir_select$type_key_join(((vader_struct_vader_core_types$UnionType_t*) t0)->f_variants, 3614u);
         l1 = concat_3(1130u, l2, 606u);
     } else if (l0.tag == 1366u) {
         t0 = l0.payload.obj;
-        l2 = vader_midir_select$type_key_join(((vader_struct_vader_core_types$TupleType_t*) t0)->f_elements, 3610u);
+        l2 = vader_midir_select$type_key_join(((vader_struct_vader_core_types$TupleType_t*) t0)->f_elements, 3614u);
         l1 = concat_3(1125u, l2, 606u);
     } else if (l0.tag == 1351u) {
         t0 = l0.payload.obj;

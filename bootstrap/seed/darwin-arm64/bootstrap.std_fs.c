@@ -62,7 +62,7 @@ static vader_box_t std_fs$File$std_io$Writer$write(void* l0, vader_box_t l1) {
             if (l5 == INT64_C(0)) {
                 vader_struct_std_io$IOError_t* _a2_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
                 vader_obj_header_init(_a2_obj, 1004u);
-                _a2_obj->f_msg = 3581u;
+                _a2_obj->f_msg = 3585u;
                 _a2_obj->f_kind = (uint8_t) 0;
                 _a2_obj->f_code = INT32_C(0);
                 t1 = (void*) _a2_obj;
@@ -826,7 +826,7 @@ static vader_box_t std_fs$system_write(vader_box_t l0, void* l1) {
             if (!(t0 != INT32_C(4))) {
                 continue;
             }
-            t1 = std_io$last_io_error(3580u);
+            t1 = std_io$last_io_error(3584u);
             { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
         }
         break;
