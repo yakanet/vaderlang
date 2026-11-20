@@ -560,6 +560,34 @@ exit_with_live_thread :: fn() -> void {
     println("main returns")
 }
 
+// Main lets each task end in turn and joins it, then returns: on several
+// workers, the threads of the last tasks may still be leaving the runtime, and
+// main names none of them.
+exit_after_joins :: fn() -> void {
+    gates: Channel<i64>[]: []
+    for _ in 0..<64 {
+        gates.push(Channel<i64> { .capacity = 1 })
+    }
+    tasks: Task<i64>[]: []
+    for gate in gates {
+        tasks.push(launch(() -> waits_for(gate)))
+    }
+    for index in 0..<tasks.len() {
+        gates[index].send(index)
+        tasks[index].join() else panic("a task was cancelled")
+    }
+    println("joined ${tasks.len()} tasks")
+}
+
+// What `gate` brings first.
+waits_for :: fn(gate: Channel<i64>) -> i64 {
+    message :: gate.receive()
+    if message is Closed {
+        return -1
+    }
+    return message
+}
+
 // Main cancels a thread and returns before the thread's defers ran: main waits
 // for them, and names nothing.
 exit_after_cancel :: fn() -> void {
@@ -654,6 +682,7 @@ main :: fn() -> i32 {
         "cascade_unstarted"     -> cascade_unstarted()
         "deadlock"              -> deadlock()
         "exit_with_live_thread" -> exit_with_live_thread()
+        "exit_after_joins"      -> exit_after_joins()
         "exit_after_cancel"     -> exit_after_cancel()
         "exit_after_cascade"    -> exit_after_cascade()
         "exit_defer_launches"   -> exit_defer_launches()

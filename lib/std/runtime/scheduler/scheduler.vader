@@ -89,6 +89,11 @@ export is_cancelled :: fn() -> bool = Intrinsic.is_cancelled()
 /// @param thread  the handle of a thread; one that has ended is not leaving.
 export is_leaving :: fn(thread: i64) -> bool = Intrinsic.is_leaving(thread)
 
+/// Say that the running thread's task has ended: whoever waits for it may go on
+/// while the thread still leaves the runtime, and `main` returning meanwhile
+/// waits for the thread without naming it.
+export task_ended :: fn() -> void = Intrinsic.task_ended()
+
 /// Make the running thread's next park end once descriptor `fd` has input to
 /// read, or has reached its end. The watch lasts that one park, which a `wake`
 /// can end first; one the system cannot follow ends it after 2 ms instead. A

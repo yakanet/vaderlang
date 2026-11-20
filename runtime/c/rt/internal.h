@@ -352,6 +352,7 @@ static void vader_virtual_thread_give_back_cold(void);
 static void vader_scheduler_loop(void);
 /* On an ending thread's stack, once it has run its last defer. */
 static void vader_scheduler_ending(void);
+static int g_scheduler_slow_end;
 /* Take and let go the scheduler's lock, which guards every state of the
  * scheduler and of the threads. A worker holds it from an entry of the
  * scheduler to its return, across the switches in between: a thread a switch

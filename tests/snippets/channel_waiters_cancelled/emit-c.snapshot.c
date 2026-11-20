@@ -826,6 +826,10 @@ static bool vader_host_std_core$Intrinsic$is_cancelled(void) {
     return vader_scheduler_is_cancelled();
 }
 
+static void vader_host_std_core$Intrinsic$task_ended(void) {
+    vader_scheduler_task_ended();
+}
+
 static void vader_host_std_core$Intrinsic$monitor_enter(bool a0) {
     vader_scheduler_monitor_enter(a0);
 }
@@ -1976,6 +1980,7 @@ static void std_task$end__Any(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 5u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     std_runtime_scheduler$monitor_enter_to_publish();
+    vader_host_std_core$Intrinsic$task_ended();
     ((vader_struct_std_task$Task__Any_t*) l0)->f_ended = true;
     l1 = ((vader_struct_std_task$Task__Any_t*) l0)->f_waiters;
     l2 = vader_array_length(((vader_array_t*) l1));
@@ -2013,6 +2018,7 @@ static void std_task$end__i64(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 5u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     std_runtime_scheduler$monitor_enter_to_publish();
+    vader_host_std_core$Intrinsic$task_ended();
     ((vader_struct_std_task$Task__i64_t*) l0)->f_ended = true;
     l1 = ((vader_struct_std_task$Task__i64_t*) l0)->f_waiters;
     l2 = vader_array_length(((vader_array_t*) l1));

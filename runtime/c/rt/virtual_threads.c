@@ -542,6 +542,7 @@ VADER_VIRTUAL_THREAD_RUN_LINKAGE void vader_virtual_thread_run(vader_virtual_thr
     if (t == vader_worker.scheduler) vader_scheduler_loop();
     vader_scheduler_unlock();
     ((vader_box_t (*)(void*)) t->entry->code)(t->entry->env);
+    if (VADER_UNLIKELY(g_scheduler_slow_end)) vader_os_sleep_ns(1000000);
     vader_scheduler_lock();
     vader_virtual_thread_finish(t);
 #  if !VADER_VIRTUAL_THREAD_FIBERS

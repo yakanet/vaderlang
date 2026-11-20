@@ -113,13 +113,14 @@ import 5 sleep_for std_core$Intrinsic$sleep_for intrinsic=sleep_for result_type=
 import 6 cancel_thread std_core$Intrinsic$cancel_thread intrinsic=cancel_thread result_type=2 param_types=7 param_c_out= param_by_address= (i64) -> void
 import 7 current_thread std_core$Intrinsic$current_thread intrinsic=current_thread result_type=7 () -> i64
 import 8 is_cancelled std_core$Intrinsic$is_cancelled intrinsic=is_cancelled result_type=15 () -> bool
-import 9 monitor_enter std_core$Intrinsic$monitor_enter intrinsic=monitor_enter result_type=2 param_types=15 param_c_out= param_by_address= (bool) -> void
-import 10 monitor_exit std_core$Intrinsic$monitor_exit intrinsic=monitor_exit result_type=2 () -> void
-import 11 panic std_core$Intrinsic$panic intrinsic=panic result_type=2 param_types=1 param_c_out= param_by_address= (string) -> void
-import 12 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=1 param_types=19 param_c_out= param_by_address= (ref) -> string
-import 13 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=3,19,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 14 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
-import 15 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=2 () -> void
+import 9 task_ended std_core$Intrinsic$task_ended intrinsic=task_ended result_type=2 () -> void
+import 10 monitor_enter std_core$Intrinsic$monitor_enter intrinsic=monitor_enter result_type=2 param_types=15 param_c_out= param_by_address= (bool) -> void
+import 11 monitor_exit std_core$Intrinsic$monitor_exit intrinsic=monitor_exit result_type=2 () -> void
+import 12 panic std_core$Intrinsic$panic intrinsic=panic result_type=2 param_types=1 param_c_out= param_by_address= (string) -> void
+import 13 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=1 param_types=19 param_c_out= param_by_address= (ref) -> string
+import 14 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=3,19,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 15 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
+import 16 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=2 () -> void
 impl 9 std_core$Display
 impl 4 std_core$Display
 impl 26 std_core$Display
@@ -593,7 +594,7 @@ fn 22 __lambda_snippet_4 () -> i32
   type_check 9   ; std_core$Cancelled
   if $L1 void
     string.const 10   ; "the task was cancelled"
-    call.import 11   ; std_core$Intrinsic$panic
+    call.import 12   ; std_core$Intrinsic$panic
     unreachable "a no-return call returned"
   else
     local.get 1   ; __fallback_0
@@ -1022,7 +1023,7 @@ end
 fn 40 std_core$char$Display$to_string (char) -> string
   local.get 0   ; arg 0
   call 47   ; std_core$utf8_encode
-  call.import 12   ; std_core$Intrinsic$bytes_to_string
+  call.import 13   ; std_core$Intrinsic$bytes_to_string
   return
 end
 
@@ -3867,16 +3868,16 @@ fn 80 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 13   ; system_posix$sys_write
+  call.import 14   ; system_posix$sys_write
   local.tee 4   ; written
   i64.const 0
   i64.lt
   if $L1 void
-    call.import 14   ; system_posix$sys_last_errno
+    call.import 15   ; system_posix$sys_last_errno
     i32.const 32
     i32.eq
     if $L2 void
-      call.import 15   ; system_posix$sys_end_on_broken_pipe
+      call.import 16   ; system_posix$sys_end_on_broken_pipe
       local.get 4   ; written
       i64.to_i32
       return
@@ -4078,7 +4079,7 @@ fn 89 std_task$launch__i32 (ref) -> ref
   local.get 1   ; if_res
   local.get 2   ; $add_checked_9
   struct.set 4 1   ; std_task$Task__i32.thread
-  call.import 10   ; std_core$Intrinsic$monitor_exit
+  call.import 11   ; std_core$Intrinsic$monitor_exit
   local.get 1   ; if_res
   return
 end
@@ -4135,7 +4136,7 @@ fn 91 std_task$launch__string (ref) -> ref
   local.get 1   ; if_res
   local.get 2   ; $add_checked_9
   struct.set 26 1   ; std_task$Task__string.thread
-  call.import 10   ; std_core$Intrinsic$monitor_exit
+  call.import 11   ; std_core$Intrinsic$monitor_exit
   local.get 1   ; if_res
   return
 end
@@ -4224,6 +4225,7 @@ fn 97 std_task$end__i32 (ref) -> void
   local $field_15 ref
   local $field_16 i64
   call 116   ; std_runtime_scheduler$monitor_enter_to_publish
+  call.import 9   ; std_core$Intrinsic$task_ended
   local.get 0   ; arg 0
   bool.const true
   struct.set 4 2   ; std_task$Task__i32.ended
@@ -4268,7 +4270,7 @@ fn 97 std_task$end__i32 (ref) -> void
       br $L0
     end $L1
   end $L0
-  call.import 10   ; std_core$Intrinsic$monitor_exit
+  call.import 11   ; std_core$Intrinsic$monitor_exit
   return
 end
 
@@ -4281,6 +4283,7 @@ fn 98 std_task$end__string (ref) -> void
   local $field_15 ref
   local $field_16 i64
   call 116   ; std_runtime_scheduler$monitor_enter_to_publish
+  call.import 9   ; std_core$Intrinsic$task_ended
   local.get 0   ; arg 0
   bool.const true
   struct.set 26 2   ; std_task$Task__string.ended
@@ -4325,7 +4328,7 @@ fn 98 std_task$end__string (ref) -> void
       br $L0
     end $L1
   end $L0
-  call.import 10   ; std_core$Intrinsic$monitor_exit
+  call.import 11   ; std_core$Intrinsic$monitor_exit
   return
 end
 
@@ -4381,7 +4384,7 @@ fn 99 std_task$join__i32 (ref) -> any
 end
 
 fn 100 __defer_std_task_10 (ref) -> void
-  call.import 10   ; std_core$Intrinsic$monitor_exit
+  call.import 11   ; std_core$Intrinsic$monitor_exit
   return
 end
 
@@ -4451,7 +4454,7 @@ fn 102 std_task$join__string (ref) -> any
 end
 
 fn 103 __defer_std_task_4 (ref) -> void
-  call.import 10   ; std_core$Intrinsic$monitor_exit
+  call.import 11   ; std_core$Intrinsic$monitor_exit
   return
 end
 
@@ -4530,7 +4533,7 @@ fn 107 std_task$cancel__string (ref) -> void
 end
 
 fn 108 __defer_std_task_8 (ref) -> void
-  call.import 10   ; std_core$Intrinsic$monitor_exit
+  call.import 11   ; std_core$Intrinsic$monitor_exit
   return
 end
 
@@ -4714,7 +4717,7 @@ fn 113 std_runtime_scheduler$run_gated (ref,ref) -> bool
 end
 
 fn 114 __defer_std_runtime_scheduler_0 (ref) -> void
-  call.import 10   ; std_core$Intrinsic$monitor_exit
+  call.import 11   ; std_core$Intrinsic$monitor_exit
   return
 end
 
@@ -4726,13 +4729,13 @@ end
 
 fn 116 std_runtime_scheduler$monitor_enter_to_publish () -> void
   bool.const true
-  call.import 9   ; std_core$Intrinsic$monitor_enter
+  call.import 10   ; std_core$Intrinsic$monitor_enter
   return
 end
 
 fn 117 std_runtime_scheduler$monitor_enter () -> void
   bool.const false
-  call.import 9   ; std_core$Intrinsic$monitor_enter
+  call.import 10   ; std_core$Intrinsic$monitor_enter
   return
 end
 

@@ -131,6 +131,8 @@ export Intrinsic :: trait {
     is_cancelled :: fn() -> bool
     /// Whether the thread `thread` is leaving.
     is_leaving :: fn(thread: i64) -> bool
+    /// The running thread's task has ended.
+    task_ended :: fn() -> void
     /// Wake the parked threads once `fd` has something to read.
     watch_readable :: fn(fd: i64) -> void
     /// Wake the parked threads once the child `child` has ended.

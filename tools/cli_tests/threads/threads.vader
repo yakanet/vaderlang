@@ -329,6 +329,28 @@ test_a_deadlock_stops_the_program_and_names_the_threads :: fn() -> void {
     expect_stop("deadlock", "", said)
 }
 
+// The environment of a run on eight workers, where a thread whose task ended
+// lingers before it leaves the runtime.
+LINGERING_ENDS: [string, string | null][]: [
+    ["VADER_THREADS", "8"],
+    ["VADER_SCHEDULER_SLOW_END", "1"],
+]
+
+// Only a native build runs threads on several workers.
+@test
+test_main_returning_after_its_joins_names_no_task :: fn() -> void {
+    for engine in [Engine.Debug, Engine.Release] {
+        // A run sees the race only when the last threads to end run on another
+        // worker than main's.
+        for _ in 0..<5 {
+            ran :: run_case(engine, "exit_after_joins", LINGERING_ENDS) else continue
+            said :: "on ${engine_name(engine)}: exit ${ran.exit}\n${ran.stderr}"
+            assert(ran.exit == 0 && ran.stderr == "", said)
+            assert_eq(ran.stdout, "joined 64 tasks\n")
+        }
+    }
+}
+
 @test
 test_main_returning_cancels_the_threads_still_running :: fn() -> void {
     expect_cancelled_at_exit(

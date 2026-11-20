@@ -70,6 +70,10 @@ typedef struct {
 static int      g_scheduler_started = 0;
 static int      g_scheduler_clock_read = 0;
 static int      g_scheduler_virtual_clock = 0;
+/* Set via `VADER_SCHEDULER_SLOW_END=1`: a thread whose entry returned waits a
+ * millisecond before it leaves the runtime, for the tests of what `main`
+ * returning sees of it meanwhile. */
+static int      g_scheduler_slow_end = 0;
 static int64_t  g_scheduler_virtual_now = 0;
 static uint64_t g_scheduler_numbered = 0;
 /* `main` returned and waits for the threads it cancelled. */
@@ -1081,6 +1085,7 @@ static void vader_scheduler_start(void) {
      * scheduler walks. */
     if (!g_gc_initialized) vader_gc_init();
     vader_scheduler_read_clock();
+    g_scheduler_slow_end = vader_gc_env_bool("VADER_SCHEDULER_SLOW_END");
     vader_virtual_thread_start_scheduler();
     vader_scheduler_fresh_slot(vader_virtual_thread_main(), 0u);
     vader_scheduler_start_pool();

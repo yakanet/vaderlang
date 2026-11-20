@@ -119,6 +119,7 @@ Group :: struct {
 // thread.
 end :: fn<T>(task: Task<T>) -> void {
     monitor_enter_to_publish()
+    task_ended()
     task.ended = true
     for waiter in task.waiters {
         group :: waiter.group
