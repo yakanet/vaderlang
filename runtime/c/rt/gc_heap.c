@@ -98,9 +98,9 @@ static int           g_gc_initialized = 0;
 static vader_worker_t* g_workers[VADER_WORKERS_MAX];
 static size_t          g_worker_count = 0;
 
-/* The young semi-space a worker starts with (`VADER_GC_YOUNG_BYTES`). Set once
- * in `vader_gc_init`. */
-static size_t        g_young_initial_bytes = 0;
+/* The size of a young semi-space (`VADER_GC_YOUNG_BYTES`). Set once in
+ * `vader_gc_init`. */
+static size_t        g_young_bytes = 0;
 
 /* Hard caps: the size of the old reservation and of one young semi-space.
  * Env-tunable (VADER_GC_OLD_MAX / VADER_GC_YOUNG_MAX) so a too-large live set
@@ -108,21 +108,6 @@ static size_t        g_young_initial_bytes = 0;
  * `vader_gc_init`, where the old default is derived from physical RAM. */
 static size_t        g_old_max_bytes = 0;
 static size_t        g_young_max_bytes = 0;
-
-/* Adaptive young sizing: the divisor `k` in `young_target = old_live / k`. A
- * minor collect conservatively re-scans the whole old card table, so its cost
- * is O(old size). With a fixed young, total scan work over a run is
- * (churn / young) * old: quadratic in the old live set. Sizing young
- * proportional to old keeps it linear in churn. 0 disables the heuristic
- * (fixed young). Env-tunable via VADER_GC_YOUNG_RATIO; set once in
- * `vader_gc_init`. */
-static size_t        g_young_ratio = 2;
-
-/* Ceiling on the adaptive young target: young proportional to old overshoots
- * the young working set, and growing past it buys little and costs RSS.
- * 0 = uncapped, which only the compile-time default can say: VADER_GC_YOUNG_CAP
- * takes a positive byte size. Set once in `vader_gc_init`. */
-static size_t        g_young_cap = 0;
 
 /* Set by `vader_gc_count_allocations`, never cleared. */
 static int g_count_allocations = 0;
@@ -538,9 +523,9 @@ static void vader_young_carve(vader_worker_t* w, char* block, size_t half, char*
  * reservation, which it dirties alone. Untouched, the table costs no memory. */
 static void vader_gc_worker_init(vader_worker_t* w) {
     if (g_worker_count == VADER_WORKERS_MAX) vader_trap("vader_gc: too many workers");
-    char* young_block = (char*) malloc(g_young_initial_bytes * 2u);
+    char* young_block = (char*) malloc(g_young_bytes * 2u);
     if (young_block == NULL) vader_trap("vader_gc_init: young arena malloc failed");
-    vader_young_carve(w, young_block, g_young_initial_bytes, young_block);
+    vader_young_carve(w, young_block, g_young_bytes, young_block);
     /* The card tables end on a whole group, which a minor copies at once. */
     size_t groups = vader_card_groups_of(g_card_count);
     w->cards = (uint8_t*) calloc(groups * VADER_CARD_GROUP, 1u);
@@ -615,18 +600,18 @@ void vader_gc_init(void) {
     /* RAM-proportional defaults (the zero-tuning primary interface; the absolute
      * VADER_GC_OLD_MAX env var below still overrides). Derive the old reservation
      * cap from physical RAM; fall back to the fixed #defines when RAM can't be
-     * read. Young is NOT scaled (its cap is a per-minor cost cliff, not a
-     * memory limit). */
+     * read. Young is not scaled: it keeps its size unless an object needs more. */
+    g_young_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_BYTES", (size_t) VADER_GC_YOUNG_BYTES);
     size_t ram = vader_os_physical_ram();
     size_t old_max_default  = (size_t) VADER_GC_OLD_MAX;
     double pct = vader_gc_env_percent("VADER_GC_RAM_PERCENT", (double) VADER_GC_RAM_PERCENT);
     if (ram > 0) {
         /* budget = the committed ceiling the GC may reach. The old gen is a
          * single non-moving reservation (lazily committed: untouched pages cost
-         * no RSS) and needs no to-space: reserve young's worst-case commit (its
-         * cap x 2) then give the rest to the old reservation. */
+         * no RSS) and needs no to-space: reserve young's two semi-spaces, then
+         * give the rest to the old reservation. */
         size_t budget        = (size_t) ((double) ram * pct / 100.0);
-        size_t young_reserve = (size_t) VADER_GC_YOUNG_CAP_DEFAULT * 2u;
+        size_t young_reserve = g_young_bytes * 2u;
         size_t old_budget    = budget > young_reserve ? budget - young_reserve : budget / 2u;
         old_max_default  = vader_clamp_size(old_budget, VADER_GC_OLD_CAP_MIN, (size_t) VADER_GC_OLD_MAX);
     }
@@ -634,17 +619,6 @@ void vader_gc_init(void) {
     /* Auto-grow ceilings (env-tunable, default to the RAM-derived / compile-time caps). */
     g_old_max_bytes   = vader_gc_env_bytes("VADER_GC_OLD_MAX",   old_max_default);
     g_young_max_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_MAX", (size_t) VADER_GC_YOUNG_MAX);
-
-    /* Adaptive young-sizing divisor (young_target = old_live / ratio). Default
-     * 2 (young ~ half the old live set); 0 turns the heuristic off. */
-    g_young_ratio = vader_gc_env_count("VADER_GC_YOUNG_RATIO", g_young_ratio, 0u, SIZE_MAX,
-        "a whole number, 0 to turn adaptive young sizing off");
-
-    /* Ceiling on the adaptive young target (byte size). */
-    g_young_cap = vader_gc_env_bytes("VADER_GC_YOUNG_CAP", VADER_GC_YOUNG_CAP_DEFAULT);
-
-    /* Young: one malloc spanning both semi-spaces, per worker. */
-    g_young_initial_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_BYTES", (size_t)VADER_GC_YOUNG_BYTES);
 
     /* Old: a single non-moving reservation at the cap, lazily committed. Objects
      * are bump-carved into class regions and never move, so there is no to-space
@@ -782,26 +756,6 @@ static void vader_young_grow_for(vader_worker_t* w, size_t aligned) {
     if (new_half > w->young.half_bytes) vader_young_grow_to(w, new_half);
 }
 
-/* Adaptive young sizing: call after a standalone minor collect from the
- * allocator. Grows the young semi-space toward `old_live / g_young_ratio` so
- * the (churn / young) * old card-scan cost stays linear in churn instead of
- * quadratic in old. Hysteresis (target >= 1.5x current) avoids repeated
- * reallocations; growth never shrinks, so an explicit VADER_GC_YOUNG_BYTES
- * floor is preserved. Disabled when the ratio is 0. `vader_young_grow_to`
- * relocates survivors via an internal minor collect, so this MUST run outside
- * `vader_gc_minor` (hence the call site is the allocator, not the
- * collector: calling it from within a collect would recurse). */
-static void vader_young_maybe_grow_adaptive(vader_worker_t* w) {
-    if (g_young_ratio == 0u) return;
-    size_t old_live = vader_old_live();
-    size_t target = old_live / g_young_ratio;
-    if (g_young_cap != 0u && target > g_young_cap) target = g_young_cap;
-    if (target > g_young_max_bytes) target = g_young_max_bytes;
-    if (target > w->young.half_bytes + w->young.half_bytes / 2u) {
-        vader_young_grow_to(w, target);
-    }
-}
-
 /* Reclamation trigger for the non-moving old gen: call after a minor from the
  * allocator (a safe point: not re-entrant into a collect). The slab never
  * compacts, so without this the old footprint would equal the TOTAL promotion
@@ -928,9 +882,6 @@ static VADER_NOINLINE void* vader_gc_alloc_slow(vader_worker_t* w, size_t bytes)
                 vader_young_grow_for(w, aligned);
             }
         }
-        /* A collect just ran: re-size young toward old so the next round of
-         * churn triggers far fewer (expensive, O(old)) minors. */
-        vader_young_maybe_grow_adaptive(w);
         /* Reclaim dead old in place once it has grown past live x headroom (the
          * non-moving slab never compacts, so nothing else frees it). */
         vader_old_maybe_major();

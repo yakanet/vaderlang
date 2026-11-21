@@ -1166,20 +1166,16 @@ void           vader_array_clear(vader_array_t* a);
  * an 8 GB laptop and a 64 GB workstation. See `vader_gc_init`.
  *
  *   VADER_GC_RAM_PERCENT   commit ceiling the GC may reach, as % of RAM (default 50)
- *   old cap   = clamp(RAM * PERCENT% - young_committed, 256 MB, VADER_GC_OLD_MAX)
+ *   old cap   = clamp(RAM * PERCENT% - 2 * VADER_GC_YOUNG_BYTES, 256 MB, VADER_GC_OLD_MAX)
  *
  * The old gen is ONE non-moving reservation sized at the cap, lazily committed
  * (no initial size, no 2x to-space, no relocation): untouched pages don't reside
  * on POSIX, and are reserved-not-committed on Windows. Young is a doubled
- * (from+to) malloc'd pair that auto-grows. The `VADER_GC_OLD_MAX` env var
- * overrides the cap (advanced escape hatch); `VADER_GC_YOUNG_BYTES` is the young
- * fallback. Young is NOT RAM-scaled: its 192 MB cap is a per-minor cost cliff,
- * not a memory limit. */
+ * (from+to) malloc'd pair of semi-spaces. The `VADER_GC_OLD_MAX` env var
+ * overrides the cap (advanced escape hatch). Young is not RAM-scaled: a semi-space
+ * keeps `VADER_GC_YOUNG_BYTES` unless a larger object arrives (ADR 0167). */
 #ifndef VADER_GC_YOUNG_BYTES
-#define VADER_GC_YOUNG_BYTES (32u * 1024u * 1024u)   /* 32 MB initial young semi-space; auto-grows */
-#endif
-#ifndef VADER_GC_YOUNG_CAP_DEFAULT
-#define VADER_GC_YOUNG_CAP_DEFAULT (192u * 1024u * 1024u) /* default adaptive-young ceiling (per-minor cost cliff) */
+#define VADER_GC_YOUNG_BYTES (64u * 1024u * 1024u)   /* 64 MB young semi-space */
 #endif
 /* RAM-proportional old-reservation sizing policy (see `vader_gc_init`). The old
  * gen is a single lazily-committed reservation == the cap; there is no separate

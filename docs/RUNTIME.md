@@ -375,13 +375,13 @@ rarely
 ([ADR 0007](adr/0007-generational-gc-copying-young-non-moving-old.md)). The sizes
 below are the defaults of `runtime/c/vader.h`.
 
-- **Young** is a pair of semi-spaces, 32 MB each to start with, where allocation
+- **Young** is a pair of semi-spaces, 64 MB each, where allocation
   bumps a pointer. A **minor** collection copies every live young object into the
   old generation at its first collection
   ([ADR 0104](adr/0104-a-young-survivor-is-promoted-at-its-first-collection.md)),
-  and leaves it young only when the old generation is full. Young grows to fit an
-  object larger than a semi-space (up to 2 GB), and with the old live set (up to
-  192 MB).
+  and leaves it young only when the old generation is full. Young grows only to fit
+  an object larger than a semi-space, up to 2 GB
+  ([ADR 0167](adr/0167-the-young-generation-keeps-its-size.md)).
 - **Old** is one address-space reservation, committed as it fills: half the
   machine's memory by default, less what young may take, kept between 256 MB and
   4 GB. It never moves an object: objects up to 1 KB take a slot of their size
@@ -515,7 +515,7 @@ in every build ([ADR 0002](adr/0002-gc-diagnostics-are-runtime-flags.md)):
 |---|---|
 | `VADER_GC_RAM_PERCENT` | the share of physical memory the old reservation is computed from |
 | `VADER_GC_OLD_MAX` | the old reservation's size, in place of the share |
-| `VADER_GC_YOUNG_BYTES`, `VADER_GC_YOUNG_CAP`, `VADER_GC_YOUNG_MAX`, `VADER_GC_YOUNG_RATIO` | a semi-space's initial size, adaptive-growth ceiling and hard limit, and the ratio that growth targets |
+| `VADER_GC_YOUNG_BYTES`, `VADER_GC_YOUNG_MAX` | a semi-space's size, and its hard limit |
 | `VADER_GC_STRESS` | a minor at every allocation |
 | `VADER_GC_STRESS_MAJOR` | a major at every allocation |
 | `VADER_GC_STRESS_SWITCH` | a major at every switch between virtual threads |

@@ -22,13 +22,8 @@ EnvSetting :: struct {
 }
 
 GC_SETTINGS: EnvSetting[]: [
-    EnvSetting { .name = "VADER_GC_YOUNG_BYTES", .effect = "initial size of a young semi-space" },
-    EnvSetting { .name = "VADER_GC_YOUNG_CAP", .effect = "ceiling of adaptive young growth" },
+    EnvSetting { .name = "VADER_GC_YOUNG_BYTES", .effect = "size of a young semi-space" },
     EnvSetting { .name = "VADER_GC_YOUNG_MAX", .effect = "hard limit of a young semi-space" },
-    EnvSetting {
-        .name = "VADER_GC_YOUNG_RATIO",
-        .effect = "young target = old live / ratio, 0 turns adaptive sizing off",
-    },
     EnvSetting {
         .name = "VADER_GC_OLD_MAX",
         .effect = "size of the old reservation, in place of the RAM share",
