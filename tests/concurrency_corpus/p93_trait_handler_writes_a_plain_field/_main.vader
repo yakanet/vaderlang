@@ -1,0 +1,41 @@
+// P93: a handler reached through a trait writes a field of its own
+// with no lock: the tasks race on it.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Handler :: trait {
+    handle :: fn(self) -> i32
+}
+
+App :: struct {
+    hits: i32[]
+}
+
+App implements Handler {
+    handle :: fn(self) -> i32 {
+        self.hits[0] += 1
+        return 200
+    }
+}
+
+// Runs `handler` in three tasks at once, then joins them.
+serve :: fn(handler: Handler) -> i32 {
+    tasks: Task<i32>[]: []
+    for id in 0..<3 {
+        tasks.push(launch(() -> handler.handle()))
+    }
+    total := 0
+    for t in tasks {
+        total += t.join() else 0
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    return serve(App { .hits = [0] })
+}

@@ -1,0 +1,33 @@
+// P87: the handler a server runs in several tasks only reads what it
+// captures.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+State :: struct {
+    hits: i32 = 0
+}
+
+Handler :: fn(i64) -> i32
+
+// Runs `handler` in three tasks at once, then joins them.
+serve :: fn(handler: Handler) -> i32 {
+    tasks: Task<i32>[]: []
+    for id in 0..<3 {
+        tasks.push(launch(() -> handler(id)))
+    }
+    total := 0
+    for t in tasks {
+        total += t.join() else 0
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    state :: State {}
+    return serve((id) -> state.hits)
+}

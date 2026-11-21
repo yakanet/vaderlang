@@ -1,0 +1,43 @@
+// P92: a handler reached through a trait writes a field of its own
+// under the lock of a shared cell.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Handler :: trait {
+    handle :: fn(self) -> i32
+}
+
+App :: struct {
+    hits: Shared<i32[]>
+}
+
+App implements Handler {
+    handle :: fn(self) -> i32 {
+        self.hits.locked((counts) -> {
+            counts[0] += 1
+        })
+        return 200
+    }
+}
+
+// Runs `handler` in three tasks at once, then joins them.
+serve :: fn(handler: Handler) -> i32 {
+    tasks: Task<i32>[]: []
+    for id in 0..<3 {
+        tasks.push(launch(() -> handler.handle()))
+    }
+    total := 0
+    for t in tasks {
+        total += t.join() else 0
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    return serve(App { .hits = shared([0]) })
+}

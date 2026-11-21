@@ -1,0 +1,34 @@
+// P89: a server joins each task before it launches the next: one
+// task at a time runs the handler.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+State :: struct {
+    hits: i32 = 0
+}
+
+Handler :: fn(i64) -> i32
+
+// Runs `handler` in one task per turn, joined in the turn.
+serve :: fn(handler: Handler) -> i32 {
+    total := 0
+    for id in 0..<3 {
+        t :: launch(() -> handler(id))
+        total += t.join() else 0
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    state :: State {}
+    total :: serve((id) -> {
+        state.hits += 1
+        return 0
+    })
+    return total + state.hits
+}

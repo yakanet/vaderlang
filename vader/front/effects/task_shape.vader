@@ -151,6 +151,10 @@ ended_by :: fn(j: JoinPoint, p: i64) -> bool {
 ends_inside :: fn(body: TaskBody, door: Door, span: Span) -> bool =
     ended_inside(body.join_points(door), span, false)
 
+// Whether a join of the task `region` is the region of has ended it before offset
+// `p`, past the door.
+ended_before :: fn(region: Region, p: i64) -> bool = region.joins.any_match((j) -> ended_by(j, p))
+
 // Whether a touch of root `root` at offset `p` runs beside the task `door` opens.
 in_region :: fn(body: TaskBody, door: Door, region: Region, p: i64, root: i64) -> bool {
     entry :: door.entry
@@ -163,7 +167,7 @@ in_region :: fn(body: TaskBody, door: Door, region: Region, p: i64, root: i64) -
         return false
     }
     if p >= door.site.at.end.offset {
-        return !region.joins.any_match((j) -> ended_by(j, p))
+        return !ended_before(region, p)
     }
     wraps :: region.wraps else return false
     if !holds_offset(wraps, p) {

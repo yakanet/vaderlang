@@ -42,10 +42,18 @@ Sending :: struct {
     written: PartPath[] = []
     /// The function that launches the task, for the detail.
     launcher: string = ""
+    /// Several tasks run the parameter, a function, at once: the callee launches it
+    /// again while one still runs. True even when the callee joins them all, since
+    /// they race with one another during the call.
+    many: bool = false
 }
 
+// Whether the task `s` describes may still run once the call returns: a door that
+// is only `many` ends with its call.
+outlives_call :: fn(s: Sending) -> bool = s.runs || s.given.len() > 0 || s.written.len() > 0
+
 // Whether `s` hands anything to a task.
-is_door :: fn(s: Sending) -> bool = s.runs || s.given.len() > 0 || s.written.len() > 0
+is_door :: fn(s: Sending) -> bool = s.many || outlives_call(s)
 
 /// What the task check reads of the summary, and the facts it settles.
 TaskCtx :: struct {
@@ -452,7 +460,6 @@ as_touched :: fn(site: Site, target: CallTarget, a: Access) -> Access[] {
 // Note what the callees of `site` do to what it lends them. A struct tasks share by
 // design is no value two tasks could race on: what is done through it is its fns'.
 note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) -> void {
-    paths :: ctx.index.paths
     by :: display_callee(site.callee)
     for target in site.targets {
         params :: known_params(target, ctx.facts)
@@ -471,7 +478,7 @@ note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) 
                     if kind == .Kept && (stores || ctx.keeps_in_another(target, q)) {
                         continue
                     }
-                    if crosses_task_shared(paths, body.typed, lent, a.path) {
+                    if ctx.crosses_shared_at(body, target, q, lent, a.path) {
                         continue
                     }
                     for r in roots {
@@ -540,6 +547,29 @@ lent_type :: fn(body: TaskBody, site: Site, q: i64) -> Type | null {
     }
     source :: site.sources[q] else return null
     return body.typed.expr_types[source.id]
+}
+
+// Whether `path`, what `target` does below its parameter `q`, reaches a struct tasks
+// share by design. It is followed from `lent`, the type the call lends, unless that
+// is a trait the call dispatches on, whose fields are its implementations': then
+// from the parameter of the implementation `target` is.
+crosses_shared_at :: fn(
+    ctx: TaskCtx,
+    body: TaskBody,
+    target: CallTarget,
+    q: i64,
+    lent: Type | null,
+    path: PartPath,
+) -> bool {
+    if lent !is TraitType || target !is CalleeNode {
+        return crosses_task_shared(ctx.index.paths, body.typed, lent, path)
+    }
+    callee :: ctx.index.functions[target.node]
+    if q >= callee.decl.params.len() {
+        return false
+    }
+    own :: callee.typed.param_types[callee.decl.params[q].span.hash()]
+    return crosses_task_shared(ctx.index.paths, callee.typed, own, path)
 }
 
 // Whether `path`, followed down from a value of type `t`, reaches a struct tasks
@@ -707,6 +737,9 @@ note_sending :: fn(ctx: TaskCtx, body: TaskBody) -> bool {
     facts :: ctx.sending[body.node]
     grew := false
     for door in body.doors {
+        if ctx.note_many(body, door, facts) {
+            grew = true
+        }
         if body.ends_inside(door, body.decl_span()) {
             continue
         }
@@ -752,6 +785,58 @@ note_sending :: fn(ctx: TaskCtx, body: TaskBody) -> bool {
         }
     }
     return grew
+}
+
+// Mark `many` the parameters of `body` the task `door` opens runs, when several
+// tasks run them at once. False when nothing grew.
+note_many :: fn(ctx: TaskCtx, body: TaskBody, door: Door, facts: Sending[]) -> bool {
+    grew := false
+    for q in ctx.door_params(body, door) {
+        if !facts[q].many && ctx.runs_at_once(body, door, q) {
+            facts[q].many = true
+            facts[q].launcher = body.decl.name
+            grew = true
+        }
+    }
+    return grew
+}
+
+// Whether several tasks run the parameter `q` of `body` at once, one of them opened
+// by `door`: the door is crossed again while its task runs, it hands `q` to a callee
+// that runs it so, or another door runs `q` while the task still does.
+runs_at_once :: fn(ctx: TaskCtx, body: TaskBody, door: Door, q: i64) -> bool {
+    if door.sending.many {
+        return true
+    }
+    region :: body.region_of(door)
+    if region.repeats != null {
+        return true
+    }
+    for other in body.doors {
+        if other.site.at == door.site.at || q !in ctx.door_params(body, other) {
+            continue
+        }
+        p :: other.site.at.start.offset
+        if p >= door.site.at.end.offset && !ended_before(region, p) {
+            return true
+        }
+    }
+    return false
+}
+
+// The parameters of `body` the task `door` opens runs: the one it forwards to a
+// callee that runs it, and those the lambda it launches calls.
+door_params :: fn(ctx: TaskCtx, body: TaskBody, door: Door) -> i64[] {
+    out: i64[]: []
+    forwards :: door.forwards
+    if (door.sending.runs || door.sending.many) && forwards != null {
+        out.push(forwards)
+    }
+    entry :: door.entry
+    if door.sending.runs && entry != null {
+        out.push_all(ctx.called_params(body, entry))
+    }
+    return out
 }
 
 // Add `path` to `paths` ; false when it held it.

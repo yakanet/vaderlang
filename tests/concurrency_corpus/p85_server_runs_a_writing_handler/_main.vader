@@ -1,0 +1,37 @@
+// P85: a server runs the handler it is given in several tasks, and
+// the handler writes what it captures: the tasks race on it.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+State :: struct {
+    hits: i32 = 0
+}
+
+Handler :: fn(i64) -> i32
+
+// Runs `handler` in three tasks at once, then joins them.
+serve :: fn(handler: Handler) -> i32 {
+    tasks: Task<i32>[]: []
+    for id in 0..<3 {
+        tasks.push(launch(() -> handler(id)))
+    }
+    total := 0
+    for t in tasks {
+        total += t.join() else 0
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    state :: State {}
+    total :: serve((id) -> {
+        state.hits += 1
+        return 0
+    })
+    return total + state.hits
+}

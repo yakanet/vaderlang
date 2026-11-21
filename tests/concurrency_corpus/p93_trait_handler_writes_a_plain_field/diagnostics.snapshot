@@ -1,0 +1,1 @@
+[30:20] error[T3129] value written by several tasks: each task launched here writes `handler.hits[]` (through `handle`, which writes it at line 21), which they all share ; let each task return its part, or give each one its own value

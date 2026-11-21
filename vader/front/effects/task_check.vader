@@ -59,7 +59,7 @@ check_door :: fn(
     region :: body.region_of(door)
     // A store under a lock crossed again stores under the same lock: what each
     // crossing hands on is reached under it, not by tasks of their own.
-    repeats :: region.repeats
+    repeats :: repeated_at(door, region)
     shared: SharedWrites[]: []
     if repeats != null && !door.stored {
         outside :: (t: Touch) -> !body.bound_inside(t.root, repeats)
@@ -70,6 +70,14 @@ check_door :: fn(
                 shared.push(SharedWrites { .writes = group })
             }
         }
+    }
+    // A door that is only `many` ends with its call: its tasks race with one
+    // another alone.
+    if !outlives_call(door.sending) && door.left.len() == 0 {
+        for w in shared {
+            out.push(ctx.repeated_write(body, door, w))
+        }
+        return
     }
     candidates: Candidate[]: []
     for s in body.touches {
@@ -102,6 +110,17 @@ check_door :: fn(
     }
     ctx.keep_outermost(body, door, candidates, out, seen)
     ctx.check_rebinds(body, door, region, escaping, out, seen)
+}
+
+// Where the tasks `door` opens are opened again while one runs: the loop around the
+// door, or, when the callee runs the lambda the door hands in several tasks, the
+// lambda itself, whose own bindings are each task's.
+repeated_at :: fn(door: Door, region: Region) -> Span | null {
+    entry :: door.entry
+    if door.sending.many && entry != null {
+        return entry.span
+    }
+    return region.repeats
 }
 
 // A fault a touch beside the task makes, before those of the touches it holds and
@@ -385,6 +404,9 @@ shared_with :: fn(shared: SharedWrites) -> string {
 repeated_label :: fn(door: Door) -> string {
     if door.left.len() > 0 {
         return "each task `${door.sending.launcher}` leaves running here"
+    }
+    if door.sending.many && door.entry != null {
+        return "each task `${door.sending.launcher}` runs this function in"
     }
     return "each task launched here"
 }

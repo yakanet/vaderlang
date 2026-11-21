@@ -1,0 +1,32 @@
+// P91: a server launches the handler twice before it joins either:
+// two tasks run it at once.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+State :: struct {
+    hits: i32 = 0
+}
+
+Handler :: fn(i64) -> i32
+
+// Runs `handler` in two tasks at once.
+serve :: fn(handler: Handler) -> i32 {
+    a :: launch(() -> handler(1))
+    b :: launch(() -> handler(2))
+    x :: a.join() else 0
+    y :: b.join() else 0
+    return x + y
+}
+
+main :: fn() -> i32 {
+    state :: State {}
+    return serve((id) -> {
+        state.hits += 1
+        return 0
+    })
+}
