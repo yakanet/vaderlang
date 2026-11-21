@@ -594,7 +594,9 @@ written_at :: fn(frozen: FrozenSites, c: RootCase, h: Root, a: Access) -> bool {
 // The type found `path` below a value of type `t`, as far as the steps can be
 // followed. A step the walk cannot follow stops it at the type above, which
 // reaches everything the step would.
-type_below :: fn(paths: PathTable, typed: TypedProgram, t: Type | null, path: PartPath) -> Type | null {
+type_below :: fn(
+    paths: PathTable, typed: TypedProgram, t: Type | null, path: PartPath,
+) -> Type | null {
     at := t
     for step in steps_of(path) {
         at = step_type(typed, at, paths.step_names[step]) else return at

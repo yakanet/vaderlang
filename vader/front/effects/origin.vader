@@ -208,5 +208,6 @@ test_find_access_skips_an_ancestor_that_is_no_cut :: fn() -> void {
     effects :: ParamEffects {}
     include(effects, path_of(t, ["a"]), .Assigned)
     deep :: Access { .path = path_of(t, ["a", "b"]), .effect = .Assigned }
-    assert(find_access(effects, access_key(effects, deep)) == null, "`.a` does not stand for `.a.b`")
+    found :: find_access(effects, access_key(effects, deep))
+    assert(found == null, "`.a` does not stand for `.a.b`")
 }

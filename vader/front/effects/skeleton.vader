@@ -906,7 +906,8 @@ import "std/testing"
 UNSET :: UnsettledCallee {}
 
 // What an evaluation against `facts` reads, every callee alone in its component.
-test_ctx :: fn(facts: ParamEffects[][]) -> EvalCtx = EvalCtx { .facts = facts, .any = any_effects() }
+test_ctx :: fn(facts: ParamEffects[][]) -> EvalCtx =
+    EvalCtx { .facts = facts, .any = any_effects() }
 
 // What the function does with each of its parameters, from empty sets.
 evaluated :: fn(s: Skeleton, ctx: EvalCtx) -> ParamEffects[] {

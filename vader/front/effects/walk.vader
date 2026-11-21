@@ -341,7 +341,9 @@ store :: fn(ctx: WalkCtx, value: i64 | null, holder: i64 | null, path: PartPath,
 
 // `literal` holds the part `path` of `value`, `under` below its own value. The
 // summary records that part as kept, at `at` ; the task check follows it.
-hold :: fn(ctx: WalkCtx, literal: i64, value: i64 | null, path: PartPath, under: PartPath, at: Span) -> void {
+hold :: fn(
+    ctx: WalkCtx, literal: i64, value: i64 | null, path: PartPath, under: PartPath, at: Span,
+) -> void {
     from :: value else return
     ctx.s.held_marks.push(ctx.s.marks.len())
     ctx.s.add_mark(from, path, .Stored, at)
