@@ -359,8 +359,10 @@ static void vader_mutex_take(_Atomic uint32_t* word) {
     }
 }
 
-void vader_scheduler_mutex_lock(void* mutex) {
-    if (g_monitor_guard == NULL) return;
+/* Set once, as the pool starts, before any other worker runs. */
+int vader_scheduler_pooled = 0;
+
+void vader_scheduler_mutex_lock_pooled(void* mutex) {
     vader_worker_t* w = &vader_worker;
     if (w->in_monitor & VADER_HOLDS_MUTEX) {
         vader_trap("virtual threads: a mutex taken by a thread that holds one");
@@ -372,8 +374,7 @@ void vader_scheduler_mutex_lock(void* mutex) {
 
 /* What the holder allocated is marked whole before another worker can take the
  * mutex and read it. */
-void vader_scheduler_mutex_unlock(void* mutex) {
-    if (g_monitor_guard == NULL) return;
+void vader_scheduler_mutex_unlock_pooled(void* mutex) {
     vader_worker_t* w = &vader_worker;
     if (!(w->in_monitor & VADER_HOLDS_MUTEX)) {
         vader_trap("virtual threads: a mutex let go by a thread that does not hold it");
@@ -1084,6 +1085,7 @@ static void vader_scheduler_start_pool(void) {
     g_scheduler_guard = vader_os_lock_new();
     g_monitor_guard = vader_os_lock_new();
     vader_mutex_buckets_start();
+    vader_scheduler_pooled = 1;
     for (size_t i = 0; i < threads; i++) g_scheduler_workers[i].wake = vader_os_cond_new();
     g_scheduler_threads = (uint32_t) threads;
     vader_scheduler_lock();

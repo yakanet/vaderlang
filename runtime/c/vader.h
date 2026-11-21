@@ -1711,9 +1711,17 @@ void    vader_scheduler_publish_box(vader_box_t value);
  * exclusive lock over the state of one value. With several workers, the worker
  * allocates in the old generation while it holds it. A leaf: its holder takes
  * no other mutex nor the monitor, and does not park; taking it under the
- * monitor is allowed. With one worker, nothing. */
-void    vader_scheduler_mutex_lock(void* mutex);
-void    vader_scheduler_mutex_unlock(void* mutex);
+ * monitor is allowed. With one worker, nothing: the test is inline, so that a
+ * program on one worker pays no call. */
+extern int vader_scheduler_pooled;
+void    vader_scheduler_mutex_lock_pooled(void* mutex);
+void    vader_scheduler_mutex_unlock_pooled(void* mutex);
+static inline void vader_scheduler_mutex_lock(void* mutex) {
+    if (vader_scheduler_pooled) vader_scheduler_mutex_lock_pooled(mutex);
+}
+static inline void vader_scheduler_mutex_unlock(void* mutex) {
+    if (vader_scheduler_pooled) vader_scheduler_mutex_unlock_pooled(mutex);
+}
 /* Let go of `mutex`, park, then take it back; a thread cancelled meanwhile
  * takes it back before its defers run. */
 void    vader_scheduler_mutex_wait(void* mutex);
