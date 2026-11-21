@@ -1,0 +1,43 @@
+# Typecheck
+
+## tests/snippets/reflection_through_a_type_parameter
+  FnDecl         facts                :: fn(T) -> string
+  StructDecl     Label                :: Label
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  FnDecl         size_of_value        :: fn(T) -> i64
+  expr 14:39    FieldExpr      :: string
+  expr 14:39    IdentExpr      :: Label
+  expr 18:25    IntrinsicCallExpr :: string
+  expr 18:42    IntrinsicCallExpr :: i64
+  expr 18:5     StringLitExpr  :: string
+  expr 18:51    IdentExpr      :: T
+  expr 18:57    IntrinsicCallExpr :: i64
+  expr 18:76    IntrinsicCallExpr :: bool
+  expr 18:8     IntrinsicCallExpr :: string
+  expr 20:39    IntrinsicCallExpr :: i64
+  expr 20:48    IntrinsicCallExpr :: type
+  expr 20:57    IdentExpr      :: T
+  expr 23:13    CallExpr       :: string
+  expr 23:13    IdentExpr      :: fn(T) -> string
+  expr 23:19    StructLitExpr  :: Point
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 24:13    CallExpr       :: string
+  expr 24:13    IdentExpr      :: fn(T) -> string
+  expr 24:19    StructLitExpr  :: Label
+  expr 24:35    StringLitExpr  :: string
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 25:13    CallExpr       :: string
+  expr 25:13    IdentExpr      :: fn(T) -> string
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void
+  expr 26:13    StringLitExpr  :: string
+  expr 26:16    CallExpr       :: i64
+  expr 26:16    IdentExpr      :: fn(T) -> i64
+  expr 26:30    StructLitExpr  :: Point
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
+  expr 26:67    CallExpr       :: i64
+  expr 26:67    IdentExpr      :: fn(T) -> i64

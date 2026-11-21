@@ -1,0 +1,28 @@
+module "snippet"
+
+import "std/console"
+
+// A generic body that reflects on its `T` reads the type each call binds it to,
+// a struct included: such a body keeps a concrete instance per type, as one that
+// tests `x is U` does, instead of the shared instance where `T` is `Any`.
+
+Point :: struct { x: i64, y: i64, z: i64 }
+
+Label :: struct { text: string }
+
+Label implements Display {
+    to_string :: fn(self) -> string = self.text
+}
+
+facts :: fn<T>(x: T) -> string =
+    "${@type_name(T)} ${@type_kind(T)} ${@size_of(T)} ${@field_count(T)} ${@satisfies(T, Display)}"
+
+size_of_value :: fn<T>(x: T) -> i64 = @size_of(@type_of(x))
+
+main :: fn() -> i32 {
+    println(facts(Point { .x = 1, .y = 2, .z = 3 }))
+    println(facts(Label { .text = "a" }))
+    println(facts(7))
+    println("${size_of_value(Point { .x = 1, .y = 2, .z = 3 })} ${size_of_value(7)}")
+    return 0
+}

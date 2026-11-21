@@ -33,6 +33,7 @@ infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diag
                 // falls through to LoweredUnreachable.
                 resolved :: type_from_expr(e.args[i], typed.resolved, diags)
                 typed.type_expr_types[e.args[i].span.hash()] = resolved
+                observe_reflected_type(resolved, typed)
             }
         }
     }
@@ -57,8 +58,12 @@ infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diag
         .Field       -> infer_field_intrinsic(e, typed, diags)
         .Decorator   -> infer_decorator_intrinsic(e, typed, diags)
         .Min | .Max  -> integer_bound_type(e, typed, diags)
+        .TypeOf      -> {
+            observe_reflected_type(typed.expr_types[e.args[0].id], typed)
+            type_for_result(info.result, typed)
+        }
         .SizeOf | .AlignOf | .TypeName | .TypeKind | .FieldCount | .VariantCount
-            | .Satisfies | .TypeOf | .TypeArgs -> type_for_result(info.result, typed)
+            | .Satisfies | .TypeArgs -> type_for_result(info.result, typed)
     }
 }
 
@@ -126,9 +131,22 @@ check_intrinsic_value :: fn(
     got :: check_expr(arg, null, typed, diags)
     if is_type_operand(arg, typed.resolved) {
         scratch: Diagnostic[]: []
-        typed.type_expr_types[arg.span.hash()] = type_from_expr(arg, typed.resolved, scratch)
+        resolved :: type_from_expr(arg, typed.resolved, scratch)
+        typed.type_expr_types[arg.span.hash()] = resolved
+        observe_reflected_type(resolved, typed)
     } else if kind == .TypeValue {
         check_type_value(arg, got, diags)
+    }
+}
+
+// An intrinsic that reflects on a type holding a type parameter reads what the
+// instance binds it to, as `x is U` does: the fn keeps concrete instances, or an
+// erased one answers for `Any`. An impl member is left alone: it keeps no body per
+// instance, so a parameter of the impl reads right only when its argument stays
+// concrete (a primitive, an enum), and refusing it would refuse those too.
+observe_reflected_type :: fn(t: Type | null, typed: TypedProgram) -> void {
+    if t != null && typed.enclosing_impl == 0 && type_contains_type_param(t) {
+        observe_type_params(typed)
     }
 }
 

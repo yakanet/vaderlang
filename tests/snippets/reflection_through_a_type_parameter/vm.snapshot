@@ -1,0 +1,7 @@
+# stdout
+Point struct 8 3 false
+Label struct 8 1 true
+i32 primitive 4 0 true
+8 4
+# exit
+0
