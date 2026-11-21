@@ -30,7 +30,7 @@ KeptInto :: struct {
     /// The parameter that keeps it.
     holder: i64
     /// Where below the holder.
-    path: i32
+    path: PartPath
 }
 
 // Per node, the parameters it keeps in other parameters. A node that stores nothing
@@ -92,7 +92,7 @@ note_kept_into :: fn(ctx: TaskCtx, kept: KeptInto[][], node: i32) -> bool {
                 }
                 // The store puts the value in the place it writes: in `h` only below
                 // where the holder holds it.
-                into :: ctx.index.paths.lands_at(h, m.path, .Assigned) else continue
+                into :: lands_at(h, m.path, .Assigned) else continue
                 k :: KeptInto {
                     .value = v.param,
                     .holder = h.param,

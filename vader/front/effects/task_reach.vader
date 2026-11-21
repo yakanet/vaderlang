@@ -35,7 +35,7 @@ Reach :: struct {
 SingletonTouch :: struct {
     /// The singleton's position in `TaskCtx.singleton_nodes`.
     singleton: i64
-    path: i32
+    path: PartPath
     kind: TouchKind
 }
 

@@ -51,7 +51,7 @@ lent_effects :: fn(paths: PathTable, p: TaskPrimitive, q: i64) -> ParamEffects {
     if p.guards != "" {
         // The fn holding the lock may do anything with the guarded value, keep it
         // included.
-        guarded :: paths.cut(paths.path_to(p.guards))
+        guarded :: cut(paths.path_to(p.guards))
         effects.insert(Access { .path = guarded, .effect = .Stored })
         effects.insert(Access { .path = guarded, .effect = .Unknown })
     }
@@ -63,14 +63,14 @@ lent_effects :: fn(paths: PathTable, p: TaskPrimitive, q: i64) -> ParamEffects {
 joined_effects :: fn(paths: PathTable, each: bool) -> ParamEffects {
     result :: element_of(paths, TASK_RESULT)
     if each {
-        return effects_of(.Returned, paths.joined(paths.path_to(ELEMENT), result))
+        return effects_of(.Returned, joined(paths.path_to(ELEMENT), result))
     }
     return effects_of(.Returned, result)
 }
 
 // The path to an element of the array field `field`.
-element_of :: fn(paths: PathTable, field: string) -> i32 =
-    paths.child(paths.path_to(field), paths.step_id(ELEMENT))
+element_of :: fn(paths: PathTable, field: string) -> PartPath =
+    child(paths.path_to(field), ELEMENT_STEP)
 
 /// What `callee` is to the task check, when it is a primitive ; null for any other
 /// callee.

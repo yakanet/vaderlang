@@ -93,7 +93,7 @@ settle_widenings :: fn(
 ) -> WideningSite[] {
     out: WideningSite[]: []
     for w in widenings {
-        out.push(widening_outcome(w, facts, index.paths, index.any))
+        out.push(widening_outcome(w, facts, index.any))
     }
     return out
 }
@@ -102,15 +102,14 @@ settle_widenings :: fn(
 widening_outcome :: fn(
     w: PendingWidening,
     facts: ParamEffects[][],
-    paths: PathTable,
     any: ParamEffects,
 ) -> WideningSite {
     for target in w.targets {
         if target is AnyCallee | CalledParam {
             return WideningSite { ...w.site, .verdict = .UnknownCallee }
         }
-        for a in accesses_of_param(known_params(target, facts), w.site.param, any) {
-            if paths.breaks_widening(a, w.site.depth) {
+        for a in effects_of_param(known_params(target, facts), w.site.param, any).accesses {
+            if breaks_widening(a, w.site.depth) {
                 return WideningSite {
                     ...w.site,
                     .verdict = .Breaks,
@@ -191,7 +190,7 @@ what_it_may_do :: fn(effect: Effect, target: string) -> string = match effect {
 
 // The part of the argument at `path`, by the parameter's name when the call names
 // one.
-argument_label :: fn(site: WideningSite, paths: PathTable, path: i32) -> string {
+argument_label :: fn(site: WideningSite, paths: PathTable, path: PartPath) -> string {
     below :: paths.display_steps(path)
     name :: parameter_name(site.callee, site.param)
     if name != null {

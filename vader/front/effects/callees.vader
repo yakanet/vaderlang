@@ -249,7 +249,7 @@ forwarded_effects :: fn(
     if id == .DeepCopy {
         index.deep_copies.add(decl.id)
     }
-    return member_summary(id, index.paths).params
+    return member_summary(id).params
 }
 
 // What `decl`, summarised without its body, does: an `@extern` writes what `@c_out`
@@ -268,7 +268,7 @@ summary_target :: fn(
     // other impls of its trait.
     signature :: index.signature_of(decl, typed)
     member :: member_of(index, decl)
-    known :: member_summary(member, index.paths)
+    known :: member_summary(member)
     if known.frozen_view {
         index.frozen_views.add(decl.id)
         index.view = returned_array(signature)
@@ -439,26 +439,25 @@ MemberSummary :: struct {
 /// What the member `id` of `Intrinsic` does with its parameters. Exhaustive, so a
 /// new member is a decision here.
 ///
-/// @param id     the member.
-/// @param paths  the summary's paths.
-member_summary :: fn(id: IntrinsicId, paths: PathTable) -> MemberSummary = match id {
+/// @param id  the member.
+member_summary :: fn(id: IntrinsicId) -> MemberSummary = match id {
     .Bytes              -> MemberSummary { .frozen_view = true }
     .BytesToString      -> MemberSummary { .params = [none()] }
     .DeepCopy           -> MemberSummary { .params = [none()] }
-    .FfiCall            -> MemberSummary { .params = ffi_call_effects(elements_of(paths)) }
-    .FfiCallFrame       -> MemberSummary { .params = ffi_call_frame_effects(elements_of(paths)) }
+    .FfiCall            -> MemberSummary { .params = ffi_call_effects(elements_of()) }
+    .FfiCallFrame       -> MemberSummary { .params = ffi_call_frame_effects(elements_of()) }
     .ArrayLen           -> MemberSummary { .params = [none()] }
     .ArrayPush          -> MemberSummary { .params = push_effects(ROOT) }
-    .ArrayPushAll       -> MemberSummary { .params = push_effects(elements_of(paths)) }
-    .ArrayCopyTo        -> MemberSummary { .params = copy_to_effects(elements_of(paths)) }
-    .ArrayRemoveLast    -> MemberSummary { .params = [remove_last_effects(elements_of(paths))] }
+    .ArrayPushAll       -> MemberSummary { .params = push_effects(elements_of()) }
+    .ArrayCopyTo        -> MemberSummary { .params = copy_to_effects(elements_of()) }
+    .ArrayRemoveLast    -> MemberSummary { .params = [remove_last_effects(elements_of())] }
     .ArrayClear         -> MemberSummary { .params = [effects_of(.Shrunk, ROOT)] }
     .NewByteBuffer      -> MemberSummary { .params = [none()] }
     .BufferLoadU8       -> MemberSummary { .params = [none(), none()] }
-    .BufferStoreU8      -> MemberSummary { .params = writes_bytes(elements_of(paths)) }
-    .BufferMemoryCopy   -> MemberSummary { .params = memory_copy_effects(elements_of(paths)) }
+    .BufferStoreU8      -> MemberSummary { .params = writes_bytes(elements_of()) }
+    .BufferMemoryCopy   -> MemberSummary { .params = memory_copy_effects(elements_of()) }
     .BufferInternString -> MemberSummary { .params = [none(), none()] }
-    .BufferWriteString  -> MemberSummary { .params = writes_bytes(elements_of(paths)) }
+    .BufferWriteString  -> MemberSummary { .params = writes_bytes(elements_of()) }
     // Their signature says it all: scalars and strings, which nothing writes.
     .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash
         | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
@@ -484,50 +483,50 @@ member_summary :: fn(id: IntrinsicId, paths: PathTable) -> MemberSummary = match
 
 // `self.push(value)` and `self.push_all(other)`: `self` grows, and keeps the value
 // at `kept` below the argument (the value itself, or the elements of `other`).
-push_effects :: fn(kept: i32) -> ParamEffects[] =
+push_effects :: fn(kept: PartPath) -> ParamEffects[] =
     [effects_of(.Resized, ROOT), effects_of(.Stored, kept)]
 
 // `store_u8` and `write_string` write bytes of `self`.
-writes_bytes :: fn(elements: i32) -> ParamEffects[] =
+writes_bytes :: fn(elements: PartPath) -> ParamEffects[] =
     [effects_of(.Assigned, elements), none(), none()]
 
 // `self.copy_to(source_offset, destination, destination_offset, count)`: the
 // elements of `self` go into `destination`.
-copy_to_effects :: fn(elements: i32) -> ParamEffects[] =
+copy_to_effects :: fn(elements: PartPath) -> ParamEffects[] =
     [effects_of(.Stored, elements), none(), effects_of(.Assigned, elements), none(), none()]
 
 // `self.remove_last()` shortens `self` and hands back the element it removed.
-remove_last_effects :: fn(elements: i32) -> ParamEffects {
+remove_last_effects :: fn(elements: PartPath) -> ParamEffects {
     effects :: effects_of(.Shrunk, ROOT)
     effects.insert(Access { .path = elements, .effect = .Returned })
     return effects
 }
 
 // `self.memory_copy(d, src, s, n)` writes bytes of `self`, read from `src`.
-memory_copy_effects :: fn(elements: i32) -> ParamEffects[] =
+memory_copy_effects :: fn(elements: PartPath) -> ParamEffects[] =
     [effects_of(.Assigned, elements), none(), none(), none(), none()]
 
 // `ffi_call(fn_ptr, desc, frame, nfixed)`: the foreign function writes its result
 // into `frame`.
-ffi_call_effects :: fn(elements: i32) -> ParamEffects[] =
+ffi_call_effects :: fn(elements: PartPath) -> ParamEffects[] =
     [none(), none(), effects_of(.Assigned, elements), none()]
 
 // `ffi_call_frame(fn_ptr, desc, frame)`: the adapter writes its result into
 // `frame`, as the runtime does the addresses it resolves.
-ffi_call_frame_effects :: fn(elements: i32) -> ParamEffects[] =
+ffi_call_frame_effects :: fn(elements: PartPath) -> ParamEffects[] =
     [none(), none(), effects_of(.Assigned, elements)]
 
 none :: fn() -> ParamEffects = ParamEffects {}
 
 // The single access `effect` at `path`.
-effects_of :: fn(effect: Effect, path: i32) -> ParamEffects {
+effects_of :: fn(effect: Effect, path: PartPath) -> ParamEffects {
     effects :: ParamEffects {}
     effects.insert(Access { .path = path, .effect = effect })
     return effects
 }
 
 // The path to the elements of a parameter.
-elements_of :: fn(paths: PathTable) -> i32 = paths.path_to(ELEMENT)
+elements_of :: fn() -> PartPath = child(ROOT, ELEMENT_STEP)
 
 // ---- tests ----------------------------------------------------------------
 
@@ -535,7 +534,7 @@ import "std/testing"
 
 @test
 test_member_summary_push_resizes_and_stores :: fn() -> void {
-    effects :: member_summary(.ArrayPush, PathTable {}).params else []
+    effects :: member_summary(.ArrayPush).params else []
     assert_eq(effects.len(), 2)
     assert(effects[0].accesses[0].effect == .Resized, "push resizes its receiver")
     assert(effects[1].accesses[0].effect == .Stored, "push keeps its value")
@@ -543,7 +542,7 @@ test_member_summary_push_resizes_and_stores :: fn() -> void {
 
 @test
 test_member_summary_of_no_member :: fn() -> void {
-    assert(member_summary(.NotIntrinsic, PathTable {}).params == null, "no member")
+    assert(member_summary(.NotIntrinsic).params == null, "no member")
 }
 
 @test

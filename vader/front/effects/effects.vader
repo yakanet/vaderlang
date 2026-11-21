@@ -131,7 +131,6 @@ node_ctx :: fn(
     node: i32,
 ) -> EvalCtx = EvalCtx {
     .facts = facts,
-    .paths = index.paths,
     .components = components,
     .node = node,
     .any = index.any,

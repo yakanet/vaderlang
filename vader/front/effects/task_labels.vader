@@ -20,20 +20,20 @@ import "vader/front/typecheck"
 // ---- places ---------------------------------------------------------------
 
 // How a detail names the value at `path` below root `root`.
-place_of :: fn(ctx: TaskCtx, body: TaskBody, root: i64, path: i32) -> string =
+place_of :: fn(ctx: TaskCtx, body: TaskBody, root: i64, path: PartPath) -> string =
     ctx.index.paths.place_label(ctx.root_name(body, root), ctx.visible_path(body, root, path))
 
 // `path`, up to the first field the module of `body` cannot see ; all of it when
 // the types cannot be followed that far.
-visible_path :: fn(ctx: TaskCtx, body: TaskBody, root: i64, path: i32) -> i32 {
+visible_path :: fn(ctx: TaskCtx, body: TaskBody, root: i64, path: PartPath) -> PartPath {
     paths :: ctx.index.paths
-    steps :: paths.steps_of(path)
+    steps :: steps_of(path)
     at := body.root_type(root)
     for k in 0..<steps.len() {
         t :: at else return path
         name :: paths.step_names[steps[k]]
         if body.hides(t, name) {
-            return paths.prefix(path, i32(k))
+            return prefix(path, i32(k))
         }
         at = step_type(body.typed, t, name)
     }

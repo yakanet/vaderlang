@@ -265,7 +265,7 @@ drained_at_once :: fn(ctx: TaskCtx, body: TaskBody, site: Site) -> bool {
 
 // Whether `target` may keep what its parameter `q` is handed.
 keeps_param :: fn(ctx: TaskCtx, target: CallTarget, q: i64) -> bool {
-    accesses :: accesses_of_param(known_params(target, ctx.facts), q, ctx.index.any)
+    accesses :: effects_of_param(known_params(target, ctx.facts), q, ctx.index.any).accesses
     return accesses.any_match((a) -> a.effect == .Stored || is_unknown(a))
 }
 

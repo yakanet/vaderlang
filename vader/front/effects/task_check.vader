@@ -57,14 +57,13 @@ check_door :: fn(
     }
     task :: ctx.task_touches(body, door)
     region :: body.region_of(door)
-    paths :: ctx.index.paths
     // A store under a lock crossed again stores under the same lock: what each
     // crossing hands on is reached under it, not by tasks of their own.
     repeats :: region.repeats
     shared: SharedWrites[]: []
     if repeats != null && !door.stored {
         outside :: (t: Touch) -> !body.bound_inside(t.root, repeats)
-        writes: Touch[]: outermost_writes(paths, task).filter(outside).collect()
+        writes: Touch[]: outermost_writes(task).filter(outside).collect()
         for group in by_root_and_callee(writes) {
             key :: "repeat ${group[0].root} ${group[0].by} ${door.site.at.start.offset}"
             if seen.add(key) {
@@ -78,10 +77,10 @@ check_door :: fn(
         if !body.in_region(door, region, p, s.root) {
             continue
         }
-        t :: strongest_clash(paths, task, s) else continue
+        t :: strongest_clash(task, s) else continue
         // A clash with a write the crossings share is that fault's too: each task
         // returning its part ends both.
-        held :: shared.find((w) -> w.holds(paths, t))
+        held :: shared.find((w) -> w.holds(t))
         if held != null {
             held.lines.add_line(s.at.start.line, door.site.at.start.line)
             continue
@@ -133,11 +132,11 @@ SharedWrites :: struct {
 }
 
 // Whether the task's write `t` is one of `w`.
-holds :: fn(w: SharedWrites, paths: PathTable, t: Touch) -> bool {
+holds :: fn(w: SharedWrites, t: Touch) -> bool {
     if t.kind != .Write {
         return false
     }
-    return w.writes.any_match((u) -> u.root == t.root && overlaps(paths, u.path, t.path))
+    return w.writes.any_match((u) -> u.root == t.root && overlaps(u.path, t.path))
 }
 
 // Add `line` to `lines`, the lines a fault at line `anchor` names besides its own.
@@ -149,13 +148,13 @@ add_line :: fn(lines: i32[], line: i32, anchor: i32) -> void {
 
 // The task's touch that `s` clashes with, the strongest first: a write, a keep,
 // then a read ; null when they do not clash.
-strongest_clash :: fn(paths: PathTable, task: Touch[], s: Touch) -> Touch | null {
+strongest_clash :: fn(task: Touch[], s: Touch) -> Touch | null {
     found: Touch | null = null
     for t in task {
         if t.root != s.root || (t.kind == .Read && s.kind == .Read) {
             continue
         }
-        if !overlaps(paths, t.path, s.path) {
+        if !overlaps(t.path, s.path) {
             continue
         }
         if found == null || strength(t.kind) > strength(found.kind) {
@@ -243,8 +242,8 @@ entry_label :: fn(door: Door) -> string {
 }
 
 // Whether a path is below the other: what one access reaches, the other does.
-overlaps :: fn(paths: PathTable, p: i32, q: i32) -> bool =
-    paths.extends(p, q) || paths.extends(q, p)
+overlaps :: fn(p: PartPath, q: PartPath) -> bool =
+    extends(p, q) || extends(q, p)
 
 // Whether `s` is done by another task: inside the lambda of another door, or by a
 // call that hands the value to one.
@@ -321,7 +320,7 @@ task_label :: fn(door: Door) -> string {
 
 // The writes of `task`, one per place: a write below another of the same root is
 // the outer one's.
-outermost_writes :: fn(paths: PathTable, task: Touch[]) -> Touch[] {
+outermost_writes :: fn(task: Touch[]) -> Touch[] {
     out: Touch[]: []
     for t in task {
         if t.kind != .Write {
@@ -331,7 +330,7 @@ outermost_writes :: fn(paths: PathTable, task: Touch[]) -> Touch[] {
             if u.kind != .Write || u.root != t.root || u.path == t.path {
                 return false
             }
-            return paths.extends(t.path, u.path)
+            return extends(t.path, u.path)
         })
         if !held && !out.any_match((u) -> u.root == t.root && u.path == t.path) {
             out.push(t)

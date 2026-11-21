@@ -332,7 +332,7 @@ local_slot :: fn(ctx: WalkCtx, sym: Symbol, span: Span) -> i64 {
 
 // `value` is now a part of `holder`, at `path` below it: the task check reads it as
 // a flow, the summary as the store its marks already record.
-store :: fn(ctx: WalkCtx, value: i64 | null, holder: i64 | null, path: i32, at: Span) -> void {
+store :: fn(ctx: WalkCtx, value: i64 | null, holder: i64 | null, path: PartPath, at: Span) -> void {
     into :: value else return
     from :: holder else return
     ctx.s.stores.push(Flow { .into = into, .from = from, .path = path })
@@ -341,7 +341,7 @@ store :: fn(ctx: WalkCtx, value: i64 | null, holder: i64 | null, path: i32, at: 
 
 // `literal` holds the part `path` of `value`, `under` below its own value. The
 // summary records that part as kept, at `at` ; the task check follows it.
-hold :: fn(ctx: WalkCtx, literal: i64, value: i64 | null, path: i32, under: i32, at: Span) -> void {
+hold :: fn(ctx: WalkCtx, literal: i64, value: i64 | null, path: PartPath, under: PartPath, at: Span) -> void {
     from :: value else return
     ctx.s.held_marks.push(ctx.s.marks.len())
     ctx.s.add_mark(from, path, .Stored, at)
@@ -352,7 +352,7 @@ hold :: fn(ctx: WalkCtx, literal: i64, value: i64 | null, path: i32, under: i32,
 
 // The function does `effect` at `path` below `value`, at `at`, when `value` holds
 // anything lent.
-mark :: fn(ctx: WalkCtx, value: i64 | null, path: i32, effect: Effect, at: Span) -> void {
+mark :: fn(ctx: WalkCtx, value: i64 | null, path: PartPath, effect: Effect, at: Span) -> void {
     if value != null {
         ctx.s.add_mark(value, path, effect, at)
     }
@@ -383,7 +383,7 @@ step_slot :: fn(ctx: WalkCtx, value: i64 | null, step: string) -> i64 | null {
 }
 
 // A slot holding what `value` holds at `path` below it, null when `value` is.
-path_slot :: fn(ctx: WalkCtx, value: i64 | null, path: i32) -> i64 | null {
+path_slot :: fn(ctx: WalkCtx, value: i64 | null, path: PartPath) -> i64 | null {
     from :: value else return null
     slot :: ctx.s.fresh_slot()
     ctx.s.add_flow(slot, from, path)
@@ -517,7 +517,7 @@ grows :: fn(effects: ParamEffects) -> bool =
 
 // Where a value a call appends sits below the array it grows, the call keeping it
 // at `kept`: an element, or for the elements of another array, the same place.
-appended_path :: fn(ctx: WalkCtx, kept: i32) -> i32 {
+appended_path :: fn(ctx: WalkCtx, kept: PartPath) -> PartPath {
     if kept == ROOT {
         return ctx.index.paths.path_to(ELEMENT)
     }

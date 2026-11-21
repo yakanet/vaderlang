@@ -37,9 +37,9 @@ Sending :: struct {
     /// The parameter is the function a task runs.
     runs: bool = false
     /// The paths below the parameter a task reads, everything below them included.
-    given: i32[] = []
+    given: PartPath[] = []
     /// The paths below the parameter a task may write.
-    written: i32[] = []
+    written: PartPath[] = []
     /// The function that launches the task, for the detail.
     launcher: string = ""
 }
@@ -210,7 +210,7 @@ TaskBody :: struct {
 /// One access of the body to a root.
 Touch :: struct {
     root: i64
-    path: i32
+    path: PartPath
     kind: TouchKind
     /// The expression that makes it.
     at: Span
@@ -360,7 +360,6 @@ handed_to_param :: fn(a: Access, k: i64) -> bool = a.effect == .Handed && i64(a.
 // What evaluating the body of `node` reads of the settled summary.
 eval_ctx :: fn(ctx: TaskCtx, node: i32) -> EvalCtx = EvalCtx {
     .facts = ctx.facts,
-    .paths = ctx.index.paths,
     .components = ctx.components,
     .node = node,
     .any = ctx.index.any,
@@ -373,7 +372,6 @@ roots_at :: fn(body: TaskBody, slot: i64) -> Root[] = body.slots.roots[slot] els
 // stores, and what its calls do to what they are lent. A value a literal holds is
 // followed into the literal, not kept.
 note_touches :: fn(ctx: TaskCtx, body: TaskBody) -> void {
-    paths :: ctx.index.paths
     stored :: Set<Span> {}
     for at in body.s.stored_at {
         stored.add(at)
@@ -401,7 +399,7 @@ note_touches :: fn(ctx: TaskCtx, body: TaskBody) -> void {
             continue
         }
         for r in body.roots_at(m.slot) {
-            below :: paths.lands_at(r, m.access.path, m.access.effect) else continue
+            below :: lands_at(r, m.access.path, m.access.effect) else continue
             touch :: Touch {
                 .root = r.param,
                 .path = below,
@@ -437,14 +435,14 @@ touch_kind :: fn(e: Effect) -> TouchKind | null = match e {
 // for a value handed to a function value. A lambda the site writes gets it through
 // its parameters, whose slots carry what its body does: no access of its own. Any
 // other function value is code the check cannot see.
-as_touched :: fn(paths: PathTable, site: Site, target: CallTarget, a: Access) -> Access[] {
+as_touched :: fn(site: Site, target: CallTarget, a: Access) -> Access[] {
     if a.effect != .Handed {
         return [a]
     }
     if site.fn_value_of(target, a) is LambdaArg {
         return []
     }
-    anywhere :: paths.cut(a.path)
+    anywhere :: cut(a.path)
     return [
         Access { .path = anywhere, .effect = .Unknown },
         Access { .path = anywhere, .effect = .Stored },
@@ -466,9 +464,9 @@ note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) 
                 continue
             }
             sent :: ctx.sending_at(site, q) != null
-            accesses :: target_accesses(target, ctx.facts, q, ctx.index.any)
+            accesses :: target_effects(target, ctx.facts, q, ctx.index.any).accesses
             for i in 0..<accesses.len() {
-                for a in as_touched(paths, site, target, accesses[i]) {
+                for a in as_touched(site, target, accesses[i]) {
                     kind :: touch_kind(a.effect) else continue
                     if kind == .Kept && (stores || ctx.keeps_in_another(target, q)) {
                         continue
@@ -477,7 +475,7 @@ note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) 
                         continue
                     }
                     for r in roots {
-                        below :: paths.lands_at(r, a.path, a.effect) else continue
+                        below :: lands_at(r, a.path, a.effect) else continue
                         touch :: Touch {
                             .root = r.param,
                             .path = below,
@@ -550,10 +548,10 @@ crosses_task_shared :: fn(
     paths: PathTable,
     typed: TypedProgram,
     t: Type | null,
-    path: i32,
+    path: PartPath,
 ) -> bool {
     at := t
-    for step in paths.steps_of(path) {
+    for step in steps_of(path) {
         at = step_type(typed, at, paths.step_names[step]) else return false
         if is_task_shared_type(typed, at) {
             return true
@@ -757,7 +755,7 @@ note_sending :: fn(ctx: TaskCtx, body: TaskBody) -> bool {
 }
 
 // Add `path` to `paths` ; false when it held it.
-include_path :: fn(paths: i32[], path: i32) -> bool {
+include_path :: fn(paths: PartPath[], path: PartPath) -> bool {
     if path in paths {
         return false
     }
@@ -789,16 +787,15 @@ task_touches :: fn(ctx: TaskCtx, body: TaskBody, door: Door) -> Touch[] {
         out.push(touch)
     }
     arg :: door.arg else return out
-    paths :: ctx.index.paths
     for r in body.roots_at(arg) {
         // A read takes whole a part that holds `r`, as a keep does ; a write there may
         // be one unseen code makes.
         for g in door.sending.given {
-            read :: paths.lands_at(r, g, .Stored) else continue
+            read :: lands_at(r, g, .Stored) else continue
             out.push(sent_touch(r, read, .Read, door))
         }
         for w in door.sending.written {
-            written :: paths.lands_at(r, w, .Unknown) else continue
+            written :: lands_at(r, w, .Unknown) else continue
             out.push(sent_touch(r, written, .Write, door))
         }
     }
@@ -806,7 +803,7 @@ task_touches :: fn(ctx: TaskCtx, body: TaskBody, door: Door) -> Touch[] {
 }
 
 // What the task `door` opens does to root `r`, at `path`.
-sent_touch :: fn(r: Root, path: i32, kind: TouchKind, door: Door) -> Touch = Touch {
+sent_touch :: fn(r: Root, path: PartPath, kind: TouchKind, door: Door) -> Touch = Touch {
     .root = r.param,
     .path = path,
     .kind = kind,

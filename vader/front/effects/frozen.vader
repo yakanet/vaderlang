@@ -586,7 +586,7 @@ hands_on_written :: fn(frozen: FrozenSites, c: RootCase, p: fn(Access) -> bool) 
 // use `h` holds.
 written_at :: fn(frozen: FrozenSites, c: RootCase, h: Root, a: Access) -> bool {
     use :: c.body.root_record(h.param)
-    t :: type_below(c.paths, c.body.typed, use.type, c.paths.joined(h.path, a.path))
+    t :: type_below(c.paths, c.body.typed, use.type, joined(h.path, a.path))
     seen :: Set<i32> {}
     return may_be_written(frozen.written, t, c.body.typed, seen)
 }
@@ -594,9 +594,9 @@ written_at :: fn(frozen: FrozenSites, c: RootCase, h: Root, a: Access) -> bool {
 // The type found `path` below a value of type `t`, as far as the steps can be
 // followed. A step the walk cannot follow stops it at the type above, which
 // reaches everything the step would.
-type_below :: fn(paths: PathTable, typed: TypedProgram, t: Type | null, path: i32) -> Type | null {
+type_below :: fn(paths: PathTable, typed: TypedProgram, t: Type | null, path: PartPath) -> Type | null {
     at := t
-    for step in paths.steps_of(path) {
+    for step in steps_of(path) {
         at = step_type(typed, at, paths.step_names[step]) else return at
     }
     return at
