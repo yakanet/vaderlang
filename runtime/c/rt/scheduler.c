@@ -1546,6 +1546,10 @@ int64_t vader_scheduler_spawn(vader_fn_t* entry) {
     int stealable = vader_worker.in_monitor;
     int64_t thread = 0;
     if (stealable) {
+        /* Another worker may run it before the launcher lets the monitor go, and
+         * write into what the launcher allocated under it: a minor of that worker
+         * scans those objects only once they are marked whole. */
+        vader_gc_mark_monitor_born(&vader_worker);
         thread = vader_virtual_thread_create_unstarted(entry);
     } else {
         thread = vader_virtual_thread_create(entry);
