@@ -24,7 +24,7 @@ static inline bool vader_host_std_core$Intrinsic$is_ascii(vader_string_t a0) {
 }
 
 static inline void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 29u, 581u);
+    return (void*) vader_string_bytes_view(a0, 29u, 582u);
 }
 
 static inline vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
@@ -119,6 +119,14 @@ static inline bool vader_host_std_core$Intrinsic$wait_writable_for(int64_t a0, i
     return vader_scheduler_wait_writable_for(a0, a1);
 }
 
+static inline bool vader_host_std_core$Intrinsic$wait_blocked_read_for(int64_t a0, int64_t a1) {
+    return vader_scheduler_wait_blocked_read_for(a0, a1);
+}
+
+static inline bool vader_host_std_core$Intrinsic$wait_blocked_write_for(int64_t a0, int64_t a1) {
+    return vader_scheduler_wait_blocked_write_for(a0, a1);
+}
+
 static inline void vader_host_std_core$Intrinsic$stop_waiting(int64_t a0) {
     vader_scheduler_stop_waiting(a0);
 }
@@ -166,9 +174,9 @@ static inline vader_string_t vader_host_std_core$Intrinsic$ffi_call_frame(int64_
 
 static inline vader_string_t vader_host_system_windows$find_data_name(void* a0) {
     vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_find_data_name");
     const char* r = vader_find_data_name(s0.ptr);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_string_t out = r == NULL ? vader_atom_intern("", 0) : vader_atom_intern(r, strlen(r));
     return out;
 }
@@ -176,9 +184,9 @@ static inline vader_string_t vader_host_system_windows$find_data_name(void* a0) 
 static inline void vader_host_system_windows$find_data_attributes(void* a0, void* a1) {
     vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_find_data_attributes");
     vader_find_data_attributes(s0.ptr, (void*) s1.ptr);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return;
 }
 

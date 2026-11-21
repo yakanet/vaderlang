@@ -15,12 +15,12 @@ void* vader_midir_pipeline$build_optimised_cfg(void* l0, void* l1, void* l2) {
     vader_midir_pipeline$measure_begin(l1, (uint8_t) 5);
     l3 = vader_midir$build_cfg_project(l0, l2);
     vader_midir_pipeline$measure_end(l1, (uint8_t) 5);
-    vader_midir_pipeline$verify_after(l1, l3, 2045u, l2);
+    vader_midir_pipeline$verify_after(l1, l3, 2054u, l2);
     l3 = vader_midir_pipeline$through_value_returns(l1, l3, l2);
     vader_midir_pipeline$measure_begin(l1, (uint8_t) 6);
     l3 = vader_midir_optimise$eliminate_dead_cfg(l3);
     vader_midir_pipeline$measure_end(l1, (uint8_t) 6);
-    vader_midir_pipeline$verify_after(l1, l3, 2273u, l2);
+    vader_midir_pipeline$verify_after(l1, l3, 2283u, l2);
     vader_midir_pipeline$measure_begin(l1, (uint8_t) 7);
     l3 = vader_midir_optimise$annotate_escape(l3);
     l4 = ((vader_struct_vader_midir_optimise$AnnotatedProject_t*) l3)->f_project;
@@ -29,9 +29,9 @@ void* vader_midir_pipeline$build_optimised_cfg(void* l0, void* l1, void* l2) {
     if (t0) {
         vader_midir_optimise$report_heap_allocations(((vader_struct_vader_midir_optimise$AnnotatedProject_t*) l3)->f_stats);
     }
-    vader_midir_pipeline$verify_after(l1, l4, 1912u, l2);
+    vader_midir_pipeline$verify_after(l1, l4, 1920u, l2);
     l3 = vader_midir_optimise$array_load_forward_project(l4);
-    vader_midir_pipeline$verify_after(l1, l3, 1965u, l2);
+    vader_midir_pipeline$verify_after(l1, l3, 1973u, l2);
     t0 = ((vader_struct_vader_midir_pipeline$CfgPassOptions_t*) l1)->f_instrumented;
     if (t0) {
         t0 = vader_support_opt__report$opt_report_enabled();
@@ -48,7 +48,7 @@ void* vader_midir_pipeline$build_optimised_cfg(void* l0, void* l1, void* l2) {
     vader_midir_pipeline$measure_begin(l1, (uint8_t) 13);
     l3 = vader_midir_ranges$mark_proven_accesses(l3);
     vader_midir_pipeline$measure_end(l1, (uint8_t) 13);
-    vader_midir_pipeline$verify_after(l1, l3, 2761u, l2);
+    vader_midir_pipeline$verify_after(l1, l3, 2774u, l2);
     { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -89,9 +89,9 @@ static void* vader_midir_pipeline$through_value_returns(void* l0, void* l1, void
         vader_midir_pipeline$measure_begin(l0, (uint8_t) 12);
         l3 = vader_midir_value__return$scalarise_value_returns(l1);
         vader_midir_pipeline$measure_end(l0, (uint8_t) 12);
-        vader_midir_pipeline$verify_after(l0, l3, 3018u, l2);
+        vader_midir_pipeline$verify_after(l0, l3, 3032u, l2);
         l3 = vader_midir_value__return$struct_field_forward_project(l3);
-        vader_midir_pipeline$verify_after(l0, l3, 3123u, l2);
+        vader_midir_pipeline$verify_after(l0, l3, 3137u, l2);
         { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }

@@ -32,7 +32,7 @@ static inline bool vader_host_std_core$Intrinsic$is_ascii(vader_string_t a0) {
 }
 
 static inline void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 29u, 581u);
+    return (void*) vader_string_bytes_view(a0, 29u, 582u);
 }
 
 static inline vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
@@ -127,6 +127,14 @@ static inline bool vader_host_std_core$Intrinsic$wait_writable_for(int64_t a0, i
     return vader_scheduler_wait_writable_for(a0, a1);
 }
 
+static inline bool vader_host_std_core$Intrinsic$wait_blocked_read_for(int64_t a0, int64_t a1) {
+    return vader_scheduler_wait_blocked_read_for(a0, a1);
+}
+
+static inline bool vader_host_std_core$Intrinsic$wait_blocked_write_for(int64_t a0, int64_t a1) {
+    return vader_scheduler_wait_blocked_write_for(a0, a1);
+}
+
 static inline void vader_host_std_core$Intrinsic$stop_waiting(int64_t a0) {
     vader_scheduler_stop_waiting(a0);
 }
@@ -174,47 +182,47 @@ static inline vader_string_t vader_host_std_core$Intrinsic$ffi_call_frame(int64_
 
 static inline int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("write");
     int64_t r = write(a0, s1.ptr, a2);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static inline vader_box_t vader_host_system_posix$sys_opendir(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("opendir");
     void* r = opendir(c0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_cstr_free_for(a0, c0);
-    return r == NULL ? vader_box_null() : vader_box_i64(578u, (int64_t) (intptr_t) r);
+    return r == NULL ? vader_box_null() : vader_box_i64(579u, (int64_t) (intptr_t) r);
 }
 
 static inline int32_t vader_host_system_posix$sys_closedir(void* a0) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("closedir");
     int32_t r = closedir(a0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static inline int32_t vader_host_system_posix$sys_last_errno(void) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_last_errno");
     int32_t r = vader_last_errno();
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static inline void vader_host_system_posix$sys_end_on_broken_pipe(void) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_end_on_broken_pipe");
     vader_end_on_broken_pipe();
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return;
 }
 
 static inline int32_t vader_host_system_posix$sys_path_kind(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_path_kind");
     int32_t r = vader_path_kind(c0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_cstr_free_for(a0, c0);
     return r;
 }
@@ -222,138 +230,138 @@ static inline int32_t vader_host_system_posix$sys_path_kind(vader_string_t a0) {
 static inline int32_t vader_host_system_posix$sys_path_stat(vader_string_t a0, int32_t a1, void* a2) {
     const char* c0 = vader_string_to_cstr(a0);
     vader_slice_t s2 = vader_array_bytes((vader_array_t*) a2);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_path_stat");
     int32_t r = vader_path_stat(c0, a1, (void*) s2.ptr);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_cstr_free_for(a0, c0);
     return r;
 }
 
 static inline vader_box_t vader_host_system_posix$sys_readdir(void* a0) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("readdir");
     void* r = readdir(a0);
-    vader_foreign_depth -= 1;
-    return r == NULL ? vader_box_null() : vader_box_i64(578u, (int64_t) (intptr_t) r);
+    VADER_FOREIGN_LEAVE();
+    return r == NULL ? vader_box_null() : vader_box_i64(579u, (int64_t) (intptr_t) r);
 }
 
 static inline vader_string_t vader_host_system_posix$dirent_name(void* a0) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_dirent_name");
     const char* r = vader_dirent_name(a0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_string_t out = r == NULL ? vader_atom_intern("", 0) : vader_atom_intern(r, strlen(r));
     return out;
 }
 
 static inline int32_t vader_host_system_posix$dirent_kind(void* a0) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_dirent_kind");
     int32_t r = vader_dirent_kind(a0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static inline int64_t vader_host_system_posix$sys_read(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("read");
     int64_t r = read(a0, (void*) s1.ptr, a2);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static inline int32_t vader_host_system_posix$sys_close(int32_t a0) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("close");
     int32_t r = close(a0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static inline int32_t vader_host_system_posix$sys_isatty(int32_t a0) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("isatty");
     int32_t r = isatty(a0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static inline int64_t vader_host_system_posix$sys_readlink(vader_string_t a0, void* a1, int64_t a2) {
     const char* c0 = vader_string_to_cstr(a0);
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("readlink");
     int64_t r = readlink(c0, (void*) s1.ptr, a2);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_cstr_free_for(a0, c0);
     return r;
 }
 
 static inline vader_box_t vader_host_system_posix$sys_getcwd(void* a0, int64_t a1) {
     vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("getcwd");
     void* r = getcwd((void*) s0.ptr, a1);
-    vader_foreign_depth -= 1;
-    return r == NULL ? vader_box_null() : vader_box_i64(578u, (int64_t) (intptr_t) r);
+    VADER_FOREIGN_LEAVE();
+    return r == NULL ? vader_box_null() : vader_box_i64(579u, (int64_t) (intptr_t) r);
 }
 
 static inline int32_t vader_host_system_posix$sys_chdir(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("chdir");
     int32_t r = chdir(c0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_cstr_free_for(a0, c0);
     return r;
 }
 
 static inline int32_t vader_host_system_posix$sys_access(vader_string_t a0, int32_t a1) {
     const char* c0 = vader_string_to_cstr(a0);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("access");
     int32_t r = access(c0, a1);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_cstr_free_for(a0, c0);
     return r;
 }
 
 static inline int32_t vader_host_system_posix$sys_open(vader_string_t a0, int32_t a1, int32_t a2) {
     const char* c0 = vader_string_to_cstr(a0);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("open");
     int32_t r = open(c0, a1, a2);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_cstr_free_for(a0, c0);
     return r;
 }
 
 static inline int32_t vader_host_system_posix$sys_fd_kind(int32_t a0) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_fd_kind");
     int32_t r = vader_fd_kind(a0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static inline int64_t vader_host_system_posix$sys_fd_size(int32_t a0) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_fd_size");
     int64_t r = vader_fd_size(a0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static inline int32_t vader_host_system_posix$sys_clock_gettime(int32_t a0, void* a1) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("clock_gettime");
     int32_t r = clock_gettime(a0, (void*) s1.ptr);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static inline int32_t vader_host_system_posix$sys_getrusage(int32_t a0, void* a1) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("getrusage");
     int32_t r = getrusage(a0, (void*) s1.ptr);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static inline vader_box_t vader_host_system_libc$sys_getenv(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("getenv");
     const char* r = getenv(c0);
-    vader_foreign_depth -= 1;
-    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(576u, (int64_t) vader_atom_intern(r, strlen(r)));
+    VADER_FOREIGN_LEAVE();
+    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(577u, (int64_t) vader_atom_intern(r, strlen(r)));
     vader_cstr_free_for(a0, c0);
     return out;
 }

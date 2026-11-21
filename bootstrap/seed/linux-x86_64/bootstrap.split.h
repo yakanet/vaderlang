@@ -439,6 +439,7 @@ typedef struct vader_struct_toolchain_ast$CharLitExpr_t vader_struct_toolchain_a
 typedef struct vader_struct_toolchain_ast$ConstDecl_t vader_struct_toolchain_ast$ConstDecl_t;
 typedef struct vader_struct_toolchain_ast$ContinueStmt_t vader_struct_toolchain_ast$ContinueStmt_t;
 typedef struct vader_struct_toolchain_ast$Decorator_t vader_struct_toolchain_ast$Decorator_t;
+typedef struct vader_struct_toolchain_ast$DecoratorName_t vader_struct_toolchain_ast$DecoratorName_t;
 typedef struct vader_struct_toolchain_ast$DecoratorSite_t vader_struct_toolchain_ast$DecoratorSite_t;
 typedef struct vader_struct_toolchain_ast$DeferBlockBody_t vader_struct_toolchain_ast$DeferBlockBody_t;
 typedef struct vader_struct_toolchain_ast$DeferStmt_t vader_struct_toolchain_ast$DeferStmt_t;
@@ -4388,6 +4389,10 @@ struct vader_struct_toolchain_ast$Decorator_t {
     void* f_args;
     vader_string_t f_module_name;
 };
+struct vader_struct_toolchain_ast$DecoratorName_t {
+    vader_obj_header_t header;
+    vader_string_t f_text;
+};
 struct vader_struct_toolchain_ast$DecoratorSite_t {
     vader_obj_header_t header;
     vader_string_t f_place;
@@ -5397,6 +5402,7 @@ struct vader_struct_vader_core_bytecode$BcImport_t {
     int32_t f_c_variadic_fixed;
     void* f_param_c_types;
     vader_string_t f_result_c_type;
+    bool f_blocking;
 };
 struct vader_struct_vader_core_bytecode$BcLocal_t {
     vader_obj_header_t header;
@@ -12114,7 +12120,7 @@ vader_box_t toolchain_stage$Stage$run$$dispatch(vader_box_t recv, vader_box_t a0
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3622u
+#define VADER_COMPTIME_ATOM_COUNT 3639u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
@@ -12321,6 +12327,7 @@ extern const vader_array_t vader_data_201;
 extern const vader_array_t vader_data_202;
 extern const vader_array_t vader_data_203;
 extern const vader_array_t vader_data_204;
+extern const vader_array_t vader_data_205;
 extern int32_t vader_global_0;
 extern void* vader_global_1;
 extern int32_t vader_global_2;
