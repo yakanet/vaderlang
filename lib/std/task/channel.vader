@@ -76,9 +76,8 @@ Channel<T> implements<T> Iterator<T> {
 @task_primitive(gives = "message", parks = true, grows = "messages")
 export send :: fn<T>(channel: Channel<T>, message: T) -> void {
     publish(message)
-    // Before the lock: a defer allocates, and what the holder allocates goes
-    // to the old generation, whose lock every system thread shares.
-    defer channel.mutex.unlock()
+    // No defer lets the mutex go: a cancelled sender leaves from `await_room`,
+    // whose `gave_up_sending` lets it go.
     channel.mutex.lock()
     if channel.capacity < 1 {
         panic("send: a channel holds at least one message, its capacity is ${channel.capacity}")
@@ -94,6 +93,7 @@ export send :: fn<T>(channel: Channel<T>, message: T) -> void {
     if channel.messages.len() < channel.capacity {
         wake_sender(channel)
     }
+    channel.mutex.unlock()
 }
 
 /// Take the oldest message of `channel`, parking while it is empty.
@@ -109,13 +109,13 @@ export send :: fn<T>(channel: Channel<T>, message: T) -> void {
 ///   jobs.receive()   // closed
 @task_primitive(parks = true, writes = "messages", takes = true)
 export receive :: fn<T>(channel: Channel<T>) -> T | Closed {
-    // Before the lock, as in `send`.
-    defer channel.mutex.unlock()
+    // No defer, as in `send`: `gave_up_receiving` lets a cancelled receiver's go.
     channel.mutex.lock()
     if channel.messages.is_empty() && !channel.closed {
         await_message(channel)
     }
     if channel.messages.is_empty() {
+        channel.mutex.unlock()
         return Closed {}
     }
     message :: channel.messages.remove_first()
@@ -123,6 +123,7 @@ export receive :: fn<T>(channel: Channel<T>) -> T | Closed {
     if !channel.messages.is_empty() {
         wake_receiver(channel)
     }
+    channel.mutex.unlock()
     return message
 }
 
@@ -168,7 +169,8 @@ await_message :: fn<T>(channel: Channel<T>) -> void {
 }
 
 // `me` stopped waiting for room without taking it, cancelled: room a `receive`
-// woke it for goes to the next sender.
+// woke it for goes to the next sender. The cancelled sender never returns to
+// `send`, so the mutex its wait took back is let go here.
 gave_up_sending :: fn<T>(channel: Channel<T>, me: i64) -> void {
     if !channel.senders.remove_value(me) {
         return
@@ -177,10 +179,12 @@ gave_up_sending :: fn<T>(channel: Channel<T>, me: i64) -> void {
     if channel.messages.len() < channel.capacity {
         wake_sender(channel)
     }
+    channel.mutex.unlock()
 }
 
 // `me` stopped waiting for a message without taking it, cancelled: a message a
-// `send` woke it for goes to the next receiver.
+// `send` woke it for goes to the next receiver. The mutex goes as in
+// `gave_up_sending`.
 gave_up_receiving :: fn<T>(channel: Channel<T>, me: i64) -> void {
     if !channel.receivers.remove_value(me) {
         return
@@ -189,6 +193,7 @@ gave_up_receiving :: fn<T>(channel: Channel<T>, me: i64) -> void {
     if !channel.messages.is_empty() {
         wake_receiver(channel)
     }
+    channel.mutex.unlock()
 }
 
 // Wake the first parked sender, unless a sender woken before has not run yet.

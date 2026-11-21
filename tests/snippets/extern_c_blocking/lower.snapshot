@@ -97,8 +97,6 @@
     global #1 Started  started.instance
     global #2 InitGate | null  started.gate
     fn __defer_std_task_10
-    fn __defer_std_task_12
-    fn __defer_std_task_14
     fn __defer_std_task_2
     fn __defer_std_task_4
     fn __defer_std_task_6
@@ -126,8 +124,6 @@
     fn std_task$started$keep
     fn std_task$started$singleton
     struct __defer_env_std_task_11
-    struct __defer_env_std_task_13
-    struct __defer_env_std_task_15
     struct __defer_env_std_task_3
     struct __defer_env_std_task_5
     struct __defer_env_std_task_7
