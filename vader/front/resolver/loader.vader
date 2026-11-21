@@ -16,12 +16,14 @@
 
 module "vader/front/resolver"
 
+import "std/abort"
 import "std/collections"
 import "std/env"
 import "std/fs"
 import "std/iter"
 import "std/path"
 import "std/string"
+import "std/task"
 import "toolchain/diagnostics"
 import "toolchain/ast"
 import "toolchain/parser"
@@ -421,7 +423,7 @@ LoadState :: struct {
     index: Map<string, DiscoveredModule>
     diags: Diagnostic[]
     overlay: Map<string, string>
-    /// ONE node-id factory for the whole project (see `parse_module_files`),
+    /// ONE node-id factory for the whole project (see `number_module_files`),
     /// carried as each module's `node_id_factory`.
     node_factory: NodeIdFactory
     /// The target whose `@target` bodies the load keeps, null to keep every body.
@@ -495,22 +497,97 @@ load_baked_target :: fn(ctx: LoadState, baked_for: Target) -> void {
 // module, then enqueue its imports. Shared by the entry BFS and the loads that
 // follow it (the extra seeds, the target modules), which run as separate
 // passes without diverging from the ingestion logic.
+//
+// The modules of one level of the BFS are read and parsed by a few tasks, before
+// the load ingests them in the order they were queued, numbering their nodes
+// then: the ids and the diagnostics are those a load one module at a time gives.
 drain_load_queue :: fn(ctx: LoadState, queue: DiscoveredModule[]) -> void {
-    cursor: i64 = 0
-    for cursor < queue.len() {
-        m :: queue[cursor]
-        cursor = cursor + 1
-        id :: m.folder
-        if has_module(ctx.modules, id) { continue }
-        ingest_module(ctx, m)
-        ingested :: ctx.modules[id] else continue
-        for edge in ingested.collected.import_paths {
-            dep :: ctx.index[edge.path] else continue
-            if !has_module(ctx.modules, dep.folder) {
-                queue.push(dep)
+    // The tasks read a copy of the overlay: the load goes on with its own.
+    overlay :: ctx.overlay.deep_copy()
+    level := ctx.unloaded(queue)
+    for level.len() > 0 {
+        parsed :: parse_level(level, overlay, ctx.keep_docs)
+        next: DiscoveredModule[]: []
+        for i in 0..<level.len() {
+            m :: level[i]
+            ingest_module(ctx, m, parsed[i])
+            ingested :: ctx.modules[m.folder] else continue
+            for edge in ingested.collected.import_paths {
+                dep :: ctx.index[edge.path] else continue
+                next.push(dep)
             }
         }
+        level = ctx.unloaded(next)
     }
+}
+
+// The modules of `queue` not loaded yet, each once, in the order of their first
+// place in it.
+unloaded :: fn(ctx: LoadState, queue: DiscoveredModule[]) -> DiscoveredModule[] {
+    seen :: Set<string> {}
+    out: DiscoveredModule[]: []
+    for m in queue {
+        if has_module(ctx.modules, m.folder) || m.folder in seen {
+            continue
+        }
+        seen.add(m.folder)
+        out.push(m)
+    }
+    return out
+}
+
+// How many tasks parse a level of the load, at most.
+PARSE_TASKS: i64: 8
+
+// The files of each module of `level`, read and parsed, in its order: a task
+// parses each run of consecutive modules.
+parse_level :: fn(
+    level: DiscoveredModule[], overlay: Map<string, string>, keep_docs: bool,
+) -> ParsedFile[][] {
+    if level.len() == 1 {
+        return [read_and_parse(level[0].files, overlay, keep_docs)]
+    }
+    size :: (level.len() + PARSE_TASKS - 1) / PARSE_TASKS
+    tasks: Task<ParsedFile[][]>[]: []
+    for lot in level.map(m -> m.files.deep_copy()).chunked(size) {
+        tasks.push(launch(() -> parse_lot(lot, overlay, keep_docs)))
+    }
+    lots :: try_join_all(tasks) else is Error {
+        panic("loader: a parse of the load was cancelled")
+    }
+    return lots.flat_map(lot -> lot).collect()
+}
+
+parse_lot :: fn(lot: string[][], overlay: Map<string, string>, keep_docs: bool) -> ParsedFile[][] =
+    lot.map(files -> read_and_parse(files, overlay, keep_docs)).collect()
+
+// A file of a module, read and parsed, its nodes not yet numbered for the project.
+ParsedFile :: struct {
+    path: string
+    content: string
+    program: Program
+    errors: Diagnostic[]
+}
+
+// Read and parse `paths`, skipping a file neither `overlay` nor the disk has.
+read_and_parse :: fn(
+    paths: string[], overlay: Map<string, string>, keep_docs: bool,
+) -> ParsedFile[] {
+    out: ParsedFile[]: []
+    for path in paths {
+        content :: read_with_overlay(overlay, path)
+        if content == "" {
+            continue
+        }
+        parsed :: parse_file(content, path, keep_docs)
+        out.push(ParsedFile {
+            .path = path,
+            .content = content,
+            .program = parsed.program,
+            .errors = parsed.errors,
+        })
+    }
+    return out
 }
 
 // Detect import cycles once every module is loaded: R2005. The load BFS only
@@ -559,9 +636,9 @@ walk_import_cycle :: fn(
 // SourceFile + CollectedModule downstream expects. `ctx.index` is what lets
 // `collect_files` resolve each import path and emit R2001/R2024/R2025/R2028 with
 // the right span.
-ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
+ingest_module :: fn(ctx: LoadState, m: DiscoveredModule, files: ParsedFile[]) -> void {
     if m.files.len() == 0 { return }
-    read :: parse_module_files(ctx, m.files)
+    read :: number_module_files(ctx, files)
     if read.len() == 0 { return }
     untested :: tested_or_not(ctx, m, read)
     parsed :: untested.files
@@ -760,22 +837,20 @@ read_with_overlay :: fn(overlay: Map<string, string>, path: string) -> string {
     return ""
 }
 
-parse_module_files :: fn(ctx: LoadState, paths: string[]) -> SourceFile[] {
+// The sources of `files`, their parse errors reported and their nodes numbered.
+number_module_files :: fn(ctx: LoadState, files: ParsedFile[]) -> SourceFile[] {
     // ONE factory threaded across the WHOLE project, so AST node ids are
     // globally unique, not just module-unique: the side-tables keyed by raw
     // node id (`expr_types` / `expr_kinds` / `node_spans`) may record a node of
     // another module, as Symbol ids are globally unique.
     out: SourceFile[]: []
-    for path in paths {
-        content :: read_with_overlay(ctx.overlay, path)
-        if content == "" { continue }
-        parsed :: parse_file(content, path, ctx.keep_docs)
-        for e in parsed.errors { ctx.diags.push(e) }
-        assign_program_ids(parsed.program, ctx.node_factory)
+    for f in files {
+        for e in f.errors { ctx.diags.push(e) }
+        assign_program_ids(f.program, ctx.node_factory)
         out.push(SourceFile {
-            .path = path,
-            .content = content,
-            .program = parsed.program,
+            .path = f.path,
+            .content = f.content,
+            .program = f.program,
         })
     }
     return out
