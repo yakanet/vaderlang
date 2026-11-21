@@ -1,0 +1,33 @@
+module "snippet"
+
+import "std/console"
+
+// A signature with no body names a function type: an alias stands wherever the
+// type does, a parameter, a return, a typed local, an argument of another alias,
+// and a generic alias takes its arguments in angles.
+
+Request :: struct { path: string }
+
+Handler :: fn(Request) -> i64
+
+Middleware :: fn(Handler) -> Handler
+
+Tick :: fn() -> void
+
+Mapper<T> :: fn(T) -> T
+
+serve :: fn(h: Handler, r: Request) -> i64 = h(r)
+
+logged :: fn(h: Handler) -> Handler = (r) -> h(r) + 1000
+
+twice :: fn(m: Mapper<i32>, x: i32) -> i32 = m(m(x))
+
+main :: fn() -> i32 {
+    h: Handler: (r) -> r.path.byte_len()
+    mw: Middleware: logged
+    t: Tick: () -> println("tick")
+    t()
+    println("${serve(h, Request { .path = "/abc" })} ${serve(mw(h), Request { .path = "/x" })}")
+    println("${twice((x) -> x * 3, 2)}")
+    return 0
+}

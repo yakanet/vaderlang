@@ -1,0 +1,69 @@
+# Lower
+
+## snippet
+  snippet.Request :: struct { path: string }  // snippet$Request
+  snippet.serve :: fn(h: fn(Request) -> i64, r: Request) -> i64 {  // snippet$serve
+      h(r)
+  }
+  snippet.logged :: fn(h: fn(Request) -> i64) -> fn(Request) -> i64 {  // snippet$logged
+      @closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = h })
+  }
+  snippet.twice :: fn(m: fn(i32) -> i32, x: i32) -> i32 {  // snippet$twice
+      m(m(x))
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      h: fn(Request) -> i64 = __lambda_snippet_2
+      mw: fn(fn(Request) -> i64) -> fn(Request) -> i64 = snippet.logged
+      t: fn() -> void = __lambda_snippet_3
+      __lambda_snippet_3()
+      std.console.println<string>({
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(41))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.serve(h, Request { .path = "/abc" }))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.serve(snippet.logged(h), Request { .path = "/x" }))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      std.console.println<string>({
+          __buf_2: Buffer = std_core$Intrinsic$new_byte_buffer(i64(20))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.twice(__lambda_snippet_4, 2))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      return 0
+  }
+  __lambda_env_snippet_1 :: struct { cap_0: fn(Request) -> i64 }
+  __lambda_snippet_0 :: fn(__env_0: __lambda_env_snippet_1, r: Request) -> i64 {
+      __env_0.cap_0(r) + i64(1000)
+  }
+  __lambda_snippet_2 :: fn(r: Request) -> i64 {
+      std_core$Intrinsic$byte_len(r.path)
+  }
+  __lambda_snippet_3 :: fn() -> void {
+      std.console.println<string>("tick")
+  }
+  __lambda_snippet_4 :: fn(x: i32) -> i32 {
+      x * 3
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer

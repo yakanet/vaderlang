@@ -1,1 +1,1 @@
-[5:1] error[T3062] a bodyless function must be `@extern` (foreign symbol): `frobnicate` is bodyless and unbound at runtime ; for a function-*type*, spell the `fn(...)` type inline at its use sites rather than as a named bodyless declaration
+[5:1] error[T3062] a bodyless function must be `@extern` (foreign symbol): `frobnicate` has no body: give it one, or bind it to C with `@extern` ; a function type writes its parameter types alone (`fn(string) -> i32`)

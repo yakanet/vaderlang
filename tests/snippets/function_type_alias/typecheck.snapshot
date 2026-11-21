@@ -1,0 +1,60 @@
+# Typecheck
+
+## tests/snippets/function_type_alias
+  ConstDecl      Handler              :: type
+  FnDecl         logged               :: fn(fn(Request) -> i64) -> fn(Request) -> i64
+  FnDecl         main                 :: fn() -> i32
+  TypeAliasDecl  Mapper               :: fn(T) -> T
+  ConstDecl      Middleware           :: type
+  StructDecl     Request              :: Request
+  FnDecl         serve                :: fn(fn(Request) -> i64, Request) -> i64
+  ConstDecl      Tick                 :: type
+  FnDecl         twice                :: fn(fn(i32) -> i32, i32) -> i32
+  expr 19:46    CallExpr       :: i64
+  expr 19:46    IdentExpr      :: fn(Request) -> i64
+  expr 19:48    IdentExpr      :: Request
+  expr 21:39    LambdaExpr     :: fn(Request) -> i64
+  expr 21:46    BinaryExpr     :: i64
+  expr 21:46    CallExpr       :: i64
+  expr 21:46    IdentExpr      :: fn(Request) -> i64
+  expr 21:48    IdentExpr      :: Request
+  expr 23:46    CallExpr       :: i32
+  expr 23:46    IdentExpr      :: fn(i32) -> i32
+  expr 23:48    CallExpr       :: i32
+  expr 23:48    IdentExpr      :: fn(i32) -> i32
+  expr 23:50    IdentExpr      :: i32
+  expr 26:17    LambdaExpr     :: fn(Request) -> i64
+  expr 26:24    CallExpr       :: i64
+  expr 26:24    FieldExpr      :: fn() -> i64
+  expr 26:24    FieldExpr      :: string
+  expr 26:24    IdentExpr      :: Request
+  expr 27:21    IdentExpr      :: fn(fn(Request) -> i64) -> fn(Request) -> i64
+  expr 28:14    LambdaExpr     :: fn() -> void
+  expr 28:20    CallExpr       :: void
+  expr 28:20    IdentExpr      :: fn(T) -> void
+  expr 28:28    StringLitExpr  :: string
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn() -> void
+  expr 30:13    StringLitExpr  :: string
+  expr 30:16    CallExpr       :: i64
+  expr 30:16    IdentExpr      :: fn(fn(Request) -> i64, Request) -> i64
+  expr 30:22    IdentExpr      :: fn(Request) -> i64
+  expr 30:25    StructLitExpr  :: Request
+  expr 30:43    StringLitExpr  :: string
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 30:56    CallExpr       :: i64
+  expr 30:56    IdentExpr      :: fn(fn(Request) -> i64, Request) -> i64
+  expr 30:62    CallExpr       :: fn(Request) -> i64
+  expr 30:62    IdentExpr      :: fn(fn(Request) -> i64) -> fn(Request) -> i64
+  expr 30:65    IdentExpr      :: fn(Request) -> i64
+  expr 30:69    StructLitExpr  :: Request
+  expr 30:87    StringLitExpr  :: string
+  expr 31:13    StringLitExpr  :: string
+  expr 31:16    CallExpr       :: i32
+  expr 31:16    IdentExpr      :: fn(fn(i32) -> i32, i32) -> i32
+  expr 31:22    LambdaExpr     :: fn(i32) -> i32
+  expr 31:29    BinaryExpr     :: i32
+  expr 31:29    IdentExpr      :: i32
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void

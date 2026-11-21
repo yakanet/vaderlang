@@ -543,10 +543,14 @@ A type alias, `Foo :: <type-expr>`, is a constant whose value is a type expressi
 
 A generic alias puts its type parameters in angle brackets between the name and `::`: `Foo<T> :: <body>`. There is no bracket or parenthesis form.
 
+A signature with no body is a function type, its parameters written as types alone: `Handler :: fn(Request) -> Response`. It stays a declaration when it is `@extern` or `@target`, names its parameters, or is generic (`fn<T>`); a generic function type is written as a generic alias, `Mapper<T> :: fn(T) -> T`.
+
 ```vader
 Mixed :: i32 | string        // alias: a constant whose value is a type
 Maybe<T> :: T | null         // generic alias: type parameters after the name
 Pair<A, B> :: A | B
+Handler :: fn(Request) -> Response   // a function type: no body
+Mapper<T> :: fn(T) -> T
 
 opt: Maybe<i32>: 42
 ```
@@ -3680,7 +3684,7 @@ LIBM: CLibrary: CLibrary { .name = "", .headers = ["<math.h>"] }
 - the first is the library, a `CLibrary` constant (below). Without one, the symbol is one the program links anyway, such as a C library function;
 - the symbol, a string, comes last, positional after a library or written `symbol = "..."`: the C linker symbol, or the `field` of a WASM import on the planned WASM target (*Future WASM target*).
 
-A free function without a body must be `@extern`. A named function type is therefore written inline where it is used, never as a bodiless declaration.
+A free function without a body must be `@extern`. One whose parameters are types alone is a function type instead (*Type aliases*).
 
 The following are errors:
 

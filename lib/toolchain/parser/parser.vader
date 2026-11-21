@@ -185,6 +185,8 @@ header_of :: fn(name: string, begin: Token, end: Token) = ModuleHeader {
 // parser emits a single P1029 and stops descending.
 MAX_EXPR_DEPTH :: 256
 
+// A field a parse changes is saved and restored by `mark` / `rewind`, which undo a
+// parse that is tried (`parse_fn_or_alias`).
 Parser :: struct {
     tokens: Token[]
     file: string
@@ -933,7 +935,9 @@ parse_lhs_generic_alias_decl :: fn(p: Parser, decorators: Decorator[], visibilit
     name_tok :: p.advance()  // ident
     type_params :: p.parse_angle_type_params()
     p.advance()  // `::`
-    aliased :: p.parse_expr(0)
+    // A generic alias names a type: `fn(T) -> T` is a function type here, not a
+    // lambda.
+    aliased :: if p.check(.KwFn) { p.parse_fn_type() } else { p.parse_expr(0) }
     return TypeAliasDecl {
         .span        = p.span_of(name_tok, p.peek_at(-1)),
         .name        = name_tok.text,
@@ -1088,13 +1092,92 @@ parse_named_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
     name_tok :: p.advance()  // ident
     p.advance()              // `::`
 
-    if p.check(.KwFn)     { return p.parse_fn_decl(decorators, visibility, name_tok) }
+    if p.check(.KwFn)     { return p.parse_fn_or_alias(decorators, visibility, name_tok) }
     if p.check(.KwStruct) { return p.parse_struct_decl(decorators, visibility, name_tok) }
     if p.check(.KwDecorator) { return p.parse_decorator_decl(decorators, visibility, name_tok) }
     if p.check(.KwEnum)   { return p.parse_enum_decl(decorators, visibility, name_tok) }
     if p.check(.KwTrait)  { return p.parse_trait_decl(decorators, visibility, name_tok) }
     if p.check(.KwImport) { return p.parse_named_import_decl(decorators, name_tok) }
     return p.parse_const_decl(decorators, visibility, name_tok)
+}
+
+// `name :: fn(...) -> R` declares a function when it has a body, and names a
+// function type when it has none: `Handler :: fn(Request) -> Response`. A bodyless
+// declaration stays one when something gives it its body: `@extern` (C),
+// `@target` (another group member), a body stage (what a source stage wrote).
+// A generic signature stays a declaration too: a function type has no
+// quantifier of its own, `Mapper<T> :: fn(T) -> T` is the generic alias. So does
+// one that does not read as a type, its parameters named (`fn(s: string)`): an
+// `@extern` forgotten, which the typecheck reports as such.
+// The signature is parsed as a declaration first, then again as a type, since
+// the two read their parameters differently (`x: T` against `T`).
+parse_fn_or_alias :: fn(
+    p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token,
+) -> Decl {
+    mark :: p.mark()
+    decl :: p.parse_fn_decl(decorators, visibility, name_tok)
+    if decl.body != null || !decl.type_params.is_empty() || p.bodies_given_later
+        || decorators.has_compiler_decorator(.Extern)
+        || decorators.has_compiler_decorator(.Target) {
+        return decl
+    }
+    p.rewind(mark)
+    value :: p.parse_fn_type()
+    if p.errors.len() > mark.errors {
+        p.rewind(mark)
+        return p.parse_fn_decl(decorators, visibility, name_tok)
+    }
+    return ConstDecl {
+        .span       = p.span_of(name_tok, p.peek_at(-1)),
+        .name       = name_tok.text,
+        .name_span  = name_tok.span,
+        .visibility = visibility,
+        .ty         = null,
+        .value      = value,
+        .decorators = decorators,
+    }
+}
+
+// Where a parse stands, for one that is tried and may be undone.
+ParserMark :: struct {
+    pos:                i32
+    errors:             i64
+    pending_decls:      i64
+    bracket_depth:      i32
+    shr_pending_half:   Token | null
+    split_half:         Token | null
+    split_at:           i32
+    computed_arguments: i32
+    doc_cursor:         i64
+}
+
+mark :: fn(p: Parser) = ParserMark {
+    .pos = p.pos,
+    .errors = p.errors.len(),
+    .pending_decls = p.pending_decls.len(),
+    .bracket_depth = p.bracket_depth,
+    .shr_pending_half = p.shr_pending_half,
+    .split_half = p.split_half,
+    .split_at = p.split_at,
+    .computed_arguments = p.computed_arguments,
+    .doc_cursor = p.doc_cursor,
+}
+
+// Undo the parse since `m`, the diagnostics it reported included.
+rewind :: fn(p: Parser, m: ParserMark) -> void {
+    p.pos = m.pos
+    for p.errors.len() > m.errors {
+        p.errors.remove_last()
+    }
+    for p.pending_decls.len() > m.pending_decls {
+        p.pending_decls.remove_last()
+    }
+    p.bracket_depth = m.bracket_depth
+    p.shr_pending_half = m.shr_pending_half
+    p.split_half = m.split_half
+    p.split_at = m.split_at
+    p.computed_arguments = m.computed_arguments
+    p.doc_cursor = m.doc_cursor
 }
 
 parse_fn_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> FnDecl {
@@ -4551,4 +4634,44 @@ test_a_spread_is_not_a_variadic_field :: fn() -> void {
     }
     assert_eq(decl.spreads.len(), 1)
     assert_eq(decl.fields.len(), 0)
+}
+
+// The declaration `source` holds, as the parser reads it.
+only_decl :: fn(source: string) -> Decl = parse_source(source, "test.vader").program.decls[0]
+
+@test
+test_bodyless_signature_names_a_function_type :: fn() -> void {
+    decl :: only_decl("Handler :: fn(Request, i32) -> bool | null\n")
+    assert(decl is ConstDecl && decl.value is FnTypeExpr, "a signature with no body is a type")
+}
+
+@test
+test_bodyless_signature_without_parameters_names_a_function_type :: fn() -> void {
+    decl :: only_decl("Tick :: fn() -> void\n")
+    assert(decl is ConstDecl && decl.value is FnTypeExpr, "`fn() -> void` alone is a type")
+}
+
+@test
+test_generic_alias_of_a_function_type :: fn() -> void {
+    decl :: only_decl("Mapper<T> :: fn(T) -> T\n")
+    assert(decl is TypeAliasDecl && decl.aliased is FnTypeExpr, "the generic alias names a type")
+}
+
+@test
+test_extern_signature_stays_a_declaration :: fn() -> void {
+    decl :: only_decl("@extern puts :: fn(s: string) -> i32\n")
+    assert(decl is FnDecl, "`@extern` binds the signature to C")
+}
+
+@test
+test_signature_with_named_parameters_stays_a_declaration :: fn() -> void {
+    source :: "puts :: fn(s: string) -> i32\n"
+    assert(only_decl(source) is FnDecl, "named parameters do not read as a type")
+    assert_eq(parse_error_count(source), 0)
+}
+
+@test
+test_stage_written_signature_stays_a_declaration :: fn() -> void {
+    decl :: parse_stage_written("make :: fn() -> i32\n", "stage.vader").program.decls[0]
+    assert(decl is FnDecl, "a body stage gives what a source stage wrote")
 }
