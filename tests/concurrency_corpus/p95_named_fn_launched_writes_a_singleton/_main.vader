@@ -1,0 +1,27 @@
+// P95: a task launched on a named fn writes a singleton that main writes
+// too.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Log :: struct {
+    lines: i64 = 0
+}
+
+@singleton
+log :: fn() -> Log = Log {}
+
+note :: fn() -> void {
+    log().lines += 1
+}
+
+main :: fn() -> i32 {
+    t :: launch(note)
+    log().lines += 1
+    t.join()
+    return 0
+}

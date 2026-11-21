@@ -55,6 +55,10 @@ outlives_call :: fn(s: Sending) -> bool = s.runs || s.given.len() > 0 || s.writt
 // Whether `s` hands anything to a task.
 is_door :: fn(s: Sending) -> bool = s.many || outlives_call(s)
 
+// Whether a task runs the parameter `s` describes, a function value: one task
+// that may outlive the call, or several during it.
+runs_value :: fn(s: Sending) -> bool = s.runs || s.many
+
 /// What the task check reads of the summary, and the facts it settles.
 TaskCtx :: struct {
     index: CalleeIndex
@@ -514,16 +518,21 @@ note_singleton_touches :: fn(ctx: TaskCtx, body: TaskBody, node: i32, at: Span, 
         return
     }
     for st in ctx.reach[node].singletons {
-        touch :: Touch {
-            .root = body.singleton_base + st.singleton,
-            .path = st.path,
-            .kind = st.kind,
-            .at = at,
-            .by = by,
-        }
-        body.touches.push(touch)
+        body.touches.push(singleton_touch(body, st, at, by, false))
     }
 }
+
+// The touch of `body` that a singleton touch `st` made at `at` is, through `by` when
+// it names one ; `sent` when a task makes it.
+singleton_touch :: fn(body: TaskBody, st: SingletonTouch, at: Span, by: string, sent: bool) -> Touch =
+    Touch {
+        .root = body.singleton_base + st.singleton,
+        .path = st.path,
+        .kind = st.kind,
+        .at = at,
+        .by = by,
+        .sent = sent,
+    }
 
 // The access at index `i` of what `target` does with its parameter `q`, when
 // `params`, its facts, hold that parameter ; null for a callee with no body, or
@@ -829,7 +838,7 @@ runs_at_once :: fn(ctx: TaskCtx, body: TaskBody, door: Door, q: i64) -> bool {
 door_params :: fn(ctx: TaskCtx, body: TaskBody, door: Door) -> i64[] {
     out: i64[]: []
     forwards :: door.forwards
-    if (door.sending.runs || door.sending.many) && forwards != null {
+    if runs_value(door.sending) && forwards != null {
         out.push(forwards)
     }
     entry :: door.entry
@@ -862,15 +871,9 @@ task_touches :: fn(ctx: TaskCtx, body: TaskBody, door: Door) -> Touch[] {
         return out
     }
     for st in door.left {
-        touch :: Touch {
-            .root = body.singleton_base + st.singleton,
-            .path = st.path,
-            .kind = st.kind,
-            .at = door.site.at,
-            .sent = true,
-        }
-        out.push(touch)
+        out.push(singleton_touch(body, st, door.site.at, "", true))
     }
+    ctx.named_fn_touches(body, door, out)
     arg :: door.arg else return out
     for r in body.roots_at(arg) {
         // A read takes whole a part that holds `r`, as a keep does ; a write there may
@@ -885,6 +888,23 @@ task_touches :: fn(ctx: TaskCtx, body: TaskBody, door: Door) -> Touch[] {
         }
     }
     return out
+}
+
+// Push onto `out` what the named fn the task `door` opens runs does to the
+// singletons, once the reach is settled.
+named_fn_touches :: fn(ctx: TaskCtx, body: TaskBody, door: Door, out: Touch[]) -> void {
+    q :: door.param else return
+    if !runs_value(door.sending) {
+        return
+    }
+    node :: ctx.named_fn_node(body, door.site, q) else return
+    if node >= ctx.reach.len() {
+        return
+    }
+    by :: "`${ctx.index.functions[node].decl.name}`"
+    for st in ctx.reach[node].singletons {
+        out.push(singleton_touch(body, st, door.site.at, by, true))
+    }
 }
 
 // What the task `door` opens does to root `r`, at `path`.

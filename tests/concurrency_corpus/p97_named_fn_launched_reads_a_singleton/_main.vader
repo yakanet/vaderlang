@@ -1,0 +1,24 @@
+// P97: tasks launched on a named fn read a singleton that main reads too.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Config :: struct {
+    depth: i64 = 4
+}
+
+@singleton
+config :: fn() -> Config = Config {}
+
+depth :: fn() -> i64 = config().depth
+
+main :: fn() -> i32 {
+    a :: launch(depth)
+    b :: launch(depth)
+    total :: config().depth + (a.join() else 0) + (b.join() else 0)
+    return i32(total)
+}

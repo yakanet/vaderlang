@@ -1,0 +1,38 @@
+// P96: a server runs in several tasks the named fn it is handed, which
+// writes a singleton.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Stats :: struct {
+    hits: i32 = 0
+}
+
+@singleton
+stats :: fn() -> Stats = Stats {}
+
+counted :: fn(n: i32) -> i32 {
+    stats().hits += 1
+    return n
+}
+
+serve :: fn(handler: fn(i32) -> i32) -> i32 {
+    tasks: Task<i32>[]: []
+    for id in 0..<3 {
+        tasks.push(launch(() -> handler(id)))
+    }
+    total := 0
+    for t in tasks {
+        total += t.join() else 0
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    serve(counted)
+    return 0
+}

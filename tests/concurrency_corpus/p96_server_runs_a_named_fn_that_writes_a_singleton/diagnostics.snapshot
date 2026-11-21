@@ -1,0 +1,1 @@
+[36:5] error[T3129] value written by several tasks: each task `serve` runs this function in writes `stats().hits` (through `counted`), which they all share ; let each task return its part, or give each one its own value

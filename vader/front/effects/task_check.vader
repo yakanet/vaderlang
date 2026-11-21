@@ -43,17 +43,22 @@ check_door :: fn(
     seen: Set<string>,
 ) -> void {
     q :: door.param
-    if door.sending.runs && door.entry == null && q != null {
-        if door.forwards == null && !names_a_fn(body, door.site, q) {
+    // A parameter handed on is its callers' to check ; a named fn is checked by what
+    // its calls reach, here, and anything else has a body the check cannot see.
+    if runs_value(door.sending) && door.entry == null && q != null {
+        if door.forwards != null {
+            return
+        }
+        if !names_a_fn(body, door.site, q) {
             fault :: TaskFault {
                 .kind = .UnknownFunctionValue,
                 .span = door.site.at,
                 .detail = "${entry_label(door)} is a function value made elsewhere, whose "
-                    + "captures the check cannot see ; launch a lambda written here, or a named fn",
+                    + "captures the check cannot see ; hand the task a lambda written here, or a named fn",
             }
             out.push(fault)
+            return
         }
-        return
     }
     task :: ctx.task_touches(body, door)
     region :: body.region_of(door)
@@ -113,14 +118,14 @@ check_door :: fn(
 }
 
 // Where the tasks `door` opens are opened again while one runs: the loop around the
-// door, or, when the callee runs the lambda the door hands in several tasks, the
-// lambda itself, whose own bindings are each task's.
+// door, or, when the callee runs what the door hands in several tasks, the lambda
+// itself, whose own bindings are each task's, or the call, for a named fn.
 repeated_at :: fn(door: Door, region: Region) -> Span | null {
-    entry :: door.entry
-    if door.sending.many && entry != null {
-        return entry.span
+    if !door.sending.many {
+        return region.repeats
     }
-    return region.repeats
+    entry :: door.entry else return door.site.at
+    return entry.span
 }
 
 // A fault a touch beside the task makes, before those of the touches it holds and
@@ -405,7 +410,7 @@ repeated_label :: fn(door: Door) -> string {
     if door.left.len() > 0 {
         return "each task `${door.sending.launcher}` leaves running here"
     }
-    if door.sending.many && door.entry != null {
+    if door.sending.many {
         return "each task `${door.sending.launcher}` runs this function in"
     }
     return "each task launched here"

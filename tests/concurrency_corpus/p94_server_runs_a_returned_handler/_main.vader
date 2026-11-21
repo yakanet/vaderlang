@@ -1,0 +1,36 @@
+// P94: a server runs in several tasks a handler a function returns, which
+// writes what it captures: the check cannot see that body.
+//
+// corpus: probe
+// expect: T3134
+
+module "snippet"
+
+import "std/task"
+
+Stats :: struct {
+    hits: i32 = 0
+}
+
+counted :: fn(stats: Stats, next: fn(i32) -> i32) -> fn(i32) -> i32 = (n) -> {
+    stats.hits += 1
+    return next(n)
+}
+
+serve :: fn(handler: fn(i32) -> i32) -> i32 {
+    tasks: Task<i32>[]: []
+    for id in 0..<3 {
+        tasks.push(launch(() -> handler(id)))
+    }
+    total := 0
+    for t in tasks {
+        total += t.join() else 0
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    stats :: Stats {}
+    serve(counted(stats, (n) -> n))
+    return stats.hits
+}
