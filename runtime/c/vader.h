@@ -1370,6 +1370,10 @@ typedef struct vader_worker {
      * `@extern` counts its call. A switch traps above zero, since another thread
      * would run over the C frames under it, and what they hold. */
     int                          foreign_depth;
+    /* The C function of the last call into C, and how many began: what the
+     * watch on long calls reads from another system thread (rt/scheduler.c). */
+    const char*                  foreign_name;
+    uint64_t                     foreign_calls;
     /* Its place in the pool, 0 for the main thread's. */
     uint32_t                     index;
     /* The virtual thread it runs, and the one that runs its scheduler. */
@@ -1426,6 +1430,32 @@ extern _Thread_local vader_worker_t vader_worker;
 /* The names the emitted C writes. */
 #define vader_gc_top        (vader_worker.running.gc_top)
 #define vader_foreign_depth (vader_worker.foreign_depth)
+
+/* What the shim of an `@extern` writes around its call to the C function
+ * `name`, a string literal. The stores are relaxed atomics: the watch on long
+ * calls reads them from another system thread. */
+#define VADER_FOREIGN_ENTER(name) do {                                                   \
+        vader_worker_t* vader_fw = &vader_worker;                                        \
+        __atomic_store_n(&vader_fw->foreign_name, (name), __ATOMIC_RELAXED);              \
+        __atomic_store_n(&vader_fw->foreign_calls, vader_fw->foreign_calls + 1u,          \
+                         __ATOMIC_RELAXED);                                              \
+        __atomic_store_n(&vader_fw->foreign_depth, vader_fw->foreign_depth + 1,           \
+                         __ATOMIC_RELAXED);                                              \
+    } while (0)
+#define VADER_FOREIGN_LEAVE()                                                            \
+    __atomic_store_n(&vader_worker.foreign_depth, vader_worker.foreign_depth - 1,        \
+                     __ATOMIC_RELAXED)
+
+/* The shim of a `@c_blocking` `@extern`. `vader_relay_begin`, first, says whether
+ * the call goes to a thread of the runtime, which it does when another thread
+ * could run meanwhile. When C is lent an object of the heap (`pins`), it then
+ * leaves the young generation of the worker empty, so that nothing C receives
+ * moves while the task parks. The shim roots its arguments before it, and
+ * converts them after. `vader_relay_call` runs `fn(frame)`, here or on a thread
+ * of the runtime while the task parks, and puts the error the call left back on
+ * this thread. */
+int  vader_relay_begin(int pins);
+void vader_relay_call(int relay, void (*fn)(void* frame), void* frame);
 
 /* Card-table write barrier: called by the C-emit after every store of a
  * pointer-bearing field into a heap object. No-op for objects outside the

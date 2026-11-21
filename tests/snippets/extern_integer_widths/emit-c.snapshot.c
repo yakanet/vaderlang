@@ -78,51 +78,51 @@ const size_t vader_type_info_count = 14;
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 static int64_t vader_host_snippet$magnitude_of_u32(uint32_t a0) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("llabs");
     int64_t r = llabs(a0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static int64_t vader_host_snippet$magnitude_of_i8(int8_t a0) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("llabs");
     int64_t r = llabs(a0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static uint8_t vader_host_snippet$parse_u8(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("atoi");
     uint8_t r = atoi(c0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_cstr_free_for(a0, c0);
     return r;
 }
 
 static int8_t vader_host_snippet$parse_i8(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("atoi");
     int8_t r = atoi(c0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_cstr_free_for(a0, c0);
     return r;
 }
 
 static uint16_t vader_host_snippet$parse_u16(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("atoi");
     uint16_t r = atoi(c0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_cstr_free_for(a0, c0);
     return r;
 }
 
 static int16_t vader_host_snippet$parse_i16(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("atoi");
     int16_t r = atoi(c0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_cstr_free_for(a0, c0);
     return r;
 }
@@ -137,23 +137,23 @@ static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("write");
     int64_t r = write(a0, s1.ptr, a2);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static int32_t vader_host_system_posix$sys_last_errno(void) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_last_errno");
     int32_t r = vader_last_errno();
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_end_on_broken_pipe");
     vader_end_on_broken_pipe();
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return;
 }
 

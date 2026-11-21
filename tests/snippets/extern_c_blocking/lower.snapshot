@@ -1,0 +1,142 @@
+# Lower
+
+## snippet
+  storage
+    const STRING_H: CLibrary  data pool #0, element 0
+  snippet.relayed_length :: fn(text: string) -> i64  // snippet$relayed_length
+  snippet.relayed_fill :: fn(into: u8[], byte: i32, count: i64) -> void  // snippet$relayed_fill
+  snippet.main :: fn() -> i32 {  // snippet$main
+      gate: Channel<i64> = Channel<i64> {
+          .capacity = i64(1),
+          .mutex = Mutex { .word = u32(0) },
+          .messages = Queue<i64> {
+              .items = [] :i64[],
+              .head = i64(0),
+              .size = i64(0),
+          },
+          .closed = false,
+          .senders = [] :i64[],
+          .receivers = [] :i64[],
+          .sender_woken = false,
+          .receiver_woken = false,
+      }
+      waiting: Task<Closed | i64> = std.task.launch<Closed | i64>(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = gate }))
+      std.console.println<string>({
+          __buf_1: Buffer = std_core$Intrinsic$new_byte_buffer(i64(28))
+          __off_2: i64 = 0
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, "strlen: ")
+          __off_2 = std.core.write_int(__buf_1, __off_2, snippet.relayed_length("hello"))
+          std.core.finish_buffer(__buf_1, __off_2)
+      } :string)
+      buf: u8[] = [u8(0), u8(0), u8(0)] :u8[]
+      snippet.relayed_fill(buf, 7, i64(3))
+      std.console.println<string>(concat_2("memset: ", std.core.u8[].to_string(buf)))
+      std.task.send<i64>(gate, i64(1))
+      std.task.join<Closed | i64>(waiting)
+      return 0
+  }
+  __lambda_env_snippet_1 :: struct { cap_0: Channel<i64> }
+  __lambda_snippet_0 :: fn(__env_0: __lambda_env_snippet_1) -> Closed | i64 {
+      std.task.receive<i64>(__env_0.cap_0)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/collections
+    fn std.collections.Queue<i64>.peek  // std_collections$Queue$std_core$Peek$peek__i64
+    fn std.collections.is_empty<i64>  // std_collections$is_empty__i64
+    fn std.collections.len<i64>  // std_collections$len__i64
+    fn std.collections.push<i64>  // std_collections$push__i64
+    fn std.collections.remove_first<i64>  // std_collections$remove_first__i64
+    fn std.collections.ring_index  // std_collections$ring_index
+    struct std.collections.Queue<i64>  // std_collections$Queue__i64
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_unsigned  // std_core$format_unsigned
+    fn std.core.index_of<i64>  // std_core$index_of__i64
+    fn std.core.remove_value<i64>  // std_core$remove_value__i64
+    fn std.core.u8.to_string  // std_core$u8$Display$to_string
+    fn std.core.u8[].to_string  // std_core$$array$Display$to_string__u8
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.CLibrary  // std_core$CLibrary
+    struct std.core.Cancelled  // std_core$Cancelled
+    struct std.core.Stop  // std_core$Stop
+  std/runtime/scheduler
+    fn __defer_std_runtime_scheduler_0
+    fn __defer_std_runtime_scheduler_2
+    fn __defer_std_runtime_scheduler_4
+    fn std.runtime.scheduler.await_gate  // std_runtime_scheduler$await_gate
+    fn std.runtime.scheduler.gate_or_new  // std_runtime_scheduler$gate_or_new
+    fn std.runtime.scheduler.let_go  // std_runtime_scheduler$let_go
+    fn std.runtime.scheduler.monitor_enter  // std_runtime_scheduler$monitor_enter
+    fn std.runtime.scheduler.monitor_enter_to_publish  // std_runtime_scheduler$monitor_enter_to_publish
+    fn std.runtime.scheduler.run_gated  // std_runtime_scheduler$run_gated
+    struct __defer_env_std_runtime_scheduler_1
+    struct __defer_env_std_runtime_scheduler_3
+    struct __defer_env_std_runtime_scheduler_5
+    struct std.runtime.scheduler.InitGate  // std_runtime_scheduler$InitGate
+    struct std.runtime.scheduler.Mutex  // std_runtime_scheduler$Mutex
+  std/task
+    global #0 i32  started.state
+    global #1 Started  started.instance
+    global #2 InitGate | null  started.gate
+    fn __defer_std_task_10
+    fn __defer_std_task_12
+    fn __defer_std_task_14
+    fn __defer_std_task_2
+    fn __defer_std_task_4
+    fn __defer_std_task_6
+    fn __defer_std_task_8
+    fn __lambda_std_task_0
+    fn std.task.Channel<i64>.next  // std_task$Channel$std_core$Iterator$next__i64
+    fn std.task.Task<Any>.equals  // std_task$Task$std_core$Equals$equals__Any
+    fn std.task.Task<Any>.to_string  // std_task$Task$std_core$Display$to_string__Any
+    fn std.task.await_message<i64>  // std_task$await_message__i64
+    fn std.task.await_room<i64>  // std_task$await_room__i64
+    fn std.task.end<Any>  // std_task$end__Any
+    fn std.task.gave_up_receiving<i64>  // std_task$gave_up_receiving__i64
+    fn std.task.gave_up_sending<i64>  // std_task$gave_up_sending__i64
+    fn std.task.join<Closed | i64>  // std_task$join__std_task_Closed___i64
+    fn std.task.launch<Closed | i64>  // std_task$launch__std_task_Closed___i64
+    fn std.task.outcome<Any>  // std_task$outcome__Any
+    fn std.task.receive<i64>  // std_task$receive__i64
+    fn std.task.run<Any>  // std_task$run__Any
+    fn std.task.send<i64>  // std_task$send__i64
+    fn std.task.start_thread  // std_task$start_thread
+    fn std.task.started  // std_task$started
+    fn std.task.stop_waiting<Any>  // std_task$stop_waiting__Any
+    fn std.task.wake_receiver<i64>  // std_task$wake_receiver__i64
+    fn std.task.wake_sender<i64>  // std_task$wake_sender__i64
+    fn std_task$started$keep
+    fn std_task$started$singleton
+    struct __defer_env_std_task_11
+    struct __defer_env_std_task_13
+    struct __defer_env_std_task_15
+    struct __defer_env_std_task_3
+    struct __defer_env_std_task_5
+    struct __defer_env_std_task_7
+    struct __defer_env_std_task_9
+    struct __lambda_env_std_task_1
+    struct std.task.Channel<i64>  // std_task$Channel__i64
+    struct std.task.Closed  // std_task$Closed
+    struct std.task.Group  // std_task$Group
+    struct std.task.Started  // std_task$Started
+    struct std.task.Task<Any>  // std_task$Task__Any
+    struct std.task.Task<Closed | i64>  // std_task$Task__std_task_Closed___i64
+    struct std.task.Waiter  // std_task$Waiter

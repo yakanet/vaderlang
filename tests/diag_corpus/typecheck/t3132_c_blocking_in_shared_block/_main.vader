@@ -1,0 +1,15 @@
+// T3132 : the block run under the lock calls a `@c_blocking` C function, whose
+// task parks while a thread of the runtime makes the call.
+module "snippet"
+
+import "std/task"
+
+@extern
+@c_blocking
+fetch :: fn(key: i64) -> i64
+
+main :: fn() -> i32 {
+    cache :: shared(0)
+    cache.locked((n) -> fetch(n))
+    return 0
+}

@@ -367,7 +367,10 @@ write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
         // other way to tell.
         member :: member_name(imp.intrinsic)
         im :: if member == "" { "" } else { "intrinsic=${member} " }
-        attributes :: "${im}${va}${headers}${rt}${pt}${pm}${pa}${ct}${rc}${li}"
+        // `@c_blocking`: a `.virt` rebuilt into a binary relays the call as the
+        // source build does.
+        bl :: if imp.blocking { "blocking " } else { "" }
+        attributes :: "${im}${va}${headers}${rt}${pt}${pm}${pa}${ct}${rc}${bl}${li}"
         sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${attributes}")
         write_signature(sb, imp.signature)
         sb.append("\n")

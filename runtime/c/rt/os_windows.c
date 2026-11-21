@@ -532,6 +532,48 @@ static int vader_os_writable_now(int64_t fd) {
     return 1;
 }
 
+/* The write end does not pass to a child: one launched meanwhile would keep it
+ * open. */
+static int vader_os_bell_new(int64_t* bell, int64_t* ringer) {
+    HANDLE r = NULL;
+    HANDLE w = NULL;
+    if (!vader_overlapped_pipe(&r, &w)) return 0;
+    SetHandleInformation(w, HANDLE_FLAG_INHERIT, 0);
+    *bell = (int64_t) (intptr_t) r;
+    *ringer = (int64_t) (intptr_t) w;
+    return 1;
+}
+
+static void vader_os_bell_ring(int64_t ringer) {
+    char byte = 1;
+    DWORD written = 0;
+    WriteFile((HANDLE) (intptr_t) ringer, &byte, 1, &written, NULL);
+}
+
+/* The read end takes overlapped reads only. The low bit of the event keeps the
+ * completion off the port, where no watch would claim it. */
+static void vader_os_bell_take(int64_t bell) {
+    HANDLE h = (HANDLE) (intptr_t) bell;
+    HANDLE event = CreateEventA(NULL, TRUE, FALSE, NULL);
+    OVERLAPPED overlapped;
+    memset(&overlapped, 0, sizeof overlapped);
+    overlapped.hEvent = (HANDLE) ((uintptr_t) event | 1u);
+    char byte = 0;
+    DWORD got = 0;
+    if (!ReadFile(h, &byte, 1, &got, &overlapped) && GetLastError() == ERROR_IO_PENDING) {
+        GetOverlappedResult(h, &overlapped, &got, TRUE);
+    }
+    CloseHandle(event);
+}
+
+static int vader_os_error(void) {
+    return (int) GetLastError();
+}
+
+static void vader_os_set_error(int error) {
+    SetLastError((DWORD) error);
+}
+
 /* A socket, the one descriptor waited for once it would block, is waited for
  * by the scheduler (`vader_os_only_reports`); anything else waits in the read
  * or the write that follows. */

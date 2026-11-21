@@ -1,0 +1,30 @@
+// Two C functions marked `@c_blocking`, called while another task waits: a thread
+// of the runtime makes each call while the calling task parks. `strlen` reads a
+// string, `memset` writes into an array, which comes back filled. Neither waits
+// on anything: the snippet pins the relayed shim, whatever the C function does.
+module "snippet"
+
+import "std/console"
+import "std/task"
+
+STRING_H :: CLibrary { .name = "", .headers = ["<string.h>"] }
+
+@extern(STRING_H, "strlen")
+@c_blocking
+relayed_length :: fn(text: string) -> i64
+
+@extern(STRING_H, "memset")
+@c_blocking
+relayed_fill :: fn(@c_out into: u8[], byte: i32, count: i64) -> void
+
+main :: fn() -> i32 {
+    gate :: Channel<i64> { .capacity = 1 }
+    waiting :: launch(() -> gate.receive())
+    println("strlen: ${relayed_length("hello")}")
+    buf: u8[]: [0, 0, 0]
+    relayed_fill(buf, 7, 3)
+    println("memset: ${buf}")
+    gate.send(1)
+    waiting.join()
+    return 0
+}

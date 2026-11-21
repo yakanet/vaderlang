@@ -84,9 +84,9 @@ _Static_assert(((__typeof__(((div_t*) 0)->rem)) -1 < 0) == 1, "div_t.rem signedn
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 static int32_t vader_host_snippet$c_abs(int32_t a0) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("abs");
     int32_t r = abs(a0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
@@ -96,9 +96,9 @@ static void vader_host_snippet$fill_div(void* a0, int32_t a1, int32_t a2) {
     p0.rem = (__typeof__(p0.rem)) ((vader_struct_snippet$Div_t*) a0)->f_rem;
     void** __wb_roots[1] = { &a0 };
     VADER_GC_PUSH_RAW(__wb_frame, __wb_roots, 1);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("fill_div");
     fill_div(&p0, a1, a2);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     VADER_GC_POP_FRAME(__wb_frame);
     ((vader_struct_snippet$Div_t*) a0)->f_quot = (__typeof__(((vader_struct_snippet$Div_t*) a0)->f_quot)) p0.quot;
     ((vader_struct_snippet$Div_t*) a0)->f_rem = (__typeof__(((vader_struct_snippet$Div_t*) a0)->f_rem)) p0.rem;
@@ -115,23 +115,23 @@ static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("write");
     int64_t r = write(a0, s1.ptr, a2);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static int32_t vader_host_system_posix$sys_last_errno(void) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_last_errno");
     int32_t r = vader_last_errno();
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_end_on_broken_pipe");
     vader_end_on_broken_pipe();
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return;
 }
 

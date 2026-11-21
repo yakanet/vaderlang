@@ -3500,6 +3500,7 @@ Decorators are written with `@`. The compiler's own, in the table below, are ins
 | `@c_struct`, `@c_struct("struct name")` | struct | Mirrors a C struct (§13), named by an optional C type name |
 | `@c_variadic` | parameter of an `@extern` fn | C receives the parameter through `...` (§13) |
 | `@main_thread` | `@extern` fn | The C function runs on the main thread only, out of reach of every task (§13) |
+| `@c_blocking` | `@extern` fn | The C function may wait on the world outside; its task parks during the call (§13) |
 | `@test` | top-level fn | Marks a test, run by `vader test` and left out by every other command (`docs/TOOLING.md` *Tests*) |
 | `@deprecated("reason")` | any declaration but an import, a field or a variant | Warns at every use; the code still compiles |
 | `@assert(cond)`, `@assert(cond, "message")` | top level | Fails the build unless `cond` is true at compile time |
@@ -3963,6 +3964,26 @@ An enum with a written width (§4 *Representation*) crosses as its variant's int
 
 - an enum whose width is inferred;
 - an `@extern` that takes both an enum with variant data and a callback.
+
+### `@c_blocking`: a C function that waits
+
+A task waits for a socket, a channel or a timer without holding its core: the other tasks of that core run meanwhile (§16). A C function that waits (on a child process, a lock file, a name lookup) holds the core for as long as it waits. `@c_blocking` on its declaration hands the call to a thread of the runtime: the task parks until C returns, and the other tasks run.
+
+```vader
+SPAWN: CLibrary: CLibrary { .name = "", .headers = ["<sys/wait.h>"] }
+
+@extern(SPAWN, "waitpid")
+@c_blocking
+wait_for_child :: fn(pid: i32, @c_out status: i32[], options: i32) -> i32
+```
+
+- The call behaves as before for the program: same arguments, same result, and `errno` (`GetLastError` on Windows) as C left it.
+- It counts as a park: in the block of `locked` it is an error, like a `receive`.
+- A task cancelled during the call stops at its next park, once C has returned.
+- A callback parameter (*Callbacks*) is an error, since C would call it from a thread where no task runs. So is `@c_blocking` on a function that is not `@extern`.
+- Under `vader run`, the call runs on the task's own thread.
+
+The marker costs a few microseconds per call: it is for a call that may wait, not for one that computes. A native program warns on its error output, once per C function, when an unmarked call holds its core longer than a threshold while other tasks wait for it (`docs/RUNTIME.md` *Blocking C calls*).
 
 ### Callbacks
 

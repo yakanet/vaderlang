@@ -20,6 +20,7 @@ export CompilerDecorator :: enum(DecoratorName) {
     AllowUnused { .text = "allow_unused" },
     Assert      { .text = "assert" },
     CAddress    { .text = "c_address" },
+    CBlocking   { .text = "c_blocking" },
     CHeader     { .text = "c_header" },
     COut        { .text = "c_out" },
     CStruct     { .text = "c_struct" },
@@ -50,6 +51,7 @@ export compiler_decorator_named :: fn(name: string) -> CompilerDecorator | null 
     "allow_unused" -> .AllowUnused
     "assert"       -> .Assert
     "c_address"    -> .CAddress
+    "c_blocking"   -> .CBlocking
     "c_header"     -> .CHeader
     "c_out"        -> .COut
     "c_struct"     -> .CStruct
@@ -112,10 +114,10 @@ import "std/testing"
 @test
 test_a_compiler_decorator_reads_back_from_its_name :: fn() -> void {
     every: CompilerDecorator[]: [
-        .Alias, .AllowUnused, .Assert, .CAddress, .CHeader, .COut, .CStruct, .CType,
-        .CVariadic, .Comptime, .Deprecated, .Displayable, .Ensures, .Extern, .Interceptor,
-        .Internal, .MainThread, .NoReturn, .Partial, .Returns, .Singleton, .Target, .Test,
-        .Unreachable,
+        .Alias, .AllowUnused, .Assert, .CAddress, .CBlocking, .CHeader, .COut, .CStruct,
+        .CType, .CVariadic, .Comptime, .Deprecated, .Displayable, .Ensures, .Extern,
+        .Interceptor, .Internal, .MainThread, .NoReturn, .Partial, .Returns, .Singleton,
+        .Target, .Test, .Unreachable,
     ]
     for which in every {
         text :: DecoratorName(which).text

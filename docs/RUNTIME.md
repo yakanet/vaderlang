@@ -480,6 +480,25 @@ returns, the VM cancels and reports as a native program does; when a `@test`
 returns, it waits until the threads end, cancelling those not cancelled yet,
 and fails the test when it named one.
 
+**Blocking C calls.** A call to a `@c_blocking` function goes to a helper
+when the scheduler runs and another thread exists; alone, the task's thread
+makes it. A helper is a system thread of a pool that runs C only, never Vader,
+and is no worker. Before the call, the shim roots the objects it lends, and when
+it lends one, empties the worker's young generation, since the worker runs other
+threads meanwhile; it then converts the arguments into a frame on the task's
+stack. The task waits on the helper's bell, a pipe, as it waits on a socket. The
+helper writes the result into the frame, keeps `errno` (`GetLastError`), and
+rings. A cancel that comes meanwhile waits for the next park, since the helper
+writes into the task's stack. The VM makes every call on the task's thread
+([ADR 0165](adr/0165-a-c-call-that-waits-goes-to-a-thread-of-the-runtime.md)).
+
+Every other call to C stores, in its worker, the name of the function and a
+count of calls. A watch thread, started with the scheduler, looks at them every
+half threshold, and warns on stderr, once per function and for 64 functions at
+most, when one call has held its worker for the threshold while a thread of that
+worker is ready or waits for the clock or the OS. `VADER_WARN_BLOCKING_MS` sets
+the threshold, 100 ms by default, and 0 turns the watch off.
+
 **Moving objects.** A minor moves young objects, so a pointer must sit in a frame
 across anything that may allocate. A foreign call is the exception: C may keep a
 pointer into an array it was lent, and calls back into Vader may collect. Once a

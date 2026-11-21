@@ -1,0 +1,10 @@
+// T3050 : `@c_blocking` on a function with a Vader body, which the compiler sees:
+// only a call into C goes to a thread of the runtime.
+module "snippet"
+
+@c_blocking
+slow :: fn() -> i32 = 1
+
+main :: fn() -> i32 {
+    return slow() - 1
+}

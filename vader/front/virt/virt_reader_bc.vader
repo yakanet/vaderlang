@@ -608,6 +608,7 @@ parse_import_decl_bc :: fn(
     param_by_address: bool[]: []
     param_c_types: string[] = []
     result_c_type := ""
+    blocking := false
     member := ""
     library :: read_library(raw_name)
     for i in (name_i + 2)..<parts.len() {
@@ -654,6 +655,9 @@ parse_import_decl_bc :: fn(
         }
         if attr.starts_with("result_c_type=") {
             result_c_type = c_type_from_token(attr.trim_prefix("result_c_type="))
+        }
+        if attr == "blocking" {
+            blocking = true
         }
     }
     // The result's type index is carried as an attribute rather than by
@@ -708,6 +712,7 @@ parse_import_decl_bc :: fn(
             []
         },
         .result_c_type = result_c_type,
+        .blocking      = blocking,
         .library       = library,
     })
     return null

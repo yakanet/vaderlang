@@ -51,6 +51,7 @@ typedef struct {
     uint8_t  task_ended;    /* its task ended: it leaves the runtime, then ends */
     uint8_t  reported;      /* what the OS reported ended its last park */
     uint8_t  on_clock_or_os; /* parks for the clock or the OS, which a trap leaves running */
+    uint8_t  shielded;      /* waits for a relayed call, which writes into its stack */
 } vader_scheduler_slot_t;
 
 typedef struct {
@@ -102,6 +103,9 @@ typedef struct {
     vader_os_cond_t* wake;
     /* Its threads that have not ended, parked ones included. */
     uint32_t tasks;
+    /* Its threads parked for the clock or the OS, which the watch on long calls
+     * reads from another system thread. */
+    uint32_t timed_parks;
     /* It has nothing to run. */
     uint8_t  resting;
     /* It was roused and has not looked for work since. */
@@ -1093,6 +1097,200 @@ static void vader_scheduler_start_pool(void) {
     vader_scheduler_unlock();
 }
 
+/* ---- relayed calls --------------------------------------------------------- */
+
+/* A system thread that makes the calls of `@c_blocking` C functions, one at a
+ * time, while the task that made each parks on its bell. */
+typedef struct vader_relay_helper {
+    vader_os_lock_t*           lock;
+    vader_os_cond_t*           work;
+    /* The call to make, NULL while there is none. */
+    void                     (*fn)(void* frame);
+    void*                      frame;
+    /* What the call left as its error. */
+    int                        error;
+    /* The bell's read end, which the task watches, and its write end. */
+    int64_t                    bell;
+    int64_t                    ringer;
+    struct vader_relay_helper* next_idle;
+} vader_relay_helper_t;
+
+static bool vader_scheduler_wait_for(int kind, int64_t fd, int64_t nanos, int blocked);
+
+/* Guards the idle helpers. */
+static vader_os_lock_t* g_relay_guard = NULL;
+static vader_relay_helper_t* g_relay_idle = NULL;
+
+static void vader_relay_helper_main(void* raw) {
+    vader_relay_helper_t* h = (vader_relay_helper_t*) raw;
+    vader_os_lock(h->lock);
+    for (;;) {
+        while (h->fn == NULL) vader_os_cond_wait(h->work, h->lock, -1);
+        void (*fn)(void* frame) = h->fn;
+        void* frame = h->frame;
+        vader_os_unlock(h->lock);
+        fn(frame);
+        int error = vader_os_error();
+        vader_os_lock(h->lock);
+        h->error = error;
+        h->fn = NULL;
+        vader_os_bell_ring(h->ringer);
+    }
+}
+
+/* An idle helper, or a new one; NULL when no thread or bell can be made. */
+static vader_relay_helper_t* vader_relay_take(void) {
+    vader_os_lock(g_relay_guard);
+    vader_relay_helper_t* h = g_relay_idle;
+    if (h != NULL) g_relay_idle = h->next_idle;
+    vader_os_unlock(g_relay_guard);
+    if (h != NULL) return h;
+    h = (vader_relay_helper_t*) calloc(1, sizeof(vader_relay_helper_t));
+    if (h == NULL) return NULL;
+    if (!vader_os_bell_new(&h->bell, &h->ringer)) {
+        free(h);
+        return NULL;
+    }
+    h->lock = vader_os_lock_new();
+    h->work = vader_os_cond_new();
+    vader_os_thread_start(vader_relay_helper_main, h);
+    return h;
+}
+
+static void vader_relay_give_back(vader_relay_helper_t* h) {
+    vader_os_lock(g_relay_guard);
+    h->next_idle = g_relay_idle;
+    g_relay_idle = h;
+    vader_os_unlock(g_relay_guard);
+}
+
+/* Mark the running thread as waiting for a relayed call, or no longer. */
+static void vader_relay_shield(uint8_t shielded) {
+    vader_scheduler_lock();
+    vader_scheduler_slot_of(vader_virtual_thread_current())->shielded = shielded;
+    vader_scheduler_unlock();
+}
+
+int vader_relay_begin(int pins) {
+    if (!g_scheduler_started) return 0;
+    vader_scheduler_lock();
+    int others = vader_virtual_thread_count() > 0u;
+    vader_scheduler_unlock();
+    if (!others) return 0;
+    if (pins) vader_gc_empty_young(&vader_worker);
+    return 1;
+}
+
+void vader_relay_call(int relay, void (*fn)(void* frame), void* frame) {
+    vader_relay_helper_t* h = NULL;
+    if (relay) h = vader_relay_take();
+    if (h == NULL) {
+        fn(frame);
+        return;
+    }
+    /* Cancelled meanwhile, the thread would unwind and free the stack the
+     * helper writes into. */
+    vader_relay_shield(1);
+    vader_os_lock(h->lock);
+    h->frame = frame;
+    h->fn = fn;
+    vader_os_cond_signal(h->work);
+    vader_os_unlock(h->lock);
+    (void) vader_scheduler_wait_for(VADER_WATCH_READABLE, h->bell, -1, 0);
+    vader_os_bell_take(h->bell);
+    vader_os_lock(h->lock);
+    int error = h->error;
+    vader_os_unlock(h->lock);
+    vader_relay_give_back(h);
+    vader_relay_shield(0);
+    vader_os_set_error(error);
+}
+
+/* ---- the watch on long calls ------------------------------------------------ */
+
+/* How long, in milliseconds, a call into C may hold a worker whose other
+ * threads wait before the runtime says so (`VADER_WARN_BLOCKING_MS`, 0 for
+ * never). */
+#define VADER_LONG_CALL_MS 100u
+/* How many C functions it names at most, each once. */
+#define VADER_LONG_CALL_NAMES 64u
+
+static size_t g_long_call_ms = VADER_LONG_CALL_MS;
+
+/* What the watch saw of each worker: the count of its calls into C, and when
+ * that count last moved. */
+static uint64_t g_long_call_seen[VADER_WORKERS_MAX];
+static int64_t g_long_call_since[VADER_WORKERS_MAX];
+static const char* g_long_call_named[VADER_LONG_CALL_NAMES];
+static size_t g_long_call_named_len = 0;
+
+/* Whether the watch named `name` already, which it then remembers. Compared by
+ * its bytes: each unit of a split build spells it apart. */
+static int vader_long_call_named(const char* name) {
+    for (size_t i = 0; i < g_long_call_named_len; i++) {
+        if (strcmp(g_long_call_named[i], name) == 0) return 1;
+    }
+    if (g_long_call_named_len == VADER_LONG_CALL_NAMES) return 1;
+    g_long_call_named[g_long_call_named_len++] = name;
+    return 0;
+}
+
+static void vader_long_call_report(const char* name, int64_t held_ms) {
+    char detail[256];
+    int n = snprintf(detail, sizeof detail,
+                     "a call to `%s` has held its core for %lld ms while other tasks wait: "
+                     "mark it `@c_blocking` if it waits on the world outside",
+                     name, (long long) held_ms);
+    if (n < 0) return;
+    size_t len = (size_t) n;
+    if (len >= sizeof detail) len = sizeof detail - 1u;
+    vader_os_report_fatal("warning: ", detail, len);
+}
+
+/* Look at worker `w`, the `i`-th, at `now`: a call into C that has not moved
+ * holds it up when another of its threads is ready, or waits for the clock or
+ * the OS, which the worker no longer serves. Its fields are read without its
+ * lock: a report may come one look late, never a wrong one. */
+static void vader_long_call_look(size_t i, vader_worker_t* w, int64_t now) {
+    int depth = __atomic_load_n(&w->foreign_depth, __ATOMIC_RELAXED);
+    uint64_t calls = __atomic_load_n(&w->foreign_calls, __ATOMIC_RELAXED);
+    if (depth <= 0 || calls != g_long_call_seen[i]) {
+        g_long_call_seen[i] = calls;
+        g_long_call_since[i] = now;
+        return;
+    }
+    int64_t held_ms = (now - g_long_call_since[i]) / 1000000;
+    if (held_ms < (int64_t) g_long_call_ms) return;
+    vader_scheduler_worker_t* x = &g_scheduler_workers[w->index];
+    size_t ready = __atomic_load_n(&x->len, __ATOMIC_RELAXED);
+    uint32_t timed = __atomic_load_n(&x->timed_parks, __ATOMIC_RELAXED);
+    if (ready == 0u && timed == 0u) return;
+    const char* name = __atomic_load_n(&w->foreign_name, __ATOMIC_RELAXED);
+    if (name == NULL || vader_long_call_named(name)) return;
+    vader_long_call_report(name, held_ms);
+}
+
+static void vader_long_call_main(void* unused) {
+    (void) unused;
+    int64_t period_ns = (int64_t) g_long_call_ms * 1000000 / 2;
+    for (;;) {
+        vader_os_sleep_ns(period_ns);
+        int64_t now = vader_os_monotonic_ns();
+        size_t workers = __atomic_load_n(&g_worker_count, __ATOMIC_ACQUIRE);
+        for (size_t i = 0; i < workers; i++) {
+            vader_long_call_look(i, g_workers[i], now);
+        }
+    }
+}
+
+/* Start the watch, unless `VADER_WARN_BLOCKING_MS` is 0. */
+static void vader_scheduler_watch_long_calls(void) {
+    g_long_call_ms = vader_gc_env_count("VADER_WARN_BLOCKING_MS", VADER_LONG_CALL_MS, 0u,
+                                        3600000u, "a number of milliseconds");
+    if (g_long_call_ms == 0u) return;
+    vader_os_thread_start(vader_long_call_main, NULL);
+}
+
 static void vader_scheduler_read_clock(void) {
     if (g_scheduler_clock_read) return;
     g_scheduler_clock_read = 1;
@@ -1112,6 +1310,8 @@ static void vader_scheduler_start(void) {
     vader_virtual_thread_start_scheduler();
     vader_scheduler_fresh_slot(vader_virtual_thread_main(), 0u);
     vader_scheduler_start_pool();
+    g_relay_guard = vader_os_lock_new();
+    vader_scheduler_watch_long_calls();
 }
 
 /* Every entry of the scheduler from Vader takes the lock here, and lets it go
@@ -1125,6 +1325,7 @@ static void vader_scheduler_enter(void) {
 
 static void vader_scheduler_park_locked(void);
 static void vader_scheduler_cancel_locked(int64_t thread);
+static void vader_scheduler_count_timed(int delta);
 
 /* The thread whose children `vader_scheduler_cancel_child` cancels. */
 static int64_t g_scheduler_launcher = 0;
@@ -1150,7 +1351,11 @@ static void vader_scheduler_cancel_children(int64_t thread) {
  * The defers are Vader code, which runs without the lock. */
 static void vader_scheduler_unwind(void) {
     int64_t thread = vader_virtual_thread_current();
-    vader_scheduler_slot_of(thread)->unwinding = 1;
+    vader_scheduler_slot_t* s = vader_scheduler_slot_of(thread);
+    s->unwinding = 1;
+    /* Cancelled in a timed park, it never comes back to the end of it, and its
+     * defers may park otherwise. */
+    s->on_clock_or_os = 0;
     vader_scheduler_cancel_children(thread);
     vader_scheduler_unlock();
     vader_mutex_take_back();
@@ -1159,9 +1364,10 @@ static void vader_scheduler_unwind(void) {
     vader_virtual_thread_end();
 }
 
-/* Whether the thread of slot `s` was cancelled and has not begun to unwind. */
+/* Whether the thread of slot `s` was cancelled and has not begun to unwind. One
+ * that waits for a relayed call unwinds at its next park instead. */
 static int vader_scheduler_must_unwind(const vader_scheduler_slot_t* s) {
-    return s->cancelled && !s->unwinding;
+    return s->cancelled && !s->unwinding && !s->shielded;
 }
 
 /* Leave the running thread, whose slot is `s`, for the scheduler; back when it
@@ -1173,8 +1379,11 @@ static void vader_scheduler_block(vader_scheduler_slot_t* s) {
         vader_scheduler_abort_after_trap();
     }
     if (vader_scheduler_must_unwind(s)) vader_scheduler_unwind();
+    int timed = s->on_clock_or_os;
+    if (timed) vader_scheduler_count_timed(1);
     vader_monitor_step_away();
     vader_virtual_thread_switch_to_scheduler();
+    if (timed) vader_scheduler_count_timed(-1);
     if (vader_scheduler_must_unwind(vader_scheduler_slot_of(vader_virtual_thread_current()))) {
         vader_scheduler_unwind();
     }
@@ -1205,6 +1414,21 @@ static void vader_scheduler_park_locked(void) {
     vader_scheduler_slot_t* s = vader_scheduler_slot_of(vader_virtual_thread_current());
     s->sleep++;
     vader_scheduler_block(s);
+}
+
+/* Count a thread of the calling worker that parks for the clock or the OS, or
+ * no longer does. */
+static void vader_scheduler_count_timed(int delta) {
+    vader_scheduler_worker_t* me = vader_scheduler_me();
+    __atomic_store_n(&me->timed_parks, me->timed_parks + (uint32_t) delta, __ATOMIC_RELAXED);
+}
+
+/* Park the running thread, whose slot is `s`, for the clock or the OS. */
+static void vader_scheduler_park_timed(vader_scheduler_slot_t* s) {
+    int64_t thread = vader_virtual_thread_current();
+    s->on_clock_or_os = 1;
+    vader_scheduler_park_locked();
+    vader_scheduler_slot_of(thread)->on_clock_or_os = 0;
 }
 
 static void vader_scheduler_cancel_locked(int64_t thread) {
@@ -1283,11 +1507,9 @@ static bool vader_scheduler_wait_for_locked(int kind, int64_t fd, int64_t nanos,
             vader_scheduler_arm(&g_scheduler_bounds,
                                 (vader_scheduler_timer_t) { deadline, began, thread, sleep });
         }
-        s->on_clock_or_os = 1;
-        vader_scheduler_park_locked();
+        vader_scheduler_park_timed(s);
         /* The slot may have moved: a park lets other threads launch. */
         s = vader_scheduler_slot_of(thread);
-        s->on_clock_or_os = 0;
         if (s->released) return true;
         if (s->reported && by_level) return true;
     }

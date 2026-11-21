@@ -199,6 +199,15 @@ export unreachable :: decorator(.Match) {}
 /// reach it.
 export main_thread :: decorator(.Function) {}
 
+/// On an `@extern`: the C function may wait on the world outside (a disk, the
+/// network, another process, a user), so a thread of the runtime makes the call
+/// while the task waits and the other tasks run.
+///
+/// A call costs microseconds instead of nanoseconds; it takes no callback, and
+/// counts as a park for a task, which a block holding a lock may not reach.
+/// Under `vader run` the task's own thread makes the call.
+export c_blocking :: decorator(.Function) {}
+
 /// Restricts a struct field to its declaring module: reading, writing or
 /// constructing with it elsewhere is an error. Give the field a default so the
 /// struct stays constructible.

@@ -1,0 +1,5 @@
+# stdout
+strlen: 5
+memset: [7, 7, 7]
+# exit
+0

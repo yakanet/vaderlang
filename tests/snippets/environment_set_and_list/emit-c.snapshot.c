@@ -292,30 +292,30 @@ static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("write");
     int64_t r = write(a0, s1.ptr, a2);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static int32_t vader_host_system_posix$sys_last_errno(void) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_last_errno");
     int32_t r = vader_last_errno();
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return r;
 }
 
 static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_end_on_broken_pipe");
     vader_end_on_broken_pipe();
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     return;
 }
 
 static vader_box_t vader_host_system_posix$sys_environ_entry(int64_t a0) {
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("vader_environ_entry");
     const char* r = vader_environ_entry(a0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(2u, (int64_t) vader_atom_intern(r, strlen(r)));
     return out;
 }
@@ -323,9 +323,9 @@ static vader_box_t vader_host_system_posix$sys_environ_entry(int64_t a0) {
 static int32_t vader_host_system_posix$sys_setenv(vader_string_t a0, vader_string_t a1, int32_t a2) {
     const char* c0 = vader_string_to_cstr(a0);
     const char* c1 = vader_string_to_cstr(a1);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("setenv");
     int32_t r = setenv(c0, c1, a2);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_cstr_free_for(a0, c0);
     vader_cstr_free_for(a1, c1);
     return r;
@@ -333,18 +333,18 @@ static int32_t vader_host_system_posix$sys_setenv(vader_string_t a0, vader_strin
 
 static int32_t vader_host_system_posix$sys_unsetenv(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("unsetenv");
     int32_t r = unsetenv(c0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_cstr_free_for(a0, c0);
     return r;
 }
 
 static vader_box_t vader_host_system_libc$sys_getenv(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
-    vader_foreign_depth += 1;
+    VADER_FOREIGN_ENTER("getenv");
     const char* r = getenv(c0);
-    vader_foreign_depth -= 1;
+    VADER_FOREIGN_LEAVE();
     vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(2u, (int64_t) vader_atom_intern(r, strlen(r)));
     vader_cstr_free_for(a0, c0);
     return out;

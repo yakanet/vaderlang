@@ -155,6 +155,34 @@ static int vader_os_only_reports(int64_t id) {
     return 0;
 }
 
+static int vader_os_bell_new(int64_t* bell, int64_t* ringer) {
+    int ends[2];
+    if (pipe(ends) != 0) return 0;
+    fcntl(ends[0], F_SETFD, FD_CLOEXEC);
+    fcntl(ends[1], F_SETFD, FD_CLOEXEC);
+    *bell = ends[0];
+    *ringer = ends[1];
+    return 1;
+}
+
+static void vader_os_bell_ring(int64_t ringer) {
+    char byte = 1;
+    while (write((int) ringer, &byte, 1) < 0 && errno == EINTR) continue;
+}
+
+static void vader_os_bell_take(int64_t bell) {
+    char byte = 0;
+    while (read((int) bell, &byte, 1) < 0 && errno == EINTR) continue;
+}
+
+static int vader_os_error(void) {
+    return errno;
+}
+
+static void vader_os_set_error(int error) {
+    errno = error;
+}
+
 /* kqueue and epoll watch without `EV_CLEAR` or `EPOLLET`. */
 static int vader_os_reports_by_level(int64_t id) {
     (void) id;

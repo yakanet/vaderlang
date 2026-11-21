@@ -212,6 +212,9 @@ export BcImport :: struct {
     /// The `@c_type` of the declaration, the C type of its result ; `""` when the
     /// Vader type's own spelling is meant.
     result_c_type: string = ""
+    /// The declaration carries `@c_blocking`: a thread of the runtime makes the
+    /// call while the task parks.
+    blocking: bool = false
 }
 
 /// What the interpreter opens before resolving the symbol of `imp`: the name of

@@ -428,6 +428,18 @@ static int vader_os_only_reports(int64_t id);
  * the state holds reports at once. A thread that found `id` would block needs
  * not ask before it watches, nor again once the report woke it. */
 static int vader_os_reports_by_level(int64_t id);
+/* A pipe a thread of the runtime writes one byte into once a relayed call
+ * returns: its read end in `*bell`, a descriptor the scheduler watches, its
+ * write end in `*ringer`. 0 when it cannot be made. */
+static int vader_os_bell_new(int64_t* bell, int64_t* ringer);
+/* Write the byte, from any system thread. */
+static void vader_os_bell_ring(int64_t ringer);
+/* Read the byte, waiting on the calling system thread until it comes. */
+static void vader_os_bell_take(int64_t bell);
+/* What the last call of the calling system thread left as its error: `errno`,
+ * or `GetLastError`, which Winsock shares. */
+static int vader_os_error(void);
+static void vader_os_set_error(int error);
 /* Highest address of the calling system thread's C stack, NULL when unknown.
  * The stack grows down, so [current sp, base) covers every live frame. */
 static char* vader_os_stack_base(void);

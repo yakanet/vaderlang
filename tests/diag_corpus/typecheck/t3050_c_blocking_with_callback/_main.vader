@@ -1,0 +1,11 @@
+// T3050 : a `@c_blocking` C function taking a callback, which C would call from a
+// thread of the runtime, where no task runs.
+module "snippet"
+
+@extern
+@c_blocking
+visit_all :: fn(visit: fn(i32) -> i32) -> i32
+
+main :: fn() -> i32 {
+    return 0
+}

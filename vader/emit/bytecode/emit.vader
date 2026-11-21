@@ -77,6 +77,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
         .c_variadic_fixed = ext.c_variadic_fixed,
         .param_c_types = param_c_types_of(ext.origin),
         .result_c_type = result_c_type_of(ext.origin),
+        .blocking = blocking_of(ext.origin),
     })
     sym :: ext.origin.symbol
     if sym is Symbol {
@@ -238,6 +239,15 @@ param_c_types_of :: fn(origin: MonoEntry) -> string[] {
         spellings.clear()
     }
     return spellings
+}
+
+// Whether the declaration of `origin` carries `@c_blocking`.
+blocking_of :: fn(origin: MonoEntry) -> bool {
+    d :: origin.decl
+    if d is FnDecl {
+        return has_compiler_decorator(d.decorators, .CBlocking)
+    }
+    return false
 }
 
 /// The `@c_type` spelling of the result `origin` declares, `""` without one.

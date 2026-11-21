@@ -142,6 +142,9 @@ emit_import_group :: fn(ctx: EmitCtx, printer: CPrinter, imports: BcImport[]) ->
         CPragma { .text = "GCC diagnostic ignored \"-Wdeprecated-declarations\"" },
     ]
     for imp in imports {
+        if imp.is_extern && imp.blocking {
+            shims.push_all(relay_declarations(ctx, imp))
+        }
         shims.push(import_shim(ctx, imp))
     }
     shims.push(CPragma { .text = "GCC diagnostic pop" })
@@ -1123,6 +1126,25 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     sig :: imp.signature
     call_args: CExpression[]: []
     before: CStatement[]: []
+    // A relayed call first roots what may move, then empties the young
+    // generation when C is lent an object of the heap (`vader_relay_begin`), and
+    // only then converts: what C receives stays where it is while the task parks.
+    relay_roots: CExpression[]: []
+    if imp.blocking {
+        for j in 0..<sig.params.len() {
+            lent_array :: is_abi_array(types, sig.param_types[j])
+            if lent_array || mirrored_c_struct(types, sig.param_types[j]) != "" {
+                relay_roots.push(address_of(argument(j)))
+            }
+        }
+        if relay_roots.len() > 0 {
+            count :: number(relay_roots.len())
+            before.push(array_declaration("void**", "__relay_roots", relay_roots))
+            before.push(perform("VADER_GC_PUSH_RAW", [verbatim("__relay_gc"), verbatim("__relay_roots"), count]))
+        }
+        pins :: number(if relay_roots.len() > 0 { 1 } else { 0 })
+        before.push(declaration("int", "__relay", call("vader_relay_begin", [pins])))
+    }
     frees: CStatement[]: []
     write_backs: CStatement[]: []
     write_back_roots: CExpression[]: []
@@ -1227,16 +1249,84 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     // `vader_cstr_free_for` frees the dup a SLICE atom was marshalled through.
     // Freeing first left `strlen` and the intern reading memory that had just
     // gone back to the allocator.
+    if imp.blocking {
+        before.push(declaration("struct ${relay_frame_name(imp)}", "__relay_frame"))
+        for j in 0..<call_args.len() {
+            before.push(CAssign { .target = verbatim("__relay_frame.a${j}"), .value = call_args[j] })
+        }
+        runner :: verbatim(relay_runner_name(imp))
+        frame :: address_of(verbatim("__relay_frame"))
+        before.push(perform("vader_relay_call", [verbatim("__relay"), runner, frame]))
+        relayed :: forwarded_result(sig, types, read_back(imp, verbatim("__relay_frame.r")))
+        if bc_single_result(sig) != .Void {
+            before.push(relayed.capture)
+        }
+        before.push_all(after)
+        before.push_all(relayed.settle)
+        before.push_all(frees)
+        if relay_roots.len() > 0 {
+            before.push(perform("VADER_GC_POP_FRAME", [verbatim("__relay_gc")]))
+        }
+        before.push(CReturn { .value = relayed.returned })
+        return before
+    }
     forwarded :: read_back(imp, call(imp.extern_name, call_args))
     handled :: forwarded_result(sig, types, forwarded)
-    before.push(foreign_depth(.Add))
+    before.push(perform("VADER_FOREIGN_ENTER", [verbatim("\"${imp.extern_name}\"")]))
     before.push(handled.capture)
-    before.push(foreign_depth(.Subtract))
+    before.push(perform("VADER_FOREIGN_LEAVE", []))
     before.push_all(after)
     before.push_all(handled.settle)
     before.push_all(frees)
     before.push(CReturn { .value = handled.returned })
     return before
+}
+
+// The tag of the struct a relayed call of `imp` travels in: its converted
+// arguments, `a<j>`, and its result, `r`.
+relay_frame_name :: fn(imp: BcImport) -> string = "vader_relay_${sanitise(imp.mangled_name)}"
+
+// The function a thread of the runtime runs for a relayed call of `imp`.
+relay_runner_name :: fn(imp: BcImport) -> string = "${relay_frame_name(imp)}_run"
+
+// The struct and the function of a relayed call of `imp`, a `@c_blocking`
+// `@extern`, written before its shim. Each field takes the type the prototype
+// gives the parameter, so a field holds what the direct call would pass.
+relay_declarations :: fn(ctx: EmitCtx, imp: BcImport) -> CTopLevel[] {
+    types :: ctx.module.types
+    sig :: imp.signature
+    fields: CField[]: []
+    arguments: CExpression[]: []
+    for j in 0..<sig.params.len() {
+        fields.push(CField { .type = extern_parameter_type(imp, types, j), .name = "a${j}" })
+        arguments.push(verbatim("f->a${j}"))
+    }
+    forwarded :: call(imp.extern_name, arguments)
+    frame :: "struct ${relay_frame_name(imp)}*"
+    run: CStatement[]: [declaration(frame, "f", cast(frame, verbatim("raw")))]
+    if bc_single_result(sig) == .Void {
+        run.push(CExpressionStatement { .expression = forwarded })
+    } else {
+        fields.push(CField { .type = extern_result_type(imp, types), .name = "r" })
+        run.push(CAssign { .target = verbatim("f->r"), .value = forwarded })
+    }
+    // C has no empty struct.
+    if fields.len() == 0 {
+        fields.push(CField { .type = "char", .name = "unused" })
+    }
+    return [
+        CStructDefinition { .name = relay_frame_name(imp), .fields = fields },
+        CFunction {
+            .signature = CSignature {
+                .storage = .Internal,
+                .inline = ctx.split,
+                .result = "void",
+                .name = relay_runner_name(imp),
+                .parameters = [CParameter { .type = "void*", .name = "raw" }],
+            },
+            .body = CBlock { .body = run },
+        },
+    ]
 }
 
 // The call `forwarded` as the shim's own result type : converted back from the
@@ -1253,13 +1343,6 @@ read_back :: fn(imp: BcImport, forwarded: CExpression) -> CExpression {
 renamed_argument :: fn(imp: BcImport, j: i64, a: CExpression) -> CExpression {
     spelling :: param_c_type(imp, j) else return a
     return cast(spelling, a)
-}
-
-// Counts the calls into C in progress: a park stops the program above zero.
-foreign_depth :: fn(operator: CBinaryOperator) -> CStatement = CAssign {
-    .target = verbatim("vader_foreign_depth"),
-    .value = number(1),
-    .operator = operator,
 }
 
 // How a forwarded call's result leaves the shim.

@@ -122,7 +122,8 @@ opens_door :: fn(index: CalleeIndex, callee: Callee) -> bool {
 }
 
 // What the call to `callee`, summarised without its body, reaches: a C function
-// bound to the main thread, a primitive that parks. Empty for any other callee.
+// bound to the main thread, a primitive that parks, a C function a thread of the
+// runtime calls while the task parks. Empty for any other callee.
 summarised_reach :: fn(index: CalleeIndex, callee: Callee) -> Reach {
     out :: Reach {}
     if callee !is DirectFn || callee.decl.id !in index.summarised {
@@ -132,7 +133,8 @@ summarised_reach :: fn(index: CalleeIndex, callee: Callee) -> Reach {
         out.main_thread = [callee.decl.name]
     }
     door :: index.doors[callee.decl.id]
-    if door != null && door.parks {
+    parks :: door != null && door.parks
+    if parks || AST.has_compiler_decorator(callee.decl.decorators, .CBlocking) {
         out.parks = [callee.decl.name]
     }
     return out

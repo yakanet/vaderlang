@@ -232,7 +232,8 @@ declare_fn :: fn(
         // where it means nothing.
         validate_param_decorators(decl, false, diags)
         validate_result_c_type(decl, return_type, false, diags)
-        validate_main_thread(decl, diags)
+        refuse_without_extern(decl, .MainThread, "binds a C function to the main thread", diags)
+        refuse_without_extern(decl, .CBlocking, "hands a C call to a thread of the runtime", diags)
     }
     // A bodyless top-level free fn becomes an import (`lower/decl.vader`
     // returns a null body -> `call.import`), which only `@extern` binds, to a
@@ -503,14 +504,15 @@ is_parameter_decorator :: fn(d: AST.Decorator) -> bool {
     return which == .CAddress || which == .COut || which == .CType || which == .CVariadic
 }
 
-// `@main_thread` binds a C function to the main thread: the compiler sees what a
-// Vader body calls, so the decorator means something on an `@extern` only.
-validate_main_thread :: fn(decl: AST.FnDecl, diags: Diagnostic[]) -> void {
-    d :: AST.find_compiler_decorator(decl.decorators, .MainThread) else return
+// A decorator `which` that means something on an `@extern` only, refused on
+// `decl`, a Vader body the compiler sees: `meaning` says what it does for C.
+refuse_without_extern :: fn(
+    decl: AST.FnDecl, which: AST.CompilerDecorator, meaning: string, diags: Diagnostic[],
+) -> void {
+    d :: AST.find_compiler_decorator(decl.decorators, which) else return
     diags.push(typecheck_error(
         .InvalidExternDecl, d.span,
-        "`@main_thread` binds a C function to the main thread ; `${decl.name}` has no "
-            + "`@extern`, and the compiler sees what its body calls"))
+        "`@${AST.DecoratorName(which).text}` ${meaning} ; `${decl.name}` has no `@extern`"))
 }
 
 /// Check the `@c_type` written on `decl` itself, which names the C type of its
@@ -660,6 +662,17 @@ pinned_header :: fn(e: EnumType) -> string {
     return "enum(${data.symbol.name}, ${narrowest_width(e.values).name})"
 }
 
+// The index of the first parameter of `params` that takes a function, null for
+// none.
+first_callback :: fn(params: Type[]) -> i64 | null {
+    for i in 0..<params.len() {
+        if params[i] is FnType {
+            return i
+        }
+    }
+    return null
+}
+
 // The callback among `params` when they also hold an enum with variant data
 // that may cross; null otherwise. Such an enum reaches C through a Vader
 // function that converts its rank, which would receive the callback as a value,
@@ -805,6 +818,18 @@ validate_extern_signature :: fn(
         }
     }
     validate_variadic_parameters(decl, params, typed, diags)
+    if AST.has_compiler_decorator(decl.decorators, .CBlocking) {
+        blocking_callback :: first_callback(params)
+        if blocking_callback != null {
+            diags.push(
+                typecheck_error(
+                    .InvalidExternDecl,
+                    decl.params[blocking_callback].span,
+                    "`@c_blocking` fn `${decl.name}` takes a callback, which would run on a thread of the runtime instead of a task's",
+                ),
+            )
+        }
+    }
     callback :: callback_beside_enum_values(params)
     if callback != null {
         diags.push(
