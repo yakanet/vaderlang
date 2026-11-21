@@ -235,8 +235,8 @@ static void* vader_gc_copy_into(vader_worker_t* w, void* obj, size_t bytes, vade
  * it. Returns NULL when the old reservation is at its cap: the caller decides
  * what that means. The caller also PUBLISHES the copy: a collection gray-pushes
  * it, an out-of-cycle tenure marks its card. */
-static void* vader_gc_promote(void* obj, size_t bytes, uint8_t age) {
-    void* dst = vader_old_alloc(bytes);
+static void* vader_gc_promote(vader_worker_t* w, void* obj, size_t bytes, uint8_t age) {
+    void* dst = vader_old_alloc(w, bytes);
     if (dst == NULL) return NULL;
     memcpy(dst, obj, bytes);
     vader_obj_forward_to(obj, dst);
@@ -261,7 +261,7 @@ static VADER_NOINLINE void* vader_gc_evacuate(vader_worker_t* w, void* obj, vade
     if (hdr->age + 1u >= VADER_TENURE_AGE
         || (VADER_UNLIKELY(g_minor_promote_shared) && type_index == VADER_TYPE_INDEX_ARRAY_BUF
             && vader_array_buf_is_shared((vader_array_buf_t*) obj))) {
-        void* dst = vader_gc_promote(obj, bytes, (uint8_t)(hdr->age + 1u));
+        void* dst = vader_gc_promote(w, obj, bytes, (uint8_t)(hdr->age + 1u));
         if (dst != NULL) {
             w->counts.copied += bytes;
             vader_gray_push(w, (char*) dst);                /* scan its slots for young refs */
@@ -666,6 +666,7 @@ static void vader_gc_minor(vader_worker_t* w) {
     /* A preliminary minor inside a major counts as part of that major. */
     if (saved == VADER_CYCLE_NONE) w->counts.collections++;
     w->cycle = saved;
+    vader_old_report(w);
 
     /* Atoms are collected by the MAJOR cycle only (`vader_atom_gc_collect`, called
      * from `vader_major_collect`): a minor never touches them. A string is a
@@ -980,8 +981,9 @@ void vader_major_collect(void) {
     char* gray = NULL;
     while (vader_gray_pop(w, &gray)) (void) vader_gc_scan_object(w, gray);
 
-    /* 4. Sweep: rebuild every free list from the unmarked slots. What a worker
-     * allocated under the monitor is marked now, or freed. */
+    /* 4. Sweep: rebuild every free list from the unmarked slots, and take every
+     * region back from the workers. What a worker allocated under the monitor is
+     * marked now, or freed. */
     vader_old_sweep();
     for (size_t i = 0; i < g_worker_count; i++) g_workers[i]->monitor_born_len = 0u;
     g_old_live_after_major = g_old_live_bytes;   /* reclamation-trigger baseline */
@@ -1009,7 +1011,7 @@ vader_gc_stats_t vader_gc_get_stats(void) {
     /* Old live bytes plus each young generation's allocation high-water, NOT a
      * live count, see `bytes_used`'s note in vader.h for what the two halves
      * mean and why they differ. */
-    s.bytes_used = g_old_live_bytes;
+    s.bytes_used = vader_old_live();
     for (size_t i = 0; i < g_worker_count; i++) {
         const vader_worker_t* w = g_workers[i];
         s.bytes_used += (size_t)(w->young.from.cur - w->young.from.base);
@@ -1056,7 +1058,7 @@ static void* vader_gc_force_tenure(void* obj) {
     if (copy != NULL) return copy;
     size_t bytes = vader_gc_obj_size(obj, hdr->type_index);
     if (bytes == 0) return obj;
-    void* dst = vader_gc_promote(obj, bytes, VADER_TENURE_AGE);
+    void* dst = vader_gc_promote(&vader_worker, obj, bytes, VADER_TENURE_AGE);
     if (dst == NULL) return obj;
     /* No cycle is running to trace the copy, so mark its card: the next minor
      * scans it for old->young edges. */

@@ -200,8 +200,9 @@ static size_t g_histo_max_occ = 0;
 static void vader_gc_old_histogram(void) {
     if (g_histo_enabled < 0) g_histo_enabled = vader_gc_env_bool("VADER_GC_HISTOGRAM");
     if (!g_histo_enabled) return;
-    if (g_old_live_bytes <= g_histo_max_occ) return;
-    g_histo_max_occ = g_old_live_bytes;
+    size_t live = vader_old_live();
+    if (live <= g_histo_max_occ) return;
+    g_histo_max_occ = live;
 
     static const char* labels[8] = { "<=32","<=64","<=128","<=256","<=512","<=1K","<=4K",">4K" };
     vader_histo_ctx_t ctx = {0};

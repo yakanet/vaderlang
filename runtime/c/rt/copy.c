@@ -82,9 +82,10 @@ static void vader_copy_note(vader_copy_t* c, void* source, void* copy) {
     c->pending[c->pending_len++] = copy;
 }
 
-/* `bytes` of old-generation storage, carved without collecting. */
-static void* vader_copy_carve(size_t bytes) {
-    void* p = vader_old_alloc(bytes);
+/* `bytes` of old-generation storage, carved without collecting, in the regions
+ * of the worker that copies. */
+static void* vader_copy_carve(vader_copy_t* c, size_t bytes) {
+    void* p = vader_old_alloc(c->worker, bytes);
     if (p == NULL) vader_trap("deep_copy: old reservation exhausted at cap (VADER_GC_OLD_MAX)");
     return p;
 }
@@ -97,7 +98,7 @@ static void vader_copy_header(void* copy, uint32_t type_index) {
 
 /* A copy of the object `obj` of `bytes`, its references still the source's. */
 static void* vader_copy_raw(vader_copy_t* c, void* obj, size_t bytes) {
-    void* copy = vader_copy_carve(bytes);
+    void* copy = vader_copy_carve(c, bytes);
     memcpy(copy, obj, bytes);
     vader_copy_header(copy, ((vader_obj_header_t*) obj)->type_index);
     vader_copy_note(c, obj, copy);
@@ -117,14 +118,14 @@ static void* vader_copy_array(vader_copy_t* c, vader_array_t* a) {
     size_t capacity = length;
     if (capacity < 4u) capacity = 4u;
     size_t buf_bytes = vader_array_buf_bytes(capacity, kind);
-    vader_array_buf_t* buf = (vader_array_buf_t*) vader_copy_carve(buf_bytes);
+    vader_array_buf_t* buf = (vader_array_buf_t*) vader_copy_carve(c, buf_bytes);
     vader_copy_header(buf, VADER_TYPE_INDEX_ARRAY_BUF);
     buf->capacity = capacity;
     buf->length = length;
     buf->element_kind = kind;
     buf->element_tag = tag;
     if (length > 0u) memcpy(buf->slots, data, length * element_size);
-    vader_array_t* copy = (vader_array_t*) vader_copy_carve(sizeof(vader_array_t));
+    vader_array_t* copy = (vader_array_t*) vader_copy_carve(c, sizeof(vader_array_t));
     vader_copy_header(copy, a->header.type_index);
     vader_array_set_extent(copy, length, capacity);
     copy->offset = 0;

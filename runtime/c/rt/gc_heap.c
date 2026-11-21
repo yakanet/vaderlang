@@ -16,18 +16,19 @@
  *   - there is no 2x to-space and no survivor-copy major pause;
  *   - the card table covers the fixed reservation once: no grow-time reslice.
  *
- * Small objects (<= VADER_OLD_SMALL_MAX) use 16 B size classes; each class owns
- * regions (bump-carved) + a free list threaded through the word after a freed
- * slot's header. Large objects get a one-object region each, whose pages go back on free
- * and kept for reuse in bins by size (`vader_old_large_bin`). Reclamation is
- * mark (toggle `g_mark_value`, trace from roots + young survivors via a gray
- * worklist) + sweep (rebuild the free lists from unmarked slots). See
- * `vader_major_collect`. */
+ * Small objects (<= VADER_OLD_SMALL_MAX) use 16 B size classes. A region of one
+ * class (bump-carved) keeps its free slots in a list threaded through the word
+ * after a freed slot's header, and belongs to at most one worker, which
+ * allocates in it without a lock; the regions with room no worker owns wait in
+ * the pool of their class (docs/adr/0166). Large objects get a one-object region
+ * each, whose pages go back on free and kept for reuse in bins by size
+ * (`vader_old_large_bin`). Reclamation is mark (toggle `g_mark_value`, trace
+ * from roots + young survivors via a gray worklist) + sweep (rebuild the free
+ * lists from unmarked slots, fill the pools). See `vader_major_collect`. */
 
 #define VADER_OLD_CLASS_GRAN   16u
 #define VADER_OLD_SMALL_MAX_LOG2 10u
 #define VADER_OLD_SMALL_MAX    (1u << VADER_OLD_SMALL_MAX_LOG2)               /* 1024 */
-#define VADER_OLD_NUM_CLASSES  (VADER_OLD_SMALL_MAX / VADER_OLD_CLASS_GRAN)  /* 64 */
 #define VADER_OLD_REGION_BYTES (256u * 1024u)   /* small-class region granularity */
 #define VADER_OLD_COMMIT_STEP  (4u * 1024u * 1024u)  /* how much of the reservation one commit takes */
 #define VADER_OLD_DISCARD_MIN  (64u * 1024u)    /* only discard freed large regions >= this */
@@ -37,15 +38,13 @@
 #define VADER_OLD_LARGE_SUBBINS  (1u << VADER_OLD_LARGE_SUB_LOG2)
 #define VADER_OLD_LARGE_BINS     ((64u - VADER_OLD_SMALL_MAX_LOG2) * VADER_OLD_LARGE_SUBBINS)
 #define VADER_OLD_LARGE_SCAN     32u   /* regions a large allocation inspects in its own bin */
+_Static_assert(VADER_OLD_NUM_CLASSES == VADER_OLD_SMALL_MAX / VADER_OLD_CLASS_GRAN,
+               "one class per step of the granularity up to the largest small object");
 _Static_assert(VADER_OLD_CLASS_GRAN >= VADER_OBJ_MIN_BYTES,
                "a free slot holds its header and the link of its free list");
 _Static_assert(VADER_OLD_CLASS_GRAN % VADER_ARRAY_SLOT_ALIGN == 0,
                "a promoted array buffer keeps its slots on the slot alignment");
 
-typedef struct {
-    char*               free_head;   /* free list: link in the word after each slot's header */
-    vader_old_region_t* current;     /* region we bump-allocate from */
-} vader_old_class_t;
 
 
 static char*  g_old_block     = NULL;   /* reservation base */
@@ -53,11 +52,13 @@ static char*  g_old_bump      = NULL;   /* global region-carve cursor (never ret
 static char*  g_old_committed = NULL;   /* end of the committed prefix, >= g_old_bump */
 static char*  g_old_block_end = NULL;   /* g_old_block + reservation capacity */
 static size_t g_old_capacity  = 0;      /* reservation size in bytes (== the cap) */
-static size_t g_old_live_bytes = 0;     /* slot bytes held by live old objects (accumulates promotions; recomputed exact at sweep) */
+static size_t g_old_live_bytes = 0;     /* slot bytes held by live old objects (accumulates the workers' reports; recomputed exact at sweep) */
 static size_t g_old_live_after_major = 0;  /* g_old_live_bytes right after the last sweep: the reclamation-trigger baseline */
-static int    g_old_alloc_failed_at_cap = 0;  /* set when a carve hit the cap with empty free lists */
+static int    g_old_alloc_failed_at_cap = 0;  /* set when a carve hit the cap with no region to reuse */
 
-static vader_old_class_t   g_old_classes[VADER_OLD_NUM_CLASSES];
+/* By class, the regions with room that no worker allocates in, linked by
+ * `free_next`: a sweep fills them, a worker takes one under the lock. */
+static vader_old_region_t* g_old_pools[VADER_OLD_NUM_CLASSES];
 static vader_old_region_t* g_old_regions    = NULL;   /* all regions, carve order */
 /* Freed large regions by size bin: every region of a bin is at least as large as
  * every region of a lower one. Rebuilt by each sweep (`vader_old_sweep`), which
@@ -298,6 +299,7 @@ static vader_old_region_t* vader_old_carve_region(size_t region_bytes, size_t sl
     r->slot_size = slot_size;
     r->class_idx = class_idx;
     r->freed     = 0u;
+    r->free_head = NULL;
     r->free_next = NULL;
     /* A large region holds its one object from the start. */
     if (class_idx < 0) r->cur = r->end;
@@ -310,63 +312,116 @@ static vader_old_region_t* vader_old_carve_region(size_t region_bytes, size_t sl
     return r;
 }
 
-/* Allocate `bytes` of old-gen storage (the promotion path). Returns raw,
- * uninitialised slot memory (caller writes the object + header) or NULL when the
- * reservation is exhausted at the cap (caller keeps the object in young). */
-static void* vader_old_alloc_held(size_t bytes) {
-    size_t aligned = vader_gc_align(bytes);
-    if (aligned <= VADER_OLD_SMALL_MAX) {
-        size_t ci = (aligned - 1u) / VADER_OLD_CLASS_GRAN;     /* 0..NUM_CLASSES-1 */
-        size_t slot_size = (ci + 1u) * VADER_OLD_CLASS_GRAN;
-        vader_old_class_t* c = &g_old_classes[ci];
-        if (c->free_head != NULL) {
-            char* slot = c->free_head;
-            c->free_head = (char*) vader_obj_link(slot);
-            g_old_live_bytes += slot_size;
-            return slot;
-        }
-        if (c->current == NULL || c->current->cur + slot_size > c->current->end) {
-            vader_old_region_t* r = vader_old_carve_region(VADER_OLD_REGION_BYTES, slot_size, (int) ci);
-            if (r == NULL) { g_old_alloc_failed_at_cap = 1; return NULL; }
-            c->current = r;
-        }
-        char* slot = c->current->cur;
-        __atomic_store_n(&c->current->cur, slot + slot_size, __ATOMIC_RELAXED);
-        g_old_live_bytes += slot_size;
-        return slot;
-    }
-    /* Large: a freed region that fits, else a fresh one. Its size stays a multiple
-     * of the class granularity, so every region, and every slot in it, starts on
-     * the slot alignment an array buffer needs. */
-    aligned = (aligned + VADER_OLD_CLASS_GRAN - 1u) & ~(size_t) (VADER_OLD_CLASS_GRAN - 1u);
-    vader_old_region_t** fit = vader_old_large_fit(aligned);
-    if (fit != NULL) {
-        vader_old_region_t* r = *fit;
-        *fit = r->free_next;
-        r->free_next = NULL;
-        r->freed = 0u;
-        g_old_live_bytes += r->slot_size;
-        return r->base;   /* pages re-fault on the caller's memcpy */
-    }
-    vader_old_region_t* r = vader_old_carve_region(aligned, aligned, -1);
-    if (r == NULL) { g_old_alloc_failed_at_cap = 1; return NULL; }
-    g_old_live_bytes += aligned;
-    return r->base;
-}
-
-/* Serialises the allocations in old of several workers. NULL with one. */
+/* Serialises what the workers share of old: the carve, the pools of the
+ * classes, the large bins. NULL with one worker. */
 static vader_os_lock_t* g_old_guard = NULL;
 
 static void vader_old_pool_start(void) {
     g_old_guard = vader_os_lock_new();
 }
 
-static void* vader_old_alloc(size_t bytes) {
-    if (g_old_guard == NULL) return vader_old_alloc_held(bytes);
-    vader_os_lock(g_old_guard);
-    void* p = vader_old_alloc_held(bytes);
-    vader_os_unlock(g_old_guard);
-    return p;
+static void vader_old_lock(void) {
+    if (g_old_guard != NULL) vader_os_lock(g_old_guard);
+}
+
+static void vader_old_unlock(void) {
+    if (g_old_guard != NULL) vader_os_unlock(g_old_guard);
+}
+
+static size_t vader_old_live(void) {
+    return __atomic_load_n(&g_old_live_bytes, __ATOMIC_RELAXED);
+}
+
+static void vader_old_report(vader_worker_t* w) {
+    if (w->old_allocated == 0u) return;
+    __atomic_fetch_add(&g_old_live_bytes, w->old_allocated, __ATOMIC_RELAXED);
+    w->old_allocated = 0u;
+}
+
+/* Whether the small region `r` can take one more object. */
+static int vader_old_region_has_room(const vader_old_region_t* r) {
+    return r->free_head != NULL || r->cur + r->slot_size <= r->end;
+}
+
+/* A slot of the small region `r`: a free one, else the next never used; NULL
+ * when it is full. The bump stays an atomic store: a minor of another worker
+ * reads `r->cur` without the lock. */
+static char* vader_old_region_take(vader_old_region_t* r) {
+    if (!vader_old_region_has_room(r)) return NULL;
+    char* slot = r->free_head;
+    if (slot != NULL) {
+        r->free_head = (char*) vader_obj_link(slot);
+        return slot;
+    }
+    slot = r->cur;
+    __atomic_store_n(&r->cur, slot + r->slot_size, __ATOMIC_RELAXED);
+    return slot;
+}
+
+/* A region of class `ci` with room, for a worker to own: one of the pool of
+ * the class, else a fresh one. NULL at the cap. Under the lock. */
+static vader_old_region_t* vader_old_region_for(size_t ci) {
+    vader_old_region_t* r = g_old_pools[ci];
+    if (r != NULL) {
+        g_old_pools[ci] = r->free_next;
+        r->free_next = NULL;
+        return r;
+    }
+    r = vader_old_carve_region(VADER_OLD_REGION_BYTES, (ci + 1u) * VADER_OLD_CLASS_GRAN, (int) ci);
+    if (r == NULL) g_old_alloc_failed_at_cap = 1;
+    return r;
+}
+
+/* A large region of `aligned` bytes: a freed one that fits, else a fresh one.
+ * Its size stays a multiple of the class granularity, so every region, and
+ * every slot in it, starts on the slot alignment an array buffer needs. NULL at
+ * the cap. Under the lock. */
+static vader_old_region_t* vader_old_large_for(size_t aligned) {
+    vader_old_region_t** fit = vader_old_large_fit(aligned);
+    if (fit != NULL) {
+        vader_old_region_t* r = *fit;
+        *fit = r->free_next;
+        r->free_next = NULL;
+        r->freed = 0u;
+        return r;   /* pages re-fault on the caller's memcpy */
+    }
+    vader_old_region_t* r = vader_old_carve_region(aligned, aligned, -1);
+    if (r == NULL) g_old_alloc_failed_at_cap = 1;
+    return r;
+}
+
+/* Allocate `bytes` of old-gen storage for `w`. Returns raw, uninitialised slot
+ * memory (caller writes the object + header) or NULL when the reservation is
+ * exhausted at the cap (caller keeps the object in young). A small object goes
+ * to the region `w` owns for its class, without the lock; only taking a new
+ * region, or a large object, takes it. */
+static void* vader_old_alloc(vader_worker_t* w, size_t bytes) {
+    size_t aligned = vader_gc_align(bytes);
+    if (aligned <= VADER_OLD_SMALL_MAX) {
+        size_t ci = (aligned - 1u) / VADER_OLD_CLASS_GRAN;     /* 0..NUM_CLASSES-1 */
+        vader_old_region_t* r = w->old_current[ci];
+        char* slot = NULL;
+        if (r != NULL) slot = vader_old_region_take(r);
+        if (slot == NULL) {
+            vader_old_lock();
+            r = vader_old_region_for(ci);
+            vader_old_unlock();
+            if (r == NULL) return NULL;
+            w->old_current[ci] = r;
+            vader_old_report(w);
+            slot = vader_old_region_take(r);
+        }
+        w->old_allocated += r->slot_size;
+        return slot;
+    }
+    aligned = (aligned + VADER_OLD_CLASS_GRAN - 1u) & ~(size_t) (VADER_OLD_CLASS_GRAN - 1u);
+    vader_old_lock();
+    vader_old_region_t* r = vader_old_large_for(aligned);
+    vader_old_unlock();
+    if (r == NULL) return NULL;
+    w->old_allocated += r->slot_size;
+    vader_old_report(w);
+    return r->base;
 }
 
 /* Walk every LIVE old object (mark == g_mark_value) and invoke `fn`. Used by the
@@ -403,11 +458,18 @@ static void vader_young_foreach(void (*fn)(char* obj, uint32_t type_index, void*
 
 /* Sweep: rebuild every free list from the unmarked slots. A slot survives iff
  * `mark == g_mark_value` (set during the mark phase). Dead small slots are
- * stamped FREE (mark 0) and pushed to their class free list; dead large regions
- * give their pages back and are queued in their size bin for reuse. Recomputes
- * g_old_live_bytes. */
+ * stamped FREE (mark 0) and pushed to the free list of their region, and a
+ * region with room joins the pool of its class: the workers own no region
+ * after a sweep. Dead large regions give their pages back and are queued in
+ * their size bin for reuse. Recomputes g_old_live_bytes. Runs with the world
+ * stopped. */
 static void vader_old_sweep(void) {
-    for (size_t i = 0; i < VADER_OLD_NUM_CLASSES; i++) g_old_classes[i].free_head = NULL;
+    memset(g_old_pools, 0, sizeof g_old_pools);
+    for (size_t i = 0; i < g_worker_count; i++) {
+        vader_worker_t* w = g_workers[i];
+        memset(w->old_current, 0, sizeof w->old_current);
+        w->old_allocated = 0u;
+    }
     memset(g_old_large_bins, 0, sizeof g_old_large_bins);
     g_old_large_top_bin = 0;
     size_t live = 0;
@@ -431,7 +493,7 @@ static void vader_old_sweep(void) {
             }
             continue;
         }
-        vader_old_class_t* c = &g_old_classes[r->class_idx];
+        r->free_head = NULL;
         for (char* slot = r->base; slot < r->cur; slot += r->slot_size) {
             vader_obj_header_t* h = (vader_obj_header_t*) slot;
             if (h->mark == g_mark_value) {
@@ -439,12 +501,16 @@ static void vader_old_sweep(void) {
             } else {
                 h->mark = 0u;
                 h->type_index = VADER_TYPE_INDEX_FREE;
-                vader_obj_set_link(slot, c->free_head);
-                c->free_head = slot;
+                vader_obj_set_link(slot, r->free_head);
+                r->free_head = slot;
             }
         }
+        if (vader_old_region_has_room(r)) {
+            r->free_next = g_old_pools[r->class_idx];
+            g_old_pools[r->class_idx] = r;
+        }
     }
-    g_old_live_bytes = live;
+    __atomic_store_n(&g_old_live_bytes, live, __ATOMIC_RELAXED);
 }
 
 /* ---- init and shutdown --------------------------------------------------- */
@@ -591,10 +657,7 @@ void vader_gc_init(void) {
     g_old_bump      = g_old_block;
     g_old_committed = g_old_block;
     g_old_block_end = g_old_block + g_old_capacity;
-    for (size_t i = 0; i < VADER_OLD_NUM_CLASSES; i++) {
-        g_old_classes[i].free_head = NULL;
-        g_old_classes[i].current   = NULL;
-    }
+    memset(g_old_pools, 0, sizeof g_old_pools);
     g_old_regions    = NULL;
     memset(g_old_large_bins, 0, sizeof g_old_large_bins);
     g_old_large_top_bin = 0;
@@ -624,6 +687,8 @@ void vader_gc_shutdown(void) {
         free(w->card_groups);
         free(w->card_group_shadow);
         free(w->gray_stack);
+        memset(w->old_current, 0, sizeof w->old_current);
+        w->old_allocated = 0u;
         w->cards = NULL;
         w->card_shadow = NULL;
         w->card_groups = NULL;
@@ -646,10 +711,7 @@ void vader_gc_shutdown(void) {
     g_old_regions = NULL;
     memset(g_old_large_bins, 0, sizeof g_old_large_bins);
     g_old_large_top_bin = 0;
-    for (size_t i = 0; i < VADER_OLD_NUM_CLASSES; i++) {
-        g_old_classes[i].free_head = NULL;
-        g_old_classes[i].current   = NULL;
-    }
+    memset(g_old_pools, 0, sizeof g_old_pools);
     vader_old_base    = 0;
     vader_old_end     = 0;
     g_card_count      = 0;
@@ -731,7 +793,7 @@ static void vader_young_grow_for(vader_worker_t* w, size_t aligned) {
  * collector: calling it from within a collect would recurse). */
 static void vader_young_maybe_grow_adaptive(vader_worker_t* w) {
     if (g_young_ratio == 0u) return;
-    size_t old_live = g_old_live_bytes;
+    size_t old_live = vader_old_live();
     size_t target = old_live / g_young_ratio;
     if (g_young_cap != 0u && target > g_young_cap) target = g_young_cap;
     if (target > g_young_max_bytes) target = g_young_max_bytes;
@@ -751,7 +813,7 @@ static void vader_old_maybe_major(void) {
     size_t threshold = g_old_live_after_major
         * (size_t) VADER_GC_OLD_HEADROOM_NUM / (size_t) VADER_GC_OLD_HEADROOM_DEN;
     if (threshold < (size_t) VADER_GC_OLD_MAJOR_FLOOR) threshold = (size_t) VADER_GC_OLD_MAJOR_FLOOR;
-    if (g_old_live_bytes > threshold) {
+    if (vader_old_live() > threshold) {
         vader_major_collect();
     }
 }
@@ -768,10 +830,10 @@ static void vader_old_make_room(void) {
  * an array buffer. The object stays unmarked until `w` lets the monitor go
  * (`vader_gc_mark_monitor_born`). */
 static void* vader_gc_alloc_old(vader_worker_t* w, size_t bytes) {
-    void* p = vader_old_alloc(bytes);
+    void* p = vader_old_alloc(w, bytes);
     if (p == NULL) {
         vader_old_make_room();
-        p = vader_old_alloc(bytes);
+        p = vader_old_alloc(w, bytes);
     }
     if (p == NULL) vader_trap("vader_gc_alloc: old reservation exhausted at cap (VADER_GC_OLD_MAX)");
     if (w->monitor_born_len == w->monitor_born_cap) {

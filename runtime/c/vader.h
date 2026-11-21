@@ -353,7 +353,7 @@ static inline void* vader_box_to_ref(vader_box_t b) {
  * object held there: read nothing else of a forwarded object, its copy has it.
  * A forward does not outlive the collection that wrote it, except the one
  * `vader_gc_force_tenure` leaves until the next minor (docs/adr/0107). A FREE
- * old slot threads the free list of its size class through that same word (old
+ * old slot threads the free list of its region through that same word (old
  * objects never forward: the old gen is non-moving). Record: docs/adr/0133. */
 /* Every allocation is rounded up to this, so it is the strongest alignment a
  * Vader object's fields can rely on. */
@@ -787,8 +787,8 @@ static inline void vader_array_ref_store_box(vader_array_buf_t* buf, size_t slot
 #define VADER_TYPE_INDEX_BUFFER UINT32_C(0xFFFFFFFD)
 
 /* Sentinel index stamped on a FREE old-gen slot by the mark-sweep collector
- * (rt/gc_heap.c). A freed slot also carries `mark == 0` and threads the class
- * free list through the word after its header. The region walks key off `mark`, so
+ * (rt/gc_heap.c). A freed slot also carries `mark == 0` and threads the free
+ * list of its region through the word after its header. The region walks key off `mark`, so
  * none sizes a free slot: `vader_gc_obj_size` would trap on the sentinel. */
 #define VADER_TYPE_INDEX_FREE UINT32_C(0xFFFFFFFC)
 
@@ -1361,6 +1361,10 @@ typedef enum {
 } vader_cycle_t;
 /* The two cycles of a major come last: `vader_gc_forward` tests them at once. */
 
+/* The classes of small objects in the old generation: 16-byte steps up to 1 KB
+ * (rt/gc_heap.c). */
+#define VADER_OLD_NUM_CLASSES 64u
+
 /* What one worker of the runtime, a system thread, holds: each system thread has
  * its own, so a task always reads the state of the worker it runs on. */
 typedef struct vader_worker {
@@ -1423,6 +1427,12 @@ typedef struct vader_worker {
      * its C stack, under the registers it stored there. */
     char*                        stop_sp;
     vader_gc_counts_t            counts;
+    /* The region of the old generation it allocates in, one per class of small
+     * objects, NULL where it has none (rt/gc_heap.c). No other worker allocates
+     * in them; a major, with the world stopped, takes them all back. */
+    struct vader_old_region*     old_current[VADER_OLD_NUM_CLASSES];
+    /* The bytes it allocated in old since it last added them to the total. */
+    size_t                       old_allocated;
 } vader_worker_t;
 
 extern _Thread_local vader_worker_t vader_worker;

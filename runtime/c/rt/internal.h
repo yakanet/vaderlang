@@ -55,8 +55,11 @@ typedef struct vader_old_region {
     size_t slot_size;     /* class slot size; for large = the object's aligned size */
     int    class_idx;     /* small: 0..NUM_CLASSES-1 ; large: -1 */
     uint8_t freed;        /* large only: currently in a large free bin */
+    /* Small only: its free slots, linked in the word after each one's header. */
+    char*  free_head;
     struct vader_old_region* next;       /* global region list (sweep + walks) */
-    struct vader_old_region* free_next;  /* large free bin link */
+    /* The next region of its large free bin, or of the pool of its class. */
+    struct vader_old_region* free_next;
 } vader_old_region_t;
 
 /* The most workers a program runs, the main thread's included. */
@@ -87,8 +90,13 @@ static int vader_in_young_from(const vader_worker_t* w, const void* p);
 static int vader_in_young(const vader_worker_t* w, const void* p);
 static int vader_in_old(const void* p);
 static int vader_gc_env_bool(const char* env_name);
-static void* vader_old_alloc(size_t bytes);
-/* With several workers, promotions into old take a lock. */
+/* `bytes` of old storage for `w`, NULL at the cap of the reservation. */
+static void* vader_old_alloc(vader_worker_t* w, size_t bytes);
+/* Add what `w` allocated in old to the total the collector reads. */
+static void vader_old_report(vader_worker_t* w);
+/* The bytes live objects hold in old, as the workers last reported them. */
+static size_t vader_old_live(void);
+/* With several workers, taking a region of old takes a lock. */
 static void vader_old_pool_start(void);
 static void vader_old_foreach_live(void (*fn)(char* obj, uint32_t type_index, void* ctx), void* ctx);
 static void vader_young_foreach(void (*fn)(char* obj, uint32_t type_index, void* ctx), void* ctx);
