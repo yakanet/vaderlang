@@ -75,6 +75,8 @@ TaskCtx :: struct {
     singleton_nodes: i32[] = []
     /// Per node, what it reaches beyond its parameters (`task_reach.vader`).
     reach: Reach[] = []
+    /// `trait_key` -> the impls of the trait written for a type that is no trait.
+    trait_impls: Map<string, ImplEntry[]> = Map<string, ImplEntry[]> {}
     /// Per node, the parameters it keeps in other parameters (`task_kept.vader`).
     kept_into: KeptInto[][] = []
     /// Per node, the parameters whose function value it runs (`task_handed.vader`).
@@ -482,7 +484,7 @@ note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) 
                     if kind == .Kept && (stores || ctx.keeps_in_another(target, q)) {
                         continue
                     }
-                    if ctx.crosses_shared_at(body, target, q, lent, a.path) {
+                    if ctx.crosses_shared_at(body, target, q, lent, a.path, kind) {
                         continue
                     }
                     for r in roots {
@@ -558,10 +560,10 @@ lent_type :: fn(body: TaskBody, site: Site, q: i64) -> Type | null {
     return body.typed.expr_types[source.id]
 }
 
-// Whether `path`, what `target` does below its parameter `q`, reaches a struct tasks
-// share by design. It is followed from `lent`, the type the call lends, unless that
-// is a trait the call dispatches on, whose fields are its implementations': then
-// from the parameter of the implementation `target` is.
+// Whether `path`, what `target` does below its parameter `q` as a touch of `kind`,
+// reaches a struct tasks share by design. It is followed from `lent`, the type the
+// call lends, unless that is a trait the call dispatches on, whose fields are its
+// implementations': then from the parameter of the implementation `target` is.
 crosses_shared_at :: fn(
     ctx: TaskCtx,
     body: TaskBody,
@@ -569,34 +571,153 @@ crosses_shared_at :: fn(
     q: i64,
     lent: Type | null,
     path: PartPath,
+    kind: TouchKind,
 ) -> bool {
     if lent !is TraitType || target !is CalleeNode {
-        return crosses_task_shared(ctx.index.paths, body.typed, lent, path)
+        return ctx.crosses_task_shared(body.typed, lent, path, kind)
     }
     callee :: ctx.index.functions[target.node]
     if q >= callee.decl.params.len() {
         return false
     }
     own :: callee.typed.param_types[callee.decl.params[q].span.hash()]
-    return crosses_task_shared(ctx.index.paths, callee.typed, own, path)
+    return ctx.crosses_task_shared(callee.typed, own, path, kind)
 }
 
 // Whether `path`, followed down from a value of type `t`, reaches a struct tasks
-// share by design.
+// share by design, for a touch of `kind`.
 crosses_task_shared :: fn(
-    paths: PathTable,
+    ctx: TaskCtx,
     typed: TypedProgram,
     t: Type | null,
     path: PartPath,
+    kind: TouchKind,
 ) -> bool {
+    return ctx.crossing_from(SharedWalk { .kind = kind }, typed, t, path, 0) == .Crosses
+}
+
+// What a path followed down from a type meets.
+Crossing :: enum {
+    /// A struct tasks share by design.
+    Crosses,
+    /// Its end, through plain parts, or a type it cannot be followed through.
+    Plain,
+    /// A step the type has no part for: the path is not one of its own.
+    Unfollowed,
+}
+
+// One question of `crosses_task_shared`: the touch it is about, and the traits
+// whose members are taken to touch through shared structs alone while their
+// members are checked. Every touch of a member ends in some implementation's own
+// code, checked without that assumption, and a failure anywhere fails the whole
+// question.
+SharedWalk :: struct {
+    kind: TouchKind
+    /// Made by the first trait whose members are checked.
+    assumed: Set<string> | null = null
+}
+
+// What `path`, from its step at `from` on, meets followed down from a value of type
+// `t`. A trait goes on in each of its implementations: the path crosses when one it
+// fits crosses and none it fits stays plain. A cut path that ends at a trait stands
+// for whatever its members do below their `self`.
+crossing_from :: fn(
+    ctx: TaskCtx,
+    walk: SharedWalk,
+    typed: TypedProgram,
+    t: Type | null,
+    path: PartPath,
+    from: i64,
+) -> Crossing {
     at := t
-    for step in steps_of(path) {
-        at = step_type(typed, at, paths.step_names[step]) else return false
+    for k in from..<i64(length_of(path)) {
+        if at is TraitType {
+            return ctx.crossing_in_implementations(walk, typed, at, path, k)
+        }
+        name :: ctx.index.paths.step_names[step_at(path, k)]
+        at = step_type(typed, at, name) else return unfollowed(at)
         if is_task_shared_type(typed, at) {
-            return true
+            return .Crosses
         }
     }
-    return false
+    if is_cut(path) && at is TraitType && ctx.members_cross(walk, typed, at) {
+        return .Crosses
+    }
+    return .Plain
+}
+
+// What a step `t` has no part for means: a type parameter or `any` may hold
+// anything, so the path stays plain there.
+unfollowed :: fn(t: Type | null) -> Crossing =
+    if t is TypeParamType | AnyType { .Plain } else { .Unfollowed }
+
+// What `path`, from its step at `from` on, meets in the implementations of
+// `implemented`.
+crossing_in_implementations :: fn(
+    ctx: TaskCtx,
+    walk: SharedWalk,
+    typed: TypedProgram,
+    implemented: TraitType,
+    path: PartPath,
+    from: i64,
+) -> Crossing {
+    found: Crossing = .Unfollowed
+    for entry in ctx.implementations(implemented) {
+        crossing :: ctx.crossing_from(walk, typed, entry.for_type, path, from)
+        if crossing == .Plain {
+            return .Plain
+        }
+        if crossing != .Unfollowed {
+            found = crossing
+        }
+    }
+    return found
+}
+
+// Whether every touch the members of `implemented`'s implementations make below
+// their `self`, as strong as the walk's, reaches a struct tasks share by design.
+members_cross :: fn(ctx: TaskCtx, walk: SharedWalk, typed: TypedProgram, implemented: TraitType) -> bool {
+    assumed :: walk.assumed else Set<string> {}
+    walk.assumed = assumed
+    if !assumed.add(trait_key_of(implemented.symbol)) {
+        return true
+    }
+    for entry in ctx.implementations(implemented) {
+        for member in entry.decl.members {
+            if !has_self_param(member) {
+                continue
+            }
+            target :: ctx.index.target_of_decl(member)
+            for a in target_effects(target, ctx.facts, 0, ctx.index.any).accesses {
+                kind :: touch_kind(a.effect) else continue
+                if !answers(walk.kind, kind) {
+                    continue
+                }
+                if ctx.crossing_from(walk, typed, entry.for_type, a.path, 0) != .Crosses {
+                    return false
+                }
+            }
+        }
+    }
+    return true
+}
+
+// Whether a touch of `kind` decides for one of `asked`: a read clashes with every
+// touch, a write or a keep with the writes and keeps.
+answers :: fn(asked: TouchKind, kind: TouchKind) -> bool = asked == .Read || kind != .Read
+
+// The impls of `implemented` written for a type that is no trait, whose fields a
+// path can follow.
+implementations :: fn(ctx: TaskCtx, implemented: TraitType) -> ImplEntry[] {
+    key :: trait_key_of(implemented.symbol)
+    cached :: ctx.trait_impls[key]
+    if cached != null {
+        return cached
+    }
+    fits :: (e: ImplEntry) -> e.trait_key == key && e.for_type !is TraitType
+    found: ImplEntry[]: ctx.index.impls.all.filter(fits).collect()
+    ctx.trait_impls[key] = found
+    return found
 }
 
 // ---- doors ----------------------------------------------------------------

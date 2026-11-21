@@ -1,0 +1,52 @@
+// P100: a middleware chain whose middleware writes a plain field of its own:
+// every task writes it.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Handler :: trait {
+    handle :: fn(self, path: string) -> i32
+}
+
+App :: struct { hits: Shared<i32[]> }
+
+App implements Handler {
+    handle :: fn(self, path: string) -> i32 {
+        self.hits.locked(fn(counts) {
+            counts[0] += 1
+        })
+        return 200
+    }
+}
+
+Tally :: struct { n: i32 = 0 }
+
+Logged :: struct { next: Handler, tally: Tally }
+
+Logged implements Handler {
+    handle :: fn(self, path: string) -> i32 {
+        self.tally.n += 1
+        return self.next.handle(path) + 1000
+    }
+}
+
+serve :: fn(handler: Handler) -> i32 {
+    tasks: Task<i32>[]: []
+    for id in 0..<3 {
+        tasks.push(launch(() -> handler.handle("/${id}")))
+    }
+    total := 0
+    for t in tasks {
+        total += t.join() else 0
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    app :: App { .hits = shared([0]) }
+    return serve(Logged { .next = app, .tally = Tally {} })
+}

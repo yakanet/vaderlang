@@ -12,7 +12,7 @@ Stats :: struct {
     hits: i32 = 0
 }
 
-counted :: fn(stats: Stats, next: fn(i32) -> i32) -> fn(i32) -> i32 = (n) -> {
+counted :: fn(stats: Stats, next: fn(i32) -> i32) -> fn(i32) -> i32 = fn(n) {
     stats.hits += 1
     return next(n)
 }
