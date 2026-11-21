@@ -24,7 +24,7 @@ static inline bool vader_host_std_core$Intrinsic$is_ascii(vader_string_t a0) {
 }
 
 static inline void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 29u, 582u);
+    return (void*) vader_string_bytes_view(a0, 29u, 581u);
 }
 
 static inline vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
@@ -55,8 +55,8 @@ static inline void vader_host_std_core$Intrinsic$count_allocations(void) {
     vader_gc_count_allocations();
 }
 
-static inline int64_t vader_host_std_core$Intrinsic$spawn_thread(void* a0) {
-    return vader_scheduler_spawn(a0);
+static inline int64_t vader_host_std_core$Intrinsic$spawn_thread(void* a0, int64_t a1) {
+    return vader_scheduler_spawn_numbered(a0, a1);
 }
 
 static inline void vader_host_std_core$Intrinsic$park(void) {
