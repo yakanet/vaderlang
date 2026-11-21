@@ -232,11 +232,11 @@ test_a_thread_past_the_end_of_its_stack_stops :: fn() -> void {
 }
 
 @test
-test_each_thread_runs_its_own_defers_when_it_panics :: fn() -> void {
+test_a_thread_that_panics_runs_alone_until_it_stops :: fn() -> void {
     expect_stop(
-        "two_panics",
-        "defer of first, before the yield\ndefer of second\n",
-        "panic: second",
+        "panic_alone",
+        "defer of first, before the yield\ndefer of first, after the yield\n",
+        "panic: first",
     )
 }
 

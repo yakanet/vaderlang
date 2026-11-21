@@ -4454,6 +4454,7 @@ A task that may reach an `@extern` function marked `@main_thread` is an error (ย
 - Cancelling a task cancels the tasks it launched that are still running, and its own defers run once theirs have. A task that returns leaves the tasks it launched running, and what the defers of a cancelled task launch runs on.
 - A defer that parks while its task is cancelled parks that task, not the one that cancelled it.
 - A stop (a `panic`, a failed run-time check) runs the pending defers of the task that stops, not those of the other tasks (ยง7 *`defer`*).
+- Once a task stops, it is the only one left to run: the other tasks never run again, on any core. Its defers may still sleep or wait for input and output; one that waits for another task, a channel or a lock another task holds ends the program at once.
 
 ---
 

@@ -1,7 +1,8 @@
 /* rt/defer_traps.c: the defer stack, and the traps that unwind it.
  *
  * `defer` pushes a closure that the end of its scope pops and runs. A trap, a
- * panic or an unreachable reports, runs every pending defer, then aborts. */
+ * panic or an unreachable stops every other thread for good, reports, runs
+ * every pending defer of its own thread, then aborts. */
 
 #include "internal.h"
 
@@ -56,17 +57,26 @@ void vader_defer_pop_exec(uint32_t count) {
 
 /* ---- traps --------------------------------------------------------------- */
 
-/* What every trap does once it has reported: run the pending defers, unless a
- * defer is the one that trapped, then abort. */
-static VADER_NORETURN void vader_unwind_and_abort(void) {
+/* What every trap does: leave the program to the trapping thread alone, report,
+ * run the pending defers, then abort. A defer that traps reports and aborts at
+ * once. A thread trapping after another one, elsewhere, stops in the first
+ * step and reports nothing. */
+static VADER_NORETURN void vader_report_and_abort(const char* what, const char* detail,
+                                                  size_t detail_len) {
     vader_thread_state_t* running = &vader_worker.running;
-    if (!running->unwinding) { running->unwinding = 1; vader_run_pending_defers(); }
+    if (running->unwinding) {
+        vader_os_report_fatal(what, detail, detail_len);
+        abort();
+    }
+    running->unwinding = 1;
+    vader_scheduler_stop_for_trap();
+    vader_os_report_fatal(what, detail, detail_len);
+    vader_run_pending_defers();
     abort();
 }
 
 void vader_unreachable(const char* where) {
-    vader_os_report_fatal("reached unreachable at ", where, strlen(where));
-    vader_unwind_and_abort();
+    vader_report_and_abort("reached unreachable at ", where, strlen(where));
 }
 
 /* Drain every pending defer LIFO as a panic unwinds the live call chain.
@@ -77,11 +87,9 @@ static void vader_run_pending_defers(void) {
 }
 
 void vader_trap(const char* msg) {
-    vader_os_report_fatal("trap: ", msg, strlen(msg));
-    vader_unwind_and_abort();
+    vader_report_and_abort("trap: ", msg, strlen(msg));
 }
 
 void vader_panic(vader_string_t msg) {
-    vader_os_report_fatal("panic: ", vader_atom_data(msg), (size_t) vader_atom_len(msg));
-    vader_unwind_and_abort();
+    vader_report_and_abort("panic: ", vader_atom_data(msg), (size_t) vader_atom_len(msg));
 }

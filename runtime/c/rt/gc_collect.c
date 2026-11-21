@@ -691,6 +691,16 @@ static _Atomic int g_gc_stop_requested = 0;
 static size_t g_gc_outside = 0;
 /* The majors run so far: a worker that waited through another's needs none. */
 static size_t g_gc_majors = 0;
+/* The worker that trapped, NULL before any: every other one, once stopped,
+ * stays stopped. */
+static vader_worker_t* _Atomic g_gc_trapped_by = NULL;
+
+/* Whether `w` must stay stopped, now or once it stops. */
+static int vader_gc_must_stop(const vader_worker_t* w) {
+    if (atomic_load(&g_gc_stop_requested)) return 1;
+    vader_worker_t* by = atomic_load(&g_gc_trapped_by);
+    return by != NULL && by != w;
+}
 
 static void vader_gc_pool_start(void) {
     vader_old_pool_start();
@@ -714,12 +724,12 @@ static VADER_NOINLINE void vader_gc_blocking(void (*op)(void* arg), void* arg, v
     vader_os_unlock(g_gc_stop_guard);
     if (op != NULL) op(arg);
     vader_os_lock(g_gc_stop_guard);
-    while (atomic_load(&g_gc_stop_requested)) {
+    while (vader_gc_must_stop(w)) {
         /* Never wait for a major holding `held`: a worker that waits to take it
          * would never stop. It is taken back before the guard, in the order
          * every other taker follows. */
         if (held != NULL) vader_os_unlock(held);
-        while (atomic_load(&g_gc_stop_requested)) vader_os_cond_wait(g_gc_resumed, g_gc_stop_guard, -1);
+        while (vader_gc_must_stop(w)) vader_os_cond_wait(g_gc_resumed, g_gc_stop_guard, -1);
         if (held == NULL) break;
         vader_os_unlock(g_gc_stop_guard);
         vader_os_lock(held);
@@ -771,6 +781,25 @@ static void vader_gc_resume_world(void) {
     vader_alloc_limit_refresh_all();
     vader_os_cond_broadcast(g_gc_resumed);
     vader_os_unlock(g_gc_stop_guard);
+}
+
+static void vader_gc_stop_for_trap(void) {
+    vader_worker_t* w = &vader_worker;
+    vader_worker_t* none = NULL;
+    if (!atomic_compare_exchange_strong(&g_gc_trapped_by, &none, w)) {
+        /* Another worker trapped first: this one never returns from the wait,
+         * and one worker alone traps again only in a defer, which aborts. */
+        vader_gc_blocking(NULL, NULL, NULL);
+        abort();
+    }
+    if (g_gc_stop_guard == NULL) return;
+    /* A worker that collects has stopped the others already. */
+    if (w->cycle != VADER_CYCLE_NONE) return;
+    /* The stop waits until every other worker is stopped; `g_gc_trapped_by`,
+     * set before, keeps them so through the resume, which lets this worker
+     * alone go on, and collect as it needs. */
+    while (!vader_gc_stop_world()) continue;
+    vader_gc_resume_world();
 }
 
 /* The roots of the threads no worker started yet: their entries, which a

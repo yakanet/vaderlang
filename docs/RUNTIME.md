@@ -518,7 +518,10 @@ host and its collector.
 A failed run-time check (SPEC §2 *Run-time checks*) or a `panic` stops the
 program. Natively, `vader_trap` (`vader_panic` for a panic) prints
 the message on stderr, runs the pending defers of the thread that stops, and
-aborts the process (`SIGABRT`). On the VM a trap is a value the interpreter
+aborts the process (`SIGABRT`). Before it prints, the trap stops every other
+worker for good, as a major does, and its own worker runs no other thread: a
+park of the thread with no timer and no watch, a monitor or a mutex it cannot
+take, abort at once (ADR 0164). On the VM a trap is a value the interpreter
 returns: the pending defers run, and `vader run` prints the message and exits with status 1. The
 arithmetic traps print the same message on both. The VM also stops a call chain
 deeper than 1024 frames and, at compile time, an evaluation that runs out of

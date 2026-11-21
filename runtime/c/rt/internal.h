@@ -37,6 +37,13 @@ typedef struct vader_os_cond vader_os_cond_t;
 /* Run the running thread's pending defers, LIFO, until none is left. */
 static void vader_run_pending_defers(void);
 
+/* ---- scheduler.c --------------------------------------------------------- */
+
+/* Leave the program to the running thread, which trapped: the other workers
+ * stop for good (`vader_gc_stop_for_trap`), and this one runs no other thread.
+ * A wait of the thread for another one, which will never run, aborts. */
+static void vader_scheduler_stop_for_trap(void);
+
 /* ---- gc_heap.c ----------------------------------------------------------- */
 
 /* One carved extent of the reservation. Small regions hold many fixed-size
@@ -137,6 +144,10 @@ static void vader_gc_blocking(void (*op)(void* arg), void* arg, vader_os_lock_t*
 /* Stop here if another worker collects, letting go of `held` meanwhile, a
  * lock the caller holds, or NULL (`vader_gc_blocking`). */
 static void vader_gc_safepoint(vader_os_lock_t* held);
+/* Stop every other worker for good, for a trap of the calling one, which then
+ * runs alone and collects alone until it aborts. A worker that traps after
+ * another one stops for good itself. */
+static void vader_gc_stop_for_trap(void);
 /* Leave the young generation of `w`, the calling worker, empty. */
 static void vader_gc_empty_young(vader_worker_t* w);
 /* Mark live what `w` allocated in old under the monitor, as it lets it go. */

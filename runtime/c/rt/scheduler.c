@@ -50,6 +50,7 @@ typedef struct {
     uint8_t  released;      /* the descriptor it waited for is no longer waited on */
     uint8_t  task_ended;    /* its task ended: it leaves the runtime, then ends */
     uint8_t  reported;      /* what the OS reported ended its last park */
+    uint8_t  on_clock_or_os; /* parks for the clock or the OS, which a trap leaves running */
 } vader_scheduler_slot_t;
 
 typedef struct {
@@ -122,6 +123,17 @@ static uint32_t g_scheduler_joined = 0;
 static uint32_t g_scheduler_poller = VADER_SCHEDULER_NO_POLLER;
 /* `main` has returned: the workers rest for good. */
 static int g_scheduler_closed = 0;
+/* A thread trapped: `g_scheduler_trapped` is the one thread left to run. */
+static int g_scheduler_trapping = 0;
+static int64_t g_scheduler_trapped = 0;
+
+/* The trapping thread waits for what a stopped thread holds or would do: the
+ * defers of the trap end here. */
+static VADER_NORETURN void vader_scheduler_abort_after_trap(void) {
+    static const char why[] = "it waits for a task that no longer runs";
+    vader_os_report_fatal("the defers of the trap stop: ", why, sizeof(why) - 1u);
+    abort();
+}
 /* NULL with one worker. */
 static vader_os_lock_t* g_scheduler_guard = NULL;
 
@@ -190,7 +202,11 @@ static int vader_monitor_take_spinning(void) {
  * as stopped for a major, which the holder may run. */
 static void vader_monitor_hold(void) {
     vader_worker_t* w = &vader_worker;
-    if (!vader_monitor_take_spinning()) vader_gc_blocking(vader_monitor_take, NULL, NULL);
+    if (!vader_monitor_take_spinning()) {
+        /* After a trap, a holder is stopped for good. */
+        if (g_scheduler_trapping) vader_scheduler_abort_after_trap();
+        vader_gc_blocking(vader_monitor_take, NULL, NULL);
+    }
     w->in_monitor |= VADER_HOLDS_MONITOR;
     vader_alloc_limit_refresh(w);
 }
@@ -334,6 +350,7 @@ static void vader_mutex_take(_Atomic uint32_t* word) {
         if (vader_mutex_try(word)) return;
         vader_os_spin_pause();
     }
+    if (g_scheduler_trapping) vader_scheduler_abort_after_trap();
     while (atomic_exchange_explicit(word, 2u, memory_order_acquire) != 0u) {
         vader_gc_blocking(vader_mutex_sleep, (void*) word, NULL);
     }
@@ -542,7 +559,7 @@ static int vader_scheduler_leaves_unstarted(const vader_scheduler_worker_t* me) 
 /* The oldest thread no worker started, made one of `me`'s, into `*thread`; 0
  * when none is, or when `me` leaves it to another worker. */
 static int vader_scheduler_take_unstarted(vader_scheduler_worker_t* me, int64_t* thread) {
-    if (!vader_virtual_thread_has_unstarted()) return 0;
+    if (g_scheduler_trapping || !vader_virtual_thread_has_unstarted()) return 0;
     if (vader_scheduler_leaves_unstarted(me)) return 0;
     *thread = vader_virtual_thread_adopt_unstarted();
     vader_scheduler_slot_of(*thread)->queued = 0;
@@ -558,6 +575,7 @@ static int vader_scheduler_pop_ready(vader_scheduler_worker_t* w, int64_t* threa
         w->head = (w->head + 1u) & (w->cap - 1u);
         w->len--;
         if (!vader_virtual_thread_is_live(next)) continue;
+        if (g_scheduler_trapping && next != g_scheduler_trapped) continue;
         vader_scheduler_slot_of(next)->queued = 0;
         *thread = next;
         return 1;
@@ -898,7 +916,8 @@ static void vader_scheduler_rest(vader_scheduler_worker_t* w) {
     while (g_scheduler_closed) vader_scheduler_wait_on(w, -1);
     w->resting = 1;
     g_scheduler_resting++;
-    if (g_scheduler_resting < g_scheduler_threads) {
+    /* After a trap, the worker of the trapping thread keeps the program. */
+    if (g_scheduler_resting < g_scheduler_threads && !g_scheduler_trapping) {
         vader_scheduler_wait_for_work(w);
     } else {
         int64_t deadline = 0;
@@ -1150,12 +1169,23 @@ static int vader_scheduler_must_unwind(const vader_scheduler_slot_t* s) {
  * one cancelled meanwhile instead of returning. The slots move when a thread
  * is launched, so the slot is read again after the switch. */
 static void vader_scheduler_block(vader_scheduler_slot_t* s) {
+    if (g_scheduler_trapping && !s->queued && !s->on_clock_or_os) {
+        vader_scheduler_abort_after_trap();
+    }
     if (vader_scheduler_must_unwind(s)) vader_scheduler_unwind();
     vader_monitor_step_away();
     vader_virtual_thread_switch_to_scheduler();
     if (vader_scheduler_must_unwind(vader_scheduler_slot_of(vader_virtual_thread_current()))) {
         vader_scheduler_unwind();
     }
+}
+
+static void vader_scheduler_stop_for_trap(void) {
+    /* A worker that waits for the lock does not stop. */
+    if (g_scheduler_guard != NULL && vader_scheduler_me()->holds_guard) vader_scheduler_unlock();
+    vader_gc_stop_for_trap();
+    g_scheduler_trapped = vader_virtual_thread_current();
+    g_scheduler_trapping = 1;
 }
 
 static void vader_scheduler_ending(void) {
@@ -1253,9 +1283,11 @@ static bool vader_scheduler_wait_for_locked(int kind, int64_t fd, int64_t nanos,
             vader_scheduler_arm(&g_scheduler_bounds,
                                 (vader_scheduler_timer_t) { deadline, began, thread, sleep });
         }
+        s->on_clock_or_os = 1;
         vader_scheduler_park_locked();
         /* The slot may have moved: a park lets other threads launch. */
         s = vader_scheduler_slot_of(thread);
+        s->on_clock_or_os = 0;
         if (s->released) return true;
         if (s->reported && by_level) return true;
     }
@@ -1355,7 +1387,9 @@ void vader_scheduler_sleep_for(int64_t nanos) {
         s->sleep++;
         vader_scheduler_arm(&g_scheduler_sleeps,
                             (vader_scheduler_timer_t) { deadline, began, thread, s->sleep });
+        s->on_clock_or_os = 1;
         vader_scheduler_block(s);
+        vader_scheduler_slot_of(thread)->on_clock_or_os = 0;
     } while (vader_scheduler_now() < deadline);
     vader_scheduler_unlock();
 }

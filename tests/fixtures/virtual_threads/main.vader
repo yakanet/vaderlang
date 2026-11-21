@@ -170,7 +170,7 @@ overflow :: fn() -> void {
     println("not reached")
 }
 
-// ---- a panic in each of two threads ---------------------------------------
+// ---- a panic leaves its thread alone --------------------------------------
 
 unwind_first :: fn() -> void {
     println("defer of first, before the yield")
@@ -178,9 +178,10 @@ unwind_first :: fn() -> void {
     println("defer of first, after the yield")
 }
 
-// The first thread panics, and its defer yields while it runs, which runs the
-// second, which panics too: each thread runs its own defers.
-two_panics :: fn() -> void {
+// The first thread panics, and its defer yields while it runs: the thread that
+// panicked is the only one left to run, so the second never starts, and the
+// defer goes on after the yield.
+panic_alone :: fn() -> void {
     spawn(fn() {
         defer unwind_first()
         panic("first")
@@ -661,7 +662,7 @@ main :: fn() -> i32 {
     match case {
         "parked_roots"          -> parked_roots()
         "overflow"              -> overflow()
-        "two_panics"            -> two_panics()
+        "panic_alone"           -> panic_alone()
         "switch_in_callback"    -> switch_in_callback()
         "take_turns"            -> take_turns()
         "sleep_order"           -> sleep_order()
