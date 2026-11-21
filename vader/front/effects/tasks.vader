@@ -675,7 +675,7 @@ crossing_in_implementations :: fn(
 }
 
 // Whether every touch the members of `implemented`'s implementations make below
-// their `self`, as strong as the walk's, reaches a struct tasks share by design.
+// their `self`, of the walk's kind, reaches a struct tasks share by design.
 members_cross :: fn(ctx: TaskCtx, walk: SharedWalk, typed: TypedProgram, implemented: TraitType) -> bool {
     assumed :: walk.assumed else Set<string> {}
     walk.assumed = assumed
@@ -690,7 +690,9 @@ members_cross :: fn(ctx: TaskCtx, walk: SharedWalk, typed: TypedProgram, impleme
             target :: ctx.index.target_of_decl(member)
             for a in target_effects(target, ctx.facts, 0, ctx.index.any).accesses {
                 kind :: touch_kind(a.effect) else continue
-                if !answers(walk.kind, kind) {
+                // The summary keeps the kind of a touch it carries up: a cut
+                // touch stands for the members' touches of its own kind.
+                if kind != walk.kind {
                     continue
                 }
                 if ctx.crossing_from(walk, typed, entry.for_type, a.path, 0) != .Crosses {
@@ -701,10 +703,6 @@ members_cross :: fn(ctx: TaskCtx, walk: SharedWalk, typed: TypedProgram, impleme
     }
     return true
 }
-
-// Whether a touch of `kind` decides for one of `asked`: a read clashes with every
-// touch, a write or a keep with the writes and keeps.
-answers :: fn(asked: TouchKind, kind: TouchKind) -> bool = asked == .Read || kind != .Read
 
 // The impls of `implemented` written for a type that is no trait, whose fields a
 // path can follow.
