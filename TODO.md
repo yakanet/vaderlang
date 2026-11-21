@@ -251,7 +251,8 @@ flat array in place of a map is worth ≤ 8 % once that lands.
 - [ ] **A cancelled sleep keeps its timer.** The timer of a task cancelled while it sleeps stays in the heap until it fires, and wakes nothing (`runtime/c/rt/scheduler.c`).
 
 ### 3.2 Tasks over several cores
-- [ ] Spread the virtual threads of `std/task` over several system threads: the task check already holds a program to the rules of tasks on several cores.
+- [~] **Tasks run on several system threads under `VADER_THREADS=n`, one by default.** The pool, the per-worker young and old generations and the per-value mutexes are in (ADR 0166). Left: whether several threads become the default, which waits on the item below.
+- [ ] **The task check misses a write a callee makes through a literal that holds a part of what it is lent.** `bump(Tally { .stats = run.stats })` writes `run.stats` through the tally, and two tasks doing it pass the check; built in the launched lambda itself, the same write is refused. On one system thread it is a missed logical race; under `VADER_THREADS>1` it is a data race. A sound fix is parked on the branch `proto/kept-facts-2`: a second set of facts for what a function does through the values it keeps, read by the task check alone. Measured 2026-11-21, it costs a check that launches tasks across the whole compiler (the test runner) +37 % (1.08 -> 1.48 s), and the compiler's own check +3.5 %.
 - [ ] On a target without threads (WASM), every intrinsic of `std/runtime/scheduler` stops the program: a compile-time error when `std/task` is imported there.
 
 ### 3.3 Networking & web
