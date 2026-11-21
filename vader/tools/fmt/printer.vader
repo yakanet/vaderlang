@@ -2273,7 +2273,7 @@ emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
         self.newline()
         self.flush_leading_comments(arm.span.start.offset, arm.span.start.line)
         self.indent()
-        self.emit_pattern(arm.pattern)
+        self.emit_arm_pattern(arm)
         self.emit_expr_with_prefix(" if ", arm.guard)
         if align > 0 {
             self.write_padding(match_arm_head_width(self.source, arm), align)
@@ -2282,6 +2282,67 @@ emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
         self.emit_expr(arm.body)
     }
     self.close_brace_after_comments(x.span)
+}
+
+// The pattern of `arm`, as `emit_pattern` writes it. An or-pattern whose arm would
+// pass `MAX_LINE` on its first line breaks before a `|`, filling each line, the
+// next ones one indent deeper: the form the source writes such a head in.
+emit_arm_pattern :: fn(self: Printer, arm: p.MatchArm) -> void {
+    pat :: arm.pattern
+    if pat !is p.OrPattern {
+        self.emit_pattern(pat)
+        return
+    }
+    tail :: arm_tail_width(self.source, arm)
+    if self.has_room_for(pattern_width(self.source, pat) + tail) {
+        self.emit_pattern(pat)
+        return
+    }
+    last :: pat.patterns.len() - 1
+    for i in 0..<pat.patterns.len() {
+        alternative :: pat.patterns[i]
+        if i > 0 {
+            width := OR_SEPARATOR.byte_len() + pattern_width(self.source, alternative)
+            if i == last {
+                width += tail
+            }
+            if self.has_room_for(width) {
+                self.write(OR_SEPARATOR)
+            } else {
+                self.newline()
+                self.depth = self.depth + 1
+                self.indent()
+                self.depth = self.depth - 1
+                self.write("| ")
+            }
+        }
+        self.emit_pattern(alternative)
+    }
+}
+
+// Whether `width` more columns fit on the line.
+has_room_for :: fn(self: Printer, width: i64) -> bool = self.column + width <= i64(MAX_LINE)
+
+// What follows the pattern of `arm` on its line: its guard, the arrow and the first
+// line of its body, in columns.
+arm_tail_width :: fn(source: string, arm: p.MatchArm) -> i64 {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.keep_line_breaks = false
+    sub.emit_expr_with_prefix(" if ", arm.guard)
+    sub.write(" -> ")
+    sub.emit_expr(arm.body)
+    return first_line_len(sub.finish())
+}
+
+// What separates two alternatives of an or-pattern on one line.
+OR_SEPARATOR :: " | "
+
+// Rendered width of `pat` on one line.
+pattern_width :: fn(source: string, pat: p.Pattern) -> i64 {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.keep_line_breaks = false
+    sub.emit_pattern(pat)
+    return sub.finish().text_width()
 }
 
 // Rendered width of a match arm's head: `pattern [if guard]`, the part before

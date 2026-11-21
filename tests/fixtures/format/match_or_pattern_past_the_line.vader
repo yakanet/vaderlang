@@ -1,0 +1,25 @@
+// tests/fixtures/format/match_or_pattern_past_the_line: an or-pattern whose arm
+// would pass the line breaks before a `|`, each line filled, the next ones one
+// indent deeper.
+
+module "match_or_pattern_past_the_line"
+
+Kind :: enum {
+    Alpha,
+    Bravo,
+    Charlie,
+    Delta,
+    Echo,
+    Foxtrot,
+    Golf,
+    Hotel,
+    India,
+    Juliett,
+    Kilo,
+    Lima,
+}
+
+class_of :: fn(k: Kind) -> i32 = match k {
+    .Alpha -> 1
+    .Bravo | .Charlie | .Delta | .Echo | .Foxtrot | .Golf | .Hotel | .India | .Juliett | .Kilo | .Lima -> 2
+}
