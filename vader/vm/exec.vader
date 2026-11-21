@@ -940,13 +940,23 @@ apply_boxed :: fn(
     // @partial: the ops the register engine runs itself.
     @partial match instr {
         is bc.FnRef -> {
-            push_val(frame, frame.sp, FnVal { .function_index = instr.function_index, .env = null })
+            made :: FnVal {
+                .function_index = instr.function_index,
+                .env = null,
+                .type_id = instr.type_id,
+            }
+            push_val(frame, frame.sp, made)
             frame.sp = frame.sp + 1
             frame.pc = frame.pc + 1
         }
         is bc.MakeClosure -> {
             env_value :: peek_owned(frame, frame.sp - 1)
-            push_val(frame, frame.sp - 1, FnVal { .function_index = instr.function_index, .env = env_value })
+            made :: FnVal {
+                .function_index = instr.function_index,
+                .env = env_value,
+                .type_id = instr.env_type_id,
+            }
+            push_val(frame, frame.sp - 1, made)
             frame.pc = frame.pc + 1
         }
         is bc.StructNew -> {

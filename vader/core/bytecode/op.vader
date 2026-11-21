@@ -211,6 +211,8 @@ export Call :: struct { function_index: i32 }
 /// a fn is stored in a struct field, passed as an argument, or bound to
 /// a local. The resulting `FnVal.env` is
 /// always `null`: closures with captured state come from `MakeClosure`.
+/// `type_id` is the function's type, which a trait implemented on it
+/// dispatches by.
 export FnRef :: struct { function_index: i32, type_id: i32 }
 
 /// Push the address of `function_index`'s own compiled symbol, not a `FnVal`.
@@ -255,10 +257,11 @@ export CheckedOp :: enum {
 export CheckedNeg :: struct { kind: ValType }
 
 /// Build a closure : pop an `env` value (typically a `StructVal`
-/// carrying each capture's value or cell) and push a `FnVal { function_index, env }`.
+/// carrying each capture's value or cell) and push a `FnVal { type_id, function_index, env }`.
 /// The lifted fn's signature has an extra leading `env` parameter ;
-/// `CallIndirect` prepends `env` as `slot 0` when invoking. `type_id`
-/// is informational (mirrors `fn.ref`'s static-type hint).
+/// `CallIndirect` prepends `env` as `slot 0` when invoking. `env_type_id`,
+/// despite its name, is the closure's own function type, as `fn.ref`'s
+/// `type_id` is: a trait implemented on that type dispatches by it.
 export MakeClosure :: struct { function_index: i32, env_type_id: i32 }
 
 /// Invoke a function through a `FnVal` on top of the value stack.

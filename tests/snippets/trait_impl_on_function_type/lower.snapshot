@@ -1,0 +1,67 @@
+# Lower
+
+## snippet
+  snippet.fn(i32) -> i32.handle :: fn(self: fn(i32) -> i32, x: i32) -> i32 {  // snippet$fn_i32_____i32$Handler$handle
+      self(x)
+  }
+  snippet.Doubled :: struct {}  // snippet$Doubled
+  snippet.Doubled.handle :: fn(self: Doubled, x: i32) -> i32 {  // snippet$Doubled$Handler$handle
+      x * 2
+  }
+  snippet.run :: fn(h: Handler) -> i32 {  // snippet$run
+      @vcall(snippet.Handler.handle, h, 2)
+  }
+  snippet.plus_one :: fn(x: i32) -> i32 {  // snippet$plus_one
+      x + 1
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      k: i32 = 7
+      std.console.println<string>({
+          __buf_1: Buffer = std_core$Intrinsic$new_byte_buffer(i64(62))
+          __off_2: i64 = 0
+          __off_2 = std.core.write_int(__buf_1, __off_2, snippet.run(snippet.plus_one))
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
+          __off_2 = std.core.write_int(__buf_1, __off_2, snippet.run(__lambda_snippet_0))
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
+          __off_2 = std.core.write_int(__buf_1, __off_2, snippet.run(@closure(__lambda_snippet_1, __lambda_env_snippet_2 { .cap_0 = k })))
+          std.core.finish_buffer(__buf_1, __off_2)
+      } :string)
+      std.console.println<string>({
+          __buf_3: Buffer = std_core$Intrinsic$new_byte_buffer(i64(20))
+          __off_4: i64 = 0
+          __off_4 = std.core.write_int(__buf_3, __off_4, snippet.run(Doubled {}))
+          std.core.finish_buffer(__buf_3, __off_4)
+      } :string)
+      return 0
+  }
+  __lambda_snippet_0 :: fn(x: i32) -> i32 {
+      x * 10
+  }
+  __lambda_env_snippet_2 :: struct { cap_0: i32 }
+  __lambda_snippet_1 :: fn(__env_0: __lambda_env_snippet_2, x: i32) -> i32 {
+      x * __env_0.cap_0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+  vtable snippet.Handler.handle for Doubled  snippet.Doubled.handle  // snippet$Doubled$Handler$handle
+  vtable snippet.Handler.handle for fn(i32) -> i32  snippet.fn(i32) -> i32.handle  // snippet$fn_i32_____i32$Handler$handle
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer

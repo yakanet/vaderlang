@@ -1,0 +1,41 @@
+# Typecheck
+
+## tests/snippets/trait_impl_on_function_type
+  StructDecl     Doubled              :: Doubled
+  TraitDecl      Handler              :: Handler
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         plus_one             :: fn(i32) -> i32
+  FnDecl         run                  :: fn(Handler) -> i32
+  expr 13:41    CallExpr       :: i32
+  expr 13:41    IdentExpr      :: fn(i32) -> i32
+  expr 13:46    IdentExpr      :: i32
+  expr 19:41    BinaryExpr     :: i32
+  expr 19:41    IdentExpr      :: i32
+  expr 22:32    CallExpr       :: i32
+  expr 22:32    FieldExpr      :: fn(i32) -> i32
+  expr 22:32    IdentExpr      :: Handler
+  expr 24:33    BinaryExpr     :: i32
+  expr 24:33    IdentExpr      :: i32
+  expr 28:13    StringLitExpr  :: string
+  expr 28:16    CallExpr       :: i32
+  expr 28:16    IdentExpr      :: fn(Handler) -> i32
+  expr 28:20    IdentExpr      :: fn(i32) -> i32
+  expr 28:33    CallExpr       :: i32
+  expr 28:33    IdentExpr      :: fn(Handler) -> i32
+  expr 28:37    LambdaExpr     :: fn(i32) -> i32
+  expr 28:49    BinaryExpr     :: i32
+  expr 28:49    IdentExpr      :: i32
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
+  expr 28:60    CallExpr       :: i32
+  expr 28:60    IdentExpr      :: fn(Handler) -> i32
+  expr 28:64    LambdaExpr     :: fn(i32) -> i32
+  expr 28:76    BinaryExpr     :: i32
+  expr 28:76    IdentExpr      :: i32
+  expr 28:80    IdentExpr      :: i32
+  expr 29:13    StringLitExpr  :: string
+  expr 29:16    CallExpr       :: i32
+  expr 29:16    IdentExpr      :: fn(Handler) -> i32
+  expr 29:20    StructLitExpr  :: Doubled
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void

@@ -376,11 +376,11 @@ ref_type_matches :: fn(state: VmState, v: Value, trait_name: string) -> bool {
             _                -> false
         }
     }
-    // @partial: only a StructVal or an ArrayVal names its type, which the impl table
-    // lists ; else false.
+    // @partial: only a StructVal, an ArrayVal or a FnVal names its type, which the
+    // impl table lists ; else false.
     return @partial match v {
-        is StructVal | ArrayVal -> trait_implemented_by(state, trait_name, v.type_id)
-        _                       -> false
+        is StructVal | ArrayVal | FnVal -> trait_implemented_by(state, trait_name, v.type_id)
+        _                               -> false
     }
 }
 
@@ -397,17 +397,17 @@ trait_implemented_by :: fn(state: VmState, trait_name: string, type_id: i32) -> 
     return false
 }
 
-/// Receiver `type_id` extraction for `virtual.call`. Struct / Array
+/// Receiver `type_id` extraction for `virtual.call`. Struct / Array / Fn
 /// receivers carry their type_id directly ; primitives need a module-
 /// level lookup via the type table to find the `BcScalar` entry
 /// matching the value's runtime tag. Returns `-1` when nothing matches
 /// (caller traps).
 export receiver_type_id_of :: fn(state: VmState, v: Value) -> i32 {
-    // @partial: struct/array receivers carry a type_id; primitives resolve via the table.
+    // @partial: struct, array and fn receivers carry a type_id; primitives resolve
+    // via the table.
     return @partial match v {
-        is StructVal -> v.type_id
-        is ArrayVal  -> v.type_id
-        _            -> primitive_type_id(state, v)
+        is StructVal | ArrayVal | FnVal -> v.type_id
+        _                               -> primitive_type_id(state, v)
     }
 }
 
@@ -630,6 +630,10 @@ export own_bytes :: fn(a: ArrayVal) -> void {
 /// `env` is bound to the callee's `slot 0` before the user args fill
 /// `slot 1 ..`.
 export FnVal :: struct {
+    /// The function type the value was made as, which an impl of a trait on
+    /// that type is dispatched by. First, as in `StructVal` and `ArrayVal`, so
+    /// a union of the three reads it at one position.
+    type_id: i32
     function_index: i32
     env: Value | null
 }
