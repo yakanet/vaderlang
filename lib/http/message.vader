@@ -192,6 +192,8 @@ export Request :: struct {
     /// What the request carries. It is read once, and before the next message
     /// of its connection.
     body: Reader = BytesReader { .content = "" }
+    /// What the middlewares hand on to the handler (`put_extension`).
+    extensions: Extensions = Extensions {}
     /// How far the request has been answered.
     @internal
     exchange: Exchange = Exchange {}

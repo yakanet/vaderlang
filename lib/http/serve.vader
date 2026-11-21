@@ -60,7 +60,8 @@ export ServeOptions :: struct {
 ///
 /// `handler` runs in the task of a connection, and several connections are
 /// served at a time: what it keeps from one request to the next goes in a
-/// `Shared` or an `AtomicInt` of `std/task`.
+/// `Shared` or an `AtomicInt` of `std/task`. A request it answers with an
+/// error gets a `500` with no body, and a line on stderr.
 ///
 /// Closing `listener` ends the call. A connection waiting for a request is
 /// then closed at once; one serving a request ends after it, its response
@@ -78,7 +79,9 @@ export ServeOptions :: struct {
 /// the next connection is accepted once the process can open one.
 ///
 /// @param listener  where the connections arrive.
-/// @param handler   what answers a request, with a final response.
+/// @param handler   what answers a request, with a final response: a
+///                  `Handler`, middlewares included (`with_middlewares`), or
+///                  a function.
 /// @param options   how much of a request is read, how long its client may
 ///                  take, and how many connections and requests are served.
 /// @return          why no further connection was accepted: the listener was
@@ -91,7 +94,7 @@ export ServeOptions :: struct {
 ///   }
 export serve :: fn(
     listener: TcpListener,
-    handler: fn(Request) -> Response,
+    handler: Handler | HandlerFn,
     options: ServeOptions = ServeOptions {},
 ) -> IOError {
     serving: Connection[]: []
@@ -163,7 +166,7 @@ Connection :: struct {
 // Serve the connection `stream` to its end, and close it.
 serve_stream :: fn(
     stream: TcpStream,
-    handler: fn(Request) -> Response,
+    handler: Handler | HandlerFn,
     options: ServeOptions,
     stop: Stop,
 ) -> void {

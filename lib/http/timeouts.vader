@@ -124,7 +124,7 @@ StallingReader implements Reader {
 // default timeouts, `serve` moving `stop`.
 stalled_after :: fn(
     wire: string,
-    handler: fn(Request) -> Response,
+    handler: Handler | HandlerFn,
     stop: Stop = Stop {},
 ) -> Served = paced_by(
     wire,
@@ -137,7 +137,7 @@ stalled_after :: fn(
 )
 
 // What a connection that sends `wire`, then nothing, comes to under `pace`.
-paced_by :: fn(wire: string, handler: fn(Request) -> Response, pace: Pace) -> Served {
+paced_by :: fn(wire: string, handler: Handler | HandlerFn, pace: Pace) -> Served {
     out :: BytesWriter {}
     source :: StallingReader { .content = BytesReader { .content = wire } }
     end :: serve_paced(source, out, handler, Limits {}, pace)

@@ -1,0 +1,321 @@
+// http/handler: what answers a request, and the code around it.
+//
+// A handler is a value of `Handler`, or a function of `HandlerFn`: `serve` and
+// `serve_connection` take either. A middleware runs around the handler after
+// it: it answers alone, or hands the request on and reads or changes what
+// comes back. `with_middlewares` chains them, the first outermost.
+//
+// A handler fails by returning an `Error`. Unless a middleware turned it into
+// a response, the request is answered `500` with no body, and a line goes to
+// stderr.
+//
+// What a middleware learns of a request, the user it authenticated, goes on
+// to the handler as an extension: a value of a struct that implements
+// `Extension`, one per type.
+
+module "http"
+
+import "std/console"
+
+// ---- handlers -------------------------------------------------------------
+
+/// What answers a request.
+///
+/// What a handler keeps from one request to the next goes in a `Shared` or an
+/// `AtomicInt` of `std/task`: `serve` runs it in the task of each connection.
+export Handler :: trait {
+    /// The response to `request`, or why there is none: a request answered
+    /// with an error gets a `500`.
+    handle :: fn(self, request: Request) -> Response | Error
+}
+
+/// A handler written as a function.
+export HandlerFn :: fn(Request) -> Response | Error
+
+/// Code around a handler.
+///
+/// @example
+///   # import "std/time"
+///   Timing :: struct {}
+///   Timing implements Middleware {
+///       around :: fn(self, request: Request, next: Handler) -> Response | Error {
+///           started :: monotonic()
+///           response :: next.handle(request)
+///           eprintln("${request.method} ${request.target} ${started.elapsed()}")
+///           return response
+///       }
+///   }
+export Middleware :: trait {
+    /// The response to `request`: its own, or what `next` answers, read or
+    /// changed.
+    around :: fn(self, request: Request, next: Handler) -> Response | Error
+}
+
+/// `handler` behind `middlewares`, the first outermost: it sees the request
+/// first and the response last.
+///
+/// @param handler      what answers once every middleware has handed the
+///                     request on.
+/// @param middlewares  what runs around it, outermost first.
+/// @example
+///   Hello :: struct {}
+///   Hello implements Handler {
+///       handle :: fn(self, request: Request) -> Response | Error = new_response(STATUS_OK, "hello\n")
+///   }
+///   with_middlewares(Hello {}, [])
+export with_middlewares :: fn(handler: Handler, middlewares: Middleware[]) -> Handler {
+    chained := handler
+    for i in 0..<middlewares.len() {
+        chained = Link { .middleware = middlewares[middlewares.len() - 1 - i], .next = chained }
+    }
+    return chained
+}
+
+// A middleware and what it runs next.
+Link :: struct {
+    middleware: Middleware
+    next: Handler
+}
+
+Link implements Handler {
+    handle :: fn(self, request: Request) -> Response | Error = self.middleware.around(
+        request,
+        self.next,
+    )
+}
+
+// The response `handler` gives `request`: a `500` with no body when it fails,
+// the error written to stderr.
+respond :: fn(handler: Handler | HandlerFn, request: Request) -> Response {
+    answered :: handled_by(handler, request) else is Error {
+        eprintln("http: ${request.method} ${request.target}: ${answered.message()}")
+        return new_response(STATUS_INTERNAL_SERVER_ERROR, "")
+    }
+    return answered
+}
+
+handled_by :: fn(handler: Handler | HandlerFn, request: Request) -> Response | Error =
+    if handler is Handler { handler.handle(request) } else { handler(request) }
+
+// ---- extensions -----------------------------------------------------------
+
+/// A struct whose values a middleware hands on with a request.
+///
+/// @example
+///   User :: struct { name: string }
+///   User implements Extension {}
+export Extension :: trait {}
+
+/// The values handed on with a request, one per type.
+export Extensions :: struct {
+    @internal
+    values: Extension[] = []
+}
+
+/// Hand `value` on with `request`, to what runs after: it takes the place of
+/// a value of its type handed on before.
+///
+/// @param request  the request the middleware runs on, or one built from it
+///                 with `...request`: both carry the same extensions.
+/// @param value    what the middlewares and the handler after read with
+///                 `extension`.
+/// @example
+///   # User :: struct { name: string }
+///   # User implements Extension {}
+///   request :: Request { .method = .Get, .target = "/" }
+///   request.put_extension(User { .name = "ada" })
+///   extension<User>(request)?.name   // "ada"
+export put_extension :: fn<T: Extension>(request: Request, value: T) -> void {
+    values :: request.extensions.values
+    for i in 0..<values.len() {
+        if values[i] is T {
+            values[i] = value
+            return
+        }
+    }
+    values.push(value)
+}
+
+/// The value of type `T` handed on with `request`; null when none was.
+///
+/// @param request  the request a middleware handed on.
+export extension :: fn<T: Extension>(request: Request) -> T | null {
+    for value in request.extensions.values {
+        if value is T {
+            return value
+        }
+    }
+    return null
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/io"
+import "std/string"
+import "std/task"
+import "std/testing"
+
+// A handler that answers with the target it was asked for.
+Echo :: struct {}
+
+Echo implements Handler {
+    handle :: fn(self, request: Request) -> Response | Error = new_response(
+        STATUS_OK,
+        request.target,
+    )
+}
+
+// A middleware that notes its name on the way in and on the way out. `serve`
+// runs a middleware in several tasks at once: what it notes goes in a `Shared`.
+Noting :: struct {
+    name: string
+    trace: Shared<string[]>
+}
+
+Noting implements Middleware {
+    around :: fn(self, request: Request, next: Handler) -> Response | Error {
+        self.trace.locked((trace) ->
+            trace.push("${self.name} in"))
+        response :: next.handle(request)
+        self.trace.locked((trace) ->
+            trace.push("${self.name} out"))
+        return response
+    }
+}
+
+// What `trace` noted, in order.
+noted :: fn(trace: Shared<string[]>) -> string = trace.locked((names) -> names.join(", "))
+
+// A middleware that answers alone.
+Refusing :: struct {}
+
+Refusing implements Middleware {
+    around :: fn(self, request: Request, next: Handler) -> Response | Error =
+        new_response(STATUS_FORBIDDEN, "")
+}
+
+Failure :: struct {}
+
+Failure implements Error {
+    message :: fn(self) -> string = "it failed"
+}
+
+// A handler that fails.
+Failing :: struct {}
+
+Failing implements Handler {
+    handle :: fn(self, request: Request) -> Response | Error = Failure {}
+}
+
+// A middleware that answers an error of the handler after it with a `503`.
+Recovering :: struct {}
+
+Recovering implements Middleware {
+    around :: fn(self, request: Request, next: Handler) -> Response | Error {
+        response :: next.handle(request) else is Error {
+            return new_response(STATUS_SERVICE_UNAVAILABLE, response.message())
+        }
+        return response
+    }
+}
+
+User :: struct {
+    name: string
+}
+
+User implements Extension {}
+
+// A middleware that hands the user `name` on.
+Authenticating :: struct {
+    name: string
+}
+
+Authenticating implements Middleware {
+    around :: fn(self, request: Request, next: Handler) -> Response | Error {
+        request.put_extension(User { .name = self.name })
+        return next.handle(request)
+    }
+}
+
+// A handler that greets the user handed on.
+Greeting :: struct {}
+
+Greeting implements Handler {
+    handle :: fn(self, request: Request) -> Response | Error {
+        user :: extension<User>(request) else return new_response(STATUS_UNAUTHORIZED, "")
+        return new_response(STATUS_OK, "hello ${user.name}")
+    }
+}
+
+// The status and the body of what `handler` answers to a `GET` of `target`.
+asked :: fn(handler: Handler, target: string) -> string {
+    request :: Request { .method = .Get, .target = target }
+    response :: handler.handle(request) else is Error {
+        return "error: ${response.message()}"
+    }
+    return "${u16(response.status)} ${text_of(response.body)}"
+}
+
+@test
+test_with_no_middleware_the_handler_answers :: fn() -> void {
+    assert_eq(asked(with_middlewares(Echo {}, []), "/a"), "200 /a")
+}
+
+@test
+test_the_first_middleware_is_the_outermost :: fn() -> void {
+    names: string[]: []
+    trace :: shared(names)
+    chained :: with_middlewares(
+        Echo {},
+        [Noting { .name = "a", .trace = trace }, Noting { .name = "b", .trace = trace }],
+    )
+    assert_eq(asked(chained, "/a"), "200 /a")
+    assert_eq(noted(trace), "a in, b in, b out, a out")
+}
+
+@test
+test_a_middleware_answers_without_what_follows :: fn() -> void {
+    names: string[]: []
+    trace :: shared(names)
+    chained :: with_middlewares(Echo {}, [Refusing {}, Noting { .name = "after", .trace = trace }])
+    assert_eq(asked(chained, "/a"), "403 ")
+    assert_eq(noted(trace), "")
+}
+
+@test
+test_a_middleware_answers_an_error_of_the_handler :: fn() -> void {
+    assert_eq(asked(with_middlewares(Failing {}, [Recovering {}]), "/a"), "503 it failed")
+}
+
+@test
+test_an_extension_reaches_the_handler :: fn() -> void {
+    chained :: with_middlewares(Greeting {}, [Authenticating { .name = "ada" }])
+    assert_eq(asked(chained, "/a"), "200 hello ada")
+    assert_eq(asked(Greeting {}, "/a"), "401 ")
+}
+
+@test
+test_an_extension_takes_the_place_of_one_of_its_type :: fn() -> void {
+    chained :: with_middlewares(
+        Greeting {},
+        [Authenticating { .name = "ada" }, Authenticating { .name = "grace" }],
+    )
+    assert_eq(asked(chained, "/a"), "200 hello grace")
+}
+
+@test
+test_an_error_is_answered_500_and_the_connection_goes_on :: fn() -> void {
+    seen :: served(
+        "GET /a HTTP/1.1\r\nHost: h\r\n\r\n" + GET_NEXT,
+        with_middlewares(Failing {}, []),
+    )
+    error :: "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\n\r\n"
+    assert_eq(seen.written, error + error)
+    assert_eq(seen.end.reason, .ClientDone)
+}
+
+@test
+test_a_function_answers_as_a_handler :: fn() -> void {
+    seen :: served(GET_NEXT, (request: Request) -> new_response(STATUS_OK, request.target))
+    assert_eq(seen.written, "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\n/next")
+}

@@ -58,7 +58,8 @@ export ConnectionEnd :: struct {
 /// Serve the requests of one connection, one after the other, until it ends.
 ///
 /// Each request read is handed to `handler`, and what it returns is written
-/// as the response. Between two requests the body of the first is read to its
+/// as the response; an error is answered `500` with no body, and written to
+/// stderr. Between two requests the body of the first is read to its
 /// end, up to `limits.unread_body`: a handler need not read what it has no
 /// use for. A request body is read while its request is served, and fails
 /// after. A client that waits for `100 Continue` is told to go on when the
@@ -73,7 +74,8 @@ export ConnectionEnd :: struct {
 /// @param reader   where the connection is read. Nothing else reads it.
 /// @param writer   where the connection is written. What it is given must go
 ///                 out at once and not be gathered: a client may wait for it.
-/// @param handler  what answers a request, with a final response.
+/// @param handler  what answers a request, with a final response: a
+///                 `Handler` or a function.
 /// @param limits   how much of a request is read before it is refused.
 /// @return         why the connection is served no more.
 /// @example
@@ -89,7 +91,7 @@ export ConnectionEnd :: struct {
 export serve_connection :: fn(
     reader: Reader,
     writer: Writer,
-    handler: fn(Request) -> Response,
+    handler: Handler | HandlerFn,
     limits: Limits = Limits {},
 ) -> ConnectionEnd = serve_paced(reader, writer, handler, limits, null)
 
@@ -98,7 +100,7 @@ export serve_connection :: fn(
 serve_paced :: fn(
     reader: Reader,
     writer: Writer,
-    handler: fn(Request) -> Response,
+    handler: Handler | HandlerFn,
     limits: Limits,
     pace: Pace | null,
 ) -> ConnectionEnd {
@@ -129,7 +131,7 @@ serve_paced :: fn(
         // method, a field or the body, changes nothing of how the exchange
         // is framed and settled.
         handed :: Request { ...request, .headers = request.headers.copied() }
-        ending :: answer(wire, request, handler(handed), limits)
+        ending :: answer(wire, request, respond(handler, handed), limits)
         // Whatever the exchange came to, its body is read no more: the bytes
         // after it are another request's, or nobody's.
         request.exchange.over = true
@@ -323,7 +325,7 @@ Served :: struct {
 // Serve `wire`, read `size` bytes at a time, with `handler`.
 served :: fn(
     wire: string,
-    handler: fn(Request) -> Response,
+    handler: Handler | HandlerFn,
     size: i64 = 4096,
     limits: Limits = Limits {},
 ) -> Served {
