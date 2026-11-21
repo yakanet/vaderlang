@@ -362,18 +362,31 @@ export sys_spawn_actions_adddup2 :: fn(@c_out actions: u8[], fd: i32, newfd: i32
 ///                 of `NAME=value` `char*`, as `i64` words.
 /// @return         0 on success, an errno value otherwise.
 @extern(SPAWN, "posix_spawnp")
+@c_blocking
 export sys_posix_spawnp :: fn(@c_out pid: i32[], file: string, actions: u8[],
                               attrp: CPointer | null, argv: u64[], envp: u64[]) -> i32
 
-/// `waitpid(2)`.
+/// `waitpid(2)`, to poll: the call holds the core, so a wait takes
+/// `sys_waitpid_blocking`.
 ///
-/// @param pid      the child to wait for.
+/// @param pid      the child to look at.
 /// @param status   a one-element array receiving the raw wait status.
-/// @param options  `WNOHANG` to poll rather than block.
+/// @param options  `WNOHANG`.
 /// @return         the pid when it changed state, 0 under `WNOHANG` while it
 ///                 still runs, -1 on error.
 @extern(SPAWN, "waitpid")
 export sys_waitpid :: fn(pid: i32, @c_out status: i32[], options: i32) -> i32
+
+/// `waitpid(2)` without `WNOHANG`: the task parks until the child changes state,
+/// and the other tasks run.
+///
+/// @param pid      the child to wait for.
+/// @param status   a one-element array receiving the raw wait status.
+/// @param options  0, or `WUNTRACED` and the like, never `WNOHANG`.
+/// @return         the pid, -1 on error.
+@extern(SPAWN, "waitpid")
+@c_blocking
+export sys_waitpid_blocking :: fn(pid: i32, @c_out status: i32[], options: i32) -> i32
 
 /// `kill(2)`.
 ///

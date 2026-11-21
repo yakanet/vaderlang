@@ -1429,7 +1429,6 @@ extern _Thread_local vader_worker_t vader_worker;
 
 /* The names the emitted C writes. */
 #define vader_gc_top        (vader_worker.running.gc_top)
-#define vader_foreign_depth (vader_worker.foreign_depth)
 
 /* What the shim of an `@extern` writes around its call to the C function
  * `name`, a string literal. The stores are relaxed atomics: the watch on long

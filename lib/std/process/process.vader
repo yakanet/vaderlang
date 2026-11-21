@@ -577,7 +577,7 @@ kill :: fn(child: ChildProcess) -> void {
     }
     sys_kill(pid_of(child.process), SIGKILL)
     st: i32[]: [0]
-    sys_waitpid(pid_of(child.process), st, 0)
+    sys_waitpid_blocking(pid_of(child.process), st, 0)
     close_pipes(child)
     finish(child, SIGNALED)
 }
@@ -892,7 +892,7 @@ kill :: fn(child: ChildProcess) -> void {
     }
     proc :: process_handle_of(child.process)
     terminate_process(proc, 1)
-    wait_for_single_object(proc, 2000)
+    wait_for_single_object_blocking(proc, 2000)
     close_pipes(child)
     close_handle(proc)
     finish(child, SIGNALED)
@@ -1144,7 +1144,7 @@ has_news :: fn(child: ChildProcess) -> bool =
 /// where it writes, a terminal or a pipe, with nothing captured.
 ///
 /// For a program run on the user's behalf, whose output belongs on the screen
-/// as it is written. Blocking: the scheduler does not run meanwhile.
+/// as it is written. The task parks while the child runs: the other tasks run.
 ///
 /// @param argv  the command line; `argv[0]` is the program, looked up on `PATH`
 ///              when it names no folder.
@@ -1166,7 +1166,7 @@ run_attached :: fn(argv: string[]) -> i32 | ProcessError {
     }
     pid :: spawn_with(argv, actions, []) else return cannot_launch(argv[0])
     st: i32[]: [0]
-    if sys_waitpid(pid, st, 0) < 0 {
+    if sys_waitpid_blocking(pid, st, 0) < 0 {
         return ProcessError { .msg = "`${argv[0]}` could not be waited for" }
     }
     signal :: terminating_signal(st[0])
@@ -1198,7 +1198,7 @@ run_attached :: fn(argv: string[]) -> i32 | ProcessError {
         return cannot_launch(argv[0])
     }
     close_handle(pi.hThread)
-    wait_for_single_object(pi.hProcess, INFINITE)
+    wait_for_single_object_blocking(pi.hProcess, INFINITE)
     code: u32[]: [0]
     got :: get_exit_code_process(pi.hProcess, code)
     close_handle(pi.hProcess)

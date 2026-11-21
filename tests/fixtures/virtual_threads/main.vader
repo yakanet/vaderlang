@@ -7,6 +7,7 @@
 
 module "main"
 
+Posix :: import "system/posix"
 Process :: import "std/process"
 Win :: import "system/windows"
 import "std/abort"
@@ -279,6 +280,50 @@ real_sleep :: fn() -> void {
         return
     }
     println("slept at least 20 ms")
+}
+
+// ---- calls to C that wait -------------------------------------------------
+
+// Main holds its core in a call to C that waits 300 ms and is not marked
+// `@c_blocking`, while another thread sleeps: the runtime says so on stderr.
+long_c_call :: fn() -> void {
+    spawn(() -> sleep_for(10_000_000))
+    hold_core_for_300_ms()
+    join_all()
+    println("back from the call")
+}
+
+@target
+hold_core_for_300_ms :: fn() -> void {
+    rem: i64[]: [0, 0]
+    Posix.sys_nanosleep([0, 300_000_000], rem)
+}
+
+@target(.Windows)
+hold_core_for_300_ms :: fn() -> void = Win.sleep_ms(300)
+
+// Main waits for a child that answers after 200 ms, a call to C marked
+// `@c_blocking`: a task ticks meanwhile.
+relayed_wait :: fn() -> void {
+    done :: AtomicBool {}
+    ticker :: launch(() -> ticks_until(done))
+    Process.run_attached(slow_child()) else {
+        println("run_attached failed")
+        return
+    }
+    done.store(true)
+    ticks :: ticker.join() else 0
+    println("the task ticked during the wait: ${ticks >= 5}")
+}
+
+// How many times the task slept 10 ms before `done`.
+ticks_until :: fn(done: AtomicBool) -> i64 {
+    n: i64 = 0
+    for !done.load() {
+        sleep(10.millis())
+        n += 1
+    }
+    return n
 }
 
 // ---- descriptors and children ---------------------------------------------
@@ -664,6 +709,8 @@ main :: fn() -> i32 {
         "overflow"              -> overflow()
         "panic_alone"           -> panic_alone()
         "switch_in_callback"    -> switch_in_callback()
+        "long_c_call"           -> long_c_call()
+        "relayed_wait"          -> relayed_wait()
         "take_turns"            -> take_turns()
         "sleep_order"           -> sleep_order()
         "sleep_ties"            -> sleep_ties()

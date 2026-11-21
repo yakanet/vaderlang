@@ -252,6 +252,28 @@ test_a_switch_inside_a_call_to_c_stops_the_program :: fn() -> void {
 }
 
 @test
+test_a_call_to_c_that_holds_its_core_is_named_on_stderr :: fn() -> void {
+    // Native only: the VM watches no call to C.
+    for engine in [Engine.Debug, Engine.Release] {
+        on :: run_case(engine, "long_c_call", [["VADER_WARN_BLOCKING_MS", "100"]]) else continue
+        assert_eq(on.stdout, "back from the call\n")
+        assert("has held its core for" in on.stderr, on.stderr)
+        off :: run_case(engine, "long_c_call", [["VADER_WARN_BLOCKING_MS", "0"]]) else continue
+        assert_eq(off.stderr, "")
+    }
+}
+
+@test
+test_a_task_runs_while_another_waits_for_a_child :: fn() -> void {
+    // Native only: the VM makes the call on the task's own thread.
+    for engine in [Engine.Debug, Engine.Release] {
+        ran :: run_case(engine, "relayed_wait", [["VADER_WARN_BLOCKING_MS", "100"]]) else continue
+        assert_eq(ran.stdout, "answered\nthe task ticked during the wait: true\n")
+        assert_eq(ran.stderr, "")
+    }
+}
+
+@test
 test_the_cases_that_end_well_print_what_they_show :: fn() -> void {
     for case in CLEAN_CASES {
         expect_clean(case.1, case.2)

@@ -681,6 +681,7 @@ export ptr_at :: fn(base: u64[], i: i64) -> Handle
 /// @param startup       the redirected handles.
 /// @param info          filled with the child's handles and ids.
 @extern(KERNEL32, "CreateProcessW")
+@c_blocking
 export create_process :: fn(application: CPointer | null, @c_out command_line: u16[],
                             proc_attrs: CPointer | null, thread_attrs: CPointer | null,
                             inherit: bool, flags: u32,
@@ -688,12 +689,22 @@ export create_process :: fn(application: CPointer | null, @c_out command_line: u
                             @c_out startup: StartupInfo,
                             @c_out info: ProcessInformation) -> bool
 
-/// `WaitForSingleObject`. `WAIT_OBJECT_0` once the process has exited.
+/// `WaitForSingleObject`, to poll: `WAIT_OBJECT_0` once the process has exited.
+/// The call holds the core, so a wait takes `wait_for_single_object_blocking`.
 ///
 /// @param h           the process handle.
-/// @param timeout_ms  0 to poll without waiting, `INFINITE` to wait for the exit.
+/// @param timeout_ms  0.
 @extern(KERNEL32, "WaitForSingleObject")
 export wait_for_single_object :: fn(h: Handle, timeout_ms: u32) -> u32
+
+/// `WaitForSingleObject` with a timeout: the task parks until the process exits
+/// or the time runs out, and the other tasks run.
+///
+/// @param h           the process handle.
+/// @param timeout_ms  how long to wait, `INFINITE` for no bound.
+@extern(KERNEL32, "WaitForSingleObject")
+@c_blocking
+export wait_for_single_object_blocking :: fn(h: Handle, timeout_ms: u32) -> u32
 
 /// `GetExitCodeProcess`.
 ///

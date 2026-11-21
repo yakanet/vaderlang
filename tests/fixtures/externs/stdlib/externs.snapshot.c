@@ -67,6 +67,7 @@ uint32_t SetFilePointer(void* h, int32_t low, void* high, uint32_t method);  // 
 void Sleep(uint32_t ms);  // system_windows$sleep_ms
 bool TerminateProcess(void* h, uint32_t code);  // system_windows$terminate_process
 uint32_t WaitForSingleObject(void* h, uint32_t timeout_ms);  // system_windows$wait_for_single_object
+uint32_t WaitForSingleObject(void* h, uint32_t timeout_ms);  // system_windows$wait_for_single_object_blocking
 int32_t WideCharToMultiByte(uint32_t code_page, uint32_t flags, const void* src, int32_t src_len, void* dst, int32_t dst_len, void* default_char, void* used_default);  // system_windows$wide_char_to_multi_byte
 bool WriteConsoleW(void* h, const void* text, uint32_t count, void* written, void* reserved);  // system_windows$write_console_w
 bool WriteFile(void* h, const void* buf, uint32_t count, void* written, void* overlapped);  // system_windows$write_file
@@ -124,6 +125,7 @@ int32_t posix_spawn_file_actions_init(void* actions);  // system_posix$sys_spawn
 int32_t posix_spawnp(void* pid, const char* file, const void* actions, void* attrp, const void* argv, const void* envp);  // system_posix$sys_posix_spawnp
 void* strdup(const char* s);  // system_posix$sys_strdup
 int32_t waitpid(int32_t pid, void* status, int32_t options);  // system_posix$sys_waitpid
+int32_t waitpid(int32_t pid, void* status, int32_t options);  // system_posix$sys_waitpid_blocking
 
 /* TERMINAL (system/posix): <sys/ioctl.h>, <termios.h> */
 void cfmakeraw(void* buf);  // system_posix$sys_cfmakeraw

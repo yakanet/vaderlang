@@ -63,3 +63,8 @@ Rejected:
 - Every direct call to C writes three words in its worker, for the watch.
 - A warning can come from a call that computes for long: it names the function,
   and the program decides.
+- The watch measures elapsed time, not what the thread does: on a machine with
+  more runnable threads than cores, the OS can leave a worker unscheduled in the
+  middle of a short call (`waitpid` with `WNOHANG` was named so), and the watch
+  names it. The test runner turns the watch off for what it runs, and the tests
+  of the watch turn it back on.
