@@ -268,7 +268,9 @@ test_a_task_runs_while_another_waits_for_a_child :: fn() -> void {
     // Native only: the VM makes the call on the task's own thread.
     for engine in [Engine.Debug, Engine.Release] {
         ran :: run_case(engine, "relayed_wait", [["VADER_WARN_BLOCKING_MS", "100"]]) else continue
-        assert_eq(ran.stdout, "answered\nthe task ticked during the wait: true\n")
+        // The child's own line ends as its system ends lines.
+        assert("answered" in ran.stdout, ran.stdout)
+        assert("the task ticked during the wait: true\n" in ran.stdout, ran.stdout)
         assert_eq(ran.stderr, "")
     }
 }
