@@ -153,6 +153,36 @@
       },
       {
         "kind": "FnDecl",
+        "name": "pool_entered",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "AtomicBool"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "StructLitExpr",
+            "typeName": {
+              "kind": "IdentExpr",
+              "name": "AtomicBool"
+            },
+            "items": []
+          }
+        },
+        "decorators": [
+          {
+            "name": "singleton",
+            "args": []
+          }
+        ],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "FnDecl",
         "name": "pool",
         "visibility": "private",
         "typeParams": [],
@@ -194,6 +224,34 @@
               "expr": {
                 "kind": "CallExpr",
                 "callee": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "pool_entered"
+                    },
+                    "args": []
+                  },
+                  "field": "store"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "BoolLitExpr",
+                      "value": true
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
                   "kind": "IdentExpr",
                   "name": "sleep"
                 },
@@ -206,7 +264,7 @@
                         "kind": "FieldExpr",
                         "target": {
                           "kind": "IntLitExpr",
-                          "value": "20n"
+                          "value": "50n"
                         },
                         "field": "millis"
                       },
@@ -732,6 +790,63 @@
                   }
                 ]
               }
+            },
+            {
+              "kind": "ForStmt",
+              "label": null,
+              "form": {
+                "kind": "while",
+                "cond": {
+                  "kind": "UnaryExpr",
+                  "op": "not",
+                  "operand": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "CallExpr",
+                        "callee": {
+                          "kind": "IdentExpr",
+                          "name": "pool_entered"
+                        },
+                        "args": []
+                      },
+                      "field": "load"
+                    },
+                    "args": []
+                  }
+                }
+              },
+              "body": {
+                "kind": "BlockExpr",
+                "stmts": [],
+                "trailing": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "sleep"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "CallExpr",
+                        "callee": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IntLitExpr",
+                            "value": "1n"
+                          },
+                          "field": "millis"
+                        },
+                        "args": []
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "isComptime": false
             },
             {
               "kind": "LetStmt",

@@ -53,6 +53,15 @@
             },
             "defaultValue": null,
             "variadic": false
+          },
+          {
+            "name": "started",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "AtomicInt"
+            },
+            "defaultValue": null,
+            "variadic": false
           }
         ],
         "returnType": {
@@ -67,27 +76,19 @@
               "expr": {
                 "kind": "CallExpr",
                 "callee": {
-                  "kind": "IdentExpr",
-                  "name": "println"
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "started"
+                  },
+                  "field": "fetch_add"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "interpolation",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "name"
-                          }
-                        },
-                        {
-                          "kind": "text",
-                          "value": ": start"
-                        }
-                      ]
+                      "kind": "IntLitExpr",
+                      "value": "1n"
                     },
                     "spread": false
                   }
@@ -156,7 +157,26 @@
                         },
                         {
                           "kind": "text",
-                          "value": ")"
+                          "value": ", "
+                        },
+                        {
+                          "kind": "interpolation",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "started"
+                              },
+                              "field": "load"
+                            },
+                            "args": []
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " started)"
                         }
                       ]
                     },
@@ -190,6 +210,23 @@
         "body": {
           "kind": "BlockExpr",
           "stmts": [
+            {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "started"
+              },
+              "type": null,
+              "value": {
+                "kind": "StructLitExpr",
+                "typeName": {
+                  "kind": "IdentExpr",
+                  "name": "AtomicInt"
+                },
+                "items": []
+              }
+            },
             {
               "kind": "LetStmt",
               "mutable": false,
@@ -241,7 +278,15 @@
                                   "name": null,
                                   "value": {
                                     "kind": "IntLitExpr",
-                                    "value": "3n"
+                                    "value": "120n"
+                                  },
+                                  "spread": false
+                                },
+                                {
+                                  "name": null,
+                                  "value": {
+                                    "kind": "IdentExpr",
+                                    "name": "started"
                                   },
                                   "spread": false
                                 }
@@ -293,7 +338,15 @@
                                   "name": null,
                                   "value": {
                                     "kind": "IntLitExpr",
-                                    "value": "1n"
+                                    "value": "40n"
+                                  },
+                                  "spread": false
+                                },
+                                {
+                                  "name": null,
+                                  "value": {
+                                    "kind": "IdentExpr",
+                                    "name": "started"
                                   },
                                   "spread": false
                                 }
@@ -345,7 +398,15 @@
                                   "name": null,
                                   "value": {
                                     "kind": "IntLitExpr",
-                                    "value": "2n"
+                                    "value": "80n"
+                                  },
+                                  "spread": false
+                                },
+                                {
+                                  "name": null,
+                                  "value": {
+                                    "kind": "IdentExpr",
+                                    "name": "started"
                                   },
                                   "spread": false
                                 }

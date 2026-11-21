@@ -7,16 +7,19 @@
     global #0 i32  config.state
     global #1 string  config.instance
     global #2 InitGate | null  config.gate
-    global #3 i32  pool.state
-    global #4 string  pool.instance
-    global #5 InitGate | null  pool.gate
-    global #6 i32  warmup.state
-    global #7 Task<i32>  warmup.instance
-    global #8 InitGate | null  warmup.gate
-    global #12 i32  ANSWER.value
-    global #13 InitGate | null  ANSWER.gate
-    global #14 i32  LOOP.value
-    global #15 InitGate | null  LOOP.gate
+    global #3 i32  pool_entered.state
+    global #4 AtomicBool  pool_entered.instance
+    global #5 InitGate | null  pool_entered.gate
+    global #6 i32  pool.state
+    global #7 string  pool.instance
+    global #8 InitGate | null  pool.gate
+    global #9 i32  warmup.state
+    global #10 Task<i32>  warmup.instance
+    global #11 InitGate | null  warmup.gate
+    global #15 i32  ANSWER.value
+    global #16 InitGate | null  ANSWER.gate
+    global #17 i32  LOOP.value
+    global #18 InitGate | null  LOOP.gate
   snippet.config :: fn() -> string {  // snippet$config
       if @global(0) == 2 {
           return @global(1)
@@ -29,29 +32,41 @@
       }
       return @global(1)
   }
-  snippet.pool :: fn() -> string {  // snippet$pool
+  snippet.pool_entered :: fn() -> AtomicBool {  // snippet$pool_entered
       if @global(3) == 2 {
           return @global(4)
       }
       std.runtime.scheduler.monitor_enter_to_publish()
       gate: InitGate = std.runtime.scheduler.gate_or_new(@global(5))
       @global(5) = gate
-      if !std.runtime.scheduler.run_gated(gate, snippet$pool$keep) {
-          @unreachable("singleton `pool` called while it initialises")
+      if !std.runtime.scheduler.run_gated(gate, snippet$pool_entered$keep) {
+          @unreachable("singleton `pool_entered` called while it initialises")
       }
       return @global(4)
   }
+  snippet.pool :: fn() -> string {  // snippet$pool
+      if @global(6) == 2 {
+          return @global(7)
+      }
+      std.runtime.scheduler.monitor_enter_to_publish()
+      gate: InitGate = std.runtime.scheduler.gate_or_new(@global(8))
+      @global(8) = gate
+      if !std.runtime.scheduler.run_gated(gate, snippet$pool$keep) {
+          @unreachable("singleton `pool` called while it initialises")
+      }
+      return @global(7)
+  }
   __compute_snippet$ANSWER :: fn() -> void {
-      @global(12) = snippet.compute_answer()
+      @global(15) = snippet.compute_answer()
   }
   __const_snippet$ANSWER :: fn() -> i32 {
       std.runtime.scheduler.monitor_enter_to_publish()
-      gate: InitGate = std.runtime.scheduler.gate_or_new(@global(13))
-      @global(13) = gate
+      gate: InitGate = std.runtime.scheduler.gate_or_new(@global(16))
+      @global(16) = gate
       if !std.runtime.scheduler.run_gated(gate, __compute_snippet$ANSWER) {
           @unreachable("constant `ANSWER` read while its value is computed")
       }
-      @global(12)
+      @global(15)
   }
   snippet.compute_answer :: fn() -> i32 {  // snippet$compute_answer
       std.console.println<string>("answer computed")
@@ -62,32 +77,32 @@
       snippet.ANSWER
   }
   snippet.warmup :: fn() -> Task<i32> {  // snippet$warmup
-      if @global(6) == 2 {
-          return @global(7)
+      if @global(9) == 2 {
+          return @global(10)
       }
       std.runtime.scheduler.monitor_enter_to_publish()
-      gate: InitGate = std.runtime.scheduler.gate_or_new(@global(8))
-      @global(8) = gate
+      gate: InitGate = std.runtime.scheduler.gate_or_new(@global(11))
+      @global(11) = gate
       if !std.runtime.scheduler.run_gated(gate, snippet$warmup$keep) {
           @unreachable("singleton `warmup` called while it initialises")
       }
-      return @global(7)
+      return @global(10)
   }
   snippet.warm :: fn() -> i32 {  // snippet$warm
       std.console.println<string>("warming")
       return 7
   }
   __compute_snippet$LOOP :: fn() -> void {
-      @global(14) = snippet.next()
+      @global(17) = snippet.next()
   }
   __const_snippet$LOOP :: fn() -> i32 {
       std.runtime.scheduler.monitor_enter_to_publish()
-      gate: InitGate = std.runtime.scheduler.gate_or_new(@global(15))
-      @global(15) = gate
+      gate: InitGate = std.runtime.scheduler.gate_or_new(@global(18))
+      @global(18) = gate
       if !std.runtime.scheduler.run_gated(gate, __compute_snippet$LOOP) {
           @unreachable("constant `LOOP` read while its value is computed")
       }
-      @global(14)
+      @global(17)
   }
   snippet.next :: fn() -> i32 {  // snippet$next
       snippet.LOOP + 1
@@ -97,6 +112,9 @@
       second: Task<string> = std.task.launch<string>(__lambda_snippet_1)
       std.console.println<string>(concat_5(@vcall(std.core.Display.to_string, std.task.join<string>(first)), " ", @vcall(std.core.Display.to_string, std.task.join<string>(second)), " ", if @global(0) == 2 { @global(1) } else { snippet.config() } :string))
       cancelled: Task<string> = std.task.launch<string>(__lambda_snippet_2)
+      for !std.task.load(if @global(3) == 2 { @global(4) } else { snippet.pool_entered() } :AtomicBool) {
+          std.task.sleep(std.time.millis(i64(1)))
+      }
       waiting: Task<string> = std.task.launch<string>(__lambda_snippet_3)
       std.task.sleep(std.time.millis(i64(1)))
       std.task.cancel<string>(cancelled)
@@ -105,7 +123,7 @@
       other: Task<i32> = std.task.launch<i32>(snippet.read_answer)
       std.console.println<string>(concat_3(@vcall(std.core.Display.to_string, std.task.join<i32>(reader)), " ", @vcall(std.core.Display.to_string, std.task.join<i32>(other))))
       joiner: Task<i32> = std.task.launch<i32>(__lambda_snippet_4)
-      std.console.println<string>(concat_3(@vcall(std.core.Display.to_string, std.task.join<i32>(joiner)), " ", @vcall(std.core.Display.to_string, std.task.join<i32>(if @global(6) == 2 { @global(7) } else { snippet.warmup() } :Task<i32>))))
+      std.console.println<string>(concat_3(@vcall(std.core.Display.to_string, std.task.join<i32>(joiner)), " ", @vcall(std.core.Display.to_string, std.task.join<i32>(if @global(9) == 2 { @global(10) } else { snippet.warmup() } :Task<i32>))))
       if (@array.len(argv) > i64(1)) && (argv[1] == "again") {
           std.console.println<string>({
               __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(20))
@@ -129,28 +147,39 @@
       @global(1) = snippet$config$singleton()
       @global(0) = 2
   }
+  snippet$pool_entered$singleton :: fn() -> AtomicBool {
+      AtomicBool { .value = false }
+  }
+  snippet$pool_entered$keep :: fn() -> void {
+      if @global(3) == 2 {
+          return
+      }
+      @global(4) = snippet$pool_entered$singleton()
+      @global(3) = 2
+  }
   snippet$pool$singleton :: fn() -> string {
       std.console.println<string>("pool starts")
-      std.task.sleep(std.time.millis(i64(20)))
+      std.task.store(if @global(3) == 2 { @global(4) } else { snippet.pool_entered() } :AtomicBool, true)
+      std.task.sleep(std.time.millis(i64(50)))
       std.console.println<string>("pool done")
       return "pool"
   }
   snippet$pool$keep :: fn() -> void {
-      if @global(3) == 2 {
+      if @global(6) == 2 {
           return
       }
-      @global(4) = snippet$pool$singleton()
-      @global(3) = 2
+      @global(7) = snippet$pool$singleton()
+      @global(6) = 2
   }
   snippet$warmup$singleton :: fn() -> Task<i32> {
       std.task.launch<i32>(snippet.warm)
   }
   snippet$warmup$keep :: fn() -> void {
-      if @global(6) == 2 {
+      if @global(9) == 2 {
           return
       }
-      @global(7) = snippet$warmup$singleton()
-      @global(6) = 2
+      @global(10) = snippet$warmup$singleton()
+      @global(9) = 2
   }
   __lambda_snippet_0 :: fn() -> string {
       if @global(0) == 2 { @global(1) } else { snippet.config() } :string
@@ -159,14 +188,14 @@
       if @global(0) == 2 { @global(1) } else { snippet.config() } :string
   }
   __lambda_snippet_2 :: fn() -> string {
-      if @global(3) == 2 { @global(4) } else { snippet.pool() } :string
+      if @global(6) == 2 { @global(7) } else { snippet.pool() } :string
   }
   __lambda_snippet_3 :: fn() -> string {
-      if @global(3) == 2 { @global(4) } else { snippet.pool() } :string
+      if @global(6) == 2 { @global(7) } else { snippet.pool() } :string
   }
   __lambda_snippet_4 :: fn() -> i32 {
       {
-          __fallback_0: Cancelled | i32 = std.task.join<i32>(if @global(6) == 2 { @global(7) } else { snippet.warmup() } :Task<i32>)
+          __fallback_0: Cancelled | i32 = std.task.join<i32>(if @global(9) == 2 { @global(10) } else { snippet.warmup() } :Task<i32>)
           if __fallback_0 is Cancelled { std_core$Intrinsic$panic("the task was cancelled") } else { i32(__fallback_0) } :i32
       } :i32
   }
@@ -286,9 +315,9 @@
     struct __defer_env_std_runtime_scheduler_5
     struct std.runtime.scheduler.InitGate  // std_runtime_scheduler$InitGate
   std/task
-    global #9 i32  started.state
-    global #10 Started  started.instance
-    global #11 InitGate | null  started.gate
+    global #12 i32  started.state
+    global #13 Started  started.instance
+    global #14 InitGate | null  started.gate
     fn __defer_std_task_10
     fn __defer_std_task_12
     fn __defer_std_task_14
@@ -309,6 +338,7 @@
     fn std.task.join<string>  // std_task$join__string
     fn std.task.launch<i32>  // std_task$launch__i32
     fn std.task.launch<string>  // std_task$launch__string
+    fn std.task.load  // std_task$load_1
     fn std.task.outcome<i32>  // std_task$outcome__i32
     fn std.task.outcome<string>  // std_task$outcome__string
     fn std.task.run<i32>  // std_task$run__i32
@@ -318,6 +348,7 @@
     fn std.task.started  // std_task$started
     fn std.task.stop_waiting<i32>  // std_task$stop_waiting__i32
     fn std.task.stop_waiting<string>  // std_task$stop_waiting__string
+    fn std.task.store  // std_task$store_1
     fn std_task$Task$std_core$Equals$equals__i32$guard
     fn std_task$Task$std_core$Equals$equals__string$guard
     fn std_task$started$keep
@@ -331,6 +362,7 @@
     struct __defer_env_std_task_9
     struct __lambda_env_std_task_1
     struct __lambda_env_std_task_3
+    struct std.task.AtomicBool  // std_task$AtomicBool
     struct std.task.Group  // std_task$Group
     struct std.task.Started  // std_task$Started
     struct std.task.Task<i32>  // std_task$Task__i32

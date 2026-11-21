@@ -2,45 +2,51 @@
 
 ## tests/snippets/tasks_interleave_by_sleep
   FnDecl         main                 :: fn() -> i32
-  FnDecl         nap                  :: fn(string, i64) -> i64
-  expr 12:13    StringLitExpr  :: string
-  expr 12:16    IdentExpr      :: string
-  expr 12:5     CallExpr       :: void
-  expr 12:5     IdentExpr      :: fn(T) -> void
-  expr 13:11    CallExpr       :: Duration
-  expr 13:11    FieldExpr      :: fn() -> Duration
-  expr 13:11    IdentExpr      :: i64
-  expr 13:5     CallExpr       :: void
-  expr 13:5     IdentExpr      :: fn(Duration) -> void
-  expr 14:13    StringLitExpr  :: string
-  expr 14:16    IdentExpr      :: string
-  expr 14:36    IdentExpr      :: i64
-  expr 14:5     CallExpr       :: void
-  expr 14:5     IdentExpr      :: fn(T) -> void
-  expr 15:12    IdentExpr      :: i64
-  expr 19:13    SeqLitExpr     :: Task<i64>[]
-  expr 20:16    LambdaExpr     :: fn() -> i64
-  expr 20:22    CallExpr       :: i64
-  expr 20:22    IdentExpr      :: fn(string, i64) -> i64
-  expr 20:26    StringLitExpr  :: string
-  expr 20:9     CallExpr       :: Task<i64>
-  expr 20:9     IdentExpr      :: fn(fn() -> T) -> Task<T>
-  expr 21:16    LambdaExpr     :: fn() -> i64
-  expr 21:22    CallExpr       :: i64
-  expr 21:22    IdentExpr      :: fn(string, i64) -> i64
-  expr 21:26    StringLitExpr  :: string
-  expr 21:9     CallExpr       :: Task<i64>
-  expr 21:9     IdentExpr      :: fn(fn() -> T) -> Task<T>
-  expr 22:16    LambdaExpr     :: fn() -> i64
-  expr 22:22    CallExpr       :: i64
-  expr 22:22    IdentExpr      :: fn(string, i64) -> i64
-  expr 22:26    StringLitExpr  :: string
-  expr 22:9     CallExpr       :: Task<i64>
-  expr 22:9     IdentExpr      :: fn(fn() -> T) -> Task<T>
-  expr 24:14    CallExpr       :: (Cancelled | i64)[]
-  expr 24:14    IdentExpr      :: fn(Task<T>[]) -> (Cancelled | T)[]
-  expr 24:23    IdentExpr      :: Task<i64>[]
-  expr 25:17    StringLitExpr  :: string
-  expr 25:20    IdentExpr      :: Cancelled | i64
-  expr 25:9     CallExpr       :: void
-  expr 25:9     IdentExpr      :: fn(T) -> void
+  FnDecl         nap                  :: fn(string, i64, AtomicInt) -> i64
+  expr 14:5     CallExpr       :: i64
+  expr 14:5     FieldExpr      :: fn(i64) -> i64
+  expr 14:5     IdentExpr      :: AtomicInt
+  expr 15:11    CallExpr       :: Duration
+  expr 15:11    FieldExpr      :: fn() -> Duration
+  expr 15:11    IdentExpr      :: i64
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(Duration) -> void
+  expr 16:13    StringLitExpr  :: string
+  expr 16:16    IdentExpr      :: string
+  expr 16:36    IdentExpr      :: i64
+  expr 16:46    CallExpr       :: i64
+  expr 16:46    FieldExpr      :: fn() -> i64
+  expr 16:46    IdentExpr      :: AtomicInt
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 17:12    IdentExpr      :: i64
+  expr 21:16    StructLitExpr  :: AtomicInt
+  expr 22:13    SeqLitExpr     :: Task<i64>[]
+  expr 23:16    LambdaExpr     :: fn() -> i64
+  expr 23:22    CallExpr       :: i64
+  expr 23:22    IdentExpr      :: fn(string, i64, AtomicInt) -> i64
+  expr 23:26    StringLitExpr  :: string
+  expr 23:36    IdentExpr      :: AtomicInt
+  expr 23:9     CallExpr       :: Task<i64>
+  expr 23:9     IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 24:16    LambdaExpr     :: fn() -> i64
+  expr 24:22    CallExpr       :: i64
+  expr 24:22    IdentExpr      :: fn(string, i64, AtomicInt) -> i64
+  expr 24:26    StringLitExpr  :: string
+  expr 24:35    IdentExpr      :: AtomicInt
+  expr 24:9     CallExpr       :: Task<i64>
+  expr 24:9     IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 25:16    LambdaExpr     :: fn() -> i64
+  expr 25:22    CallExpr       :: i64
+  expr 25:22    IdentExpr      :: fn(string, i64, AtomicInt) -> i64
+  expr 25:26    StringLitExpr  :: string
+  expr 25:35    IdentExpr      :: AtomicInt
+  expr 25:9     CallExpr       :: Task<i64>
+  expr 25:9     IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 27:14    CallExpr       :: (Cancelled | i64)[]
+  expr 27:14    IdentExpr      :: fn(Task<T>[]) -> (Cancelled | T)[]
+  expr 27:23    IdentExpr      :: Task<i64>[]
+  expr 28:17    StringLitExpr  :: string
+  expr 28:20    IdentExpr      :: Cancelled | i64
+  expr 28:9     CallExpr       :: void
+  expr 28:9     IdentExpr      :: fn(T) -> void

@@ -1,10 +1,13 @@
 // Three workers take jobs from a bounded channel until it closes, and send what
 // they make on an unbounded one. An atomic counts the jobs done, a shared log says
 // who took each. The workers reach the channels through a struct they are lent.
+// Which worker takes which job is up to the scheduler: what the program prints
+// holds for every share.
 module "snippet"
 
 import "std/console"
 import "std/iter"
+import "std/sort"
 import "std/string"
 import "std/task"
 
@@ -34,20 +37,26 @@ main :: fn() -> i32 {
         .done = AtomicInt {},
         .log = shared(lines),
     }
-    workers :: ["a", "b", "c"].map((name) -> launch(() -> work(pipes, name))).collect()
+    names :: ["a", "b", "c"]
+    workers :: names.map((name) -> launch(() -> work(pipes, name))).collect()
     for job in 1..=7 {
         pipes.jobs.send(job)
     }
     pipes.jobs.close()
-    taken :: join_all(workers).map((n) -> "${n}").collect()
+    taken :: join_all(workers).filter_is<i64>().sum()
     pipes.results.close()
     total: i64 = 0
     for square in pipes.results {
         total += square
     }
-    println("taken ${taken.join(" ")}")
+    println("taken ${taken}")
     println("done ${pipes.done.load()}, total ${total}")
-    println(pipes.log.locked((all) -> all.join(" ")))
+    logged :: pipes.log.locked((all) -> all.join(" "))
+    entries :: logged.split(" ")
+    jobs :: entries.map((line) -> line.split(":")[1]).collect()
+    println("logged ${sort(jobs, (a, b) -> a < b).join(" ")}")
+    named :: entries.all_match((line) -> names.any_match((name) -> line.starts_with("${name}:")))
+    println("each by a worker: ${named}")
     println("after close: ${pipes.jobs.receive()}")
     return 0
 }

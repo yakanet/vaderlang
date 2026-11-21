@@ -55,8 +55,9 @@
           .done = AtomicInt { .value = i64(0) },
           .log = std.task.shared<string[]>(lines),
       }
+      names: string[] = ["a", "b", "c"] :string[]
       workers: Task<i64>[] = {
-          __fuse_arr_0: string[] = ["a", "b", "c"] :string[]
+          __fuse_arr_0: string[] = names
           f: __lambda_env_snippet_3 = __lambda_env_snippet_3 { .cap_0 = pipes }
           out: Task<i64>[] = @array.reserve(@array.len(__fuse_arr_0))
           {
@@ -81,22 +82,23 @@
           }
       }
       std.task.close<i64>(pipes.jobs)
-      taken: string[] = {
+      taken: i64 = {
           __fuse_arr_3: (Cancelled | i64)[] = std.task.join_all<i64>(workers)
-          f: fn(Cancelled | i64) -> string = __lambda_snippet_6
-          out: string[] = @array.reserve(@array.len(__fuse_arr_3))
+          s: i64 = std_core$i64$Zero$zero()
           {
               __fuse_len_0: i64 = @array.len(__fuse_arr_3)
               __fuse_i_1: i64 = 0
               for __fuse_i_1 < __fuse_len_0 {
                   x: Cancelled | i64 = __fuse_arr_3[__fuse_i_1]
-                  x: string = __lambda_snippet_6(x)
-                  @array.push(out, x)
+                  if x is i64 {
+                      x: i64 = i64(x)
+                      s = s + x
+                  }
               } @step {
                   __fuse_i_1 = __fuse_i_1 +% i64(1)
               }
           }
-          out
+          s
       }
       std.task.close<i64>(pipes.results)
       total: i64 = 0
@@ -112,17 +114,71 @@
               }
           }
       }
-      std.console.println<string>(concat_2("taken ", std.string.join(taken, " ")))
       std.console.println<string>({
-          __buf_7: Buffer = std_core$Intrinsic$new_byte_buffer(i64(53))
+          __buf_7: Buffer = std_core$Intrinsic$new_byte_buffer(i64(26))
           __off_8: i64 = 0
-          __off_8 = std.core.write_string_at(__buf_7, __off_8, "done ")
-          __off_8 = std.core.write_int(__buf_7, __off_8, std.task.load(pipes.done))
-          __off_8 = std.core.write_string_at(__buf_7, __off_8, ", total ")
-          __off_8 = std.core.write_int(__buf_7, __off_8, total)
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, "taken ")
+          __off_8 = std.core.write_int(__buf_7, __off_8, taken)
           std.core.finish_buffer(__buf_7, __off_8)
       } :string)
-      std.console.println<string>(std.task.locked<string[], string>(pipes.log, __lambda_snippet_7))
+      std.console.println<string>({
+          __buf_9: Buffer = std_core$Intrinsic$new_byte_buffer(i64(53))
+          __off_10: i64 = 0
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, "done ")
+          __off_10 = std.core.write_int(__buf_9, __off_10, std.task.load(pipes.done))
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, ", total ")
+          __off_10 = std.core.write_int(__buf_9, __off_10, total)
+          std.core.finish_buffer(__buf_9, __off_10)
+      } :string)
+      logged: string = std.task.locked<string[], string>(pipes.log, __lambda_snippet_6)
+      entries: string[] = std.string.split(logged, " ")
+      jobs: string[] = {
+          __fuse_arr_11: string[] = entries
+          f: fn(string) -> string = __lambda_snippet_7
+          out: string[] = @array.reserve(@array.len(__fuse_arr_11))
+          {
+              __fuse_len_0: i64 = @array.len(__fuse_arr_11)
+              __fuse_i_1: i64 = 0
+              for __fuse_i_1 < __fuse_len_0 {
+                  x: string = __fuse_arr_11[__fuse_i_1]
+                  x: string = __lambda_snippet_7(x)
+                  @array.push(out, x)
+              } @step {
+                  __fuse_i_1 = __fuse_i_1 +% i64(1)
+              }
+          }
+          out
+      }
+      std.console.println<string>(concat_2("logged ", std.string.join(std.sort.sort<string>(jobs, __lambda_snippet_8), " ")))
+      named: bool = {
+          __fuse_arr_13: string[] = entries
+          pred: __lambda_env_snippet_10 = __lambda_env_snippet_10 { .cap_0 = names }
+          __consumed_15: bool = false
+          $exit$i68: {
+              {
+                  __fuse_len_0: i64 = @array.len(__fuse_arr_13)
+                  __fuse_i_1: i64 = 0
+                  for __fuse_i_1 < __fuse_len_0 {
+                      x: string = __fuse_arr_13[__fuse_i_1]
+                      if !__lambda_snippet_9(pred, x) {
+                          __consumed_15 = false
+                          break $exit$i68
+                      }
+                  } @step {
+                      __fuse_i_1 = __fuse_i_1 +% i64(1)
+                  }
+              }
+              __consumed_15 = true
+          }
+          __consumed_15
+      }
+      std.console.println<string>({
+          __buf_16: Buffer = std_core$Intrinsic$new_byte_buffer(i64(23))
+          __off_17: i64 = 0
+          __off_17 = std.core.write_string_at(__buf_16, __off_17, "each by a worker: ")
+          __off_17 = std.core.write_bool(__buf_16, __off_17, named)
+          std.core.finish_buffer(__buf_16, __off_17)
+      } :string)
       std.console.println<string>(concat_2("after close: ", @vcall(std.core.Display.to_string, std.task.receive<i64>(pipes.jobs))))
       return 0
   }
@@ -146,11 +202,43 @@
   __lambda_snippet_2 :: fn(__env_1: __lambda_env_snippet_3, name: string) -> Task<i64> {
       std.task.launch<i64>(@closure(__lambda_snippet_4, __lambda_env_snippet_5 { .cap_0 = __env_1.cap_0, .cap_1 = name }))
   }
-  __lambda_snippet_6 :: fn(n: Cancelled | i64) -> string {
-      @vcall(std.core.Display.to_string, n)
-  }
-  __lambda_snippet_7 :: fn(all: string[]) -> string {
+  __lambda_snippet_6 :: fn(all: string[]) -> string {
       std.string.join(all, " ")
+  }
+  __lambda_snippet_7 :: fn(line: string) -> string {
+      std.string.split(line, ":")[1]
+  }
+  __lambda_snippet_8 :: fn(a: string, b: string) -> bool {
+      std_core$Intrinsic$string_compare(a, b) < 0
+  }
+  __lambda_env_snippet_12 :: struct { cap_0: string }
+  __lambda_snippet_11 :: fn(__env_1: __lambda_env_snippet_12, name: string) -> bool {
+      std.string.starts_with(__env_1.cap_0, concat_2(name, ":"))
+  }
+  __lambda_env_snippet_10 :: struct { cap_0: string[] }
+  __lambda_snippet_9 :: fn(__env_14: __lambda_env_snippet_10, line: string) -> bool {
+      {
+          __fuse_arr_0: string[] = __env_14.cap_0
+          pred: __lambda_env_snippet_12 = __lambda_env_snippet_12 { .cap_0 = line }
+          __consumed_2: bool = false
+          $exit$i76: {
+              {
+                  __fuse_len_0: i64 = @array.len(__fuse_arr_0)
+                  __fuse_i_1: i64 = 0
+                  for __fuse_i_1 < __fuse_len_0 {
+                      x: string = __fuse_arr_0[__fuse_i_1]
+                      if __lambda_snippet_11(pred, x) {
+                          __consumed_2 = true
+                          break $exit$i76
+                      }
+                  } @step {
+                      __fuse_i_1 = __fuse_i_1 +% i64(1)
+                  }
+              }
+              __consumed_2 = false
+          }
+          __consumed_2
+      } :bool
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
@@ -186,8 +274,11 @@
     fn std.core.b2u32  // std_core$b2u32
     fn std.core.bool.to_string  // std_core$bool$Display$to_string
     fn std.core.char.to_string  // std_core$char$Display$to_string
+    fn std.core.clone<string>  // std_core$clone__string
+    fn std.core.codepoint_at_byte  // std_core$codepoint_at_byte
     fn std.core.d2d  // std_core$d2d
     fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.f2d  // std_core$f2d
     fn std.core.f32.to_string  // std_core$f32$Display$to_string
     fn std.core.f64.to_string  // std_core$f64$Display$to_string
@@ -202,6 +293,7 @@
     fn std.core.i8.to_string  // std_core$i8$Display$to_string
     fn std.core.index_of<i64>  // std_core$index_of__i64
     fn std.core.insert_point  // std_core$insert_point
+    fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
     fn std.core.log10_pow2  // std_core$log10_pow2
     fn std.core.log10_pow5  // std_core$log10_pow5
     fn std.core.mul_pow5_div_pow2  // std_core$mul_pow5_div_pow2
@@ -233,6 +325,7 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     fn std.core.write_zeros  // std_core$write_zeros
+    fn std_core$i64$Zero$zero
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Cancelled  // std_core$Cancelled
     struct std.core.Dec64  // std_core$Dec64
@@ -253,8 +346,15 @@
     struct __defer_env_std_runtime_scheduler_5
     struct std.runtime.scheduler.InitGate  // std_runtime_scheduler$InitGate
     struct std.runtime.scheduler.Mutex  // std_runtime_scheduler$Mutex
+  std/sort
+    fn std.sort.insertion_sort_range<string>  // std_sort$insertion_sort_range__string
+    fn std.sort.merge_sort_range<string>  // std_sort$merge_sort_range__string
+    fn std.sort.sort<string>  // std_sort$sort__string
   std/string
     fn std.string.join  // std_string$join
+    fn std.string.matches_at  // std_string$matches_at
+    fn std.string.split  // std_string$split
+    fn std.string.starts_with  // std_string$starts_with
   std/string_builder
     fn std.string_builder.StringBuilder.to_string  // std_string__builder$StringBuilder$std_core$Display$to_string
     fn std.string_builder.append  // std_string__builder$append

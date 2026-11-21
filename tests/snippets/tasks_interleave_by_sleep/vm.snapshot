@@ -1,12 +1,9 @@
 # stdout
-A: start
-B: start
-C: start
-B: end (slept 1)
-C: end (slept 2)
-A: end (slept 3)
-3
-1
-2
+B: end (slept 40, 3 started)
+C: end (slept 80, 3 started)
+A: end (slept 120, 3 started)
+120
+40
+80
 # exit
 0

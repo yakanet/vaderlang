@@ -2,7 +2,9 @@
 // the second task waits for the first, and the body runs once. When the task
 // running the body is cancelled, the one waiting runs it again. A constant whose
 // value runs code makes a task wait the same way, then computes its own value. A
-// singleton returning a task hands every caller that task to join. With `again`
+// singleton returning a task hands every caller that task to join. On several
+// workers the tasks start in any order: the program waits until the task it
+// cancels runs the body, so that the other is the one left waiting. With `again`
 // on the command line the program reads `LOOP`, whose function reads it again
 // while computing it: `tools/cli_tests/native` runs that case on both
 // backends.
@@ -21,10 +23,15 @@ config :: fn() -> string {
     return "cfg"
 }
 
+// Whether a task has begun the body of `pool`.
+@singleton
+pool_entered :: fn() -> AtomicBool = AtomicBool {}
+
 @singleton
 pool :: fn() -> string {
     println("pool starts")
-    sleep(20.millis())
+    pool_entered().store(true)
+    sleep(50.millis())
     println("pool done")
     return "pool"
 }
@@ -56,6 +63,9 @@ main :: fn(argv: string[]) -> i32 {
     second :: launch(() -> config())
     println("${first.join()} ${second.join()} ${config()}")
     cancelled :: launch(() -> pool())
+    for !pool_entered().load() {
+        sleep(1.millis())
+    }
     waiting :: launch(() -> pool())
     sleep(1.millis())
     cancelled.cancel()
