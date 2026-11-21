@@ -78,7 +78,6 @@ static int      g_scheduler_virtual_clock = 0;
  * returning sees of it meanwhile. */
 static int      g_scheduler_slow_end = 0;
 static int64_t  g_scheduler_virtual_now = 0;
-static uint64_t g_scheduler_numbered = 0;
 /* `main` returned and waits for the threads it cancelled. */
 static int      g_scheduler_exiting = 0;
 /* Some thread was still running, not cancelled, when `main` returned. */
@@ -1566,12 +1565,6 @@ int64_t vader_scheduler_spawn_numbered(vader_fn_t* entry, int64_t number) {
     }
     vader_scheduler_unlock();
     return thread;
-}
-
-/* The spawn the bootstrap seed's emitter calls, which numbers the threads
- * itself. */
-int64_t vader_scheduler_spawn(vader_fn_t* entry) {
-    return vader_scheduler_spawn_numbered(entry, (int64_t) ++g_scheduler_numbered);
 }
 
 void vader_scheduler_park(void) {

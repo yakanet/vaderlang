@@ -1687,7 +1687,6 @@ void vader_defer_pop_exec(uint32_t count);
  * its thread has ended, a handle names nothing, and waking or cancelling it
  * does nothing. */
 int64_t vader_scheduler_spawn_numbered(vader_fn_t* entry, int64_t number);
-int64_t vader_scheduler_spawn(vader_fn_t* entry);
 void    vader_scheduler_park(void);
 void    vader_scheduler_wake(int64_t thread);
 void    vader_scheduler_sleep_for(int64_t nanos);
