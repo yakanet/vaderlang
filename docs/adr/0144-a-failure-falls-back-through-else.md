@@ -52,8 +52,8 @@ a case that does more than one thing per variant.
 defect when an error value was at hand. It stays legal because the `null` is
 written, a choice the reader sees.
 
-A type parameter, a trait value or `any` may hold an error or not: a bare
-`else` never handles them, `else is Error` does.
+A type parameter or a trait value may hold an error or not: a bare `else`
+never handles them, `else is Error` does.
 
 `std/option` loses its reason to exist: `or_null` is `else null`, `unwrap`
 is `else panic(...)`, `or` is `else value`.

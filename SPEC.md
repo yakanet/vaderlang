@@ -315,7 +315,7 @@ A `-` written directly against a number literal, where an operand is expected, b
 
 With a union on the right, `is` tests membership: `x is A | B`, or `x is AB` for an alias `AB :: A | B`, holds when the value is an `A` or a `B`, and narrows `x` to that union. Given `U :: A | B | C`, a `U` holding a `B` satisfies `v is AB` and can then be passed where an `AB` is expected.
 
-With a trait on the right, `x is Equals` holds when the value's type implements the trait. That covers the primitives' impls and an enum's built-in `Equals` and `Hash`, and a generic impl counts only where its bounds hold. The branch where the test fails no longer holds those types: after `if v is Equals { return }` on `v: i32 | Point`, `v` is a `Point` (when `Point` has no `Equals`). A value held as a trait or as `any` is tested by its struct's impls alone.
+With a trait on the right, `x is Equals` holds when the value's type implements the trait. That covers the primitives' impls and an enum's built-in `Equals` and `Hash`, and a generic impl counts only where its bounds hold. The branch where the test fails no longer holds those types: after `if v is Equals { return }` on `v: i32 | Point`, `v` is a `Point` (when `Point` has no `Equals`). A value held as a trait is tested by its struct's impls alone.
 
 A test that can never hold is an error: `v is D` with `v: A | B`.
 
@@ -333,7 +333,7 @@ if r is T {
 #### Conditions with `&&`, `||` and `!`
 
 - **`&&`**: in `if x is T && rest`, `x` is narrowed in `rest` and in the then-branch, so `if x is Circle && x.radius > 0` type-checks. The else-branch is not narrowed: a false `a && b` does not say which operand was false.
-- **`||`**: the else-branch narrows every binding an operand tested. After `if x is A || x is B`, the else-branch sees `x` without `A` and `B`. The then-branch narrows only when every operand tests the same binding, to the union of the tested types: there `x` is `A | B`. A trait operand stands for the variants of `x` that implement it, so on a type parameter or `any` the then-branch is not narrowed. `if x is A || flag` narrows nothing in the then-branch, and `x` in the else-branch.
+- **`||`**: the else-branch narrows every binding an operand tested. After `if x is A || x is B`, the else-branch sees `x` without `A` and `B`. The then-branch narrows only when every operand tests the same binding, to the union of the tested types: there `x` is `A | B`. A trait operand stands for the variants of `x` that implement it, so on a type parameter the then-branch is not narrowed. `if x is A || flag` narrows nothing in the then-branch, and `x` in the else-branch.
 - **Right operand**: it sees the outcome of the left one. The right of `&&` sees the left as true, the right of `||` sees it as false, so `y == null || y.a > 0` type-checks.
 - **`!`** swaps the two branches. The rules compose at any depth: `if !(y is A || y is B)` sees `y` as neither `A` nor `B`.
 
@@ -922,7 +922,7 @@ add_square(circles)   // error: `add_square` may grow `shapes`
 The parameter's element must also take the argument's elements as they are stored, by group:
 
 - **scalars**: integers, floats, `bool`, `char`, ranges, enums and type parameters;
-- **references**: structs, arrays, tuples, functions, traits, `any`, and unions of structs, arrays, tuples, functions and `null`;
+- **references**: structs, arrays, tuples, functions, traits, and unions of structs, arrays, tuples, functions and `null`;
 - **mixed** types: `string`, and every other union (one that holds a scalar, a `string` or a trait).
 
 A distinct type is in the group of its backing. A reference element takes a reference or a mixed argument element, a mixed element only a mixed one, and a scalar element only its own type: `string[]` passes for `(string | null)[]`, but `i32[]` for `(i32 | string)[]` and `Circle[]` for `(Circle | string)[]` are errors.
@@ -1313,7 +1313,7 @@ count :: parse_int(text) else return count    // returns the `ParseError`
 
 The rules:
 
-- A bare `else` handles `null` and the members of `left`'s type known to implement `Error`. A type parameter, a trait value or `any` may hold an error or not: write `else is Error` to handle it.
+- A bare `else` handles `null` and the members of `left`'s type known to implement `Error`. A type parameter or a trait value may hold an error or not: write `else is Error` to handle it.
 - A clause with nothing left to handle is an error, a bare `else` on a `left` that holds no failure included.
 - When every value of `left` goes to a clause that leaves, the fallback has no value: an error.
 - `a else b else c` is an error, since the first `else` handled every failure of `a`. A fallback on `b` is written `a else (b else c)` or `a else { b else c }`.
@@ -2354,7 +2354,7 @@ a === label            // error: a Point and a Label are never the same object
 `===` asks whether two references are the same object, and `!==` is its negation.
 
 - Only a reference has an identity: a struct, an array, a union of references (`Node | null` included), a distinct type over one of these.
-- `===` on anything else is an error (narrow first, or use `==`): a number, `bool`, `char`, `string`, an enum, a tuple, a function, `null` alone, or a type that may hold one: a value typed by a trait (`i32` implements `Display`), `any`, a type parameter, `Self`.
+- `===` on anything else is an error (narrow first, or use `==`): a number, `bool`, `char`, `string`, an enum, a tuple, a function, `null` alone, or a type that may hold one: a value typed by a trait (`i32` implements `Display`), a type parameter, `Self`.
 - The two operands must be able to hold the same object, sharing a variant other than `null`: `Point | null === Label | null` is an error too.
 - The compiler warns when both operands may hold a struct with no field: such a value carries only its type, which `is` tests.
 - `===` goes through no trait and cannot be overloaded.
@@ -4135,7 +4135,7 @@ An argument `T: type` is a type, a value of the metatype `type` (§4), fixed at 
 - 1 for `i8`, `u8`, `bool`; 2 for `i16`, `u16`; 4 for `i32`, `u32`, `f32`, `char`, `string`; 8 for `i64`, `u64`, `f64`;
 - for an enum, an integer range type or a distinct type, the size of its representation (§4 *Representation*, *Range types*, *Distinct types*);
 - 8 for the references: a struct, an array, a tuple, a function value;
-- 16 for a union, a trait value and `any` (a value and its type);
+- 16 for a union and a trait value (a value and its type);
 - 0 for `null`, `void`, `type` and any type without a value at run time.
 
 `@align_of(T)` is a scalar's width, 8 for a 16-byte slot.

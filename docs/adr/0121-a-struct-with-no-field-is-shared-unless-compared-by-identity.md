@@ -17,7 +17,7 @@ added `STOP`.
 Two literals are two objects (SPEC *Identity*), and `===` is the only thing that
 can tell: an FFI mirror copies by field name, no intrinsic exposes an address,
 and a struct displays as its fields. `===` already refuses an operand typed by a
-trait, `any`, a type parameter or `Self`, so the structs it may compare are known
+trait, a type parameter or `Self`, so the structs it may compare are known
 at compile time.
 
 ## Decision
