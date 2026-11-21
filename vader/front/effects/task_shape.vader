@@ -368,6 +368,13 @@ leaving_of :: fn(block: AST.BlockExpr, door: Span, at: Span) -> Leaving {
         if m is AST.ForStmt {
             loops += 1
         }
+        if starts_past(m, at) {
+            return .Skip
+        }
+        if m is AST.ReturnStmt && contains(m.span, at) {
+            // It leaves once its value, the join included, is evaluated.
+            return .Descend
+        }
         if escapes(m, loops) {
             return .Stop
         }
@@ -418,6 +425,10 @@ escapes :: fn(m: AST.Node, loops: i32) -> bool {
     }
     return false
 }
+
+// Whether `m` is a statement that runs once the join at `at` has: what it leaves
+// for, the task has ended.
+starts_past :: fn(m: AST.Node, at: Span) -> bool = m is AST.Stmt && m.span.start.offset >= at.end.offset
 
 // The loop whose body is `block`, when it joins each element of what holds the
 // task `door` opens: its variable is the argument `q` of `site`, the join, and

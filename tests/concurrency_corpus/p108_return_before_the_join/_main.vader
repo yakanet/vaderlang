@@ -1,0 +1,30 @@
+// P108: a function may return before the join of the task it launched: the task
+// outlives the call, beside the caller that reads what it writes.
+//
+// corpus: probe
+// expect: T3128
+
+module "snippet"
+
+import "std/console"
+import "std/task"
+
+State :: struct { hits: i32 = 0 }
+
+early :: fn(handler: fn(i32) -> i32, quick: bool) -> i32 {
+    t :: launch(() -> handler(1))
+    if quick {
+        return 0
+    }
+    return t.join() else 0
+}
+
+main :: fn() -> i32 {
+    state :: State {}
+    early(fn(id: i32) -> i32 {
+        state.hits += 1
+        return 0
+    }, true)
+    println("${state.hits}")
+    return 0
+}
