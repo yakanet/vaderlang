@@ -2145,8 +2145,9 @@ Countdown<T> implements Iterator<T> {
 }
 ```
 
-- An impl body is a short form when it starts with `->` (the arrow form), or with a `{` whose first significant token does not start a member declaration (`name :: fn`), the block form.
+- An impl body is a short form when it starts with `->` (the arrow form), or with a `{` whose first significant token is neither a member declaration (`name :: fn`) nor `}`, the block form.
 - The classic form (`{ name :: fn(...) ... }`) is always valid. A short form on a trait with no required method, or with several, is an error.
+- `{}` is the classic form with no member: it implements a trait that requires none, such as a marker trait (`User implements Extension {}`).
 
 #### Default methods
 

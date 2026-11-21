@@ -1,0 +1,30 @@
+// marker_trait_impl: a trait that requires nothing is implemented with an
+// empty body, and a value held as it is told apart by `is`.
+
+module "snippet"
+
+import "std/console"
+
+Marker :: trait {}
+
+User :: struct {
+    name: string
+}
+
+User implements Marker {}
+
+Empty :: struct {}
+
+Empty implements Marker {}
+
+name_of :: fn(marked: Marker) -> string {
+    if marked is User {
+        return marked.name
+    }
+    return "?"
+}
+
+main :: fn() -> i32 {
+    println("${name_of(User { .name = "ada" })} ${name_of(Empty {})}")
+    return 0
+}

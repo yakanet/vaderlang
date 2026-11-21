@@ -1,0 +1,25 @@
+# Typecheck
+
+## tests/snippets/marker_trait_impl
+  StructDecl     Empty                :: Empty
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Marker               :: Marker
+  FnDecl         name_of              :: fn(Marker) -> string
+  StructDecl     User                 :: User
+  expr 21:18    IdentExpr      :: User
+  expr 21:5     IfExpr         :: void
+  expr 21:8     BinaryExpr     :: bool
+  expr 21:8     IdentExpr      :: Marker
+  expr 22:16    FieldExpr      :: string
+  expr 22:16    IdentExpr      :: User
+  expr 24:12    StringLitExpr  :: string
+  expr 28:13    StringLitExpr  :: string
+  expr 28:16    CallExpr       :: string
+  expr 28:16    IdentExpr      :: fn(Marker) -> string
+  expr 28:24    StructLitExpr  :: User
+  expr 28:39    StringLitExpr  :: string
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
+  expr 28:51    CallExpr       :: string
+  expr 28:51    IdentExpr      :: fn(Marker) -> string
+  expr 28:59    StructLitExpr  :: Empty

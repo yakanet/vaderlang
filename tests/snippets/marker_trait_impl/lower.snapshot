@@ -1,0 +1,42 @@
+# Lower
+
+## snippet
+  snippet.User :: struct { name: string }  // snippet$User
+  snippet.Empty :: struct {}  // snippet$Empty
+  snippet.name_of :: fn(marked: Marker) -> string {  // snippet$name_of
+      if marked is User {
+          return User(marked).name
+      }
+      return "?"
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.console.println<string>(concat_3(snippet.name_of(User { .name = "ada" }), " ", snippet.name_of(Empty {})))
+      return 0
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c2)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_intern_string(buf, c2)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    struct std.core.Buffer  // std_core$Buffer

@@ -1014,6 +1014,10 @@ peek_is_classic_impl_body :: fn(p: Parser) -> bool {
     // then look for `ident :: fn` (the unified member-decl shape).
     i := 1
     for p.peek_at(i).kind == .Newline { i = i + 1 }
+    // `{}` is the classic form with no member.
+    if p.peek_at(i).kind == .RBrace {
+        return true
+    }
     looping := true
     for looping {
         tk :: p.peek_at(i).kind
@@ -4674,4 +4678,10 @@ test_signature_with_named_parameters_stays_a_declaration :: fn() -> void {
 test_stage_written_signature_stays_a_declaration :: fn() -> void {
     decl :: parse_stage_written("make :: fn() -> i32\n", "stage.vader").program.decls[0]
     assert(decl is FnDecl, "a body stage gives what a source stage wrote")
+}
+
+@test
+test_empty_impl_body_has_no_member :: fn() -> void {
+    decl :: only_decl("User implements Extension {}\n")
+    assert(decl is ImplDecl && decl.members.is_empty(), "`{}` implements a trait that requires nothing")
 }
