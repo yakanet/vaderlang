@@ -4440,6 +4440,32 @@ launch(() -> think(view)).join()   // ok: the task reads its own copy
 - A loop variable is bound afresh at each turn (§7 *`for` (universal loop)*): `for f in files { launch(() -> scan(f)) }` gives each task its own `f`.
 - The comparison follows aliases through fields and calls: after `bots :: level.bots`, `bots.push(b)` writes `level`. A function that hands its parameter to a task hands it for its callers too.
 - A task that runs a function value whose body the compiler cannot see, one read from a field or given back by a call, is an error. A parameter, a lambda of the body and a named function are seen.
+- A value of a trait that several tasks run at once, as the tasks a loop launches do, may be any of its implementations. Each implementation answers for its own members: what one writes below its `self` must go through a `Shared`, an `AtomicInt` or an `AtomicBool`, or through a field of another trait, whose implementations answer in turn. A write that does not is an error at the write, even in an implementation whose values never reach those tasks.
+
+```vader
+Handler :: trait {
+    handle :: fn(self, request: Request) -> Response
+}
+Counter :: struct { hits: i32 }
+Counter implements Handler {
+    handle :: fn(self, request: Request) -> Response {
+        self.hits += 1                 // error: a `Handler` several tasks run at once
+        return ok()
+    }
+}
+Tally :: struct { hits: AtomicInt }
+Tally implements Handler {
+    handle :: fn(self, request: Request) -> Response {
+        self.hits.fetch_add(1)         // ok
+        return ok()
+    }
+}
+serve :: fn(handler: Handler) -> void {
+    for connection in connections() {
+        launch(() -> answer(connection, handler.handle(read(connection))))
+    }
+}
+```
 - The error proposes a way out that fits the case: move the access after the `join`, let each task give back its own value, or copy the value with `deep_copy` (`std/core`), which keeps the sharing and the cycles inside the value and refuses a function value.
 
 ### Synchronised types

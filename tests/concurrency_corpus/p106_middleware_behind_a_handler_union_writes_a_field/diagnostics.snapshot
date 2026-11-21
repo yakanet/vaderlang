@@ -1,0 +1,1 @@
+[71:13] error[T3129] value written by several tasks: `Deny` is a `Middleware`, which the tasks launched at line 83 of `_main.vader` run at once: this writes `self.refused[]`, which they all share ; hold it in a `Shared` (an `AtomicInt` or an `AtomicBool` for a counter or a flag)

@@ -77,6 +77,11 @@ TaskCtx :: struct {
     reach: Reach[] = []
     /// `trait_key` -> the impls of the trait written for a type that is no trait.
     trait_impls: Map<string, ImplEntry[]> = Map<string, ImplEntry[]> {}
+    /// The traits whose values several tasks run at once (`task_traits.vader`),
+    /// in the order they are found.
+    run_at_once: RunAtOnce[] = []
+    /// The `trait_key` of each of them.
+    run_at_once_keys: Set<string> = Set<string> {}
     /// Per node, the parameters it keeps in other parameters (`task_kept.vader`).
     kept_into: KeptInto[][] = []
     /// Per node, the parameters whose function value it runs (`task_handed.vader`).
@@ -160,6 +165,7 @@ settle_tasks :: fn(
     for node in order {
         ctx.check_body(ctx.body_of(node), faults)
     }
+    ctx.check_run_at_once(faults)
     return faults
 }
 
@@ -239,6 +245,9 @@ Touch :: struct {
     sent: bool = false
     /// For a call of a lambda of the body, where its body makes the access.
     made: Span | null = null
+    /// The trait whose implementations make it: the touch goes through a value
+    /// of it (`task_traits.vader`).
+    through: TraitType | null = null
 }
 
 /// The access at index `access` of what node `node` does with its parameter `param`.
@@ -487,6 +496,7 @@ note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) 
                     if ctx.crosses_shared_at(body, target, q, lent, a.path, kind) {
                         continue
                     }
+                    through :: ctx.write_through(body.typed, lent, a.path, kind)
                     for r in roots {
                         below :: lands_at(r, a.path, a.effect) else continue
                         touch :: Touch {
@@ -497,6 +507,7 @@ note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) 
                             .by = by,
                             .access = callee_access(target, params, q, i),
                             .sent = sent,
+                            .through = through,
                         }
                         body.touches.push(touch)
                     }
@@ -684,11 +695,7 @@ members_cross :: fn(ctx: TaskCtx, walk: SharedWalk, typed: TypedProgram, impleme
     }
     for entry in ctx.implementations(implemented) {
         for member in entry.decl.members {
-            if !has_self_param(member) {
-                continue
-            }
-            target :: ctx.index.target_of_decl(member)
-            for a in target_effects(target, ctx.facts, 0, ctx.index.any).accesses {
+            for a in ctx.self_accesses(member) {
                 kind :: touch_kind(a.effect) else continue
                 // The summary keeps the kind of a touch it carries up: a cut
                 // touch stands for the members' touches of its own kind.
@@ -702,6 +709,16 @@ members_cross :: fn(ctx: TaskCtx, walk: SharedWalk, typed: TypedProgram, impleme
         }
     }
     return true
+}
+
+// What `member`, a member of an impl, does below its `self` ; nothing for a member
+// that takes none.
+self_accesses :: fn(ctx: TaskCtx, member: AST.FnDecl) -> Access[] {
+    if !has_self_param(member) {
+        return []
+    }
+    target :: ctx.index.target_of_decl(member)
+    return target_effects(target, ctx.facts, 0, ctx.index.any).accesses
 }
 
 // The impls of `implemented` written for a type that is no trait, whose fields a

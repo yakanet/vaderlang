@@ -1,0 +1,161 @@
+// vader/front/effects/task_traits: the traits whose values several tasks run at once.
+//
+// A write through a trait value, at a door launched again while one of its tasks
+// runs, is what any implementation of the trait may do: each answers for its own
+// members, at the write.
+// docs/adr/0168-a-trait-run-by-several-tasks-is-checked-at-its-implementations.md
+// has the reasons.
+
+module "vader/front/effects"
+
+import "std/collections"
+import "std/iter"
+import "toolchain/span"
+import "vader/core/types"
+import "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+
+/// A trait whose values several tasks run at once, and the door that runs them.
+RunAtOnce :: struct {
+    implemented: TraitType
+    /// Where the tasks are launched.
+    door: Span
+}
+
+// The trait whose implementations make a write of `kind` at `path` below a value
+// of type `t`, as `trait_on_path` finds it ; null for a read or a keep, which no
+// door relaunched hands to the implementations.
+write_through :: fn(
+    ctx: TaskCtx,
+    typed: TypedProgram,
+    t: Type | null,
+    path: PartPath,
+    kind: TouchKind,
+) -> TraitType | null {
+    if kind != .Write {
+        return null
+    }
+    return ctx.trait_on_path(typed, t, path)
+}
+
+// The trait whose implementations make what a touch at `path`, below a value of
+// type `t`, reaches: the first one met on the way down, `t` itself included ;
+// null when none. A trait value written as a whole, a field set to another
+// value, is its holder's write.
+trait_on_path :: fn(ctx: TaskCtx, typed: TypedProgram, t: Type | null, path: PartPath) -> TraitType | null {
+    at := t
+    for k in 0..<i64(length_of(path)) {
+        held :: trait_held(at)
+        if held != null {
+            return held
+        }
+        at = step_type(typed, at, ctx.index.paths.step_names[step_at(path, k)]) else return null
+    }
+    if is_cut(path) {
+        return trait_held(at)
+    }
+    return null
+}
+
+// The trait a value of type `t` is reached through: `t` itself, or the one trait
+// of a union, whose other variants hold no part a touch could reach through it
+// (a function value is checked where it is written).
+trait_held :: fn(t: Type | null) -> TraitType | null {
+    if t is TraitType {
+        return t
+    }
+    if t !is UnionType {
+        return null
+    }
+    traits :: t.variants.filter_is<TraitType>().collect()
+    if traits.len() != 1 || !t.variants.all_match((v) -> v is TraitType | FnType || is_null_type(v)) {
+        return null
+    }
+    return traits[0]
+}
+
+// Whether a value of type `t` may be a function: null when the type is not known.
+may_be_function :: fn(t: Type | null) -> bool = match t {
+    is null -> true
+    is FnType | TypeParamType | AnyType -> true
+    is UnionType -> t.variants.any_match((v) -> may_be_function(v))
+    is DistinctType -> may_be_function(t.backing)
+    is UnresolvedType | InferVar | SelfType -> true
+    is PrimitiveType | RangeType | EnumType | StructType -> false
+    is ArrayType | TupleType | TraitType | TypeMetaType | NeverType -> false
+    is FreeIntType | FreeCharType | FreeFloatType -> false
+}
+
+// Note that the tasks launched at `door` run values of `implemented` at once.
+note_run_at_once :: fn(ctx: TaskCtx, implemented: TraitType, door: Span) -> void {
+    if !ctx.run_at_once_keys.add(trait_key_of(implemented.symbol)) {
+        return
+    }
+    ctx.run_at_once.push(RunAtOnce { .implemented = implemented, .door = door })
+}
+
+// Push onto `out` each write a member of an implementation of a trait several
+// tasks run at once makes below its `self` and that no struct tasks share by
+// design holds. A field of another trait makes that trait one too.
+check_run_at_once :: fn(ctx: TaskCtx, out: TaskFault[]) -> void {
+    seen :: Set<string> {}
+    i := 0
+    for i < ctx.run_at_once.len() {
+        run :: ctx.run_at_once[i]
+        for entry in ctx.implementations(run.implemented) {
+            for member in entry.decl.members {
+                ctx.check_member(run, entry.for_type, member, out, seen)
+            }
+        }
+        i += 1
+    }
+}
+
+// Push onto `out` the writes below `self` of `member`, an implementation's for
+// `for_type` of the trait `run` names, that no struct tasks share by design holds.
+check_member :: fn(
+    ctx: TaskCtx,
+    run: RunAtOnce,
+    for_type: Type,
+    member: AST.FnDecl,
+    out: TaskFault[],
+    seen: Set<string>,
+) -> void {
+    if !has_self_param(member) {
+        return
+    }
+    target :: ctx.index.target_of_decl(member)
+    if target !is CalleeNode {
+        return
+    }
+    typed :: ctx.index.functions[target.node].typed
+    accesses :: target_effects(target, ctx.facts, 0, ctx.index.any).accesses
+    for k in 0..<accesses.len() {
+        a :: accesses[k]
+        kind :: touch_kind(a.effect) else continue
+        if kind != .Write || ctx.crosses_task_shared(typed, for_type, a.path, kind) {
+            continue
+        }
+        further :: ctx.trait_on_path(typed, for_type, a.path)
+        if further != null {
+            ctx.note_run_at_once(further, run.door)
+            continue
+        }
+        made :: ctx.made_at(CalleeAccess { .node = target.node, .param = 0, .access = k })
+        at :: made else member.name_span
+        if !seen.add("${at.start.file}:${at.start.offset}") {
+            continue
+        }
+        fault :: TaskFault {
+            .kind = .WrittenBySeveral,
+            .span = at,
+            .detail = "`${display_type(for_type)}` is a `${run.implemented.symbol.name}`, which the "
+                + "tasks launched at line ${run.door.start.line} of `${file_name(run.door.start.file)}` "
+                + "run at once: this writes `${ctx.index.paths.place_label("self", a.path)}`, which "
+                + "they all share ; hold it in a `Shared` (an `AtomicInt` or an `AtomicBool` for a "
+                + "counter or a flag)",
+        }
+        out.push(fault)
+    }
+}

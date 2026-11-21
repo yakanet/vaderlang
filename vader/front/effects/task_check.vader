@@ -44,8 +44,11 @@ check_door :: fn(
 ) -> void {
     q :: door.param
     // A parameter handed on is its callers' to check ; a named fn is checked by what
-    // its calls reach, here, and anything else has a body the check cannot see.
-    if runs_value(door.sending) && door.entry == null && q != null {
+    // its calls reach, here, and anything else has a body the check cannot see. A
+    // value that is no function, where a parameter takes either, is checked as any
+    // value handed on.
+    if runs_value(door.sending) && door.entry == null && q != null
+        && may_be_function(lent_type(body, door.site, q)) {
         if door.forwards != null {
             return
         }
@@ -67,8 +70,19 @@ check_door :: fn(
     repeats :: repeated_at(door, region)
     shared: SharedWrites[]: []
     if repeats != null && !door.stored {
-        outside :: (t: Touch) -> !body.bound_inside(t.root, repeats)
-        writes: Touch[]: outermost_writes(task).filter(outside).collect()
+        // A write through a trait value is its implementations' to answer for.
+        writes: Touch[]: []
+        for w in outermost_writes(task) {
+            if body.bound_inside(w.root, repeats) {
+                continue
+            }
+            implemented :: w.through
+            if implemented == null {
+                writes.push(w)
+            } else {
+                ctx.note_run_at_once(implemented, door.site.at)
+            }
+        }
         for group in by_root_and_callee(writes) {
             key :: "repeat ${group[0].root} ${group[0].by} ${door.site.at.start.offset}"
             if seen.add(key) {

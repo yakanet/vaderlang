@@ -1,1 +1,1 @@
-[40:20] error[T3129] value written by several tasks: each task launched here writes `handler.tally.n` and `handler.next...` (through `handle`, which writes them at lines 32 and 33), which they all share ; let each task return its part, or give each one its own value
+[32:9] error[T3129] value written by several tasks: `Logged` is a `Handler`, which the tasks launched at line 40 of `_main.vader` run at once: this writes `self.tally.n`, which they all share ; hold it in a `Shared` (an `AtomicInt` or an `AtomicBool` for a counter or a flag)

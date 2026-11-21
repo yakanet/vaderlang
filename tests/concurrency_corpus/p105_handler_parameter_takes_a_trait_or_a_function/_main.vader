@@ -1,0 +1,103 @@
+// P105: a server whose handler is a trait value or a function runs a chain of
+// middlewares around a handler that writes under a lock.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/string"
+import "std/task"
+
+Request :: struct { path: string }
+Response :: struct { status: i32 = 200 }
+
+Handler :: trait {
+    handle :: fn(self, request: Request) -> Response
+}
+
+Middleware :: trait {
+    around :: fn(self, request: Request, next: Handler) -> Response
+}
+
+// The handler a middleware runs next: the rest of the chain.
+Rest :: struct {
+    middlewares: Middleware[]
+    at: i64
+    handler: Handler
+}
+
+Rest implements Handler {
+    handle :: fn(self, request: Request) -> Response {
+        if self.at == self.middlewares.len() {
+            return self.handler.handle(request)
+        }
+        next :: Rest { ...self, .at = self.at + 1 }
+        return self.middlewares[self.at].around(request, next)
+    }
+}
+
+with_middlewares :: fn(handler: Handler, middlewares: Middleware[]) -> Handler =
+    Rest { .middlewares = middlewares, .at = 0, .handler = handler }
+
+App :: struct { hits: Shared<i32[]> }
+
+App implements Handler {
+    handle :: fn(self, request: Request) -> Response {
+        self.hits.locked(fn(counts) {
+            counts[0] += 1
+        })
+        return Response {}
+    }
+}
+
+Logging :: struct { seen: Shared<i32[]> }
+
+Logging implements Middleware {
+    around :: fn(self, request: Request, next: Handler) -> Response {
+        response :: next.handle(request)
+        self.seen.locked(fn(counts) {
+            counts[0] += 1
+        })
+        return response
+    }
+}
+
+Deny :: struct { prefix: string }
+
+Deny implements Middleware {
+    around :: fn(self, request: Request, next: Handler) -> Response {
+        if request.path.starts_with(self.prefix) {
+            return Response { .status = 403 }
+        }
+        return next.handle(request)
+    }
+}
+
+HandlerFn :: fn(Request) -> Response
+
+serve :: fn(handler: Handler | HandlerFn) -> i32 {
+    tasks: Task<i32>[]: []
+    for id in 0..<3 {
+        tasks.push(launch(() -> answer(handler, id)))
+    }
+    total := 0
+    for t in tasks {
+        total += t.join() else 0
+    }
+    return total
+}
+
+answer :: fn(handler: Handler | HandlerFn, id: i32) -> i32 {
+    request :: Request { .path = "/${id}" }
+    if handler is Handler {
+        return handler.handle(request).status
+    }
+    return handler(request).status
+}
+
+main :: fn() -> i32 {
+    app :: App { .hits = shared([0]) }
+    logging :: Logging { .seen = shared([0]) }
+    return serve(with_middlewares(app, [logging, Deny { .prefix = "/1" }]))
+}

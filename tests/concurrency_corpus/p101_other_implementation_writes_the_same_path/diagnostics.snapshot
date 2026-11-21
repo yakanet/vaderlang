@@ -1,1 +1,1 @@
-[46:20] error[T3129] value written by several tasks: each task launched here writes `handler.hits.value[]` and `handler.next...` (through `handle`, which writes them at lines 32 and 40), which they all share ; let each task return its part, or give each one its own value
+[32:9] error[T3129] value written by several tasks: `Raw` is a `Handler`, which the tasks launched at line 46 of `_main.vader` run at once: this writes `self.hits.value[]`, which they all share ; hold it in a `Shared` (an `AtomicInt` or an `AtomicBool` for a counter or a flag)
