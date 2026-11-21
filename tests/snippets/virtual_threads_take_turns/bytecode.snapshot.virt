@@ -1,6 +1,6 @@
 module _main
 type 0 scalar null
-type 1 struct snippet$Joiner { running:5,main_thread:5 }
+type 1 struct snippet$Joiner { running:5,started:5,main_thread:5 }
 type 2 fn () -> 3
 type 3 scalar void
 type 4 scalar string
@@ -35,7 +35,7 @@ global 1 1 joiner.instance
 global 2 15 joiner.gate
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=4 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=13 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 2 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=5 param_types=2 param_c_out= param_by_address= (ref) -> i64
+import 2 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=5 param_types=2,5 param_c_out= param_by_address= (ref,i64) -> i64
 import 3 park std_core$Intrinsic$park intrinsic=park result_type=3 () -> void
 import 4 wake std_core$Intrinsic$wake intrinsic=wake result_type=3 param_types=5 param_c_out= param_by_address= (i64) -> void
 import 5 current_thread std_core$Intrinsic$current_thread intrinsic=current_thread result_type=5 () -> i64
@@ -78,6 +78,7 @@ end
 fn 1 snippet$spawn (ref) -> void
   local j ref
   local $add_checked_9 i64
+  local $closure_14 ref
   global.get 0   ; joiner.state
   i32.const 2
   i32.eq
@@ -96,10 +97,24 @@ fn 1 snippet$spawn (ref) -> void
   local.get 1   ; j
   local.get 2   ; $add_checked_9
   struct.set 1 0   ; snippet$Joiner.running
+  local.field 1 1 1   ; j snippet$Joiner.started
+  ref.cast 5   ; i64
+  i64.const 1
+  i64.checked_add
+  local.set 2   ; $add_checked_9
+  local.get 1   ; j
+  local.get 2   ; $add_checked_9
+  struct.set 1 1   ; snippet$Joiner.started
   local.get 0   ; arg 0
   local.get 1   ; j
   struct.new 7   ; __lambda_env_snippet_1
   make_closure 7 2   ; __lambda_snippet_0 fn
+  local.set 3   ; $closure_14
+  local.field 1 1 1   ; j snippet$Joiner.started
+  ref.cast 5   ; i64
+  local.set 2   ; $add_checked_9
+  local.get 3   ; $closure_14
+  local.get 2   ; $add_checked_9
   call.import 2   ; std_core$Intrinsic$spawn_thread
   drop
   return
@@ -190,7 +205,7 @@ fn 4 snippet$main () -> i32
   end $L0
   local.get 1   ; if_res
   local.get 0   ; main_thread
-  struct.set 1 1   ; snippet$Joiner.main_thread
+  struct.set 1 2   ; snippet$Joiner.main_thread
   fn.ref 8 2   ; __lambda_snippet_2 fn
   call 1   ; snippet$spawn
   fn.ref 9 2   ; __lambda_snippet_3 fn
@@ -249,6 +264,7 @@ end
 fn 5 snippet$joiner$singleton () -> ref
   i64.const 0
   i64.const 0
+  i64.const 0
   struct.new 1   ; snippet$Joiner
   return
 end
@@ -291,7 +307,7 @@ fn 7 __lambda_snippet_0 (ref) -> void
   i64.eq
   if $L0 void
     local.field 0 7 1   ; arg 0 __lambda_env_snippet_1.cap_1
-    struct.get 1 1   ; snippet$Joiner.main_thread
+    struct.get 1 2   ; snippet$Joiner.main_thread
     ref.cast 5   ; i64
     call.import 4   ; std_core$Intrinsic$wake
     return

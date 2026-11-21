@@ -61,10 +61,11 @@ Started :: struct {
 @singleton
 started :: fn() -> Started = Started {}
 
-// Start `entry` on a thread, and count it.
+// Start `entry` on a thread, numbered by the count of those started.
 start_thread :: fn(entry: fn() -> void) -> i64 {
-    started().count += 1
-    return spawn_thread(entry)
+    s :: started()
+    s.count += 1
+    return spawn_thread(entry, s.count)
 }
 
 /// Launch a task that runs `entry`.

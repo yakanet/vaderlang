@@ -88,7 +88,7 @@ global 1 29 started.instance
 global 2 42 started.gate
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=9 param_types=1 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=21 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 2 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=9 param_types=27 param_c_out= param_by_address= (ref) -> i64
+import 2 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=9 param_types=27,9 param_c_out= param_by_address= (ref,i64) -> i64
 import 3 park std_core$Intrinsic$park intrinsic=park result_type=4 () -> void
 import 4 wake std_core$Intrinsic$wake intrinsic=wake result_type=4 param_types=9 param_c_out= param_by_address= (i64) -> void
 import 5 sleep_for std_core$Intrinsic$sleep_for intrinsic=sleep_for result_type=4 param_types=9 param_c_out= param_by_address= (i64) -> void
@@ -3518,27 +3518,31 @@ fn 70 std_task$started$keep () -> void
 end
 
 fn 71 std_task$start_thread (ref) -> i64
-  local __place_operand_0 ref
+  local s ref
   local $add_checked_9 i64
   global.get 0   ; started.state
   i32.const 2
   i32.eq
   if $L0 void
     global.get 1   ; started.instance
-    local.set 1   ; __place_operand_0
+    local.set 1   ; s
   else
     call 68   ; std_task$started
-    local.set 1   ; __place_operand_0
+    local.set 1   ; s
   end $L0
-  local.field 1 29 0   ; __place_operand_0 std_task$Started.count
+  local.field 1 29 0   ; s std_task$Started.count
   ref.cast 9   ; i64
   i64.const 1
   i64.checked_add
   local.set 2   ; $add_checked_9
-  local.get 1   ; __place_operand_0
+  local.get 1   ; s
   local.get 2   ; $add_checked_9
   struct.set 29 0   ; std_task$Started.count
+  local.field 1 29 0   ; s std_task$Started.count
+  ref.cast 9   ; i64
+  local.set 2   ; $add_checked_9
   local.get 0   ; arg 0
+  local.get 2   ; $add_checked_9
   call.import 2   ; std_core$Intrinsic$spawn_thread
   return
 end

@@ -16,6 +16,7 @@ typedef struct vader_struct___defer_env_std_runtime_scheduler_5_t vader_struct__
 struct vader_struct_snippet$Joiner_t {
     vader_obj_header_t header;
     int64_t f_running;
+    int64_t f_started;
     int64_t f_main_thread;
 };
 struct vader_struct___lambda_env_snippet_1_t {
@@ -275,8 +276,8 @@ static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
     return (void*) vader_string_bytes_view(a0, 13u, 14u);
 }
 
-static int64_t vader_host_std_core$Intrinsic$spawn_thread(void* a0) {
-    return vader_scheduler_spawn(a0);
+static int64_t vader_host_std_core$Intrinsic$spawn_thread(void* a0, int64_t a1) {
+    return vader_scheduler_spawn_numbered(a0, a1);
 }
 
 static void vader_host_std_core$Intrinsic$park(void) {
@@ -354,12 +355,13 @@ static void* snippet$joiner(void) {
 
 static void snippet$spawn(void* l0) {
     void* l1 = NULL;
+    void* l3 = NULL;
     int64_t l2;
     int32_t t0;
     int64_t t1;
     void* t2 = NULL;
-    void** gc_raw_roots[3] = { &l0, &l1, &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
+    void** gc_raw_roots[4] = { &l0, &l1, &l3, &t2 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     t0 = vader_global_0;
     if (t0 == INT32_C(2)) {
@@ -370,6 +372,9 @@ static void snippet$spawn(void* l0) {
     t1 = ((vader_struct_snippet$Joiner_t*) l1)->f_running;
     l2 = vader_chk_add(i64, t1, INT64_C(1));
     ((vader_struct_snippet$Joiner_t*) l1)->f_running = l2;
+    t1 = ((vader_struct_snippet$Joiner_t*) l1)->f_started;
+    l2 = vader_chk_add(i64, t1, INT64_C(1));
+    ((vader_struct_snippet$Joiner_t*) l1)->f_started = l2;
     vader_struct___lambda_env_snippet_1_t* _a0_obj = (vader_struct___lambda_env_snippet_1_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_1_t));
     vader_obj_header_init(_a0_obj, 7u);
     _a0_obj->f_cap_0 = l0;
@@ -379,8 +384,9 @@ static void snippet$spawn(void* l0) {
     vader_obj_header_init(_a1_closure, 2u);
     _a1_closure->code = (void*) &vader_fn_lift___lambda_snippet_0;
     _a1_closure->env = t2;
-    t2 = (void*) _a1_closure;
-    vader_host_std_core$Intrinsic$spawn_thread(t2);
+    l3 = (void*) _a1_closure;
+    l2 = ((vader_struct_snippet$Joiner_t*) l1)->f_started;
+    vader_host_std_core$Intrinsic$spawn_thread(l3, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -494,6 +500,7 @@ static void* snippet$joiner$singleton(void) {
     vader_struct_snippet$Joiner_t* _a0_obj = (vader_struct_snippet$Joiner_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Joiner_t));
     vader_obj_header_init(_a0_obj, 1u);
     _a0_obj->f_running = INT64_C(0);
+    _a0_obj->f_started = INT64_C(0);
     _a0_obj->f_main_thread = INT64_C(0);
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }

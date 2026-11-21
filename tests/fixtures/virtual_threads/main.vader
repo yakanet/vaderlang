@@ -22,6 +22,8 @@ import "std/time"
 // The threads `spawn` started, which `join_all` waits for.
 Threads :: struct {
     running: i64 = 0
+    /// The threads started so far, which numbers the next one.
+    numbered: i64 = 0
     /// The thread waiting in `join_all`, or -1.
     joiner: i64 = -1
     /// The threads waiting in `wait_for_release`.
@@ -32,12 +34,20 @@ Threads :: struct {
 @singleton
 threads :: fn() -> Threads = Threads {}
 
+// Start `entry` on a thread, numbered in the order this program starts them, as
+// a report names it.
+start_numbered :: fn(entry: fn() -> void) -> i64 {
+    t :: threads()
+    t.numbered += 1
+    return spawn_thread(entry, t.numbered)
+}
+
 // Start `entry` on a thread `join_all` waits for. One cancelled before it starts
 // runs nothing.
 spawn :: fn(entry: fn() -> void) -> i64 {
     t :: threads()
     t.running += 1
-    return spawn_thread(fn() {
+    return start_numbered(fn() {
         defer finished()
         if is_cancelled() {
             return
@@ -509,7 +519,7 @@ cancel_parked :: fn() -> void {
 // A thread cancelled before it ran runs its entry, which knows, and main
 // returns with no thread left.
 cancel_unstarted :: fn() -> void {
-    unstarted :: spawn_thread(fn() {
+    unstarted :: start_numbered(fn() {
         if is_cancelled() {
             println("cancelled before it ran")
         }
@@ -658,7 +668,7 @@ exit_after_cascade :: fn() -> void {
 
 // A defer of a cancelled thread launches a thread, then yields.
 launch_and_yield :: fn() -> void {
-    spawn_thread(fn() {
+    start_numbered(fn() {
         defer println("defer of the launched")
         park_forever()
     })
@@ -668,7 +678,7 @@ launch_and_yield :: fn() -> void {
 // Main returns while a thread it cancelled runs a defer that launched a thread:
 // the launched one outlives its launcher, and is named alone.
 exit_defer_launches :: fn() -> void {
-    parked :: spawn_thread(fn() {
+    parked :: start_numbered(fn() {
         defer launch_and_yield()
         park_forever()
     })
@@ -681,9 +691,9 @@ exit_defer_launches :: fn() -> void {
 // Main returns while two threads wait, after a third, started before them,
 // ended: the report names the two in the order they started.
 exit_names_in_order :: fn() -> void {
-    spawn_thread(() -> println("the first thread ends"))
-    spawn_thread(park_forever)
-    spawn_thread(park_forever)
+    start_numbered(() -> println("the first thread ends"))
+    start_numbered(park_forever)
+    start_numbered(park_forever)
     yield_now()
     println("main returns")
 }

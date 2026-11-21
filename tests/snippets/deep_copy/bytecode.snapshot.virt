@@ -99,7 +99,7 @@ import 4 deep_copy std_core$Intrinsic$deep_copy__i32__ intrinsic=deep_copy resul
 import 5 deep_copy std_core$Intrinsic$deep_copy__u8__ intrinsic=deep_copy result_type=25 param_types=25 param_c_out= param_by_address= (ref) -> ref
 import 6 deep_copy std_core$Intrinsic$deep_copy__snippet_Point___string intrinsic=deep_copy result_type=31 param_types=31 param_c_out= param_by_address= (any) -> any
 import 7 deep_copy std_core$Intrinsic$deep_copy__snippet_Holder intrinsic=deep_copy result_type=8 param_types=8 param_c_out= param_by_address= (ref) -> ref
-import 8 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=13 param_types=33 param_c_out= param_by_address= (ref) -> i64
+import 8 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=13 param_types=33,13 param_c_out= param_by_address= (ref,i64) -> i64
 import 9 park std_core$Intrinsic$park intrinsic=park result_type=32 () -> void
 import 10 wake std_core$Intrinsic$wake intrinsic=wake result_type=32 param_types=13 param_c_out= param_by_address= (i64) -> void
 import 11 current_thread std_core$Intrinsic$current_thread intrinsic=current_thread result_type=13 () -> i64
@@ -4146,27 +4146,31 @@ fn 64 std_task$started$keep () -> void
 end
 
 fn 65 std_task$start_thread (ref) -> i64
-  local __place_operand_0 ref
+  local s ref
   local $add_checked_9 i64
   global.get 0   ; started.state
   i32.const 2
   i32.eq
   if $L0 void
     global.get 1   ; started.instance
-    local.set 1   ; __place_operand_0
+    local.set 1   ; s
   else
     call 62   ; std_task$started
-    local.set 1   ; __place_operand_0
+    local.set 1   ; s
   end $L0
-  local.field 1 34 0   ; __place_operand_0 std_task$Started.count
+  local.field 1 34 0   ; s std_task$Started.count
   ref.cast 13   ; i64
   i64.const 1
   i64.checked_add
   local.set 2   ; $add_checked_9
-  local.get 1   ; __place_operand_0
+  local.get 1   ; s
   local.get 2   ; $add_checked_9
   struct.set 34 0   ; std_task$Started.count
+  local.field 1 34 0   ; s std_task$Started.count
+  ref.cast 13   ; i64
+  local.set 2   ; $add_checked_9
   local.get 0   ; arg 0
+  local.get 2   ; $add_checked_9
   call.import 8   ; std_core$Intrinsic$spawn_thread
   return
 end

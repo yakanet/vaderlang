@@ -41,6 +41,18 @@
             }
           },
           {
+            "name": "started",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "i64"
+            },
+            "visibility": "public",
+            "default": {
+              "kind": "IntLitExpr",
+              "value": "0n"
+            }
+          },
+          {
             "name": "main_thread",
             "type": {
               "kind": "IdentExpr",
@@ -155,6 +167,33 @@
                   "value": "1n"
                 }
               }
+            },
+            {
+              "kind": "AssignStmt",
+              "target": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "j"
+                },
+                "field": "started"
+              },
+              "value": {
+                "kind": "BinaryExpr",
+                "op": "add",
+                "left": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "j"
+                  },
+                  "field": "started"
+                },
+                "right": {
+                  "kind": "IntLitExpr",
+                  "value": "1n"
+                }
+              }
             }
           ],
           "trailing": {
@@ -258,6 +297,18 @@
                       "else": null
                     }
                   }
+                },
+                "spread": false
+              },
+              {
+                "name": null,
+                "value": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "j"
+                  },
+                  "field": "started"
                 },
                 "spread": false
               }

@@ -29,9 +29,15 @@ module "std/runtime/scheduler"
 /// its first park: an entry that must run nothing then asks `is_cancelled`
 /// first.
 ///
-/// @param entry  what the thread runs.
-/// @return       the thread's handle.
-export spawn_thread :: fn(entry: fn() -> void) -> i64 = Intrinsic.spawn_thread(entry)
+/// The number names the thread in what the runtime reports, a deadlock or a
+/// trap: `task #number`. The caller numbers its threads; the runtime keeps no
+/// count.
+///
+/// @param entry   what the thread runs.
+/// @param number  how a report names it, from 1.
+/// @return        the thread's handle.
+export spawn_thread :: fn(entry: fn() -> void, number: i64) -> i64 =
+    Intrinsic.spawn_thread(entry, number)
 
 /// Park the running thread until a `wake` names it.
 ///
@@ -280,7 +286,7 @@ yield_turn :: fn() -> void {
 // Launch a thread that parks, and note its handle in `handle`: a `defer` that
 // launches it keeps no result.
 launch_parked :: fn(handle: i64[]) -> void {
-    handle[0] = spawn_thread(() -> park())
+    handle[0] = spawn_thread(() -> park(), 1)
 }
 
 // Build under `gate`, parking until a `wake` in the middle of the build.
@@ -317,11 +323,11 @@ test_gate_makes_another_thread_wait_for_the_build :: fn() -> void {
     gate :: InitGate {}
     log: string[]: []
     main :: current_thread()
-    first :: spawn_thread(() -> build_parked(gate, log))
+    first :: spawn_thread(() -> build_parked(gate, log), 1)
     spawn_thread(fn() {
         gated(gate).run_gated(() -> log.push("second builds"))
         wake(main)
-    })
+    }, 2)
     yield_turn()
     wake(first)
     park()
@@ -333,11 +339,11 @@ test_cancelled_holder_lets_the_gate_go :: fn() -> void {
     gate :: InitGate {}
     log: string[]: []
     main :: current_thread()
-    first :: spawn_thread(() -> build_parked(gate, log))
+    first :: spawn_thread(() -> build_parked(gate, log), 1)
     spawn_thread(fn() {
         gated(gate).run_gated(() -> log.push("second builds"))
         wake(main)
-    })
+    }, 2)
     yield_turn()
     cancel_thread(first)
     park()
@@ -350,7 +356,7 @@ test_is_leaving_follows_a_cancellation_to_the_threads_it_launched :: fn() -> voi
     parent :: spawn_thread(fn() {
         launch_parked(child)
         park()
-    })
+    }, 2)
     yield_turn()
     assert(!is_leaving(parent), "the launcher stays until it is cancelled")
     assert(!is_leaving(child[0]), "the thread it launched stays with it")
@@ -365,7 +371,7 @@ test_is_leaving_spares_a_thread_a_defer_of_a_cancellation_launched :: fn() -> vo
     parked :: spawn_thread(fn() {
         defer launch_parked(late)
         park()
-    })
+    }, 2)
     yield_turn()
     cancel_thread(parked)
     yield_turn()

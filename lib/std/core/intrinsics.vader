@@ -115,8 +115,9 @@ export Intrinsic :: trait {
 
     // ---- threads --------------------------------------------------------
 
-    /// Start a thread running `entry`, and hand back its handle.
-    spawn_thread :: fn(entry: fn() -> void) -> i64
+    /// Start a thread running `entry`, which a report names `task #number`,
+    /// and hand back its handle.
+    spawn_thread :: fn(entry: fn() -> void, number: i64) -> i64
     /// Suspend the running thread until another wakes it.
     park :: fn() -> void
     /// Make the thread `thread` ready to run.

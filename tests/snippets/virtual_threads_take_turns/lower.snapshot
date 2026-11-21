@@ -5,7 +5,7 @@
     global #0 i32  joiner.state
     global #1 Joiner  joiner.instance
     global #2 InitGate | null  joiner.gate
-  snippet.Joiner :: struct { running: i64, main_thread: i64 }  // snippet$Joiner
+  snippet.Joiner :: struct { running: i64, started: i64, main_thread: i64 }  // snippet$Joiner
   snippet.joiner :: fn() -> Joiner {  // snippet$joiner
       if @global(0) == 2 {
           return @global(1)
@@ -21,7 +21,8 @@
   snippet.spawn :: fn(entry: fn() -> void) -> void {  // snippet$spawn
       j: Joiner = if @global(0) == 2 { @global(1) } else { snippet.joiner() }
       j.running = j.running + i64(1)
-      std_core$Intrinsic$spawn_thread(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = entry, .cap_1 = j }))
+      j.started = j.started + i64(1)
+      std_core$Intrinsic$spawn_thread(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = entry, .cap_1 = j }), j.started)
   }
   snippet.yield_now :: fn() -> void {  // snippet$yield_now
       std_core$Intrinsic$wake(std_core$Intrinsic$current_thread())
@@ -66,7 +67,11 @@
       return 0
   }
   snippet$joiner$singleton :: fn() -> Joiner {
-      Joiner { .running = i64(0), .main_thread = i64(0) }
+      Joiner {
+          .running = i64(0),
+          .started = i64(0),
+          .main_thread = i64(0),
+      }
   }
   snippet$joiner$keep :: fn() -> void {
       if @global(0) == 2 {

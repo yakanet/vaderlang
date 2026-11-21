@@ -403,8 +403,8 @@ static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
     return (void*) vader_string_bytes_view(a0, 9u, 10u);
 }
 
-static int64_t vader_host_std_core$Intrinsic$spawn_thread(void* a0) {
-    return vader_scheduler_spawn(a0);
+static int64_t vader_host_std_core$Intrinsic$spawn_thread(void* a0, int64_t a1) {
+    return vader_scheduler_spawn_numbered(a0, a1);
 }
 
 static void vader_host_std_core$Intrinsic$park(void) {
@@ -896,7 +896,8 @@ static int64_t std_task$start_thread(void* l0) {
     t1 = ((vader_struct_std_task$Started_t*) l1)->f_count;
     l2 = vader_chk_add(i64, t1, INT64_C(1));
     ((vader_struct_std_task$Started_t*) l1)->f_count = l2;
-    t1 = vader_host_std_core$Intrinsic$spawn_thread(l0);
+    l2 = ((vader_struct_std_task$Started_t*) l1)->f_count;
+    t1 = vader_host_std_core$Intrinsic$spawn_thread(l0, l2);
     { int64_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 

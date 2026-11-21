@@ -1539,7 +1539,7 @@ static bool vader_scheduler_wait_for(int kind, int64_t fd, int64_t nanos, int bl
 
 /* ---- what Vader calls ------------------------------------------------------ */
 
-int64_t vader_scheduler_spawn(vader_fn_t* entry) {
+int64_t vader_scheduler_spawn_numbered(vader_fn_t* entry, int64_t number) {
     vader_scheduler_enter();
     int64_t launcher = vader_virtual_thread_current();
     /* Launched under the monitor, its entry is old: any worker may run it. */
@@ -1554,7 +1554,7 @@ int64_t vader_scheduler_spawn(vader_fn_t* entry) {
     } else {
         thread = vader_virtual_thread_create(entry);
     }
-    vader_scheduler_fresh_slot(thread, ++g_scheduler_numbered);
+    vader_scheduler_fresh_slot(thread, (uint64_t) number);
     vader_scheduler_slot_of(thread)->parent = launcher;
     vader_scheduler_slot_of(thread)->outlives = vader_scheduler_slot_of(launcher)->unwinding;
     vader_scheduler_slot_of(launcher)->children++;
@@ -1566,6 +1566,12 @@ int64_t vader_scheduler_spawn(vader_fn_t* entry) {
     }
     vader_scheduler_unlock();
     return thread;
+}
+
+/* The spawn the bootstrap seed's emitter calls, which numbers the threads
+ * itself. */
+int64_t vader_scheduler_spawn(vader_fn_t* entry) {
+    return vader_scheduler_spawn_numbered(entry, (int64_t) ++g_scheduler_numbered);
 }
 
 void vader_scheduler_park(void) {

@@ -8,6 +8,7 @@ import "std/runtime/scheduler"
 
 Joiner :: struct {
     running: i64 = 0
+    started: i64 = 0
     main_thread: i64 = 0
 }
 
@@ -17,13 +18,14 @@ joiner :: fn() -> Joiner = Joiner {}
 spawn :: fn(entry: fn() -> void) -> void {
     j :: joiner()
     j.running += 1
+    j.started += 1
     spawn_thread(fn() {
         entry()
         j.running -= 1
         if j.running == 0 {
             wake(j.main_thread)
         }
-    })
+    }, j.started)
 }
 
 yield_now :: fn() -> void {
