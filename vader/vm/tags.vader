@@ -233,7 +233,7 @@ new_blocks :: fn(module: bc.BytecodeModule, f: bc.BcFunction, width: i64) -> Blo
     leader: bool[]: [false] * n
     leader[0] = true
     for pc in 0..<n {
-        e :: effect_of(module, f, f.body[pc]) else continue
+        e :: bc.stack_effect(module, f, f.body[pc]) else continue
         if e.flow == .Jump || e.flow == .Fork {
             target :: f.jump_table[pc]
             if in_range(target, n) {
@@ -303,7 +303,7 @@ walk_block :: fn(
             }
         }
         op :: f.body[pc]
-        e :: effect_of(ctx.module, f, op) else return
+        e :: bc.stack_effect(ctx.module, f, op) else return
         d = transfer(ctx, op, state, slots, d, e)
         if record == null && (e.flow == .Jump || e.flow == .Fork) {
             target :: i64(f.jump_table[pc])
@@ -328,7 +328,7 @@ walk_block :: fn(
 // whatever they held: `exec` never clears them, and nothing reads them before a
 // push overwrites them.
 transfer :: fn(
-    ctx: TagContext, op: bc.Op, state: u8[], slots: i64, d: i64, e: StackEffect,
+    ctx: TagContext, op: bc.Op, state: u8[], slots: i64, d: i64, e: bc.StackEffect,
 ) -> i64 {
     top :: if d > 0 { state[slots + d - 1] } else { 0 }
     base :: d - e.pops
@@ -411,7 +411,7 @@ pushed_tags :: fn(ctx: TagContext, op: bc.Op, state: u8[], top: u8) -> u8 = matc
     is bc.LoadSlotI32 -> TAGS_I32 | TAGS_CHAR
     is bc.LoadSlotI64 -> TAGS_I64 | TAGS_I32
     is bc.CallIndirect -> {
-        t :: fn_type_of(ctx.module, op.type_id)
+        t :: bc.fn_at(ctx.module.types, op.type_id)
         if t != null { tags_of_type(ctx, t.return_type) } else { TAGS_ANY }
     }
     // Calls go through `call_results` ; the rest push nothing.

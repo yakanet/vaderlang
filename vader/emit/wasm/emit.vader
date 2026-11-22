@@ -85,17 +85,7 @@ export wasm_module_of :: fn(
 
 // The core module of `wasm_module_of`, with the interfaces its imports come from.
 translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | WasmUnsupported {
-    gc :: gc_types_of(m)
-    types :: TypeTable { .first = i32(gc.structs.len()) }
-    imports :: imported_functions(m, types) else return imports
-    ctx :: ModuleCtx {
-        .module = m,
-        .gc = gc,
-        .types = types,
-        .imports = imports,
-        .first_function = i32(imports.functions.len()),
-        .first_helper = i32(imports.functions.len() + m.functions.len()),
-    }
+    ctx :: module_context_of(m) else return ctx
     functions: WasmFunction[]: []
     for f in m.functions {
         signature :: func_type_of(f) else return signature
@@ -125,13 +115,29 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
         functions.push(run)
     }
     core :: WasmModule {
-        .struct_types = gc.structs,
+        .struct_types = ctx.gc.structs,
         .types = ctx.types.types,
-        .imports = imports.functions,
+        .imports = ctx.imports.functions,
         .functions = functions,
         .exports = exports,
     }
-    return WasmComponent { .core = core, .interfaces = imports.interfaces }
+    return WasmComponent { .core = core, .interfaces = ctx.imports.interfaces }
+}
+
+// The context of `m`'s translation, before its first function: its struct types,
+// then the imported functions, which take the first function indices.
+module_context_of :: fn(m: Bc.BytecodeModule) -> ModuleCtx | WasmUnsupported {
+    gc :: gc_types_of(m)
+    types :: TypeTable { .first = i32(gc.structs.len()) }
+    imports :: imported_functions(m, types) else return imports
+    return ModuleCtx {
+        .module = m,
+        .gc = gc,
+        .types = types,
+        .imports = imports,
+        .first_function = i32(imports.functions.len()),
+        .first_helper = i32(imports.functions.len() + m.functions.len()),
+    }
 }
 
 // What the translation of a module carries from one function to the next.
@@ -263,6 +269,7 @@ body_of :: fn(ctx: ModuleCtx, scratch: Scratch, f: Bc.BcFunction) -> WasmInstr[]
     // starts again right after its opener, a block or an `if` goes on right
     // after its `End`.
     anchors: i64[]: []
+    stack :: OperandStack {}
     out: WasmInstr[]: []
     for pc in 0..<f.body.len() {
         op :: f.body[pc]
@@ -287,14 +294,13 @@ body_of :: fn(ctx: ModuleCtx, scratch: Scratch, f: Bc.BcFunction) -> WasmInstr[]
                 out.push(branch_to(op, depth))
             }
             is Bc.RefCast                 -> {
-                // What the cast reads is held as the op before it held its value.
-                source :: if pc > 0 { pushed_type(ctx, f, f.body[pc - 1]) } else { null }
-                pinned :: push_pin(ctx, out, op, source, f.name) else return pinned
+                pinned :: push_pin(ctx, out, op, stack.types.last(), f.name) else return pinned
             }
             _                             -> {
                 pushed :: push_op(ctx, scratch, out, op, f.name) else return pushed
             }
         }
+        stepped :: step(ctx, f, stack, op) else return stepped
     }
     if Bc.bc_result_arity(f.signature) > 0 {
         out.push_plain(.Unreachable)
@@ -412,47 +418,6 @@ push_op :: fn(
         }
         _ -> { return unsupported_op(op, function) }
     }
-}
-
-// How the value `op` pushes is held, null for an op that pushes none, or one
-// whose type the bytecode does not say.
-//
-// @partial: only the ops whose value a `ref.cast` may read next.
-pushed_type :: fn(
-    ctx: ModuleCtx,
-    f: Bc.BcFunction,
-    op: Bc.Op,
-) -> WasmValType | null = @partial match op {
-    is Bc.LocalGet | Bc.LocalTee -> slot_type(f, op.slot)
-    is Bc.StructGet -> field_type(ctx, op.type_id, op.field_index)
-    is Bc.LocalField -> field_type(ctx, op.type_id, op.field_index)
-    is Bc.Call -> returned_type(ctx.module.functions[op.function_index].signature)
-    is Bc.CallImport -> returned_type(ctx.module.imports[op.index].signature)
-    is Bc.NullConst | Bc.VoidConst | Bc.StructNew -> .EqRef
-    is Bc.RefCast -> field_type_of(ctx.module.types[op.type_id])
-    is Bc.I32Const | Bc.BoolConst | Bc.CharConst -> .I32
-    is Bc.I64Const -> .I64
-    _ -> null
-}
-
-// How the slot `slot` of `f` is held: a parameter, else a declared local.
-slot_type :: fn(f: Bc.BcFunction, slot: i32) -> WasmValType | null {
-    params :: f.signature.params
-    v :: if slot < params.len() { params[slot] } else { f.locals[i64(slot) - params.len()].val }
-    return value_type_of(v, f.name) else null
-}
-
-field_type :: fn(ctx: ModuleCtx, type_id: i32, field_index: i32) -> WasmValType | null {
-    t :: ctx.gc.of_struct[type_id] else return null
-    return ctx.gc.structs[t].fields[field_index].type
-}
-
-returned_type :: fn(signature: Bc.BcSignature) -> WasmValType | null {
-    results :: result_values(signature)
-    if results.len() != 1 {
-        return null
-    }
-    return value_type_of(results[0], "") else null
 }
 
 // The one WASM instruction an op is, when it is one.

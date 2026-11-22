@@ -1,0 +1,129 @@
+// vader/core/bytecode/stack_effect: what each op does to the operand stack.
+//
+// How many values an op pops and pushes, and where control goes after it. The
+// VM's load-time checks (`vader/vm/verify.vader`, `vader/vm/tags.vader`) walk a
+// body with it, and so does every backend that tracks the stack while it
+// translates (`vader/emit/wasm`). Blocks carry no values: a scope marker moves
+// nothing.
+
+module "vader/core/bytecode"
+
+/// What one op does to the operand stack, and where control goes next.
+export StackEffect :: struct {
+    pops: i64
+    pushes: i64
+    flow: Flow
+}
+
+/// `Next` falls through ; `Jump` goes to `jump_table[pc]` only ; `Fork` does both
+/// (a condition) ; `Stop` leaves the function or traps.
+export Flow :: enum { Next, Jump, Fork, Stop }
+
+effect :: fn(pops: i64, pushes: i64) = StackEffect { .pops = pops, .pushes = pushes, .flow = .Next }
+
+/// The stack effect of `op`, its immediates checked on the way.
+///
+/// @param module  the module `f` belongs to: a call's arity is its callee's.
+/// @param f       the function whose body holds `op`: its slots bound a local.
+/// @param op      the op.
+/// @return        null when an immediate names nothing: a slot, fn, import, pool
+///                entry, string or type out of range.
+export stack_effect :: fn(module: BytecodeModule, f: BcFunction, op: Op) -> StackEffect | null {
+    slots :: f.signature.params.len() + f.locals.len()
+    return match op {
+        is LocalGet -> indexed_effect(op.slot, slots, 0, 1)
+        is LocalSet -> indexed_effect(op.slot, slots, 1, 0)
+        is LocalTee -> indexed_effect(op.slot, slots, 1, 1)
+        is LocalField -> indexed_effect(op.slot, slots, 0, 1)
+        is StringConst -> indexed_effect(op.index, module.strings.len(), 0, 1)
+        is DataConst -> indexed_effect(op.pool_index, module.data_pool.len(), 0, 1)
+        is GlobalGet -> indexed_effect(op.index, module.globals.len(), 0, 1)
+        is GlobalSet -> indexed_effect(op.index, module.globals.len(), 1, 0)
+        is Call -> {
+            if !in_range(op.function_index, module.functions.len()) {
+                null
+            } else {
+                callee :: module.functions[op.function_index].signature
+                effect(callee.params.len(), bc_result_arity(callee))
+            }
+        }
+        is CallImport -> {
+            if !in_range(op.index, module.imports.len()) {
+                null
+            } else {
+                sig :: module.imports[op.index].signature
+                effect(sig.params.len(), bc_result_arity(sig))
+            }
+        }
+        is CallIndirect -> indirect_effect(module, op.type_id)
+        is VirtualCall -> {
+            if op.parameter_count < 0 {
+                null
+            } else {
+                effect(i64(op.parameter_count), bc_results_arity(op.results))
+            }
+        }
+        is FnRef -> indexed_effect(op.function_index, module.functions.len(), 0, 1)
+        is FnAddr -> indexed_effect(op.function_index, module.functions.len(), 0, 1)
+        is MakeClosure -> indexed_effect(op.function_index, module.functions.len(), 1, 1)
+        is StructNew -> struct_new_effect(module, op.type_id)
+        is ArrayNew -> if op.length >= 0 { effect(i64(op.length), 1) } else { null }
+        is TypeConst -> indexed_effect(op.type_id, module.types.len(), 0, 1)
+        is ArrayReserve -> indexed_effect(op.type_id, module.types.len(), 1, 1)
+        is TypeCheck -> indexed_effect(op.type_id, module.types.len(), 1, 1)
+        is CheckedArith -> if is_integer_val(op.kind) { effect(2, 1) } else { null }
+        is CheckedNeg -> if is_integer_val(op.kind) { effect(1, 1) } else { null }
+        is I32Const | NullConst | VoidConst | BoolConst | CharConst | F64Const
+            | I64Const -> effect(0, 1)
+        is StructGet | UnionFieldGet | ArrayLen | RefCast | Retag | Convert
+            | SizeOfType | ArrayRemoveLast | BufferNew | I32Neg | I32BitNot
+            | I64Neg | I64BitNot | F64Neg | BoolNot | F64ToBits | BitsToF64
+            | F32ToBits | BitsToF32 -> effect(1, 1)
+        is I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne
+            | I32Lt | I32Le | I32Gt | I32Ge | I32BitAnd | I32BitOr | I32BitXor
+            | I32Shl | I32Shr | I32ShrU | U32Div | U32Mod | U32Lt | U32Le
+            | U32Gt | U32Ge | I64Add | I64Sub | I64Mul | I64Div | I64Mod
+            | I64Eq | I64Ne | I64Lt | I64Le | I64Gt | I64Ge | U64Div
+            | U64Mod | U64Lt | U64Le | U64Gt | U64Ge | I64Shl | I64Shr
+            | I64ShrU | I64BitAnd | I64BitOr | I64BitXor | F64Add | F64Sub
+            | F64Mul | F64Div | F64Eq | F64Ne | F64Lt | F64Le | F64Gt
+            | F64Ge | BoolEq | BoolNe | BoolAnd | BoolOr | StringEq | StringNe
+            | StringCompare
+            | RefEq | RefNe | ArrayGet | ArrayRepeat | LoadU8 | LoadI32
+            | LoadI64 | LoadF64 | LoadSlotI32 | LoadSlotI64 | LoadSlotF64
+            | BufferToString -> effect(2, 1)
+        is StructSet | UnionFieldSet | ArrayPush | ArrayPushAll -> effect(2, 0)
+        is ArraySet | StoreU8 | StoreI32 | StoreI64 | StoreF64 | StoreSlotI32
+            | StoreSlotI64 | StoreSlotF64 | BufferWriteString -> effect(3, 0)
+        is ArraySlice -> effect(3, 1)
+        is ArrayCopy | MemoryCopy -> effect(5, 0)
+        is Drop | ArrayClear | DeferPush -> effect(1, 0)
+        is Block | Loop | End | DeferPopExec -> effect(0, 0)
+        is If | BranchIf -> StackEffect { .pops = 1, .pushes = 0, .flow = .Fork }
+        is Else | Branch -> StackEffect { .pops = 0, .pushes = 0, .flow = .Jump }
+        is Return | ReturnLit | Unreachable -> StackEffect { .pops = 0, .pushes = 0, .flow = .Stop }
+    }
+}
+
+in_range :: fn(index: i32, len: i64) = i64(index) in 0..<len
+
+// `effect(pops, pushes)` when `index` names an entry of a table of `len`, null
+// otherwise.
+indexed_effect :: fn(index: i32, len: i64, pops: i64, pushes: i64) -> StackEffect | null {
+    if !in_range(index, len) {
+        return null
+    }
+    return effect(pops, pushes)
+}
+
+// `call.indirect` pops the fn value on top of its arguments.
+indirect_effect :: fn(module: BytecodeModule, type_id: i32) -> StackEffect | null {
+    t :: fn_at(module.types, type_id) else return null
+    results: i64: if is_void_at(module.types, t.return_type) { 0 } else { 1 }
+    return effect(t.params.len() + 1, results)
+}
+
+struct_new_effect :: fn(module: BytecodeModule, type_id: i32) -> StackEffect | null {
+    t :: struct_at(module.types, type_id) else return null
+    return effect(t.fields.len(), 1)
+}

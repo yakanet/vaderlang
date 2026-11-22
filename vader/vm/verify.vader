@@ -55,19 +55,6 @@ export verify_module :: fn(module: bc.BytecodeModule) -> i64[] | VerifyError {
     return depths
 }
 
-// What one op does to the operand stack, and where control goes next.
-StackEffect :: struct {
-    pops:   i64
-    pushes: i64
-    flow:   Flow
-}
-
-// `Next` falls through ; `Jump` goes to `jump_table[pc]` only ; `Fork` does both
-// (a condition) ; `Stop` leaves the function or traps.
-Flow :: enum { Next, Jump, Fork, Stop }
-
-effect :: fn(pops: i64, pushes: i64) = StackEffect { .pops = pops, .pushes = pushes, .flow = .Next }
-
 // The function's deepest operand stack, or its first defect.
 verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> i64 | VerifyError {
     n :: f.body.len()
@@ -83,7 +70,7 @@ verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> i64 | Veri
         pc :: work.remove_last() else break
         d :: depth[pc]
         op :: f.body[pc]
-        e :: effect_of(module, f, op) else return defect(f, pc, "`${op_text(op)}` names nothing")
+        e :: bc.stack_effect(module, f, op) else return defect(f, pc, "`${op_text(op)}` names nothing")
         if d < e.pops {
             return defect(f, pc, "`${op_text(op)}` needs ${e.pops} value(s) but the stack holds ${d}")
         }
@@ -142,136 +129,13 @@ defect :: fn(f: bc.BcFunction, pc: i64, message: string) = VerifyError {
     .message  = message,
 }
 
-// The stack effect of `op`, checking its immediates on the way: `null` when one of
-// them names nothing (a slot, fn, import, pool entry, string or type out of range).
-effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> StackEffect | null {
-    slots :: f.signature.params.len() + f.locals.len()
-    return match op {
-        is bc.LocalGet   -> indexed_effect(op.slot, slots, 0, 1)
-        is bc.LocalSet   -> indexed_effect(op.slot, slots, 1, 0)
-        is bc.LocalTee   -> indexed_effect(op.slot, slots, 1, 1)
-        is bc.LocalField -> indexed_effect(op.slot, slots, 0, 1)
-        is bc.StringConst -> indexed_effect(op.index, module.strings.len(), 0, 1)
-        is bc.DataConst  -> indexed_effect(op.pool_index, module.data_pool.len(), 0, 1)
-        is bc.GlobalGet  -> indexed_effect(op.index, module.globals.len(), 0, 1)
-        is bc.GlobalSet  -> indexed_effect(op.index, module.globals.len(), 1, 0)
-        is bc.Call -> {
-            if !in_range(op.function_index, module.functions.len()) {
-                null
-            } else {
-                callee :: module.functions[op.function_index].signature
-                effect(callee.params.len(), bc.bc_result_arity(callee))
-            }
-        }
-        is bc.CallImport -> {
-            if !in_range(op.index, module.imports.len()) {
-                null
-            } else {
-                sig :: module.imports[op.index].signature
-                effect(sig.params.len(), bc.bc_result_arity(sig))
-            }
-        }
-        is bc.CallIndirect -> indirect_effect(module, op.type_id)
-        is bc.VirtualCall  -> {
-            if op.parameter_count < 0 {
-                null
-            } else {
-                effect(i64(op.parameter_count), bc.bc_results_arity(op.results))
-            }
-        }
-        is bc.FnRef  -> indexed_effect(op.function_index, module.functions.len(), 0, 1)
-        is bc.FnAddr -> indexed_effect(op.function_index, module.functions.len(), 0, 1)
-        is bc.MakeClosure -> indexed_effect(op.function_index, module.functions.len(), 1, 1)
-        is bc.StructNew  -> struct_new_effect(module, op.type_id)
-        is bc.ArrayNew   -> if op.length >= 0 { effect(i64(op.length), 1) } else { null }
-        is bc.TypeConst  -> indexed_effect(op.type_id, module.types.len(), 0, 1)
-        is bc.ArrayReserve -> indexed_effect(op.type_id, module.types.len(), 1, 1)
-        is bc.TypeCheck  -> indexed_effect(op.type_id, module.types.len(), 1, 1)
-        is bc.CheckedArith -> if bc.is_integer_val(op.kind) { effect(2, 1) } else { null }
-        is bc.CheckedNeg   -> if bc.is_integer_val(op.kind) { effect(1, 1) } else { null }
-        is bc.I32Const | bc.NullConst | bc.VoidConst | bc.BoolConst | bc.CharConst | bc.F64Const
-         | bc.I64Const -> effect(0, 1)
-        is bc.StructGet | bc.UnionFieldGet | bc.ArrayLen | bc.RefCast | bc.Retag | bc.Convert
-         | bc.SizeOfType | bc.ArrayRemoveLast | bc.BufferNew | bc.I32Neg | bc.I32BitNot
-         | bc.I64Neg | bc.I64BitNot | bc.F64Neg | bc.BoolNot | bc.F64ToBits | bc.BitsToF64
-         | bc.F32ToBits | bc.BitsToF32 -> effect(1, 1)
-        is bc.I32Add | bc.I32Sub | bc.I32Mul | bc.I32Div | bc.I32Mod | bc.I32Eq | bc.I32Ne
-         | bc.I32Lt | bc.I32Le | bc.I32Gt | bc.I32Ge | bc.I32BitAnd | bc.I32BitOr | bc.I32BitXor
-         | bc.I32Shl | bc.I32Shr | bc.I32ShrU | bc.U32Div | bc.U32Mod | bc.U32Lt | bc.U32Le
-         | bc.U32Gt | bc.U32Ge | bc.I64Add | bc.I64Sub | bc.I64Mul | bc.I64Div | bc.I64Mod
-         | bc.I64Eq | bc.I64Ne | bc.I64Lt | bc.I64Le | bc.I64Gt | bc.I64Ge | bc.U64Div
-         | bc.U64Mod | bc.U64Lt | bc.U64Le | bc.U64Gt | bc.U64Ge | bc.I64Shl | bc.I64Shr
-         | bc.I64ShrU | bc.I64BitAnd | bc.I64BitOr | bc.I64BitXor | bc.F64Add | bc.F64Sub
-         | bc.F64Mul | bc.F64Div | bc.F64Eq | bc.F64Ne | bc.F64Lt | bc.F64Le | bc.F64Gt
-         | bc.F64Ge | bc.BoolEq | bc.BoolNe | bc.BoolAnd | bc.BoolOr | bc.StringEq | bc.StringNe
-         | bc.StringCompare
-         | bc.RefEq | bc.RefNe | bc.ArrayGet | bc.ArrayRepeat | bc.LoadU8 | bc.LoadI32
-         | bc.LoadI64 | bc.LoadF64 | bc.LoadSlotI32 | bc.LoadSlotI64 | bc.LoadSlotF64
-         | bc.BufferToString -> effect(2, 1)
-        is bc.StructSet | bc.UnionFieldSet | bc.ArrayPush | bc.ArrayPushAll -> effect(2, 0)
-        is bc.ArraySet | bc.StoreU8 | bc.StoreI32 | bc.StoreI64 | bc.StoreF64 | bc.StoreSlotI32
-         | bc.StoreSlotI64 | bc.StoreSlotF64 | bc.BufferWriteString -> effect(3, 0)
-        is bc.ArraySlice -> effect(3, 1)
-        is bc.ArrayCopy | bc.MemoryCopy -> effect(5, 0)
-        is bc.Drop | bc.ArrayClear | bc.DeferPush -> effect(1, 0)
-        is bc.Block | bc.Loop | bc.End | bc.DeferPopExec -> effect(0, 0)
-        is bc.If | bc.BranchIf -> StackEffect { .pops = 1, .pushes = 0, .flow = .Fork }
-        is bc.Else | bc.Branch -> StackEffect { .pops = 0, .pushes = 0, .flow = .Jump }
-        is bc.Return | bc.ReturnLit | bc.Unreachable -> StackEffect { .pops = 0, .pushes = 0, .flow = .Stop }
-    }
-}
-
-in_range :: fn(index: i32, len: i64) = i64(index) in 0..<len
-
-// `effect(pops, pushes)` when `index` names an entry of a table of `len`, null
-// otherwise.
-indexed_effect :: fn(index: i32, len: i64, pops: i64, pushes: i64) -> StackEffect | null {
-    if !in_range(index, len) {
-        return null
-    }
-    return effect(pops, pushes)
-}
-
 op_text :: fn(op: bc.Op) -> string {
     sb :: StringBuilder {}
     VirtOut.write_op(sb, op)
     return "${sb}"
 }
 
-// `call.indirect` pops the fn value on top of its arguments.
-indirect_effect :: fn(module: bc.BytecodeModule, type_id: i32) -> StackEffect | null {
-    t :: fn_type_of(module, type_id) else return null
-    results: i64: if returns_void(module, t.return_type) { 0 } else { 1 }
-    return effect(t.params.len() + 1, results)
-}
-
-// The function type `type_id` names, or `null` when it names another type.
-fn_type_of :: fn(module: bc.BytecodeModule, type_id: i32) -> bc.BcFn | null {
-    if !in_range(type_id, module.types.len()) {
-        return null
-    }
-    t :: module.types[type_id]
-    return if t is bc.BcFn { t } else { null }
-}
-
-returns_void :: fn(module: bc.BytecodeModule, type_index: i32) -> bool {
-    if !in_range(type_index, module.types.len()) {
-        return false
-    }
-    t :: module.types[type_index]
-    return t is bc.BcScalar && t.val == .Void
-}
-
-struct_new_effect :: fn(module: bc.BytecodeModule, type_id: i32) -> StackEffect | null {
-    if !in_range(type_id, module.types.len()) {
-        return null
-    }
-    t :: module.types[type_id]
-    if t !is bc.BcStruct {
-        return null
-    }
-    return effect(t.fields.len(), 1)
-}
+in_range :: fn(index: i32, len: i64) = i64(index) in 0..<len
 
 // ---- tests ----------------------------------------------------------------
 

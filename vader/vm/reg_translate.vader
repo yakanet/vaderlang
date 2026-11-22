@@ -260,12 +260,12 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             }
         }
         is bc.CallIndirect -> {
-            t_fn :: fn_type_of(module, op.type_id) else return false
+            t_fn :: bc.fn_at(module.types, op.type_id) else return false
             count :: t_fn.params.len()
             flush(t, pc)
             base :: pop_to(t, count + 1)
             emit(t, pc, .CallIndirect, op.type_id, base, i32(count))
-            if !returns_void(module, t_fn.return_type) {
+            if !bc.is_void_at(module.types, t_fn.return_type) {
                 push_register(t, base)
             }
         }
@@ -383,7 +383,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             if !is_boxed(op) {
                 return false
             }
-            e :: effect_of(module, f, op) else return false
+            e :: bc.stack_effect(module, f, op) else return false
             boxed(t, pc, op, e.pops, e.pushes)
         }
     }

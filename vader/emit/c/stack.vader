@@ -353,16 +353,6 @@ drop_top :: fn(s: FnState) -> void {
     s.stack = s.stack[0..<n - 1]
 }
 
-/// C-storage `ValType` of local slot `slot`: params occupy the first
-/// `params.len()` slots, then `locals` in order.
-slot_val_type :: fn(function: BcFunction, slot: i32) -> ValType {
-    params :: function.signature.params
-    if slot < i32(params.len()) {
-        return params[slot]
-    }
-    return function.locals[i64(slot) - params.len()].val
-}
-
 // ---- materialisation ------------------------------------------------------
 
 /// Allocate a fresh `tN` temp of type `val`, recorded for the prologue

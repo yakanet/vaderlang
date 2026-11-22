@@ -1,0 +1,243 @@
+// vader/emit/wasm/stack: how each value on the operand stack is held.
+//
+// The translation of a body follows the WASM type of every value the stack
+// holds, so an op that reads one knows its form: a `ref.cast` unboxes a value
+// held as a reference, and leaves one held as a scalar as it is.
+// `Bc.stack_effect` says how many values an op pops, `pushed_types` what it
+// pushes. The bytecode's blocks carry no values, so `else` and `end` bring the
+// stack back to its height at the scope's opener, and live code never pops below
+// it, which WASM refuses. Past a branch or a return the code is dead up to them:
+// what it pushes is dropped there, and what it pops stops at the scope's floor.
+
+module "vader/emit/wasm"
+
+Bc :: import "vader/core/bytecode"
+import "std/math"
+
+/// The WASM type of each value on the operand stack, bottom first.
+OperandStack :: struct {
+    types: WasmValType[] = []
+    /// The height at the opener of each open scope, innermost last.
+    heights: i64[] = []
+    /// False past a branch or a return, up to the next `else` or `end`.
+    live: bool = true
+}
+
+// Apply `op` to `stack`, `f` holding it. A body on which the bytecode and the
+// stack disagree is refused: a well-formed one never does.
+step :: fn(
+    ctx: ModuleCtx,
+    f: Bc.BcFunction,
+    stack: OperandStack,
+    op: Bc.Op,
+) -> void | WasmUnsupported {
+    effect :: Bc.stack_effect(ctx.module, f, op) else return malformed(f, "an op names nothing")
+    floor :: stack.heights.last() else 0
+    if stack.live && stack.types.len() - effect.pops < floor {
+        return malformed(f, "an op pops below its scope")
+    }
+    stack.cut_to(max(floor, stack.types.len() - effect.pops))
+    match op {
+        is Bc.Block | Bc.Loop | Bc.If -> { stack.heights.push(stack.types.len()) }
+        is Bc.Else                    -> {
+            stack.cut_to(floor)
+            stack.live = true
+        }
+        is Bc.End                     -> {
+            stack.cut_to(floor)
+            stack.live = true
+            stack.heights.drop_last()
+        }
+        _                             -> {
+            pushed :: pushed_types(ctx, f, op) else return pushed
+            if pushed.len() != effect.pushes {
+                return malformed(f, "an op pushes ${pushed.len()} values for ${effect.pushes}")
+            }
+            stack.types.push_all(pushed)
+            if effect.flow == .Jump || effect.flow == .Stop {
+                stack.live = false
+            }
+        }
+    }
+}
+
+cut_to :: fn(stack: OperandStack, height: i64) -> void {
+    for stack.types.len() > height {
+        stack.types.drop_last()
+    }
+}
+
+malformed :: fn(f: Bc.BcFunction, what: string) = WasmUnsupported {
+    .reason = "`${f.name}`: ${what}",
+}
+
+// What `op` pushes, as many values as `Bc.stack_effect` says. A string is its
+// `i32` atom, a foreign pointer an `i64`, anything held by reference `eqref`.
+// The indices `Bc.stack_effect` checks are in range.
+pushed_types :: fn(
+    ctx: ModuleCtx,
+    f: Bc.BcFunction,
+    op: Bc.Op,
+) -> WasmValType[] | WasmUnsupported {
+    types :: ctx.module.types
+    return match op {
+        is Bc.I32Const | Bc.BoolConst | Bc.CharConst | Bc.StringConst | Bc.ArrayLen
+            | Bc.LoadU8 | Bc.LoadI32 | Bc.LoadSlotI32 | Bc.F32ToBits | Bc.I32Add | Bc.I32Sub
+            | Bc.I32Mul | Bc.I32Div | Bc.I32Mod | Bc.I32Eq | Bc.I32Ne | Bc.I32Lt | Bc.I32Le
+            | Bc.I32Gt | Bc.I32Ge | Bc.I32Neg | Bc.I32BitNot | Bc.I32BitAnd | Bc.I32BitOr
+            | Bc.I32BitXor | Bc.I32Shl | Bc.I32Shr | Bc.I32ShrU | Bc.U32Div | Bc.U32Mod
+            | Bc.U32Lt | Bc.U32Le | Bc.U32Gt | Bc.U32Ge | Bc.I64Eq | Bc.I64Ne | Bc.I64Lt
+            | Bc.I64Le | Bc.I64Gt | Bc.I64Ge | Bc.U64Lt | Bc.U64Le | Bc.U64Gt | Bc.U64Ge
+            | Bc.F64Eq | Bc.F64Ne | Bc.F64Lt | Bc.F64Le | Bc.F64Gt | Bc.F64Ge | Bc.BoolEq
+            | Bc.BoolNe | Bc.BoolAnd | Bc.BoolOr | Bc.BoolNot | Bc.StringEq | Bc.StringNe
+            | Bc.StringCompare | Bc.RefEq | Bc.RefNe | Bc.TypeCheck
+            | Bc.BufferToString -> [.I32]
+        is Bc.I64Const | Bc.SizeOfType | Bc.LoadI64 | Bc.LoadSlotI64 | Bc.F64ToBits
+            | Bc.I64Add | Bc.I64Sub | Bc.I64Mul | Bc.I64Div | Bc.I64Mod | Bc.I64Neg
+            | Bc.I64BitNot | Bc.I64BitAnd | Bc.I64BitOr | Bc.I64BitXor | Bc.I64Shl | Bc.I64Shr
+            | Bc.I64ShrU | Bc.U64Div | Bc.U64Mod | Bc.FnAddr -> [.I64]
+        is Bc.F64Const | Bc.LoadF64 | Bc.LoadSlotF64 | Bc.BitsToF64 | Bc.F64Add | Bc.F64Sub
+            | Bc.F64Mul | Bc.F64Div | Bc.F64Neg -> [.F64]
+        is Bc.BitsToF32 -> [.F32]
+        is Bc.NullConst | Bc.VoidConst | Bc.DataConst | Bc.TypeConst | Bc.FnRef
+            | Bc.MakeClosure | Bc.StructNew | Bc.ArrayNew | Bc.ArrayReserve | Bc.ArrayRepeat
+            | Bc.ArraySlice | Bc.ArrayRemoveLast | Bc.BufferNew | Bc.Retag -> [.EqRef]
+        is Bc.CheckedArith | Bc.CheckedNeg -> [scalar_field_type(op.kind)]
+        is Bc.Convert -> [converted_type(op.target)]
+        is Bc.LocalGet | Bc.LocalTee -> [scalar_field_type(Bc.slot_val_type(f, op.slot))]
+        is Bc.LocalField -> single(field_type(types, op.type_id, op.field_index, f))
+        is Bc.StructGet -> single(field_type(types, op.type_id, op.field_index, f))
+        is Bc.UnionFieldGet -> {
+            layout :: Bc.union_layout_struct(types, op.type_id) else op.type_id
+            single(field_type(types, layout, op.field_index, f))
+        }
+        is Bc.ArrayGet -> single(element_type(types, op.type_id, f))
+        is Bc.GlobalGet -> [field_type_of(types[ctx.module.globals[op.index].type_id])]
+        is Bc.RefCast -> [field_type_of(types[op.type_id])]
+        is Bc.Call -> held_types(ctx.module.functions[op.function_index].signature.results)
+        is Bc.CallImport -> held_types(ctx.module.imports[op.index].signature.results)
+        is Bc.VirtualCall -> held_types(op.results)
+        is Bc.CallIndirect -> indirect_results(types, op.type_id)
+        is Bc.LocalSet | Bc.StructSet | Bc.UnionFieldSet | Bc.ArrayPush | Bc.ArrayPushAll
+            | Bc.ArraySet | Bc.ArrayCopy | Bc.ArrayClear | Bc.StoreU8 | Bc.StoreI32 | Bc.StoreI64
+            | Bc.StoreF64 | Bc.StoreSlotI32 | Bc.StoreSlotI64 | Bc.StoreSlotF64 | Bc.MemoryCopy
+            | Bc.BufferWriteString | Bc.GlobalSet | Bc.Drop | Bc.DeferPush | Bc.DeferPopExec
+            | Bc.Block | Bc.Loop | Bc.If | Bc.Else | Bc.End | Bc.Branch | Bc.BranchIf | Bc.Return
+            | Bc.ReturnLit | Bc.Unreachable -> []
+    }
+}
+
+converted_type :: fn(target: Bc.ConvertTarget) -> WasmValType = match target {
+    .I32 | .Char -> .I32
+    .I64         -> .I64
+    .F64         -> .F64
+}
+
+single :: fn(t: WasmValType | WasmUnsupported) -> WasmValType[] | WasmUnsupported {
+    held :: t else return held
+    return [held]
+}
+
+// How the field `field_index` of the struct `type_id` is held.
+field_type :: fn(
+    types: Bc.BcType[],
+    type_id: i32,
+    field_index: i32,
+    f: Bc.BcFunction,
+) -> WasmValType | WasmUnsupported {
+    s :: Bc.struct_at(types, type_id) else return malformed(f, "type ${type_id} is no struct")
+    return field_type_of(types[s.fields[field_index].type_index])
+}
+
+// How an element of the array type `type_id` is held.
+element_type :: fn(
+    types: Bc.BcType[],
+    type_id: i32,
+    f: Bc.BcFunction,
+) -> WasmValType | WasmUnsupported {
+    t :: types[type_id]
+    if t !is Bc.BcArray {
+        return malformed(f, "type ${type_id} is no array")
+    }
+    return field_type_of(types[t.element])
+}
+
+// The values a call leaves: none for a `void` one, which declares one `Void`.
+held_types :: fn(values: Bc.ValType[]) -> WasmValType[] {
+    out: WasmValType[]: []
+    for v in values {
+        if v != .Void {
+            out.push(scalar_field_type(v))
+        }
+    }
+    return out
+}
+
+indirect_results :: fn(types: Bc.BcType[], type_id: i32) -> WasmValType[] {
+    t :: Bc.fn_at(types, type_id) else return []
+    if Bc.is_void_at(types, t.return_type) {
+        return []
+    }
+    return [field_type_of(types[t.return_type])]
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/testing"
+
+// The stack after each op of `body`, a function's whole body.
+stack_after :: fn(body: Bc.Op[]) -> OperandStack | WasmUnsupported {
+    program :: straight(body)
+    ctx :: module_context_of(program) else return ctx
+    stack :: OperandStack {}
+    for op in body {
+        stepped :: step(ctx, program.functions[0], stack, op) else return stepped
+    }
+    return stack
+}
+
+@test
+test_a_scope_brings_the_stack_back_to_its_opener :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.I64Const { .value = 1 },
+        Bc.BoolConst { .value = true },
+        Bc.If {},
+        Bc.I32Const { .value = 2 },
+        Bc.Branch {},
+        Bc.Else {},
+        Bc.NullConst {},
+        Bc.End {},
+    ]
+    program :: straight(body)
+    f :: program.functions[0]
+    ctx :: module_context_of(program) else panic(ctx.reason)
+    stack :: OperandStack {}
+    heights: i64[]: []
+    for op in body {
+        stepped :: step(ctx, f, stack, op) else panic(stepped.reason)
+        heights.push(stack.types.len())
+    }
+    assert(heights.content_equals([1, 2, 1, 2, 2, 1, 2, 1]), "the heights after each op")
+    assert(stack.types[0] == .I64, "the value under the scope is kept")
+}
+
+@test
+test_dead_code_pops_no_further_than_its_scope :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.I64Const { .value = 1 },
+        Bc.Block {},
+        Bc.Unreachable { .reason = "" },
+        Bc.Drop {},
+        Bc.End {},
+    ]
+    stack :: stack_after(body) else panic(stack.reason)
+    assert(stack.types.len() == 1 && stack.types[0] == .I64, "the value under the block is kept")
+}
+
+@test
+test_live_code_never_pops_below_its_scope :: fn() -> void {
+    body: Bc.Op[]: [Bc.I64Const { .value = 1 }, Bc.Block {}, Bc.Drop {}, Bc.End {}]
+    stack :: stack_after(body)
+    assert(stack is WasmUnsupported, "a block cannot drop a value from outside")
+}

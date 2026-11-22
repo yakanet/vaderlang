@@ -152,7 +152,7 @@ push_field_write :: fn(
 // `ref.cast` of the bytecode: a value read out of a slot that holds any type, an
 // erased field say, pinned to the type it has. Out of a reference into a scalar
 // it unboxes; between two of one class it is nothing, every reference being held
-// alike. `source` is how the value on the stack is held.
+// alike. `source` is how the value on the stack is held, null on an empty stack.
 push_pin :: fn(
     ctx: ModuleCtx,
     out: WasmInstr[],
@@ -364,4 +364,25 @@ test_an_is_on_a_union_tests_each_variant :: fn() -> void {
     tests :: wasm.functions[0].body.filter_is<RefTest>().collect()
     assert(tests.len() == 2, "one test per variant")
     assert(tests[0].type_index == 0 && tests[1].type_index == 1, "`A`, then `B`")
+}
+
+// The value a cast reads is the one on top of the stack, whichever op pushed it.
+@test
+test_a_cast_reads_the_value_under_a_drop :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.I32Const { .value = 3 },
+        Bc.Retag { .type_id = 0 },
+        Bc.LocalSet { .slot = 0 },
+        Bc.LocalGet { .slot = 0 },
+        Bc.I32Const { .value = 1 },
+        Bc.Drop {},
+        Bc.RefCast { .type_id = 0 },
+        Bc.Return {},
+    ]
+    program :: program_over_structs(body)
+    program.functions[0].locals = [Bc.BcLocal { .name = "x", .val = .Any }]
+    wasm :: wasm_module_of(program, "") else panic(wasm.reason)
+    i32_box :: gc_types_of(program).of_box[.I32] else -1
+    casts :: wasm.functions[0].body.filter_is<RefCast>().collect()
+    assert(casts.len() == 1 && casts[0].type_index == i32_box, "the `any` is unboxed as an `i32`")
 }

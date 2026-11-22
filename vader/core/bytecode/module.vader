@@ -157,6 +157,19 @@ export bc_results_arity :: fn(results: ValType[]) -> i64 {
     return results.len()
 }
 
+/// The `ValType` of the slot `slot` of `function`: the parameters take the first
+/// slots, then the declared locals in order.
+///
+/// @param function  the function the slot belongs to.
+/// @param slot      a slot index `stack_effect` accepts.
+export slot_val_type :: fn(function: BcFunction, slot: i32) -> ValType {
+    params :: function.signature.params
+    if slot < i32(params.len()) {
+        return params[slot]
+    }
+    return function.locals[i64(slot) - params.len()].val
+}
+
 /// One declared local: name + stack-erased `ValType`. The C-emit
 /// re-derives the underlying `BcType` from the fn's signature when it
 /// needs the richer info.
