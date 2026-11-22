@@ -20,7 +20,7 @@ flowchart TD
     bytecode --> vm["VM: vader run, @comptime"]
     bytecode --> virt[".virt text dump"]
     bytecode --> cemit["C emitter, then cc: native binary"]
-    bytecode -.-> wasm["WASM emitter (planned)"]
+    bytecode --> wasm["WASM emitter: a component (partial)"]
 ```
 
 | Stage | Directory | Output |
@@ -420,10 +420,20 @@ native asserts check against C. A call no trampoline covers
 program starts (`vader/pipeline/ffi_adapters.vader`). An import taking a callback
 is never adapted: the VM traps on its `fn.addr` first.
 
+**WASM build.** An `@extern` naming a `WasmInterface` keeps the evaluated
+interface in `BcImport.wasm_interface`. The WASM emitter (`vader/emit/wasm/`)
+imports it into the core module under the interface's WIT name, its WIT type
+derived from the Vader signature (`imports.vader`), and writes the component
+around the module (`component.vader`): the interfaces imported as instances, their
+functions lowered by the canonical ABI, the module instantiated with them, and its
+`run` lifted and exported as `wasi:cli/run`. The other imports have no WASM form
+yet. The decisions are ADR 0175 and 0176.
+
 ## Self-hosting and bootstrap
 
 The compiler is written in Vader and compiles itself, every stage of the native
-pipeline included; only the WebAssembly emitter does not exist yet.
+pipeline included; the WebAssembly emitter translates only part of the language
+so far.
 
 It is at a fixed point: built by itself, it emits the same C as the compiler that
 built it, byte for byte. Its output must depend on the sources' content alone:

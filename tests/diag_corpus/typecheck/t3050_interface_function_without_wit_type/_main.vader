@@ -1,0 +1,14 @@
+// T3050: a function of an interface takes and returns types WIT describes; a
+// union has no WIT counterpart yet.
+module "snippet"
+
+CLOCK :: WasmInterface {
+    .package = "wasi:clocks",
+    .name = "monotonic-clock",
+    .version = "0.3.0",
+}
+
+@extern(CLOCK, "now")
+now :: fn(when: i64 | null) -> u64
+
+main :: fn() -> i32 { return 0 }

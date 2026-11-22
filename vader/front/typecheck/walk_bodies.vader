@@ -129,7 +129,7 @@ walk_bodies :: fn(decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[]) -
     }
     report_literals_past_default(typed, diags)
     for decl in decls.filter_is<AST.FnDecl>() {
-        check_extern_library(decl, typed, diags)
+        check_extern_source(decl, typed, diags)
     }
     settle_fn_references(typed, diags)
     zonk_module_tables(typed)

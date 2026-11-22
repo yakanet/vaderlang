@@ -1,0 +1,358 @@
+// vader/emit/wasm/component: the component around the core module, and its bytes.
+//
+// A program is a component of the component model: it imports the interfaces
+// its `@extern` declarations name, and exports `wasi:cli/run`, whose `run` the
+// host calls. The core module inside does the work. The component is written
+// in one fixed shape:
+//
+// - one imported instance per interface, typed by the functions the program
+//   calls;
+// - the core module;
+// - each imported function aliased out of its instance and lowered to a core
+//   function, the lowered ones gathered into one core instance per interface;
+// - the core module instantiated with those instances, under the interface
+//   names its imports use;
+// - its `run` export lifted, put in an instance, and exported as
+//   `wasi:cli/run`.
+//
+// The binary format is the component model's (`Binary.md` of the
+// `WebAssembly/component-model` repository): sections as in a core module,
+// under the component's own version and layer.
+
+module "vader/emit/wasm"
+
+/// A WIT value type: the scalars, each the counterpart of a Vader scalar of the
+/// same width and signedness.
+export WitType :: enum {
+    Bool,
+    S8,
+    U8,
+    S16,
+    U16,
+    S32,
+    U32,
+    S64,
+    U64,
+    F32,
+    F64,
+    Char,
+}
+
+/// A parameter of an imported function.
+export WitParam :: struct {
+    /// Its name, in the kebab case of WIT.
+    name: string
+    type: WitType
+}
+
+/// A function the component imports from an interface.
+export ComponentFunction :: struct {
+    name: string
+    params: WitParam[]
+    /// What it returns, null for nothing.
+    result: WitType | null
+}
+
+/// An interface the component imports, with the functions the program calls.
+export ComponentInterface :: struct {
+    /// As WIT writes it: `wasi:clocks/monotonic-clock@0.3.0`.
+    name: string
+    functions: ComponentFunction[]
+}
+
+/// A program as a component.
+export WasmComponent :: struct {
+    /// The core module. Its imports name an interface of `interfaces` as their
+    /// module and one of its functions as their name, and it exports `run`.
+    core: WasmModule
+    interfaces: ComponentInterface[]
+}
+
+/// The interface a program exports, whose `run` the host calls.
+export RUN_INTERFACE: string: "wasi:cli/run@0.3.0"
+
+/// The core export the component lifts as `run`.
+export RUN_EXPORT: string: "run"
+
+/// Write `c` in the binary format of the component model.
+///
+/// @param c  the component.
+/// @return   the bytes of a `.wasm` file holding a component.
+export encode_component :: fn(c: WasmComponent) -> u8[] {
+    out: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x0D, 0x00, 0x01, 0x00]
+    interface_count :: i64(c.interfaces.len())
+    function_count :: count_functions(c.interfaces)
+    if interface_count > 0 {
+        out.push_section(COMPONENT_TYPE, instance_types(c.interfaces))
+        out.push_section(COMPONENT_IMPORT, interface_imports(c.interfaces))
+    }
+    out.push_section(COMPONENT_CORE_MODULE, encode_module(c.core))
+    if function_count > 0 {
+        out.push_section(COMPONENT_ALIAS, function_aliases(c.interfaces, function_count))
+        out.push_section(COMPONENT_CANON, lowered_functions(function_count))
+    }
+    out.push_section(COMPONENT_CORE_INSTANCE, core_instances(c.interfaces))
+    out.push_run_sections(interface_count, function_count)
+    return out
+}
+
+// The sections that export `run`. The types past the instance types are
+// `result`, then the type of `run`; the core function past the lowered ones is
+// the core `run`, and the component function past the aliased ones the lifted
+// `run`; the instance past the imported ones holds it.
+push_run_sections :: fn(out: u8[], interface_count: i64, function_count: i64) -> void {
+    result_type :: interface_count
+    run_types: u8[]: [2, RESULT_TYPE, NO_CASE_TYPE, NO_CASE_TYPE]
+    // `run` takes no parameter and returns the `result`.
+    run_types.push_all([ASYNC_FUNC_TYPE, 0, ONE_RESULT])
+    run_types.push_count(result_type)
+    out.push_section(COMPONENT_TYPE, run_types)
+    run_alias: u8[]: [1, CORE_SORT, CORE_FUNC, ALIAS_CORE_EXPORT]
+    run_alias.push_count(interface_count)
+    run_alias.push_name(RUN_EXPORT)
+    out.push_section(COMPONENT_ALIAS, run_alias)
+    lift: u8[]: [1, CANON_LIFT, CORE_FUNC]
+    lift.push_count(function_count)
+    lift.push(NO_OPTIONS)
+    lift.push_count(result_type + 1)
+    out.push_section(COMPONENT_CANON, lift)
+    run_instance: u8[]: [1, INSTANCE_OF_EXPORTS, 1, PLAIN_NAME]
+    run_instance.push_name(RUN_EXPORT)
+    run_instance.push(SORT_FUNC)
+    run_instance.push_count(function_count)
+    out.push_section(COMPONENT_INSTANCE, run_instance)
+    export_run: u8[]: [1, PLAIN_NAME]
+    export_run.push_name(RUN_INTERFACE)
+    export_run.push(SORT_INSTANCE)
+    export_run.push_count(interface_count)
+    export_run.push(NO_TYPE_ASCRIPTION)
+    out.push_section(COMPONENT_EXPORT, export_run)
+}
+
+COMPONENT_CORE_MODULE: u8: 1
+COMPONENT_CORE_INSTANCE: u8: 2
+COMPONENT_INSTANCE: u8: 5
+COMPONENT_ALIAS: u8: 6
+COMPONENT_TYPE: u8: 7
+COMPONENT_CANON: u8: 8
+COMPONENT_IMPORT: u8: 10
+COMPONENT_EXPORT: u8: 11
+
+INSTANCE_TYPE: u8: 0x42
+FUNC_TYPE_SYNC: u8: 0x40
+ASYNC_FUNC_TYPE: u8: 0x43
+RESULT_TYPE: u8: 0x6A
+
+// An instance-type declaration of a type, and of an export.
+DECLARE_TYPE: u8: 0x01
+DECLARE_EXPORT: u8: 0x04
+
+// The sorts, and the prefix that turns a sort byte into a core sort.
+CORE_SORT: u8: 0x00
+CORE_FUNC: u8: 0x00
+SORT_FUNC: u8: 0x01
+SORT_INSTANCE: u8: 0x05
+CORE_SORT_INSTANCE: u8: 0x12
+
+// A function type's results: one unnamed value, or none.
+ONE_RESULT: u8: 0x00
+NO_RESULT: u8[]: [0x01, 0x00]
+// A `result` case that carries nothing.
+NO_CASE_TYPE: u8: 0x00
+// The empty list of canonical options.
+NO_OPTIONS: u8: 0x00
+// An import or export name that is a plain name, with no version or URL.
+PLAIN_NAME: u8: 0x00
+// An export whose type is not ascribed.
+NO_TYPE_ASCRIPTION: u8: 0x00
+
+ALIAS_EXPORT: u8: 0x00
+ALIAS_CORE_EXPORT: u8: 0x01
+
+CANON_LIFT: u8: 0x00
+CANON_LOWER: u8: 0x01
+
+INSTANTIATE: u8: 0x00
+INSTANCE_OF_EXPORTS: u8: 0x01
+
+count_functions :: fn(interfaces: ComponentInterface[]) -> i64 {
+    count: i64 = 0
+    for i in interfaces {
+        count += i.functions.len()
+    }
+    return count
+}
+
+// One instance type per interface: each function declares its type, then exports
+// itself under it. Type indices are local to the instance type, so function `j`
+// has the type `j`.
+instance_types :: fn(interfaces: ComponentInterface[]) -> u8[] {
+    out: u8[]: []
+    out.push_count(interfaces.len())
+    for interface in interfaces {
+        out.push(INSTANCE_TYPE)
+        out.push_count(2 * interface.functions.len())
+        for j in 0..<interface.functions.len() {
+            f :: interface.functions[j]
+            out.push(DECLARE_TYPE)
+            out.push_func_type(f)
+            out.push(DECLARE_EXPORT)
+            out.push(PLAIN_NAME)
+            out.push_name(f.name)
+            out.push(SORT_FUNC)
+            out.push_count(j)
+        }
+    }
+    return out
+}
+
+push_func_type :: fn(out: u8[], f: ComponentFunction) -> void {
+    out.push(FUNC_TYPE_SYNC)
+    out.push_count(f.params.len())
+    for p in f.params {
+        out.push_name(p.name)
+        out.push(wit_type_byte(p.type))
+    }
+    result :: f.result
+    if result == null {
+        out.push_all(NO_RESULT)
+    } else {
+        out.push(ONE_RESULT)
+        out.push(wit_type_byte(result))
+    }
+}
+
+// Interface `i` imported as the instance type `i`.
+interface_imports :: fn(interfaces: ComponentInterface[]) -> u8[] {
+    out: u8[]: []
+    out.push_count(interfaces.len())
+    for i in 0..<interfaces.len() {
+        out.push(PLAIN_NAME)
+        out.push_name(interfaces[i].name)
+        out.push(SORT_INSTANCE)
+        out.push_count(i)
+    }
+    return out
+}
+
+// Each imported function out of the instance of its interface, in order: the
+// component function `k` is the `k`-th function of the interfaces in a row.
+function_aliases :: fn(interfaces: ComponentInterface[], count: i64) -> u8[] {
+    out: u8[]: []
+    out.push_count(count)
+    for i in 0..<interfaces.len() {
+        for f in interfaces[i].functions {
+            out.push_all([SORT_FUNC, ALIAS_EXPORT])
+            out.push_count(i)
+            out.push_name(f.name)
+        }
+    }
+    return out
+}
+
+// The component function `k` lowered to the core function `k`.
+lowered_functions :: fn(count: i64) -> u8[] {
+    out: u8[]: []
+    out.push_count(count)
+    for k in 0..<count {
+        out.push_all([CANON_LOWER, CORE_FUNC])
+        out.push_count(k)
+        out.push(NO_OPTIONS)
+    }
+    return out
+}
+
+// One core instance per interface, exporting its lowered functions, then the core
+// module instantiated with them: the core instance `i` serves the interface `i`,
+// and the module's instance comes last.
+core_instances :: fn(interfaces: ComponentInterface[]) -> u8[] {
+    out: u8[]: []
+    out.push_count(interfaces.len() + 1)
+    k: i64 = 0
+    for interface in interfaces {
+        out.push(INSTANCE_OF_EXPORTS)
+        out.push_count(interface.functions.len())
+        for f in interface.functions {
+            out.push_name(f.name)
+            out.push(CORE_FUNC)
+            out.push_count(k)
+            k += 1
+        }
+    }
+    // The core module `0`, the only one.
+    out.push_all([INSTANTIATE, 0x00])
+    out.push_count(interfaces.len())
+    for i in 0..<interfaces.len() {
+        out.push_name(interfaces[i].name)
+        out.push(CORE_SORT_INSTANCE)
+        out.push_count(i)
+    }
+    return out
+}
+
+wit_type_byte :: fn(t: WitType) -> u8 = match t {
+    .Bool -> 0x7F
+    .S8   -> 0x7E
+    .U8   -> 0x7D
+    .S16  -> 0x7C
+    .U16  -> 0x7B
+    .S32  -> 0x7A
+    .U32  -> 0x79
+    .S64  -> 0x78
+    .U64  -> 0x77
+    .F32  -> 0x76
+    .F64  -> 0x75
+    .Char -> 0x74
+}
+
+// ---- tests ----------------------------------------------------------------
+
+// A component importing `wasi:clocks/monotonic-clock@0.3.0`'s `now` and whose
+// `run` returns `now() == 0`, against what `wasm-tools parse` writes for it.
+@test
+test_encode_component_importing_a_clock :: fn() -> void {
+    interface :: "wasi:clocks/monotonic-clock@0.3.0"
+    core :: WasmModule {
+        .types = [
+            WasmFuncType { .params = [], .results = [.I64] },
+            WasmFuncType { .params = [], .results = [.I32] },
+        ],
+        .imports = [WasmImport { .module = interface, .name = "now", .type_index = 0 }],
+        .functions = [
+            WasmFunction {
+                .type_index = 1,
+                .locals = [],
+                .body = [Call { .function_index = 0 }, Plain { .op = .I64Eqz }],
+            },
+        ],
+        .exports = [WasmExport { .name = RUN_EXPORT, .function_index = 1 }],
+    }
+    now :: ComponentFunction { .name = "now", .params = [], .result = .U64 }
+    component :: WasmComponent {
+        .core = core,
+        .interfaces = [ComponentInterface { .name = interface, .functions = [now] }],
+    }
+    module_bytes :: encode_module(core)
+    expected: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x0D, 0x00, 0x01, 0x00]
+    expected.push_all([0x07, 0x10, 0x01, 0x42, 0x02, 0x01, 0x40, 0x00, 0x00, 0x77])
+    expected.push_all([0x04, 0x00, 0x03, 0x6E, 0x6F, 0x77, 0x01, 0x00])
+    expected.push_all([0x0A, 0x26, 0x01, 0x00, 0x21])
+    expected.push_all(interface.bytes())
+    expected.push_all([0x05, 0x00])
+    expected.push(0x01)
+    expected.push_sized(module_bytes)
+    expected.push_all([0x06, 0x08, 0x01, 0x01, 0x00, 0x00, 0x03, 0x6E, 0x6F, 0x77])
+    expected.push_all([0x08, 0x05, 0x01, 0x01, 0x00, 0x00, 0x00])
+    expected.push_all([0x02, 0x30, 0x02, 0x01, 0x01, 0x03, 0x6E, 0x6F, 0x77, 0x00, 0x00])
+    expected.push_all([0x00, 0x00, 0x01, 0x21])
+    expected.push_all(interface.bytes())
+    expected.push_all([0x12, 0x00])
+    expected.push_all([0x07, 0x08, 0x02, 0x6A, 0x00, 0x00, 0x43, 0x00, 0x00, 0x01])
+    expected.push_all([0x06, 0x09, 0x01, 0x00, 0x00, 0x01, 0x01, 0x03, 0x72, 0x75, 0x6E])
+    expected.push_all([0x08, 0x06, 0x01, 0x00, 0x00, 0x01, 0x00, 0x02])
+    expected.push_all([0x05, 0x0A, 0x01, 0x01, 0x01, 0x00, 0x03, 0x72, 0x75, 0x6E, 0x01, 0x01])
+    expected.push_all([0x0B, 0x18, 0x01, 0x00, 0x12])
+    expected.push_all(RUN_INTERFACE.bytes())
+    expected.push_all([0x05, 0x01, 0x00])
+    assert_bytes(encode_component(component), expected)
+}

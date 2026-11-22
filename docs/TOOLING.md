@@ -60,7 +60,7 @@ The C goes to `c/` beside the binary and the object files to `obj/` (none under 
 
 - An executable needs a C compiler for it, named by `--cc`, `$CC` or `ctx.cc` in a `build.vader`, and taken to target it. Without one, a file or a `vader.json` project stops.
 - `--emit=c` needs no C compiler.
-- WebAssembly will be `--target=browser-wasm32` or `wasi-wasm32`, with `--emit=executable` *(planned)*.
+- `--target=wasi-wasm32` writes a WebAssembly component, `wasmtime run main.wasm` runs it, and needs no C compiler. The emitter translates part of the language so far, and names what stops a build. `browser-wasm32` is planned.
 
 `VADER_OPT_REPORT=1` prints on stderr where an optimisation fell back to its general path, without changing the program.
 

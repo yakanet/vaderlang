@@ -166,6 +166,9 @@ export LoweredProject :: struct {
     /// The library each `@extern` naming a `CLibrary` comes from, keyed by the
     /// declaration's node id (`EvaluatedProject.libraries`).
     libraries:      Map<i64, CLibrary> = Map<i64, CLibrary> {}
+    /// The interface each `@extern` naming a `WasmInterface` is imported from
+    /// (`EvaluatedProject.interfaces`).
+    interfaces:     Map<i64, WasmInterface> = Map<i64, WasmInterface> {}
     /// Const symbol id -> accessor fn, populated by `inline_consts` for
     /// bulky array consts (`fn-wrap` bucket). `build_ident` emits a 0-arg
     /// `call` to the accessor. The accessor carries a fresh synthetic id, so the

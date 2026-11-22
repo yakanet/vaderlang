@@ -370,7 +370,8 @@ write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
         // `@c_blocking`: a `.virt` rebuilt into a binary relays the call as the
         // source build does.
         bl :: if imp.blocking { "blocking " } else { "" }
-        attributes :: "${im}${va}${headers}${rt}${pt}${pm}${pa}${ct}${rc}${bl}${li}"
+        interface :: interface_attributes(imp)
+        attributes :: "${im}${va}${headers}${rt}${pt}${pm}${pa}${ct}${rc}${bl}${li}${interface}"
         sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${attributes}")
         write_signature(sb, imp.signature)
         sb.append("\n")
@@ -403,6 +404,13 @@ join_indices :: fn(xs: i32[]) -> string {
         sb.append("${xs[i]}")
     }
     return sb.to_string()
+}
+
+// The `interface_*` attributes of an import from a component interface, `""` for
+// none.
+interface_attributes :: fn(imp: BcImport) -> string {
+    i :: imp.wasm_interface else return ""
+    return "interface_package=${i.package} interface_name=${i.name} interface_version=${i.version} "
 }
 
 // `<lib>:` before the symbol of an import that names a library, `""` otherwise.

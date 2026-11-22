@@ -1,5 +1,5 @@
-// T3050: the library of a 2-argument `@extern` is a `CLibrary` constant; a
-// function is refused.
+// T3050: where an `@extern` comes from is a `CLibrary` or a `WasmInterface`
+// constant; a function is refused.
 module "snippet"
 
 library :: fn() -> i32 = 1

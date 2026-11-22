@@ -36,7 +36,7 @@ add_helper :: fn(ctx: ModuleCtx, key: string, kind: Bc.ValType, arity: i64, body
         .locals = [.I64],
         .body = body,
     }
-    index :: ctx.function_count + i32(ctx.helper_functions.len())
+    index :: ctx.first_helper + i32(ctx.helper_functions.len())
     ctx.helper_functions.push(helper)
     ctx.helpers[key] = index
     return index

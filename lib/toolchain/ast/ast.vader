@@ -242,17 +242,17 @@ export c_type_of :: fn(decs: Decorator[]) -> string {
 
 /// What an `@extern` writes, each part null when it is absent.
 export ExternArguments :: struct {
-    /// The `CLibrary` constant the symbol comes from.
-    library: Expr | null = null
-    /// The C symbol.
-    symbol:  Expr | null = null
+    /// The `CLibrary` or `WasmInterface` constant the function comes from.
+    from:   Expr | null = null
+    /// The C symbol, or the function of the interface.
+    symbol: Expr | null = null
 }
 
-/// The library and the symbol `d`, an `@extern`, writes.
+/// Where the function comes from and the symbol `d`, an `@extern`, writes.
 ///
 /// @param d  an `@extern` as written.
 export extern_arguments :: fn(d: Decorator) -> ExternArguments = ExternArguments {
-    .library = argument_named(d, "library", 0),
+    .from = argument_named(d, "from", 0),
     .symbol = argument_named(d, "symbol", 1),
 }
 

@@ -74,6 +74,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
         .intrinsic = import_intrinsic(ext.is_extern, ext.intrinsic),
         .c_headers = ext.c_headers,
         .library = ext.library,
+        .wasm_interface = ext.wasm_interface,
         .c_variadic_fixed = ext.c_variadic_fixed,
         .param_c_types = param_c_types_of(ext.origin),
         .result_c_type = result_c_type_of(ext.origin),

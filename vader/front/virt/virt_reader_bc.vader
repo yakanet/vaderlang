@@ -602,6 +602,9 @@ parse_import_decl_bc :: fn(
     result_c_type := ""
     blocking := false
     member := ""
+    interface_package := ""
+    interface_name := ""
+    interface_version := ""
     library :: read_library(raw_name)
     for i in (name_i + 2)..<parts.len() {
         attr :: parts[i]
@@ -610,6 +613,15 @@ parse_import_decl_bc :: fn(
         }
         if attr.starts_with("intrinsic=") {
             member = attr.trim_prefix("intrinsic=")
+        }
+        if attr.starts_with("interface_package=") {
+            interface_package = attr.trim_prefix("interface_package=")
+        }
+        if attr.starts_with("interface_name=") {
+            interface_name = attr.trim_prefix("interface_name=")
+        }
+        if attr.starts_with("interface_version=") {
+            interface_version = attr.trim_prefix("interface_version=")
         }
         if attr.starts_with("headers=") {
             c_headers = paths_from_tokens(attr.trim_prefix("headers="))
@@ -706,7 +718,21 @@ parse_import_decl_bc :: fn(
         .result_c_type = result_c_type,
         .blocking      = blocking,
         .library       = library,
+        .wasm_interface = read_interface(interface_package, interface_name, interface_version),
     })
+}
+
+// The interface the `interface_*` attributes of an import name, null for an
+// import that names none.
+read_interface :: fn(package: string, name: string, version: string) -> WasmInterface | null {
+    if package == "" {
+        return null
+    }
+    return WasmInterface {
+        .package = package,
+        .name = name,
+        .version = version,
+    }
 }
 
 // The library an import names by `<lib>:` before its symbol, or null for one

@@ -89,6 +89,9 @@ export CFGExternDecl :: struct {
     c_variadic_fixed: i32 = -1
     /// The `CLibrary` the declaration names, as evaluated ; null for none.
     library: CLibrary | null = null
+    /// The `WasmInterface` the declaration is imported from, as evaluated ; null
+    /// for none.
+    wasm_interface: WasmInterface | null = null
     /// See `LoweredFnDecl.intrinsic`.
     intrinsic: string = ""
 }

@@ -33,16 +33,18 @@ export alias :: decorator(.Constant) {}
 export comptime :: decorator(.Expression) {}
 
 /// Declares a bodyless function supplied across the FFI, by a C library or the
-/// running process.
+/// running process, or imported from a component interface by a WASM build.
 ///
 /// Pair it with `@c_header`, or a header of its library, so `cc` checks the call
 /// against the real prototype.
 export extern :: decorator(.Function) {
-    /// The library the function comes from, whose headers, archives and platform
-    /// libraries a native build adds: the running process when left out.
-    library: CLibrary = CLibrary { .name = "" }
-    /// The C symbol, the function's own name when left out.
-    symbol:  string = ""
+    /// Where the function comes from: a C library, whose headers, archives and
+    /// platform libraries a native build adds, or a component interface, which a
+    /// WASM build imports. The running process when left out.
+    from:   CLibrary | WasmInterface = CLibrary { .name = "" }
+    /// The C symbol, or the function of the interface, the function's own name
+    /// when left out.
+    symbol: string = ""
 }
 
 /// Marks a `fn() -> void` as a test, run by `vader test`.

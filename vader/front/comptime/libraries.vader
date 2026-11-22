@@ -1,5 +1,5 @@
-// vader/front/comptime/libraries: the `CLibrary` constants that `@extern` declarations
-// name, evaluated for the build target.
+// vader/front/comptime/libraries: the `CLibrary` and `WasmInterface` constants that
+// `@extern` declarations name, evaluated for the build target.
 //
 // `@extern(RAYLIB, "InitWindow")` names a constant of `std/core`'s `CLibrary`.
 // What it lists (the default headers, the archives, the platform libraries)
@@ -15,6 +15,7 @@ import "std/string"
 import "toolchain/diagnostics"
 import "vader/core/symbol"
 import "vader/front/resolver"
+import "vader/front/typecheck"
 
 /// Evaluate the library of every `@extern` the typecheck accepted a `CLibrary`
 /// for (`TypedProgram.extern_libraries`), into `project.libraries`.
@@ -31,29 +32,97 @@ evaluate_extern_libraries :: fn(
     project: EvaluatedProject,
     diags: Diagnostic[],
 ) -> void {
-    typed :: constants.typed
-    // One library per constant, shared by every declaration naming it.
-    evaluated :: Map<i32, CLibrary> {}
-    failed :: Set<i32> {}
     first_of_name :: Map<string, NamedLibrary> {}
-    for [_, module_typed] in typed.modules {
-        for [decl_id, symbol] in module_typed.extern_libraries {
+    evaluate :: (symbol: Symbol) -> {
+        library :: evaluate_constant_as<CLibrary>(
+            symbol,
+            constants,
+            "CLibrary",
+            (value: ComptimeValue) -> resolved_library(value, symbol.module),
+            diags,
+        ) else return null
+        check_one_binary_per_name(symbol, library, first_of_name, diags)
+        return library
+    }
+    evaluate_named_constants<CLibrary>(
+        constants,
+        (typed: TypedProgram) -> typed.extern_libraries,
+        evaluate,
+        project.libraries,
+    )
+}
+
+/// Evaluate the interface of every `@extern` the typecheck accepted a
+/// `WasmInterface` for (`TypedProgram.extern_interfaces`), into
+/// `project.interfaces`. A constant that does not reduce reports why, once.
+///
+/// @param constants  the constants of the project, evaluated on demand.
+/// @param project    the evaluated project, whose `interfaces` this fills.
+/// @param diags      where a failed evaluation is reported.
+evaluate_extern_interfaces :: fn(
+    constants: ProjectConstants,
+    project: EvaluatedProject,
+    diags: Diagnostic[],
+) -> void {
+    evaluate :: (symbol: Symbol) -> evaluate_constant_as<WasmInterface>(
+        symbol,
+        constants,
+        "WasmInterface",
+        resolved_interface,
+        diags,
+    )
+    evaluate_named_constants<WasmInterface>(
+        constants,
+        (typed: TypedProgram) -> typed.extern_interfaces,
+        evaluate,
+        project.interfaces,
+    )
+}
+
+// Fill `into` with the value of the constant each `@extern` names, as `sources`
+// reads them off every module, keyed by the declaration's node id. `evaluate`
+// runs once per constant, reporting why one does not reduce, and the
+// declarations naming one share its value.
+evaluate_named_constants :: fn<T>(
+    constants: ProjectConstants,
+    sources: fn(TypedProgram) -> Map<i64, Symbol>,
+    evaluate: fn(Symbol) -> T | null,
+    into: Map<i64, T>,
+) -> void {
+    evaluated :: Map<i32, T> {}
+    failed :: Set<i32> {}
+    for [_, module_typed] in constants.typed.modules {
+        for [decl_id, symbol] in sources(module_typed) {
             known :: evaluated[symbol.id]
             if known != null {
-                project.libraries[decl_id] = known
+                into[decl_id] = known
                 continue
             }
             if symbol.id in failed {
                 continue
             }
-            library :: evaluate_library(symbol, constants, diags) else {
+            value :: evaluate(symbol) else {
                 failed.add(symbol.id)
                 continue
             }
-            evaluated[symbol.id] = library
-            project.libraries[decl_id] = library
-            check_one_binary_per_name(symbol, library, first_of_name, diags)
+            evaluated[symbol.id] = value
+            into[decl_id] = value
         }
+    }
+}
+
+// The interface a value describes, or null when it is not one.
+resolved_interface :: fn(value: ComptimeValue) -> WasmInterface | null {
+    if value !is StructValue {
+        return null
+    }
+    package :: string_field(value, "package") else return null
+    name :: string_field(value, "name") else return null
+    version :: string_field(value, "version") else return null
+    return WasmInterface {
+        .package = package,
+        .name = name,
+        .version = version,
     }
 }
 
@@ -108,13 +177,15 @@ differing_binary_fields :: fn(a: CLibrary, b: CLibrary) -> string[] {
     return out
 }
 
-// The library the constant `symbol` holds, or null after reporting why it does
-// not reduce.
-evaluate_library :: fn(
+// What the constant `symbol` holds, as `convert` reads its value, or null after
+// reporting why it does not reduce, or why its value is no `type_name`.
+evaluate_constant_as :: fn<T>(
     symbol: Symbol,
     constants: ProjectConstants,
+    type_name: string,
+    convert: fn(ComptimeValue) -> T | null,
     diags: Diagnostic[],
-) -> CLibrary | null {
+) -> T | null {
     owner :: constants.typed.modules[symbol.module] else return null
     declaration :: owner.const_decls[symbol.id] else return null
     context :: ComptimeContext {
@@ -129,12 +200,12 @@ evaluate_library :: fn(
         }
         return null
     }
-    library :: resolved_library(value, symbol.module)
-    if library == null {
-        detail :: "`${symbol.name}` holds no `CLibrary`"
+    converted :: convert(value)
+    if converted == null {
+        detail :: "`${symbol.name}` holds no `${type_name}`"
         diags.push(comptime_error(.CannotEvaluate, declaration.span, detail))
     }
-    return library
+    return converted
 }
 
 /// The `CLibrary` a value describes, its `include` and `archives` resolved in

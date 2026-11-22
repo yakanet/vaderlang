@@ -1,4 +1,5 @@
-// T3050: the constant a 2-argument `@extern` names must be a `CLibrary`.
+// T3050: the constant an `@extern` comes from must be a `CLibrary` or a
+// `WasmInterface`.
 module "snippet"
 
 NOT_A_LIBRARY :: 42

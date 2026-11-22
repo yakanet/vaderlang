@@ -44,7 +44,8 @@ export evaluate_project :: fn(
         project.modules[module_id] = program
     }
     evaluate_extern_libraries(constants, project, diags)
-    check_extern_symbols(loaded, project.libraries, diags)
+    evaluate_extern_interfaces(constants, project, diags)
+    check_extern_symbols(loaded, project.libraries, project.interfaces, diags)
     return project
 }
 

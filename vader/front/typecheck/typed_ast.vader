@@ -725,8 +725,12 @@ export TypedProgram :: struct {
     const_decls: Map<i32, AST.ConstDecl>
 
     /// `@extern` node id -> the `CLibrary` constant it names, as the typecheck
-    /// accepted it (`check_extern_library`) ; the comptime pass evaluates each.
+    /// accepted it (`check_extern_source`) ; the comptime pass evaluates each.
     extern_libraries: Map<i64, Symbol> = Map<i64, Symbol> {}
+
+    /// `@extern` node id -> the `WasmInterface` constant it names, as
+    /// `check_extern_source` accepted it.
+    extern_interfaces: Map<i64, Symbol> = Map<i64, Symbol> {}
 
     /// Declared decorator node id -> the decorator it names and its arguments
     /// bound to the fields, as the typecheck accepted them (`decorator_use.vader`) ;

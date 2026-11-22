@@ -21,6 +21,9 @@ export encode_module :: fn(m: WasmModule) -> u8[] {
     if m.types.len() > 0 {
         out.push_section(SECTION_TYPE, type_section(m.types))
     }
+    if m.imports.len() > 0 {
+        out.push_section(SECTION_IMPORT, import_section(m.imports))
+    }
     if m.functions.len() > 0 {
         out.push_section(SECTION_FUNCTION, function_section(m.functions))
     }
@@ -34,14 +37,15 @@ export encode_module :: fn(m: WasmModule) -> u8[] {
 }
 
 SECTION_TYPE: u8: 1
+SECTION_IMPORT: u8: 2
 SECTION_FUNCTION: u8: 3
 SECTION_EXPORT: u8: 7
 SECTION_CODE: u8: 10
 
 // The byte that opens a function type.
 FUNC_TYPE: u8: 0x60
-// The export kind of a function.
-EXPORT_FUNCTION: u8: 0x00
+// The kind of an imported or exported function.
+EXTERNAL_FUNCTION: u8: 0x00
 // The byte that closes an expression, a function body included.
 END: u8: 0x0B
 
@@ -70,6 +74,18 @@ type_section :: fn(types: WasmFuncType[]) -> u8[] {
     return out
 }
 
+import_section :: fn(imports: WasmImport[]) -> u8[] {
+    out: u8[]: []
+    out.push_count(imports.len())
+    for i in imports {
+        out.push_name(i.module)
+        out.push_name(i.name)
+        out.push(EXTERNAL_FUNCTION)
+        out.push_count(i64(i.type_index))
+    }
+    return out
+}
+
 function_section :: fn(functions: WasmFunction[]) -> u8[] {
     out: u8[]: []
     out.push_count(functions.len())
@@ -84,7 +100,7 @@ export_section :: fn(exports: WasmExport[]) -> u8[] {
     out.push_count(exports.len())
     for e in exports {
         out.push_name(e.name)
-        out.push(EXPORT_FUNCTION)
+        out.push(EXTERNAL_FUNCTION)
         out.push_count(i64(e.function_index))
     }
     return out

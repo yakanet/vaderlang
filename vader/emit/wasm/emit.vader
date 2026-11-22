@@ -1,15 +1,18 @@
-// vader/emit/wasm/emit: `BytecodeModule` -> `WasmModule`.
+// vader/emit/wasm/emit: `BytecodeModule` -> `WasmComponent`.
 //
-// One WASM function per bytecode function, in the same order, so that a
-// function index means the same in both; the functions behind the checked ops
-// (`checked.vader`) follow them, and the entry is exported as `main`. A local
-// keeps its slot as its index: WASM counts the parameters first, as the
-// bytecode does.
+// The core module imports first the functions of component interfaces the
+// program calls, one per `@extern` naming a `WasmInterface`. One WASM function
+// per bytecode function follows, in the same order, so that a function index is
+// the bytecode's shifted by the imports; then the functions behind the checked
+// ops (`checked.vader`), and last `run`, which calls the entry and is what the
+// component exports (`component.vader`). A local keeps its slot as its index:
+// WASM counts the parameters first, as the bytecode does.
 //
 // The scalar code is translated so far: the integer and `bool` values, the
-// locals, the calls between the program's functions, the scopes and the
-// branches. Any other op, or a value type with no WASM form yet, stops the
-// emission with `WasmUnsupported`, which names it.
+// locals, the calls between the program's functions and to imported ones whose
+// types are scalars, the scopes and the branches. Any other op, or a value type
+// with no WASM form yet, stops the emission with `WasmUnsupported`, which names
+// it.
 
 module "vader/emit/wasm"
 
@@ -33,26 +36,60 @@ WasmUnsupported implements Error -> self.reason
 ///
 /// @param m              the program's bytecode.
 /// @param entry_mangled  the mangled name of its entry (`entry_function_index`).
-/// @return               a core module, one function per bytecode function,
-///                       exporting the entry as `main`.
+/// @return               a component exporting `wasi:cli/run`, whose `run`
+///                       calls the entry.
 /// @error                `WasmUnsupported` on the first op or value type the
 ///                       emitter does not translate yet.
 export wasm_binary_of :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> u8[] | WasmUnsupported {
-    wasm :: wasm_module_of(m, entry_mangled) else return wasm
-    return encode_module(wasm)
+    component :: wasm_component_of(m, entry_mangled) else return component
+    return encode_component(component)
 }
 
-/// Translate a program to a WASM module.
+/// Translate a program to a component.
 ///
 /// @param m              the program's bytecode.
 /// @param entry_mangled  the mangled name of its entry (`entry_function_index`).
-/// @return               one function per bytecode function, in the same
-///                       order, then the functions behind the checked ops, and
-///                       the entry exported as `main`.
+/// @return               the core module of `wasm_module_of` and the interfaces
+///                       its imports come from.
+/// @error                `WasmUnsupported` on the first op or value type the
+///                       emitter does not translate yet, or when the program
+///                       has no entry.
+export wasm_component_of :: fn(
+    m: Bc.BytecodeModule,
+    entry_mangled: string,
+) -> WasmComponent | WasmUnsupported {
+    component :: translate(m, entry_mangled) else return component
+    if component.core.exports.len() == 0 {
+        return WasmUnsupported { .reason = "the program has no entry for `run` to call" }
+    }
+    return component
+}
+
+/// Translate a program to a core WASM module.
+///
+/// @param m              the program's bytecode.
+/// @param entry_mangled  the mangled name of its entry (`entry_function_index`).
+/// @return               the imported functions, one function per bytecode
+///                       function in the same order, the functions behind the
+///                       checked ops, and `run`, exported, when there is an
+///                       entry.
 /// @error                `WasmUnsupported` on the first op or value type the
 ///                       emitter does not translate yet.
 export wasm_module_of :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmModule | WasmUnsupported {
-    ctx :: ModuleCtx { .function_count = i32(m.functions.len()) }
+    component :: translate(m, entry_mangled) else return component
+    return component.core
+}
+
+// The core module of `wasm_module_of`, with the interfaces its imports come from.
+translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | WasmUnsupported {
+    types :: TypeTable {}
+    imports :: imported_functions(m, types) else return imports
+    ctx :: ModuleCtx {
+        .types = types,
+        .imports = imports,
+        .first_function = i32(imports.functions.len()),
+        .first_helper = i32(imports.functions.len() + m.functions.len()),
+    }
     functions: WasmFunction[]: []
     for f in m.functions {
         signature :: func_type_of(f) else return signature
@@ -70,24 +107,63 @@ export wasm_module_of :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> Wasm
     exports: WasmExport[]: []
     entry :: Bc.entry_function_index(m, entry_mangled)
     if entry != null {
-        exports.push(WasmExport { .name = "main", .function_index = entry })
+        run :: run_function(ctx, m.functions[entry], ctx.first_function + entry) else return run
+        exports.push(
+            WasmExport {
+                .name = RUN_EXPORT,
+                .function_index = ctx.first_function + i32(functions.len()),
+            },
+        )
+        functions.push(run)
     }
-    return WasmModule {
+    core :: WasmModule {
         .types = ctx.types.types,
+        .imports = imports.functions,
         .functions = functions,
         .exports = exports,
     }
+    return WasmComponent { .core = core, .interfaces = imports.interfaces }
 }
 
 // What the translation of a module carries from one function to the next.
 ModuleCtx :: struct {
-    types: TypeTable = TypeTable {}
-    // How many functions the bytecode has: the helpers are numbered after them.
-    function_count: i32
+    types: TypeTable
+    imports: ImportedFunctions
+    // The index of the first bytecode function: past the imported ones.
+    first_function: i32
+    // The index of the first helper: past the bytecode functions.
+    first_helper: i32
     // The index of each helper, by what it computes (`checked.vader`).
     helpers: Map<string, i32> = Map<string, i32> {}
     // The helpers, in the order of their indices.
     helper_functions: WasmFunction[] = []
+}
+
+// `run`, the core export the component lifts: it calls the entry, at `entry`,
+// and returns the case of `result` the host reads, `ok` (0) for an entry that
+// returns nothing or 0, `err` (1) for any other code.
+run_function :: fn(
+    ctx: ModuleCtx,
+    entry: Bc.BcFunction,
+    index: i32,
+) -> WasmFunction | WasmUnsupported {
+    body: WasmInstr[]: [Call { .function_index = index }]
+    results :: result_values(entry.signature)
+    if results.len() == 0 {
+        body.push(I32Const { .value = 0 })
+    } else if results.len() == 1 && results[0] == .I32 {
+        body.push_all([I32Const { .value = 0 }, Plain { .op = .I32Ne }])
+    } else {
+        return WasmUnsupported {
+            .reason = "`${entry.name}`: an entry returns nothing or an `i32` code",
+        }
+    }
+    run_type :: WasmFuncType { .params = [], .results = [.I32] }
+    return WasmFunction {
+        .type_index = ctx.types.intern(run_type),
+        .locals = [],
+        .body = body,
+    }
 }
 
 // The function types of a module, each once, as the format wants them.
@@ -254,7 +330,14 @@ push_op :: fn(ctx: ModuleCtx, out: WasmInstr[], op: Bc.Op, function: string) -> 
         is Bc.LocalGet -> { out.push(LocalGet { .index = op.slot }) }
         is Bc.LocalSet -> { out.push(LocalSet { .index = op.slot }) }
         is Bc.LocalTee -> { out.push(LocalTee { .index = op.slot }) }
-        is Bc.Call -> { out.push(Call { .function_index = op.function_index }) }
+        is Bc.Call -> {
+            out.push(Call { .function_index = ctx.first_function + op.function_index })
+        }
+        is Bc.CallImport -> {
+            index :: ctx.imports.by_bytecode_index[op.index]
+                else return unsupported_op(op, function)
+            out.push(Call { .function_index = index })
+        }
         // WASM has no negation or complement: times -1, and xor with -1.
         is Bc.I32Neg -> { out.push_all([I32Const { .value = -1 }, Plain { .op = .I32Mul }]) }
         is Bc.I64Neg -> { out.push_all([I64Const { .value = -1 }, Plain { .op = .I64Mul }]) }
@@ -409,7 +492,60 @@ test_wasm_module_of_returns_a_constant :: fn() -> void {
     // The constant, `return`, then the `unreachable` that closes a body
     // leaving a value.
     assert_eq(wasm.functions[0].body.len(), 3)
-    assert_eq(wasm.exports[0].name, "main")
+    assert_eq(wasm.exports[0].name, RUN_EXPORT)
+}
+
+// `run` calls the entry and turns its code into the case of `result`.
+@test
+test_run_calls_the_entry_and_tests_its_code :: fn() -> void {
+    program :: straight([Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } }])
+    wasm :: wasm_module_of(program, "") else panic(wasm.reason)
+    run :: wasm.functions[wasm.exports[0].function_index].body
+    call :: run[0]
+    assert(call is Call && call.function_index == 0, "run calls main")
+    code_test :: run[2]
+    assert(code_test is Plain && code_test.op == .I32Ne, "a code other than 0 is `err`")
+}
+
+// An import from an interface comes first among the functions, and a call to it
+// names it there.
+@test
+test_an_interface_import_precedes_the_functions :: fn() -> void {
+    program :: straight(
+        [
+            Bc.CallImport { .index = 0 },
+            Bc.Drop {},
+            Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } },
+        ],
+    )
+    signature :: Bc.BcSignature {
+        .params = [],
+        .results = [.U64],
+        .param_types = [],
+        .result_types = [0],
+        .param_names = [],
+    }
+    clock :: WasmInterface {
+        .package = "wasi:clocks",
+        .name = "monotonic-clock",
+        .version = "0.3.0",
+    }
+    program.imports.push(
+        Bc.BcImport {
+            .extern_name = "now",
+            .mangled_name = "clock\$now",
+            .signature = signature,
+            .is_extern = true,
+            .wasm_interface = clock,
+        },
+    )
+    component :: wasm_component_of(program, "") else panic(component.reason)
+    assert_eq(component.core.imports[0].module, "wasi:clocks/monotonic-clock@0.3.0")
+    call :: component.core.functions[0].body[0]
+    assert(call is Call && call.function_index == 0, "the call names the import")
+    assert_eq(component.core.exports[0].function_index, 2)
+    now :: component.interfaces[0].functions[0]
+    assert(now.result == WitType.U64, "`now` returns a WIT `u64`")
 }
 
 @test
@@ -458,7 +594,8 @@ test_a_checked_add_calls_one_helper_per_class :: fn() -> void {
         Bc.Return {},
     ]
     wasm :: wasm_module_of(straight(body), "") else panic(wasm.reason)
-    assert_eq(wasm.functions.len(), 2)
+    // `main`, the helper, `run`.
+    assert_eq(wasm.functions.len(), 3)
     first :: wasm.functions[0].body[2]
     second :: wasm.functions[0].body[4]
     assert(first is Call && first.function_index == 1, "the helper follows main")

@@ -1,0 +1,123 @@
+// vader/emit/wasm/imports: the functions a program imports from component interfaces.
+//
+// Each bytecode import whose `@extern` names a `WasmInterface` becomes a core
+// import, its module the interface as WIT writes it and its name the function.
+// Its WIT type is derived from the Vader signature, a scalar being the WIT
+// scalar of its width and signedness, and its core type is that WIT type
+// flattened by the canonical ABI, which for scalars is the value itself. The
+// other imports (a C library, a member of `Intrinsic`) have no WASM form yet: a
+// call to one stops the emission.
+
+module "vader/emit/wasm"
+
+Bc :: import "vader/core/bytecode"
+import "std/collections"
+import "std/iter"
+import "std/string"
+
+// The functions a program imports from component interfaces.
+ImportedFunctions :: struct {
+    // The core module's imports, which come first among its functions.
+    functions: WasmImport[] = []
+    // The WASM function index of each bytecode import that comes from an
+    // interface, by the bytecode import's index.
+    by_bytecode_index: Map<i32, i32> = Map<i32, i32> {}
+    // The interfaces, each function once, as the component imports them.
+    interfaces: ComponentInterface[] = []
+}
+
+// The imports of `m`, their core types interned in `types`.
+imported_functions :: fn(
+    m: Bc.BytecodeModule,
+    types: TypeTable,
+) -> ImportedFunctions | WasmUnsupported {
+    out :: ImportedFunctions {}
+    for i in 0..<m.imports.len() {
+        imp :: m.imports[i]
+        interface :: imp.wasm_interface else continue
+        module :: Bc.qualified_interface_name(interface)
+        function :: component_function_of(imp) else return function
+        core_type :: flat_type_of(imp) else return core_type
+        out.by_bytecode_index[i32(i)] = i32(out.functions.len())
+        out.functions.push(
+            WasmImport {
+                .module = module,
+                .name = function.name,
+                .type_index = types.intern(core_type),
+            },
+        )
+        out.add_to_interface(module, function)
+    }
+    return out
+}
+
+// Add `function` to the interface `module`, unless another declaration of the
+// program imports it already.
+add_to_interface :: fn(
+    imports: ImportedFunctions,
+    module: string,
+    function: ComponentFunction,
+) -> void {
+    for interface in imports.interfaces {
+        if interface.name == module {
+            if !interface.functions.any_match((f) -> f.name == function.name) {
+                interface.functions.push(function)
+            }
+            return
+        }
+    }
+    imports.interfaces.push(ComponentInterface { .name = module, .functions = [function] })
+}
+
+// The WIT type of `imp`, a function of a component interface.
+component_function_of :: fn(imp: Bc.BcImport) -> ComponentFunction | WasmUnsupported {
+    params: WitParam[]: []
+    for j in 0..<imp.signature.params.len() {
+        t :: wit_type_of(imp.signature.params[j], imp) else return t
+        params.push(WitParam { .name = wit_name(imp.signature.param_names[j]), .type = t })
+    }
+    results :: result_values(imp.signature)
+    if results.len() == 0 {
+        return ComponentFunction { .name = imp.extern_name, .params = params, .result = null }
+    }
+    result :: wit_type_of(results[0], imp) else return result
+    return ComponentFunction { .name = imp.extern_name, .params = params, .result = result }
+}
+
+// The core type of `imp`: its scalars as themselves.
+flat_type_of :: fn(imp: Bc.BcImport) -> WasmFuncType | WasmUnsupported {
+    params :: value_types_of(imp.signature.params, imp.extern_name) else return params
+    results :: value_types_of(result_values(imp.signature), imp.extern_name) else return results
+    return WasmFuncType { .params = params, .results = results }
+}
+
+wit_type_of :: fn(v: Bc.ValType, imp: Bc.BcImport) -> WitType | WasmUnsupported = match v {
+    .Bool -> .Bool
+    .I8 -> .S8
+    .U8 -> .U8
+    .I16 -> .S16
+    .U16 -> .U16
+    .I32 -> .S32
+    .U32 -> .U32
+    .I64 -> .S64
+    .U64 -> .U64
+    .F32 -> .F32
+    .F64 -> .F64
+    .Char -> .Char
+    .String | .Null | .Void | .Pointer | .Ref | .Any -> WasmUnsupported {
+        .reason = "`${imp.mangled_name}`: no WIT form yet for a `${Bc.val_type_name(v)}` value",
+    }
+}
+
+// A Vader name in the kebab case of WIT: `how_long` is `how-long`.
+wit_name :: fn(name: string) -> string = name.replace("_", "-")
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_wit_name_is_kebab_case :: fn() -> void {
+    assert_eq(wit_name("how_long"), "how-long")
+    assert_eq(wit_name("when"), "when")
+}

@@ -175,7 +175,8 @@ library_constants :: fn(
     return constants
 }
 
-// The imports among `imports` that a module of `scope` declares.
+// The imports among `imports` that a module of `scope` declares, those of a
+// component interface aside: they have no C prototype.
 imports_in_scope :: fn(
     imports: BcImport[],
     lowered: LoweredProject,
@@ -191,7 +192,7 @@ imports_in_scope :: fn(
     }
     kept: BcImport[]: []
     for imp in imports {
-        if imp.mangled_name in declared {
+        if imp.mangled_name in declared && imp.wasm_interface == null {
             kept.push(imp)
         }
     }

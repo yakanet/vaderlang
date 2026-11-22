@@ -24,6 +24,7 @@ import "vader/front/resolver"
 check_extern_symbols :: fn(
     loaded: LoadedProject,
     libraries: Map<i64, CLibrary>,
+    interfaces: Map<i64, WasmInterface>,
     diags: Diagnostic[],
 ) -> void {
     claimed :: Map<string, Claim> {}
@@ -33,6 +34,11 @@ check_extern_symbols :: fn(
                 continue
             }
             extern_decorator :: find_compiler_decorator(decl.decorators, .Extern) else continue decl
+            // A function of a component interface is no C symbol: the interface
+            // and the name identify it, and a WASM build imports each once.
+            if decl.id in interfaces {
+                continue
+            }
             if c_variadic_start(decl) >= 0 && !owns_prototype(decl, libraries) {
                 detail :: "`${decl.name}` is variadic: name the header declaring `${extern_symbol_of(decl)}` with `@c_header`, or in its `CLibrary`'s `headers`"
                 diags.push(comptime_error(.VariadicExternWithoutHeader, extern_decorator.span, detail))

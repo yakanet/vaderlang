@@ -2,8 +2,9 @@
 //
 // A typed value: `encode.vader` writes it in the binary format, and a WAT text
 // can be printed from the same value. It holds what the emitter produces so far
-// (function types, functions, exports, the instructions of scalar code) and
-// grows with it.
+// (function types, imported and defined functions, exports, the instructions of
+// scalar code) and grows with it. The component around it is
+// `component.vader`'s.
 
 module "vader/emit/wasm"
 
@@ -27,16 +28,28 @@ export WasmFunction :: struct {
     body: WasmInstr[]
 }
 
+/// A function the module imports. The imported functions come first in the
+/// index space of the functions, before the ones the module defines.
+export WasmImport :: struct {
+    /// The module name, which the component that instantiates the module
+    /// supplies an instance for.
+    module: string
+    name: string
+    /// Its type, an index into `WasmModule.types`.
+    type_index: i32
+}
+
 /// A function the module exports under a name.
 export WasmExport :: struct {
     name: string
-    /// An index into `WasmModule.functions`.
+    /// An index into the functions, the imported ones counted first.
     function_index: i32
 }
 
 /// A core WASM module.
 export WasmModule :: struct {
     types: WasmFuncType[]
+    imports: WasmImport[] = []
     functions: WasmFunction[]
     exports: WasmExport[]
 }
@@ -59,7 +72,7 @@ export LocalSet :: struct { index: i32 }
 /// `local.tee index`: set the local and keep the value on the stack.
 export LocalTee :: struct { index: i32 }
 
-/// `call function_index`.
+/// `call function_index`, the imported functions counted first.
 export Call :: struct { function_index: i32 }
 
 /// `br depth`: leave the `depth` innermost scopes past the current one, out of

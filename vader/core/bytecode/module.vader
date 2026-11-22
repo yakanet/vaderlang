@@ -196,6 +196,10 @@ export BcImport :: struct {
     /// adds to the compilation and the link for it (`native_flags`), and what
     /// the interpreter opens (`library_name`).
     library: CLibrary | null = null
+    /// The `WasmInterface` the declaration is imported from, as evaluated for
+    /// the build target ; null for none. A WASM build imports the function from
+    /// it into the component.
+    wasm_interface: WasmInterface | null = null
     /// How many of a VARIADIC callee's parameters are fixed, `-1` when it is not
     /// variadic: the parameters before the first `@c_variadic` one.
     ///
@@ -224,6 +228,17 @@ export BcImport :: struct {
 export library_name :: fn(imp: BcImport) -> string {
     library :: imp.library else return ""
     return library.name
+}
+
+/// The name WIT writes `interface` under: `wasi:clocks/monotonic-clock@0.3.0`,
+/// without the `@` when it has no version.
+///
+/// @param interface  an interface an import comes from.
+export qualified_interface_name :: fn(interface: WasmInterface) -> string {
+    if interface.version == "" {
+        return "${interface.package}/${interface.name}"
+    }
+    return "${interface.package}/${interface.name}@${interface.version}"
 }
 
 /// The symbol of the adapter through which the interpreter calls `imp` when no

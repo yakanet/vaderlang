@@ -121,6 +121,10 @@ export EvaluatedProject :: struct {
     /// its `include` and `archives` resolved against the folder of the module
     /// declaring it.
     libraries: Map<i64, CLibrary> = Map<i64, CLibrary> {}
+
+    /// The interface each `@extern` naming a `WasmInterface` is imported from,
+    /// keyed by the declaration's node id.
+    interfaces: Map<i64, WasmInterface> = Map<i64, WasmInterface> {}
 }
 
 /// Construct an empty `EvaluatedProgram` bound to `typed`.

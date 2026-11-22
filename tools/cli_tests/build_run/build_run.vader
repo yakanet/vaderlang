@@ -173,7 +173,7 @@ test_an_executable_for_another_platform_needs_a_c_compiler_for_it :: fn() -> voi
 
 // A WASM executable is a module the compiler writes itself (ADR 0175).
 @test
-test_an_executable_for_wasm_is_a_module_that_needs_no_c_compiler :: fn() -> void {
+test_an_executable_for_wasm_is_a_component_that_needs_no_c_compiler :: fn() -> void {
     dir :: staged(
         "wasm",
         """
@@ -189,12 +189,14 @@ test_an_executable_for_wasm_is_a_module_that_needs_no_c_compiler :: fn() -> void
     built :: vader_in(dir, argv, no_cc)
     assert(built.exit == 0, built.stderr)
     bytes :: read_file_bytes("${dir}/main.wasm") else {
-        fail("no module written: ${bytes.message()}")
+        fail("no component written: ${bytes.message()}")
         return
     }
+    // The magic, then the version and the layer of a component.
     assert(
-        bytes.len() > 8 && bytes[1] == 'a' && bytes[2] == 's' && bytes[3] == 'm',
-        "a WASM module",
+        bytes.len() > 8 && bytes[1] == 'a' && bytes[2] == 's' && bytes[3] == 'm' && bytes[4] == 0x0D
+            && bytes[6] == 0x01,
+        "a WASM component",
     )
 }
 

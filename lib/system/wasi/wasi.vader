@@ -1,0 +1,57 @@
+// system/wasi: the WASI interfaces a WASM build imports.
+//
+// One `WasmInterface` per interface of the WASI release the bindings follow,
+// and the functions of each, declared with the types WIT gives them: a WASM
+// build derives the component type of each import from the signature, a `u64`
+// being a WIT `u64` and a struct a `record`. Only the bodies chosen for `.Wasi`
+// call them.
+
+module "system/wasi"
+
+/// The WASI release the bindings follow.
+WASI_VERSION :: "0.3.0"
+
+MONOTONIC_CLOCK :: WasmInterface {
+    .package = "wasi:clocks",
+    .name = "monotonic-clock",
+    .version = WASI_VERSION,
+}
+
+SYSTEM_CLOCK :: WasmInterface {
+    .package = "wasi:clocks",
+    .name = "system-clock",
+    .version = WASI_VERSION,
+}
+
+/// `monotonic-clock.now`: nanoseconds on a clock that never goes back, from an
+/// arbitrary start.
+@extern(MONOTONIC_CLOCK, "now")
+export wasi_monotonic_now :: fn() -> u64
+
+/// `system-clock.instant`: a point in time, as the Unix epoch counts it.
+export WasiInstant :: struct {
+    /// Whole seconds since 1970-01-01 UTC, negative before it.
+    seconds: i64
+    /// Nanoseconds past `seconds`, below 1_000_000_000.
+    nanoseconds: u32
+}
+
+/// `system-clock.now`: the time of day, which may jump when the system clock is
+/// set.
+@extern(SYSTEM_CLOCK, "now")
+export wasi_system_now :: fn() -> WasiInstant
+
+/// The variants of `wasi:filesystem`'s `error-code` that `std/io` classifies, by
+/// their index in the variant: what an `IOError` carries in `code` on WASI.
+export WASI_ACCESS: i32: 0
+export WASI_BAD_DESCRIPTOR: i32: 2
+export WASI_EXIST: i32: 6
+export WASI_INTERRUPTED: i32: 10
+export WASI_INVALID: i32: 11
+export WASI_IS_DIRECTORY: i32: 13
+export WASI_NO_ENTRY: i32: 19
+export WASI_INSUFFICIENT_SPACE: i32: 22
+export WASI_NOT_DIRECTORY: i32: 23
+export WASI_NOT_EMPTY: i32: 24
+export WASI_NOT_PERMITTED: i32: 30
+export WASI_PIPE: i32: 31

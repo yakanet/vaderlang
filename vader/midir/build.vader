@@ -171,7 +171,6 @@ FnCtx :: struct {
     current:         BlockId | null
 }
 
-
 // ---- Project-level orchestration ------------------------------------------
 
 /// Top-level entry: walk the lowered project, emit one `CFGModule` per
@@ -192,7 +191,7 @@ export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[]) -> CFGPr
             match d {
                 is LoweredFnDecl -> {
                     if d.body is null {
-                        externs.push(make_extern_decl(d, lp.libraries))
+                        externs.push(make_extern_decl(d, lp))
                     } else {
                         cfg_opt :: convert_function(d, ctx)
                         if cfg_opt !is null { functions.push(cfg_opt) }
@@ -268,12 +267,9 @@ make_struct_decl :: fn(d: LoweredStructDecl) -> CFGStructDecl {
     }
 }
 
-make_extern_decl :: fn(
-    d: LoweredFnDecl,
-    libraries: Map<i64, CLibrary>,
-) -> CFGExternDecl {
+make_extern_decl :: fn(d: LoweredFnDecl, lp: LoweredProject) -> CFGExternDecl {
     meta :: fn_metadata(d)
-    library :: library_of(d, libraries)
+    library :: of_declaration(d, lp.libraries)
     params: CFGParam[]: []
     for i in 0..<d.params.len() {
         p :: d.params[i]
@@ -291,18 +287,20 @@ make_extern_decl :: fn(
         .c_headers   = headers_of(d, library),
         .c_variadic_fixed = meta.c_variadic_fixed,
         .library     = library,
+        .wasm_interface = of_declaration(d, lp.interfaces),
         .intrinsic   = d.intrinsic,
     }
 }
 
-// The `CLibrary` the declaration `d` names, or null.
-library_of :: fn(
-    d: LoweredFnDecl,
-    libraries: Map<i64, CLibrary>,
-) -> CLibrary | null {
+
+
+// The entry of `by_declaration` for the declaration `d`, keyed by its node id:
+// where the function comes from, a `CLibrary` or a `WasmInterface`. Null for
+// none.
+of_declaration :: fn<T>(d: LoweredFnDecl, by_declaration: Map<i64, T>) -> T | null {
     decl :: d.origin.decl
     if decl is FnDecl {
-        return libraries[decl.id]
+        return by_declaration[decl.id]
     }
     return null
 }

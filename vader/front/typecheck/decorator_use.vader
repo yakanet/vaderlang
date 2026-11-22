@@ -280,7 +280,7 @@ report_missing_fields :: fn(
 // Type the argument `value` of `d` against `expected`, the type of the field it
 // is bound to, null when it is bound to none. A field only the compiler's
 // decorators take is read where it means something (`guard.vader`,
-// `check_extern_library`) ; any other argument of one (`compiler`) is a literal.
+// `check_extern_source`) ; any other argument of one (`compiler`) is a literal.
 check_argument :: fn(
     d: AST.Decorator,
     compiler: bool,

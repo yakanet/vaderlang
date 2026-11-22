@@ -739,6 +739,10 @@ validate_extern_signature :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
+    if imports_from_interface(decl, typed) {
+        validate_interface_signature(decl, signature, typed, diags)
+        return
+    }
     params :: signature.params
     return_type :: signature.return_type
     for i in 0..<decl.params.len() {
@@ -857,6 +861,57 @@ validate_extern_signature :: fn(
     }
 }
 
+// The parameter and result types of `decl`, a function of a component interface:
+// each must have a WIT type, which the import's component type is derived from.
+validate_interface_signature :: fn(
+    decl: AST.FnDecl,
+    signature: FnType,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    enclosing :: Set<i32> {}
+    for i in 0..<decl.params.len() {
+        if !has_wit_type(signature.params[i], typed, enclosing) {
+            detail :: "a function of an interface takes types WIT describes, got `${display_type(signature.params[i])}`"
+            diags.push(typecheck_error(.InvalidExternDecl, decl.params[i].span, detail))
+        }
+    }
+    result :: signature.return_type
+    if !is_void(result) && !has_wit_type(result, typed, enclosing) {
+        detail :: "a function of an interface returns a type WIT describes, or `void`, got `${display_type(signature.return_type)}`"
+        diags.push(typecheck_error(.InvalidExternDecl, return_type_span(decl), detail))
+    }
+}
+
+// Whether `t` has a WIT type: a number, `bool`, `char` and `string` are
+// themselves, a struct is a `record` of its fields, an array a `list`. A struct
+// met again inside itself has none: a WIT type cannot contain itself.
+// `enclosing` holds the structs being walked.
+has_wit_type :: fn(t: Type, typed: TypedProgram, enclosing: Set<i32>) -> bool {
+    // @partial: the types WIT has a counterpart for are listed, every other
+    // variant has none yet.
+    @partial match t {
+        is UnresolvedType -> { return true }
+        is PrimitiveType  -> { return t.name != TY_VOID.name && t.name != TY_NULL.name }
+        is RangeType -> { return is_machine_range(t) }
+        is ArrayType -> { return has_wit_type(t.element, typed, enclosing) }
+        is StructType -> {
+            fields :: typed.struct_fields[t.symbol.id] else return false
+            if !enclosing.add(t.symbol.id) {
+                return false
+            }
+            for [_, field] in fields {
+                if !has_wit_type(field.ty, typed, enclosing) {
+                    return false
+                }
+            }
+            enclosing.remove(t.symbol.id)
+            return true
+        }
+        _ -> { return false }
+    }
+}
+
 // The parameters `decl` passes through the `...` of its C prototype. They close
 // the list, after at least one fixed parameter, and each is declared as C
 // receives it. The header a variadic needs is checked once its library is
@@ -944,9 +999,10 @@ narrower_than_int :: fn(bits: i64) -> string {
     return ""
 }
 
-/// Check the library an `@extern` names, and record the constant in
-/// `typed.extern_libraries` when it is a `CLibrary` one: T3050 for a library
-/// that is not a named constant, or one of another type.
+/// Check where an `@extern` comes from, and record the constant it names in
+/// `typed.extern_libraries` for a `CLibrary`, in `typed.extern_interfaces` for a
+/// `WasmInterface`: T3050 for a source that is not a named constant of one of
+/// these types.
 ///
 /// Runs after the module's bodies are walked, so a constant declared without a
 /// type has the one its value gave it.
@@ -954,15 +1010,15 @@ narrower_than_int :: fn(bits: i64) -> string {
 /// @param decl   a function declaration.
 /// @param typed  the module.
 /// @param diags  where a refusal goes.
-export check_extern_library :: fn(
+export check_extern_source :: fn(
     decl: AST.FnDecl,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
     written :: AST.find_compiler_decorator(decl.decorators, .Extern) else return
-    argument :: AST.extern_arguments(written).library else return
+    argument :: AST.extern_arguments(written).from else return
     if argument !is AST.IdentExpr {
-        detail :: "the library is a `CLibrary` constant, as in `@extern(RAYLIB, \"InitWindow\")`"
+        detail :: "the source is a `CLibrary` or a `WasmInterface` constant, as in `@extern(RAYLIB, \"InitWindow\")`"
         diags.push(typecheck_error(.InvalidExternDecl, argument.span, detail))
         return
     }
@@ -970,7 +1026,7 @@ export check_extern_library :: fn(
     named :: typed.resolved.idents[argument.span.hash()] else return
     symbol :: declared_symbol(named, typed)
     if symbol.kind != .Const {
-        detail :: "`${argument.name}` is not a constant ; the library is a `CLibrary` constant"
+        detail :: "`${argument.name}` is not a constant ; the source is a `CLibrary` or a `WasmInterface` constant"
         diags.push(typecheck_error(.InvalidExternDecl, argument.span, detail))
         return
     }
@@ -979,12 +1035,27 @@ export check_extern_library :: fn(
     if t is UnresolvedType {
         return
     }
-    if !is_c_library(t) {
-        detail :: "`${argument.name}` is a `${display_type(t)}`, not a `CLibrary`"
+    if is_c_library(t) {
+        typed.extern_libraries[decl.id] = symbol
+    } else if is_wasm_interface(t) {
+        typed.extern_interfaces[decl.id] = symbol
+    } else {
+        detail :: "`${argument.name}` is a `${display_type(t)}`, not a `CLibrary` or a `WasmInterface`"
         diags.push(typecheck_error(.InvalidExternDecl, argument.span, detail))
-        return
     }
-    typed.extern_libraries[decl.id] = symbol
+}
+
+// Whether the `@extern` `decl` comes from a `WasmInterface` constant, whose
+// function a WASM build imports, rather than from a C library. Quiet:
+// `check_extern_source` reports a source that is no such constant.
+imports_from_interface :: fn(decl: AST.FnDecl, typed: TypedProgram) -> bool {
+    written :: AST.find_compiler_decorator(decl.decorators, .Extern) else return false
+    argument :: AST.extern_arguments(written).from else return false
+    if argument !is AST.IdentExpr {
+        return false
+    }
+    named :: typed.resolved.idents[argument.span.hash()] else return false
+    return is_wasm_interface(type_of_symbol(declared_symbol(named, typed), typed))
 }
 
 // The written result type, or the whole declaration when the type is inferred.

@@ -1,0 +1,1 @@
+[12:11] error[T3050] invalid `@extern` declaration: a function of an interface takes types WIT describes, got `i64 | null`

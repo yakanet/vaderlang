@@ -1,0 +1,8 @@
+// T3050: where an `@extern` comes from is a `CLibrary` or a `WasmInterface`
+// constant; a string naming a library is refused.
+module "snippet"
+
+@extern("c", "abs")
+c_abs :: fn(x: i32) -> i32
+
+main :: fn() -> i32 { return c_abs(-1) }

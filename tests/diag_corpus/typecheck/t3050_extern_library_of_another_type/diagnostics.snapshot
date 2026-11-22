@@ -1,1 +1,0 @@
-[6:9] error[T3050] invalid `@extern` declaration: `NOT_A_LIBRARY` is a `i32`, not a `CLibrary`

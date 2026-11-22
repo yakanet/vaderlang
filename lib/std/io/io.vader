@@ -6,9 +6,11 @@
 
 module "std/io"
 
+import "std/abort"
 Wait :: import "std/runtime/wait"
 import "std/time"
 import "system/posix"
+import "system/wasi"
 import "system/windows"
 
 /// What went wrong, classified so a caller can branch on it without
@@ -122,11 +124,18 @@ last_io_error :: fn(msg: string) -> IOError = io_error_of(sys_last_errno(), msg)
 @target(.Windows)
 last_io_error :: fn(msg: string) -> IOError = io_error_of(i32(get_last_error()), msg)
 
+// A WASI call returns its error in its result, which `io_error_of` classifies:
+// nothing keeps a last one to read.
+@target(.Wasi)
+last_io_error :: fn(msg: string) -> IOError =
+    panic("WASI keeps no last error, `${msg}` comes from the failed call's result")
+
 /// The failure the system names by `code`, wrapped as an `IOError`: for a code
 /// read some other way than as the last error, a socket's pending one say.
 ///
 /// @param code  the raw platform value: an `errno` on POSIX, a `GetLastError`
-///              code on Windows.
+///              code on Windows, the index of a `wasi:filesystem` `error-code`
+///              variant on WASI.
 /// @param msg   fallback diagnostic, as `last_io_error` takes it.
 /// @return      the reason, its portable classification, and `code`.
 @target
@@ -139,6 +148,10 @@ io_error_of :: fn(code: i32, msg: string) -> IOError =
 @target(.Windows)
 io_error_of :: fn(code: i32, msg: string) -> IOError =
     classified_error(msg, win32_error_kind(u32(code)), code)
+
+@target(.Wasi)
+io_error_of :: fn(code: i32, msg: string) -> IOError =
+    classified_error(msg, wasi_error_kind(code), code)
 
 /// Null when the system call whose outcome is `succeeded` worked, else the
 /// error it left, as `last_io_error` reads it.
@@ -191,6 +204,24 @@ errno_kind :: fn(e: i32) -> IOErrorKind {
     if e == ETIMEDOUT     { return .TimedOut }
     if e == EMFILE        { return .NoDescriptor }
     if e == ENFILE        { return .NoDescriptor }
+    return .Other
+}
+
+// The classification of the `wasi:filesystem` `error-code` variant `e`, an `if`
+// chain as `errno_kind` is.
+wasi_error_kind :: fn(e: i32) -> IOErrorKind {
+    if e == WASI_NO_ENTRY           { return .NotFound }
+    if e == WASI_ACCESS             { return .PermissionDenied }
+    if e == WASI_NOT_PERMITTED      { return .PermissionDenied }
+    if e == WASI_INTERRUPTED        { return .Interrupted }
+    if e == WASI_EXIST              { return .AlreadyExists }
+    if e == WASI_NOT_DIRECTORY      { return .NotADirectory }
+    if e == WASI_IS_DIRECTORY       { return .IsADirectory }
+    if e == WASI_PIPE               { return .BrokenPipe }
+    if e == WASI_INSUFFICIENT_SPACE { return .NoSpace }
+    if e == WASI_INVALID            { return .InvalidInput }
+    if e == WASI_NOT_EMPTY          { return .DirectoryNotEmpty }
+    if e == WASI_BAD_DESCRIPTOR     { return .BadHandle }
     return .Other
 }
 

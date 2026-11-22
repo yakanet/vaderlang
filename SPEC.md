@@ -53,7 +53,7 @@ The compiled program runs in one of two ways:
 - on the Vader virtual machine, with `vader run` and `vader test`;
 - as a native binary, through generated C and the system C compiler, with `vader build`.
 
-A WebAssembly target is planned (§17). The command line is described in `docs/TOOLING.md`.
+A WebAssembly target is under way (§17 *WebAssembly*). The command line is described in `docs/TOOLING.md`.
 
 ### Run-time checks
 
@@ -2987,7 +2987,7 @@ Every value that is not a primitive (a struct, an array, the contents of a strin
 
 ### GC backends
 
-Each backend provides the collector. A native binary carries its own, described in [`docs/RUNTIME.md`](./docs/RUNTIME.md) *Memory*. On the WebAssembly backend (planned, §17), the WebAssembly host is to collect the values, through the WebAssembly GC proposal.
+Each backend provides the collector. A native binary carries its own, described in [`docs/RUNTIME.md`](./docs/RUNTIME.md) *Memory*. On the WebAssembly backend (§17 *WebAssembly*), the WebAssembly host is to collect the values, through the WebAssembly GC proposal.
 
 ### Storage semantics
 
@@ -3618,7 +3618,7 @@ list_users :: fn() -> string = "users"
 - It is written only at a place its declaration names. A top-level function is a `Function`, a function declared in a trait a `TraitMember`, one declared in an `implements` block an `ImplMember`; a struct (a decorator declaration included) a `Struct`; a struct field a `Field`; an enum an `Enum`; an enum variant a `Variant`; a function parameter a `Parameter`; a trait a `Trait`; an `implements` block an `Implementation`; a module constant a `Constant`; a type alias an `Alias`; an import an `Import`; a module a `Module`.
 - It is written once per declaration, unless its declaration says `repeatable = true`.
 - Each one builds a value of the decorator, every field filled: its arguments are computed where it is written, the way a constant is folded, and the fields it leaves out take their defaults. An argument the compiler cannot compute that way, such as a call to a function that runs a loop, is an error, unless it is written `@comptime`: it is then computed as the value of a `@comptime` constant, which runs any code, and a block is written there as after a constant's `@comptime`.
-- A name after `@` that names no decorator, or names a declaration that is not one, is an error. The compiler's decorators, declared in `std/core`, are written only at the places their declarations name and take their arguments as their fields say, like any other. They are read as written and never computed: each argument is a literal (a string without interpolation, a number, a boolean, an enum variant), except the library of `@extern`, a `CLibrary` constant, and the condition of `@returns`, `@ensures` and `@assert`. None of them is a value a program names.
+- A name after `@` that names no decorator, or names a declaration that is not one, is an error. The compiler's decorators, declared in `std/core`, are written only at the places their declarations name and take their arguments as their fields say, like any other. They are read as written and never computed: each argument is a literal (a string without interpolation, a number, a boolean, an enum variant), except where an `@extern` comes from, a `CLibrary` or `WasmInterface` constant, and the condition of `@returns`, `@ensures` and `@assert`. None of them is a value a program names.
 
 A decorator is written above a struct field as above a declaration, beside `@internal`, and above an enum variant, where no decorator of the compiler applies. On a function parameter it is written before the name, beside the compiler's `@c_*` of an `@extern`. Above the `module` line it decorates the module; when a module spans several files, each writes its own.
 
@@ -3729,8 +3729,8 @@ LIBM: CLibrary: CLibrary { .name = "", .headers = ["<math.h>"] }
 `@extern` takes 0 to 2 arguments:
 
 - without arguments, the symbol is the function's own name;
-- the first is the library, a `CLibrary` constant (below). Without one, the symbol is one the program links anyway, such as a C library function;
-- the symbol, a string, comes last, positional after a library or written `symbol = "..."`: the C linker symbol, or the name of the imported function on the planned WASM target (*Future WASM target*).
+- the first, `from`, is where the function comes from: a `CLibrary` constant (below), or a `WasmInterface` constant, the component interface a WASM build imports it from (*WASM imports*). Without one, the symbol is one the program links anyway, such as a C library function;
+- the symbol, a string, comes last, positional after `from` or written `symbol = "..."`: the C linker symbol, or the name of the function the interface exports.
 
 A free function without a body must be `@extern`. One whose parameters are types alone is a function type instead (*Type aliases*).
 
@@ -3739,7 +3739,7 @@ The following are errors:
 - a body;
 - more than two arguments;
 - a symbol that is not a plain string literal, an interpolated string included;
-- a library that is not a constant of type `CLibrary`;
+- a `from` that is not a constant of type `CLibrary` or `WasmInterface`;
 - two `@extern` declarations of one C symbol, even in two modules, unless both take their prototype from a header (*`@c_header`*).
 
 #### `CLibrary`: the library a binding calls
@@ -4081,9 +4081,32 @@ missing()          // stops the program, naming the symbol
 
 At compile time (§14), a call that needs an adapter (`docs/TOOLING.md` *`vader run`*) fails, naming the reason.
 
-### Future WASM target
+### WASM imports
 
-A WASM target is planned (§17 *Compilation Targets*). A program built for it is a WebAssembly component, and an `@extern` will name a function of an interface the component imports, such as `write-via-stream` of `wasi:cli/stdout`. How the interface is named is not designed yet, nor how a function is exposed to the host.
+A program built for WASM is a WebAssembly component (§17 *WebAssembly*). An `@extern` whose `from` is an interface is a function that component imports:
+
+```vader
+MONOTONIC_CLOCK :: WasmInterface {
+    .package = "wasi:clocks",
+    .name = "monotonic-clock",
+    .version = "0.3.0",
+}
+
+@extern(MONOTONIC_CLOCK, "now")
+monotonic_now :: fn() -> u64
+```
+
+A `WasmInterface` (`std/core`) names an interface as WIT writes it, `wasi:clocks/monotonic-clock@0.3.0` here. The compiler evaluates the constant at compile time, as it does a `CLibrary`.
+
+The function's signature gives the WIT type of the import. Each parameter and the result have a WIT counterpart:
+
+- a number, `bool` and `char` are the WIT scalar of the same width and signedness, `string` is `string`;
+- a struct is a `record` of its fields, an array a `list` of its elements;
+- a result of `void` means the function returns nothing.
+
+Any other type, or a struct that contains itself, is an error. A parameter's WIT name is its Vader name in kebab case: `how_long` is `how-long`.
+
+How a function is exposed to the host, beside the entry, is not designed yet.
 
 ---
 
@@ -4634,7 +4657,9 @@ A native build writes portable C, compiles it with the system C compiler (`docs/
 
 ### WebAssembly
 
-A WebAssembly backend is planned. The `wasi-wasm32` and `browser-wasm32` targets select `@target` bodies, which `vader check --target=wasi-wasm32` checks, but no build emits a module yet. A module will declare its imports with `@extern` (§13); how it exports a function is not designed yet.
+A build for `wasi-wasm32` writes a WebAssembly component that runs on a WASI 0.3 host, such as `wasmtime run`. It imports the interfaces its `@extern` declarations name (§13 *WASM imports*) and exports `wasi:cli/run`. Its `run` calls `main`, and the run succeeds when `main` returns nothing or 0, and fails otherwise: the exit code of a failed run is the host's, 1 under `wasmtime`.
+
+The backend translates part of the language so far, and a build stops, naming what it does not translate yet. The `browser-wasm32` target selects `@target` bodies, which `vader check --target=browser-wasm32` checks, but no build emits a module for it yet.
 
 ---
 
