@@ -9,8 +9,6 @@
 
 module "base64"
 
-import "std/string_builder"
-
 ALPHABET :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
 /// Encode raw bytes as a base64 string (standard alphabet, `=`-padded). The
@@ -19,41 +17,35 @@ ALPHABET :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 ///
 /// @param input  the raw bytes to encode.
 export encode :: fn(input: u8[]) -> string {
-    bs :: input
-    n :: bs.len()
-    sb :: StringBuilder {}
-    i: i64 = 0
-    for i + 3 <= n {
-        b0 :: u32(bs[i])
-        b1 :: u32(bs[i + 1])
-        b2 :: u32(bs[i + 2])
-        triple :: (b0 << 16) | (b1 << 8) | b2
-        sb.append_char(ALPHABET[i64((triple >> 18) & 0x3F)])
-        sb.append_char(ALPHABET[i64((triple >> 12) & 0x3F)])
-        sb.append_char(ALPHABET[i64((triple >> 6)  & 0x3F)])
-        sb.append_char(ALPHABET[i64(triple & 0x3F)])
-        i = i + 3
+    n :: input.len()
+    out: u8[]: [0] * ((n + 2) / 3 * 4)
+    whole :: n / 3
+    for t in 0..<whole {
+        i :: t * 3
+        o :: t * 4
+        triple :: (u32(input[i]) << 16) | (u32(input[i + 1]) << 8) | u32(input[i + 2])
+        out[o] = sextet(triple, 18)
+        out[o + 1] = sextet(triple, 12)
+        out[o + 2] = sextet(triple, 6)
+        out[o + 3] = sextet(triple, 0)
     }
-    // Tail : 1 or 2 leftover bytes need padding.
-    remainder :: n - i
-    if remainder == 1 {
-        b0 :: u32(bs[i])
-        triple :: b0 << 16
-        sb.append_char(ALPHABET[i64((triple >> 18) & 0x3F)])
-        sb.append_char(ALPHABET[i64((triple >> 12) & 0x3F)])
-        sb.append_char('=')
-        sb.append_char('=')
-    } else if remainder == 2 {
-        b0 :: u32(bs[i])
-        b1 :: u32(bs[i + 1])
-        triple :: (b0 << 16) | (b1 << 8)
-        sb.append_char(ALPHABET[i64((triple >> 18) & 0x3F)])
-        sb.append_char(ALPHABET[i64((triple >> 12) & 0x3F)])
-        sb.append_char(ALPHABET[i64((triple >> 6)  & 0x3F)])
-        sb.append_char('=')
+    // Tail : 1 or 2 leftover bytes, padded with `=` to a full quartet.
+    rest :: whole * 3
+    if rest < n {
+        two :: rest + 1 < n
+        second :: if two { u32(input[rest + 1]) << 8 } else { 0 }
+        triple :: (u32(input[rest]) << 16) | second
+        o :: whole * 4
+        out[o] = sextet(triple, 18)
+        out[o + 1] = sextet(triple, 12)
+        out[o + 2] = if two { sextet(triple, 6) } else { '=' }
+        out[o + 3] = '='
     }
-    return sb.to_string()
+    return out.bytes_to_string()
 }
+
+// The alphabet byte for the six bits of `triple` that start `shift` bits up.
+sextet :: fn(triple: u32, shift: u32) -> u8 = ALPHABET.byte_at(i64((triple >> shift) & 0x3F))
 
 /// Error returned by `decode` when the input violates RFC 4648.
 export Base64Error :: struct {

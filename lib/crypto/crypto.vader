@@ -21,7 +21,6 @@
 
 module "crypto"
 
-import "std/string_builder"
 import "std/math"
 import "std/numbers"
 
@@ -35,11 +34,10 @@ mask32 :: fn(x: u32) -> u32 = x & MASK_U32
 
 rotr32 :: fn(x: u32, n: u32) -> u32 = (x >> n) | mask32(x << (32 - n))
 
-append_hex_u8 :: fn(sb: StringBuilder, x: u8) -> void {
-    hi :: u64(x) >> 4
-    lo :: u64(x) & 0xF
-    sb.append_char(hex_digit(hi))
-    sb.append_char(hex_digit(lo))
+// Write the two lowercase hex digits of `x` at `out[at]` and `out[at + 1]`.
+put_hex_u8 :: fn(out: u8[], at: i64, x: u8) -> void {
+    out[at] = u8(hex_digit(u64(x) >> 4))
+    out[at + 1] = u8(hex_digit(u64(x) & 0xF))
 }
 
 // ---- SHA-256 --------------------------------------------------------------
@@ -133,9 +131,11 @@ append_u32_be :: fn(out: u8[], x: u32) -> void {
 /// @param bytes  the bytes to render.
 /// @return       a `2 * bytes.len()`-char lowercase hex string.
 export hex_of_bytes :: fn(bytes: u8[]) -> string {
-    sb :: StringBuilder {}
-    for b in bytes { append_hex_u8(sb, b) }
-    return sb.to_string()
+    out: u8[]: [0] * (bytes.len() * 2)
+    for i in 0..<bytes.len() {
+        put_hex_u8(out, i * 2, bytes[i])
+    }
+    return out.bytes_to_string()
 }
 
 /// HMAC-SHA256 (RFC 2104) of `msg` under `key`, as the raw 32-byte MAC.
@@ -303,20 +303,20 @@ export md5 :: fn(input: string) -> string {
     }
 
     // Output : a0, b0, c0, d0 as 16 bytes little-endian.
-    sb :: StringBuilder {}
-    append_hex_u32_le(sb, a0)
-    append_hex_u32_le(sb, b0)
-    append_hex_u32_le(sb, c0)
-    append_hex_u32_le(sb, d0)
-    return sb.to_string()
+    out: u8[]: [0] * 32
+    put_hex_u32_le(out, 0, a0)
+    put_hex_u32_le(out, 8, b0)
+    put_hex_u32_le(out, 16, c0)
+    put_hex_u32_le(out, 24, d0)
+    return out.bytes_to_string()
 }
 
 rotl32 :: fn(x: u32, n: u32) -> u32 = mask32(x << n) | (x >> (32 - n))
 
-append_hex_u32_le :: fn(sb: StringBuilder, x: u32) -> void {
+// Write the eight hex digits of `x`, its bytes low first, from `out[at]` on.
+put_hex_u32_le :: fn(out: u8[], at: i64, x: u32) -> void {
     for i in 0..<4 {
-        b :: u8((x >> u32(8 * i)) & 0xFF)
-        append_hex_u8(sb, b)
+        put_hex_u8(out, at + i * 2, u8((x >> u32(8 * i)) & 0xFF))
     }
 }
 
