@@ -109,7 +109,7 @@ export serve :: fn(
         // A connection keeps its options for as long as it is served: each is
         // handed a copy, which no other task holds.
         own :: options.deep_copy()
-        stop :: Stop {}
+        stop :: StopSignal {}
         serving.push(
             Connection {
                 .stream = stream,
@@ -159,7 +159,7 @@ patiently :: fn(accept: fn() -> TcpStream | IOError) -> TcpStream | IOError {
 // A connection, the task that serves it, and what stops it.
 Connection :: struct {
     stream: TcpStream
-    stop: Stop
+    stop: StopSignal
     task: Task<void>
 }
 
@@ -168,7 +168,7 @@ serve_stream :: fn(
     stream: TcpStream,
     handler: Handler | HandlerFn,
     options: ServeOptions,
-    stop: Stop,
+    stop: StopSignal,
 ) -> void {
     defer stream.close()
     pace :: Pace {
@@ -214,7 +214,7 @@ linger :: fn(stream: TcpStream, time: Duration | null) -> void {
 // request, `SERVING` one, or `STOPPED`, by `serve` or by its own limits. A
 // connection stopped as it waited is cancelled; one stopped as it served ends
 // after its exchange.
-Stop :: struct {
+StopSignal :: struct {
     state: AtomicInt = AtomicInt {}
 }
 
@@ -224,18 +224,18 @@ STOPPED: i64: 2
 
 // Whether the connection may wait for a request after the one it served:
 // not once it is stopped.
-waits :: fn(stop: Stop) -> bool =
+waits :: fn(stop: StopSignal) -> bool =
     stop.state.compare_and_set(SERVING, WAITING) || stop.state.load() == WAITING
 
 // Whether the connection may serve the request whose first byte came: not
 // once `serve` has stopped it.
-begins :: fn(stop: Stop) -> bool = stop.state.compare_and_set(WAITING, SERVING)
+begins :: fn(stop: StopSignal) -> bool = stop.state.compare_and_set(WAITING, SERVING)
 
 // Whether the exchange under way is the last of its connection.
-stopping :: fn(stop: Stop) -> bool = stop.state.load() == STOPPED
+stopping :: fn(stop: StopSignal) -> bool = stop.state.load() == STOPPED
 
 // Make the exchange under way the last of its connection.
-last :: fn(stop: Stop) -> void {
+last :: fn(stop: StopSignal) -> void {
     stop.state.compare_and_set(SERVING, STOPPED)
 }
 
@@ -593,7 +593,7 @@ test_a_client_that_keeps_its_side_open_is_given_its_time_to_close :: fn() -> voi
     accepted :: listener.accept() else return assert(false, "no connection: ${accepted.msg}")
     options :: ServeOptions { .timeouts = Timeouts { .linger = 50.millis() } }
     began :: monotonic()
-    serve_stream(accepted, naming, options, Stop {})
+    serve_stream(accepted, naming, options, StopSignal {})
     assert(began.since() >= 40.millis(), "the server waited for its client to close")
     assert(began.since() < 10.seconds(), "the server waited for its time, no more")
     assert_eq(rest_of(client), named("/a", true))
@@ -601,9 +601,9 @@ test_a_client_that_keeps_its_side_open_is_given_its_time_to_close :: fn() -> voi
     listener.close()
 }
 
-// A `Stop` as `serve` leaves it when it stops a connection.
-stopped :: fn() -> Stop {
-    stop :: Stop {}
+// A `StopSignal` as `serve` leaves it when it stops a connection.
+stopped :: fn() -> StopSignal {
+    stop :: StopSignal {}
     stop.state.store(STOPPED)
     return stop
 }
@@ -625,7 +625,7 @@ test_a_request_that_comes_as_the_server_stops_is_not_taken :: fn() -> void {
 
 @test
 test_the_exchange_under_way_as_the_server_stops_is_the_last :: fn() -> void {
-    stop :: Stop {}
+    stop :: StopSignal {}
     // The server stops while the handler runs, as `halt` does.
     halting :: fn(request: Request) -> Response {
         stop.state.compare_and_set(SERVING, STOPPED)
@@ -658,7 +658,7 @@ test_a_connection_cut_before_it_was_served_is_closed :: fn() -> void {
     client :: calling(address) else return
     accepted :: listener.accept() else return assert(false, "no connection: ${accepted.msg}")
     // Nothing parks between the launch and the cut: the task has not started.
-    stop :: Stop {}
+    stop :: StopSignal {}
     cut(
         [
             Connection {

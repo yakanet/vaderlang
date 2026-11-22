@@ -61,7 +61,7 @@ Deadlines :: trait {
 Pace :: struct {
     deadlines: Deadlines
     timeouts: Timeouts
-    stop: Stop = Stop {}
+    stop: StopSignal = StopSignal {}
     requests: i64 | null = null
 }
 
@@ -125,7 +125,7 @@ StallingReader implements Reader {
 stalled_after :: fn(
     wire: string,
     handler: Handler | HandlerFn,
-    stop: Stop = Stop {},
+    stop: StopSignal = StopSignal {},
 ) -> Served = paced_by(
     wire,
     handler,
