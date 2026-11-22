@@ -7,6 +7,7 @@
 
 module "vader/core/types"
 
+import "std/iter"
 import "vader/core/mangle"
 import "vader/core/symbol"
 import "vader/support/integer"
@@ -212,6 +213,24 @@ export is_core_struct :: fn(t: StructType, name: string) -> bool =
 /// @param t  the candidate type.
 export is_c_library :: fn(t: Type) -> bool = t is StructType && is_core_struct(t, STRUCT_C_LIBRARY)
 
+/// Whether `t` is `std/core`'s `WasmInterface`, the struct a WASM binding names
+/// the component interface it imports with.
+///
+/// @param t  the candidate type.
+export is_wasm_interface :: fn(t: Type) -> bool =
+    t is StructType && is_core_struct(t, STRUCT_WASM_INTERFACE)
+
+/// Whether `t` says where an `@extern` comes from: a `CLibrary`, a
+/// `WasmInterface`, or a union of both, the type of `@extern`'s `from`.
+///
+/// @param t  the candidate type.
+export is_extern_source :: fn(t: Type) -> bool {
+    if t is UnionType {
+        return t.variants.all_match((v) -> is_c_library(v) || is_wasm_interface(v))
+    }
+    return is_c_library(t) || is_wasm_interface(t)
+}
+
 /// The argument of `t` when it is the one-argument `std/core` trait `name`:
 /// `E` for `Iterator<E>`.
 ///
@@ -253,6 +272,9 @@ export STRUCT_STOP: string: @type_name(Stop)
 
 /// `std/core::CLibrary`, the library an `@extern` names.
 export STRUCT_C_LIBRARY: string: @type_name(CLibrary)
+
+/// `std/core::WasmInterface`, the component interface an `@extern` names.
+export STRUCT_WASM_INTERFACE: string: @type_name(WasmInterface)
 
 /// `std/core::Condition`, an expression a compiler decorator reads as written.
 export STRUCT_CONDITION: string: @type_name(Condition)

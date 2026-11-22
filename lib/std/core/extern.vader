@@ -1,9 +1,11 @@
-// std/core/c_library: what a binding declares about the C library it calls.
+// std/core/extern: where the function of an `@extern` comes from.
 //
-// A `CLibrary` constant names a library once; each `@extern` that comes from it
-// names the constant (`@extern(RAYLIB, "InitWindow")`). The compiler evaluates
-// the constant when it builds, so its fields may depend on the target through
-// `VADER_OS` and `VADER_ARCH`. Part of `std/core`: no import names it.
+// A `CLibrary` names a C library once, a `WasmInterface` a component interface;
+// each `@extern` that comes from one names the constant as its `from`
+// (`@extern(RAYLIB, "InitWindow")`, `@extern(MONOTONIC_CLOCK, "now")`). The
+// compiler evaluates the constant when it builds, so its fields may depend on
+// the target through `VADER_OS` and `VADER_ARCH`. Part of `std/core`: no import
+// names it.
 
 module "std/core"
 
@@ -32,4 +34,17 @@ export CLibrary :: struct {
     /// What the platform provides: a library by name (`"GL"` links `-lGL`), or an
     /// Apple framework by its bundle name (`"Cocoa.framework"`).
     system: string[] = []
+}
+
+/// An interface of the component model, as WIT names it:
+/// `wasi:clocks/monotonic-clock@0.3.0` is the package `wasi:clocks`, the
+/// interface `monotonic-clock` and the version `0.3.0`.
+///
+/// A WASM build imports it into the component it writes, and the signature of
+/// each `@extern` from it gives the type of the function it imports.
+export WasmInterface :: struct {
+    /// The namespace and the package, `wasi:clocks`.
+    package: string
+    name: string
+    version: string
 }

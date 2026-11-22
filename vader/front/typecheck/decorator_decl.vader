@@ -133,8 +133,9 @@ export decorator_target_type :: fn(typed: TypedProgram) -> Type | null {
 }
 
 // Whether `t` is a field type only the compiler's decorators take, each read as
-// written: a `Condition`, the `Around` of `@interceptor`, the `CLibrary` of `@extern`.
-is_compiler_field_type :: fn(t: Type) -> bool = is_c_library(t)
+// written: a `Condition`, the `Around` of `@interceptor`, where an `@extern` comes
+// from.
+is_compiler_field_type :: fn(t: Type) -> bool = is_extern_source(t)
     || (t is StructType && (is_core_struct(t, STRUCT_CONDITION) || is_core_struct(t, STRUCT_AROUND)))
 
 // Whether a value of `t` is one the compiler can hold at compile time: a scalar, a
