@@ -1,0 +1,431 @@
+// http/client: the requests of one connection, sent one after the other.
+//
+// The pendant of server.vader. A response is read from where the one before it
+// ended, so the body of the one before is read to its end first, or the
+// connection carries nothing more: what the caller left of it, `send` reads
+// past, as the server does the body of a request. A body is read while its
+// response is the last of its connection, and fails after.
+//
+// A request that expects `100 Continue` sends its head alone, then waits for
+// the server: a `100` lets the content go, a final response spares it, and the
+// connection ends after that response.
+// docs/adr/0169-a-client-connection-settles-a-response-before-the-next-request.md
+// has the reasons.
+
+module "http"
+
+import "std/io"
+
+// ---- the connection -------------------------------------------------------
+
+/// A connection to a server, which carries requests one after the other.
+///
+/// @example
+///   # import "std/io"
+///   wire :: "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello"
+///   connection :: ClientConnection {
+///       .reader = BytesReader { .content = wire },
+///       .writer = BytesWriter {},
+///   }
+///   request :: Request { .method = .Get, .target = "/" }
+///   request.headers.set("Host", "example.org")
+///   response :: connection.send(request)
+export ClientConnection :: struct {
+    /// Where the responses are read. Nothing else reads it.
+    reader: Reader
+    /// Where the requests are written. What it is given must go out at once
+    /// and not be gathered: the server may wait for it.
+    writer: Writer
+    /// How much of a response is read before it is refused, and how much of a
+    /// body left unread is read past.
+    limits: Limits = Limits {}
+    @internal
+    state: ClientState = ClientState {}
+}
+
+// What a connection has come to between two of its requests.
+ClientState :: struct {
+    // Where the responses are read, once the first request went out.
+    source: BufferedReader | null = null
+    // The body of the last response, while it is not settled.
+    open: ClientBody | null = null
+    // Why the connection carries no further request; null while it does.
+    ended: string | null = null
+}
+
+// How many interim responses a request is read past: a server that sends
+// nothing else is not waited for.
+INTERIM_RESPONSES_READ: i64: 64
+
+/// Send `request` on `connection` and read the head of its response.
+///
+/// The body of the response is read from `Response.body`, to its end or until
+/// `close`: sending the next request reads past what is left of it, up to
+/// `limits.unread_body`, and a body read after the next request fails.
+///
+/// Interim responses are read past, but `101 Switching Protocols`, after which
+/// the connection carries no HTTP: the response returned is final. A request
+/// that expects `100 Continue` and declares its length sends its head alone,
+/// then its content once the server answers `100`; a final response that comes
+/// first spares the content, and is returned.
+///
+/// No step is given a limit of time: a `Reader` waits for as long as its
+/// source does.
+///
+/// @param connection  what carries the request.
+/// @param request     what is asked. Of HTTP/1.1, it names its host once
+///                    (`Host`); its framing is this function's, and a
+///                    `Transfer-Encoding` field is refused.
+/// @return            the final response, its body still to read.
+/// @error             `HttpError` of `.ConnectionEnded` when the connection
+///                    carries no further request: a response ended it, or the
+///                    body before could not be read past. Of the other kinds
+///                    when the request cannot be written as it is, or the
+///                    response cannot be read: the connection then ends,
+///                    unless nothing of the request went out.
+export send :: fn(connection: ClientConnection, request: Request) -> Response | HttpError {
+    state :: connection.state
+    open :: state.open
+    if open != null {
+        open.settle()
+    }
+    ended :: state.ended
+    if ended != null {
+        return HttpError { .kind = .ConnectionEnded, .msg = ended }
+    }
+    source :: connection.source_of()
+    out :: CountingWriter { .sink = connection.writer }
+    if awaits_continue(request) {
+        early :: write_awaiting(out, source, request, connection.limits) else is HttpError {
+            return connection.failed(early, out.count > 0)
+        }
+        if early != null {
+            state.ended = "the server answered before the content of the request was sent"
+            return connection.opened(request, early)
+        }
+    } else {
+        written :: write_request(out, request) else is HttpError {
+            return connection.failed(written, out.count > 0)
+        }
+    }
+    response :: read_answer(source, request, connection.limits, false) else is HttpError {
+        return connection.failed(response, true)
+    }
+    return connection.opened(request, response)
+}
+
+/// Close the body of `response`: what is left of it is read and dropped, up to
+/// the `unread_body` of its connection's limits, and the body fails from then
+/// on. Past that limit, or when the body fails, the connection carries no
+/// further request.
+///
+/// A response that is not from a `ClientConnection` is left as it is.
+///
+/// @param response  a response `send` returned.
+export close :: fn(response: Response) -> void {
+    body :: response.body
+    if body is ClientBody {
+        body.settle()
+    }
+}
+
+// The reader of `connection`, buffered once for all its responses.
+source_of :: fn(connection: ClientConnection) -> BufferedReader {
+    state :: connection.state
+    source :: state.source
+    if source != null {
+        return source
+    }
+    made :: BufferedReader { .source = connection.reader }
+    state.source = made
+    return made
+}
+
+// `error`, the connection ended when some of the exchange went out: where the
+// next response would start is not known.
+failed :: fn(connection: ClientConnection, error: HttpError, began: bool) -> HttpError {
+    if began {
+        connection.state.ended = error.msg
+    }
+    return error
+}
+
+// Write `request`, which holds its content back until the server asks for it:
+// its head, then its content once a `100 Continue` comes. A final response
+// that comes first is returned, the content left unsent; null once the content
+// went.
+write_awaiting :: fn(
+    writer: Writer,
+    source: BufferedReader,
+    request: Request,
+    limits: Limits,
+) -> Response | null | HttpError {
+    head :: request_head(request) else return head
+    length :: content_length(request.headers.get_all(CONTENT_LENGTH)) else return length
+    sent_head :: send_head(writer, head, null) else is HttpError { return sent_head }
+    answer :: read_answer(source, request, limits, true) else return answer
+    if answer.status != STATUS_CONTINUE {
+        return answer
+    }
+    return copy_counted(writer, request.body, [0] * COPY_CHUNK, length)
+}
+
+// `response` to `request` as the caller reads it: its body tied to the
+// connection, which ends with it when the exchange says so.
+opened :: fn(connection: ClientConnection, request: Request, response: Response) -> Response {
+    state :: connection.state
+    if state.ended == null && !persists(request, response) {
+        state.ended = "the last response ended the connection"
+    }
+    body :: ClientBody { .body = response.body, .connection = connection }
+    state.open = body
+    return Response { ...response, .body = body }
+}
+
+// The next response to `request` but the interim ones before it, which are
+// read past: a final response, or `101`. With `continuing`, a `100 Continue`
+// is returned too.
+read_answer :: fn(
+    source: BufferedReader,
+    request: Request,
+    limits: Limits,
+    continuing: bool,
+) -> Response | HttpError {
+    for _ in 0..<INTERIM_RESPONSES_READ {
+        response :: read_response(source, request, limits) else return response
+        if continuing && response.status == STATUS_CONTINUE {
+            return response
+        }
+        if !is_interim(response.status) || response.status == STATUS_SWITCHING_PROTOCOLS {
+            return response
+        }
+    }
+    return malformed("a server sends a final response after ${INTERIM_RESPONSES_READ} interim ones")
+}
+
+// ---- bodies ---------------------------------------------------------------
+
+// The body of a response as its caller holds it: read until the next request
+// of its connection, and never after. A read that failed ends the connection:
+// where the next response starts is not known.
+ClientBody :: struct {
+    body: Reader
+    connection: ClientConnection
+    over: bool = false
+}
+
+ClientBody implements Reader {
+    read :: fn(self, into: u8[]) -> i64 | null | IOError {
+        if self.over {
+            return IOError {
+                .msg = "the body of a response is read before the next request, not after",
+            }
+        }
+        got :: self.body.read(into)
+        if got is IOError {
+            self.connection.state.ended = "the body of the last response failed: ${got.msg}"
+        }
+        return got
+    }
+}
+
+// Read past what is left of `body` and end it: the connection carries no
+// further request when that could not be done.
+settle :: fn(body: ClientBody) -> void {
+    if body.over {
+        return
+    }
+    body.over = true
+    connection :: body.connection
+    state :: connection.state
+    state.open = null
+    if state.ended == null && !drain(body.body, connection.limits) {
+        state.ended = "the body of the last response was left unread, and was too long to read past or failed"
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/string"
+import "std/string_builder"
+import "std/testing"
+
+// A connection to a server that answers `wire`, whatever it is asked.
+answering :: fn(wire: string, limits: Limits = Limits {}) -> ClientConnection = ClientConnection {
+    .reader = BytesReader { .content = wire },
+    .writer = WriteLog {},
+    .limits = limits,
+}
+
+// What `connection` wrote, `between` between two writes.
+written_by :: fn(connection: ClientConnection, between: string = "") -> string {
+    writer :: connection.writer
+    if writer is WriteLog {
+        return writer.writes.join(between)
+    }
+    return ""
+}
+
+// The status and the body of `response`, or the kind of the error.
+seen :: fn(response: Response | HttpError) -> string {
+    if response is HttpError {
+        return "${response.kind}"
+    }
+    return "${u16(response.status)} ${text_of(response.body)}"
+}
+
+OK_HELLO :: "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello"
+OK_BYE   :: "HTTP/1.1 200 OK\r\nContent-Length: 3\r\n\r\nbye"
+
+@test
+test_a_request_is_written_and_its_response_read :: fn() -> void {
+    connection :: answering(OK_HELLO)
+    assert_eq(seen(connection.send(request_for(.Get, "/a"))), "200 hello")
+    assert_eq(written_by(connection), "GET /a HTTP/1.1\r\nHost: example.org\r\n\r\n")
+}
+
+@test
+test_responses_follow_each_other_on_one_connection :: fn() -> void {
+    connection :: answering(OK_HELLO + OK_BYE)
+    assert_eq(seen(connection.send(request_for(.Get, "/a"))), "200 hello")
+    assert_eq(seen(connection.send(request_for(.Get, "/b"))), "200 bye")
+}
+
+@test
+test_a_body_left_unread_is_read_past_by_the_next_request :: fn() -> void {
+    connection :: answering(OK_HELLO + OK_BYE)
+    first :: connection.send(request_for(.Get, "/a"))
+    assert(first is Response, "the first response is read")
+    assert_eq(seen(connection.send(request_for(.Get, "/b"))), "200 bye")
+}
+
+@test
+test_a_body_read_after_the_next_request_fails :: fn() -> void {
+    connection :: answering(OK_HELLO + OK_BYE)
+    first :: connection.send(request_for(.Get, "/a")) else panic("the first response is read")
+    connection.send(request_for(.Get, "/b"))
+    assert(first.body.read([0] * 8) is IOError, "the body of the first response is over")
+}
+
+@test
+test_a_response_body_too_long_to_read_past_ends_the_connection :: fn() -> void {
+    connection :: answering(OK_HELLO + OK_BYE, Limits { .unread_body = 2 })
+    connection.send(request_for(.Get, "/a"))
+    assert_eq(seen(connection.send(request_for(.Get, "/b"))), "ConnectionEnded")
+    assert_eq(written_by(connection), "GET /a HTTP/1.1\r\nHost: example.org\r\n\r\n")
+}
+
+@test
+test_a_closed_body_fails_and_the_connection_goes_on :: fn() -> void {
+    connection :: answering(OK_HELLO + OK_BYE)
+    first :: connection.send(request_for(.Get, "/a")) else panic("the first response is read")
+    first.close()
+    assert(first.body.read([0] * 8) is IOError, "a closed body fails")
+    assert_eq(seen(connection.send(request_for(.Get, "/b"))), "200 bye")
+}
+
+@test
+test_interim_responses_are_read_past :: fn() -> void {
+    hints :: "HTTP/1.1 103 Early Hints\r\nLink: </a.css>\r\n\r\n"
+    connection :: answering(hints + "HTTP/1.1 100 Continue\r\n\r\n" + OK_HELLO)
+    assert_eq(seen(connection.send(request_for(.Get, "/a"))), "200 hello")
+}
+
+@test
+test_a_server_that_sends_only_interim_responses_is_refused :: fn() -> void {
+    hints :: StringBuilder {}
+    for _ in 0..<INTERIM_RESPONSES_READ + 1 {
+        hints.append("HTTP/1.1 103 Early Hints\r\n\r\n")
+    }
+    connection :: answering(hints.to_string())
+    assert_eq(seen(connection.send(request_for(.Get, "/a"))), "Malformed")
+    assert_eq(seen(connection.send(request_for(.Get, "/b"))), "ConnectionEnded")
+}
+
+@test
+test_a_response_that_says_close_ends_the_connection :: fn() -> void {
+    closing :: "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Length: 5\r\n\r\nhello"
+    connection :: answering(closing + OK_BYE)
+    assert_eq(seen(connection.send(request_for(.Get, "/a"))), "200 hello")
+    assert_eq(seen(connection.send(request_for(.Get, "/b"))), "ConnectionEnded")
+    assert_eq(written_by(connection), "GET /a HTTP/1.1\r\nHost: example.org\r\n\r\n")
+}
+
+@test
+test_a_response_with_no_length_is_read_to_the_end_of_the_connection :: fn() -> void {
+    connection :: answering("HTTP/1.1 200 OK\r\n\r\nall that follows")
+    assert_eq(seen(connection.send(request_for(.Get, "/a"))), "200 all that follows")
+    assert_eq(seen(connection.send(request_for(.Get, "/b"))), "ConnectionEnded")
+}
+
+@test
+test_a_request_refused_before_it_went_out_leaves_the_connection_whole :: fn() -> void {
+    connection :: answering(OK_HELLO)
+    nameless :: Request { .method = .Get, .target = "/a" }
+    assert_eq(seen(connection.send(nameless)), "Malformed")
+    assert_eq(seen(connection.send(request_for(.Get, "/a"))), "200 hello")
+}
+
+@test
+test_a_response_cut_short_ends_the_connection :: fn() -> void {
+    connection :: answering("HTTP/1.1 200 OK\r\nContent-Le")
+    assert_eq(seen(connection.send(request_for(.Get, "/a"))), "Incomplete")
+    assert_eq(seen(connection.send(request_for(.Get, "/b"))), "ConnectionEnded")
+}
+
+// A `PUT` of `content` to `/a` that waits for `100 Continue`.
+put_expecting :: fn(content: string) -> Request {
+    request :: new_request(.Put, "/a", content)
+    request.headers.set(HOST, "example.org")
+    request.headers.set(EXPECT, EXPECTS_CONTINUE)
+    return request
+}
+
+@test
+test_a_request_that_expects_continue_sends_its_content_once_told :: fn() -> void {
+    connection :: answering("HTTP/1.1 100 Continue\r\n\r\n" + OK_HELLO)
+    assert_eq(seen(connection.send(put_expecting("data"))), "200 hello")
+    head :: "PUT /a HTTP/1.1\r\nContent-Length: 4\r\nHost: example.org\r\nExpect: 100-continue\r\n\r\n"
+    assert_eq(written_by(connection, "|"), head + "|data")
+}
+
+@test
+test_a_final_response_before_continue_spares_the_content :: fn() -> void {
+    refusal :: "HTTP/1.1 417 Expectation Failed\r\nContent-Length: 0\r\n\r\n"
+    connection :: answering(refusal + OK_BYE)
+    assert_eq(seen(connection.send(put_expecting("data"))), "417 ")
+    assert(!written_by(connection, "|").contains("data"), "the content stays")
+    assert_eq(seen(connection.send(request_for(.Get, "/b"))), "ConnectionEnded")
+}
+
+@test
+test_a_body_that_looks_like_a_response_is_never_read_as_one :: fn() -> void {
+    smuggled :: "HTTP/1.1 200 OK\r\nContent-Length: 8\r\n\r\nsmuggled"
+    first :: "HTTP/1.1 200 OK\r\nContent-Length: ${smuggled.byte_len()}\r\n\r\n${smuggled}"
+    taken: i64[]: [0, 1, 20, smuggled.byte_len()]
+    for size in CUTS {
+        for read in taken {
+            connection :: ClientConnection {
+                .reader = cut(first + OK_BYE, size),
+                .writer = WriteLog {},
+            }
+            response :: connection.send(
+                request_for(.Get, "/a"),
+            ) else panic("the first response is read")
+            if read > 0 {
+                response.body.read([0] * read)
+            }
+            assert_eq(seen(connection.send(request_for(.Get, "/b"))), "200 bye")
+        }
+    }
+}
+
+@test
+test_a_body_that_failed_ends_the_connection :: fn() -> void {
+    broken :: "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\nnot a chunk\r\n"
+    connection :: answering(broken + OK_BYE)
+    response :: connection.send(request_for(.Get, "/a")) else panic("the head is read")
+    assert(response.body.read([0] * 8) is IOError, "the chunk is refused")
+    assert_eq(seen(connection.send(request_for(.Get, "/b"))), "ConnectionEnded")
+}

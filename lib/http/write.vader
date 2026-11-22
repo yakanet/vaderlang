@@ -44,15 +44,7 @@ import "std/string_builder"
 // for a body shorter than the length declared, `.Transport` when the body
 // cannot be read or `writer` fails.
 write_request :: fn(writer: Writer, request: Request) -> null | HttpError {
-    if !is_target(request.target.bytes()) {
-        return malformed("the request target is empty or holds a byte no URI has")
-    }
-    if request.version == .Http11 && request.headers.get_all(HOST).len() != 1 {
-        return malformed("an HTTP/1.1 request names its host once")
-    }
-    head :: StringBuilder {}
-    head.append("${request.method} ${request.target} ${request.version}\r\n")
-    fields :: append_fields(head, request.headers, false) else is HttpError { return fields }
+    head :: request_head(request) else return head
     return write_framed(
         writer,
         head,
@@ -64,6 +56,21 @@ write_request :: fn(writer: Writer, request: Request) -> null | HttpError {
             .content_awaited = request.headers.lists(EXPECT, EXPECTS_CONTINUE),
         },
     )
+}
+
+// The head of `request`, its line and its fields, checked: what frames the body
+// is still to add.
+request_head :: fn(request: Request) -> StringBuilder | HttpError {
+    if !is_target(request.target.bytes()) {
+        return malformed("the request target is empty or holds a byte no URI has")
+    }
+    if request.version == .Http11 && request.headers.get_all(HOST).len() != 1 {
+        return malformed("an HTTP/1.1 request names its host once")
+    }
+    head :: StringBuilder {}
+    head.append("${request.method} ${request.target} ${request.version}\r\n")
+    fields :: append_fields(head, request.headers, false) else is HttpError { return fields }
+    return head
 }
 
 // Whether a request of `method` says how long its content is even when it has
@@ -355,24 +362,32 @@ write_counted :: fn(
         return send_head(writer, head, answer)
     }
     chunk: u8[]: [0] * COPY_CHUNK
-    left: i64 = length
-    for left > 0 {
-        got :: read_some(body, chunk[0..<min(COPY_CHUNK, left)]) else is HttpError { return got }
-        if got == null {
-            return incomplete("the body ended ${left} bytes before the length it declares")
-        }
-        piece :: chunk[0..<got]
-        written :: if left == length {
-            send_head(writer, head, answer, piece)
-        } else {
-            sent(writer.write(piece))
-        }
-        if written is HttpError {
-            return written
-        }
-        left -= got
+    first :: read_counted(body, chunk, length) else return first
+    started :: send_head(writer, head, answer, chunk[0..<first]) else is HttpError {
+        return started
+    }
+    return copy_counted(writer, body, chunk, length - first)
+}
+
+// Write the next `left` bytes of `body` as they are read into `chunk`.
+copy_counted :: fn(writer: Writer, body: Reader, chunk: u8[], left: i64) -> null | HttpError {
+    rest: i64 = left
+    for rest > 0 {
+        got :: read_counted(body, chunk, rest) else return got
+        written :: sent(writer.write(chunk[0..<got])) else is HttpError { return written }
+        rest -= got
     }
     return null
+}
+
+// How many bytes a read of `body` into `chunk` gave, `left` of them still owed:
+// a body that ends first is cut short.
+read_counted :: fn(body: Reader, chunk: u8[], left: i64) -> i64 | HttpError {
+    got :: read_some(body, chunk[0..<min(COPY_CHUNK, left)]) else is HttpError { return got }
+    if got == null {
+        return incomplete("the body ended ${left} bytes before the length it declares")
+    }
+    return got
 }
 
 // What a read of `body` into `into`, which has room, came to. A reader that

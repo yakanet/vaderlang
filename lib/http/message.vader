@@ -261,6 +261,7 @@ EXPECTS_CONTINUE :: "100-continue"
 // ---- errors ---------------------------------------------------------------
 
 /// Why a message could not be read or written.
+@displayable
 export HttpErrorKind :: enum {
     /// The message does not follow the grammar of HTTP/1.1.
     Malformed,
@@ -281,6 +282,9 @@ export HttpErrorKind :: enum {
     /// The source or the destination was given an instant to be done by, and
     /// was not: `HttpError.cause` is its failure.
     TimedOut,
+    /// The connection carries no further exchange: a message ended it, or the
+    /// one before could not be settled.
+    ConnectionEnded,
 }
 
 /// A message that could not be read or written.
@@ -309,6 +313,7 @@ export status_of :: fn(error: HttpError) -> Status | null = match error.kind {
     .VersionNotSupported     -> STATUS_HTTP_VERSION_NOT_SUPPORTED
     .TimedOut                -> STATUS_REQUEST_TIMEOUT
     .Transport               -> null
+    .ConnectionEnded         -> null
 }
 
 // ---- limits ---------------------------------------------------------------
