@@ -1,0 +1,667 @@
+// http/http_client: requests sent to the server their URI names.
+//
+// A request names its server in its target, an absolute URI of `http` (RFC
+// 9112, section 3.2.2). The client connects to it, or takes a connection it
+// kept: a connection comes back to its client once its response is closed,
+// and is kept idle there for a while. The idle connections wait in a channel,
+// which hands each to one task at a time.
+//
+// A kept connection may have been closed by its server while it was idle: a
+// request that fails on one is sent again on a new connection when sending it
+// twice does no harm.
+// docs/adr/0171-a-client-keeps-its-connections-in-a-channel-and-takes-them-back-at-close.md
+// has the reasons.
+
+module "http"
+
+import "std/io"
+import "std/net"
+import "std/string"
+import "std/task"
+import "std/time"
+import "std/uri"
+
+// ---- the client -----------------------------------------------------------
+
+/// A client of HTTP servers: it sends each request to the server its target
+/// names, and keeps connections for the requests after it.
+///
+/// Several tasks may send on one client at a time. A response is returned once
+/// its head is read; its body goes on reading its connection, which comes back
+/// to the client when the response is closed: write `defer response.close()`.
+/// A response left open keeps its connection, which no other request uses.
+///
+/// Only `http` is spoken: a target of `https` is refused.
+///
+/// @example
+///   # import "std/console"
+///   client :: HttpClient {}
+///   response :: client.get("http://example.org/")
+///   if response is ClientResponse {
+///       defer response.close()
+///       println("${u16(response.status)}")
+///   }
+export HttpClient :: struct {
+    /// How much of a response is read before it is refused, and how much of a
+    /// body left unread is read past before its connection is given up.
+    limits: Limits = Limits {}
+    /// How long a server may take at each step of a request.
+    timeouts: ClientTimeouts = ClientTimeouts {}
+    /// How many redirections a request follows: the one past that many is
+    /// returned, as each is with 0.
+    redirects: i64 = 10
+    /// How long a connection is kept with no request on it.
+    idle_timeout: Duration = 90.seconds()
+    @internal
+    idle: Channel<KeptConnection> = Channel<KeptConnection> { .capacity = KEPT_CONNECTIONS }
+}
+
+// The most connections a client keeps idle, all servers together.
+KEPT_CONNECTIONS: i64: 16
+
+/// A response from an `HttpClient`, whose connection comes back to the client
+/// once it is closed.
+export ClientResponse :: struct {
+    ...Response
+    @internal
+    kept: KeptConnection
+    @internal
+    idle: Channel<KeptConnection>
+    @internal
+    closed: bool = false
+}
+
+// A connection of a client: its socket, what carries its exchanges, and the
+// server it reaches, as `host:port`.
+KeptConnection :: struct {
+    origin: string
+    stream: TcpStream
+    connection: ClientConnection
+    // When it last came back to its client.
+    idle_from: Monotonic = monotonic()
+}
+
+/// Send `request` to the server its target names, and read the head of the
+/// final response.
+///
+/// A redirection (`301`, `302`, `303`, `307`, `308`) that gives a `Location`
+/// is followed, up to `client.redirects` of them. `303`, and `301` or `302` to
+/// a `POST`, are asked again with `GET` and no content; `307` and `308` keep
+/// the method and the content, so they are followed only when the request
+/// carries none. A redirection to another host or port drops `Authorization`
+/// and `Cookie`, and one to another scheme is returned.
+///
+/// @param client   what sends it.
+/// @param request  what is asked, its target an absolute URI of `http`: the
+///                 server is the host and the port it names, and the
+///                 `Host` field is written from it.
+/// @return         the final response, its body still to read: its connection
+///                 comes back to the client once the response is closed.
+/// @error          `HttpError` of `.Malformed` when the target is no URI of
+///                 `http` with a host, of `.SchemeNotSupported` for another
+///                 scheme, of `.Transport` or `.TimedOut` when no connection
+///                 is made, and as `send` on a `ClientConnection` fails.
+/// @example
+///   client :: HttpClient {}
+///   client.send(new_request(.Post, "http://example.org/items", "{}"))
+export send :: fn(client: HttpClient, request: Request) -> ClientResponse | HttpError {
+    asked := request
+    followed: i64 = 0
+    for {
+        response :: client.exchange(asked) else return response
+        if followed >= client.redirects {
+            return response
+        }
+        next :: redirection(asked, response.status, response.headers) else return response
+        close(response)
+        asked = next
+        followed += 1
+    }
+}
+
+/// Send a `GET` of `uri`, as `send` does.
+///
+/// @param client  what sends it.
+/// @param uri     an absolute URI of `http`.
+/// @example
+///   HttpClient {}.get("http://example.org/")
+export get :: fn(client: HttpClient, uri: string) -> ClientResponse | HttpError =
+    client.send(Request { .method = .Get, .target = uri })
+
+/// Close the connections `client` keeps, and those that come back to it from
+/// now on: a request sent after this makes a connection of its own, closed
+/// with its response.
+///
+/// @param client  the client to close.
+export close :: fn(client: HttpClient) -> void {
+    client.idle.close()
+    for kept in client.idle {
+        kept.stream.close()
+    }
+}
+
+// ---- one exchange ---------------------------------------------------------
+
+// Send `request` to its server, on a connection the client keeps when it has
+// one, and once more on a new connection when the kept one fails and the
+// request may be sent twice.
+exchange :: fn(client: HttpClient, request: Request) -> ClientResponse | HttpError {
+    aim :: aim_of(request) else return aim
+    sent :: Request { ...request, .target = aim.target, .headers = request.headers.deep_copy() }
+    sent.headers.set(HOST, aim.host_field)
+    kept :: client.kept_for(aim.origin)
+    if kept != null {
+        response :: client.send_on(kept, sent)
+        if response is ClientResponse || !may_send_again(sent, response) {
+            return response
+        }
+    }
+    made :: client.dial(aim) else return made
+    return client.send_on(made, sent)
+}
+
+// Send `request` on `kept`: closing the response hands the connection back to
+// `client`. A connection whose request failed is closed.
+send_on :: fn(client: HttpClient, kept: KeptConnection, request: Request) -> ClientResponse | HttpError {
+    response :: kept.connection.send(request) else {
+        kept.stream.close()
+        return response
+    }
+    return ClientResponse {
+        .status = response.status,
+        .version = response.version,
+        .headers = response.headers,
+        .body = response.body,
+        .ends_with_connection = response.ends_with_connection,
+        .kept = kept,
+        .idle = client.idle,
+    }
+}
+
+/// Close `response`: what is left of its body is read past, as `close` does
+/// the body of a `Response`, and its connection comes back to its client for
+/// a request after it. Closing it again does nothing.
+///
+/// @param response  a response an `HttpClient` returned.
+export close :: fn(response: ClientResponse) -> void {
+    if response.closed {
+        return
+    }
+    response.closed = true
+    body :: response.body
+    if body is ClientBody {
+        body.settle()
+    }
+    hand_back(response.idle, response.kept)
+}
+
+// A connection `client` keeps idle to `origin`; null when it keeps none. One
+// idle for longer than `idle_timeout` is closed on the way.
+kept_for :: fn(client: HttpClient, origin: string) -> KeptConnection | null {
+    for _ in 0..<KEPT_CONNECTIONS {
+        kept :: client.idle.poll()
+        if kept is Empty | Closed {
+            return null
+        }
+        if kept.idle_from.since() > client.idle_timeout {
+            kept.stream.close()
+        } else if kept.origin == origin {
+            return kept
+        } else {
+            keep(client.idle, kept)
+        }
+    }
+    return null
+}
+
+// Give `kept` back to `idle` from its last request, or close it when it carries
+// no further one.
+hand_back :: fn(idle: Channel<KeptConnection>, kept: KeptConnection) -> void {
+    if kept.connection.state.ended != null {
+        kept.stream.close()
+        return
+    }
+    kept.idle_from = monotonic()
+    keep(idle, kept)
+}
+
+// Put `kept` among the connections of `idle`, or close it when `idle` holds as
+// many as it may, or is closed.
+keep :: fn(idle: Channel<KeptConnection>, kept: KeptConnection) -> void {
+    refused :: idle.offer(kept)
+    if refused is KeptConnection {
+        refused.stream.close()
+    }
+}
+
+// A new connection to the server of `aim`, each of its addresses tried in turn
+// within `timeouts.connect`.
+dial :: fn(client: HttpClient, aim: Aim) -> KeptConnection | HttpError {
+    addresses :: resolve(aim.host, aim.port) else return transport(addresses)
+    failure: IOError = IOError { .msg = "`${aim.host}` stands for no address" }
+    for address in addresses {
+        stream :: connect(address, client.timeouts.connect) else {
+            failure = stream
+            continue
+        }
+        return KeptConnection {
+            .origin = aim.origin,
+            .stream = stream,
+            .connection = ClientConnection {
+                .reader = stream,
+                .writer = stream,
+                .limits = client.limits,
+                .pace = ClientPace { .deadlines = stream, .timeouts = client.timeouts },
+            },
+        }
+    }
+    return transport(failure)
+}
+
+// Whether `request`, failed with `error` on a kept connection, is sent again on
+// a new one. The server may have closed the kept one while it was idle, and
+// the request does no harm sent twice (RFC 9110, section 9.2.2) when it
+// carries no content to send again.
+may_send_again :: fn(request: Request, error: HttpError) -> bool {
+    lost :: error.kind == .Incomplete || error.kind == .Transport
+    return lost && is_idempotent(request.method) && carries_nothing(request)
+}
+
+is_idempotent :: fn(method: Method) -> bool = match method {
+    .Get | .Head | .Put | .Delete | .Options | .Trace | .Query -> true
+    .Post | .Connect | .Patch -> false
+}
+
+// Whether `request` carries no content: it declares a length of 0, or declares
+// none and its body is an empty array or string.
+carries_nothing :: fn(request: Request) -> bool {
+    lengths :: request.headers.get_all(CONTENT_LENGTH)
+    if lengths.len() > 0 {
+        return lengths.len() == 1 && lengths[0] == "0"
+    }
+    body :: request.body
+    return body is BytesReader && body.content.bytes_of().len() == 0
+}
+
+// ---- where a request goes -------------------------------------------------
+
+// The server a request reaches, and what it is sent with.
+Aim :: struct {
+    // `host:port`, which the kept connections are told apart by.
+    origin: string
+    // The host as it is resolved: an IP literal without its brackets.
+    host: string
+    port: u16
+    // The path and the query of the URI: the target in origin form.
+    target: string
+    // What the `Host` field says: the host, and the port the URI writes.
+    host_field: string
+}
+
+// The aim of `request`, whose target is an absolute URI of `http`.
+aim_of :: fn(request: Request) -> Aim | HttpError {
+    uri :: parse_uri(request.target)
+        else return malformed("the target of a request to send is an absolute URI: ${uri.msg}")
+    if uri.scheme != "http" {
+        return HttpError {
+            .kind = .SchemeNotSupported,
+            .msg = "a request is sent over `http`, not `${uri.scheme}`",
+        }
+    }
+    authority :: uri.authority else return malformed("a URI of `http` names its host")
+    if authority.host == "" {
+        return malformed("a URI of `http` names its host")
+    }
+    if authority.userinfo != null {
+        return malformed("a URI sent carries no user information (RFC 9110, section 4.2.4)")
+    }
+    return Aim {
+        .origin = server_of(uri),
+        .host = bare_host(authority.host),
+        .port = u16(port_of(authority)),
+        .target = origin_form(uri),
+        .host_field = "${authority}",
+    }
+}
+
+// The server `uri` names, as `host:port`.
+server_of :: fn(uri: Uri) -> string {
+    authority :: uri.authority else return ""
+    return "${authority.host}:${port_of(authority)}"
+}
+
+// The port `authority` names, or the one of `http`.
+port_of :: fn(authority: Authority) -> i64 = authority.port else 80
+
+// `host` as it is resolved: an IP literal without its brackets.
+bare_host :: fn(host: string) -> string {
+    if host.starts_with("[") && host.ends_with("]") {
+        return host.byte_slice(1, host.byte_len() - 1)
+    }
+    return host
+}
+
+// The path and the query of `uri`, as a request line writes them to its
+// server: `/` for an empty path.
+origin_form :: fn(uri: Uri) -> string {
+    path :: if uri.path == "" { "/" } else { uri.path }
+    query :: uri.query else return path
+    return "${path}?${query}"
+}
+
+// ---- redirections ---------------------------------------------------------
+
+// The fields a redirection drops when it changes host or port, and those it
+// drops when it drops the content.
+AUTHORIZATION :: "Authorization"
+COOKIE        :: "Cookie"
+LOCATION      :: "Location"
+
+CONTENT_FIELDS: string[]: [
+    CONTENT_LENGTH,
+    "Content-Type",
+    "Content-Encoding",
+    "Content-Language",
+    "Content-Location",
+    EXPECT,
+]
+
+// The request a response of `status` and `headers` redirects `request` to; null
+// when it is no redirection to follow.
+redirection :: fn(request: Request, status: Status, headers: Headers) -> Request | null {
+    if !is_redirection(status) {
+        return null
+    }
+    location :: headers.get(LOCATION) else return null
+    from :: parse_uri(request.target) else return null
+    to :: from.resolve_reference(location) else return null
+    if to.scheme != from.scheme {
+        return null
+    }
+    fields :: request.headers.deep_copy()
+    if server_of(to) != server_of(from) {
+        fields.remove(AUTHORIZATION)
+        fields.remove(COOKIE)
+    }
+    dropped :: becomes_get(request.method, status)
+    if dropped {
+        for name in CONTENT_FIELDS {
+            fields.remove(name)
+        }
+    } else if !carries_nothing(request) {
+        return null
+    }
+    // The body is left out: what the redirection asks carries no content.
+    return Request {
+        .method = if dropped { .Get } else { request.method },
+        .target = "${Uri { ...to, .fragment = null }}",
+        .version = request.version,
+        .headers = fields,
+    }
+}
+
+is_redirection :: fn(status: Status) -> bool = match u16(status) {
+    301 | 302 | 303 | 307 | 308 -> true
+    _                           -> false
+}
+
+// Whether a redirection of `status` asks again with `GET` and no content what
+// a request of `method` asked (RFC 9110, sections 15.4.2 to 15.4.4).
+becomes_get :: fn(method: Method, status: Status) -> bool {
+    if status == STATUS_SEE_OTHER {
+        return method != .Head
+    }
+    return method == .Post && (status == STATUS_MOVED_PERMANENTLY || status == STATUS_FOUND)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// What `response` says, its status and its body, the response closed; or the
+// kind of the failure.
+told :: fn(response: ClientResponse | HttpError) -> string {
+    if response is HttpError {
+        return "${response.kind}"
+    }
+    text :: "${u16(response.status)} ${text_of(response.body)}"
+    response.close()
+    return text
+}
+
+// Serve `handler` on a port of the loopback for `check`, which is given the
+// URI of the server, `http://127.0.0.1:port`.
+serving :: fn(
+    handler: HandlerFn,
+    check: fn(string) -> void,
+    options: ServeOptions = ServeOptions {},
+) -> void {
+    listener :: listening() else return
+    address :: address_of(listener) else return
+    server :: launch(() -> serve(listener, handler, options))
+    check("http://${address}")
+    listener.close()
+    server.join()
+}
+
+// How many connections `client` kept idle, each closed.
+closed_kept :: fn(client: HttpClient) -> i64 {
+    count: i64 = 0
+    for {
+        kept :: client.idle.poll()
+        if kept is Empty | Closed {
+            return count
+        }
+        kept.stream.close()
+        count += 1
+    }
+}
+
+@test
+test_a_request_goes_to_the_server_its_uri_names :: fn() -> void {
+    serving(
+        naming,
+        fn(server) {
+            client :: HttpClient {}
+            assert_eq(told(client.get("${server}/a?b=1#top")), "200 /a?b=1")
+            assert_eq(told(client.get(server)), "200 /")
+            client.close()
+        },
+    )
+}
+
+@test
+test_a_closed_response_hands_its_connection_to_the_next_request :: fn() -> void {
+    serving(
+        naming,
+        fn(server) {
+            client :: HttpClient {}
+            assert_eq(told(client.get("${server}/a")), "200 /a")
+            assert_eq(told(client.get("${server}/b")), "200 /b")
+            assert_eq(closed_kept(client), 1)
+        },
+    )
+}
+
+@test
+test_a_response_left_open_keeps_its_connection_from_the_next_request :: fn() -> void {
+    serving(
+        naming,
+        fn(server) {
+            client :: HttpClient {}
+            open :: client.get("${server}/a")
+            assert_eq(told(client.get("${server}/b")), "200 /b")
+            assert_eq(told(open), "200 /a")
+            assert_eq(closed_kept(client), 2)
+        },
+    )
+}
+
+@test
+test_a_kept_connection_its_server_closed_is_replaced :: fn() -> void {
+    quick :: ServeOptions { .timeouts = Timeouts { .idle = 20.millis() } }
+    serving(
+        naming,
+        fn(server) {
+            client :: HttpClient {}
+            assert_eq(told(client.get("${server}/a")), "200 /a")
+            sleep(200.millis())
+            assert_eq(told(client.get("${server}/b")), "200 /b")
+            client.close()
+        },
+        quick,
+    )
+}
+
+@test
+test_a_client_closed_closes_each_connection_with_its_response :: fn() -> void {
+    serving(
+        naming,
+        fn(server) {
+            client :: HttpClient {}
+            client.close()
+            assert_eq(told(client.get("${server}/a")), "200 /a")
+            assert_eq(closed_kept(client), 0)
+        },
+    )
+}
+
+// What `routed` redirects `target` to, `Location` given.
+moved :: fn(status: Status, location: string) -> Response {
+    response :: new_response(status, "")
+    response.headers.set(LOCATION, location)
+    return response
+}
+
+// The `Authorization` of `request`, `none` when it has none.
+authorization_of :: fn(request: Request) -> string = request.headers.get(AUTHORIZATION) else "none"
+
+// Redirections to `/new`, which says how it was asked, and to `/auth`, which
+// says the `Authorization` it was given; `/away` to `/auth` on `localhost`.
+routed :: fn(request: Request, port: u16) -> Response = match request.target {
+    "/old"  -> moved(STATUS_FOUND, "/new")
+    "/see"  -> moved(STATUS_SEE_OTHER, "new")
+    "/keep" -> moved(STATUS_TEMPORARY_REDIRECT, "/new")
+    "/loop" -> moved(STATUS_FOUND, "/loop")
+    "/here" -> moved(STATUS_FOUND, "/auth")
+    "/away" -> moved(STATUS_FOUND, "http://localhost:${port}/auth")
+    "/auth" -> new_response(STATUS_OK, authorization_of(request))
+    _       -> new_response(STATUS_OK, "${request.method} ${request.target}")
+}
+
+// Serve `routed` for `check`, as `serving` does.
+redirecting :: fn(check: fn(string, HttpClient) -> void) -> void {
+    listener :: listening() else return
+    address :: address_of(listener) else return
+    port :: address.port
+    server :: launch(() -> serve(listener, (request) -> routed(request, port)))
+    client :: HttpClient {}
+    check("http://${address}", client)
+    client.close()
+    listener.close()
+    server.join()
+}
+
+@test
+test_a_redirection_is_followed :: fn() -> void {
+    redirecting((server, client) ->
+        assert_eq(told(client.get("${server}/old")), "200 GET /new"))
+}
+
+@test
+test_a_client_of_no_redirection_returns_it :: fn() -> void {
+    redirecting(
+        fn(server, client) {
+            client.redirects = 0
+            assert_eq(told(client.get("${server}/old")), "302 ")
+        },
+    )
+}
+
+@test
+test_the_redirection_past_the_last_followed_is_returned :: fn() -> void {
+    redirecting(
+        fn(server, client) {
+            client.redirects = 3
+            assert_eq(told(client.get("${server}/loop")), "302 ")
+        },
+    )
+}
+
+@test
+test_a_post_redirected_by_303_or_302_is_asked_again_with_get :: fn() -> void {
+    redirecting(
+        fn(server, client) {
+            assert_eq(told(client.send(new_request(.Post, "${server}/see", "x"))), "200 GET /new")
+            assert_eq(told(client.send(new_request(.Post, "${server}/old", "x"))), "200 GET /new")
+        },
+    )
+}
+
+@test
+test_a_307_keeps_the_method_and_is_followed_only_with_no_content :: fn() -> void {
+    redirecting(
+        fn(server, client) {
+            assert_eq(told(client.send(new_request(.Put, "${server}/keep", ""))), "200 PUT /new")
+            assert_eq(told(client.send(new_request(.Put, "${server}/keep", "x"))), "307 ")
+        },
+    )
+}
+
+// A `GET` of `uri` that says `Authorization: secret`.
+authorized :: fn(uri: string) -> Request {
+    request :: Request { .method = .Get, .target = uri }
+    request.headers.set(AUTHORIZATION, "secret")
+    return request
+}
+
+@test
+test_a_redirection_to_another_host_drops_the_credentials :: fn() -> void {
+    redirecting(
+        fn(server, client) {
+            assert_eq(told(client.send(authorized("${server}/here"))), "200 secret")
+            assert_eq(told(client.send(authorized("${server}/away"))), "200 none")
+        },
+    )
+}
+
+@test
+test_a_uri_of_another_scheme_is_refused :: fn() -> void {
+    client :: HttpClient {}
+    assert_eq(told(client.get("https://example.org/")), "SchemeNotSupported")
+    assert_eq(told(client.get("/a")), "Malformed")
+    assert_eq(told(client.get("http://me@example.org/")), "Malformed")
+}
+
+@test
+test_a_server_that_does_not_accept_in_time_is_given_up :: fn() -> void {
+    client :: HttpClient { .timeouts = ClientTimeouts { .connect = 50.millis() } }
+    assert_eq(told(client.get("http://192.0.2.1/")), "TimedOut")
+}
+
+// The aim of a `GET` of `uri`, written out.
+aimed :: fn(uri: string) -> string {
+    aim :: aim_of(Request { .method = .Get, .target = uri }) else return "${aim.kind}"
+    return "${aim.origin} ${aim.host} ${aim.port} ${aim.target} ${aim.host_field}"
+}
+
+@test
+test_a_request_names_its_server_by_the_authority_of_its_uri :: fn() -> void {
+    assert_eq(
+        aimed("http://Example.org:8080/a?b#f"),
+        "example.org:8080 example.org 8080 /a?b example.org:8080",
+    )
+    assert_eq(aimed("http://h"), "h:80 h 80 / h")
+    assert_eq(aimed("http://[::1]:81/x"), "[::1]:81 ::1 81 /x [::1]:81")
+}
+
+@test
+test_only_a_request_that_does_no_harm_twice_is_sent_again :: fn() -> void {
+    cut :: incomplete("the connection ended")
+    assert(may_send_again(Request { .method = .Get, .target = "/" }, cut), "a GET")
+    assert(may_send_again(new_request(.Delete, "/", ""), cut), "a DELETE that declares nothing")
+    assert(!may_send_again(new_request(.Post, "/", ""), cut), "a POST")
+    assert(!may_send_again(new_request(.Put, "/", "x"), cut), "a PUT with content")
+    timed_out :: HttpError { .kind = .TimedOut, .msg = "slow" }
+    assert(!may_send_again(Request { .method = .Get, .target = "/" }, timed_out), "a timeout")
+}

@@ -285,6 +285,8 @@ export HttpErrorKind :: enum {
     /// The connection carries no further exchange: a message ended it, or the
     /// one before could not be settled.
     ConnectionEnded,
+    /// The URI of a request to send names a scheme other than `http`.
+    SchemeNotSupported,
 }
 
 /// A message that could not be read or written.
@@ -314,6 +316,7 @@ export status_of :: fn(error: HttpError) -> Status | null = match error.kind {
     .TimedOut                -> STATUS_REQUEST_TIMEOUT
     .Transport               -> null
     .ConnectionEnded         -> null
+    .SchemeNotSupported      -> null
 }
 
 // ---- limits ---------------------------------------------------------------

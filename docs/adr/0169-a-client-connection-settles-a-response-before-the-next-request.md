@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted (2026-11-22). The client side of 0138.
+Accepted (2026-11-22). The client side of 0138. Amended by 0171: the
+connection of an `HttpClient` comes back when its response is closed.
 
 ## Context
 
