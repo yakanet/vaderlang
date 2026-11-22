@@ -50,7 +50,7 @@ export ClientConnection :: struct {
 /// How long a server may take at each step of a request, null for no limit at
 /// that step.
 export ClientTimeouts :: struct {
-    /// To accept a connection, each address of its host tried in turn.
+    /// To accept a connection, given to each address of its host in turn.
     connect: Duration | null = 10.seconds()
     /// To take more of a request, each time some is written.
     write: Duration | null = 30.seconds()

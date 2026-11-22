@@ -102,12 +102,22 @@ export parse_ip :: fn(text: string) -> IpAddress | null {
 export parse_socket_address :: fn(text: string) -> SocketAddress | null {
     [host, port_text] :: text.split_last(":") else return null
     port :: parse_port(port_text) else return null
-    if host.starts_with("[") && host.ends_with("]") {
-        ip :: parse_ipv6(host.byte_slice(1, host.byte_len() - 1)) else return null
+    inside :: inside_brackets(host)
+    if inside != null {
+        ip :: parse_ipv6(inside) else return null
         return SocketAddress { .ip = ip, .port = port }
     }
     ip :: parse_ipv4(host) else return null
     return SocketAddress { .ip = ip, .port = port }
+}
+
+// What `text` holds between its brackets, as an IPv6 address is written beside
+// a port; null when it is not between brackets.
+inside_brackets :: fn(text: string) -> string | null {
+    if text.starts_with("[") && text.ends_with("]") {
+        return text.byte_slice(1, text.byte_len() - 1)
+    }
+    return null
 }
 
 parse_port :: fn(text: string) -> u16 | null {

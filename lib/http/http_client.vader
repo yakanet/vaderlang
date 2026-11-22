@@ -16,7 +16,6 @@ module "http"
 
 import "std/io"
 import "std/net"
-import "std/string"
 import "std/task"
 import "std/time"
 import "std/uri"
@@ -234,28 +233,21 @@ keep :: fn(idle: Channel<KeptConnection>, kept: KeptConnection) -> void {
     }
 }
 
-// A new connection to the server of `aim`, each of its addresses tried in turn
-// within `timeouts.connect`.
+// A new connection to the server of `aim`, each of its addresses given
+// `timeouts.connect` to accept.
 dial :: fn(client: HttpClient, aim: Aim) -> KeptConnection | HttpError {
-    addresses :: resolve(aim.host, aim.port) else return transport(addresses)
-    failure: IOError = IOError { .msg = "`${aim.host}` stands for no address" }
-    for address in addresses {
-        stream :: connect(address, client.timeouts.connect) else {
-            failure = stream
-            continue
-        }
-        return KeptConnection {
-            .origin = aim.origin,
-            .stream = stream,
-            .connection = ClientConnection {
-                .reader = stream,
-                .writer = stream,
-                .limits = client.limits,
-                .pace = ClientPace { .deadlines = stream, .timeouts = client.timeouts },
-            },
-        }
+    stream :: connect_host(aim.host, aim.port, client.timeouts.connect)
+        else return transport(stream)
+    return KeptConnection {
+        .origin = aim.origin,
+        .stream = stream,
+        .connection = ClientConnection {
+            .reader = stream,
+            .writer = stream,
+            .limits = client.limits,
+            .pace = ClientPace { .deadlines = stream, .timeouts = client.timeouts },
+        },
     }
-    return transport(failure)
 }
 
 // Whether `request`, failed with `error` on a kept connection, is sent again on
@@ -289,7 +281,7 @@ carries_nothing :: fn(request: Request) -> bool {
 Aim :: struct {
     // `host:port`, which the kept connections are told apart by.
     origin: string
-    // The host as it is resolved: an IP literal without its brackets.
+    // The host as the URI writes it: an IP literal between its brackets.
     host: string
     port: u16
     // The path and the query of the URI: the target in origin form.
@@ -317,7 +309,7 @@ aim_of :: fn(request: Request) -> Aim | HttpError {
     }
     return Aim {
         .origin = server_of(uri),
-        .host = bare_host(authority.host),
+        .host = authority.host,
         .port = u16(port_of(authority)),
         .target = origin_form(uri),
         .host_field = "${authority}",
@@ -332,14 +324,6 @@ server_of :: fn(uri: Uri) -> string {
 
 // The port `authority` names, or the one of `http`.
 port_of :: fn(authority: Authority) -> i64 = authority.port else 80
-
-// `host` as it is resolved: an IP literal without its brackets.
-bare_host :: fn(host: string) -> string {
-    if host.starts_with("[") && host.ends_with("]") {
-        return host.byte_slice(1, host.byte_len() - 1)
-    }
-    return host
-}
 
 // The path and the query of `uri`, as a request line writes them to its
 // server: `/` for an empty path.
@@ -652,7 +636,7 @@ test_a_request_names_its_server_by_the_authority_of_its_uri :: fn() -> void {
         "example.org:8080 example.org 8080 /a?b example.org:8080",
     )
     assert_eq(aimed("http://h"), "h:80 h 80 / h")
-    assert_eq(aimed("http://[::1]:81/x"), "[::1]:81 ::1 81 /x [::1]:81")
+    assert_eq(aimed("http://[::1]:81/x"), "[::1]:81 [::1] 81 /x [::1]:81")
 }
 
 @test

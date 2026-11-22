@@ -23,13 +23,22 @@ import "system/windows"
 /// (`xn--...`).
 ///
 /// @param host  a name, or an IPv4 or IPv6 address written out, an IPv6 one
-///              without brackets.
+///              with or without its brackets (`[::1]`, as a URI writes it).
 /// @param port  the port each address is given.
 /// @error       `IOError` of `.NotFound` when the name stands for no address,
-///              and of `.Other` when the resolver fails.
+///              of `.InvalidInput` when brackets hold no IPv6 address, and of
+///              `.Other` when the resolver fails.
 /// @example
 ///   resolve("localhost", 8080)   // [127.0.0.1:8080, [::1]:8080]
 export resolve :: fn(host: string, port: u16) -> SocketAddress[] | IOError {
+    inside :: inside_brackets(host)
+    if inside != null {
+        ip :: parse_ipv6(inside) else return IOError {
+            .msg = "`${host}` holds no IPv6 address between its brackets",
+            .kind = .InvalidInput,
+        }
+        return [SocketAddress { .ip = ip, .port = port }]
+    }
     written :: parse_ip(host)
     if written != null {
         return [SocketAddress { .ip = written, .port = port }]
@@ -119,6 +128,12 @@ written_out :: fn(addresses: SocketAddress[] | IOError) -> string {
 test_an_address_written_out_stands_for_itself :: fn() -> void {
     assert_eq(written_out(resolve("192.0.2.7", 80)), "192.0.2.7:80")
     assert_eq(written_out(resolve("::1", 443)), "[::1]:443")
+}
+
+@test
+test_an_ipv6_address_between_brackets_stands_for_itself :: fn() -> void {
+    assert_eq(written_out(resolve("[::1]", 443)), "[::1]:443")
+    assert_eq(written_out(resolve("[example.org]", 443)), "InvalidInput")
 }
 
 @test

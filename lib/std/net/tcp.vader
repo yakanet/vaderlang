@@ -168,6 +168,36 @@ export connect :: fn(address: SocketAddress, within: Duration | null = null) -> 
     return stream_of(socket)
 }
 
+/// Connect to a listener of `host` on `port`: the addresses `host` stands for
+/// are tried one after the other, in the order `resolve` gives them, until one
+/// accepts.
+///
+/// @param host    a name, or an IP address written out, an IPv6 one with or
+///                without its brackets.
+/// @param port    where the other end listens.
+/// @param within  how long each address may take to accept; null for as long
+///                as the system tries. A host of several addresses that do not
+///                answer takes that long for each.
+/// @error         `IOError` as `resolve` fails, and otherwise the failure of
+///                the last address tried.
+/// @example
+///   # import "std/time"
+///   stream :: connect_host("localhost", 8080, 5.seconds())
+///   if stream is TcpStream {
+///       stream.write("hello\n")
+///       stream.close()
+///   }
+export connect_host :: fn(host: string, port: u16, within: Duration | null = null) -> TcpStream | IOError {
+    // `resolve` gives one address at least, or fails.
+    addresses :: resolve(host, port) else return addresses
+    last :: addresses.len() - 1
+    for address in addresses[0..<last] {
+        stream :: connect(address, within) else continue
+        return stream
+    }
+    return connect(addresses[last], within)
+}
+
 TcpStream implements Reader {
     read :: fn(self, into: u8[]) -> i64 | null | IOError {
         // Before the checks: the stream may be closed, or its deadline pass,
@@ -900,6 +930,16 @@ connection_to :: fn(address: SocketAddress) -> TcpStream | null {
     return stream
 }
 
+// A connection to `localhost` on `port`, by its name; null, the test having
+// failed, when there is none.
+connection_to_localhost :: fn(port: u16) -> TcpStream | null {
+    stream :: connect_host("localhost", port) else {
+        assert(false, "cannot connect: ${stream.msg}")
+        return null
+    }
+    return stream
+}
+
 // What `server` counted, -1 for a task that was cancelled.
 counted :: fn(server: Task<i64>) -> i64 {
     total :: server.join()
@@ -1251,6 +1291,31 @@ test_closing_a_listener_ends_the_accept_parked_on_it :: fn() -> void {
     listener.close()
     refused :: accepting.join()
     assert(refused is bool && refused, "the accept failed once the listener closed")
+}
+
+@test
+test_a_host_is_connected_to_by_its_name :: fn() -> void {
+    listener :: listen(loopback(0)) else return
+    address :: bound_address(listener) else return
+    server :: launch(() -> serve(listener, 1))
+    stream :: connection_to_localhost(address.port) else return
+    assert_eq(exchange(stream, "name"), "name")
+    stream.close()
+    assert_eq(counted(server), 4)
+    listener.close()
+}
+
+@test
+test_the_next_address_of_a_host_is_tried_when_one_refuses :: fn() -> void {
+    // `localhost` stands for 127.0.0.1, then ::1: only the second listens.
+    listener :: listen(loopback_v6(0)) else return
+    address :: bound_address(listener) else return
+    server :: launch(() -> serve(listener, 1))
+    stream :: connection_to_localhost(address.port) else return
+    assert_eq(exchange(stream, "six"), "six")
+    stream.close()
+    assert_eq(counted(server), 3)
+    listener.close()
 }
 
 @test
