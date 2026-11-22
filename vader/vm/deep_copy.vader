@@ -44,15 +44,9 @@ CopyWalk :: struct {
 
 // Copy `v`, then what each queued copy holds.
 copy_all :: fn(walk: CopyWalk, v: Value) -> Value | Trap {
-    first :: walk.copy_of(v)
-    if first is Trap {
-        return first
-    }
+    first :: walk.copy_of(v) else return first
     for walk.next < walk.copies.len() {
-        done :: walk.copy_inside(walk.copies[walk.next])
-        if done is Trap {
-            return done
-        }
+        done :: walk.copy_inside(walk.copies[walk.next]) else return done
         walk.next += 1
     }
     return first
@@ -69,10 +63,7 @@ copy_inside :: fn(walk: CopyWalk, copy: Value) -> void | Trap = match copy {
 // Replace each of `values`, held by a copy, by its copy.
 copy_each :: fn(walk: CopyWalk, values: Value[]) -> void | Trap {
     for i in 0..<values.len() {
-        copied :: walk.copy_of(values[i])
-        if copied is Trap {
-            return copied
-        }
+        copied :: walk.copy_of(values[i]) else return copied
         values[i] = copied
     }
 }

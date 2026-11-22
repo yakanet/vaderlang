@@ -24,6 +24,8 @@ export VmResult :: Ok | Trap
 export Ok   :: struct { value: i32 }
 export Trap :: struct { message: string }
 
+Trap implements Error -> self.message
+
 /// Outcome of a value-returning entry run (`exec_fn_value`,
 /// `exec_comptime_value`): the callee's full return `Value` (an array / struct /
 /// wide int), not the i32 exit code `VmResult` carries.
@@ -172,14 +174,12 @@ export convert_value :: fn(v: Value, target: ConvertTarget, from_name: string, a
     }
     if target == .I32 {
         if nv is I32Val { return nv }
-        n :: read_numeric_as_i64(nv, at_pc)
-        if n is Trap { return n }
+        n :: read_numeric_as_i64(nv, at_pc) else return n
         return I32Val(i32(n))
     }
     if target == .I64 {
         if nv is I64Val { return nv }
-        n :: read_numeric_as_i64(nv, at_pc)
-        if n is Trap { return n }
+        n :: read_numeric_as_i64(nv, at_pc) else return n
         return I64Val(n)
     }
     if target == .F64 {
@@ -188,13 +188,11 @@ export convert_value :: fn(v: Value, target: ConvertTarget, from_name: string, a
         if nv is I64Val && is_unsigned_source(from_name) {
             return F64Val(f64(u64(i64(nv))))
         }
-        n :: read_numeric_as_f64(nv, at_pc)
-        if n is Trap { return n }
+        n :: read_numeric_as_f64(nv, at_pc) else return n
         return F64Val(n)
     }
     if nv is CharVal { return nv }
-    n :: read_numeric_as_i64(nv, at_pc)
-    if n is Trap { return n }
+    n :: read_numeric_as_i64(nv, at_pc) else return n
     return CharVal(char(u32(n)))
 }
 

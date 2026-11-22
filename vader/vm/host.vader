@@ -52,24 +52,18 @@ lent_word :: fn(
 hosted_frame_call :: fn(
     stack: Value[], arg_base: i64, at_pc: i32, label: string, through_adapter: bool,
 ) -> string | Trap {
-    ptr :: read_i64(stack[arg_base], at_pc, "${label} fn_ptr")
-    if ptr is Trap { return ptr }
-    desc_arr :: read_array(stack[arg_base + 1], at_pc, "${label} desc")
-    if desc_arr is Trap { return desc_arr }
-    frame_arr :: read_array(stack[arg_base + 2], at_pc, "${label} frame")
-    if frame_arr is Trap { return frame_arr }
+    ptr :: read_i64(stack[arg_base], at_pc, "${label} fn_ptr") else return ptr
+    desc_arr :: read_array(stack[arg_base + 1], at_pc, "${label} desc") else return desc_arr
+    frame_arr :: read_array(stack[arg_base + 2], at_pc, "${label} frame") else return frame_arr
     // A VM array holds boxed `Value`s, not contiguous bytes, so both are
     // materialised into real `u8[]`. The host takes their address right
     // before the call, and nothing runs in between.
     desc :: array_bytes(desc_arr, element_count(desc_arr), at_pc, "${label} desc byte")
-    if desc is Trap {
-        return desc
-    }
+        else return desc
     own_bytes(frame_arr)
     frame: u8[]: []
     for i in 0..<frame_arr.elements.len() {
-        b :: read_i64(frame_arr.elements[i], at_pc, "${label} frame byte")
-        if b is Trap { return b }
+        b :: read_i64(frame_arr.elements[i], at_pc, "${label} frame byte") else return b
         frame.push(u8(b))
     }
     returned :: call_foreign(i64(ptr), through_adapter, desc, frame, -1)
@@ -159,17 +153,12 @@ export dispatch_import :: fn(
         // bytes->string : the native interns the bytes verbatim (no UTF-8
         // validation): straight from the view a `s.bytes()` reads, else
         // gathered out of the boxed u8 slots.
-        arr :: read_array(stack[arg_base], at_pc, "bytes_to_string receiver")
-        if arr is Trap { return arr }
-        bs :: array_bytes(arr, element_count(arr), at_pc, "bytes_to_string byte")
-        if bs is Trap {
-            return bs
-        }
+        arr :: read_array(stack[arg_base], at_pc, "bytes_to_string receiver") else return arr
+        bs :: array_bytes(arr, element_count(arr), at_pc, "bytes_to_string byte") else return bs
         return HostOk { .value = StringVal(bs.bytes_to_string()) }
     }
     .Bytes -> {
-        s :: read_string(stack[arg_base], at_pc, "bytes receiver")
-        if s is Trap { return s }
+        s :: read_string(stack[arg_base], at_pc, "bytes receiver") else return s
         return HostOk { .value = bytes_to_value(string(s), u8_array_type_id) }
     }
     // `StringBuilder implements Display` is pure Vader ; the resolver
@@ -206,30 +195,26 @@ export dispatch_import :: fn(
     // served here too: the arms forward to the same intrinsics the natively
     // compiled VM calls directly.
     .FfiOpen -> {
-        name :: read_string(stack[arg_base], at_pc, "ffi_open name")
-        if name is Trap { return name }
+        name :: read_string(stack[arg_base], at_pc, "ffi_open name") else return name
         return HostOk { .value = I64Val(ffi_open(string(name))) }
     }
     .FfiSymbol -> {
-        lib :: read_i64(stack[arg_base], at_pc, "ffi_symbol lib")
-        if lib is Trap { return lib }
-        sym :: read_string(stack[arg_base + 1], at_pc, "ffi_symbol name")
-        if sym is Trap { return sym }
+        lib :: read_i64(stack[arg_base], at_pc, "ffi_symbol lib") else return lib
+        sym :: read_string(stack[arg_base + 1], at_pc, "ffi_symbol name") else return sym
         return HostOk { .value = I64Val(ffi_symbol(i64(lib), string(sym))) }
     }
     .FfiOpenPath -> {
-        path :: read_string(stack[arg_base], at_pc, "ffi_open_path path")
-        if path is Trap { return path }
+        path :: read_string(stack[arg_base], at_pc, "ffi_open_path path") else return path
         return HostOk { .value = I64Val(ffi_open_path(string(path))) }
     }
     .FfiCall -> {
         returned :: hosted_frame_call(stack, arg_base, at_pc, "ffi_call", false)
-        if returned is Trap { return returned }
+            else return returned
         return HostOk { .value = zero_value() }
     }
     .FfiCallFrame -> {
         returned :: hosted_frame_call(stack, arg_base, at_pc, "ffi_call_frame", true)
-        if returned is Trap { return returned }
+            else return returned
         return HostOk { .value = StringVal(returned) }
     }
     // ---- std/target --------------------------------------------------------
@@ -243,8 +228,7 @@ export dispatch_import :: fn(
     }
     // ---- std/abort -------------------------------------------------------
     .AbortPanic -> {
-        message :: read_string(stack[arg_base], at_pc, "panic")
-        if message is Trap { return message }
+        message :: read_string(stack[arg_base], at_pc, "panic") else return message
         return Trap { .message = "panic: ${string(message)}" }
     }
     // Non-intrinsics, and the members an op serves, which no call reaches as an
@@ -268,10 +252,7 @@ array_bytes :: fn(a: ArrayVal, count: i64, at_pc: i32, label: string) -> u8[] | 
     }
     bs: u8[]: []
     for i in 0..<count {
-        b :: read_i64(a.elements[i], at_pc, label)
-        if b is Trap {
-            return b
-        }
+        b :: read_i64(a.elements[i], at_pc, label) else return b
         bs.push(u8(b))
     }
     return bs
@@ -325,10 +306,7 @@ foreign_call_of :: fn(state: VmState, index: i32, at_pc: i32) -> ForeignCall | T
     info :: state.bc.imports[index]
     types :: state.bc.types
     adapter :: adapter_of(state, index)
-    callee :: callee_of(state, info, adapter, at_pc)
-    if callee is Trap {
-        return callee
-    }
+    callee :: callee_of(state, info, adapter, at_pc) else return callee
     result_type :: bc.bc_single_result_type(info.signature)
     mirror :: bc.mirror_at(types, result_type)
     result_mirror: ResultMirror | null = null
@@ -435,10 +413,7 @@ dispatch_extern :: fn(
             return served
         }
     }
-    call :: foreign_call_of(state, index, at_pc)
-    if call is Trap {
-        return call
-    }
+    call :: foreign_call_of(state, index, at_pc) else return call
 
     // The call is described by DATA, not by its shape: one class per slot, then
     // a flat frame of eight-byte slots followed by whatever an ADDR slot points
@@ -490,7 +465,7 @@ dispatch_extern :: fn(
                 data.push(0)
             }
             filled :: serialise_mirror(data, at, v, fields, types, at_pc, info.extern_name, 0)
-            if filled is Trap { return filled }
+                else return filled
             desc.push(u8(FFI_ADDR))
             addr_slots.push(slot_words.len())
             slot_words.push(at)
@@ -507,8 +482,7 @@ dispatch_extern :: fn(
             if width == 0 || width > 8 {
                 return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: `@c_address` on a ${bc.val_type_name(params[i])} parameter is not covered" }
             }
-            w :: lent_word(v, width, at_pc, info.extern_name, "arg ${i}")
-            if w is Trap { return w }
+            w :: lent_word(v, width, at_pc, info.extern_name, "arg ${i}") else return w
             desc.push(u8(FFI_ADDR))
             addr_slots.push(slot_words.len())
             slot_words.push(data.len())
@@ -538,7 +512,7 @@ dispatch_extern :: fn(
                 borrowed.push(LentArray { .target = v, .at = data.len(), .element = elem })
                 for cell in v.elements {
                     word :: lent_word(cell, width, at_pc, info.extern_name, "element")
-                    if word is Trap { return word }
+                        else return word
                     push_little_endian(data, i64(word), width)
                 }
             }
@@ -567,8 +541,7 @@ dispatch_extern :: fn(
             desc.push(u8(FFI_WORD))
             slot_words.push(i64(u32(v)))
         } else {
-            w :: extern_word(v, at_pc, info.extern_name, i)
-            if w is Trap { return w }
+            w :: extern_word(v, at_pc, info.extern_name, i) else return w
             desc.push(u8(FFI_WORD))
             slot_words.push(word_of_class(i64(w), params[i]))
         }
@@ -897,8 +870,7 @@ serialise_mirror :: fn(
             t :: serialise_mirror(
                 data, base + layout.offsets[j], inner, nested.fields, types,
                 at_pc, extern_name, depth + 1,
-            )
-            if t is Trap { return t }
+            ) else return t
             continue
         }
         width :: bc.c_field_width(fields[j], types) else continue

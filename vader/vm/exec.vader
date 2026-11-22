@@ -469,10 +469,7 @@ export exec :: fn(state: VmState, host_argv: string[]) -> VmResult = exec_entry(
 /// @return         the run outcome, or a `Trap` when no such fn exists or it
 ///                 takes another number of arguments.
 export exec_fn :: fn(state: VmState, mangled: string, args: Value[] = []) -> VmResult {
-    idx :: entry_named(state, mangled)
-    if idx is Trap {
-        return idx
-    }
+    idx :: entry_named(state, mangled) else return idx
     no_args: string[]: []
     ran :: run_entry(state, idx, no_args, null, false, null, args)
     return without_frames(after_entry(ran, "the test"))
@@ -520,10 +517,7 @@ export StackOverflow :: struct {
 // run, so it (and the captured value once written) stays a GC root through any
 // collection inside the loop.
 run_for_value :: fn(state: VmState, mangled: string, is_comptime: bool) -> ValueResult | StackOverflow {
-    idx :: entry_named(state, mangled)
-    if idx is Trap {
-        return idx
-    }
+    idx :: entry_named(state, mangled) else return idx
     no_args: string[]: []
     capture: Value[]: [zero_value()]
     ran :: run_entry(state, idx, no_args, capture, is_comptime, null)
@@ -724,7 +718,7 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> void | Tra
 /// @error              empty stack ; negative size.
 build_buffer :: fn(frame: Frame, handle_cell: i32[]) -> void | Trap {
     size_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "buffer.new size")
-    if size_unwrap is Trap { return size_unwrap }
+        else return size_unwrap
     if size_unwrap < 0 {
         return Trap {
             .message = "buffer.new size ${i32(size_unwrap)} is negative at pc=${frame.pc}",
@@ -796,12 +790,10 @@ stack_obj :: fn(frame: Frame, at: i64, op: string) -> ObjVal | Trap {
 /// @error        fewer than 2 stack slots ; non-object receiver ; negative or
 ///               out-of-range offset.
 load_bytes_op :: fn(frame: Frame, width: i64, label: string) -> u64 | Trap {
-    off_unwrap :: stack_i32(frame, frame.sp - 1, label, "offset")
-    if off_unwrap is Trap { return off_unwrap }
-    obj_unwrap :: stack_obj(frame, frame.sp - 2, label)
-    if obj_unwrap is Trap { return obj_unwrap }
+    off_unwrap :: stack_i32(frame, frame.sp - 1, label, "offset") else return off_unwrap
+    obj_unwrap :: stack_obj(frame, frame.sp - 2, label) else return obj_unwrap
     off :: check_byte_range(off_unwrap, width, obj_unwrap.bytes.len(), label, frame.pc)
-    if off is Trap { return off }
+        else return off
     return bc.read_le(obj_unwrap.bytes, off, width)
 }
 
@@ -818,12 +810,10 @@ load_bytes_op :: fn(frame: Frame, width: i64, label: string) -> u64 | Trap {
 /// @error        a `Trap` on bad obj / OOB offset.
 /// @error        non-object receiver ; negative or out-of-range offset.
 store_bytes_op :: fn(frame: Frame, width: i64, value: u64, label: string) -> void | Trap {
-    off_unwrap :: stack_i32(frame, frame.sp - 2, label, "offset")
-    if off_unwrap is Trap { return off_unwrap }
-    obj_unwrap :: stack_obj(frame, frame.sp - 3, label)
-    if obj_unwrap is Trap { return obj_unwrap }
+    off_unwrap :: stack_i32(frame, frame.sp - 2, label, "offset") else return off_unwrap
+    obj_unwrap :: stack_obj(frame, frame.sp - 3, label) else return obj_unwrap
     off :: check_byte_range(off_unwrap, width, obj_unwrap.bytes.len(), label, frame.pc)
-    if off is Trap { return off }
+        else return off
     bc.write_le(obj_unwrap.bytes, off, width, value)
     frame.sp = frame.sp - 3
     frame.pc = frame.pc + 1
@@ -841,15 +831,15 @@ store_bytes_op :: fn(frame: Frame, width: i64, value: u64, label: string) -> voi
 ///               length/offset ; source or dest range past the byte length.
 do_memory_copy :: fn(frame: Frame) -> void | Trap {
     n_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "memory_copy n")
-    if n_unwrap is Trap { return n_unwrap }
+        else return n_unwrap
     src_off_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "memory_copy src_off")
-    if src_off_unwrap is Trap { return src_off_unwrap }
+        else return src_off_unwrap
     src_unwrap :: read_obj(peek_val(frame, frame.sp - 3), frame.pc, "memory_copy src")
-    if src_unwrap is Trap { return src_unwrap }
+        else return src_unwrap
     dst_off_unwrap :: read_i32(peek_val(frame, frame.sp - 4), frame.pc, "memory_copy dst_off")
-    if dst_off_unwrap is Trap { return dst_off_unwrap }
+        else return dst_off_unwrap
     dst_unwrap :: read_obj(peek_val(frame, frame.sp - 5), frame.pc, "memory_copy dst")
-    if dst_unwrap is Trap { return dst_unwrap }
+        else return dst_unwrap
     if n_unwrap < 0 || src_off_unwrap < 0 || dst_off_unwrap < 0 {
         return Trap { .message = "memory_copy negative length/offset at pc=${frame.pc}" }
     }
@@ -953,36 +943,29 @@ apply_boxed :: fn(
             frame.pc = frame.pc + 1
         }
         is bc.StructNew -> {
-            outcome :: build_struct(state.bc.types, instr.type_id, frame)
-            if outcome is Trap { return outcome }
+            outcome :: build_struct(state.bc.types, instr.type_id, frame) else return outcome
         }
         is bc.ArrayNew -> {
-            outcome :: build_array(instr.type_id, instr.length, frame)
-            if outcome is Trap { return outcome }
+            outcome :: build_array(instr.type_id, instr.length, frame) else return outcome
         }
         is bc.ArraySlice -> {
-            outcome :: exec_array_slice(frame, instr)
-            if outcome is Trap { return outcome }
+            outcome :: exec_array_slice(frame, instr) else return outcome
         }
         is bc.ArrayReserve -> {
-            outcome :: exec_array_reserve(frame, instr)
-            if outcome is Trap { return outcome }
+            outcome :: exec_array_reserve(frame, instr) else return outcome
         }
         is bc.ArrayRepeat -> {
-            outcome :: exec_array_repeat(frame)
-            if outcome is Trap { return outcome }
+            outcome :: exec_array_repeat(frame) else return outcome
         }
         is bc.ArrayPushAll -> {
-            outcome :: exec_array_push_all(frame)
-            if outcome is Trap { return outcome }
+            outcome :: exec_array_push_all(frame) else return outcome
         }
         is bc.ArrayCopy -> {
-            outcome :: exec_array_copy(frame)
-            if outcome is Trap { return outcome }
+            outcome :: exec_array_copy(frame) else return outcome
         }
         is bc.ArrayRemoveLast -> {
             array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.remove_last receiver")
-            if array_unwrap is Trap { return array_unwrap }
+                else return array_unwrap
             if array_unwrap.raw != null {
                 own_bytes(array_unwrap)
             }
@@ -996,7 +979,7 @@ apply_boxed :: fn(
         }
         is bc.ArrayClear -> {
             array_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.clear receiver")
-            if array_unwrap is Trap { return array_unwrap }
+                else return array_unwrap
             array_unwrap.raw = null
             array_unwrap.elements.clear()
             frame.sp = frame.sp - 1
@@ -1035,8 +1018,7 @@ apply_boxed :: fn(
         is bc.Convert -> {
             if !convert_int_fast(frame, instr.target, instr.from_name) {
                 v :: peek_val(frame, frame.sp - 1)
-                converted :: convert_value(v, instr.target, instr.from_name, frame.pc)
-                if converted is Trap {
+                converted :: convert_value(v, instr.target, instr.from_name, frame.pc) else {
                     return Trap { .message = "${converted.message} (got ${describe_value_tag(v)}) in '${fn_name}'" }
                 }
                 push_val(frame, frame.sp - 1, converted)
@@ -1058,48 +1040,39 @@ apply_boxed :: fn(
             frame.pc = frame.pc + 1
         }
         is bc.I32Eq -> {
-            outcome :: apply_eq_binop(frame, "i32.eq", false)
-            if outcome is Trap { return outcome }
+            outcome :: apply_eq_binop(frame, "i32.eq", false) else return outcome
         }
         is bc.I32Ne -> {
-            outcome :: apply_eq_binop(frame, "i32.ne", true)
-            if outcome is Trap { return outcome }
+            outcome :: apply_eq_binop(frame, "i32.ne", true) else return outcome
         }
         is bc.BoolEq -> {
-            left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.eq")
-            if left  is Trap { return left  }
-            right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.eq")
-            if right is Trap { return right }
+            left :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.eq") else return left
+            right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.eq") else return right
             frame.payload[frame.sp - 2] = if left == right { 1 } else { 0 }
             frame.tag[frame.sp - 2] = .Bool
             frame.sp = frame.sp - 1
             frame.pc = frame.pc + 1
         }
         is bc.BoolNe -> {
-            left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.ne")
-            if left  is Trap { return left  }
-            right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.ne")
-            if right is Trap { return right }
+            left :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.ne") else return left
+            right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.ne") else return right
             frame.payload[frame.sp - 2] = if left != right { 1 } else { 0 }
             frame.tag[frame.sp - 2] = .Bool
             frame.sp = frame.sp - 1
             frame.pc = frame.pc + 1
         }
         is bc.BoolAnd -> {
-            left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.and")
-            if left  is Trap { return left  }
+            left :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.and") else return left
             right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.and")
-            if right is Trap { return right }
+                else return right
             frame.payload[frame.sp - 2] = if bool(left) && bool(right) { 1 } else { 0 }
             frame.tag[frame.sp - 2] = .Bool
             frame.sp = frame.sp - 1
             frame.pc = frame.pc + 1
         }
         is bc.BoolOr -> {
-            left  :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.or")
-            if left  is Trap { return left  }
-            right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.or")
-            if right is Trap { return right }
+            left :: read_bool(peek_val(frame, frame.sp - 2), frame.pc, "bool.or") else return left
+            right :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.or") else return right
             frame.payload[frame.sp - 2] = if bool(left) || bool(right) { 1 } else { 0 }
             frame.tag[frame.sp - 2] = .Bool
             frame.sp = frame.sp - 1
@@ -1107,34 +1080,33 @@ apply_boxed :: fn(
         }
         is bc.BoolNot -> {
             operand :: read_bool(peek_val(frame, frame.sp - 1), frame.pc, "bool.not")
-            if operand is Trap { return operand }
+                else return operand
             frame.payload[frame.sp - 1] = if !bool(operand) { 1 } else { 0 }
             frame.tag[frame.sp - 1] = .Bool
             frame.pc = frame.pc + 1
         }
         is bc.StringEq -> {
-            left  :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.eq")
-            if left  is Trap { return left  }
+            left :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.eq")
+                else return left
             right :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "string.eq")
-            if right is Trap { return right }
+                else return right
             frame.payload[frame.sp - 2] = if left == right { 1 } else { 0 }
             frame.tag[frame.sp - 2] = .Bool
             frame.sp = frame.sp - 1
             frame.pc = frame.pc + 1
         }
         is bc.StringNe -> {
-            left  :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.ne")
-            if left  is Trap { return left  }
+            left :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.ne")
+                else return left
             right :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "string.ne")
-            if right is Trap { return right }
+                else return right
             frame.payload[frame.sp - 2] = if left != right { 1 } else { 0 }
             frame.tag[frame.sp - 2] = .Bool
             frame.sp = frame.sp - 1
             frame.pc = frame.pc + 1
         }
         is bc.StringCompare -> {
-            outcome :: exec_string_compare(frame)
-            if outcome is Trap { return outcome }
+            outcome :: exec_string_compare(frame) else return outcome
         }
         is bc.RefEq -> {
             outcome :: value_ref_eq(peek_val(frame, frame.sp - 2), peek_val(frame, frame.sp - 1))
@@ -1162,92 +1134,81 @@ apply_boxed :: fn(
             frame.pc = frame.pc + 1
         }
         is bc.BufferNew -> {
-            outcome :: build_buffer(frame, run.obj_handles)
-            if outcome is Trap { return outcome }
+            outcome :: build_buffer(frame, run.obj_handles) else return outcome
         }
         is bc.LoadU8 -> {
-            raw :: load_bytes_op(frame, 1, "load_u8")
-            if raw is Trap { return raw }
+            raw :: load_bytes_op(frame, 1, "load_u8") else return raw
             frame.payload[frame.sp - 2] = i64(i32(raw))
             frame.tag[frame.sp - 2] = .I32
             frame.sp = frame.sp - 1
             frame.pc = frame.pc + 1
         }
         is bc.LoadI32 -> {
-            raw :: load_bytes_op(frame, 4, "load_i32")
-            if raw is Trap { return raw }
+            raw :: load_bytes_op(frame, 4, "load_i32") else return raw
             frame.payload[frame.sp - 2] = i64(i32(raw))
             frame.tag[frame.sp - 2] = .I32
             frame.sp = frame.sp - 1
             frame.pc = frame.pc + 1
         }
         is bc.LoadI64 -> {
-            raw :: load_bytes_op(frame, 8, "load_i64")
-            if raw is Trap { return raw }
+            raw :: load_bytes_op(frame, 8, "load_i64") else return raw
             frame.payload[frame.sp - 2] = i64(raw)
             frame.tag[frame.sp - 2] = .I64
             frame.sp = frame.sp - 1
             frame.pc = frame.pc + 1
         }
         is bc.LoadF64 -> {
-            raw :: load_bytes_op(frame, 8, "load_f64")
-            if raw is Trap { return raw }
+            raw :: load_bytes_op(frame, 8, "load_f64") else return raw
             frame.payload[frame.sp - 2] = i64(((u64(raw)).from_bits()).to_bits())
             frame.tag[frame.sp - 2] = .F64
             frame.sp = frame.sp - 1
             frame.pc = frame.pc + 1
         }
         is bc.StoreU8 -> {
-            val_unwrap :: stack_i32(frame, frame.sp - 1, "store_u8", "value")
-            if val_unwrap is Trap { return val_unwrap }
-            outcome :: store_bytes_op(frame, 1, u64(u8(val_unwrap)), "store_u8")
-            if outcome is Trap { return outcome }
+            val_unwrap :: stack_i32(frame, frame.sp - 1, "store_u8", "value") else return val_unwrap
+            outcome :: store_bytes_op(frame, 1, u64(u8(val_unwrap)), "store_u8") else return outcome
         }
         is bc.StoreI32 -> {
             val_unwrap :: stack_i32(frame, frame.sp - 1, "store_i32", "value")
-            if val_unwrap is Trap { return val_unwrap }
+                else return val_unwrap
             outcome :: store_bytes_op(frame, 4, u64(u32(val_unwrap)), "store_i32")
-            if outcome is Trap { return outcome }
+                else return outcome
         }
         is bc.StoreI64 -> {
             val_unwrap :: read_i64(peek_val(frame, frame.sp - 1), frame.pc, "store_i64 value")
-            if val_unwrap is Trap { return val_unwrap }
-            outcome :: store_bytes_op(frame, 8, u64(val_unwrap), "store_i64")
-            if outcome is Trap { return outcome }
+                else return val_unwrap
+            outcome :: store_bytes_op(frame, 8, u64(val_unwrap), "store_i64") else return outcome
         }
         is bc.StoreF64 -> {
             val_unwrap :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "store_f64 value")
-            if val_unwrap is Trap { return val_unwrap }
+                else return val_unwrap
             outcome :: store_bytes_op(frame, 8, f64(val_unwrap).to_bits(), "store_f64")
-            if outcome is Trap { return outcome }
+                else return outcome
         }
         is bc.MemoryCopy -> {
-            outcome :: do_memory_copy(frame)
-            if outcome is Trap { return outcome }
+            outcome :: do_memory_copy(frame) else return outcome
         }
         is bc.BufferToString -> {
             // Pop buffer + len ; intern the leading `len` bytes verbatim as a
             // string (same semantics as `bytes_to_string` over a `u8[]`).
             len_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "buffer_to_string len")
-            if len_unwrap is Trap { return len_unwrap }
+                else return len_unwrap
             obj_unwrap :: read_obj(peek_val(frame, frame.sp - 2), frame.pc, "buffer_to_string receiver")
-            if obj_unwrap is Trap { return obj_unwrap }
+                else return obj_unwrap
             // width 0 => checks `0 <= len <= bytes_len`, returns the len.
             n :: check_byte_range(i32(len_unwrap), 0, obj_unwrap.bytes.len(), "buffer_to_string", frame.pc)
-            if n is Trap { return n }
+                else return n
             push_val(frame, frame.sp - 2, StringVal(obj_unwrap.bytes[0..<n].bytes_to_string()))
             frame.sp = frame.sp - 1
             frame.pc = frame.pc + 1
         }
         is bc.BufferWriteString -> {
-            outcome :: exec_buffer_write_string(frame)
-            if outcome is Trap { return outcome }
+            outcome :: exec_buffer_write_string(frame) else return outcome
         }
         is bc.F64ToBits -> {
             // Bit-reinterpret the TOS f64 as its raw u64 bits (held in an
             // I64Val: same 64 bits).
-            fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f64_to_bits")
-            if fv is Trap { return fv }
+            fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f64_to_bits") else return fv
             frame.payload[frame.sp - 1] = i64(f64(fv).to_bits())
             frame.tag[frame.sp - 1] = .I64
             frame.pc = frame.pc + 1
@@ -1255,8 +1216,7 @@ apply_boxed :: fn(
         is bc.BitsToF64 -> {
             // Inverse : reinterpret the TOS u64 bit pattern (in an I64Val) as
             // an f64.
-            iv :: read_i64(peek_val(frame, frame.sp - 1), frame.pc, "bits_to_f64")
-            if iv is Trap { return iv }
+            iv :: read_i64(peek_val(frame, frame.sp - 1), frame.pc, "bits_to_f64") else return iv
             frame.payload[frame.sp - 1] = i64(u64(iv).from_bits().to_bits())
             frame.tag[frame.sp - 1] = .F64
             frame.pc = frame.pc + 1
@@ -1265,8 +1225,7 @@ apply_boxed :: fn(
             // f32->u32 bits. The VM holds f32 in an F64Val (exact, since f32
             // widens losslessly), so narrow back to f32 before the cast; the
             // u32 result rides in an I32Val.
-            fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f32_to_bits")
-            if fv is Trap { return fv }
+            fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f32_to_bits") else return fv
             frame.payload[frame.sp - 1] = i64(i32(f32(fv).to_bits()))
             frame.tag[frame.sp - 1] = .I32
             frame.pc = frame.pc + 1
@@ -1274,8 +1233,7 @@ apply_boxed :: fn(
         is bc.BitsToF32 -> {
             // Inverse : reinterpret the TOS u32 bit pattern (in an I32Val) as
             // an f32, widened back into an F64Val for VM storage.
-            iv :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "bits_to_f32")
-            if iv is Trap { return iv }
+            iv :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "bits_to_f32") else return iv
             frame.payload[frame.sp - 1] = i64(f64(u32(iv).from_bits()).to_bits())
             frame.tag[frame.sp - 1] = .F64
             frame.pc = frame.pc + 1

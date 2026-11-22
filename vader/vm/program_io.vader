@@ -57,10 +57,7 @@ serve_program_stream :: fn(
 ) -> HostCallResult | null {
     symbol :: info.extern_name
     if symbol == "GetStdHandle" {
-        which :: read_i64(stack[arg_base], at_pc, "GetStdHandle which")
-        if which is Trap {
-            return which
-        }
+        which :: read_i64(stack[arg_base], at_pc, "GetStdHandle which") else return which
         return HostOk { .value = I64Val(std_descriptor(i64(which))) }
     }
     writes :: symbol == "write" || symbol == "_write" || symbol == "WriteFile"
@@ -68,10 +65,7 @@ serve_program_stream :: fn(
     if !writes && !reads {
         return null
     }
-    fd :: read_i64(stack[arg_base], at_pc, "descriptor")
-    if fd is Trap {
-        return fd
-    }
+    fd :: read_i64(stack[arg_base], at_pc, "descriptor") else return fd
     if reads {
         if i64(fd) != STDIN_DESCRIPTOR {
             return null
@@ -124,21 +118,12 @@ serve_write :: fn(
     arg_base: i64,
     at_pc: i32,
 ) -> HostCallResult {
-    arr :: read_array(stack[arg_base + 1], at_pc, "write buf")
-    if arr is Trap {
-        return arr
-    }
-    count :: read_i64(stack[arg_base + 2], at_pc, "write count")
-    if count is Trap {
-        return count
-    }
+    arr :: read_array(stack[arg_base + 1], at_pc, "write buf") else return arr
+    count :: read_i64(stack[arg_base + 2], at_pc, "write count") else return count
     if count < 0 || i64(count) > element_count(arr) {
         return Trap { .message = "write at pc=${at_pc}: count ${i64(count)} exceeds the buffer" }
     }
-    bs :: array_bytes(arr, i64(count), at_pc, "write byte")
-    if bs is Trap {
-        return bs
-    }
+    bs :: array_bytes(arr, i64(count), at_pc, "write byte") else return bs
     io.write(stream, bytes_to_string(bs))
     if bc.bc_single_result(info.signature) == .Bool {
         return HostOk { .value = BoolVal(true) }
@@ -152,10 +137,7 @@ serve_read :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i32) -
     if bc.bc_single_result(info.signature) != .Bool {
         return HostOk { .value = I64Val(0) }
     }
-    read :: read_array(stack[arg_base + 3], at_pc, "ReadFile count")
-    if read is Trap {
-        return read
-    }
+    read :: read_array(stack[arg_base + 3], at_pc, "ReadFile count") else return read
     if element_count(read) > 0 {
         read.elements[0] = retyped_int(read.elements[0], 0)
     }

@@ -128,17 +128,14 @@ reg_run :: fn(
 ) -> VmResult | StackOverflow {
     entry_function :: state.bc.functions[entry_index]
     args :: entry_args(entry_function, host_argv, given, state.string_array_type_id)
-    if args is Trap {
-        return args
-    }
+        else return args
     m :: empty_machine(debug_session(debug, MAIN_THREAD_ID))
     note_entry_thread(m)
     reserve_registers(m, code.functions[entry_index].registers)
     for i in 0..<args.len() {
         set_register(m, i, args[i])
     }
-    outcome :: reg_call(state, code, m, entry_index, 0, 0, 0, is_comptime)
-    if outcome is Trap {
+    outcome :: reg_call(state, code, m, entry_index, 0, 0, 0, is_comptime) else {
         if is_overflow_trap_message(outcome.message) {
             // Read before `unwind`, whose deferred blocks run over these frames.
             frames :: frame_names(m)
@@ -517,13 +514,12 @@ reg_call :: fn(
                 }
             }
             .Boxed -> {
-                failed :: run_boxed(state, m, f, pc, base, is_comptime)
-                    else is Trap { return failed }
+                failed :: run_boxed(state, m, f, pc, base, is_comptime) else return failed
             }
             .CallImport -> {
                 note_host_call(m, pc, depth)
                 failed :: call_import(state, m, operand_a(w), base + i64(operand_b(w)), f.origin[pc], is_comptime)
-                    else is Trap { return failed }
+                    else return failed
             }
             .StringByteLen -> {
                 at :: base + i64(operand_b(w))
@@ -572,7 +568,7 @@ reg_call :: fn(
             }
             .DeferRun -> {
                 failed :: run_defers(state, code, m, f, pc, base + f.registers, depth, is_comptime)
-                    else is Trap { return failed }
+                    else return failed
             }
             .Line -> {
                 session :: m.debug
@@ -600,7 +596,7 @@ reg_call :: fn(
             }
             .SetField -> {
                 failed :: set_field(m, base, operand_a(w), operand_b(w), operand_c(w), f, pc)
-                    else is Trap { return failed }
+                    else return failed
             }
             .IsStruct -> {
                 held :: struct_at(m, base + i64(operand_b(w)))
@@ -616,7 +612,7 @@ reg_call :: fn(
                 if !try_set_element(m, base, operand_a(w), operand_b(w), operand_c(w)) {
                     failed :: set_element(
                         m, base, operand_a(w), operand_b(w), operand_c(w), f, pc, op,
-                    ) else is Trap { return failed }
+                    ) else return failed
                 }
             }
             .Length -> {
@@ -709,10 +705,7 @@ reg_call :: fn(
                         }
                         index = target
                     } else {
-                        resolved :: resolve_virtual(state, m, f, pc, at)
-                        if resolved is Trap {
-                            return resolved
-                        }
+                        resolved :: resolve_virtual(state, m, f, pc, at) else return resolved
                         index = resolved
                     }
                 }
@@ -834,8 +827,7 @@ set_field :: fn(m: RegMachine, base: i64, obj: i32, value: i32, field: i32, f: R
         target.fields[field] = register_value(m, base + i64(value))
         return
     }
-    failed :: read_struct(target, f.origin[pc], "struct.set receiver")
-        else is Trap { return failed }
+    receiver :: read_struct(target, f.origin[pc], "struct.set receiver") else return receiver
 }
 
 // Read an element into register `dst`, allocating nothing so it takes no GC frame.
@@ -941,9 +933,7 @@ narrow_register :: fn(m: RegMachine, at: i64, width: i32) -> void {
 // of range, or an arity its callee does not declare.
 indirect_call_trap :: fn(code: RegModule, m: RegMachine, at: i64, arity: i64, origin: i32) -> Trap {
     value :: read_fn(register_value(m, at + arity), origin, "call.indirect receiver")
-    if value is Trap {
-        return value
-    }
+        else return value
     target :: value.function_index
     if target < 0 || i64(target) >= code.functions.len() {
         return fn_index_trap(target, origin, "call.indirect")
@@ -1030,9 +1020,7 @@ run_boxed :: fn(
     frame.sp = pops
     frame.pc = f.origin[pc]
     outcome :: apply_boxed(state, m.run, f.boxed[operand_a(w)], frame, f.name, is_comptime)
-    if outcome is Trap {
-        return outcome
-    }
+        else return outcome
     for i in 0..<pushes {
         m.bits[at + i] = frame.payload[i]
         m.tags[at + i] = frame.tag[i]
@@ -1055,10 +1043,7 @@ call_import :: fn(state: VmState, m: RegMachine, index: i32, at: i64, origin: i3
     for i in 0..<info.signature.params.len() {
         args.push(register_value(m, at + i))
     }
-    outcome :: state.serve_import(m, index, info, args, origin, is_comptime)
-    if outcome is Trap {
-        return outcome
-    }
+    outcome :: state.serve_import(m, index, info, args, origin, is_comptime) else return outcome
     if bc.bc_single_result(info.signature) != .Void {
         m.set_register(at, outcome.value)
     }
@@ -1084,17 +1069,20 @@ serve_import :: fn(
         return deep_copy_value(state.bc.types, args[0], origin)
     }
     // A thread primitive by a thread of the host (`guest_threads.vader`).
-    return serve_thread_primitive(state, m, id, args, origin, is_comptime) else dispatch_import(
-        info,
-        args,
-        0,
-        m.run.gc_state,
-        origin,
-        state.string_array_type_id,
-        state.u8_array_type_id,
-        is_comptime,
-        id,
-    )
+    served :: serve_thread_primitive(state, m, id, args, origin, is_comptime) else is null {
+        return dispatch_import(
+            info,
+            args,
+            0,
+            m.run.gc_state,
+            origin,
+            state.string_array_type_id,
+            state.u8_array_type_id,
+            is_comptime,
+            id,
+        )
+    }
+    return served
 }
 
 // The debugger driving the run, for the host's output hook.
@@ -1135,10 +1123,7 @@ run_defers :: fn(
     // Copied out: a thunk's own `defer`s reuse the slots above `first`.
     batch: FnVal[]: []
     for k in first..<m.defer_count {
-        thunk :: defer_thunk(state, m.defers[k], origin, "defer.pop_exec")
-        if thunk is Trap {
-            return thunk
-        }
+        thunk :: defer_thunk(state, m.defers[k], origin, "defer.pop_exec") else return thunk
         batch.push(thunk)
     }
     m.defer_count = first
@@ -1146,7 +1131,7 @@ run_defers :: fn(
     for k > 0 {
         k -= 1
         failed :: run_thunk(state, code, m, batch[k], at, depth, pc + 1, is_comptime)
-            else is Trap { return failed }
+            else return failed
     }
 }
 
@@ -1157,9 +1142,7 @@ defer_thunk :: fn(state: VmState, closure: Value, origin: i32, label: string) ->
         return read_fn(closure, origin, "${label} entry")
     }
     checked :: validate_fn_index(closure.function_index, state.bc.functions, origin, label)
-    if checked is Trap {
-        return checked
-    }
+        else return checked
     callee :: state.bc.functions[closure.function_index]
     if callee.signature.params.len() != 1 {
         return Trap { .message = "defer thunk '${callee.name}' must take exactly one env param at pc=${origin}" }
@@ -1193,11 +1176,8 @@ run_thunk :: fn(
 unwind :: fn(state: VmState, code: RegModule, m: RegMachine, is_comptime: bool) -> void {
     for m.defer_count > 0 {
         m.defer_count -= 1
-        thunk :: defer_thunk(state, m.defers[m.defer_count], 0, "panic unwind defer")
-        if thunk is Trap {
-            return
-        }
-        run_thunk(state, code, m, thunk, 0, 0, 0, is_comptime) else is Trap { return }
+        thunk :: defer_thunk(state, m.defers[m.defer_count], 0, "panic unwind defer") else return
+        run_thunk(state, code, m, thunk, 0, 0, 0, is_comptime) else return
     }
 }
 
@@ -1271,10 +1251,7 @@ finish_run :: fn(m: RegMachine, has_value: bool, capture: Value[] | null) -> VmR
     if !has_value {
         return Ok { .value = 0 }
     }
-    code :: read_i32(register_value(m, 0), 0, "return from main")
-    if code is Trap {
-        return code
-    }
+    code :: read_i32(register_value(m, 0), 0, "return from main") else return code
     return Ok { .value = i32(code) }
 }
 
@@ -1388,10 +1365,7 @@ main_module :: fn(header: string[], body: string[]) -> bc.BytecodeModule | null 
 // The message `module` traps with, or "" when it runs to its end.
 trap_message :: fn(module: bc.BytecodeModule) -> string {
     state :: prepared(module) else return ""
-    result :: exec(state, [])
-    if result is Trap {
-        return result.message
-    }
+    result :: exec(state, []) else return result.message
     return ""
 }
 

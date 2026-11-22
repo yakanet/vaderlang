@@ -223,8 +223,7 @@ prepared :: fn(module: bc.BytecodeModule) -> VmState | null {
 // Exec `module` and return its exit value, failing the test on a trap.
 exec_value :: fn(module: bc.BytecodeModule) -> i32 {
     state :: prepared(module) else return -1
-    result :: exec(state, [])
-    if result is Trap {
+    result :: exec(state, []) else {
         assert(false, "unexpected VM trap: ${result.message}")
         return -1
     }

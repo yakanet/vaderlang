@@ -105,10 +105,7 @@ start_guest_thread :: fn(
     if state.reg.functions[entry.function_index].params != environment_params(entry) {
         return Trap { .message = "a thread's entry takes arguments" }
     }
-    given :: read_i64(args[1], origin, "spawn_thread")
-    if given is Trap {
-        return given
-    }
+    given :: read_i64(args[1], origin, "spawn_thread") else return given
     number :: i64(given)
     session :: debug_session(debug, debugged_thread_id(number))
     thread :: spawn_thread(() -> run_guest_thread(state, entry, is_comptime, session), number)
@@ -140,10 +137,7 @@ on_i64 :: fn(
     name: string,
     primitive: fn(i64) -> void,
 ) -> HostCallResult {
-    n :: read_i64(value, origin, name)
-    if n is Trap {
-        return n
-    }
+    n :: read_i64(value, origin, name) else return n
     primitive(i64(n))
     return void_result()
 }
@@ -151,10 +145,7 @@ on_i64 :: fn(
 // Run the host's own `wait_readable` on the descriptor the guest handed it, unless
 // it is the stdin the VM serves, which is at its end and readable at once.
 serve_wait_readable :: fn(state: VmState, fd: Value, origin: i32) -> HostCallResult {
-    n :: read_i64(fd, origin, "wait_readable")
-    if n is Trap {
-        return n
-    }
+    n :: read_i64(fd, origin, "wait_readable") else return n
     if !serves_stdin(state, i64(n)) {
         wait_readable(i64(n))
     }
@@ -170,17 +161,11 @@ serve_wait_readable_for :: fn(
     origin: i32,
     blocked: bool,
 ) -> HostCallResult {
-    fd :: read_i64(args[0], origin, "wait_readable_for")
-    if fd is Trap {
-        return fd
-    }
+    fd :: read_i64(args[0], origin, "wait_readable_for") else return fd
     if serves_stdin(state, i64(fd)) {
         return HostOk { .value = BoolVal(true) }
     }
-    nanos :: read_i64(args[1], origin, "wait_readable_for")
-    if nanos is Trap {
-        return nanos
-    }
+    nanos :: read_i64(args[1], origin, "wait_readable_for") else return nanos
     if blocked {
         return HostOk { .value = BoolVal(wait_blocked_read_for(i64(fd), i64(nanos))) }
     }
@@ -190,14 +175,8 @@ serve_wait_readable_for :: fn(
 // Run the host's own `wait_writable_for` on the two `i64` the guest handed it,
 // or `wait_blocked_write_for` when `blocked`.
 serve_wait_writable_for :: fn(args: Value[], origin: i32, blocked: bool) -> HostCallResult {
-    fd :: read_i64(args[0], origin, "wait_writable_for")
-    if fd is Trap {
-        return fd
-    }
-    nanos :: read_i64(args[1], origin, "wait_writable_for")
-    if nanos is Trap {
-        return nanos
-    }
+    fd :: read_i64(args[0], origin, "wait_writable_for") else return fd
+    nanos :: read_i64(args[1], origin, "wait_writable_for") else return nanos
     if blocked {
         return HostOk { .value = BoolVal(wait_blocked_write_for(i64(fd), i64(nanos))) }
     }
@@ -206,10 +185,7 @@ serve_wait_writable_for :: fn(args: Value[], origin: i32, blocked: bool) -> Host
 
 // Ask the host's scheduler whether the thread the guest names is leaving.
 serve_is_leaving :: fn(thread: Value, origin: i32) -> HostCallResult {
-    handle :: read_i64(thread, origin, "is_leaving")
-    if handle is Trap {
-        return handle
-    }
+    handle :: read_i64(thread, origin, "is_leaving") else return handle
     return HostOk { .value = BoolVal(is_leaving(i64(handle))) }
 }
 
@@ -217,10 +193,7 @@ serve_is_leaving :: fn(thread: Value, origin: i32) -> HostCallResult {
 // where the host's own check would stop the process, and a handle that names no
 // guest thread names one that has ended.
 cancel_guest_thread :: fn(thread: Value, origin: i32) -> HostCallResult {
-    handle :: read_i64(thread, origin, "cancel_thread")
-    if handle is Trap {
-        return handle
-    }
+    handle :: read_i64(thread, origin, "cancel_thread") else return handle
     target :: i64(handle)
     if target == guest_threads().entry_thread {
         return Trap { .message = "virtual threads: the main thread cannot be cancelled" }

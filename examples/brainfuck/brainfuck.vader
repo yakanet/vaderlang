@@ -326,8 +326,7 @@ main :: fn(argv: string[]) -> i32 {
         eprintln(state)
         return 1
     }
-    result :: exec_fn(state, "bf_main")
-    if result is Trap {
+    result :: exec_fn(state, "bf_main") else {
         eprintln("brainfuck: vm trap: ${result.message}")
         return 1
     }

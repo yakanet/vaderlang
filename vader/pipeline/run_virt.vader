@@ -43,8 +43,7 @@ export run_virt_text :: fn(
         return 1
     }
     state.io = io
-    outcome :: VM.exec(state, forward)
-    if outcome is VM.Trap {
+    outcome :: VM.exec(state, forward) else {
         write_run_failure(io, "vader vm: ${outcome.message}")
         return 1
     }

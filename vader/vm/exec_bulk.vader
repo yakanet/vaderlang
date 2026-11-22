@@ -18,15 +18,15 @@ clamp_nonneg :: fn(v: i32) -> i64 = if v < 0 { 0 } else { i64(v) }
 /// `array.copy`: overlap-safe window copy between two arrays.
 exec_array_copy :: fn(frame: Frame) -> void | Trap {
     len_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.copy len")
-    if len_unwrap is Trap { return len_unwrap }
+        else return len_unwrap
     dst_start_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "array.copy dst_start")
-    if dst_start_unwrap is Trap { return dst_start_unwrap }
+        else return dst_start_unwrap
     dst_unwrap :: peek_array_mut(frame, frame.sp - 3, frame.pc, "array.copy dst")
-    if dst_unwrap is Trap { return dst_unwrap }
+        else return dst_unwrap
     src_start_unwrap :: read_i32(peek_val(frame, frame.sp - 4), frame.pc, "array.copy src_start")
-    if src_start_unwrap is Trap { return src_start_unwrap }
+        else return src_start_unwrap
     src_unwrap :: peek_array_mut(frame, frame.sp - 5, frame.pc, "array.copy src")
-    if src_unwrap is Trap { return src_unwrap }
+        else return src_unwrap
     n  :: clamp_nonneg(i32(len_unwrap))
     ss :: clamp_nonneg(i32(src_start_unwrap))
     ds :: clamp_nonneg(i32(dst_start_unwrap))
@@ -54,11 +54,11 @@ exec_array_copy :: fn(frame: Frame) -> void | Trap {
 /// @param instr  the op itself: the view carries its own `type_id`.
 exec_array_slice :: fn(frame: Frame, instr: bc.ArraySlice) -> void | Trap {
     hi_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.slice hi")
-    if hi_unwrap is Trap { return hi_unwrap }
+        else return hi_unwrap
     lo_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "array.slice lo")
-    if lo_unwrap is Trap { return lo_unwrap }
+        else return lo_unwrap
     array_unwrap :: peek_array_mut(frame, frame.sp - 3, frame.pc, "array.slice receiver")
-    if array_unwrap is Trap { return array_unwrap }
+        else return array_unwrap
     len :: element_count(array_unwrap)
     lo_clamped := clamp_nonneg(i32(lo_unwrap))
     if lo_clamped > len { lo_clamped = len }
@@ -89,9 +89,9 @@ view_of :: fn(array: ArrayVal, type_id: i32, lo: i64, hi: i64) -> ArrayVal {
 /// `array.push_all`: append every element of one array to another.
 exec_array_push_all :: fn(frame: Frame) -> void | Trap {
     src_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.push_all source")
-    if src_unwrap is Trap { return src_unwrap }
+        else return src_unwrap
     dst_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.push_all receiver")
-    if dst_unwrap is Trap { return dst_unwrap }
+        else return dst_unwrap
     own_bytes(dst_unwrap)
     if src_unwrap.raw == null {
         dst_unwrap.elements.push_all(src_unwrap.elements)
@@ -109,9 +109,7 @@ exec_array_push_all :: fn(frame: Frame) -> void | Trap {
 /// @param instr  the op itself: the array carries its `type_id`.
 exec_array_reserve :: fn(frame: Frame, instr: bc.ArrayReserve) -> void | Trap {
     count_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.reserve count")
-    if count_unwrap is Trap {
-        return count_unwrap
-    }
+        else return count_unwrap
     reserved: Value[]: [] * clamp_nonneg(i32(count_unwrap))
     push_val(frame, frame.sp - 1, ArrayVal { .type_id = instr.type_id, .elements = reserved })
     frame.pc = frame.pc + 1
@@ -120,9 +118,9 @@ exec_array_reserve :: fn(frame: Frame, instr: bc.ArrayReserve) -> void | Trap {
 /// `array.repeat`: the elements of an array, `n` times over.
 exec_array_repeat :: fn(frame: Frame) -> void | Trap {
     count_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.repeat count")
-    if count_unwrap is Trap { return count_unwrap }
+        else return count_unwrap
     array_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.repeat receiver")
-    if array_unwrap is Trap { return array_unwrap }
+        else return array_unwrap
     count :: clamp_nonneg(i32(count_unwrap))
     length :: element_count(array_unwrap)
     repeated: Value[]: [] * (count * length)
@@ -138,10 +136,9 @@ exec_array_repeat :: fn(frame: Frame) -> void | Trap {
 
 /// `string.compare`: the three-way byte order of two strings.
 exec_string_compare :: fn(frame: Frame) -> void | Trap {
-    left  :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.compare")
-    if left  is Trap { return left  }
+    left :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.compare") else return left
     right :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "string.compare")
-    if right is Trap { return right }
+        else return right
     frame.payload[frame.sp - 2] = i64(string(left).compare(string(right)))
     frame.tag[frame.sp - 2] = .I32
     frame.sp = frame.sp - 1
@@ -153,17 +150,17 @@ exec_buffer_write_string :: fn(frame: Frame) -> void | Trap {
     // Pop buffer + off + string ; memcpy the string's bytes into the
     // buffer at `off` (the parts-model `to_string` assembly step).
     str_unwrap :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "buffer_write_string source")
-    if str_unwrap is Trap { return str_unwrap }
+        else return str_unwrap
     off_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "buffer_write_string off")
-    if off_unwrap is Trap { return off_unwrap }
+        else return off_unwrap
     obj_unwrap :: read_obj(peek_val(frame, frame.sp - 3), frame.pc, "buffer_write_string receiver")
-    if obj_unwrap is Trap { return obj_unwrap }
+        else return obj_unwrap
     src :: string(str_unwrap)
     // Same negative-offset + range pair `load_bytes_op` / `store_bytes_op` check,
     // so it goes through the same helper and reports the same way.
-    checked :: check_byte_range(i32(off_unwrap), src.byte_len(),
-                                obj_unwrap.bytes.len(), "buffer_write_string", frame.pc)
-    if checked is Trap { return checked }
+    checked :: check_byte_range(
+        i32(off_unwrap), src.byte_len(), obj_unwrap.bytes.len(), "buffer_write_string", frame.pc,
+    ) else return checked
     off :: checked
     for i in 0..<src.byte_len() {
         obj_unwrap.bytes[off + i] = src.byte_at(i)
