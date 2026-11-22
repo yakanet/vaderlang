@@ -64,6 +64,7 @@ lost_write :: fn(site: FrozenSite) -> Span {
 frozen_what :: fn(site: FrozenSite) -> string = match site.origin {
     .Constant    -> "`${site.root}` is a module constant"
     .View        -> "`${site.root}` returns a view of a string's bytes"
+    .HandedView  -> "`${site.root}` hands out views of a string's bytes"
     .VariantData -> "`${site.root}` reads the data of a variant, which every read shares"
 }
 
@@ -75,7 +76,7 @@ fault_detail :: fn(site: FrozenSite) -> string =
 // holds one ; a view is copied by `.clone()`.
 copy_hint :: fn(site: FrozenSite, purpose: string) -> string = match site.origin {
     .Constant | .VariantData -> "a name bound to it holds a copy to ${purpose}"
-    .View                    -> "`.clone()` makes a copy to ${purpose}"
+    .View | .HandedView      -> "`.clone()` makes a copy to ${purpose}"
 }
 
 // What modifies the value of a fault: the place the body writes, or the function

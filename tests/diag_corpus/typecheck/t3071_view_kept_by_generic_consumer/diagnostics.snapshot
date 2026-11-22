@@ -1,0 +1,2 @@
+[47:15] error[T3071] a view of a string's bytes cannot be kept: `Chunks { ... }` hands out views of a string's bytes ; `.clone()` makes a copy to keep
+[49:16] error[T3071] a view of a string's bytes cannot be kept: `Chunks { ... }` hands out views of a string's bytes ; `.clone()` makes a copy to keep

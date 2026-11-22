@@ -1,0 +1,5 @@
+[47:5] error[T3070] a frozen value cannot be modified: `into()` returns a view of a string's bytes, and `copy[]` is assigned ; `.clone()` makes a copy to modify
+[49:5] error[T3070] a frozen value cannot be modified: `as_bytes()` returns a view of a string's bytes, and `as_bytes()[]` is assigned ; `.clone()` makes a copy to modify
+[51:9] error[T3070] a frozen value cannot be modified: `Chunks { ... }` hands out views of a string's bytes, and `chunk[]` is assigned ; `.clone()` makes a copy to modify
+[54:5] error[T3070] a frozen value cannot be modified: `at()` returns a view of a string's bytes, and `word[]` is assigned ; `.clone()` makes a copy to modify
+[56:5] error[T3070] a frozen value cannot be modified: `add()` returns a view of a string's bytes, and `sum[]` is assigned ; `.clone()` makes a copy to modify

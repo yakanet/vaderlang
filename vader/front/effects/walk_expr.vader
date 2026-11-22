@@ -21,10 +21,17 @@ AST :: import "toolchain/ast"
 /// @param e    an expression in value position.
 value :: fn(ctx: WalkCtx, e: AST.Expr) -> i64 | null {
     held :: ctx.converted(e, ctx.value_of(e))
-    if !holds_references(ctx.typed.expr_types[e.id]) {
+    if !holds_references(ctx.handed_type(e)) {
         return null
     }
     return held
+}
+
+// The type of what `e` hands on: the target of an `into` that runs there, else its
+// own.
+handed_type :: fn(ctx: WalkCtx, e: AST.Expr) -> Type | null {
+    target :: ctx.typed.into_coercions[e.id] else return ctx.typed.expr_types[e.id]
+    return target
 }
 
 // Walk `e` for what it does ; its value is not used.
@@ -58,7 +65,7 @@ value_of :: fn(ctx: WalkCtx, e: AST.Expr) -> i64 | null = match e {
     is AST.MatchExpr         -> ctx.match_value(e)
     is AST.BlockExpr         -> ctx.block_value(e)
     is AST.LambdaExpr        -> ctx.lambda_value(e)
-    is AST.StructLitExpr     -> ctx.struct_literal_value(e)
+    is AST.StructLitExpr     -> ctx.built_views(e, ctx.struct_literal_value(e))
     is AST.SeqLitExpr        -> ctx.sequence_value(e)
     is AST.RangeExpr         -> ctx.range_value(e)
     // A conversion that runs no `into` hands on the value it converts.
@@ -175,8 +182,7 @@ call_value :: fn(ctx: WalkCtx, c: AST.CallExpr) -> i64 | null {
         return ctx.union_of([single(args), ctx.frozen_variant_data(c)])
     }
     called :: ctx.called_param(c, callee)
-    result :: ctx.call(callee, args, c.span, sources, fn_args, called)
-    return ctx.union_of([result, ctx.frozen_view(c, callee)])
+    return ctx.call(callee, args, c.span, sources, fn_args, called)
 }
 
 // What `source`, an argument, is as a function value: a lambda written there, with

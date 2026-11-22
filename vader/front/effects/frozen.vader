@@ -64,6 +64,9 @@ export FrozenOrigin :: enum {
     Constant,
     /// A view of a string's bytes, which is never copied.
     View,
+    /// The views of a string's bytes an iterator hands out, one at each step: held
+    /// below the iterator, at what its `next` returns.
+    HandedView,
     /// The data of an enum's variant, a table every read of it shares.
     VariantData,
 }
@@ -168,7 +171,8 @@ frozen_use :: fn(ctx: WalkCtx, e: AST.Expr, sym: Symbol) -> i64 | null {
         return null
     }
     use :: ConstantUse { .node = e.id, .symbol = constant.id }
-    return ctx.pure_source(ctx.frozen_source(e, sym.name, .Constant, use))
+    slot :: ctx.frozen_source(e.span, sym.name, .Constant, use, ctx.typed.expr_types[e.id])
+    return ctx.pure_source(slot)
 }
 
 // `slot`, noted as holding nothing but its frozen value.
@@ -177,35 +181,28 @@ pure_source :: fn(ctx: WalkCtx, slot: i64) -> i64 {
     return slot
 }
 
-// The slot of a use of a frozen value at `e`, labelled `label` for the dump ;
-// `constant` is the use, when it may read a fresh value.
+// The slot of a use of a frozen value at `at`, labelled `label` for the dump ;
+// `constant` is the use, when it may read a fresh value, and `type` its type. A
+// view is never copied, and needs neither.
 frozen_source :: fn(
     ctx: WalkCtx,
-    e: AST.Expr,
+    at: Span,
     label: string,
     origin: FrozenOrigin,
-    constant: ConstantUse | null,
+    constant: ConstantUse | null = null,
+    type: Type | null = null,
 ) -> i64 {
     slot :: ctx.s.fresh_slot()
     use :: FrozenRoot {
         .root = ctx.s.add_root(slot),
-        .span = e.span,
+        .span = at,
         .label = label,
         .origin = origin,
-        .type = ctx.typed.expr_types[e.id],
+        .type = type,
         .constant = constant,
     }
     ctx.roots.push(use)
     return slot
-}
-
-// The slot of the view of a string's bytes the call `c` returns ; null when `c`
-// returns none.
-frozen_view :: fn(ctx: WalkCtx, c: AST.CallExpr, callee: Callee) -> i64 | null {
-    if !ctx.index.makes_view(callee) {
-        return null
-    }
-    return ctx.frozen_source(c, view_label(callee), .View, null)
 }
 
 // The slot of the variant data the conversion `c` reads, `Info(v)` ; null when `c`
@@ -233,7 +230,8 @@ frozen_variant_data :: fn(ctx: WalkCtx, c: AST.CallExpr) -> i64 | null {
 // The slot of the use `c` of variant data kept in the struct `data`.
 variant_data_use :: fn(ctx: WalkCtx, c: AST.CallExpr, data: StructType) -> i64 {
     use :: ConstantUse { .node = c.id, .symbol = data.symbol.id }
-    return ctx.frozen_source(c, "${data.symbol.name}(...)", .VariantData, use)
+    label :: "${data.symbol.name}(...)"
+    return ctx.frozen_source(c.span, label, .VariantData, use, ctx.typed.expr_types[c.id])
 }
 
 // The binding of `sym`, at `span`, to what `value` holds: a copy of what it holds

@@ -1,0 +1,37 @@
+// A view of a string's bytes that an inserted call hands out is kept as a written
+// one would be: in a field after an `into`, in an element after a `for`. T3071,
+// twice.
+module "snippet"
+
+string implements Into<u8[]> {
+    into :: fn(self) -> u8[] = self.bytes()
+}
+
+Chunks :: struct {
+    text: string
+    done: bool = false
+}
+
+Chunks implements Iterator<u8[]> {
+    next :: fn(self) -> u8[] | Stop {
+        if self.done {
+            return Stop {}
+        }
+        self.done = true
+        return self.text.bytes()
+    }
+}
+
+Packet :: struct {
+    payload: u8[]
+}
+
+main :: fn() -> i32 {
+    packet :: Packet { .payload = "hello" }
+    kept: u8[][]: []
+    chunks :: Chunks { .text = "hello" }
+    for chunk in chunks {
+        kept.push(chunk)
+    }
+    return i32(packet.payload.len() + kept.len())
+}

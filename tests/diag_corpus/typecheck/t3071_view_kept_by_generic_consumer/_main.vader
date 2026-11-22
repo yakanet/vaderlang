@@ -1,0 +1,54 @@
+// A generic body that keeps what an iterator hands out is judged where the iterator
+// is concrete: `collect` keeps each chunk, a view of a string's bytes, so the call
+// that hands it `chunks` is an error. The same bodies over an iterator of integers
+// compile: a view-yielding impl in the program does not taint them. T3071, twice.
+module "snippet"
+
+import "std/iter"
+
+Chunks :: struct {
+    text: string
+    done: bool = false
+}
+
+Chunks implements Iterator<u8[]> {
+    next :: fn(self) -> u8[] | Stop {
+        if self.done {
+            return Stop {}
+        }
+        self.done = true
+        return self.text.bytes()
+    }
+}
+
+Count :: struct {
+    i: i32 = 0
+}
+
+Count implements Iterator<i32> {
+    next :: fn(self) -> i32 | Stop {
+        if self.i >= 3 {
+            return Stop {}
+        }
+        self.i += 1
+        return self.i
+    }
+}
+
+keep_first :: fn<T>(it: Iterator<T>, into: T[]) -> void {
+    first :: it.next()
+    if first is Stop {
+        return
+    }
+    into.push(first)
+}
+
+main :: fn() -> i32 {
+    chunks :: Chunks { .text = "hello" }.collect()
+    kept: u8[][]: []
+    keep_first(Chunks { .text = "hello" }, kept)
+    numbers :: Count {}.collect()
+    firsts: i32[]: []
+    keep_first(Count {}, firsts)
+    return i32(chunks.len() + kept.len() + numbers.len() + firsts.len())
+}

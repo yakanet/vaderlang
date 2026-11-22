@@ -1,0 +1,1 @@
+[14:10] error[T3072] a frozen value cannot be lent to a function that modifies it: `into()` returns a view of a string's bytes, and `poke` modifies it (`b[]` is assigned) ; `.clone()` makes a copy to modify

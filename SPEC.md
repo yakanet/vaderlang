@@ -2475,6 +2475,19 @@ p :: Packet { .payload = "abc".bytes() }        // error: kept
 q :: Packet { .payload = bytes_of("abc").clone() }   // OK: a copy
 ```
 
+An iterator whose `next` returns a view hands one out at each step, and so does a generator that yields one, or a function that returns such an iterator. Each value it hands out is a view wherever the iterator goes, through a loop, an implicit conversion or a generic function it is lent to. Keeping the iterator itself, in a field or an element, keeps what it hands out, and is an error too.
+
+```vader
+pieces :: fn(text: string) -> Iterator<u8[]> {
+    yield text.bytes()
+}
+
+for p in pieces("abc") {
+    total += p.len()                              // OK: read
+}
+all :: pieces("abc").collect()                   // error: `collect` keeps each view
+```
+
 ### What a function does with what it is lent
 
 The compiler reads from a function's body what it does with each parameter: which parts it assigns, grows or shrinks, keeps past the call or returns. Calls are followed over the whole program: a write at the end of a call chain counts at the call that lends a frozen value.

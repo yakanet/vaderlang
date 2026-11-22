@@ -1,0 +1,16 @@
+// An argument converted by an inserted `into` is what the conversion returns: a
+// view of a string's bytes, lent to `poke`, which writes it. T3072.
+module "snippet"
+
+string implements Into<u8[]> {
+    into :: fn(self) -> u8[] = self.bytes()
+}
+
+poke :: fn(b: u8[]) -> void {
+    b[0] = 72
+}
+
+main :: fn() -> i32 {
+    poke("hello")
+    return 0
+}

@@ -1,0 +1,59 @@
+// A call the compiler inserts hands out what it returns as a written call would: a
+// view of a string's bytes, written after an `into`, a `for`, an `Index` or an
+// operator, is an error. T3070, five times.
+module "snippet"
+
+string implements Into<u8[]> {
+    into :: fn(self) -> u8[] = self.bytes()
+}
+
+Chunks :: struct {
+    text: string
+    done: bool = false
+}
+
+Chunks implements Iterator<u8[]> {
+    next :: fn(self) -> u8[] | Stop {
+        if self.done {
+            return Stop {}
+        }
+        self.done = true
+        return self.text.bytes()
+    }
+}
+
+Words :: struct {
+    text: string
+}
+
+Words implements Index<i64, u8[]> {
+    at :: fn(self, i: i64) -> u8[] = self.text.bytes()
+}
+
+Blob :: struct {
+    text: string
+}
+
+Blob implements Add<Blob, u8[]> {
+    add :: fn(self, other: Blob) -> u8[] = self.text.bytes()
+}
+
+as_bytes :: fn(s: string) -> u8[] {
+    return s
+}
+
+main :: fn() -> i32 {
+    text :: "hello"
+    copy: u8[]: text
+    copy[0] = 72
+    as_bytes(text)[0] = 72
+    chunks :: Chunks { .text = text }
+    for chunk in chunks {
+        chunk[0] = 72
+    }
+    word :: Words { .text = text }[0]
+    word[0] = 72
+    sum :: Blob { .text = text } + Blob { .text = "x" }
+    sum[0] = 72
+    return 0
+}

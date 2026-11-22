@@ -11,13 +11,23 @@
 // are settled, the bodies that call one are walked again with those calls as
 // views, until no new function returns one. A view adds a root and no constraint
 // on a parameter: the settled facts stay as they are.
+//
+// An iterator whose `next` returns a view hands one out at each step. The view is
+// a root of the iterator, held below it at what `next` returns (`ITEM`), from where
+// the iterator is built: a literal of its type, or a call that returns one. Every
+// `next` of `Iterator` returns that part of its receiver and makes no root of its
+// own, so a generic body that keeps what it steps through is judged where the
+// iterator it is lent is built, not against every impl of the program.
 
 module "vader/front/effects"
 
 import "std/collections"
 import "std/iter"
+import "toolchain/span"
 import "vader/core/types"
 import "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
 
 // What a root that holds a view comes to, if anything. Its elements are bytes:
 // one kept or returned is a value, not the view.
@@ -29,7 +39,7 @@ view_outcome :: fn(c: RootCase) -> FrozenKind | null {
     if c.either((a) -> is_the_view(a) && keeps(a)) {
         return .KeptView
     }
-    if c.returns_it() {
+    if c.returns_it() || c.hands_it_out() {
         return .ReturnedView
     }
     return null
@@ -46,7 +56,13 @@ keeps :: fn(a: Access) -> bool = is_unknown(a) || a.effect == .Stored
 // Whether the body returns the view itself. A callee that returns it hands it back
 // to the body, which decides.
 returns_it :: fn(c: RootCase) -> bool =
-    c.marked.any_match((a) -> a.effect == .Returned && is_the_view(a))
+    c.marked.any_match((a) -> a.effect == .Returned && is_the_view(a) && a.under == ROOT)
+
+// Whether the body returns an iterator that hands the view out, or yields it.
+hands_it_out :: fn(c: RootCase) -> bool {
+    item :: c.paths.path_to(ITEM)
+    return c.marked.any_match((a) -> a.effect == .Returned && is_the_view(a) && a.under == item)
+}
 
 // Whether `a` acts on the view itself rather than on its bytes.
 is_the_view :: fn(a: Access) -> bool = a.path == ROOT || a.path == EVERYWHERE
@@ -84,31 +100,123 @@ may_be_element :: fn(t: Type, element: Type) -> bool = match t {
 }
 
 // Whether `r` is a use of a view.
-is_view :: fn(r: FrozenRoot) -> bool = r.binding == null && r.origin == .View
+is_view :: fn(r: FrozenRoot) -> bool =
+    r.binding == null && (r.origin == .View || r.origin == .HandedView)
 
 // Whether one of the uses `c` holds is a view.
 holds_view :: fn(c: RootCase) -> bool =
     c.held.any_match((h) -> c.body.root_record(h.param).is_view())
 
-// Whether a call of `callee` hands back a view: `bytes()`, or a function found to
-// return one.
-makes_view :: fn(index: CalleeIndex, callee: Callee) -> bool {
+// Whether a call of `callee`, which may run `targets`, hands back a view: `bytes()`,
+// or a function found to return one.
+makes_view :: fn(index: CalleeIndex, callee: Callee, targets: CallTarget[]) -> bool {
     if callee is DirectFn && callee.decl.id in index.frozen_views {
         return true
     }
-    if index.view_nodes.is_empty() {
-        return false
-    }
-    return index.targets_of(callee).any_match(
-        (t) -> t is CalleeNode && t.node in index.view_nodes,
-    )
+    return targets.runs_one_of(index.view_nodes)
 }
+
+// Whether one of `targets` is among `nodes`.
+runs_one_of :: fn(targets: CallTarget[], nodes: Set<i32>) -> bool =
+    !nodes.is_empty() && targets.any_match((t) -> t is CalleeNode && t.node in nodes)
 
 // How a site names the call that makes a view.
 view_label :: fn(callee: Callee) -> string = match callee {
     is DirectFn -> "${callee.decl.name}()"
     is BoundMember | TraitMember -> "${callee.member}()"
     is FnValue | EachOf | Builtin | ErroneousCallee | UnsettledCallee -> "a call"
+}
+
+// ---- the roots of the walk ------------------------------------------------
+
+// What a call of `callee` at `at`, which may run `targets`, returns beside what its
+// callees hand back: the part of its receiver a `next` steps to, the view a call
+// makes, or an iterator that hands views out. `args` are its arguments, the
+// receiver first.
+made_view :: fn(
+    ctx: WalkCtx,
+    callee: Callee,
+    targets: CallTarget[],
+    args: (i64 | null)[],
+    at: Span,
+) -> i64 | null {
+    if ctx.index.is_iterator_step(callee) {
+        if args.is_empty() {
+            return null
+        }
+        return ctx.step_slot(args[0], ITEM)
+    }
+    if targets.runs_one_of(ctx.index.handing_nodes) {
+        return ctx.handed_views(at, view_label(callee))
+    }
+    if !ctx.index.makes_view(callee, targets) {
+        return null
+    }
+    return ctx.frozen_source(at, view_label(callee), .View)
+}
+
+// What the literal `e` holds, beside `held`: the views it hands out when it builds
+// an iterator whose `next` returns one. Its body is walked again once that `next`
+// is found to (`walked_again`).
+built_views :: fn(ctx: WalkCtx, e: AST.StructLitExpr, held: i64 | null) -> i64 | null {
+    built :: ctx.typed.expr_types[e.id] else return held
+    if built !is StructType {
+        return held
+    }
+    step :: ctx.index.step_of(built) else return held
+    node :: ctx.index.nodes[step.id] else return held
+    if ctx.node >= 0 {
+        builders :: ctx.index.built_by[node] else Set<i32> {}
+        builders.add(ctx.node)
+        ctx.index.built_by[node] = builders
+    }
+    if node !in ctx.index.view_nodes {
+        return held
+    }
+    views :: ctx.handed_views(e.span, "${display_type(built)} { ... }")
+    return ctx.union_of([held, views])
+}
+
+// A slot that holds the views made at `at` below itself, at what the `next` of an
+// iterator returns.
+handed_views :: fn(ctx: WalkCtx, at: Span, label: string) -> i64 {
+    views :: ctx.frozen_source(at, label, .HandedView)
+    holder :: ctx.s.fresh_slot()
+    flow :: Flow {
+        .into = holder,
+        .from = views,
+        .under = ctx.index.paths.path_to(ITEM),
+    }
+    ctx.s.flows.push(flow)
+    return holder
+}
+
+// Whether a call of `callee` steps an iterator: the `next` of `Iterator`, through
+// the trait or through an impl.
+is_iterator_step :: fn(index: CalleeIndex, callee: Callee) -> bool = match callee {
+    is TraitMember | BoundMember -> {
+        callee.trait_key == index.iterator_key && callee.member == METHOD_NEXT
+    }
+    is DirectFn -> index.steps_iterator(callee.decl)
+    is FnValue | EachOf | Builtin | ErroneousCallee | UnsettledCallee -> false
+}
+
+// Whether `decl` is the `next` of an impl of `Iterator`.
+steps_iterator :: fn(index: CalleeIndex, decl: AST.FnDecl) -> bool {
+    if decl.name != METHOD_NEXT {
+        return false
+    }
+    entry :: index.impls.member_entry(decl) else return false
+    return entry.trait_key == index.iterator_key
+}
+
+// The `next` of `built`'s `Iterator` impl ; null when it has none.
+step_of :: fn(index: CalleeIndex, built: StructType) -> AST.FnDecl | null {
+    entries :: index.impls.impls_for(built, index.iterator_key)
+    if entries.is_empty() {
+        return null
+    }
+    return entries[0].decl.members.find((m) -> m.name == METHOD_NEXT)
 }
 
 // ---- functions that return a view -----------------------------------------
@@ -133,10 +241,13 @@ spread_views :: fn(
 ) -> void {
     found := view_returners(index, frozen, facts, components)
     for !found.is_empty() {
-        for node in found {
+        for node in found.returning {
             index.view_nodes.add(node)
         }
-        for caller in callers_of(successors, found) {
+        for node in found.handing {
+            index.handing_nodes.add(node)
+        }
+        for caller in index.walked_again(successors, found) {
             f :: index.functions[caller]
             again :: FrozenSites {}
             dropped: PendingWidening[]: []
@@ -149,25 +260,70 @@ spread_views :: fn(
     }
 }
 
-// The nodes not yet known to hand views out whose body returns one.
+// The nodes a round of `spread_views` finds.
+FoundViews :: struct {
+    /// The nodes that return a view.
+    returning: i32[] = []
+    /// The nodes that return an iterator that hands views out, or yield views.
+    handing: i32[] = []
+}
+
+// Whether the round found nothing.
+is_empty :: fn(found: FoundViews) -> bool = found.returning.is_empty() && found.handing.is_empty()
+
+// The nodes not yet known to hand views out whose body returns one, or returns an
+// iterator that does.
 view_returners :: fn(
     index: CalleeIndex,
     frozen: FrozenSites,
     facts: ParamEffects[][],
     components: i32[],
-) -> i32[] {
-    out: i32[]: []
+) -> FoundViews {
+    out :: FoundViews {}
     for body in frozen.bodies {
-        if body.node < 0 || body.node in index.view_nodes || !body.roots.any_match(is_view) {
+        if body.node < 0 || !body.roots.any_match(is_view) {
+            continue
+        }
+        returning :: body.node in index.view_nodes
+        handing :: body.node in index.handing_nodes
+        if returning && handing {
             continue
         }
         ctx :: body_ctx(body, facts, index, components)
         effects :: evaluate_roots(body.skeleton, ctx)
+        cases: RootCase[]: []
         for r in body.roots {
             c :: root_case(body, r, effects, index.paths) else continue
-            if c.holds_view() && c.returns_it() {
-                out.push(body.node)
-                break
+            if c.holds_view() {
+                cases.push(c)
+            }
+        }
+        if !returning && cases.any_match(returns_it) {
+            out.returning.push(body.node)
+        }
+        if !handing && cases.any_match(hands_it_out) {
+            out.handing.push(body.node)
+        }
+    }
+    return out
+}
+
+// The nodes to walk again once `found` is known: those that call one of them, and
+// those that build an iterator a `next` among them serves.
+walked_again :: fn(index: CalleeIndex, successors: i32[][], found: FoundViews) -> i32[] {
+    nodes: i32[]: []
+    nodes.push_all(found.returning)
+    nodes.push_all(found.handing)
+    out :: callers_of(successors, nodes)
+    taken :: Set<i32> {}
+    for node in out {
+        taken.add(node)
+    }
+    for node in found.returning {
+        builders :: index.built_by[node] else continue
+        for builder in builders {
+            if taken.add(builder) {
+                out.push(builder)
             }
         }
     }

@@ -63,6 +63,8 @@ WalkCtx :: struct {
     /// Symbol id -> position, for every parameter: a call of one that holds a
     /// function value hands its arguments on to the caller's (`CalledParam`).
     param_positions: Map<i32, i64> = Map<i32, i64> {}
+    /// The node of the function walked ; -1 for an initialiser.
+    node: i32 = -1
 }
 
 /// The skeleton of `decl`'s body.
@@ -88,6 +90,7 @@ skeleton_of :: fn(
         .frozen = frozen,
         .widenings = widenings,
         .result_effect = result_effect_of(decl),
+        .node = node,
     }
     for i in 0..<decl.params.len() {
         p :: decl.params[i]
@@ -471,7 +474,9 @@ call :: fn(
     for source in sources {
         kept.push(source)
     }
-    return ctx.s.add_site(targets, args, c, at, kept, fn_args)
+    result :: ctx.s.add_site(targets, args, c, at, kept, fn_args)
+    view :: ctx.made_view(c, targets, args, at) else return result
+    return ctx.union_of([result, view])
 }
 
 // What a call to `callee` may run: the function value the parameter `called` of the

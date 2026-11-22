@@ -49,6 +49,14 @@ export CalleeIndex :: struct {
     /// The nodes that return a view, found once the facts are settled
     /// (`spread_views`).
     view_nodes: Set<i32> = Set<i32> {}
+    /// The nodes that return an iterator that hands views out, or that yield views:
+    /// what such a call returns hands one out at each step (`spread_views`).
+    handing_nodes: Set<i32> = Set<i32> {}
+    /// The `trait_key` of `Iterator`, whose `next` hands out a part of its receiver.
+    iterator_key: string = core_trait_key(TRAIT_ITERATOR)
+    /// Per node of a `next`, the nodes whose body builds an iterator it serves: they
+    /// are walked again once that `next` is found to return a view.
+    built_by: Map<i32, Set<i32>> = Map<i32, Set<i32>> {}
     /// The structs some enum keeps its variant data in, by symbol id.
     variant_data: Set<i32> = Set<i32> {}
     /// Per declaration id, what a primitive is to a task (`task_doors.vader`).
