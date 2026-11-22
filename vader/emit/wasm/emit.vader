@@ -1,14 +1,20 @@
 // vader/emit/wasm/emit: `BytecodeModule` -> `WasmModule`.
 //
 // One WASM function per bytecode function, in the same order, so that a
-// function index means the same in both; the entry is exported as `main`.
-// Only the ops of a function that returns a constant are translated so far:
-// any other op, or a value type with no WASM form yet, stops the emission with
-// `WasmUnsupported`, which names it.
+// function index means the same in both; the functions behind the checked ops
+// (`checked.vader`) follow them, and the entry is exported as `main`. A local
+// keeps its slot as its index: WASM counts the parameters first, as the
+// bytecode does.
+//
+// The scalar code is translated so far: the integer and `bool` values, the
+// locals, the calls between the program's functions, the scopes and the
+// branches. Any other op, or a value type with no WASM form yet, stops the
+// emission with `WasmUnsupported`, which names it.
 
 module "vader/emit/wasm"
 
 Bc :: import "vader/core/bytecode"
+import "std/abort"
 import "std/collections"
 import "std/iter"
 import "std/string_builder"
@@ -41,34 +47,47 @@ export wasm_binary_of :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> u8[]
 /// @param m              the program's bytecode.
 /// @param entry_mangled  the mangled name of its entry (`entry_function_index`).
 /// @return               one function per bytecode function, in the same
-///                       order, and the entry exported as `main`.
+///                       order, then the functions behind the checked ops, and
+///                       the entry exported as `main`.
 /// @error                `WasmUnsupported` on the first op or value type the
 ///                       emitter does not translate yet.
 export wasm_module_of :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmModule | WasmUnsupported {
-    types :: TypeTable {}
+    ctx :: ModuleCtx { .function_count = i32(m.functions.len()) }
     functions: WasmFunction[]: []
     for f in m.functions {
         signature :: func_type_of(f) else return signature
         locals :: value_types_of(f.locals.map((l) -> l.val).collect(), f.name) else return locals
-        body :: body_of(f) else return body
+        body :: body_of(ctx, f) else return body
         functions.push(
             WasmFunction {
-                .type_index = types.intern(signature),
+                .type_index = ctx.types.intern(signature),
                 .locals = locals,
                 .body = body,
             },
         )
     }
+    functions.push_all(ctx.helper_functions)
     exports: WasmExport[]: []
     entry :: Bc.entry_function_index(m, entry_mangled)
     if entry != null {
         exports.push(WasmExport { .name = "main", .function_index = entry })
     }
     return WasmModule {
-        .types = types.types,
+        .types = ctx.types.types,
         .functions = functions,
         .exports = exports,
     }
+}
+
+// What the translation of a module carries from one function to the next.
+ModuleCtx :: struct {
+    types: TypeTable = TypeTable {}
+    // How many functions the bytecode has: the helpers are numbered after them.
+    function_count: i32
+    // The index of each helper, by what it computes (`checked.vader`).
+    helpers: Map<string, i32> = Map<string, i32> {}
+    // The helpers, in the order of their indices.
+    helper_functions: WasmFunction[] = []
 }
 
 // The function types of a module, each once, as the format wants them.
@@ -127,38 +146,210 @@ value_type_of :: fn(v: Bc.ValType, function: string) -> WasmValType | WasmUnsupp
     }
 }
 
-body_of :: fn(f: Bc.BcFunction) -> WasmInstr[] | WasmUnsupported {
+// ---- bodies ---------------------------------------------------------------
+
+// The instructions of `f`. A body that leaves a value ends on `unreachable`:
+// WASM checks the end of a body as reachable, after scopes whose every path
+// returned included.
+body_of :: fn(ctx: ModuleCtx, f: Bc.BcFunction) -> WasmInstr[] | WasmUnsupported {
+    ends :: matching_ends(f.body)
+    // Per open scope, the pc a branch that leaves it targets, less one: a loop
+    // starts again right after its opener, a block or an `if` goes on right
+    // after its `End`.
+    anchors: i64[]: []
     out: WasmInstr[]: []
-    for op in f.body {
+    for pc in 0..<f.body.len() {
+        op :: f.body[pc]
         match op {
-            is Bc.I32Const | Bc.I64Const -> {
-                literal :: constant_of(op, f.name) else return literal
-                out.push(literal)
+            is Bc.Block | Bc.Loop | Bc.If -> {
+                anchors.push(if op is Bc.Loop { pc } else { ends[pc] })
+                out.push_plain(scope_opener(op))
             }
-            is Bc.Return                 -> {
-                out.push(Return {})
+            is Bc.Else                    -> {
+                out.push_plain(.Else)
             }
-            is Bc.ReturnLit              -> {
-                literal :: constant_of(op.value, f.name) else return literal
-                out.push(literal)
-                out.push(Return {})
+            is Bc.End                     -> {
+                anchors.drop_last()
+                out.push_plain(.End)
             }
-            _                            -> {
-                return unsupported_op(op, f.name)
+            is Bc.Branch | Bc.BranchIf    -> {
+                depth :: branch_depth(anchors, f.jump_table[pc]) else {
+                    return WasmUnsupported {
+                        .reason = "`${f.name}`: the branch at pc ${pc} leaves no open scope",
+                    }
+                }
+                out.push(branch_to(op, depth))
+            }
+            _                             -> {
+                pushed :: push_op(ctx, out, op, f.name) else return pushed
             }
         }
     }
+    if Bc.bc_result_arity(f.signature) > 0 {
+        out.push_plain(.Unreachable)
+    }
     return out
+}
+
+scope_opener :: fn(op: Bc.Block | Bc.Loop | Bc.If) -> WasmOp = match op {
+    is Bc.Block -> .Block
+    is Bc.Loop  -> .Loop
+    is Bc.If    -> .If
+}
+
+branch_to :: fn(op: Bc.Branch | Bc.BranchIf, depth: i32) -> WasmInstr = match op {
+    is Bc.Branch   -> Br { .depth = depth }
+    is Bc.BranchIf -> BrIf { .depth = depth }
+}
+
+// The pc of the `End` that closes the scope each opener opens, -1 elsewhere.
+// `Else` keeps its `If` open.
+matching_ends :: fn(body: Bc.Op[]) -> i64[] {
+    ends: i64[]: [-1] * body.len()
+    open: i64[]: []
+    for pc in 0..<body.len() {
+        op :: body[pc]
+        if op is Bc.Block | Bc.Loop | Bc.If {
+            open.push(pc)
+        } else if op is Bc.End {
+            opener :: open.remove_last() else panic("bytecode: an `end` closes no scope")
+            ends[opener] = pc
+        }
+    }
+    return ends
+}
+
+// The WASM depth of the open scope a branch to `target_pc` leaves, the
+// innermost first, as `vader/emit/virt` reads it.
+branch_depth :: fn(anchors: i64[], target_pc: i32) -> i32 | null {
+    i: i64 = anchors.len() - 1
+    for i >= 0 {
+        if anchors[i] + 1 == target_pc {
+            return i32(anchors.len() - 1 - i)
+        }
+        i -= 1
+    }
+    return null
+}
+
+push_plain :: fn(out: WasmInstr[], op: WasmOp) -> void = out.push(Plain { .op = op })
+
+// Append the translation of `op`, which is not a scope or a branch.
+push_op :: fn(ctx: ModuleCtx, out: WasmInstr[], op: Bc.Op, function: string) -> void | WasmUnsupported {
+    plain :: plain_op_of(op)
+    if plain != null {
+        out.push_plain(plain)
+        return
+    }
+    match op {
+        is Bc.I32Const | Bc.I64Const | Bc.BoolConst | Bc.CharConst -> {
+            literal :: constant_of(op, function) else return literal
+            out.push(literal)
+        }
+        is Bc.ReturnLit -> {
+            literal :: constant_of(op.value, function) else return literal
+            out.push(literal)
+            out.push_plain(.Return)
+        }
+        is Bc.LocalGet -> { out.push(LocalGet { .index = op.slot }) }
+        is Bc.LocalSet -> { out.push(LocalSet { .index = op.slot }) }
+        is Bc.LocalTee -> { out.push(LocalTee { .index = op.slot }) }
+        is Bc.Call -> { out.push(Call { .function_index = op.function_index }) }
+        // WASM has no negation or complement: times -1, and xor with -1.
+        is Bc.I32Neg -> { out.push_all([I32Const { .value = -1 }, Plain { .op = .I32Mul }]) }
+        is Bc.I64Neg -> { out.push_all([I64Const { .value = -1 }, Plain { .op = .I64Mul }]) }
+        is Bc.I32BitNot -> { out.push_all([I32Const { .value = -1 }, Plain { .op = .I32Xor }]) }
+        is Bc.I64BitNot -> { out.push_all([I64Const { .value = -1 }, Plain { .op = .I64Xor }]) }
+        is Bc.Convert -> { return push_convert(out, op, function) }
+        is Bc.CheckedArith -> {
+            out.push(Call { .function_index = ctx.checked_helper(op.kind, op.op) })
+        }
+        is Bc.CheckedNeg -> { out.push(Call { .function_index = ctx.checked_neg_helper(op.kind) }) }
+        _ -> { return unsupported_op(op, function) }
+    }
+}
+
+// The one WASM instruction an op is, when it is one.
+//
+// @partial: the ops whose translation takes more than one plain instruction, or
+// none yet, are `push_op`'s.
+plain_op_of :: fn(op: Bc.Op) -> WasmOp | null = @partial match op {
+    is Bc.Unreachable -> .Unreachable
+    is Bc.Return      -> .Return
+    is Bc.Drop        -> .Drop
+    is Bc.I32Add      -> .I32Add
+    is Bc.I32Sub      -> .I32Sub
+    is Bc.I32Mul      -> .I32Mul
+    is Bc.I32Div      -> .I32DivS
+    is Bc.I32Mod      -> .I32RemS
+    is Bc.U32Div      -> .I32DivU
+    is Bc.U32Mod      -> .I32RemU
+    is Bc.I32Eq       -> .I32Eq
+    is Bc.I32Ne       -> .I32Ne
+    is Bc.I32Lt       -> .I32LtS
+    is Bc.I32Le       -> .I32LeS
+    is Bc.I32Gt       -> .I32GtS
+    is Bc.I32Ge       -> .I32GeS
+    is Bc.I32BitAnd   -> .I32And
+    is Bc.I32BitOr    -> .I32Or
+    is Bc.I32BitXor   -> .I32Xor
+    is Bc.I32Shl      -> .I32Shl
+    is Bc.I32Shr      -> .I32ShrS
+    is Bc.I32ShrU     -> .I32ShrU
+    is Bc.I64Add      -> .I64Add
+    is Bc.I64Sub      -> .I64Sub
+    is Bc.I64Mul      -> .I64Mul
+    is Bc.I64Div      -> .I64DivS
+    is Bc.I64Mod      -> .I64RemS
+    is Bc.U64Div      -> .I64DivU
+    is Bc.U64Mod      -> .I64RemU
+    is Bc.I64Eq       -> .I64Eq
+    is Bc.I64Ne       -> .I64Ne
+    is Bc.I64Lt       -> .I64LtS
+    is Bc.I64Le       -> .I64LeS
+    is Bc.I64Gt       -> .I64GtS
+    is Bc.I64Ge       -> .I64GeS
+    is Bc.I64BitAnd   -> .I64And
+    is Bc.I64BitXor   -> .I64Xor
+    is Bc.BoolEq      -> .I32Eq
+    is Bc.BoolNe      -> .I32Ne
+    is Bc.BoolAnd     -> .I32And
+    is Bc.BoolOr      -> .I32Or
+    is Bc.BoolNot     -> .I32Eqz
+    _                 -> null
 }
 
 constant_of :: fn(c: Bc.ConstOp, function: string) -> WasmInstr | WasmUnsupported = match c {
     is Bc.I32Const -> I32Const { .value = c.value }
     is Bc.I64Const -> I64Const { .value = c.value }
-    is Bc.F64Const | Bc.BoolConst | Bc.CharConst | Bc.NullConst | Bc.StringConst -> unsupported_op(
-        c,
-        function,
-    )
+    is Bc.BoolConst -> I32Const { .value = if c.value { 1 } else { 0 } }
+    is Bc.CharConst -> I32Const { .value = i32(c.value) }
+    is Bc.F64Const | Bc.NullConst | Bc.StringConst -> unsupported_op(c, function)
 }
+
+// A conversion between storage classes: an integer of 32 bits or less and a
+// `char` share the `i32`, a 64-bit integer the `i64`. An unsigned source widens
+// with zeros.
+push_convert :: fn(out: WasmInstr[], op: Bc.Convert, function: string) -> void | WasmUnsupported {
+    from :: Bc.parse_val_type(op.from_name) else return unsupported_op(op, function)
+    from_class :: value_type_of(from, function) else return from_class
+    match op.target {
+        .I32 | .Char -> {
+            if from_class == .I64 {
+                out.push_plain(.I32WrapI64)
+            }
+        }
+        .I64         -> {
+            if from_class == .I32 {
+                out.push_plain(widening_of(from))
+            }
+        }
+        .F64         -> { return unsupported_op(op, function) }
+    }
+}
+
+widening_of :: fn(from: Bc.ValType) -> WasmOp =
+    if Bc.is_unsigned_val(from) { .I64ExtendI32U } else { .I64ExtendI32S }
 
 unsupported_op :: fn(op: Bc.Op, function: string) -> WasmUnsupported {
     sb :: StringBuilder {}
@@ -170,11 +361,10 @@ unsupported_op :: fn(op: Bc.Op, function: string) -> WasmUnsupported {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/abort"
 import "std/testing"
 
 // A program of one function, the entry, returning an `i32` through `body`.
-program_of :: fn(body: Bc.Op[]) -> Bc.BytecodeModule {
+program_of :: fn(body: Bc.Op[], jump_table: i32[]) -> Bc.BytecodeModule {
     signature :: Bc.BcSignature {
         .params = [],
         .results = [.I32],
@@ -189,7 +379,7 @@ program_of :: fn(body: Bc.Op[]) -> Bc.BytecodeModule {
         .locals = [],
         .body = body,
         .debug = [],
-        .jump_table = [],
+        .jump_table = jump_table,
     }
     return Bc.BytecodeModule {
         .name = "_main",
@@ -204,30 +394,73 @@ program_of :: fn(body: Bc.Op[]) -> Bc.BytecodeModule {
     }
 }
 
+// No branch: every op jumps nowhere.
+straight :: fn(body: Bc.Op[]) -> Bc.BytecodeModule = program_of(body, [-1] * body.len())
+
 @test
 test_wasm_module_of_returns_a_constant :: fn() -> void {
-    program :: program_of([Bc.ReturnLit { .value = Bc.I32Const { .value = 42 } }])
+    program :: straight([Bc.ReturnLit { .value = Bc.I32Const { .value = 42 } }])
     wasm :: wasm_module_of(program, "") else panic(wasm.reason)
     assert_eq(wasm.types.len(), 1)
     assert(
         wasm.types[0].results.len() == 1 && wasm.types[0].results[0] == .I32,
         "main returns one i32",
     )
-    assert_eq(wasm.functions[0].body.len(), 2)
+    // The constant, `return`, then the `unreachable` that closes a body
+    // leaving a value.
+    assert_eq(wasm.functions[0].body.len(), 3)
     assert_eq(wasm.exports[0].name, "main")
 }
 
 @test
 test_wasm_module_of_names_an_unsupported_op :: fn() -> void {
+    body: Bc.Op[]: [Bc.StringConst { .index = 0 }, Bc.Return {}]
+    failure :: wasm_module_of(straight(body), "")
+    assert(failure is WasmUnsupported, "a string is not translated yet")
+    if failure is WasmUnsupported {
+        assert(failure.reason.contains("string.const"), "the reason names the op")
+    }
+}
+
+// `loop { br_if 0 } ; block { br 0 }`: the loop's branch starts it again, the
+// block's goes on past its `end`.
+@test
+test_branch_depth_of_a_loop_and_a_block :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.Loop {},
+        Bc.BoolConst { .value = false },
+        Bc.BranchIf {},
+        Bc.End {},
+        Bc.Block {},
+        Bc.Block {},
+        Bc.Branch {},
+        Bc.End {},
+        Bc.End {},
+        Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } },
+    ]
+    jump_table: i32[]: [-1, -1, 1, -1, -1, -1, 9, -1, -1, -1]
+    wasm :: wasm_module_of(program_of(body, jump_table), "") else panic(wasm.reason)
+    instrs :: wasm.functions[0].body
+    loop_branch :: instrs[2]
+    assert(loop_branch is BrIf && loop_branch.depth == 0, "the loop starts again")
+    block_branch :: instrs[6]
+    assert(block_branch is Br && block_branch.depth == 1, "the branch leaves both blocks")
+}
+
+@test
+test_a_checked_add_calls_one_helper_per_class :: fn() -> void {
     body: Bc.Op[]: [
         Bc.I32Const { .value = 1 },
         Bc.I32Const { .value = 2 },
-        Bc.I32Add {},
+        Bc.CheckedArith { .kind = .I32, .op = .Add },
+        Bc.I32Const { .value = 3 },
+        Bc.CheckedArith { .kind = .I32, .op = .Add },
         Bc.Return {},
     ]
-    failure :: wasm_module_of(program_of(body), "")
-    assert(failure is WasmUnsupported, "an `i32.add` is not translated yet")
-    if failure is WasmUnsupported {
-        assert(failure.reason.contains("i32.add"), "the reason names the op")
-    }
+    wasm :: wasm_module_of(straight(body), "") else panic(wasm.reason)
+    assert_eq(wasm.functions.len(), 2)
+    first :: wasm.functions[0].body[2]
+    second :: wasm.functions[0].body[4]
+    assert(first is Call && first.function_index == 1, "the helper follows main")
+    assert(second is Call && second.function_index == 1, "and serves both adds")
 }

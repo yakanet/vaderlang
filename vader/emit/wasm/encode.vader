@@ -144,8 +144,82 @@ push_instr :: fn(out: u8[], instr: WasmInstr) -> void {
             out.push(0x42)
             out.push_signed(instr.value)
         }
-        is Return   -> { out.push(0x0F) }
+        is LocalGet -> { out.push_indexed(0x20, instr.index) }
+        is LocalSet -> { out.push_indexed(0x21, instr.index) }
+        is LocalTee -> { out.push_indexed(0x22, instr.index) }
+        is Call     -> { out.push_indexed(0x10, instr.function_index) }
+        is Br       -> { out.push_indexed(0x0C, instr.depth) }
+        is BrIf     -> { out.push_indexed(0x0D, instr.depth) }
+        is Plain    -> {
+            out.push(opcode(instr.op))
+            if opens_scope(instr.op) {
+                out.push(EMPTY_BLOCK_TYPE)
+            }
+        }
     }
+}
+
+// The block type of a scope that takes and leaves nothing.
+EMPTY_BLOCK_TYPE: u8: 0x40
+
+// An opcode, then the index it names.
+push_indexed :: fn(out: u8[], code: u8, index: i32) -> void {
+    out.push(code)
+    out.push_count(i64(index))
+}
+
+opens_scope :: fn(op: WasmOp) -> bool = op == .Block || op == .Loop || op == .If
+
+opcode :: fn(op: WasmOp) -> u8 = match op {
+    .Unreachable   -> 0x00
+    .Block         -> 0x02
+    .Loop          -> 0x03
+    .If            -> 0x04
+    .Else          -> 0x05
+    .End           -> 0x0B
+    .Return        -> 0x0F
+    .Drop          -> 0x1A
+    .I32Eqz        -> 0x45
+    .I32Eq         -> 0x46
+    .I32Ne         -> 0x47
+    .I32LtS        -> 0x48
+    .I32GtS        -> 0x4A
+    .I32LeS        -> 0x4C
+    .I32GeS        -> 0x4E
+    .I64Eqz        -> 0x50
+    .I64Eq         -> 0x51
+    .I64Ne         -> 0x52
+    .I64LtS        -> 0x53
+    .I64LtU        -> 0x54
+    .I64GtS        -> 0x55
+    .I64GtU        -> 0x56
+    .I64LeS        -> 0x57
+    .I64GeS        -> 0x59
+    .I32Add        -> 0x6A
+    .I32Sub        -> 0x6B
+    .I32Mul        -> 0x6C
+    .I32DivS       -> 0x6D
+    .I32DivU       -> 0x6E
+    .I32RemS       -> 0x6F
+    .I32RemU       -> 0x70
+    .I32And        -> 0x71
+    .I32Or         -> 0x72
+    .I32Xor        -> 0x73
+    .I32Shl        -> 0x74
+    .I32ShrS       -> 0x75
+    .I32ShrU       -> 0x76
+    .I64Add        -> 0x7C
+    .I64Sub        -> 0x7D
+    .I64Mul        -> 0x7E
+    .I64DivS       -> 0x7F
+    .I64DivU       -> 0x80
+    .I64RemS       -> 0x81
+    .I64RemU       -> 0x82
+    .I64And        -> 0x83
+    .I64Xor        -> 0x85
+    .I32WrapI64    -> 0xA7
+    .I64ExtendI32S -> 0xAC
+    .I64ExtendI32U -> 0xAD
 }
 
 push_value_types :: fn(out: u8[], types: WasmValType[]) -> void {
@@ -262,7 +336,7 @@ test_encode_module_returning_a_constant :: fn() -> void {
             WasmFunction {
                 .type_index = 0,
                 .locals = [],
-                .body = [I32Const { .value = 42 }, Return {}],
+                .body = [I32Const { .value = 42 }, Plain { .op = .Return }],
             },
         ],
         .exports = [WasmExport { .name = "main", .function_index = 0 }],
@@ -273,4 +347,84 @@ test_encode_module_returning_a_constant :: fn() -> void {
     expected.push_all([0x07, 0x08, 0x01, 0x04, 0x6D, 0x61, 0x69, 0x6E, 0x00, 0x00])
     expected.push_all([0x0A, 0x07, 0x01, 0x05, 0x00, 0x41, 0x2A, 0x0F, 0x0B])
     assert_bytes(encode_module(m), expected)
+}
+
+// Every instruction the encoder writes, against what `wasm-tools parse` gives
+// for the same WAT: a body with no local, the instructions, its `end`.
+@test
+test_encode_every_instruction :: fn() -> void {
+    plain: WasmOp[]: [
+        .Unreachable,
+        .Return,
+        .Drop,
+        .I32Eqz,
+        .I32Eq,
+        .I32Ne,
+        .I32LtS,
+        .I32GtS,
+        .I32LeS,
+        .I32GeS,
+        .I64Eqz,
+        .I64Eq,
+        .I64Ne,
+        .I64LtS,
+        .I64LtU,
+        .I64GtS,
+        .I64GtU,
+        .I64LeS,
+        .I64GeS,
+        .I32Add,
+        .I32Sub,
+        .I32Mul,
+        .I32DivS,
+        .I32DivU,
+        .I32RemS,
+        .I32RemU,
+        .I32And,
+        .I32Or,
+        .I32Xor,
+        .I32Shl,
+        .I32ShrS,
+        .I32ShrU,
+        .I64Add,
+        .I64Sub,
+        .I64Mul,
+        .I64DivS,
+        .I64DivU,
+        .I64RemS,
+        .I64RemU,
+        .I64And,
+        .I64Xor,
+        .I32WrapI64,
+        .I64ExtendI32S,
+        .I64ExtendI32U,
+        .Block,
+        .Loop,
+        .If,
+        .Else,
+        .End,
+        .End,
+        .End,
+    ]
+    body: WasmInstr[]: []
+    for op in plain {
+        body.push(Plain { .op = op })
+    }
+    body.push_all([LocalGet { .index = 300 }, LocalSet { .index = 1 }, LocalTee { .index = 2 }])
+    body.push_all([Call { .function_index = 3 }, Br { .depth = 4 }, BrIf { .depth = 5 }])
+    f :: WasmFunction { .type_index = 0, .locals = [], .body = body }
+    expected: u8[]: [0x00, 0x00, 0x0F, 0x1A]
+    expected.push_all([0x45, 0x46, 0x47, 0x48, 0x4A, 0x4C, 0x4E])
+    expected.push_all([0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x59])
+    expected.push_all(
+        [0x6A, 0x6B, 0x6C, 0x6D, 0x6E, 0x6F, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76],
+    )
+    expected.push_all([0x7C, 0x7D, 0x7E, 0x7F, 0x80, 0x81, 0x82, 0x83, 0x85])
+    expected.push_all([0xA7, 0xAC, 0xAD])
+    expected.push_all([0x02, 0x40, 0x03, 0x40, 0x04, 0x40, 0x05, 0x0B, 0x0B, 0x0B])
+    expected.push_all(
+        [0x20, 0xAC, 0x02, 0x21, 0x01, 0x22, 0x02, 0x10, 0x03, 0x0C, 0x04, 0x0D, 0x05],
+    )
+    expected.push(0x0B)
+    assert_bytes(function_body(f), expected)
 }

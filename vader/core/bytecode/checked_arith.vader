@@ -73,8 +73,10 @@ integer_op :: fn(op: CheckedOp, bits: i64, unsigned: bool, x: i64, y: i64) -> i6
         .Mul -> checked_mul(bits, unsigned, x, y)
     }
 
-// The width of an integer class.
-integer_bits :: fn(kind: ValType) -> i64 = i64(size_of_val_type(kind)) * 8
+/// The width of an integer class, in bits.
+///
+/// @param kind  an integer class (`is_integer_val`).
+export integer_bits :: fn(kind: ValType) -> i64 = i64(size_of_val_type(kind)) * 8
 
 // The value a cell of the integer class `kind` holds.
 cell_value :: fn(kind: ValType, cell: i64) -> i64 {

@@ -1,0 +1,223 @@
+// vader/emit/wasm/checked: the functions behind the checked integer ops.
+//
+// A `CheckedArith` or a `CheckedNeg` becomes a call to a function the emitter
+// writes once per operation and integer class. It computes the result and stops
+// the run (`unreachable`) when the exact result leaves the class, as
+// `vader/core/bytecode/checked_arith.vader` defines it. A class of 32 bits or
+// less lives in an `i32` (a `u32` as its bits, the others as their signed
+// value), so its operation runs in `i64`, where the exact result of two such
+// operands always fits, and the result is checked against the class bounds.
+// `i64` and `u64` test the overflow on the bits of the result.
+
+module "vader/emit/wasm"
+
+Bc :: import "vader/core/bytecode"
+import "std/collections"
+
+// The index of the function computing `op` on two operands of `kind`.
+checked_helper :: fn(ctx: ModuleCtx, kind: Bc.ValType, op: Bc.CheckedOp) -> i32 {
+    key :: "${Bc.val_type_name(kind)}.${Bc.checked_op_name(op)}"
+    return ctx.helpers[key] else ctx.add_helper(key, kind, 2, checked_body(kind, op))
+}
+
+// The index of the function negating an operand of `kind`.
+checked_neg_helper :: fn(ctx: ModuleCtx, kind: Bc.ValType) -> i32 {
+    key :: "${Bc.val_type_name(kind)}.neg"
+    return ctx.helpers[key] else ctx.add_helper(key, kind, 1, checked_neg_body(kind))
+}
+
+// Add a helper taking `arity` operands of the class `kind` lives in and leaving
+// one, with one `i64` local past them, at index `arity`, for the result.
+add_helper :: fn(ctx: ModuleCtx, key: string, kind: Bc.ValType, arity: i64, body: WasmInstr[]) -> i32 {
+    value_type :: if Bc.is_64_bit_int_val(kind) { WasmValType.I64 } else { WasmValType.I32 }
+    signature :: WasmFuncType { .params = [value_type] * arity, .results = [value_type] }
+    helper :: WasmFunction {
+        .type_index = ctx.types.intern(signature),
+        .locals = [.I64],
+        .body = body,
+    }
+    index :: ctx.function_count + i32(ctx.helper_functions.len())
+    ctx.helper_functions.push(helper)
+    ctx.helpers[key] = index
+    return index
+}
+
+// (a, b) -> a op b.
+checked_body :: fn(kind: Bc.ValType, op: Bc.CheckedOp) -> WasmInstr[] {
+    if Bc.is_64_bit_int_val(kind) {
+        return wide_body(kind, op)
+    }
+    body: WasmInstr[]: []
+    body.push_get(0)
+    body.push_widening(kind)
+    body.push_get(1)
+    body.push_widening(kind)
+    body.push_plain(i64_op(op))
+    body.push_bounded(kind, PAIR_RESULT)
+    return body
+}
+
+// (a) -> -a, which leaves a signed class at its least value and an unsigned
+// one at any value but 0.
+checked_neg_body :: fn(kind: Bc.ValType) -> WasmInstr[] {
+    body: WasmInstr[]: []
+    body.push_i64(0)
+    body.push_get(0)
+    if Bc.is_64_bit_int_val(kind) {
+        body.push_plain(.I64Sub)
+        body.push_get(0)
+        if kind == .U64 {
+            body.push_nonzero()
+        } else {
+            body.push_i64(I64_LEAST)
+            body.push_plain(.I64Eq)
+        }
+        body.push_trap_if()
+        return body
+    }
+    body.push_widening(kind)
+    body.push_plain(.I64Sub)
+    body.push_bounded(kind, 1)
+    return body
+}
+
+i64_op :: fn(op: Bc.CheckedOp) -> WasmOp = match op {
+    .Add -> .I64Add
+    .Sub -> .I64Sub
+    .Mul -> .I64Mul
+}
+
+// An operand of a class of 32 bits or less, as its exact `i64` value.
+push_widening :: fn(body: WasmInstr[], kind: Bc.ValType) -> void =
+    body.push_plain(if kind == .U32 { .I64ExtendI32U } else { .I64ExtendI32S })
+
+// The exact `i64` result on top of the stack, stopped when it leaves `kind`,
+// else narrowed back to the `i32` the class lives in. `result` is the local
+// that holds it meanwhile. One unsigned comparison tests both bounds: below the
+// least value, `result - least` wraps past the span.
+push_bounded :: fn(body: WasmInstr[], kind: Bc.ValType, result: i32) -> void {
+    bits :: Bc.integer_bits(kind)
+    one: i64: 1
+    least :: if Bc.is_unsigned_val(kind) { 0 } else { -(one << (bits - 1)) }
+    body.push(LocalTee { .index = result })
+    body.push_i64(least)
+    body.push_plain(.I64Sub)
+    body.push_i64((one << bits) - 1)
+    body.push_plain(.I64GtU)
+    body.push_trap_if()
+    body.push_get(result)
+    body.push_plain(.I32WrapI64)
+}
+
+// The local a two-operand helper keeps its result in: past `a` and `b`.
+PAIR_RESULT: i32: 2
+
+I64_LEAST: i64: -0x7FFF_FFFF_FFFF_FFFF - 1
+
+// a op b on `i64` or `u64`, kept in `PAIR_RESULT`, then the test that the bits
+// overflowed.
+wide_body :: fn(kind: Bc.ValType, op: Bc.CheckedOp) -> WasmInstr[] {
+    unsigned :: kind == .U64
+    body: WasmInstr[]: []
+    body.push_get(0)
+    body.push_get(1)
+    body.push_plain(i64_op(op))
+    body.push(LocalSet { .index = PAIR_RESULT })
+    match op {
+        .Add -> {
+            // `u64`: the result is below an operand. `i64`: both operands differ
+            // in sign from the result.
+            if unsigned {
+                body.push_get(PAIR_RESULT)
+                body.push_get(0)
+                body.push_plain(.I64LtU)
+            } else {
+                body.push_sign_difference(0, PAIR_RESULT)
+                body.push_sign_difference(1, PAIR_RESULT)
+                body.push_plain(.I64And)
+                body.push_negative()
+            }
+            body.push_trap_if()
+        }
+        .Sub -> {
+            // `u64`: `a` is below `b`. `i64`: the operands differ in sign, and
+            // the result differs from `a`.
+            if unsigned {
+                body.push_get(0)
+                body.push_get(1)
+                body.push_plain(.I64LtU)
+            } else {
+                body.push_sign_difference(0, 1)
+                body.push_sign_difference(0, PAIR_RESULT)
+                body.push_plain(.I64And)
+                body.push_negative()
+            }
+            body.push_trap_if()
+        }
+        .Mul -> { body.push_mul_overflow(unsigned) }
+    }
+    body.push_get(PAIR_RESULT)
+    return body
+}
+
+// The product checked by dividing it back by `a`, when `a` is not 0. `i64` also
+// overflows on -1 times the least value, which the division would trap on:
+// that case is tested first, and `a` = -1 skips the division.
+push_mul_overflow :: fn(body: WasmInstr[], unsigned: bool) -> void {
+    if !unsigned {
+        body.push_get(0)
+        body.push_i64(-1)
+        body.push_plain(.I64Eq)
+        body.push_get(1)
+        body.push_i64(I64_LEAST)
+        body.push_plain(.I64Eq)
+        body.push_plain(.I32And)
+        body.push_trap_if()
+    }
+    body.push_get(0)
+    body.push_nonzero()
+    if !unsigned {
+        body.push_get(0)
+        body.push_i64(-1)
+        body.push_plain(.I64Ne)
+        body.push_plain(.I32And)
+    }
+    body.push_plain(.If)
+    body.push_get(PAIR_RESULT)
+    body.push_get(0)
+    body.push_plain(if unsigned { .I64DivU } else { .I64DivS })
+    body.push_get(1)
+    body.push_plain(.I64Ne)
+    body.push_trap_if()
+    body.push_plain(.End)
+}
+
+// Stop the run when the popped `i32` is not zero.
+push_trap_if :: fn(body: WasmInstr[]) -> void {
+    body.push_plain(.If)
+    body.push_plain(.Unreachable)
+    body.push_plain(.End)
+}
+
+// x ^ y of two locals: negative when they differ in sign.
+push_sign_difference :: fn(body: WasmInstr[], x: i32, y: i32) -> void {
+    body.push_get(x)
+    body.push_get(y)
+    body.push_plain(.I64Xor)
+}
+
+// Whether the popped `i64` is below zero.
+push_negative :: fn(body: WasmInstr[]) -> void {
+    body.push_i64(0)
+    body.push_plain(.I64LtS)
+}
+
+// Whether the popped `i64` is not zero.
+push_nonzero :: fn(body: WasmInstr[]) -> void {
+    body.push_plain(.I64Eqz)
+    body.push_plain(.I32Eqz)
+}
+
+push_get :: fn(body: WasmInstr[], index: i32) -> void = body.push(LocalGet { .index = index })
+
+push_i64 :: fn(body: WasmInstr[], value: i64) -> void = body.push(I64Const { .value = value })

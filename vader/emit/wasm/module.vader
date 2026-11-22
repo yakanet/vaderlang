@@ -2,8 +2,8 @@
 //
 // A typed value: `encode.vader` writes it in the binary format, and a WAT text
 // can be printed from the same value. It holds what the emitter produces so far
-// (function types, functions, exports, the instructions of a function that
-// returns a constant) and grows with it.
+// (function types, functions, exports, the instructions of scalar code) and
+// grows with it.
 
 module "vader/emit/wasm"
 
@@ -42,7 +42,7 @@ export WasmModule :: struct {
 }
 
 /// A WASM instruction.
-export WasmInstr :: I32Const | I64Const | Return
+export WasmInstr :: I32Const | I64Const | LocalGet | LocalSet | LocalTee | Call | Br | BrIf | Plain
 
 /// `i32.const value`.
 export I32Const :: struct { value: i32 }
@@ -50,5 +50,78 @@ export I32Const :: struct { value: i32 }
 /// `i64.const value`.
 export I64Const :: struct { value: i64 }
 
-/// `return`: leave the function with the values on top of the stack.
-export Return :: struct {}
+/// `local.get index`: a parameter, then the declared locals, count from 0.
+export LocalGet :: struct { index: i32 }
+
+/// `local.set index`.
+export LocalSet :: struct { index: i32 }
+
+/// `local.tee index`: set the local and keep the value on the stack.
+export LocalTee :: struct { index: i32 }
+
+/// `call function_index`.
+export Call :: struct { function_index: i32 }
+
+/// `br depth`: leave the `depth` innermost scopes past the current one, out of
+/// a block, or back to the start of a loop.
+export Br :: struct { depth: i32 }
+
+/// `br_if depth`: `br depth` when the popped `i32` is not zero.
+export BrIf :: struct { depth: i32 }
+
+/// An instruction without an immediate.
+export Plain :: struct { op: WasmOp }
+
+/// The instructions `Plain` carries. `Block`, `Loop` and `If` take the empty
+/// block type: the scopes of the bytecode leave nothing on the stack.
+export WasmOp :: enum {
+    Unreachable,
+    Block,
+    Loop,
+    If,
+    Else,
+    End,
+    Return,
+    Drop,
+    I32Eqz,
+    I32Eq,
+    I32Ne,
+    I32LtS,
+    I32GtS,
+    I32LeS,
+    I32GeS,
+    I64Eqz,
+    I64Eq,
+    I64Ne,
+    I64LtS,
+    I64LtU,
+    I64GtS,
+    I64GtU,
+    I64LeS,
+    I64GeS,
+    I32Add,
+    I32Sub,
+    I32Mul,
+    I32DivS,
+    I32DivU,
+    I32RemS,
+    I32RemU,
+    I32And,
+    I32Or,
+    I32Xor,
+    I32Shl,
+    I32ShrS,
+    I32ShrU,
+    I64Add,
+    I64Sub,
+    I64Mul,
+    I64DivS,
+    I64DivU,
+    I64RemS,
+    I64RemU,
+    I64And,
+    I64Xor,
+    I32WrapI64,
+    I64ExtendI32S,
+    I64ExtendI32U,
+}
