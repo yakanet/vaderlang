@@ -1,0 +1,7 @@
+[39:5] warning[W0023] an error is thrown away: `Refused | void` is never read; bind it and hand the error up, or discard it on purpose with `_ :: ...`
+[48:5] warning[W0023] an error is thrown away: `Refused | void` is never read; bind it and hand the error up, or discard it on purpose with `_ :: ...`
+[52:9] warning[W0023] an error is thrown away: `Refused | void` is never read; bind it and hand the error up, or discard it on purpose with `_ :: ...`
+[55:14] warning[W0023] an error is thrown away: `Refused | void` is never read; bind it and hand the error up, or discard it on purpose with `_ :: ...`
+[58:5] warning[W0023] an error is thrown away: `i32 | Refused` is never read; bind it and hand the error up, or discard it on purpose with `_ :: ...`
+[60:9] warning[W0023] an error is thrown away: `Refused | void` is never read; bind it and hand the error up, or discard it on purpose with `_ :: ...`
+[62:15] warning[W0023] an error is thrown away: `Refused | void` is never read; bind it and hand the error up, or discard it on purpose with `_ :: ...`

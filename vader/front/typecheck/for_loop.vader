@@ -88,6 +88,7 @@ check_for :: fn(
     typed.loop_stack.push(EnclosingLoop { .for_id = s.id, .binding = binding, .label = s.label })
     inner_ctx :: bump_loop_depth(ctx)
     check_block(s.body, null, typed, diags, inner_ctx)
+    warn_discarded_trailing(s.body, typed, diags)
     pop_narrows(body_narrows, typed)
     typed.loop_stack.remove_last()
     return

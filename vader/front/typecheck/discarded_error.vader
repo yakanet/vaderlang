@@ -1,0 +1,66 @@
+// vader/front/typecheck/discarded_error: W0023, a value that may be an error and
+// that nothing reads.
+//
+// A block reports only its statements; its trailing expression is its owner's to
+// report (a fn or a lambda that returns `void`, a loop, a `defer` block), and an
+// `if`, a `match` or a block thrown away reports each of its branches. No value
+// is reported twice, and the warning lands on the branch, not on the `if`.
+
+module "vader/front/typecheck"
+
+import "std/iter"
+AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
+import "vader/core/types"
+
+// Warn on each statement of `block`, already type-checked, that may be an error.
+warn_discarded_errors :: fn(
+    block: AST.BlockExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    for stmt in block.stmts.filter_is<AST.ExprStmt>() {
+        warn_discarded(stmt.expr, typed, diags)
+    }
+}
+
+// Warn on the trailing expression of `block`, already type-checked, which nothing
+// reads.
+warn_discarded_trailing :: fn(
+    block: AST.BlockExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    trailing :: block.trailing else return
+    warn_discarded(trailing, typed, diags)
+}
+
+// Warn on `e`, whose value nothing reads, or on each of its branches.
+warn_discarded :: fn(e: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    match e {
+        is AST.IfExpr | AST.MatchExpr -> {
+            for branch in branch_values(e) {
+                warn_discarded(branch, typed, diags)
+            }
+        }
+        is AST.BlockExpr              -> { warn_discarded_trailing(e, typed, diags) }
+        _                             -> {
+            got :: typed.expr_types[e.id] else return
+            if may_be_error(got, typed) {
+                detail :: "`${display_type(got)}` is never read; bind it and hand the error up, " +
+                    "or discard it on purpose with `_ :: ...`"
+                diags.push(warning(.DiscardedError, e.span, detail))
+            }
+        }
+    }
+}
+
+// Whether a member of `t` is an error: a failure other than an absence.
+may_be_error :: fn(t: Type, typed: TypedProgram) -> bool {
+    for member in union_variants(t) else [t] {
+        if is_failure(member, typed) && !is_null_type(member) {
+            return true
+        }
+    }
+    return false
+}

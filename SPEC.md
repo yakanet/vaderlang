@@ -2296,6 +2296,7 @@ save :: fn(path: string, text: string) -> void | IOError {
 - In a function whose result admits `void`, a bare `return`, or a body that ends without a trailing expression, gives `void`.
 - A call of a function that returns nothing gives `void` where a value is expected: `results.push(work())`, with `work` returning nothing and `results` a `void[]`, stores it.
 - `r is void` tests for it.
+- The compiler warns when a value that may be an error, a member of its type implementing `Error`, is thrown away: a statement nothing reads, the last expression of a loop or of a body that returns nothing, a branch of either. `_ :: f()` discards it on purpose; `defer f()` is exempt, since it can neither return nor handle the error.
 
 ### Equality
 

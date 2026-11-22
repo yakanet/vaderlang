@@ -78,6 +78,9 @@ infer_lambda :: fn(
     // against the lambda's return type instead of the enclosing fn's.
     later :: enter_later_body(typed, ctx, false)
     body :: check_block(e.body, expected_ret, typed, diags, ctx)
+    if expected_ret != null && is_void(expected_ret) {
+        warn_discarded_trailing(e.body, typed, diags)
+    }
     leave_later_body(typed, later)
     // T3083: the same obligation `check_fn_body` puts on a named fn. A body with
     // no trailing expression that does not diverge reaches its closing brace with

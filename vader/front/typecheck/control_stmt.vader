@@ -235,7 +235,10 @@ check_defer :: fn(
     later :: enter_later_body(typed, body_ctx, true)
     match b :: s.body {
         is AST.DeferStmtBody  -> { check_stmt(b.stmt, typed, diags, body_ctx) }
-        is AST.DeferBlockBody -> { check_block(b.block, null, typed, diags, body_ctx) }
+        is AST.DeferBlockBody -> {
+            check_block(b.block, null, typed, diags, body_ctx)
+            warn_discarded_trailing(b.block, typed, diags)
+        }
     }
     leave_later_body(typed, later)
     return

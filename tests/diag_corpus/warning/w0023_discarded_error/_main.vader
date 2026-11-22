@@ -1,0 +1,69 @@
+// A value that may be an error and that nothing reads: W0023 on a statement
+// (`a`), on the last expression of a body that returns nothing (`b`), on a
+// branch of an `if` and an arm of a `match` thrown away (`c`, `d`, not the `if`
+// or the `match`), on a value-carrying result (`e`), on the body of a loop (`f`)
+// and of a lambda that returns nothing (`g`).
+// Quiet: a result discarded on purpose with `_ ::`, a `defer`, a result bound
+// and handed up, an `else` that handles the error, an absence (`T | null`), and
+// a body whose result is the value.
+module "snippet"
+
+import "std/io"
+
+Refused :: struct {
+    reason: string
+}
+
+Refused implements Error -> self.reason
+
+store :: fn(ok: bool) -> void | Refused {
+    if !ok {
+        return Refused { .reason = "full" }
+    }
+}
+
+count :: fn(ok: bool) -> i32 | Refused {
+    if !ok {
+        return Refused { .reason = "full" }
+    }
+    return 1
+}
+
+find :: fn(n: i32) -> i32 | null = if n > 0 { n } else { null }
+
+run :: fn(f: fn() -> void) -> void {
+    f()
+}
+
+last :: fn() -> void {
+    store(true)
+}
+
+handed_up :: fn() -> void | Refused {
+    stored :: store(true) else return stored
+    store(false)
+}
+
+main :: fn() -> i32 {
+    store(true)
+    last()
+    ok :: true
+    if ok {
+        store(false)
+    }
+    match 1 {
+        1 -> store(true)
+        _ -> {}
+    }
+    count(true)
+    for i in 0..<2 {
+        store(i > 0)
+    }
+    run(() -> store(true))
+    _ :: store(false)
+    defer store(true)
+    store(false) else {}
+    find(1)
+    _ :: handed_up()
+    return 0
+}
