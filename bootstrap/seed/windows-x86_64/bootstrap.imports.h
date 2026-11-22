@@ -24,7 +24,7 @@ static inline bool vader_host_std_core$Intrinsic$is_ascii(vader_string_t a0) {
 }
 
 static inline void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 29u, 581u);
+    return (void*) vader_string_bytes_view(a0, 31u, 599u);
 }
 
 static inline vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
@@ -33,6 +33,14 @@ static inline vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void*
 
 static inline uint64_t vader_host_std_core$Intrinsic$string_hash(vader_string_t a0) {
     return vader_string_hash(a0);
+}
+
+static inline void* vader_host_std_core$Intrinsic$deep_copy__std_collections_Map_string__string_(void* a0) {
+    return vader_deep_copy_ref(a0);
+}
+
+static inline void* vader_host_std_core$Intrinsic$deep_copy__string__(void* a0) {
+    return vader_deep_copy_ref(a0);
 }
 
 static inline int64_t vader_host_std_core$Intrinsic$collections(void) {
@@ -170,6 +178,10 @@ static inline vader_string_t vader_host_std_core$Intrinsic$ffi_call(int64_t a0, 
 
 static inline vader_string_t vader_host_std_core$Intrinsic$ffi_call_frame(int64_t a0, void* a1, void* a2) {
     return vader_ffi_call_frame((void*) (intptr_t) a0, (vader_array_t*) a1, (vader_array_t*) a2);
+}
+
+static inline void vader_host_std_core$Intrinsic$task_ended(void) {
+    vader_scheduler_task_ended();
 }
 
 static inline vader_string_t vader_host_system_windows$find_data_name(void* a0) {

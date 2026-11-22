@@ -89,7 +89,7 @@ vader_string_t vader_core_mangle$generated_name(vader_string_t l0, uint8_t l1) {
         t1 = concat_3(l0, 315u, l2);
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t1 = concat_3(2499u, l0, 1438u);
+    t1 = concat_3(2503u, l0, 1438u);
     vader_host_std_core$Intrinsic$panic(t1);
     vader_unreachable("a no-return call returned");
     vader_gc_top = gc_frame.prev;
@@ -98,20 +98,20 @@ vader_string_t vader_core_mangle$generated_name(vader_string_t l0, uint8_t l1) {
 static vader_string_t vader_core_mangle$generated_word(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        l1 = 2639u;
+        l1 = 2643u;
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 2715u;
+        l1 = 2719u;
     } else if (l0 == INT32_C(2)) {
         l1 = 847u;
     } else if (l0 == INT32_C(3)) {
-        l1 = 2962u;
+        l1 = 2967u;
     } else {
         if (!(l0 == INT32_C(4))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 3025u;
+        l1 = 3030u;
     }
     return l1;
 }
@@ -169,10 +169,10 @@ vader_string_t vader_core_mangle$instance_suffix(void* l0) {
         vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(26u, 0u, 0u, 576u);
+    vader_array_t* _a0_arr = vader_array_new(28u, 0u, 0u, 594u);
     t0 = (void*) _a0_arr;
     vader_struct_std_string__builder$StringBuilder_t* _a1_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
-    vader_obj_header_init(_a1_obj, 1010u);
+    vader_obj_header_init(_a1_obj, 1043u);
     _a1_obj->f_parts = t0;
     l1 = (void*) _a1_obj;
     l2 = l0;
@@ -303,7 +303,7 @@ vader_string_t vader_core_mangle$mangle_module_id(vader_string_t l0) {
     };
     vader_gc_top = &gc_frame;
     t0 = vader_host_std_core$Intrinsic$byte_len(l0);
-    vader_array_t* _a0_arr = vader_array_reserve(29u, (int64_t) t0, 1u, 581u);
+    vader_array_t* _a0_arr = vader_array_reserve(31u, (int64_t) t0, 1u, 599u);
     l1 = (void*) _a0_arr;
     l2 = INT64_C(0);
     l3 = vader_host_std_core$Intrinsic$byte_len(l0);
