@@ -108,13 +108,14 @@
     fn images.ppm.bytes_per_sample  // images_ppm$bytes_per_sample
     fn images.ppm.decode  // images_ppm$decode
     fn images.ppm.encode  // images_ppm$encode
-    fn images.ppm.is_digit_byte  // images_ppm$is_digit_byte
     fn images.ppm.is_ws_byte  // images_ppm$is_ws_byte
     fn images.ppm.scan_uint  // images_ppm$scan_uint
     fn images.ppm.skip_ws  // images_ppm$skip_ws
     struct images.ppm.Ppm  // images_ppm$Ppm
     struct images.ppm.PpmError  // images_ppm$PpmError
     struct images.ppm.ScanInt  // images_ppm$ScanInt
+  std/ascii
+    fn std.ascii.is_digit_byte  // std_ascii$is_digit_byte
   std/console
     fn std.console.println<string>  // std_console$println__string
     fn std.console.write  // std_console$write

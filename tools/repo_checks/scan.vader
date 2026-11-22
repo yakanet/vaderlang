@@ -8,6 +8,7 @@
 
 module "tools/repo_checks"
 
+import "std/ascii"
 import "std/char"
 import "std/fs"
 import "std/io"
@@ -86,8 +87,6 @@ is_scanned :: fn(entry: WalkEntry, scope: ScanScope) -> bool =
 
 // Whether `b` is a byte of a word: an ASCII letter or digit, or `_`.
 is_word_byte :: fn(b: u8) -> bool = b == '_' || is_alphanumeric(char(b))
-
-is_digit_byte :: fn(b: u8) -> bool = is_digit(char(b))
 
 // The bytes of `text` from `at` on that `keeps` takes, up to the first it does
 // not.

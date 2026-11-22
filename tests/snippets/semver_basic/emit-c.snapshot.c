@@ -229,7 +229,6 @@ static int32_t semver$compare_id(vader_string_t l0, vader_string_t l1);
 static vader_string_t std_string$trim(vader_string_t l0);
 static void* std_string$split(vader_string_t l0, vader_string_t l1);
 static vader_box_t std_string$split_last(vader_string_t l0, vader_string_t l1);
-static bool std_string$is_white_byte(uint8_t l0);
 static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t l2);
 static void* std_string$split_where(vader_string_t l0, void* l1);
 static vader_box_t std_string$last_byte_offset(vader_string_t l0, vader_string_t l1);
@@ -253,6 +252,7 @@ static void std_string__builder$append_char(void* l0, uint32_t l1);
 static vader_string_t std_string__builder$StringBuilder$std_core$Display$to_string(void* l0);
 static void std_string__builder$append(void* l0, vader_string_t l1);
 static int64_t std_string__builder$byte_len(void* l0);
+static bool std_ascii$is_white_byte(uint8_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 typedef vader_box_t (*vader_fn_erased_sig_1_t)(void* env, vader_box_t a0);
@@ -2774,7 +2774,7 @@ static vader_string_t std_string$trim(vader_string_t l0) {
     l2 = INT64_C(0);
     while ((l2 < l1)) {
         t0 = vader_host_std_core$Intrinsic$byte_at(l0, l2);
-        t1 = std_string$is_white_byte(t0);
+        t1 = std_ascii$is_white_byte(t0);
         if (!(t1)) {
             break;
         }
@@ -2783,7 +2783,7 @@ static vader_string_t std_string$trim(vader_string_t l0) {
     while ((l1 > l2)) {
         l3 = vader_chk_sub(i64, l1, INT64_C(1));
         t0 = vader_host_std_core$Intrinsic$byte_at(l0, l3);
-        t1 = std_string$is_white_byte(t0);
+        t1 = std_ascii$is_white_byte(t0);
         if (!(t1)) {
             break;
         }
@@ -2871,24 +2871,6 @@ static vader_box_t std_string$split_last(vader_string_t l0, vader_string_t l1) {
     l2 = std_string$last_byte_offset(l0, l1);
     t0 = std_string$cut_at(l0, l2, l1);
     { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static bool std_string$is_white_byte(uint8_t l0) {
-    bool l1;
-    if (l0 == INT32_C(32)) {
-        l1 = true;
-    } else {
-        l1 = l0 == INT32_C(9);
-    }
-    if (l1) {
-        l1 = true;
-    } else {
-        l1 = l0 == INT32_C(10);
-    }
-    if (l1) {
-        return true;
-    }
-    return l0 == INT32_C(13);
 }
 
 static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t l2) {
@@ -3445,6 +3427,24 @@ static int64_t std_string__builder$byte_len(void* l0) {
         l4 = (l4 + INT64_C(1));
     }
     return l1;
+}
+
+static bool std_ascii$is_white_byte(uint8_t l0) {
+    bool l1;
+    if (l0 == INT32_C(32)) {
+        l1 = true;
+    } else {
+        l1 = l0 == INT32_C(9);
+    }
+    if (l1) {
+        l1 = true;
+    } else {
+        l1 = l0 == INT32_C(10);
+    }
+    if (l1) {
+        return true;
+    }
+    return l0 == INT32_C(13);
 }
 
 int main(int argc, char** argv) {

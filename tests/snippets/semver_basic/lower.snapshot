@@ -121,6 +121,8 @@
     struct semver.Version  // semver$Version
     struct semver.VersionRange  // semver$VersionRange
     struct semver.VersionSections  // semver$VersionSections
+  std/ascii
+    fn std.ascii.is_white_byte  // std_ascii$is_white_byte
   std/char
     fn std.char.is_alpha  // std_char$is_alpha
     fn std.char.is_alphanumeric  // std_char$is_alphanumeric
@@ -149,7 +151,6 @@
     fn std.string.contains_char  // std_string$contains_char
     fn std.string.cut_at  // std_string$cut_at
     fn std.string.index_of  // std_string$index_of
-    fn std.string.is_white_byte  // std_string$is_white_byte
     fn std.string.last_byte_offset  // std_string$last_byte_offset
     fn std.string.matches_at  // std_string$matches_at
     fn std.string.parse_int  // std_string$parse_int

@@ -46,6 +46,8 @@
   }
 
 ## lowered in dependencies
+  std/ascii
+    fn std.ascii.is_white_byte  // std_ascii$is_white_byte
   std/console
     fn std.console.println<string>  // std_console$println__string
     fn std.console.write  // std_console$write
@@ -60,7 +62,6 @@
     fn std.core.utf8_encode  // std_core$utf8_encode
     struct std.core.Buffer  // std_core$Buffer
   std/string
-    fn std.string.is_white_byte  // std_string$is_white_byte
     fn std.string.replace_chars_where  // std_string$replace_chars_where
     fn std.string.trim  // std_string$trim
   std/string_builder

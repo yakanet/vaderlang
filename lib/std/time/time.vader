@@ -7,6 +7,7 @@
 
 module "std/time"
 
+import "std/ascii"
 import "std/math"
 import "std/string"
 import "system/posix"
@@ -312,7 +313,7 @@ expect_byte :: fn(s: string, offset: i64, expected: u8) -> null | TimeError {
 
 // Whether `s` holds an ASCII digit at byte `i`.
 digit_at :: fn(s: string, i: i64) -> bool =
-    i < s.byte_len() && s.byte_at(i) >= '0' && s.byte_at(i) <= '9'
+    i < s.byte_len() && is_digit_byte(s.byte_at(i))
 
 /// Parse an ISO 8601 wall-clock timestamp into an `Instant`. The
 /// accepted shape is `YYYY-MM-DDTHH:MM:SS[.fff]Z` (UTC only ; the

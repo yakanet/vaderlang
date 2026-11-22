@@ -56,6 +56,9 @@
   }
 
 ## lowered in dependencies
+  std/ascii
+    fn std.ascii.hex_value  // std_ascii$hex_value
+    fn std.ascii.is_digit_byte  // std_ascii$is_digit_byte
   std/console
     fn std.console.println<string>  // std_console$println__string
     fn std.console.write  // std_console$write
@@ -93,8 +96,6 @@
     fn std.uri.escapes_a_separator  // std_uri$escapes_a_separator
     fn std.uri.file_path  // std_uri$file_path
     fn std.uri.has_drive  // std_uri$has_drive
-    fn std.uri.hex_value  // std_uri$hex_value
-    fn std.uri.is_digit  // std_uri$is_digit
     fn std.uri.is_host_byte  // std_uri$is_host_byte
     fn std.uri.is_letter  // std_uri$is_letter
     fn std.uri.is_path_byte  // std_uri$is_path_byte

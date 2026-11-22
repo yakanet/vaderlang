@@ -14,6 +14,7 @@
 
 module "json"
 
+import "std/ascii"
 import "std/string"
 import "std/char"
 import "std/string_builder"
@@ -330,8 +331,8 @@ read_hex4 :: fn(p: Parser) -> i32 | null {
     }
     v := 0
     for k in i64(0)..<4 {
-        d :: hex_digit_value(char(p.src.byte_at(p.pos + k))) else return null
-        v = v * 16 + d
+        d :: hex_value(p.src.byte_at(p.pos + k)) else return null
+        v = v * 16 + i32(d)
     }
     p.pos = p.pos + 4
     return v

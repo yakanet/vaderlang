@@ -6,6 +6,7 @@
 
 module "std/uri"
 
+import "std/ascii"
 import "std/env"
 import "std/path"
 import "std/string"
@@ -269,7 +270,7 @@ scheme_length :: fn(text: string) -> i64 {
         if b == ':' {
             return i
         }
-        if !is_letter(b) && (i == 0 || !(is_digit(b) || b == '+' || b == '-' || b == '.')) {
+        if !is_letter(b) && (i == 0 || !(is_digit_byte(b) || b == '+' || b == '-' || b == '.')) {
             return 0
         }
     }
@@ -329,7 +330,7 @@ parse_port :: fn(text: string, from: i64, to: i64) -> i64 | null | UriError {
     value: i64 = 0
     for i in from + 1..<to {
         b :: text.byte_at(i)
-        if !is_digit(b) {
+        if !is_digit_byte(b) {
             return UriError { .msg = "port is not a number", .offset = i }
         }
         value = value * 10 + i64(b - '0')
@@ -396,13 +397,6 @@ push_hex_escape :: fn(out: u8[], value: u8) -> void {
 
 HEX_DIGITS :: "0123456789ABCDEF"
 
-hex_value :: fn(b: u8) -> u8 | null = match b {
-    '0'..='9' -> b - '0'
-    'A'..='F' -> b - 'A' + 10
-    'a'..='f' -> b - 'a' + 10
-    _         -> null
-}
-
 // `text` with its ASCII letters in lower case, but those of its escapes, which
 // stay in upper case.
 lower_outside_escapes :: fn(text: string) -> string {
@@ -450,10 +444,8 @@ last_byte_offset_of :: fn(text: string, b: u8, from: i64, to: i64) -> i64 | null
 
 is_letter :: fn(b: u8) -> bool = (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z')
 
-is_digit :: fn(b: u8) -> bool = b >= '0' && b <= '9'
-
 is_unreserved :: fn(b: u8) -> bool =
-    is_letter(b) || is_digit(b) || b == '-' || b == '.' || b == '_' || b == '~'
+    is_letter(b) || is_digit_byte(b) || b == '-' || b == '.' || b == '_' || b == '~'
 
 is_sub_delimiter :: fn(b: u8) -> bool = match b {
     '!' | '$' | '&' | '\'' | '(' | ')' | '*' | '+' | ',' | ';' | '=' -> true

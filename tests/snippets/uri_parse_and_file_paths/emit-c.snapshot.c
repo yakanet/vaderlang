@@ -132,7 +132,6 @@ static vader_box_t std_uri$parse_parts(vader_string_t l0, int64_t l1);
 static vader_string_t std_uri$percent_decode(vader_string_t l0);
 static vader_box_t std_uri$file_path(void* l0, uint8_t l1);
 static bool std_uri$is_letter(uint8_t l0);
-static bool std_uri$is_digit(uint8_t l0);
 static int64_t std_uri$end_of(vader_string_t l0, int64_t l1, vader_string_t l2);
 static vader_box_t std_uri$parse_authority(vader_string_t l0, int64_t l1, int64_t l2);
 static bool std_uri$is_path_byte(uint8_t l0);
@@ -150,10 +149,11 @@ static vader_string_t std_uri$lower_outside_escapes(vader_string_t l0);
 static bool std_uri$is_unreserved(uint8_t l0);
 static bool std_uri$is_sub_delimiter(uint8_t l0);
 static void std_uri$push_escape(void* l0, uint8_t l1);
-static vader_box_t std_uri$hex_value(uint8_t l0);
 static void std_uri$push_hex_escape(void* l0, uint8_t l1);
 static vader_string_t std_uri$Uri$std_core$Display$to_string(void* l0);
 static vader_string_t std_uri$Authority$std_core$Display$to_string(void* l0);
+static bool std_ascii$is_digit_byte(uint8_t l0);
+static vader_box_t std_ascii$hex_value(uint8_t l0);
 static vader_string_t std_string$to_lower(vader_string_t l0);
 static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t l2);
 static uint32_t std_string$to_lower_cp(uint32_t l0);
@@ -892,7 +892,7 @@ static int64_t std_uri$scheme_length(vader_string_t l0) {
             if (l1 == INT64_C(0)) {
                 return INT64_C(0);
             }
-            t0 = std_uri$is_digit(l3);
+            t0 = std_ascii$is_digit_byte(l3);
             if (!(t0)) {
                 if (!(l3 == INT32_C(43))) {
                     if (!(l3 == INT32_C(45))) {
@@ -1164,13 +1164,6 @@ static bool std_uri$is_letter(uint8_t l0) {
     return l1;
 }
 
-static bool std_uri$is_digit(uint8_t l0) {
-    if ((l0 >= INT32_C(48))) {
-        return (l0 <= INT32_C(57));
-    }
-    return false;
-}
-
 static int64_t std_uri$end_of(vader_string_t l0, int64_t l1, vader_string_t l2) {
     void* l3 = NULL;
     int64_t l4, l5;
@@ -1398,14 +1391,14 @@ static vader_box_t std_uri$escape_at(vader_string_t l0, int64_t l1, int64_t l2) 
     }
     l4 = vader_chk_add(i64, l1, INT64_C(1));
     t1 = vader_host_std_core$Intrinsic$byte_at(l0, l4);
-    l5 = std_uri$hex_value(t1);
+    l5 = std_ascii$hex_value(t1);
     if (l5.tag == 0u) {
         return vader_box_obj(0u, NULL);
     }
     l3 = ((uint8_t) l5.payload.i);
     l4 = vader_chk_add(i64, l1, INT64_C(2));
     t1 = vader_host_std_core$Intrinsic$byte_at(l0, l4);
-    l5 = std_uri$hex_value(t1);
+    l5 = std_ascii$hex_value(t1);
     if (l5.tag == 0u) {
         return vader_box_obj(0u, NULL);
     }
@@ -1549,7 +1542,7 @@ static vader_box_t std_uri$parse_port(vader_string_t l0, int64_t l1, int64_t l2)
     l4 = vader_chk_add(i64, l1, INT64_C(1));
     while ((l4 < l2)) {
         l5 = vader_host_std_core$Intrinsic$byte_at(l0, l4);
-        t1 = std_uri$is_digit(l5);
+        t1 = std_ascii$is_digit_byte(l5);
         if (!(t1)) {
             vader_struct_std_uri$UriError_t* _a0_obj = (vader_struct_std_uri$UriError_t*) vader_gc_alloc(sizeof(vader_struct_std_uri$UriError_t));
             vader_obj_header_init(_a0_obj, 14u);
@@ -1676,7 +1669,7 @@ static bool std_uri$is_unreserved(uint8_t l0) {
     if (t0) {
         l1 = true;
     } else {
-        l1 = std_uri$is_digit(l0);
+        l1 = std_ascii$is_digit_byte(l0);
     }
     if (l1) {
         l1 = true;
@@ -1769,46 +1762,6 @@ static void std_uri$push_escape(void* l0, uint8_t l1) {
     }
     vader_array_push_u8((vader_array_t*) l0, (int32_t) (uint8_t) l1);
     { vader_gc_top = gc_frame.prev; return; }
-}
-
-static vader_box_t std_uri$hex_value(uint8_t l0) {
-    vader_box_t l1;
-    bool l2;
-    int32_t t0, t1;
-    if ((l0 >= INT32_C(48))) {
-        l2 = (l0 <= INT32_C(57));
-    } else {
-        l2 = false;
-    }
-    if (l2) {
-        t0 = vader_chk_sub(u8, l0, INT32_C(48));
-        l1 = vader_box_i32(3u, t0);
-        return l1;
-    }
-    if ((l0 >= INT32_C(65))) {
-        l2 = (l0 <= INT32_C(70));
-    } else {
-        l2 = false;
-    }
-    if (l2) {
-        t0 = vader_chk_sub(u8, l0, INT32_C(65));
-        t1 = vader_chk_add(u8, t0, INT32_C(10));
-        l1 = vader_box_i32(3u, t1);
-    } else {
-        if ((l0 >= INT32_C(97))) {
-            l2 = (l0 <= INT32_C(102));
-        } else {
-            l2 = false;
-        }
-        if (l2) {
-            t0 = vader_chk_sub(u8, l0, INT32_C(97));
-            t1 = vader_chk_add(u8, t0, INT32_C(10));
-            l1 = vader_box_i32(3u, t1);
-        } else {
-            l1 = vader_box_obj(0u, NULL);
-        }
-    }
-    return l1;
 }
 
 static void std_uri$push_hex_escape(void* l0, uint8_t l1) {
@@ -1919,6 +1872,53 @@ static vader_string_t std_uri$Authority$std_core$Display$to_string(void* l0) {
     std_string__builder$append(l1, l3);
     t1 = std_string__builder$StringBuilder$std_core$Display$to_string(l1);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static bool std_ascii$is_digit_byte(uint8_t l0) {
+    if ((l0 >= INT32_C(48))) {
+        return (l0 <= INT32_C(57));
+    }
+    return false;
+}
+
+static vader_box_t std_ascii$hex_value(uint8_t l0) {
+    vader_box_t l1;
+    bool l2;
+    int32_t t0, t1;
+    if ((l0 >= INT32_C(48))) {
+        l2 = (l0 <= INT32_C(57));
+    } else {
+        l2 = false;
+    }
+    if (l2) {
+        t0 = vader_chk_sub(u8, l0, INT32_C(48));
+        l1 = vader_box_i32(3u, t0);
+        return l1;
+    }
+    if ((l0 >= INT32_C(65))) {
+        l2 = (l0 <= INT32_C(70));
+    } else {
+        l2 = false;
+    }
+    if (l2) {
+        t0 = vader_chk_sub(u8, l0, INT32_C(65));
+        t1 = vader_chk_add(u8, t0, INT32_C(10));
+        l1 = vader_box_i32(3u, t1);
+    } else {
+        if ((l0 >= INT32_C(97))) {
+            l2 = (l0 <= INT32_C(102));
+        } else {
+            l2 = false;
+        }
+        if (l2) {
+            t0 = vader_chk_sub(u8, l0, INT32_C(97));
+            t1 = vader_chk_add(u8, t0, INT32_C(10));
+            l1 = vader_box_i32(3u, t1);
+        } else {
+            l1 = vader_box_obj(0u, NULL);
+        }
+    }
+    return l1;
 }
 
 static vader_string_t std_string$to_lower(vader_string_t l0) {

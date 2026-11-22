@@ -30,6 +30,8 @@
   }
 
 ## lowered in dependencies
+  std/ascii
+    fn std.ascii.is_white_byte  // std_ascii$is_white_byte
   std/console
     fn std.console.println<string>  // std_console$println__string
     fn std.console.write  // std_console$write
@@ -38,5 +40,4 @@
   std/core
     struct std.core.Buffer  // std_core$Buffer
   std/string
-    fn std.string.is_white_byte  // std_string$is_white_byte
     fn std.string.trim  // std_string$trim

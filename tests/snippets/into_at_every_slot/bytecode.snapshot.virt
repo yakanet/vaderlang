@@ -1245,7 +1245,7 @@ fn 28 std_string$trim (string) -> string
         local.get 0   ; arg 0
         local.get 2   ; lo
         call.import 1   ; std_core$Intrinsic$byte_at
-        call 29   ; std_string$is_white_byte
+        call 29   ; std_ascii$is_white_byte
         if $L3 void
         else
           br $L0
@@ -1271,7 +1271,7 @@ fn 28 std_string$trim (string) -> string
         local.get 0   ; arg 0
         local.get 3   ; $sub_checked_13
         call.import 1   ; std_core$Intrinsic$byte_at
-        call 29   ; std_string$is_white_byte
+        call 29   ; std_ascii$is_white_byte
         if $L7 void
         else
           br $L4
@@ -1291,7 +1291,7 @@ fn 28 std_string$trim (string) -> string
   return
 end
 
-fn 29 std_string$is_white_byte (u8) -> bool
+fn 29 std_ascii$is_white_byte (u8) -> bool
   local or_res bool
   local.get 0   ; arg 0
   i32.const 32

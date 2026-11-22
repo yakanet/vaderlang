@@ -12,6 +12,7 @@
 
 module "http"
 
+import "std/ascii"
 import "std/io"
 import "std/math"
 import "std/numbers"
@@ -172,7 +173,7 @@ chunk_size :: fn(line: u8[]) -> i64 | IOError {
     if !are_chunk_extensions(line[digits..<line.len()]) {
         return bad_chunk("what follows the size of a chunk is no extension")
     }
-    size :: parse_int_in_base(line[0..<digits].bytes_to_string(), 16)
+    size :: parse_int_in_base(line[0..<digits], 16)
         else return bad_chunk("the size of a chunk is too large to count")
     return size
 }

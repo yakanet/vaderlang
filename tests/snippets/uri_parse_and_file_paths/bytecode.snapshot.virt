@@ -84,7 +84,7 @@ fn 0 snippet$main () -> i32
   if $L0 void
     local.get 0   ; web
     ref.cast 13   ; std_uri$Uri
-    call 43   ; std_uri$Uri$std_core$Display$to_string
+    call 41   ; std_uri$Uri$std_core$Display$to_string
     call 14   ; std_console$println__string
     local.get 0   ; web
     ref.cast 13   ; std_uri$Uri
@@ -109,7 +109,7 @@ fn 0 snippet$main () -> i32
   if $L1 void
     local.get 0   ; web
     ref.cast 13   ; std_uri$Uri
-    call 43   ; std_uri$Uri$std_core$Display$to_string
+    call 41   ; std_uri$Uri$std_core$Display$to_string
     call 14   ; std_console$println__string
     local.get 0   ; web
     ref.cast 13   ; std_uri$Uri
@@ -1139,7 +1139,7 @@ fn 18 std_uri$scheme_length (string) -> i64
           return.lit i64.const 0
         end $L4
         local.get 3   ; b
-        call 23   ; std_uri$is_digit
+        call 43   ; std_ascii$is_digit_byte
         if $L5 void
         else
           local.get 3   ; b
@@ -1204,7 +1204,7 @@ fn 19 std_uri$parse_parts (string,i64) -> any
     local.get 0   ; arg 0
     local.get 5   ; $add_checked_10
     string.const 10   ; "/?#"
-    call 24   ; std_uri$end_of
+    call 23   ; std_uri$end_of
     local.set 5   ; $add_checked_10
     local.get 3   ; next
     i64.const 2
@@ -1213,7 +1213,7 @@ fn 19 std_uri$parse_parts (string,i64) -> any
     local.get 0   ; arg 0
     local.get 6   ; $add_checked_16
     local.get 5   ; $add_checked_10
-    call 25   ; std_uri$parse_authority
+    call 24   ; std_uri$parse_authority
     local.tee 7   ; __fallback_0
     local.set 8   ; parsed
     local.get 7   ; __fallback_0
@@ -1232,15 +1232,15 @@ fn 19 std_uri$parse_parts (string,i64) -> any
   local.get 0   ; arg 0
   local.get 3   ; next
   string.const 11   ; "?#"
-  call 24   ; std_uri$end_of
+  call 23   ; std_uri$end_of
   local.set 5   ; $add_checked_10
-  fn.ref 26 18   ; std_uri$is_path_byte fn
+  fn.ref 25 18   ; std_uri$is_path_byte fn
   local.set 10   ; $fn_ref_27
   local.get 0   ; arg 0
   local.get 3   ; next
   local.get 5   ; $add_checked_10
   local.get 10   ; $fn_ref_27
-  call 27   ; std_uri$normalized
+  call 26   ; std_uri$normalized
   local.tee 7   ; __fallback_0
   local.set 8   ; parsed
   local.get 7   ; __fallback_0
@@ -1274,19 +1274,19 @@ fn 19 std_uri$parse_parts (string,i64) -> any
       local.get 0   ; arg 0
       local.get 5   ; $add_checked_10
       string.const 12   ; "#"
-      call 24   ; std_uri$end_of
+      call 23   ; std_uri$end_of
       local.set 5   ; $add_checked_10
       local.get 3   ; next
       i64.const 1
       i64.checked_add
       local.set 6   ; $add_checked_16
-      fn.ref 28 18   ; std_uri$is_query_byte fn
+      fn.ref 27 18   ; std_uri$is_query_byte fn
       local.set 10   ; $fn_ref_27
       local.get 0   ; arg 0
       local.get 6   ; $add_checked_16
       local.get 5   ; $add_checked_10
       local.get 10   ; $fn_ref_27
-      call 27   ; std_uri$normalized
+      call 26   ; std_uri$normalized
       local.tee 8   ; parsed
       local.set 11   ; read
       local.get 8   ; parsed
@@ -1314,13 +1314,13 @@ fn 19 std_uri$parse_parts (string,i64) -> any
     i64.const 1
     i64.checked_add
     local.set 3   ; next
-    fn.ref 28 18   ; std_uri$is_query_byte fn
+    fn.ref 27 18   ; std_uri$is_query_byte fn
     local.set 10   ; $fn_ref_27
     local.get 0   ; arg 0
     local.get 3   ; next
     local.get 2   ; n
     local.get 10   ; $fn_ref_27
-    call 27   ; std_uri$normalized
+    call 26   ; std_uri$normalized
     local.tee 11   ; read
     local.set 12   ; read
     local.get 11   ; read
@@ -1373,7 +1373,7 @@ fn 20 std_uri$percent_decode (string) -> string
       local.get 0   ; arg 0
       local.get 3   ; i
       local.get 2   ; n
-      call 29   ; std_uri$escape_at
+      call 28   ; std_uri$escape_at
       local.set 4   ; value
       local.get 0   ; arg 0
       local.get 3   ; i
@@ -1461,7 +1461,7 @@ fn 21 std_uri$file_path (ref,u8) -> any
   local.field 0 13 2   ; arg 0 std_uri$Uri.path
   ref.cast 2   ; string
   local.get 1   ; arg 1
-  call 30   ; std_uri$escapes_a_separator
+  call 29   ; std_uri$escapes_a_separator
   if $L3 void
     string.const 18   ; "an escaped separator or NUL in a file path"
     i64.const 0
@@ -1558,7 +1558,7 @@ fn 21 std_uri$file_path (ref,u8) -> any
     call 48   ; std_string$starts_with
     if $L12 void
       local.get 5   ; host
-      call 31   ; std_uri$has_drive
+      call 30   ; std_uri$has_drive
       if $L13 void
         local.get 5   ; host
         retag 2   ; string
@@ -1611,20 +1611,7 @@ fn 22 std_uri$is_letter (u8) -> bool
   return
 end
 
-fn 23 std_uri$is_digit (u8) -> bool
-  local.get 0   ; arg 0
-  i32.const 48
-  u32.ge
-  if $L0 void
-    local.get 0   ; arg 0
-    i32.const 57
-    u32.le
-    return
-  end $L0
-  return.lit bool.const false
-end
-
-fn 24 std_uri$end_of (string,i64,string) -> i64
+fn 23 std_uri$end_of (string,i64,string) -> i64
   local stop_bytes ref
   local i i64
   local __for_hi_0 i64
@@ -1667,7 +1654,7 @@ fn 24 std_uri$end_of (string,i64,string) -> i64
   return
 end
 
-fn 25 std_uri$parse_authority (string,i64,i64) -> any
+fn 24 std_uri$parse_authority (string,i64,i64) -> any
   local at any
   local userinfo any
   local host_from i64
@@ -1682,7 +1669,7 @@ fn 25 std_uri$parse_authority (string,i64,i64) -> any
   i32.const 64
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 32   ; std_uri$byte_offset_of
+  call 31   ; std_uri$byte_offset_of
   local.set 3   ; at
   null.const
   local.set 4   ; userinfo
@@ -1695,13 +1682,13 @@ fn 25 std_uri$parse_authority (string,i64,i64) -> any
     local.get 3   ; at
     ref.cast 4   ; i64
     local.set 6   ; $cast_11
-    fn.ref 33 18   ; std_uri$is_userinfo_byte fn
+    fn.ref 32 18   ; std_uri$is_userinfo_byte fn
     local.set 7   ; $fn_ref_12
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     local.get 6   ; $cast_11
     local.get 7   ; $fn_ref_12
-    call 27   ; std_uri$normalized
+    call 26   ; std_uri$normalized
     local.tee 8   ; __fallback_0
     local.set 9   ; read
     local.get 8   ; __fallback_0
@@ -1743,7 +1730,7 @@ fn 25 std_uri$parse_authority (string,i64,i64) -> any
     i32.const 93
     local.get 5   ; host_from
     local.get 2   ; arg 2
-    call 32   ; std_uri$byte_offset_of
+    call 31   ; std_uri$byte_offset_of
     local.tee 3   ; at
     type_check 0   ; null
     if $L4 void
@@ -1777,7 +1764,7 @@ fn 25 std_uri$parse_authority (string,i64,i64) -> any
     i32.const 58
     local.get 5   ; host_from
     local.get 2   ; arg 2
-    call 34   ; std_uri$last_byte_offset_of
+    call 33   ; std_uri$last_byte_offset_of
     local.tee 3   ; at
     type_check 0   ; null
     if $L7 void
@@ -1791,13 +1778,13 @@ fn 25 std_uri$parse_authority (string,i64,i64) -> any
     local.get 11   ; if_res
     local.set 6   ; $cast_11
   end $L3
-  fn.ref 35 18   ; std_uri$is_host_byte fn
+  fn.ref 34 18   ; std_uri$is_host_byte fn
   local.set 7   ; $fn_ref_12
   local.get 0   ; arg 0
   local.get 5   ; host_from
   local.get 6   ; $cast_11
   local.get 7   ; $fn_ref_12
-  call 27   ; std_uri$normalized
+  call 26   ; std_uri$normalized
   local.tee 3   ; at
   local.set 8   ; __fallback_0
   local.get 3   ; at
@@ -1813,7 +1800,7 @@ fn 25 std_uri$parse_authority (string,i64,i64) -> any
   local.get 0   ; arg 0
   local.get 6   ; $cast_11
   local.get 2   ; arg 2
-  call 36   ; std_uri$parse_port
+  call 35   ; std_uri$parse_port
   local.tee 8   ; __fallback_0
   local.set 9   ; read
   local.get 8   ; __fallback_0
@@ -1826,7 +1813,7 @@ fn 25 std_uri$parse_authority (string,i64,i64) -> any
   local.get 8   ; __fallback_0
   local.set 3   ; at
   local.get 12   ; host
-  call 37   ; std_uri$lower_outside_escapes
+  call 36   ; std_uri$lower_outside_escapes
   local.set 12   ; host
   local.get 4   ; userinfo
   local.get 12   ; host
@@ -1835,16 +1822,16 @@ fn 25 std_uri$parse_authority (string,i64,i64) -> any
   return
 end
 
-fn 26 std_uri$is_path_byte (u8) -> bool
+fn 25 std_uri$is_path_byte (u8) -> bool
   local or_res bool
   local.get 0   ; arg 0
-  call 38   ; std_uri$is_unreserved
+  call 37   ; std_uri$is_unreserved
   if $L0 void
     bool.const true
     local.set 1   ; or_res
   else
     local.get 0   ; arg 0
-    call 39   ; std_uri$is_sub_delimiter
+    call 38   ; std_uri$is_sub_delimiter
     local.set 1   ; or_res
   end $L0
   local.get 1   ; or_res
@@ -1877,7 +1864,7 @@ fn 26 std_uri$is_path_byte (u8) -> bool
   return
 end
 
-fn 27 std_uri$normalized (string,i64,i64,ref) -> any
+fn 26 std_uri$normalized (string,i64,i64,ref) -> any
   local out ref
   local i i64
   local b u8
@@ -1902,7 +1889,7 @@ fn 27 std_uri$normalized (string,i64,i64,ref) -> any
         local.get 0   ; arg 0
         local.get 5   ; i
         local.get 2   ; arg 2
-        call 29   ; std_uri$escape_at
+        call 28   ; std_uri$escape_at
         local.tee 8   ; __fallback_0
         type_check 0   ; null
         if $L3 void
@@ -1916,7 +1903,7 @@ fn 27 std_uri$normalized (string,i64,i64,ref) -> any
         local.set 7   ; value
         local.get 4   ; out
         local.get 7   ; value
-        call 40   ; std_uri$push_escape
+        call 39   ; std_uri$push_escape
         local.get 5   ; i
         i64.const 3
         i64.checked_add
@@ -1950,9 +1937,9 @@ fn 27 std_uri$normalized (string,i64,i64,ref) -> any
   return
 end
 
-fn 28 std_uri$is_query_byte (u8) -> bool
+fn 27 std_uri$is_query_byte (u8) -> bool
   local.get 0   ; arg 0
-  call 26   ; std_uri$is_path_byte
+  call 25   ; std_uri$is_path_byte
   if $L0 void
     return.lit bool.const true
   end $L0
@@ -1962,7 +1949,7 @@ fn 28 std_uri$is_query_byte (u8) -> bool
   return
 end
 
-fn 29 std_uri$escape_at (string,i64,i64) -> any
+fn 28 std_uri$escape_at (string,i64,i64) -> any
   local high u8
   local $add_checked_9 i64
   local __fallback_0 any
@@ -1982,7 +1969,7 @@ fn 29 std_uri$escape_at (string,i64,i64) -> any
   local.get 0   ; arg 0
   local.get 4   ; $add_checked_9
   call.import 1   ; std_core$Intrinsic$byte_at
-  call 41   ; std_uri$hex_value
+  call 44   ; std_ascii$hex_value
   local.tee 5   ; __fallback_0
   type_check 0   ; null
   if $L1 void
@@ -1998,7 +1985,7 @@ fn 29 std_uri$escape_at (string,i64,i64) -> any
   local.get 0   ; arg 0
   local.get 4   ; $add_checked_9
   call.import 1   ; std_core$Intrinsic$byte_at
-  call 41   ; std_uri$hex_value
+  call 44   ; std_ascii$hex_value
   local.tee 5   ; __fallback_0
   type_check 0   ; null
   if $L2 void
@@ -2016,7 +2003,7 @@ fn 29 std_uri$escape_at (string,i64,i64) -> any
   return
 end
 
-fn 30 std_uri$escapes_a_separator (string,u8) -> bool
+fn 29 std_uri$escapes_a_separator (string,u8) -> bool
   local n i64
   local i i64
   local value any
@@ -2039,7 +2026,7 @@ fn 30 std_uri$escapes_a_separator (string,u8) -> bool
         local.get 0   ; arg 0
         local.get 3   ; i
         local.get 2   ; n
-        call 29   ; std_uri$escape_at
+        call 28   ; std_uri$escape_at
         local.tee 4   ; value
         i32.const 47
         retag 3   ; u8
@@ -2077,7 +2064,7 @@ fn 30 std_uri$escapes_a_separator (string,u8) -> bool
   return.lit bool.const false
 end
 
-fn 31 std_uri$has_drive (string) -> bool
+fn 30 std_uri$has_drive (string) -> bool
   local and_res bool
   local.get 0   ; arg 0
   call.import 0   ; std_core$Intrinsic$byte_len
@@ -2105,7 +2092,7 @@ fn 31 std_uri$has_drive (string) -> bool
   return.lit bool.const false
 end
 
-fn 32 std_uri$byte_offset_of (string,u8,i64,i64) -> any
+fn 31 std_uri$byte_offset_of (string,u8,i64,i64) -> any
   local i i64
   local.get 2   ; arg 2
   local.set 4   ; i
@@ -2134,16 +2121,16 @@ fn 32 std_uri$byte_offset_of (string,u8,i64,i64) -> any
   return.lit null.const
 end
 
-fn 33 std_uri$is_userinfo_byte (u8) -> bool
+fn 32 std_uri$is_userinfo_byte (u8) -> bool
   local or_res bool
   local.get 0   ; arg 0
-  call 38   ; std_uri$is_unreserved
+  call 37   ; std_uri$is_unreserved
   if $L0 void
     bool.const true
     local.set 1   ; or_res
   else
     local.get 0   ; arg 0
-    call 39   ; std_uri$is_sub_delimiter
+    call 38   ; std_uri$is_sub_delimiter
     local.set 1   ; or_res
   end $L0
   local.get 1   ; or_res
@@ -2156,7 +2143,7 @@ fn 33 std_uri$is_userinfo_byte (u8) -> bool
   return
 end
 
-fn 34 std_uri$last_byte_offset_of (string,u8,i64,i64) -> any
+fn 33 std_uri$last_byte_offset_of (string,u8,i64,i64) -> any
   local i i64
   local.get 3   ; arg 3
   i64.const 1
@@ -2187,16 +2174,16 @@ fn 34 std_uri$last_byte_offset_of (string,u8,i64,i64) -> any
   return.lit null.const
 end
 
-fn 35 std_uri$is_host_byte (u8) -> bool
+fn 34 std_uri$is_host_byte (u8) -> bool
   local or_res bool
   local.get 0   ; arg 0
-  call 38   ; std_uri$is_unreserved
+  call 37   ; std_uri$is_unreserved
   if $L0 void
     bool.const true
     local.set 1   ; or_res
   else
     local.get 0   ; arg 0
-    call 39   ; std_uri$is_sub_delimiter
+    call 38   ; std_uri$is_sub_delimiter
     local.set 1   ; or_res
   end $L0
   local.get 1   ; or_res
@@ -2229,7 +2216,7 @@ fn 35 std_uri$is_host_byte (u8) -> bool
   return
 end
 
-fn 36 std_uri$parse_port (string,i64,i64) -> any
+fn 35 std_uri$parse_port (string,i64,i64) -> any
   local value i64
   local i i64
   local b u8
@@ -2259,7 +2246,7 @@ fn 36 std_uri$parse_port (string,i64,i64) -> any
       local.get 4   ; i
       call.import 1   ; std_core$Intrinsic$byte_at
       local.tee 5   ; b
-      call 23   ; std_uri$is_digit
+      call 43   ; std_ascii$is_digit_byte
       if $L3 void
       else
         string.const 27   ; "port is not a number"
@@ -2304,7 +2291,7 @@ fn 36 std_uri$parse_port (string,i64,i64) -> any
   return
 end
 
-fn 37 std_uri$lower_outside_escapes (string) -> string
+fn 36 std_uri$lower_outside_escapes (string) -> string
   local out ref
   local escape i64
   local __for_arr_0 ref
@@ -2398,7 +2385,7 @@ fn 37 std_uri$lower_outside_escapes (string) -> string
   return
 end
 
-fn 38 std_uri$is_unreserved (u8) -> bool
+fn 37 std_uri$is_unreserved (u8) -> bool
   local or_res bool
   local.get 0   ; arg 0
   call 22   ; std_uri$is_letter
@@ -2407,7 +2394,7 @@ fn 38 std_uri$is_unreserved (u8) -> bool
     local.set 1   ; or_res
   else
     local.get 0   ; arg 0
-    call 23   ; std_uri$is_digit
+    call 43   ; std_ascii$is_digit_byte
     local.set 1   ; or_res
   end $L0
   local.get 1   ; or_res
@@ -2450,7 +2437,7 @@ fn 38 std_uri$is_unreserved (u8) -> bool
   return
 end
 
-fn 39 std_uri$is_sub_delimiter (u8) -> bool
+fn 38 std_uri$is_sub_delimiter (u8) -> bool
   local or_res bool
   local.get 0   ; arg 0
   i32.const 33
@@ -2561,14 +2548,14 @@ fn 39 std_uri$is_sub_delimiter (u8) -> bool
   return.lit bool.const false
 end
 
-fn 40 std_uri$push_escape (ref,u8) -> void
+fn 39 std_uri$push_escape (ref,u8) -> void
   local.get 1   ; arg 1
-  call 38   ; std_uri$is_unreserved
+  call 37   ; std_uri$is_unreserved
   if $L0 void
   else
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    call 42   ; std_uri$push_hex_escape
+    call 40   ; std_uri$push_hex_escape
     return
   end $L0
   local.get 0   ; arg 0
@@ -2577,7 +2564,197 @@ fn 40 std_uri$push_escape (ref,u8) -> void
   return
 end
 
-fn 41 std_uri$hex_value (u8) -> any
+fn 40 std_uri$push_hex_escape (ref,u8) -> void
+  local $cast_6 i64
+  local $call_7 u8
+  local.get 0   ; arg 0
+  i32.const 37
+  array.push 3   ; u8
+  local.get 1   ; arg 1
+  i32.const 4
+  u32.shr
+  u8.to_i64
+  local.set 2   ; $cast_6
+  string.const 29   ; "0123456789ABCDEF"
+  local.get 2   ; $cast_6
+  call.import 1   ; std_core$Intrinsic$byte_at
+  local.set 3   ; $call_7
+  local.get 0   ; arg 0
+  local.get 3   ; $call_7
+  array.push 3   ; u8
+  local.get 1   ; arg 1
+  i32.const 15
+  i32.bitand
+  u8.to_i64
+  local.set 2   ; $cast_6
+  string.const 29   ; "0123456789ABCDEF"
+  local.get 2   ; $cast_6
+  call.import 1   ; std_core$Intrinsic$byte_at
+  local.set 3   ; $call_7
+  local.get 0   ; arg 0
+  local.get 3   ; $call_7
+  array.push 3   ; u8
+  return
+end
+
+fn 41 std_uri$Uri$std_core$Display$to_string (ref) -> string
+  local sb ref
+  local $field_4 string
+  local authority any
+  array.new 24 0   ; string[]
+  struct.new 23   ; std_string__builder$StringBuilder
+  local.set 1   ; sb
+  local.field 0 13 0   ; arg 0 std_uri$Uri.scheme
+  ref.cast 2   ; string
+  local.set 2   ; $field_4
+  local.get 1   ; sb
+  local.get 2   ; $field_4
+  call 51   ; std_string__builder$append
+  local.get 1   ; sb
+  string.const 30   ; ":"
+  call 51   ; std_string__builder$append
+  local.field 0 13 1   ; arg 0 std_uri$Uri.authority
+  local.tee 3   ; authority
+  type_check 0   ; null
+  if $L0 void
+  else
+    local.get 1   ; sb
+    string.const 9   ; "//"
+    call 51   ; std_string__builder$append
+    local.get 3   ; authority
+    ref.cast 17   ; std_uri$Authority
+    call 42   ; std_uri$Authority$std_core$Display$to_string
+    local.set 2   ; $field_4
+    local.get 1   ; sb
+    local.get 2   ; $field_4
+    call 51   ; std_string__builder$append
+  end $L0
+  local.field 0 13 2   ; arg 0 std_uri$Uri.path
+  ref.cast 2   ; string
+  local.set 2   ; $field_4
+  local.get 1   ; sb
+  local.get 2   ; $field_4
+  call 51   ; std_string__builder$append
+  local.field 0 13 3   ; arg 0 std_uri$Uri.query
+  local.tee 3   ; authority
+  type_check 0   ; null
+  if $L1 void
+  else
+    local.get 1   ; sb
+    string.const 31   ; "?"
+    call 51   ; std_string__builder$append
+    local.get 3   ; authority
+    ref.cast 2   ; string
+    local.set 2   ; $field_4
+    local.get 1   ; sb
+    local.get 2   ; $field_4
+    call 51   ; std_string__builder$append
+  end $L1
+  local.field 0 13 4   ; arg 0 std_uri$Uri.fragment
+  local.tee 3   ; authority
+  type_check 0   ; null
+  if $L2 void
+    local.get 1   ; sb
+    call 50   ; std_string__builder$StringBuilder$std_core$Display$to_string
+    return
+  end $L2
+  local.get 1   ; sb
+  string.const 12   ; "#"
+  call 51   ; std_string__builder$append
+  local.get 3   ; authority
+  ref.cast 2   ; string
+  local.set 2   ; $field_4
+  local.get 1   ; sb
+  local.get 2   ; $field_4
+  call 51   ; std_string__builder$append
+  local.get 1   ; sb
+  call 50   ; std_string__builder$StringBuilder$std_core$Display$to_string
+  return
+end
+
+fn 42 std_uri$Authority$std_core$Display$to_string (ref) -> string
+  local sb ref
+  local userinfo any
+  local $cast_7 string
+  local __buf_0 ref
+  local __off_1 i64
+  local $cast_20 i64
+  array.new 24 0   ; string[]
+  struct.new 23   ; std_string__builder$StringBuilder
+  local.set 1   ; sb
+  local.field 0 17 0   ; arg 0 std_uri$Authority.userinfo
+  local.tee 2   ; userinfo
+  type_check 0   ; null
+  if $L0 void
+  else
+    local.get 2   ; userinfo
+    ref.cast 2   ; string
+    local.set 3   ; $cast_7
+    local.get 1   ; sb
+    local.get 3   ; $cast_7
+    call 51   ; std_string__builder$append
+    local.get 1   ; sb
+    string.const 32   ; "@"
+    call 51   ; std_string__builder$append
+  end $L0
+  local.field 0 17 1   ; arg 0 std_uri$Authority.host
+  ref.cast 2   ; string
+  local.set 3   ; $cast_7
+  local.get 1   ; sb
+  local.get 3   ; $cast_7
+  call 51   ; std_string__builder$append
+  local.field 0 17 2   ; arg 0 std_uri$Authority.port
+  local.tee 2   ; userinfo
+  type_check 0   ; null
+  if $L1 void
+    local.get 1   ; sb
+    call 50   ; std_string__builder$StringBuilder$std_core$Display$to_string
+    return
+  end $L1
+  i64.const 21
+  buffer.new
+  local.set 4   ; __buf_0
+  i64.const 0
+  local.set 5   ; __off_1
+  local.get 4   ; __buf_0
+  local.get 5   ; __off_1
+  string.const 30   ; ":"
+  call 8   ; std_core$write_string_at
+  local.set 5   ; __off_1
+  local.get 2   ; userinfo
+  ref.cast 4   ; i64
+  local.set 6   ; $cast_20
+  local.get 4   ; __buf_0
+  local.get 5   ; __off_1
+  local.get 6   ; $cast_20
+  call 9   ; std_core$write_int
+  local.set 5   ; __off_1
+  local.get 4   ; __buf_0
+  local.get 5   ; __off_1
+  call 7   ; std_core$finish_buffer
+  local.set 3   ; $cast_7
+  local.get 1   ; sb
+  local.get 3   ; $cast_7
+  call 51   ; std_string__builder$append
+  local.get 1   ; sb
+  call 50   ; std_string__builder$StringBuilder$std_core$Display$to_string
+  return
+end
+
+fn 43 std_ascii$is_digit_byte (u8) -> bool
+  local.get 0   ; arg 0
+  i32.const 48
+  u32.ge
+  if $L0 void
+    local.get 0   ; arg 0
+    i32.const 57
+    u32.le
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 44 std_ascii$hex_value (u8) -> any
   local if_res any
   local and_res bool
   local.get 0   ; arg 0
@@ -2650,183 +2827,6 @@ fn 41 std_uri$hex_value (u8) -> any
     end $L5
   end $L3
   local.get 1   ; if_res
-  return
-end
-
-fn 42 std_uri$push_hex_escape (ref,u8) -> void
-  local $cast_6 i64
-  local $call_7 u8
-  local.get 0   ; arg 0
-  i32.const 37
-  array.push 3   ; u8
-  local.get 1   ; arg 1
-  i32.const 4
-  u32.shr
-  u8.to_i64
-  local.set 2   ; $cast_6
-  string.const 29   ; "0123456789ABCDEF"
-  local.get 2   ; $cast_6
-  call.import 1   ; std_core$Intrinsic$byte_at
-  local.set 3   ; $call_7
-  local.get 0   ; arg 0
-  local.get 3   ; $call_7
-  array.push 3   ; u8
-  local.get 1   ; arg 1
-  i32.const 15
-  i32.bitand
-  u8.to_i64
-  local.set 2   ; $cast_6
-  string.const 29   ; "0123456789ABCDEF"
-  local.get 2   ; $cast_6
-  call.import 1   ; std_core$Intrinsic$byte_at
-  local.set 3   ; $call_7
-  local.get 0   ; arg 0
-  local.get 3   ; $call_7
-  array.push 3   ; u8
-  return
-end
-
-fn 43 std_uri$Uri$std_core$Display$to_string (ref) -> string
-  local sb ref
-  local $field_4 string
-  local authority any
-  array.new 24 0   ; string[]
-  struct.new 23   ; std_string__builder$StringBuilder
-  local.set 1   ; sb
-  local.field 0 13 0   ; arg 0 std_uri$Uri.scheme
-  ref.cast 2   ; string
-  local.set 2   ; $field_4
-  local.get 1   ; sb
-  local.get 2   ; $field_4
-  call 51   ; std_string__builder$append
-  local.get 1   ; sb
-  string.const 30   ; ":"
-  call 51   ; std_string__builder$append
-  local.field 0 13 1   ; arg 0 std_uri$Uri.authority
-  local.tee 3   ; authority
-  type_check 0   ; null
-  if $L0 void
-  else
-    local.get 1   ; sb
-    string.const 9   ; "//"
-    call 51   ; std_string__builder$append
-    local.get 3   ; authority
-    ref.cast 17   ; std_uri$Authority
-    call 44   ; std_uri$Authority$std_core$Display$to_string
-    local.set 2   ; $field_4
-    local.get 1   ; sb
-    local.get 2   ; $field_4
-    call 51   ; std_string__builder$append
-  end $L0
-  local.field 0 13 2   ; arg 0 std_uri$Uri.path
-  ref.cast 2   ; string
-  local.set 2   ; $field_4
-  local.get 1   ; sb
-  local.get 2   ; $field_4
-  call 51   ; std_string__builder$append
-  local.field 0 13 3   ; arg 0 std_uri$Uri.query
-  local.tee 3   ; authority
-  type_check 0   ; null
-  if $L1 void
-  else
-    local.get 1   ; sb
-    string.const 31   ; "?"
-    call 51   ; std_string__builder$append
-    local.get 3   ; authority
-    ref.cast 2   ; string
-    local.set 2   ; $field_4
-    local.get 1   ; sb
-    local.get 2   ; $field_4
-    call 51   ; std_string__builder$append
-  end $L1
-  local.field 0 13 4   ; arg 0 std_uri$Uri.fragment
-  local.tee 3   ; authority
-  type_check 0   ; null
-  if $L2 void
-    local.get 1   ; sb
-    call 50   ; std_string__builder$StringBuilder$std_core$Display$to_string
-    return
-  end $L2
-  local.get 1   ; sb
-  string.const 12   ; "#"
-  call 51   ; std_string__builder$append
-  local.get 3   ; authority
-  ref.cast 2   ; string
-  local.set 2   ; $field_4
-  local.get 1   ; sb
-  local.get 2   ; $field_4
-  call 51   ; std_string__builder$append
-  local.get 1   ; sb
-  call 50   ; std_string__builder$StringBuilder$std_core$Display$to_string
-  return
-end
-
-fn 44 std_uri$Authority$std_core$Display$to_string (ref) -> string
-  local sb ref
-  local userinfo any
-  local $cast_7 string
-  local __buf_0 ref
-  local __off_1 i64
-  local $cast_20 i64
-  array.new 24 0   ; string[]
-  struct.new 23   ; std_string__builder$StringBuilder
-  local.set 1   ; sb
-  local.field 0 17 0   ; arg 0 std_uri$Authority.userinfo
-  local.tee 2   ; userinfo
-  type_check 0   ; null
-  if $L0 void
-  else
-    local.get 2   ; userinfo
-    ref.cast 2   ; string
-    local.set 3   ; $cast_7
-    local.get 1   ; sb
-    local.get 3   ; $cast_7
-    call 51   ; std_string__builder$append
-    local.get 1   ; sb
-    string.const 32   ; "@"
-    call 51   ; std_string__builder$append
-  end $L0
-  local.field 0 17 1   ; arg 0 std_uri$Authority.host
-  ref.cast 2   ; string
-  local.set 3   ; $cast_7
-  local.get 1   ; sb
-  local.get 3   ; $cast_7
-  call 51   ; std_string__builder$append
-  local.field 0 17 2   ; arg 0 std_uri$Authority.port
-  local.tee 2   ; userinfo
-  type_check 0   ; null
-  if $L1 void
-    local.get 1   ; sb
-    call 50   ; std_string__builder$StringBuilder$std_core$Display$to_string
-    return
-  end $L1
-  i64.const 21
-  buffer.new
-  local.set 4   ; __buf_0
-  i64.const 0
-  local.set 5   ; __off_1
-  local.get 4   ; __buf_0
-  local.get 5   ; __off_1
-  string.const 30   ; ":"
-  call 8   ; std_core$write_string_at
-  local.set 5   ; __off_1
-  local.get 2   ; userinfo
-  ref.cast 4   ; i64
-  local.set 6   ; $cast_20
-  local.get 4   ; __buf_0
-  local.get 5   ; __off_1
-  local.get 6   ; $cast_20
-  call 9   ; std_core$write_int
-  local.set 5   ; __off_1
-  local.get 4   ; __buf_0
-  local.get 5   ; __off_1
-  call 7   ; std_core$finish_buffer
-  local.set 3   ; $cast_7
-  local.get 1   ; sb
-  local.get 3   ; $cast_7
-  call 51   ; std_string__builder$append
-  local.get 1   ; sb
-  call 50   ; std_string__builder$StringBuilder$std_core$Display$to_string
   return
 end
 

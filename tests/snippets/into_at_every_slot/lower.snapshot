@@ -150,6 +150,8 @@
   vtable std.core.Iterator.next for $genstate_labels  snippet$$genstate_labels$Iterator$next
 
 ## lowered in dependencies
+  std/ascii
+    fn std.ascii.is_white_byte  // std_ascii$is_white_byte
   std/collections
     fn std.collections.Map<string, Any>.at  // std_collections$Map$std_core$Index$at__string__Any
     fn std.collections.Map<string, Any>.contains  // std_collections$Map$std_core$Contains$contains__string__Any
@@ -180,5 +182,4 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
   std/string
-    fn std.string.is_white_byte  // std_string$is_white_byte
     fn std.string.trim  // std_string$trim

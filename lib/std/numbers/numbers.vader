@@ -5,6 +5,7 @@
 
 module "std/numbers"
 
+import "std/ascii"
 import "std/string"
 import "std/char"
 import "std/string_builder"
@@ -44,8 +45,20 @@ export hex_digit_value :: fn(c: char) -> i32 | null = match c {
 /// @return      the parsed `i64`.
 /// @error       `ParseError` on empty input, any out-of-base digit, or a value
 ///              past the greatest `i64` (carries `.msg = "overflow"`).
-export parse_int_in_base :: fn(s: string, base: i32) -> i64 | ParseError {
-    magnitude :: parse_uint_in_base(s, base) else return magnitude
+export parse_int_in_base :: fn(s: string, base: i32) -> i64 | ParseError =
+    parse_int_in_base(s.bytes(), base)
+
+/// Parse the ASCII digits `digits` as an `i64` in the given base: the form for
+/// bytes read off a wire or a file, which then need no string.
+/// @param digits  the digits-only input, as `parse_int_in_base` on a string.
+/// @param base    one of 2 / 8 / 10 / 16.
+/// @return        the parsed `i64`.
+/// @error         `ParseError` on empty input, any out-of-base digit, or a
+///                value past the greatest `i64` (carries `.msg = "overflow"`).
+/// @example
+///   parse_int_in_base("ff".bytes(), 16)   // 255
+export parse_int_in_base :: fn(digits: u8[], base: i32) -> i64 | ParseError {
+    magnitude :: parse_uint_in_base(digits, base) else return magnitude
     if magnitude > u64(@max(i64)) {
         return ParseError { .msg = "overflow" }
     }
@@ -62,8 +75,18 @@ export parse_int_in_base :: fn(s: string, base: i32) -> i64 | ParseError {
 /// @return      the parsed `u64`.
 /// @error       `ParseError` on empty input, any out-of-base digit, or a
 ///              magnitude exceeding `u64.MAX` (carries `.msg = "overflow"`).
-export parse_uint_in_base :: fn(s: string, base: i32) -> u64 | ParseError {
-    if s.is_empty() {
+export parse_uint_in_base :: fn(s: string, base: i32) -> u64 | ParseError =
+    parse_uint_in_base(s.bytes(), base)
+
+/// Parse the ASCII digits `digits` as a `u64` in the given base, as
+/// `parse_uint_in_base` on a string does.
+/// @param digits  the digits-only input.
+/// @param base    one of 2 / 8 / 10 / 16.
+/// @return        the parsed `u64`.
+/// @error         `ParseError` on empty input, any out-of-base digit, or a
+///                magnitude exceeding `u64.MAX` (carries `.msg = "overflow"`).
+export parse_uint_in_base :: fn(digits: u8[], base: i32) -> u64 | ParseError {
+    if digits.is_empty() {
         return ParseError { .msg = "empty input" }
     }
     acc: u64 = 0
@@ -72,8 +95,8 @@ export parse_uint_in_base :: fn(s: string, base: i32) -> u64 | ParseError {
     // wrap past `u64.MAX`, which itself still reads.
     cutoff :: @max(u64) / b
     last :: @max(u64) % b
-    for c in s {
-        d :: hex_digit_value(c) else return ParseError { .msg = "invalid digit" }
+    for byte in digits {
+        d :: hex_value(byte) else return ParseError { .msg = "invalid digit" }
         if d >= base {
             return ParseError { .msg = "invalid digit" }
         }
@@ -235,6 +258,20 @@ import "std/testing"
     assert(past is ParseError && past.msg == "overflow", "one past the greatest i64 is refused")
     long :: parse_int_in_base("FFFFFFFFFFFFFFFFF", 16)
     assert(long is ParseError && long.msg == "overflow", "17 hex digits are refused")
+}
+
+@test test_parse_int_in_base_reads_bytes :: fn() -> void {
+    letters: u8[]: ['f', 'F']
+    hex :: parse_int_in_base(letters, 16)
+    assert(hex is i64 && hex == 255, "hex digits of both cases read")
+    out_of_base :: parse_int_in_base("19".bytes(), 8)
+    assert(out_of_base is ParseError, "a digit past the base is refused")
+    empty: u8[]: []
+    assert(parse_int_in_base(empty, 10) is ParseError, "no digit is refused")
+}
+
+@test test_parse_int_in_base_refuses_a_digit_beyond_ascii :: fn() -> void {
+    assert(parse_int_in_base("1\u{0661}", 10) is ParseError, "an Arabic-Indic digit is no digit")
 }
 
 @test test_to_compact_str_whole_numbers :: fn() -> void {

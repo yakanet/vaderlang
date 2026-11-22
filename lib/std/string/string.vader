@@ -4,8 +4,9 @@
 
 module "std/string"
 
-import "std/string_builder"
+import "std/ascii"
 import "std/math"
+import "std/string_builder"
 
 /// True iff `sub` appears anywhere in `s`. Byte-wise scan. Module-private:
 /// callers go through `sub in s` (Contains impl below) or UFCS
@@ -177,15 +178,6 @@ export compare_ascending_ci :: fn(a: string, b: string) -> bool {
     // Equal folded: break ties by raw bytes so the order stays total.
     return a < b
 }
-
-to_lower_byte :: fn(c: u8) -> u8 {
-    if c >= 'A' && c <= 'Z' { return c + ('a' - 'A') }
-    return c
-}
-
-// ASCII whitespace byte (space, tab, LF, CR): the byte-level counterpart of
-// `is_white_char`, used by the trim family.
-is_white_byte :: fn(b: u8) = b == ' ' || b == '\t' || b == '\n' || b == '\r'
 
 /// Byte offset of the *last* occurrence of `c` in `s` at or after
 /// `min_index`. Walks codepoint-by-codepoint (UTF-8 safe: the byte

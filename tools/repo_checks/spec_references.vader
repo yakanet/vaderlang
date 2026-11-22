@@ -13,6 +13,7 @@
 
 module "tools/repo_checks"
 
+import "std/ascii"
 import "std/collections"
 import "std/iter"
 import "std/string"

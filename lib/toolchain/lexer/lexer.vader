@@ -13,6 +13,7 @@
 
 module "toolchain/lexer"
 
+import "std/ascii"
 import "std/string"
 import "std/char"
 
@@ -651,7 +652,7 @@ lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
     cp: u32 = 0
     for i in 0..<hex_len {
         // The loop above admitted only hex digits.
-        d :: hex_digit_value(char(l.src.byte_at(hex_start + i))) else 0
+        d :: hex_value(l.src.byte_at(hex_start + i)) else 0
         cp = cp * 16 + u32(d)
     }
     if cp > u32(MAX_CODEPOINT) {

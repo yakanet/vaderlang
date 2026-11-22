@@ -13,6 +13,8 @@
 
 module "images/ppm"
 
+import "std/ascii"
+
 // ---- types ----------------------------------------------------------------
 
 /// An RGB pixmap decoded from / to be encoded as binary PPM (P6).
@@ -48,10 +50,6 @@ export bytes_per_sample :: fn(maxval: u32) -> i64 = if maxval < 256 { 1 } else {
 // tokens: space, TAB, LF, VT, FF, CR.
 is_ws_byte :: fn(b: u8) = b == ' ' || b == '\t' || b == '\n'
     || b == 0x0b || b == 0x0c || b == '\r'
-
-// True for an ASCII decimal digit. A char literal coerces to u8 in the
-// comparison (the byte data IS ASCII here), mirroring std/base64's decode_byte.
-is_digit_byte :: fn(b: u8) = b >= '0' && b <= '9'
 
 // Result of scanning one unsigned decimal integer from the header. `found` is
 // false when no digit was read at `from` or when the value overflowed u32 (both

@@ -62,7 +62,7 @@ content_length :: fn(values: string[]) -> i64 | HttpError {
 
 // `1*DIGIT` as a number, refused when it does not fit.
 decimal :: fn(digits: u8[]) -> i64 | HttpError {
-    value :: parse_int_in_base(digits.bytes_to_string(), 10)
+    value :: parse_int_in_base(digits, 10)
         else return malformed("a content length is digits alone, and a number that can be counted")
     return value
 }

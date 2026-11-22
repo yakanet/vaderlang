@@ -262,7 +262,6 @@ static int64_t images_ppm$bytes_per_sample(uint32_t l0);
 static int64_t images_ppm$skip_ws(void* l0, int64_t l1);
 static void* images_ppm$scan_uint(void* l0, int64_t l1);
 static bool images_ppm$is_ws_byte(uint8_t l0);
-static bool images_ppm$is_digit_byte(uint8_t l0);
 static vader_string_t images_ppm$PpmError$std_core$Error$message(void* l0);
 static vader_string_t images_ppm$Ppm$std_core$Display$to_string(void* l0);
 static void* std_io$last_io_error(vader_string_t l0);
@@ -281,6 +280,7 @@ static bool std_path$is_ascii_letter(uint8_t l0);
 static vader_box_t std_path$next_separator(vader_string_t l0, int64_t l1);
 static bool std_string$ends_with(vader_string_t l0, vader_string_t l1);
 static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t l2);
+static bool std_ascii$is_digit_byte(uint8_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -1834,7 +1834,7 @@ static void* images_ppm$scan_uint(void* l0, int64_t l1) {
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
         t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l3, 7u);
         t1 = ((uint8_t) t0.payload.i);
-        t2 = images_ppm$is_digit_byte(t1);
+        t2 = std_ascii$is_digit_byte(t1);
         if (!(t2)) {
             break;
         }
@@ -1898,13 +1898,6 @@ static bool images_ppm$is_ws_byte(uint8_t l0) {
         return true;
     }
     return l0 == INT32_C(13);
-}
-
-static bool images_ppm$is_digit_byte(uint8_t l0) {
-    if ((l0 >= INT32_C(48))) {
-        return (l0 <= INT32_C(57));
-    }
-    return false;
 }
 
 static vader_string_t images_ppm$PpmError$std_core$Error$message(void* l0) {
@@ -2386,6 +2379,13 @@ static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t 
         l4 = (l4 + INT64_C(1));
     }
     return true;
+}
+
+static bool std_ascii$is_digit_byte(uint8_t l0) {
+    if ((l0 >= INT32_C(48))) {
+        return (l0 <= INT32_C(57));
+    }
+    return false;
 }
 
 /* vtable dispatchers */

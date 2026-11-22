@@ -120,8 +120,8 @@ impl 24 std_core$Display
 impl 14 std_core$Error
 impl 3 std_core$ByteAccess
 impl 18 std_io$Reader
-vtable std_core$Error.message 26 43
-vtable std_core$Error.message 14 50
+vtable std_core$Error.message 26 42
+vtable std_core$Error.message 14 49
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -201,7 +201,7 @@ fn 0 snippet$main () -> i32
   if $L2 void
     local.get 4   ; wr
     ref.cast 14   ; std_io$IOError
-    call 50   ; std_io$IOError$std_core$Error$message
+    call 49   ; std_io$IOError$std_core$Error$message
     local.set 0   ; path
     string.const 5   ; "read failed: "
     local.get 0   ; path
@@ -293,7 +293,7 @@ fn 0 snippet$main () -> i32
     end $L8
   end $L7
   local.get 2   ; enc
-  call 44   ; images_ppm$Ppm$std_core$Display$to_string
+  call 43   ; images_ppm$Ppm$std_core$Display$to_string
   call 11   ; std_console$println__string
   local.get 6   ; ok
   if $L10 void
@@ -794,8 +794,8 @@ fn 13 std_env$temp_dir_of (any) -> string
   if $L1 void
   else
     local.get 1   ; e
-    call 52   ; std_path$to_path
-    call 53   ; std_path$as_string
+    call 51   ; std_path$to_path
+    call 52   ; std_path$as_string
     return
   end $L1
   return.lit string.const 12   ; "/tmp"
@@ -1179,7 +1179,7 @@ fn 24 std_fs$system_read (any,ref,i64) -> any
         br $L0
       end $L2
       string.const 14   ; "read failed"
-      call 45   ; std_io$last_io_error
+      call 44   ; std_io$last_io_error
       return
     end $L1
   end $L0
@@ -1199,7 +1199,7 @@ fn 25 std_fs$system_close (any) -> any
     return.lit null.const
   end $L0
   string.const 15   ; "close failed"
-  call 45   ; std_io$last_io_error
+  call 44   ; std_io$last_io_error
   return
 end
 
@@ -1296,7 +1296,7 @@ fn 27 std_fs$system_open (string,ref) -> any
   i32.lt
   if $L0 void
     string.const 20   ; "cannot open file"
-    call 45   ; std_io$last_io_error
+    call 44   ; std_io$last_io_error
     return
   end $L0
   local.get 1   ; arg 1
@@ -1524,7 +1524,7 @@ fn 34 std_fs$File$std_io$Writer$write (ref,any) -> any
     return
   end $L0
   local.get 1   ; arg 1
-  call 51   ; std_io$bytes_of
+  call 50   ; std_io$bytes_of
   local.set 2   ; bytes
   i64.const 0
   local.set 3   ; done
@@ -1608,7 +1608,7 @@ fn 35 std_fs$system_write (any,ref) -> any
         br $L0
       end $L2
       string.const 24   ; "write failed"
-      call 45   ; std_io$last_io_error
+      call 44   ; std_io$last_io_error
       return
     end $L1
   end $L0
@@ -2182,7 +2182,7 @@ fn 40 images_ppm$scan_uint (ref,i64) -> ref
         local.get 3   ; p
         array.get 6   ; u8[]
         ref.cast 7   ; u8
-        call 42   ; images_ppm$is_digit_byte
+        call 60   ; std_ascii$is_digit_byte
         if $L3 void
         else
           br $L0
@@ -2290,26 +2290,13 @@ fn 41 images_ppm$is_ws_byte (u8) -> bool
   return
 end
 
-fn 42 images_ppm$is_digit_byte (u8) -> bool
-  local.get 0   ; arg 0
-  i32.const 48
-  u32.ge
-  if $L0 void
-    local.get 0   ; arg 0
-    i32.const 57
-    u32.le
-    return
-  end $L0
-  return.lit bool.const false
-end
-
-fn 43 images_ppm$PpmError$std_core$Error$message (ref) -> string
+fn 42 images_ppm$PpmError$std_core$Error$message (ref) -> string
   local.field 0 26 0   ; arg 0 images_ppm$PpmError.msg
   ref.cast 2   ; string
   return
 end
 
-fn 44 images_ppm$Ppm$std_core$Display$to_string (ref) -> string
+fn 43 images_ppm$Ppm$std_core$Display$to_string (ref) -> string
   local depth string
   local __p_0 u32
   local __p_1 u32
@@ -2422,36 +2409,36 @@ fn 44 images_ppm$Ppm$std_core$Display$to_string (ref) -> string
   return
 end
 
-fn 45 std_io$last_io_error (string) -> ref
+fn 44 std_io$last_io_error (string) -> ref
   call.import 6   ; system_posix$sys_last_errno
   local.get 0   ; arg 0
-  call 46   ; std_io$io_error_of
+  call 45   ; std_io$io_error_of
   return
 end
 
-fn 46 std_io$io_error_of (i32,string) -> ref
+fn 45 std_io$io_error_of (i32,string) -> ref
   local $call_2 u8
   local.get 0   ; arg 0
-  call 48   ; std_io$errno_kind
+  call 47   ; std_io$errno_kind
   local.set 2   ; $call_2
   local.get 1   ; arg 1
   local.get 2   ; $call_2
   local.get 0   ; arg 0
-  call 47   ; std_io$classified_error
+  call 46   ; std_io$classified_error
   return
 end
 
-fn 47 std_io$classified_error (string,u8,i32) -> ref
+fn 46 std_io$classified_error (string,u8,i32) -> ref
   local.get 1   ; arg 1
   local.get 0   ; arg 0
-  call 49   ; std_io$describe_io_error_kind
+  call 48   ; std_io$describe_io_error_kind
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   struct.new 14   ; std_io$IOError
   return
 end
 
-fn 48 std_io$errno_kind (i32) -> u8
+fn 47 std_io$errno_kind (i32) -> u8
   local if_res i32
   local.get 0   ; arg 0
   i32.const 2
@@ -2679,7 +2666,7 @@ fn 48 std_io$errno_kind (i32) -> u8
   return.lit i32.const 20
 end
 
-fn 49 std_io$describe_io_error_kind (u8,string) -> string
+fn 48 std_io$describe_io_error_kind (u8,string) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 1
@@ -2854,13 +2841,13 @@ fn 49 std_io$describe_io_error_kind (u8,string) -> string
   return
 end
 
-fn 50 std_io$IOError$std_core$Error$message (ref) -> string
+fn 49 std_io$IOError$std_core$Error$message (ref) -> string
   local.field 0 14 0   ; arg 0 std_io$IOError.msg
   ref.cast 2   ; string
   return
 end
 
-fn 51 std_io$bytes_of (any) -> ref
+fn 50 std_io$bytes_of (any) -> ref
   local.get 0   ; arg 0
   type_check 2   ; string
   if $L0 void
@@ -2874,11 +2861,11 @@ fn 51 std_io$bytes_of (any) -> ref
   return
 end
 
-fn 52 std_path$to_path (string) -> string
+fn 51 std_path$to_path (string) -> string
   local $call_4 u8
   local.get 0   ; arg 0
   string.const 63   ; "/"
-  call 59   ; std_string$ends_with
+  call 58   ; std_string$ends_with
   if $L0 void
   else
     local.get 0   ; arg 0
@@ -2888,16 +2875,16 @@ fn 52 std_path$to_path (string) -> string
   local.set 1   ; $call_4
   local.get 0   ; arg 0
   local.get 1   ; $call_4
-  call 54   ; std_path$without_trailing_separators
+  call 53   ; std_path$without_trailing_separators
   return
 end
 
-fn 53 std_path$as_string (string) -> string
+fn 52 std_path$as_string (string) -> string
   local.get 0   ; arg 0
   return
 end
 
-fn 54 std_path$without_trailing_separators (string,u8) -> string
+fn 53 std_path$without_trailing_separators (string,u8) -> string
   local n i64
   local $sub_checked_7 i64
   local $sub_checked_16 i64
@@ -2925,7 +2912,7 @@ fn 54 std_path$without_trailing_separators (string,u8) -> string
   end $L1
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 55   ; std_path$root_length
+  call 54   ; std_path$root_length
   local.set 3   ; $sub_checked_7
   block $L2 void
     loop $L3 void
@@ -2961,12 +2948,12 @@ fn 54 std_path$without_trailing_separators (string,u8) -> string
   return
 end
 
-fn 55 std_path$root_length (string,u8) -> i64
+fn 54 std_path$root_length (string,u8) -> i64
   local prefix i64
   local $call_4 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 56   ; std_path$prefix_length
+  call 55   ; std_path$prefix_length
   local.set 2   ; prefix
   local.get 0   ; arg 0
   call.import 0   ; std_core$Intrinsic$byte_len
@@ -2993,7 +2980,7 @@ fn 55 std_path$root_length (string,u8) -> i64
   return
 end
 
-fn 56 std_path$prefix_length (string,u8) -> i64
+fn 55 std_path$prefix_length (string,u8) -> i64
   local n i64
   local __fallback_0 any
   local $add_checked_39 i64
@@ -3012,7 +2999,7 @@ fn 56 std_path$prefix_length (string,u8) -> i64
     local.get 0   ; arg 0
     i64.const 0
     call.import 1   ; std_core$Intrinsic$byte_at
-    call 57   ; std_path$is_ascii_letter
+    call 56   ; std_path$is_ascii_letter
     if $L2 void
       local.get 0   ; arg 0
       i64.const 1
@@ -3056,7 +3043,7 @@ fn 56 std_path$prefix_length (string,u8) -> i64
   end $L7
   local.get 0   ; arg 0
   i64.const 2
-  call 58   ; std_path$next_separator
+  call 57   ; std_path$next_separator
   local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L8 void
@@ -3070,7 +3057,7 @@ fn 56 std_path$prefix_length (string,u8) -> i64
   local.set 4   ; $add_checked_39
   local.get 0   ; arg 0
   local.get 4   ; $add_checked_39
-  call 58   ; std_path$next_separator
+  call 57   ; std_path$next_separator
   local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L9 void
@@ -3082,7 +3069,7 @@ fn 56 std_path$prefix_length (string,u8) -> i64
   return
 end
 
-fn 57 std_path$is_ascii_letter (u8) -> bool
+fn 56 std_path$is_ascii_letter (u8) -> bool
   local and_res bool
   local.get 0   ; arg 0
   i32.const 97
@@ -3116,7 +3103,7 @@ fn 57 std_path$is_ascii_letter (u8) -> bool
   return
 end
 
-fn 58 std_path$next_separator (string,i64) -> any
+fn 57 std_path$next_separator (string,i64) -> any
   local i i64
   local __for_hi_0 i64
   local.get 1   ; arg 1
@@ -3149,7 +3136,7 @@ fn 58 std_path$next_separator (string,i64) -> any
   return.lit null.const
 end
 
-fn 59 std_string$ends_with (string,string) -> bool
+fn 58 std_string$ends_with (string,string) -> bool
   local $call_2 i64
   local $call_3 i64
   local.get 1   ; arg 1
@@ -3176,13 +3163,13 @@ fn 59 std_string$ends_with (string,string) -> bool
     local.get 0   ; arg 0
     local.get 2   ; $call_2
     local.get 1   ; arg 1
-    call 60   ; std_string$matches_at
+    call 59   ; std_string$matches_at
     return
   end $L0
   return.lit bool.const false
 end
 
-fn 60 std_string$matches_at (string,i64,string) -> bool
+fn 59 std_string$matches_at (string,i64,string) -> bool
   local m i64
   local $call_5 i64
   local $add_checked_14 i64
@@ -3244,4 +3231,17 @@ fn 60 std_string$matches_at (string,i64,string) -> bool
     end $L3
   end $L2
   return.lit bool.const true
+end
+
+fn 60 std_ascii$is_digit_byte (u8) -> bool
+  local.get 0   ; arg 0
+  i32.const 48
+  u32.ge
+  if $L0 void
+    local.get 0   ; arg 0
+    i32.const 57
+    u32.le
+    return
+  end $L0
+  return.lit bool.const false
 end

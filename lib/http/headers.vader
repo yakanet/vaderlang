@@ -7,6 +7,8 @@
 
 module "http"
 
+import "std/ascii"
+
 // ---- fields ---------------------------------------------------------------
 
 /// One field line: a name and its value.
@@ -190,18 +192,11 @@ same_bytes :: fn(left: u8[], right: u8[]) -> bool {
         return false
     }
     for i in 0..<left.len() {
-        if lower_ascii(left[i]) != lower_ascii(right[i]) {
+        if to_lower_byte(left[i]) != to_lower_byte(right[i]) {
             return false
         }
     }
     return true
-}
-
-lower_ascii :: fn(b: u8) -> u8 {
-    if b >= 'A' && b <= 'Z' {
-        return b + 32
-    }
-    return b
 }
 
 // ---- tests ----------------------------------------------------------------

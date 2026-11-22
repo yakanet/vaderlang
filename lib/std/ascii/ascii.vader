@@ -1,0 +1,83 @@
+// std/ascii/ascii.vader: the ASCII classes of a byte.
+//
+// What reads text as bytes (a protocol head, a URI, a pattern, a file format)
+// asks the same questions of each byte: a digit, a hex digit, a blank, which
+// letter. They are answered here once. The questions asked of a `char` live in
+// std/char; a class one format defines its own way (the blanks of PPM, the
+// token bytes of HTTP) stays with that format.
+
+module "std/ascii"
+
+/// True for an ASCII decimal digit, `'0'` to `'9'`.
+/// @param b  the byte to test.
+export is_digit_byte :: fn(b: u8) -> bool = b >= '0' && b <= '9'
+
+/// True for an ASCII hex digit, `'0'` to `'9'` and `'a'` to `'f'` in either case.
+/// @param b  the byte to test.
+export is_hex_byte :: fn(b: u8) -> bool =
+    is_digit_byte(b) || b >= 'a' && b <= 'f' || b >= 'A' && b <= 'F'
+
+/// True for an ASCII blank of text: space, tab, line feed, carriage return.
+/// @param b  the byte to test.
+export is_white_byte :: fn(b: u8) -> bool = b == ' ' || b == '\t' || b == '\n' || b == '\r'
+
+/// The value of a hex digit, 0 to 15; null for any other byte.
+/// @param b  the byte to read, a digit or a letter of either case.
+/// @example
+///   hex_value('7')   // 7
+///   hex_value('c')   // 12
+///   hex_value('g')   // null
+export hex_value :: fn(b: u8) -> u8 | null = match b {
+    '0'..='9' -> b - '0'
+    'A'..='F' -> b - 'A' + 10
+    'a'..='f' -> b - 'a' + 10
+    _         -> null
+}
+
+/// `b` in lower case when it is an ASCII capital letter, itself otherwise.
+/// @param b  the byte to convert.
+export to_lower_byte :: fn(b: u8) -> u8 = if b >= 'A' && b <= 'Z' { b + ('a' - 'A') } else { b }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_ascii_digit_bytes :: fn() -> void {
+    assert(is_digit_byte('0') && is_digit_byte('9'), "the two ends are digits")
+    assert(!is_digit_byte('/') && !is_digit_byte(':'), "the bytes beside them are not")
+}
+
+@test
+test_ascii_hex_bytes :: fn() -> void {
+    assert(
+        is_hex_byte('a') && is_hex_byte('F') && is_hex_byte('5'),
+        "letters of both cases and digits",
+    )
+    assert(!is_hex_byte('g') && !is_hex_byte('G'), "the letter past f is not")
+}
+
+@test
+test_ascii_white_bytes :: fn() -> void {
+    assert(
+        is_white_byte(' ') && is_white_byte('\t') && is_white_byte('\n') && is_white_byte('\r'),
+        "the four blanks",
+    )
+    assert(!is_white_byte(0x0b), "a vertical tab is not a blank of text")
+}
+
+@test
+test_ascii_hex_value :: fn() -> void {
+    assert(hex_value('0') == 0, "0 is 0")
+    assert(hex_value('a') == 10, "a is 10")
+    assert(hex_value('F') == 15, "F is 15")
+    assert(hex_value('g') == null, "g is no hex digit")
+}
+
+@test
+test_ascii_to_lower_byte :: fn() -> void {
+    assert_eq(to_lower_byte('A'), 'a')
+    assert_eq(to_lower_byte('Z'), 'z')
+    assert_eq(to_lower_byte('a'), 'a')
+    assert_eq(to_lower_byte('['), '[')
+}

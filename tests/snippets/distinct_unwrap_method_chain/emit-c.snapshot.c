@@ -79,7 +79,7 @@ static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_console$println__string(vader_string_t l0);
 static vader_string_t std_string$trim(vader_string_t l0);
 static vader_string_t std_string$replace_chars_where(vader_string_t l0, void* l1, vader_string_t l2);
-static bool std_string$is_white_byte(uint8_t l0);
+static bool std_ascii$is_white_byte(uint8_t l0);
 static void std_string__builder$append(void* l0, vader_string_t l1);
 static void std_string__builder$append_char(void* l0, uint32_t l1);
 static vader_string_t std_string__builder$StringBuilder$std_core$Display$to_string(void* l0);
@@ -635,7 +635,7 @@ static vader_string_t std_string$trim(vader_string_t l0) {
     l2 = INT64_C(0);
     while ((l2 < l1)) {
         t0 = vader_host_std_core$Intrinsic$byte_at(l0, l2);
-        t1 = std_string$is_white_byte(t0);
+        t1 = std_ascii$is_white_byte(t0);
         if (!(t1)) {
             break;
         }
@@ -644,7 +644,7 @@ static vader_string_t std_string$trim(vader_string_t l0) {
     while ((l1 > l2)) {
         l3 = vader_chk_sub(i64, l1, INT64_C(1));
         t0 = vader_host_std_core$Intrinsic$byte_at(l0, l3);
-        t1 = std_string$is_white_byte(t0);
+        t1 = std_ascii$is_white_byte(t0);
         if (!(t1)) {
             break;
         }
@@ -732,7 +732,7 @@ static vader_string_t std_string$replace_chars_where(vader_string_t l0, void* l1
     { vader_string_t __vret = t5; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static bool std_string$is_white_byte(uint8_t l0) {
+static bool std_ascii$is_white_byte(uint8_t l0) {
     bool l1;
     if (l0 == INT32_C(32)) {
         l1 = true;
