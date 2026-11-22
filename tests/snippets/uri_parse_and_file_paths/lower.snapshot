@@ -106,6 +106,7 @@
     fn std.uri.lower_outside_escapes  // std_uri$lower_outside_escapes
     fn std.uri.normalized  // std_uri$normalized
     fn std.uri.parse_authority  // std_uri$parse_authority
+    fn std.uri.parse_parts  // std_uri$parse_parts
     fn std.uri.parse_port  // std_uri$parse_port
     fn std.uri.parse_uri  // std_uri$parse_uri
     fn std.uri.percent_decode  // std_uri$percent_decode

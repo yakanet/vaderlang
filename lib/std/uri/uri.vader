@@ -80,8 +80,16 @@ export parse_uri :: fn(text: string) -> Uri | UriError {
     if scheme_end == 0 {
         return UriError { .msg = "no scheme" }
     }
+    parts :: text.parse_parts(scheme_end + 1) else return parts
+    return Uri { ...parts, .scheme = text.byte_slice(0, scheme_end).to_lower() }
+}
+
+// What `text` holds from `from` on, past its scheme: `[//authority]path[?query]
+// [#fragment]`, which a URI and a relative reference share. The scheme of the
+// result is empty.
+parse_parts :: fn(text: string, from: i64) -> Uri | UriError {
     n :: text.byte_len()
-    next: i64 = scheme_end + 1
+    next: i64 = from
     authority: Authority | null = null
     if text.matches_at(next, "//") {
         end :: text.end_of(next + 2, "/?#")
@@ -105,7 +113,7 @@ export parse_uri :: fn(text: string) -> Uri | UriError {
         fragment = read
     }
     return Uri {
-        .scheme = text.byte_slice(0, scheme_end).to_lower(),
+        .scheme = "",
         .authority = authority,
         .path = path,
         .query = query,
@@ -117,6 +125,97 @@ export parse_uri :: fn(text: string) -> Uri | UriError {
 ///
 /// @param uri  the URI.
 export decoded_path :: fn(uri: Uri) -> string = percent_decode(uri.path)
+
+// ---- resolving a reference ------------------------------------------------
+
+/// The URI `reference` stands for against `base`, as RFC 3986 resolves one
+/// (section 5.2): a whole URI stands for itself, and a relative reference
+/// takes from `base` what it leaves out. The `.` and `..` segments of the
+/// path are removed.
+///
+/// @param base       the URI the reference is read against: where it was
+///                   found.
+/// @param reference  a URI, or a relative reference: `//host/x`, `/x`, `x`,
+///                   `?q`, `#f`, `../x`.
+/// @error            `UriError` at the first byte the grammar refuses.
+/// @example
+///   base :: parse_uri("http://a/b/c/d;p?q")
+///   if base is Uri {
+///       base.resolve_reference("../g")   // http://a/b/g
+///       base.resolve_reference("?y")     // http://a/b/c/d;p?y
+///   }
+export resolve_reference :: fn(base: Uri, reference: string) -> Uri | UriError {
+    if reference.scheme_length() > 0 {
+        whole :: parse_uri(reference) else return whole
+        return Uri { ...whole, .path = remove_dot_segments(whole.path) }
+    }
+    parts :: reference.parse_parts(0) else return parts
+    if parts.authority != null {
+        return Uri { ...parts, .scheme = base.scheme, .path = remove_dot_segments(parts.path) }
+    }
+    if parts.path == "" && parts.query == null {
+        return Uri { ...base, .fragment = parts.fragment }
+    }
+    if parts.path == "" {
+        return Uri { ...base, .query = parts.query, .fragment = parts.fragment }
+    }
+    return Uri {
+        ...parts,
+        .scheme = base.scheme,
+        .authority = base.authority,
+        .path = remove_dot_segments(merged_path(base, parts.path)),
+    }
+}
+
+// `path`, relative, read in the directory of the path of `base` (RFC 3986,
+// section 5.2.3).
+merged_path :: fn(base: Uri, path: string) -> string {
+    if path.starts_with("/") {
+        return path
+    }
+    if base.authority != null && base.path == "" {
+        return "/${path}"
+    }
+    slash :: base.path.last_byte_offset_of('/', 0, base.path.byte_len()) else return path
+    return "${base.path.byte_slice(0, slash + 1)}${path}"
+}
+
+// `path` without its `.` and `..` segments, each `..` taking the segment
+// before it away (RFC 3986, section 5.2.4).
+remove_dot_segments :: fn(path: string) -> string {
+    input := path
+    output := ""
+    for input != "" {
+        if input.starts_with("../") {
+            input = input.byte_slice(3, input.byte_len())
+        } else if input.starts_with("./") {
+            input = input.byte_slice(2, input.byte_len())
+        } else if input.starts_with("/./") {
+            input = input.byte_slice(2, input.byte_len())
+        } else if input == "/." {
+            input = "/"
+        } else if input.starts_with("/../") {
+            input = input.byte_slice(3, input.byte_len())
+            output = without_last_segment(output)
+        } else if input == "/.." {
+            input = "/"
+            output = without_last_segment(output)
+        } else if input == "." || input == ".." {
+            input = ""
+        } else {
+            end :: input.end_of(1, "/")
+            output = "${output}${input.byte_slice(0, end)}"
+            input = input.byte_slice(end, input.byte_len())
+        }
+    }
+    return output
+}
+
+// `path` without its last segment and the `/` before it.
+without_last_segment :: fn(path: string) -> string {
+    slash :: path.last_byte_offset_of('/', 0, path.byte_len()) else return ""
+    return path.byte_slice(0, slash)
+}
 
 Uri implements Display {
     /// The URI as RFC 3986 writes it, from its normalised components.
@@ -570,6 +669,58 @@ escapes_a_separator :: fn(path: string, os: Os) -> bool {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+// The display of what `reference` stands for against `base`, by default the
+// base of the examples of RFC 3986 (section 5.4), or why it is refused.
+resolved_against :: fn(reference: string, base: string = "http://a/b/c/d;p?q") -> string {
+    read :: parse_uri(base) else return "no base"
+    u :: read.resolve_reference(reference) else return "error at ${u.offset}: ${u.msg}"
+    return "${u}"
+}
+
+@test
+test_a_reference_is_resolved_as_rfc_3986_does_it :: fn() -> void {
+    cases :: [
+        ["g:h", "g:h"],
+        ["g", "http://a/b/c/g"],
+        ["./g", "http://a/b/c/g"],
+        ["g/", "http://a/b/c/g/"],
+        ["/g", "http://a/g"],
+        ["//g", "http://g"],
+        ["?y", "http://a/b/c/d;p?y"],
+        ["g?y", "http://a/b/c/g?y"],
+        ["#s", "http://a/b/c/d;p?q#s"],
+        ["", "http://a/b/c/d;p?q"],
+        [".", "http://a/b/c/"],
+        ["..", "http://a/b/"],
+        ["../g", "http://a/b/g"],
+        ["../../g", "http://a/g"],
+        ["../../../g", "http://a/g"],
+        ["/./g", "http://a/g"],
+        ["/../g", "http://a/g"],
+        ["g.", "http://a/b/c/g."],
+        ["..g", "http://a/b/c/..g"],
+        ["./../g", "http://a/b/g"],
+        ["./g/.", "http://a/b/c/g/"],
+        ["g/./h", "http://a/b/c/g/h"],
+        ["g/../h", "http://a/b/c/h"],
+        ["g;x=1/../y", "http://a/b/c/y"],
+        ["http://x/a/../b", "http://x/b"],
+    ]
+    for c in cases {
+        assert_eq("${c[0]} -> ${resolved_against(c[0])}", "${c[0]} -> ${c[1]}")
+    }
+}
+
+@test
+test_a_relative_path_against_an_authority_with_no_path_starts_at_the_root :: fn() -> void {
+    assert_eq(resolved_against("g", "http://a"), "http://a/g")
+}
+
+@test
+test_a_reference_the_grammar_refuses_is_an_error :: fn() -> void {
+    assert_eq(resolved_against("a b"), "error at 1: character not allowed here")
+}
 
 // The display of what `parse_uri` reads in `text`, or why it refuses it.
 reread :: fn(text: string) -> string {
