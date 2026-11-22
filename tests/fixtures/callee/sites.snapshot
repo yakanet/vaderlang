@@ -55,7 +55,7 @@
   sites.vader:225:75 operator each(fn equals, fn equals)
   sites.vader:227:64 operator bound std_core$Equals.equals
   sites.vader:229:53 operator builtin
-  sites.vader:231:59 operator bound std_core$Equals.equals
+  sites.vader:231:59 operator builtin
   sites.vader:233:42 operator fn contains
   sites.vader:235:43 index fn at
   sites.vader:238:5 index-write fn set_at

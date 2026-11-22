@@ -1,0 +1,13 @@
+# stdout
+true false false
+false true
+true false
+true false
+left
+right
+true
+left
+right
+false
+# exit
+0

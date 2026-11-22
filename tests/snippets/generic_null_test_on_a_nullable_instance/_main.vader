@@ -1,0 +1,50 @@
+// `x == null` on a value of a type parameter tests the value's tag, whatever the
+// call binds the parameter to: a nullable instance holds a `null` the test sees,
+// an instance that cannot hold one answers `false`, and `!=` is the negation. The
+// `null` may be any operand typed `null`, a local or a call, which still runs, in
+// the order the source writes the two sides.
+
+module "snippet"
+
+import "std/console"
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+is_absent :: fn<T>(x: T) -> bool = x == null
+
+is_present :: fn<T>(x: T) -> bool = x != null
+
+against_a_local :: fn<T>(x: T) -> bool {
+    nothing: null: null
+    return x == nothing
+}
+
+nothing_said :: fn(word: string) -> null {
+    println(word)
+    return null
+}
+
+said :: fn<T>(x: T, word: string) -> T {
+    println(word)
+    return x
+}
+
+against_a_call :: fn<T>(x: T) -> bool = said(x, "left") == nothing_said("right")
+
+call_against :: fn<T>(x: T) -> bool = nothing_said("left") == said(x, "right")
+
+main :: fn() -> i32 {
+    missing: i32 | null: null
+    found: i32 | null: 5
+    name: string | null: null
+    println("${is_absent(missing)} ${is_absent(found)} ${is_absent(3)}")
+    println("${is_present(missing)} ${is_present(found)}")
+    println("${is_absent(name)} ${is_absent(Point { .x = 1, .y = 2 })}")
+    println("${against_a_local(missing)} ${against_a_local(found)}")
+    println("${against_a_call(missing)}")
+    println("${call_against(found)}")
+    return 0
+}

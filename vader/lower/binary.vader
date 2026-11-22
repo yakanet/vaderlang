@@ -4,7 +4,6 @@
 module "vader/lower"
 
 import "std/collections"
-import "std/iter"
 import "vader/lower/ir"
 
 import "toolchain/ast"
@@ -202,7 +201,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         test :: maybe_negate(call, binary.op == .NotIn, binary.span)
         return with_prelude(prelude, test, binary.span)
     }
-    // `<union>` `==` / `!=` `null` reduces to a tag-only `LoweredTypeCheck`.
+    // `==` / `!=` `null` on a boxed value reduces to a tag-only `LoweredTypeCheck`.
     // The C/VM emit can't compare two `vader_box_t` directly anyway and
     // the type-check is the operation we actually want.
     if binary.op == .Eq || binary.op == .Neq {
@@ -592,53 +591,73 @@ op_trait_method :: fn(op: BinaryOp) -> OpTraitInfo | null {
 }
 
 try_lower_null_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | null {
-    operand :: null_compared_operand(binary) else return null
+    null_on_left :: is_null_operand(ctx, binary.left)
+    if !null_on_left && !is_null_operand(ctx, binary.right) {
+        return null
+    }
+    operand :: if null_on_left { binary.right } else { binary.left }
     operand_type :: ctx.types.expr_type(operand)
-    if is_union_with_null(operand_type) {
-        check :: type_check(lower_expr(ctx, operand), TY_NULL, binary.span)
-        return maybe_negate(check, binary.op == .Neq, binary.span)
+    // Every box carries its tag, `null`'s included: a union, and a type parameter
+    // whatever its instance holds. A value held as exactly its type is never null,
+    // which the concrete instance of a generic body makes common: the answer is
+    // known before the program runs, and the operand still runs for its effects.
+    boxed :: has_run_time_tag(operand_type)
+    if !boxed && (holding_of(operand_type) != .Exact || is_null_type(operand_type)) {
+        return null
     }
-    // A value held as exactly its type is never null, which the concrete instance
-    // of a generic body makes common : the answer is known before the program
-    // runs, and the operand still runs for its effects.
-    if holding_of(operand_type) == .Exact && !is_null_type(operand_type) {
-        value :: lower_expr(ctx, operand)
-        answer :: LoweredBoolLit {
-            .span = binary.span,
-            .type = TY_BOOL,
-            .value = binary.op == .Neq,
-        }
-        if is_effect_free_read(value) {
-            return answer
-        }
-        ran :: LoweredExprStmt { .span = binary.span, .expr = value }
-        return with_prelude([ran], answer, binary.span)
+    prelude: LoweredStmt[]: []
+    null_side :: if null_on_left { binary.left } else { binary.right }
+    value :: lowered_beside_null(ctx, operand, null_side, null_on_left, prelude)
+    if boxed {
+        check :: type_check(value, TY_NULL, binary.span)
+        return with_prelude(prelude, maybe_negate(check, binary.op == .Neq, binary.span), binary.span)
     }
-    return null
+    if !is_effect_free_read(value) {
+        prelude.push(LoweredExprStmt { .span = binary.span, .expr = value })
+    }
+    answer :: LoweredBoolLit { .span = binary.span, .type = TY_BOOL, .value = binary.op == .Neq }
+    return with_prelude(prelude, answer, binary.span)
 }
 
-// The operand `binary` compares to a `null` literal ; null when neither side is one.
-null_compared_operand :: fn(binary: BinaryExpr) -> Expr | null {
-    if is_null_lit(binary.left) {
-        return binary.right
+// `operand` lowered, what the `null` side does run where the source puts it, in
+// `prelude`: before the operand when it is on the left, after it on the right, the
+// operand then bound first.
+lowered_beside_null :: fn(
+    ctx: FnLowerCtx,
+    operand: Expr,
+    null_side: Expr,
+    null_on_left: bool,
+    prelude: LoweredStmt[],
+) -> LoweredExpr {
+    effects :: null_side_effects(ctx, null_side) else return lower_expr(ctx, operand)
+    ran :: LoweredExprStmt { .span = null_side.span, .expr = effects }
+    if null_on_left {
+        prelude.push(ran)
+        return lower_expr(ctx, operand)
     }
-    if is_null_lit(binary.right) {
-        return binary.left
-    }
-    return null
+    value :: bind_unless_stable(ctx, lower_expr(ctx, operand), "compared", operand.span, prelude)
+    prelude.push(ran)
+    return value
 }
+
+// The `null` side of a comparison lowered, when it does more than read ; null for
+// a literal or a read.
+null_side_effects :: fn(ctx: FnLowerCtx, e: Expr) -> LoweredExpr | null {
+    if is_null_lit(e) {
+        return null
+    }
+    lowered :: lower_expr(ctx, e)
+    if is_effect_free_read(lowered) {
+        return null
+    }
+    return lowered
+}
+
+// Whether `e` is `null`: the literal, or an operand typed `null` alone.
+is_null_operand :: fn(ctx: FnLowerCtx, e: Expr) -> bool =
+    is_null_lit(e) || is_null_type(ctx.types.expr_type(e))
 
 is_null_lit :: fn(e: Expr) -> bool {
     if e is NullLitExpr { return true }
-    return false
-}
-
-is_union_with_null :: fn(type: Type) -> bool {
-    if type is UnionType {
-        for v in type.variants.filter_is<PrimitiveType>() {
-            if v.name == "null" { return true }
-        }
-        return false
-    }
     return false
 }

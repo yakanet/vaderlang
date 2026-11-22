@@ -878,12 +878,12 @@ check_equality :: fn(
     // don't structurally overlap) is not flagged.
     if is_null_type(right) {
         check_is_overlap(e.right.span, left, right, diags)
-        record_site(typed, e, .Operator, null_equality_callee(left))
+        record_site(typed, e, .Operator, BUILTIN_CALLEE)
         return TY_BOOL
     }
     if is_null_type(left) {
         check_is_overlap(e.right.span, right, left, diags)
-        record_site(typed, e, .Operator, null_equality_callee(right))
+        record_site(typed, e, .Operator, BUILTIN_CALLEE)
         return TY_BOOL
     }
     // A type parameter is opaque in its body : only a value of the same parameter
@@ -999,15 +999,6 @@ check_equality :: fn(
         record_site(typed, e, .Operator, equality_callee(left, right, typed))
     }
     return TY_BOOL
-}
-
-// What `x == null` runs : a test of the tag, but on a bare type parameter the
-// instance's own `==`.
-null_equality_callee :: fn(other: Type) -> Callee {
-    if other is TypeParamType {
-        return BoundMember { .trait_key = core_trait_key(TRAIT_EQUALS), .member = METHOD_EQUALS }
-    }
-    return BUILTIN_CALLEE
 }
 
 /// `a === b` / `a !== b` : the same object, never an equal value, SPEC §Identity.
