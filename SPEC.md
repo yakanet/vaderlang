@@ -3730,7 +3730,7 @@ LIBM: CLibrary: CLibrary { .name = "", .headers = ["<math.h>"] }
 
 - without arguments, the symbol is the function's own name;
 - the first is the library, a `CLibrary` constant (below). Without one, the symbol is one the program links anyway, such as a C library function;
-- the symbol, a string, comes last, positional after a library or written `symbol = "..."`: the C linker symbol, or the `field` of a WASM import on the planned WASM target (*Future WASM target*).
+- the symbol, a string, comes last, positional after a library or written `symbol = "..."`: the C linker symbol, or the name of the imported function on the planned WASM target (*Future WASM target*).
 
 A free function without a body must be `@extern`. One whose parameters are types alone is a function type instead (*Type aliases*).
 
@@ -4083,7 +4083,7 @@ At compile time (§14), a call that needs an adapter (`docs/TOOLING.md` *`vader 
 
 ### Future WASM target
 
-A WASM target is planned (§17 *Compilation Targets*). There, `@extern` will also give a WASM import, a `(module, field)` pair whose module is `"env"` without a library: `@extern(symbol = "console_log") log` becomes `(import "env" "console_log" (func ...))`. How to name another module is not designed yet, nor how a function is exposed to the host.
+A WASM target is planned (§17 *Compilation Targets*). A program built for it is a WebAssembly component, and an `@extern` will name a function of an interface the component imports, such as `write-via-stream` of `wasi:cli/stdout`. How the interface is named is not designed yet, nor how a function is exposed to the host.
 
 ---
 

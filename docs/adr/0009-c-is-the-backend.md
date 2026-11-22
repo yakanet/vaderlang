@@ -3,6 +3,9 @@
 ## Status
 
 Accepted. Re-examined 2026-08-30 against LLVM and libgccjit; unchanged.
+**Amended by [0175](0175-wasm-has-its-own-emitter-on-wasm-gc.md) (2026-11-22)**:
+C stays the backend of the native targets; the WASM targets have an emitter of
+their own.
 
 ## Context
 
