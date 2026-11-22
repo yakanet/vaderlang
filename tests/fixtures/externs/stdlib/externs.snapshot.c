@@ -161,6 +161,7 @@ int32_t vader_last_errno(void);  // system_posix$sys_last_errno
 int32_t vader_path_kind(const char* path);  // system_posix$sys_path_kind
 int64_t vader_path_mtime(const char* path);  // system_posix$sys_path_mtime
 int32_t vader_path_stat(const char* path, int32_t follow_links, void* out);  // system_posix$sys_path_stat
+int32_t vader_resolve(const char* host, void* out, int64_t capacity);  // system_posix$sys_resolve
 
 /* VADER_RUNTIME (system/windows): vader.h */
 int64_t vader_console_read(void* buf, int64_t max);  // system_windows$console_read
@@ -170,6 +171,7 @@ const char* vader_find_data_name(const void* data);  // system_windows$find_data
 bool vader_input_pipe(void* read_end, void* write_end);  // system_windows$create_input_pipe
 bool vader_overlapped_pipe(void* read_end, void* write_end);  // system_windows$create_watched_pipe
 void* vader_ptr_at(const void* base, int64_t i);  // system_windows$ptr_at
+int32_t vader_resolve(const char* host, void* out, int64_t capacity);  // system_windows$winsock_resolve
 void* vader_socket_event(int64_t socket);  // system_windows$follow_socket
 void vader_socket_forget(int64_t socket);  // system_windows$forget_socket
 bool vader_stdin_await_reader(int32_t timeout_ms);  // system_windows$await_stdin_reader

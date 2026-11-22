@@ -167,6 +167,20 @@ export sys_last_errno :: fn() -> i32
 @extern(VADER_RUNTIME, "vader_end_on_broken_pipe")
 export sys_end_on_broken_pipe :: fn() -> void
 
+/// The addresses of the TCP endpoints `host` stands for, from `getaddrinfo(3)`,
+/// which may wait on the network.
+///
+/// @param host      the name to resolve.
+/// @param out       receives each `sockaddr_in` or `sockaddr_in6` in a slot of
+///                  28 bytes, zero padded.
+/// @param capacity  the bytes `out` holds.
+/// @return          how many addresses, 0 when the name stands for none; -1
+///                  when the resolver failed in a way that may pass, -2
+///                  otherwise.
+@extern(VADER_RUNTIME, "vader_resolve")
+@c_blocking
+export sys_resolve :: fn(host: string, @c_out out: u8[], capacity: i64) -> i32
+
 /// What KIND of thing `path` is, via `stat(2)`.
 ///
 /// `struct stat` is NOT mirrorable, not "ambiguous between arches", genuinely

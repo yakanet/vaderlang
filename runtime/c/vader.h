@@ -1788,6 +1788,7 @@ int32_t        vader_current_arch(void);
 VADER_HOST_EXPORT int32_t     vader_last_errno(void);
 VADER_HOST_EXPORT void        vader_end_on_broken_pipe(void);
 VADER_HOST_EXPORT void*       vader_ptr_at(const void* base, int64_t i);
+VADER_HOST_EXPORT int32_t     vader_resolve(const char* host, uint8_t* out, int64_t capacity);
 VADER_HOST_EXPORT const char* vader_environ_entry(int64_t index);
 #if defined(_WIN32)
 VADER_HOST_EXPORT const char* vader_find_data_name(const void* fd);

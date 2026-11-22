@@ -1,0 +1,140 @@
+// std/net/resolve: the addresses a host name stands for.
+//
+// An address written out, and `localhost`, are read here. Any other name is
+// asked of the system's resolver, which may wait on the network: a thread of
+// the runtime makes the call while the task waits, and the other tasks run.
+// docs/adr/0170-a-name-is-resolved-by-a-primitive-of-the-runtime.md has the
+// reasons.
+
+module "std/net"
+
+import "std/io"
+import "std/string"
+import "system/posix"
+import "system/windows"
+
+/// The addresses `host` stands for, each given `port`, in the order the system
+/// prefers them.
+///
+/// An IP address written out stands for itself, and `localhost` for the
+/// loopback addresses, IPv4 first (RFC 6761), without asking the system. Any
+/// other name is asked of the system's resolver: the task waits, and the other
+/// tasks run. An internationalised name is given in its ASCII form
+/// (`xn--...`).
+///
+/// @param host  a name, or an IPv4 or IPv6 address written out, an IPv6 one
+///              without brackets.
+/// @param port  the port each address is given.
+/// @error       `IOError` of `.NotFound` when the name stands for no address,
+///              and of `.Other` when the resolver fails.
+/// @example
+///   resolve("localhost", 8080)   // [127.0.0.1:8080, [::1]:8080]
+export resolve :: fn(host: string, port: u16) -> SocketAddress[] | IOError {
+    written :: parse_ip(host)
+    if written != null {
+        return [SocketAddress { .ip = written, .port = port }]
+    }
+    if is_localhost(host) {
+        return [loopback(port), loopback_v6(port)]
+    }
+    return system_resolve(host, port)
+}
+
+// Whether `host` is the name of this machine's loopback, written in any case,
+// with or without the dot of the root.
+is_localhost :: fn(host: string) -> bool {
+    lowered :: host.to_lower()
+    return lowered == "localhost" || lowered == "localhost."
+}
+
+// The most addresses a name is resolved into: what a client tries one after
+// the other.
+MOST_ADDRESSES: i64: 32
+
+// The addresses the system's resolver gives for `host`, each given `port`.
+system_resolve :: fn(host: string, port: u16) -> SocketAddress[] | IOError {
+    slots: u8[]: [0] * (MOST_ADDRESSES * SOCKADDR_IN6_BYTES)
+    return resolved(host, port, slots, resolve_into(host, slots))
+}
+
+// Have the system's resolver write the addresses of `host` into `slots`: how
+// many, or a negative code, as `sys_resolve` says.
+@target
+resolve_into :: fn(host: string, slots: u8[]) -> i32
+
+@target(.Linux, .Darwin)
+resolve_into :: fn(host: string, slots: u8[]) -> i32 = sys_resolve(host, slots, slots.len())
+
+@target(.Windows)
+resolve_into :: fn(host: string, slots: u8[]) -> i32 {
+    if !winsock_started() {
+        return RESOLVER_FAILED
+    }
+    return winsock_resolve(host, slots, slots.len())
+}
+
+// What the resolver returns when it failed in a way that may pass, and in any
+// other way.
+RESOLVER_FAILED_FOR_NOW: i32: -1
+RESOLVER_FAILED: i32: -2
+
+// The `count` addresses the resolver wrote to `slots` for `host`, each given
+// `port`; or why there are none.
+resolved :: fn(host: string, port: u16, slots: u8[], count: i32) -> SocketAddress[] | IOError {
+    if count == 0 {
+        return IOError { .msg = "`${host}` stands for no address", .kind = .NotFound }
+    }
+    if count == RESOLVER_FAILED_FOR_NOW {
+        return IOError { .msg = "cannot resolve `${host}` for now: the resolver failed" }
+    }
+    if count < 0 {
+        return IOError { .msg = "cannot resolve `${host}`" }
+    }
+    out: SocketAddress[]: []
+    for k in 0..<i64(count) {
+        slot :: slots[k * SOCKADDR_IN6_BYTES..<(k + 1) * SOCKADDR_IN6_BYTES].clone()
+        address :: address_of(slot) else return address
+        out.push(SocketAddress { ...address, .port = port })
+    }
+    return out
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// `addresses` written out, a comma between two.
+written_out :: fn(addresses: SocketAddress[] | IOError) -> string {
+    if addresses is IOError {
+        return "${addresses.kind}"
+    }
+    texts: string[]: []
+    for address in addresses {
+        texts.push("${address}")
+    }
+    return texts.join(", ")
+}
+
+@test
+test_an_address_written_out_stands_for_itself :: fn() -> void {
+    assert_eq(written_out(resolve("192.0.2.7", 80)), "192.0.2.7:80")
+    assert_eq(written_out(resolve("::1", 443)), "[::1]:443")
+}
+
+@test
+test_localhost_is_the_loopback_ipv4_first :: fn() -> void {
+    assert_eq(written_out(resolve("localhost", 8080)), "127.0.0.1:8080, [::1]:8080")
+    assert_eq(written_out(resolve("LocalHost.", 1)), "127.0.0.1:1, [::1]:1")
+}
+
+@test
+test_the_system_resolver_gives_each_address_the_port :: fn() -> void {
+    assert_eq(written_out(system_resolve("127.0.0.1", 8080)), "127.0.0.1:8080")
+}
+
+@test
+test_a_name_of_no_address_is_not_found :: fn() -> void {
+    slots: u8[]: [0] * SOCKADDR_IN6_BYTES
+    assert_eq(written_out(resolved("nowhere.invalid", 80, slots, 0)), "NotFound")
+    assert_eq(written_out(resolved("nowhere.invalid", 80, slots, RESOLVER_FAILED)), "Other")
+}

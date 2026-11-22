@@ -510,6 +510,20 @@ export unset_environment_variable_w :: fn(name: u16[], value: CPointer | null) -
 @extern(VADER_RUNTIME, "vader_console_read")
 export console_read :: fn(@c_out buf: u8[], max: i64) -> i64
 
+/// The addresses of the TCP endpoints `host` stands for, from the `getaddrinfo`
+/// of Winsock, which may wait on the network. Winsock is started first.
+///
+/// @param host      the name to resolve, in ASCII.
+/// @param out       receives each `SOCKADDR_IN` or `SOCKADDR_IN6` in a slot of
+///                  28 bytes, zero padded.
+/// @param capacity  the bytes `out` holds.
+/// @return          how many addresses, 0 when the name stands for none; -1
+///                  when the resolver failed in a way that may pass, -2
+///                  otherwise.
+@extern(VADER_RUNTIME, "vader_resolve")
+@c_blocking
+export winsock_resolve :: fn(host: string, @c_out out: u8[], capacity: i64) -> i32
+
 /// Wait for the read the runtime keeps under way on a stdin pipe once a wait
 /// for stdin is given up: every peek of the pipe would wait behind it. That read
 /// ends once the pipe holds data or has lost its writer; on a console, or with

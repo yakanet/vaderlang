@@ -4,6 +4,14 @@
 
 #include "internal.h"
 
+#if defined(_WIN32)
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <netdb.h>
+#include <sys/socket.h>
+#endif
+
 /* Box the host argv into a `string[]` Vader array. Called from emitted main
  * when the user's `main` takes a `string[]` parameter. The caller passes the
  * BcType indices for the array type and the string element type (the emitter
@@ -56,6 +64,76 @@ void* vader_ptr_at(const void* base, int64_t i) {
 VADER_HOST_EXPORT
 int32_t vader_last_errno(void) {
     return (int32_t) errno;
+}
+
+/* ---- names ---------------------------------------------------------------- */
+
+/* Each address `vader_resolve` writes takes a slot of this many bytes, the size
+ * of a `sockaddr_in6`: `std/net/resolve.vader` reads them one after the other. */
+#define VADER_RESOLVED_SLOT 28
+
+#if defined(_WIN32)
+typedef int (WSAAPI* vader_getaddrinfo_t)(const char*, const char*, const struct addrinfo*,
+                                          struct addrinfo**);
+typedef void (WSAAPI* vader_freeaddrinfo_t)(struct addrinfo*);
+#endif
+
+/* What a failure of `getaddrinfo` comes to: no address when the name stands
+ * for none, -1 when the resolver failed in a way that may pass, -2 otherwise. */
+static int32_t vader_resolve_failure(int code) {
+    if (code == EAI_NONAME) return 0;
+#if defined(EAI_NODATA)
+    if (code == EAI_NODATA) return 0;
+#endif
+    if (code == EAI_AGAIN) return -1;
+    return -2;
+}
+
+/* The addresses of the TCP endpoints `host` stands for, as the system's
+ * resolver gives them: each `sockaddr_in` or `sockaddr_in6` is copied into a
+ * slot of `VADER_RESOLVED_SLOT` bytes of `out`, zero padded, as many as
+ * `capacity` holds. Returns how many, or what `vader_resolve_failure` says.
+ *
+ * It waits for as long as the resolver does: `std/net` declares it
+ * `@c_blocking`, so a thread of the runtime makes the call.
+ *
+ * On Windows the resolver is taken from `ws2_32.dll`, which `WSAStartup` loaded
+ * before any call: the runtime does not link Winsock, and a program that
+ * resolves nothing does not either.
+ * See `docs/adr/0170-a-name-is-resolved-by-a-primitive-of-the-runtime.md`. */
+VADER_HOST_EXPORT
+int32_t vader_resolve(const char* host, uint8_t* out, int64_t capacity) {
+#if defined(_WIN32)
+    HMODULE winsock = GetModuleHandleW(L"ws2_32.dll");
+    if (winsock == NULL) return -2;
+    vader_getaddrinfo_t get =
+        (vader_getaddrinfo_t) (void (*)(void)) GetProcAddress(winsock, "getaddrinfo");
+    vader_freeaddrinfo_t release =
+        (vader_freeaddrinfo_t) (void (*)(void)) GetProcAddress(winsock, "freeaddrinfo");
+    if (get == NULL || release == NULL) return -2;
+#else
+    int (*get)(const char*, const char*, const struct addrinfo*, struct addrinfo**) = getaddrinfo;
+    void (*release)(struct addrinfo*) = freeaddrinfo;
+#endif
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    struct addrinfo* list = NULL;
+    int failure = get(host, NULL, &hints, &list);
+    if (failure != 0) return vader_resolve_failure(failure);
+    int32_t count = 0;
+    for (struct addrinfo* a = list; a != NULL; a = a->ai_next) {
+        if ((int64_t) (count + 1) * VADER_RESOLVED_SLOT > capacity) break;
+        if (a->ai_family != AF_INET && a->ai_family != AF_INET6) continue;
+        if (a->ai_addrlen > VADER_RESOLVED_SLOT) continue;
+        uint8_t* slot = out + (int64_t) count * VADER_RESOLVED_SLOT;
+        memset(slot, 0, VADER_RESOLVED_SLOT);
+        memcpy(slot, a->ai_addr, (size_t) a->ai_addrlen);
+        count++;
+    }
+    release(list);
+    return count;
 }
 
 /* ---- target -------------------------------------------------------------- */
