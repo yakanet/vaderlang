@@ -29,7 +29,6 @@
 module "vader/build_server"
 
 import "std/fs"
-import "std/io"
 import "std/numbers"
 import "std/path"
 import "std/string"

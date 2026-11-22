@@ -37,12 +37,15 @@ send_request :: fn(address: SocketAddress, method: string, request: string) -> v
         return
     }
     defer stream.close()
-    stream.write("""
+    sent :: stream.write("""
     ${method} ${request} HTTP/1.1
     Host: localhost
     Connection: close
 
-    """.replace_all("\n", "\r\n"))
+    """.replace_all("\n", "\r\n")) else {
+        eprintln("cannot send: ${sent.msg}")
+        return
+    }
     reader :: BufferedReader { .source = stream }
     answer :: reader.read_to_end(4096) else {
         eprintln("cannot read: ${answer.msg}")
@@ -71,8 +74,8 @@ main :: fn() -> i32 {
     send_request(address, "POST", "/hello/vader")
     send_request(address, "GET", "/elsewhere")
     // Closing the listener ends `serve`, which the join waits for.
-    listener.close()
-    server.join()
+    _ :: listener.close()
+    _ :: server.join()
     println("${visits.load()} visits")
     return 0
 }

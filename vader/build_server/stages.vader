@@ -177,7 +177,7 @@ export record_plan :: fn(project_root: string, plan: StagePlan) -> void {
     dir :: stage_records_dir(project_root)
     tree :: RemoveOptions { .recursive = true, .force = true }
     if plan.sources.is_empty() && plan.bodies.is_empty() {
-        remove(dir, tree)
+        _ :: remove(dir, tree)
         return
     }
     write_record(stage_plan_path(project_root), encode_stage_plan(plan))
@@ -192,7 +192,7 @@ export record_plan :: fn(project_root: string, plan: StagePlan) -> void {
     for name in names {
         path :: join_path(dir, name)
         if name !in planned && is_dir(path) {
-            remove(path, tree)
+            _ :: remove(path, tree)
         }
     }
 }

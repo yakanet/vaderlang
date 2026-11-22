@@ -165,11 +165,11 @@ run_all :: fn(
 ) -> Tally | null {
     // The workers inherit this environment, and a `VADER_HOME` moves the modules
     // of the toolchain in the dumps: the snapshots are taken without one.
-    unset_env("VADER_HOME")
+    _ :: unset_env("VADER_HOME")
     // What the cases print must not hang on the load of the machine, which
     // stretches a call to C past the watch's threshold: the tests of the watch
     // set it themselves.
-    set_env("VADER_WARN_BLOCKING_MS", "0")
+    _ :: set_env("VADER_WARN_BLOCKING_MS", "0")
     scratch :: scratch_root()
     remove_tree(scratch)
     // Indices rather than the cases: a task that reads an array of a `Case` it
@@ -197,7 +197,7 @@ run_all :: fn(
     }
     join_all(tasks)
     ticker.cancel()
-    ticker.join()
+    _ :: ticker.join()
     events.close()
     total :: reporter.join() else return null
     print_tally(total, count, k, began.since())

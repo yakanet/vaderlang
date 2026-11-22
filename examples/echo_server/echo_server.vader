@@ -24,7 +24,7 @@ echo :: fn(stream: TcpStream) -> i64 {
         if got !is i64 {
             break
         }
-        stream.write(buffer[0..<got])
+        stream.write(buffer[0..<got]) else break
         total += got
     }
     return total
@@ -50,7 +50,7 @@ serve :: fn(listener: TcpListener, connections: i64) -> i64 {
 
 // Send `message` on `stream` and read the server's answer, one line.
 exchange :: fn(stream: TcpStream, message: string) -> string {
-    stream.write("${message}\n")
+    stream.write("${message}\n") else return "not sent"
     reader :: BufferedReader { .source = stream }
     answer :: reader.read_line()
     if answer is string {
@@ -85,12 +85,12 @@ main :: fn() -> i32 {
         i -= 1
     }
     for stream in streams {
-        stream.close()
+        _ :: stream.close()
     }
     echoed :: server.join()
     if echoed is i64 {
         println("server echoed ${echoed} bytes")
     }
-    listener.close()
+    _ :: listener.close()
     return 0
 }

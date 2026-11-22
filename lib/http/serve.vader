@@ -261,9 +261,9 @@ wind_down :: fn(serving: Connection[], grace: Duration | null) -> void {
     }
     ended :: launch(() -> join_all(tasks))
     if grace == null {
-        ended.join()
+        _ :: ended.join()
     } else {
-        ended.timeout(grace)
+        _ :: ended.timeout(grace)
     }
 }
 
@@ -307,8 +307,8 @@ cut :: fn(serving: Connection[]) -> void {
         connection.task.cancel()
     }
     for connection in serving {
-        connection.task.join()
-        connection.stream.close()
+        _ :: connection.task.join()
+        _ :: connection.stream.close()
     }
 }
 

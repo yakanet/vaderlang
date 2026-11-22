@@ -98,13 +98,14 @@ build_doc_site :: fn(data_dir: string, out_dir: string | null, open: bool) -> i3
     if up_to_date {
         println("vader doc: `${out.to_native()}` is up to date")
     } else {
-        remove(stamp_file)
+        _ :: remove(stamp_file)
         code :: vite(install, copy, ["build", "--logLevel", "warn"])
         if code != 0 || !exists(join_path(out, SITE_MARKER)) {
             eprintln("vader doc: the site could not be built")
             return 1
         }
-        write_file(stamp_file, stamp)
+        // A stamp we cannot write only costs the next run a rebuild.
+        _ :: write_file(stamp_file, stamp)
         println("vader doc: `${out.to_native()}` holds the site")
     }
     if !open {
@@ -293,7 +294,8 @@ site_install :: fn(template: string) -> string | null {
         eprintln("vader doc: `npm ci` failed in `${dir.to_native()}`")
         return null
     }
-    write_file(join_path(dir, INSTALLED_MARKER), "")
+    // A marker we cannot write only costs the next run an install.
+    _ :: write_file(join_path(dir, INSTALLED_MARKER), "")
     return dir
 }
 
@@ -341,7 +343,7 @@ site_copy :: fn(install: string, template: string, data_dir: string) -> string |
     }
     for stale in template_files(dir, "") {
         if !(stale in files) && !(stale in [SITE_ENV_FILE, SITE_STAMP_FILE]) {
-            remove(join_path(dir, stale))
+            _ :: remove(join_path(dir, stale))
         }
     }
     return dir
@@ -405,7 +407,8 @@ run_in :: fn(dir: string, argv: string[]) -> i32 | ProcessError {
     moved :: set_current_working_directory(dir)
         else return ProcessError { .msg = "cannot enter `${dir.to_native()}`: ${moved.message()}" }
     ran :: run_attached(argv)
-    set_current_working_directory(home)
+    back :: set_current_working_directory(home)
+        else return ProcessError { .msg = "cannot return to `${home.to_native()}`: ${back.message()}" }
     return ran
 }
 

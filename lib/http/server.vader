@@ -185,7 +185,7 @@ await_request :: fn(source: BufferedReader, pace: Pace, first: bool) -> Connecti
 refuse :: fn(writer: Writer, error: HttpError) -> ConnectionEnd {
     status :: status_of(error) else return ConnectionEnd { .reason = .Failed, .error = error }
     // The client may be gone already: the connection ends the same.
-    write_response(writer, Response { .status = status }, null)
+    _ :: write_response(writer, Response { .status = status }, null)
     if error.kind == .TimedOut {
         return ConnectionEnd { .reason = .TimedOut, .error = error }
     }

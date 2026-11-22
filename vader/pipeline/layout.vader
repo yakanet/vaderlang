@@ -156,7 +156,7 @@ remove_stale :: fn(dir: string, names: Set<string>, owned: Set<string>) -> void 
     // Deepest first, as the walk lists a folder before what it holds: a folder
     // that still holds an entry is not removed.
     for i in 0..<folders.len() {
-        remove(folders[folders.len() - 1 - i])
+        _ :: remove(folders[folders.len() - 1 - i])
     }
 }
 

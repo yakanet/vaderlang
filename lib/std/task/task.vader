@@ -334,7 +334,7 @@ cancel_and_wait :: fn<T>(tasks: Task<T>[]) -> void {
         cancel(task)
     }
     for task in tasks {
-        join(task)
+        _ :: join(task)
     }
 }
 

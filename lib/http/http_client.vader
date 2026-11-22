@@ -135,7 +135,7 @@ export get :: fn(client: HttpClient, uri: string) -> ClientResponse | HttpError 
 export close :: fn(client: HttpClient) -> void {
     client.idle.close()
     for kept in client.idle {
-        kept.stream.close()
+        _ :: kept.stream.close()
     }
 }
 
@@ -163,7 +163,7 @@ exchange :: fn(client: HttpClient, request: Request) -> ClientResponse | HttpErr
 // `client`. A connection whose request failed is closed.
 send_on :: fn(client: HttpClient, kept: KeptConnection, request: Request) -> ClientResponse | HttpError {
     response :: kept.connection.send(request) else {
-        kept.stream.close()
+        _ :: kept.stream.close()
         return response
     }
     return ClientResponse {
@@ -203,7 +203,7 @@ kept_for :: fn(client: HttpClient, origin: string) -> KeptConnection | null {
             return null
         }
         if kept.idle_from.since() > client.idle_timeout {
-            kept.stream.close()
+            _ :: kept.stream.close()
         } else if kept.origin == origin {
             return kept
         } else {
@@ -217,7 +217,7 @@ kept_for :: fn(client: HttpClient, origin: string) -> KeptConnection | null {
 // no further one.
 hand_back :: fn(idle: Channel<KeptConnection>, kept: KeptConnection) -> void {
     if kept.connection.state.ended != null {
-        kept.stream.close()
+        _ :: kept.stream.close()
         return
     }
     kept.idle_from = monotonic()
@@ -229,7 +229,7 @@ hand_back :: fn(idle: Channel<KeptConnection>, kept: KeptConnection) -> void {
 keep :: fn(idle: Channel<KeptConnection>, kept: KeptConnection) -> void {
     refused :: idle.offer(kept)
     if refused is KeptConnection {
-        refused.stream.close()
+        _ :: refused.stream.close()
     }
 }
 

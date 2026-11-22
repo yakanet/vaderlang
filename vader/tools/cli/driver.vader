@@ -440,7 +440,7 @@ rebuild_driver :: fn(
     }
     // A stamp we cannot write is not fatal: it only costs the next build a
     // rebuild, which is what happens today anyway.
-    write_file(driver_stamp_path(root), key)
+    _ :: write_file(driver_stamp_path(root), key)
     return 0
 }
 
@@ -465,7 +465,7 @@ build_driver_binary :: fn(
 // error is dropped. It matters that this really unlinks: a blanked file left in
 // the project root would be a `.vader` that declares nothing.
 remove_entry :: fn(path: string) -> void {
-    remove(path)
+    _ :: remove(path)
 }
 
 // ---- tests ----------------------------------------------------------------

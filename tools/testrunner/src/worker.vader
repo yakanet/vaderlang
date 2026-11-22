@@ -158,7 +158,7 @@ enter_case :: fn(ctx: WorkerContext, case: Case) -> string | CaseFailure {
 
 // Remove the folder at `path` and what it holds, when it exists.
 remove_tree :: fn(path: string) -> void {
-    remove(path, RemoveOptions { .recursive = true, .force = true })
+    _ :: remove(path, RemoveOptions { .recursive = true, .force = true })
 }
 
 // Render `stage` of `case`, the stage `dump` of `vader dump`, and compare it with
