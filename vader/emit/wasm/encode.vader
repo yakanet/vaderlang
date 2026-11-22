@@ -18,8 +18,8 @@ module "vader/emit/wasm"
 ///   bytes.len()   // 8: the magic and the version alone
 export encode_module :: fn(m: WasmModule) -> u8[] {
     out: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]
-    if m.types.len() > 0 {
-        out.push_section(SECTION_TYPE, type_section(m.types))
+    if m.struct_types.len() + m.types.len() > 0 {
+        out.push_section(SECTION_TYPE, type_section(m.struct_types, m.types))
     }
     if m.imports.len() > 0 {
         out.push_section(SECTION_IMPORT, import_section(m.imports))
@@ -42,8 +42,16 @@ SECTION_FUNCTION: u8: 3
 SECTION_EXPORT: u8: 7
 SECTION_CODE: u8: 10
 
-// The byte that opens a function type.
+// The bytes that open a function type, a struct type, and a recursion group.
 FUNC_TYPE: u8: 0x60
+STRUCT_TYPE: u8: 0x5F
+REC_GROUP: u8: 0x4E
+// A mutable field.
+MUTABLE: u8: 0x01
+// The prefix of the Wasm GC instructions.
+GC_PREFIX: u8: 0xFB
+// The abstract heap type `eq`.
+HEAP_EQ: u8: 0x6D
 // The kind of an imported or exported function.
 EXTERNAL_FUNCTION: u8: 0x00
 // The byte that closes an expression, a function body included.
@@ -63,9 +71,23 @@ push_sized :: fn(out: u8[], content: u8[]) -> void {
 // The length of a vector, or any other count.
 push_count :: fn(out: u8[], count: i64) -> void = out.push_unsigned(u64(count))
 
-type_section :: fn(types: WasmFuncType[]) -> u8[] {
+// The struct types as one recursion group, then each function type alone.
+type_section :: fn(struct_types: WasmStructType[], types: WasmFuncType[]) -> u8[] {
     out: u8[]: []
-    out.push_count(types.len())
+    group_count: i64: if struct_types.len() > 0 { 1 } else { 0 }
+    out.push_count(group_count + types.len())
+    if struct_types.len() > 0 {
+        out.push(REC_GROUP)
+        out.push_count(struct_types.len())
+        for s in struct_types {
+            out.push(STRUCT_TYPE)
+            out.push_count(s.fields.len())
+            for field in s.fields {
+                out.push(value_type_byte(field.type))
+                out.push(MUTABLE)
+            }
+        }
+    }
     for t in types {
         out.push(FUNC_TYPE)
         out.push_value_types(t.params)
@@ -152,27 +174,49 @@ local_runs :: fn(locals: WasmValType[]) -> LocalRun[] {
 
 push_instr :: fn(out: u8[], instr: WasmInstr) -> void {
     match instr {
-        is I32Const -> {
+        is I32Const  -> {
             out.push(0x41)
             out.push_signed(i64(instr.value))
         }
-        is I64Const -> {
+        is I64Const  -> {
             out.push(0x42)
             out.push_signed(instr.value)
         }
-        is LocalGet -> { out.push_indexed(0x20, instr.index) }
-        is LocalSet -> { out.push_indexed(0x21, instr.index) }
-        is LocalTee -> { out.push_indexed(0x22, instr.index) }
-        is Call     -> { out.push_indexed(0x10, instr.function_index) }
-        is Br       -> { out.push_indexed(0x0C, instr.depth) }
-        is BrIf     -> { out.push_indexed(0x0D, instr.depth) }
-        is Plain    -> {
+        is LocalGet  -> { out.push_indexed(0x20, instr.index) }
+        is LocalSet  -> { out.push_indexed(0x21, instr.index) }
+        is LocalTee  -> { out.push_indexed(0x22, instr.index) }
+        is Call      -> { out.push_indexed(0x10, instr.function_index) }
+        is Br        -> { out.push_indexed(0x0C, instr.depth) }
+        is BrIf      -> { out.push_indexed(0x0D, instr.depth) }
+        is StructNew -> { out.push_gc(0x00, [instr.type_index]) }
+        is StructGet -> { out.push_gc(0x02, [instr.type_index, instr.field_index]) }
+        is StructSet -> { out.push_gc(0x05, [instr.type_index, instr.field_index]) }
+        is RefCast   -> { out.push_heap_typed(0x16, instr.type_index) }
+        is RefTest   -> { out.push_heap_typed(0x14, instr.type_index) }
+        is RefNull   -> { out.push_all([0xD0, HEAP_EQ]) }
+        is Plain     -> {
             out.push(opcode(instr.op))
             if opens_scope(instr.op) {
                 out.push(EMPTY_BLOCK_TYPE)
             }
         }
     }
+}
+
+// A Wasm GC instruction and its index immediates.
+push_gc :: fn(out: u8[], code: u8, immediates: i32[]) -> void {
+    out.push(GC_PREFIX)
+    out.push_count(i64(code))
+    for i in immediates {
+        out.push_count(i64(i))
+    }
+}
+
+// A Wasm GC instruction on the heap type of a struct: a signed LEB128, which a
+// type index, never negative, writes as its value.
+push_heap_typed :: fn(out: u8[], code: u8, type_index: i32) -> void {
+    out.push_gc(code, [])
+    out.push_signed(i64(type_index))
 }
 
 // The block type of a scope that takes and leaves nothing.
@@ -236,6 +280,10 @@ opcode :: fn(op: WasmOp) -> u8 = match op {
     .I32WrapI64    -> 0xA7
     .I64ExtendI32S -> 0xAC
     .I64ExtendI32U -> 0xAD
+    .F32Eq         -> 0x5B
+    .F64Eq         -> 0x61
+    .RefIsNull     -> 0xD1
+    .RefEq         -> 0xD3
 }
 
 push_value_types :: fn(out: u8[], types: WasmValType[]) -> void {
@@ -246,10 +294,11 @@ push_value_types :: fn(out: u8[], types: WasmValType[]) -> void {
 }
 
 value_type_byte :: fn(t: WasmValType) -> u8 = match t {
-    .I32 -> 0x7F
-    .I64 -> 0x7E
-    .F32 -> 0x7D
-    .F64 -> 0x7C
+    .I32   -> 0x7F
+    .I64   -> 0x7E
+    .F32   -> 0x7D
+    .F64   -> 0x7C
+    .EqRef -> 0x6D
 }
 
 // A name is a vector of UTF-8 bytes.

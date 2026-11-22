@@ -75,16 +75,22 @@ export wasm_component_of :: fn(
 ///                       entry.
 /// @error                `WasmUnsupported` on the first op or value type the
 ///                       emitter does not translate yet.
-export wasm_module_of :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmModule | WasmUnsupported {
+export wasm_module_of :: fn(
+    m: Bc.BytecodeModule,
+    entry_mangled: string,
+) -> WasmModule | WasmUnsupported {
     component :: translate(m, entry_mangled) else return component
     return component.core
 }
 
 // The core module of `wasm_module_of`, with the interfaces its imports come from.
 translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | WasmUnsupported {
-    types :: TypeTable {}
+    gc :: gc_types_of(m)
+    types :: TypeTable { .first = i32(gc.structs.len()) }
     imports :: imported_functions(m, types) else return imports
     ctx :: ModuleCtx {
+        .module = m,
+        .gc = gc,
         .types = types,
         .imports = imports,
         .first_function = i32(imports.functions.len()),
@@ -94,7 +100,9 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
     for f in m.functions {
         signature :: func_type_of(f) else return signature
         locals :: value_types_of(f.locals.map((l) -> l.val).collect(), f.name) else return locals
-        body :: body_of(ctx, f) else return body
+        scratch :: Scratch { .first = i32(f.signature.params.len() + locals.len()) }
+        body :: body_of(ctx, scratch, f) else return body
+        locals.push_all(scratch.locals)
         functions.push(
             WasmFunction {
                 .type_index = ctx.types.intern(signature),
@@ -117,6 +125,7 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
         functions.push(run)
     }
     core :: WasmModule {
+        .struct_types = gc.structs,
         .types = ctx.types.types,
         .imports = imports.functions,
         .functions = functions,
@@ -127,6 +136,8 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
 
 // What the translation of a module carries from one function to the next.
 ModuleCtx :: struct {
+    module: Bc.BytecodeModule
+    gc: GcTypes
     types: TypeTable
     imports: ImportedFunctions
     // The index of the first bytecode function: past the imported ones.
@@ -168,18 +179,37 @@ run_function :: fn(
 
 // The function types of a module, each once, as the format wants them.
 TypeTable :: struct {
+    // The index of the first function type: past the struct types.
+    first: i32 = 0
     types: WasmFuncType[] = []
-    // The index in `types` of each `canonical_func_type_key`.
-    indices: Map<string, i32> = Map<string, i32> {}
+    // The position in `types` of each `canonical_func_type_key`.
+    positions: Map<string, i32> = Map<string, i32> {}
 }
 
-// The index of `t` in the table, appended when it is not there yet.
+// The type index of `t`, appended to the table when it is not there yet.
 intern :: fn(table: TypeTable, t: WasmFuncType) -> i32 {
-    index :: table.indices.get_or_put(canonical_func_type_key(t), i32(table.types.len()))
-    if index == table.types.len() {
+    position :: table.positions.get_or_put(canonical_func_type_key(t), i32(table.types.len()))
+    if position == table.types.len() {
         table.types.push(t)
     }
-    return index
+    return table.first + position
+}
+
+// The locals a function's translation adds past the bytecode's, one per value
+// type, which an op uses only within its own instructions.
+Scratch :: struct {
+    // The index of the first: past the parameters and the bytecode's locals.
+    first: i32
+    locals: WasmValType[] = []
+}
+
+// The scratch local of type `t`, added the first time it is asked for.
+local_of :: fn(scratch: Scratch, t: WasmValType) -> i32 {
+    position :: scratch.locals.index_of(t) else {
+        scratch.locals.push(t)
+        return scratch.first + i32(scratch.locals.len() - 1)
+    }
+    return scratch.first + i32(position)
 }
 
 canonical_func_type_key :: fn(t: WasmFuncType) -> string {
@@ -215,9 +245,9 @@ value_types_of :: fn(values: Bc.ValType[], function: string) -> WasmValType[] | 
 }
 
 value_type_of :: fn(v: Bc.ValType, function: string) -> WasmValType | WasmUnsupported = match v {
-    .I8 | .I16 | .I32 | .U8 | .U16 | .U32 | .Bool | .Char -> .I32
-    .I64 | .U64 -> .I64
-    .F32 | .F64 | .String | .Null | .Void | .Pointer | .Ref | .Any -> WasmUnsupported {
+    .I8 | .I16 | .I32 | .I64 | .U8 | .U16 | .U32 | .U64 | .Bool | .Char | .Ref | .Any
+        | .Null -> scalar_field_type(v)
+    .F32 | .F64 | .String | .Void | .Pointer -> WasmUnsupported {
         .reason = "`${function}`: no WASM form yet for a `${Bc.val_type_name(v)}` value",
     }
 }
@@ -227,7 +257,7 @@ value_type_of :: fn(v: Bc.ValType, function: string) -> WasmValType | WasmUnsupp
 // The instructions of `f`. A body that leaves a value ends on `unreachable`:
 // WASM checks the end of a body as reachable, after scopes whose every path
 // returned included.
-body_of :: fn(ctx: ModuleCtx, f: Bc.BcFunction) -> WasmInstr[] | WasmUnsupported {
+body_of :: fn(ctx: ModuleCtx, scratch: Scratch, f: Bc.BcFunction) -> WasmInstr[] | WasmUnsupported {
     ends :: matching_ends(f.body)
     // Per open scope, the pc a branch that leaves it targets, less one: a loop
     // starts again right after its opener, a block or an `if` goes on right
@@ -256,8 +286,13 @@ body_of :: fn(ctx: ModuleCtx, f: Bc.BcFunction) -> WasmInstr[] | WasmUnsupported
                 }
                 out.push(branch_to(op, depth))
             }
+            is Bc.RefCast                 -> {
+                // What the cast reads is held as the op before it held its value.
+                source :: if pc > 0 { pushed_type(ctx, f, f.body[pc - 1]) } else { null }
+                pinned :: push_pin(ctx, out, op, source, f.name) else return pinned
+            }
             _                             -> {
-                pushed :: push_op(ctx, out, op, f.name) else return pushed
+                pushed :: push_op(ctx, scratch, out, op, f.name) else return pushed
             }
         }
     }
@@ -310,8 +345,14 @@ branch_depth :: fn(anchors: i64[], target_pc: i32) -> i32 | null {
 
 push_plain :: fn(out: WasmInstr[], op: WasmOp) -> void = out.push(Plain { .op = op })
 
-// Append the translation of `op`, which is not a scope or a branch.
-push_op :: fn(ctx: ModuleCtx, out: WasmInstr[], op: Bc.Op, function: string) -> void | WasmUnsupported {
+// Append the translation of `op`, which is not a scope, a branch or a `ref.cast`.
+push_op :: fn(
+    ctx: ModuleCtx,
+    scratch: Scratch,
+    out: WasmInstr[],
+    op: Bc.Op,
+    function: string,
+) -> void | WasmUnsupported {
     plain :: plain_op_of(op)
     if plain != null {
         out.push_plain(plain)
@@ -348,8 +389,70 @@ push_op :: fn(ctx: ModuleCtx, out: WasmInstr[], op: Bc.Op, function: string) -> 
             out.push(Call { .function_index = ctx.checked_helper(op.kind, op.op) })
         }
         is Bc.CheckedNeg -> { out.push(Call { .function_index = ctx.checked_neg_helper(op.kind) }) }
+        is Bc.NullConst -> { out.push(RefNull {}) }
+        is Bc.VoidConst -> { out.push(StructNew { .type_index = ctx.gc.void_box }) }
+        is Bc.StructNew -> {
+            t :: struct_type(ctx, op.type_id, function) else return t
+            out.push(StructNew { .type_index = t })
+        }
+        is Bc.StructGet -> {
+            return push_field_read(ctx, out, op.type_id, op.field_index, function)
+        }
+        is Bc.LocalField -> {
+            out.push(LocalGet { .index = op.slot })
+            return push_field_read(ctx, out, op.type_id, op.field_index, function)
+        }
+        is Bc.StructSet -> { return push_field_write(ctx, scratch, out, op, function) }
+        is Bc.Retag -> { return push_retag(ctx, out, op, function) }
+        is Bc.TypeCheck -> { return push_type_check(ctx, scratch, out, op, function) }
+        is Bc.RefEq -> { out.push(Call { .function_index = ctx.reference_equality() }) }
+        is Bc.RefNe -> {
+            out.push(Call { .function_index = ctx.reference_equality() })
+            out.push_plain(.I32Eqz)
+        }
         _ -> { return unsupported_op(op, function) }
     }
+}
+
+// How the value `op` pushes is held, null for an op that pushes none, or one
+// whose type the bytecode does not say.
+//
+// @partial: only the ops whose value a `ref.cast` may read next.
+pushed_type :: fn(
+    ctx: ModuleCtx,
+    f: Bc.BcFunction,
+    op: Bc.Op,
+) -> WasmValType | null = @partial match op {
+    is Bc.LocalGet | Bc.LocalTee -> slot_type(f, op.slot)
+    is Bc.StructGet -> field_type(ctx, op.type_id, op.field_index)
+    is Bc.LocalField -> field_type(ctx, op.type_id, op.field_index)
+    is Bc.Call -> returned_type(ctx.module.functions[op.function_index].signature)
+    is Bc.CallImport -> returned_type(ctx.module.imports[op.index].signature)
+    is Bc.NullConst | Bc.VoidConst | Bc.StructNew -> .EqRef
+    is Bc.RefCast -> field_type_of(ctx.module.types[op.type_id])
+    is Bc.I32Const | Bc.BoolConst | Bc.CharConst -> .I32
+    is Bc.I64Const -> .I64
+    _ -> null
+}
+
+// How the slot `slot` of `f` is held: a parameter, else a declared local.
+slot_type :: fn(f: Bc.BcFunction, slot: i32) -> WasmValType | null {
+    params :: f.signature.params
+    v :: if slot < params.len() { params[slot] } else { f.locals[i64(slot) - params.len()].val }
+    return value_type_of(v, f.name) else null
+}
+
+field_type :: fn(ctx: ModuleCtx, type_id: i32, field_index: i32) -> WasmValType | null {
+    t :: ctx.gc.of_struct[type_id] else return null
+    return ctx.gc.structs[t].fields[field_index].type
+}
+
+returned_type :: fn(signature: Bc.BcSignature) -> WasmValType | null {
+    results :: result_values(signature)
+    if results.len() != 1 {
+        return null
+    }
+    return value_type_of(results[0], "") else null
 }
 
 // The one WASM instruction an op is, when it is one.
@@ -403,11 +506,12 @@ plain_op_of :: fn(op: Bc.Op) -> WasmOp | null = @partial match op {
 }
 
 constant_of :: fn(c: Bc.ConstOp, function: string) -> WasmInstr | WasmUnsupported = match c {
-    is Bc.I32Const -> I32Const { .value = c.value }
-    is Bc.I64Const -> I64Const { .value = c.value }
-    is Bc.BoolConst -> I32Const { .value = if c.value { 1 } else { 0 } }
-    is Bc.CharConst -> I32Const { .value = i32(c.value) }
-    is Bc.F64Const | Bc.NullConst | Bc.StringConst -> unsupported_op(c, function)
+    is Bc.I32Const                  -> I32Const { .value = c.value }
+    is Bc.I64Const                  -> I64Const { .value = c.value }
+    is Bc.BoolConst                 -> I32Const { .value = if c.value { 1 } else { 0 } }
+    is Bc.CharConst                 -> I32Const { .value = i32(c.value) }
+    is Bc.NullConst                 -> RefNull {}
+    is Bc.F64Const | Bc.StringConst -> unsupported_op(c, function)
 }
 
 // A conversion between storage classes: an integer of 32 bits or less and a

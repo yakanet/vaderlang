@@ -28,12 +28,29 @@ checked_neg_helper :: fn(ctx: ModuleCtx, kind: Bc.ValType) -> i32 {
 
 // Add a helper taking `arity` operands of the class `kind` lives in and leaving
 // one, with one `i64` local past them, at index `arity`, for the result.
-add_helper :: fn(ctx: ModuleCtx, key: string, kind: Bc.ValType, arity: i64, body: WasmInstr[]) -> i32 {
+add_helper :: fn(
+    ctx: ModuleCtx,
+    key: string,
+    kind: Bc.ValType,
+    arity: i64,
+    body: WasmInstr[],
+) -> i32 {
     value_type :: if Bc.is_64_bit_int_val(kind) { WasmValType.I64 } else { WasmValType.I32 }
     signature :: WasmFuncType { .params = [value_type] * arity, .results = [value_type] }
+    return ctx.define_helper(key, signature, [.I64], body)
+}
+
+// Append a helper the module computes `key` with, and return its index.
+define_helper :: fn(
+    ctx: ModuleCtx,
+    key: string,
+    signature: WasmFuncType,
+    locals: WasmValType[],
+    body: WasmInstr[],
+) -> i32 {
     helper :: WasmFunction {
         .type_index = ctx.types.intern(signature),
-        .locals = [.I64],
+        .locals = locals,
         .body = body,
     }
     index :: ctx.first_helper + i32(ctx.helper_functions.len())

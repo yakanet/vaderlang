@@ -8,8 +8,19 @@
 
 module "vader/emit/wasm"
 
-/// A WASM value type.
-export WasmValType :: enum { I32, I64, F32, F64 }
+/// A WASM value type. `EqRef` is `(ref null eq)`, what every Vader reference
+/// is held as: a struct, an array, a box, or null.
+export WasmValType :: enum { I32, I64, F32, F64, EqRef }
+
+/// A struct type of Wasm GC.
+export WasmStructType :: struct {
+    fields: WasmField[]
+}
+
+/// A field of a struct type, every one mutable.
+export WasmField :: struct {
+    type: WasmValType
+}
 
 /// A function type: what a function takes, and what it leaves on the stack.
 export WasmFuncType :: struct {
@@ -46,8 +57,11 @@ export WasmExport :: struct {
     function_index: i32
 }
 
-/// A core WASM module.
+/// A core WASM module. The type index space holds the struct types first, all
+/// in one recursion group so that two of one shape stay distinct, then the
+/// function types: a type index past the struct types names `types`.
 export WasmModule :: struct {
+    struct_types: WasmStructType[] = []
     types: WasmFuncType[]
     imports: WasmImport[] = []
     functions: WasmFunction[]
@@ -55,7 +69,21 @@ export WasmModule :: struct {
 }
 
 /// A WASM instruction.
-export WasmInstr :: I32Const | I64Const | LocalGet | LocalSet | LocalTee | Call | Br | BrIf | Plain
+export WasmInstr :: I32Const
+           | I64Const
+           | LocalGet
+           | LocalSet
+           | LocalTee
+           | Call
+           | Br
+           | BrIf
+           | StructNew
+           | StructGet
+           | StructSet
+           | RefCast
+           | RefTest
+           | RefNull
+           | Plain
 
 /// `i32.const value`.
 export I32Const :: struct { value: i32 }
@@ -81,6 +109,31 @@ export Br :: struct { depth: i32 }
 
 /// `br_if depth`: `br depth` when the popped `i32` is not zero.
 export BrIf :: struct { depth: i32 }
+
+/// `struct.new type_index`: a struct from its fields, the first pushed first.
+export StructNew :: struct { type_index: i32 }
+
+/// `struct.get type_index field_index`.
+export StructGet :: struct {
+    type_index: i32
+    field_index: i32
+}
+
+/// `struct.set type_index field_index`: the struct, then the value, are popped.
+export StructSet :: struct {
+    type_index: i32
+    field_index: i32
+}
+
+/// `ref.cast (ref type_index)`: stops the run when the popped reference is null
+/// or of another type.
+export RefCast :: struct { type_index: i32 }
+
+/// `ref.test (ref type_index)`: whether the popped reference is of the type.
+export RefTest :: struct { type_index: i32 }
+
+/// `ref.null eq`.
+export RefNull :: struct {}
 
 /// An instruction without an immediate.
 export Plain :: struct { op: WasmOp }
@@ -137,4 +190,8 @@ export WasmOp :: enum {
     I32WrapI64,
     I64ExtendI32S,
     I64ExtendI32U,
+    RefIsNull,
+    RefEq,
+    F32Eq,
+    F64Eq,
 }

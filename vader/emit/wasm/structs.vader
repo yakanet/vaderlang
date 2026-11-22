@@ -1,0 +1,367 @@
+// vader/emit/wasm/structs: the references, as Wasm GC holds them.
+//
+// Every reference is held as `(ref null eq)`, in a local as in a field: a
+// struct, a box, null. An access to a struct casts it first (`ref.cast`), so the
+// function types and the fields name no struct type, and two struct types never
+// depend on each other. Each `BcStruct` of the bytecode is a struct type, and so
+// is the box of each scalar class, which holds a scalar where an `any`, a union
+// or a nullable slot is: one box per class, so that `is u8` tells a `u8` from an
+// `i32`. All of them are in one recursion group, which keeps two of one shape
+// distinct for `ref.test`. `void` held in such a slot is the box of no field.
+
+module "vader/emit/wasm"
+
+Bc :: import "vader/core/bytecode"
+import "std/collections"
+
+/// The struct types of a module, and where each Vader type finds its own.
+export GcTypes :: struct {
+    structs: WasmStructType[] = []
+    /// The WASM type of each `BcStruct`, by its index in the bytecode types.
+    of_struct: Map<i32, i32> = Map<i32, i32> {}
+    /// The box of each scalar class.
+    of_box: Map<Bc.ValType, i32> = Map<Bc.ValType, i32> {}
+    /// The box of `void`, which holds nothing.
+    void_box: i32 = -1
+}
+
+// The scalar classes a box exists for.
+BOXED_CLASSES: Bc.ValType[]: [
+    .I8,
+    .I16,
+    .I32,
+    .I64,
+    .U8,
+    .U16,
+    .U32,
+    .U64,
+    .F32,
+    .F64,
+    .Bool,
+    .Char,
+    .String,
+]
+
+/// The struct types of `m`: its structs in the order of its types, then the
+/// boxes, then the box of `void`.
+///
+/// @param m  the program's bytecode.
+export gc_types_of :: fn(m: Bc.BytecodeModule) -> GcTypes {
+    out :: GcTypes {}
+    for i in 0..<m.types.len() {
+        t :: m.types[i]
+        if t is Bc.BcStruct {
+            fields: WasmField[]: []
+            for f in t.fields {
+                fields.push(WasmField { .type = field_type_of(m.types[f.type_index]) })
+            }
+            out.of_struct[i32(i)] = out.add(fields)
+        }
+    }
+    for class in BOXED_CLASSES {
+        out.of_box[class] = out.add([WasmField { .type = scalar_field_type(class) }])
+    }
+    out.void_box = out.add([])
+    return out
+}
+
+add :: fn(gc: GcTypes, fields: WasmField[]) -> i32 {
+    gc.structs.push(WasmStructType { .fields = fields })
+    return i32(gc.structs.len() - 1)
+}
+
+// How a value of `t` is held: a scalar as itself, anything else as a reference.
+field_type_of :: fn(t: Bc.BcType) -> WasmValType = match t {
+    is Bc.BcScalar -> scalar_field_type(t.val)
+    is Bc.BcStruct | Bc.BcArray | Bc.BcUnion | Bc.BcRef | Bc.BcFn -> .EqRef
+}
+
+// A string is an `i32` atom (ADR 0175). `void` in a slot is its box. A foreign
+// pointer never reaches WASM code, only a field declared with it.
+scalar_field_type :: fn(v: Bc.ValType) -> WasmValType = match v {
+    .I8 | .I16 | .I32 | .U8 | .U16 | .U32 | .Bool | .Char | .String -> .I32
+    .I64 | .U64 | .Pointer -> .I64
+    .F32 -> .F32
+    .F64 -> .F64
+    .Null | .Void | .Ref | .Any -> .EqRef
+}
+
+// The box a value of `t` is held in where any type may be, null for a type held
+// as a reference, or a foreign pointer.
+box_of :: fn(gc: GcTypes, t: Bc.BcType) -> i32 | null {
+    if t !is Bc.BcScalar {
+        return null
+    }
+    if t.val == .Void {
+        return gc.void_box
+    }
+    return gc.of_box[t.val]
+}
+
+// The scalar a box `box` holds, the box on the stack.
+unboxed :: fn(box: i32) -> WasmInstr[] = [
+    RefCast { .type_index = box },
+    StructGet { .type_index = box, .field_index = 0 },
+]
+
+// ---- ops ------------------------------------------------------------------
+
+// The WASM struct type of the bytecode struct `type_id`.
+struct_type :: fn(ctx: ModuleCtx, type_id: i32, function: string) -> i32 | WasmUnsupported {
+    return ctx.gc.of_struct[type_id] else return WasmUnsupported {
+        .reason = "`${function}`: type ${type_id} is no struct, which only unions of structs reach",
+    }
+}
+
+// `struct.get` of a bytecode struct, the reference on the stack.
+push_field_read :: fn(
+    ctx: ModuleCtx,
+    out: WasmInstr[],
+    type_id: i32,
+    field_index: i32,
+    function: string,
+) -> void | WasmUnsupported {
+    t :: struct_type(ctx, type_id, function) else return t
+    out.push_all(
+        [RefCast { .type_index = t }, StructGet { .type_index = t, .field_index = field_index }],
+    )
+}
+
+// `struct.set` of a bytecode struct, the reference then the value on the stack:
+// the value waits in a scratch local while the reference is cast.
+push_field_write :: fn(
+    ctx: ModuleCtx,
+    scratch: Scratch,
+    out: WasmInstr[],
+    op: Bc.StructSet,
+    function: string,
+) -> void | WasmUnsupported {
+    t :: struct_type(ctx, op.type_id, function) else return t
+    value_type :: ctx.gc.structs[t].fields[op.field_index].type
+    held :: scratch.local_of(value_type)
+    out.push_all(
+        [
+            LocalSet { .index = held },
+            RefCast { .type_index = t },
+            LocalGet { .index = held },
+            StructSet { .type_index = t, .field_index = op.field_index },
+        ],
+    )
+}
+
+// `ref.cast` of the bytecode: a value read out of a slot that holds any type, an
+// erased field say, pinned to the type it has. Out of a reference into a scalar
+// it unboxes; between two of one class it is nothing, every reference being held
+// alike. `source` is how the value on the stack is held.
+push_pin :: fn(
+    ctx: ModuleCtx,
+    out: WasmInstr[],
+    op: Bc.RefCast,
+    source: WasmValType | null,
+    function: string,
+) -> void | WasmUnsupported {
+    target :: ctx.module.types[op.type_id]
+    if source == null {
+        return WasmUnsupported {
+            .reason = "`${function}`: no class known for what `ref.cast` reads",
+        }
+    }
+    if source == field_type_of(target) {
+        return
+    }
+    box :: box_of(ctx.gc, target)
+    if source == .EqRef && box != null {
+        out.push_all(unboxed(box))
+        return
+    }
+    return unsupported_op(op, function)
+}
+
+// `retag`: a scalar stored where any type may be, boxed in its class's box. The
+// bytecode retags a scalar only, of the type `op` names.
+push_retag :: fn(
+    ctx: ModuleCtx,
+    out: WasmInstr[],
+    op: Bc.Retag,
+    function: string,
+) -> void | WasmUnsupported {
+    box :: box_of(ctx.gc, ctx.module.types[op.type_id]) else return unsupported_op(op, function)
+    out.push(StructNew { .type_index = box })
+}
+
+// `type_check`: whether the reference on the stack is of `type_id`. A union
+// tests each variant on a copy kept in a scratch local.
+push_type_check :: fn(
+    ctx: ModuleCtx,
+    scratch: Scratch,
+    out: WasmInstr[],
+    op: Bc.TypeCheck,
+    function: string,
+) -> void | WasmUnsupported {
+    target :: ctx.module.types[op.type_id]
+    if target !is Bc.BcUnion {
+        return push_single_test(ctx, out, op.type_id, function)
+    }
+    copy :: scratch.local_of(.EqRef)
+    out.push_all([LocalSet { .index = copy }, I32Const { .value = 0 }])
+    for variant in target.variants {
+        out.push(LocalGet { .index = copy })
+        tested :: push_single_test(ctx, out, variant, function) else return tested
+        out.push(Plain { .op = .I32Or })
+    }
+}
+
+// Whether the reference on the stack is of `type_id`, which is no union.
+push_single_test :: fn(
+    ctx: ModuleCtx,
+    out: WasmInstr[],
+    type_id: i32,
+    function: string,
+) -> void | WasmUnsupported {
+    target :: ctx.module.types[type_id]
+    if target is Bc.BcStruct {
+        t :: struct_type(ctx, type_id, function) else return t
+        out.push(RefTest { .type_index = t })
+        return
+    }
+    if target is Bc.BcScalar && target.val == .Null {
+        out.push(Plain { .op = .RefIsNull })
+        return
+    }
+    box :: box_of(ctx.gc, target) else {
+        return WasmUnsupported {
+            .reason = "`${function}`: no WASM test yet for type ${type_id}",
+        }
+    }
+    out.push(RefTest { .type_index = box })
+}
+
+// ---- equality -------------------------------------------------------------
+
+// The index of the helper behind `ref.eq` / `ref.ne`: two references are equal
+// when they are the same, and two boxes when they hold the same value, as the
+// native boxes compare.
+reference_equality :: fn(ctx: ModuleCtx) -> i32 {
+    signature :: WasmFuncType { .params = [.EqRef, .EqRef], .results = [.I32] }
+    return ctx.helpers["ref.eq"]
+        else ctx.define_helper("ref.eq", signature, [], reference_equality_body(ctx.gc))
+}
+
+reference_equality_body :: fn(gc: GcTypes) -> WasmInstr[] {
+    a :: LocalGet { .index = 0 }
+    b :: LocalGet { .index = 1 }
+    body: WasmInstr[]: [a, b, Plain { .op = .RefEq }]
+    body.push_return_if(1)
+    for [class, box] in gc.of_box {
+        body.push_all([a, RefTest { .type_index = box }, b, RefTest { .type_index = box }])
+        body.push_all([Plain { .op = .I32And }, Plain { .op = .If }, a])
+        body.push_all(unboxed(box))
+        body.push(b)
+        body.push_all(unboxed(box))
+        body.push_all(
+            [
+                Plain { .op = payload_equality(class) },
+                Plain { .op = .Return },
+                Plain { .op = .End },
+            ],
+        )
+    }
+    body.push(I32Const { .value = 0 })
+    return body
+}
+
+// `if <popped> { return value }`.
+push_return_if :: fn(body: WasmInstr[], value: i32) -> void =
+    body.push_all(
+        [
+            Plain { .op = .If },
+            I32Const { .value = value },
+            Plain { .op = .Return },
+            Plain { .op = .End },
+        ],
+    )
+
+payload_equality :: fn(class: Bc.ValType) -> WasmOp = match scalar_field_type(class) {
+    .I32   -> .I32Eq
+    .I64   -> .I64Eq
+    .F32   -> .F32Eq
+    .F64   -> .F64Eq
+    .EqRef -> .RefEq
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/iter"
+import "std/testing"
+
+@test
+test_each_scalar_class_has_a_box_of_its_own :: fn() -> void {
+    gc :: gc_types_of(straight([]))
+    u8_box :: gc.of_box[.U8] else -1
+    i32_box :: gc.of_box[.I32] else -1
+    assert(u8_box >= 0 && i32_box >= 0 && u8_box != i32_box, "`u8` and `i32` box apart")
+    assert(gc.void_box == i32(gc.structs.len() - 1), "the box of void comes last")
+}
+
+// A program whose `main` runs `body`, over `types`: an `i32`, then the struct
+// `A { x: i32 }` and its twin `B`, then the union `A | B`.
+program_over_structs :: fn(body: Bc.Op[]) -> Bc.BytecodeModule {
+    program :: straight(body)
+    field :: Bc.BcField { .name = "x", .type_index = 0 }
+    a :: Bc.BcStruct {
+        .name = "A",
+        .fields = [field],
+        .c_name = "",
+        .symbol_id = -1,
+    }
+    b :: Bc.BcStruct { ...a, .name = "B" }
+    program.types = [Bc.BcScalar { .val = .I32 }, a, b, Bc.BcUnion { .variants = [1, 2] }]
+    return program
+}
+
+@test
+test_a_field_read_casts_the_reference_first :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.I32Const { .value = 3 },
+        Bc.StructNew { .type_id = 1, .stack = false },
+        Bc.StructGet { .type_id = 1, .field_index = 0 },
+        Bc.Return {},
+    ]
+    wasm :: wasm_module_of(program_over_structs(body), "") else panic(wasm.reason)
+    instrs :: wasm.functions[0].body
+    cast :: instrs[2]
+    read :: instrs[3]
+    assert(cast is RefCast && cast.type_index == 0, "the reference is cast to `A`")
+    assert(read is StructGet && read.type_index == 0 && read.field_index == 0, "then read")
+}
+
+@test
+test_a_field_write_keeps_the_value_aside :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.I32Const { .value = 3 },
+        Bc.StructNew { .type_id = 1, .stack = false },
+        Bc.I32Const { .value = 4 },
+        Bc.StructSet { .type_id = 1, .field_index = 0, .stack = false },
+        Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } },
+    ]
+    wasm :: wasm_module_of(program_over_structs(body), "") else panic(wasm.reason)
+    main :: wasm.functions[0]
+    assert(main.locals.len() == 1 && main.locals[0] == .I32, "one `i32` scratch local")
+    aside :: main.body[3]
+    assert(aside is LocalSet && aside.index == 0, "the value waits in it")
+}
+
+@test
+test_an_is_on_a_union_tests_each_variant :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.I32Const { .value = 3 },
+        Bc.StructNew { .type_id = 2, .stack = false },
+        Bc.TypeCheck { .type_id = 3 },
+        Bc.Return {},
+    ]
+    wasm :: wasm_module_of(program_over_structs(body), "") else panic(wasm.reason)
+    tests :: wasm.functions[0].body.filter_is<RefTest>().collect()
+    assert(tests.len() == 2, "one test per variant")
+    assert(tests[0].type_index == 0 && tests[1].type_index == 1, "`A`, then `B`")
+}
