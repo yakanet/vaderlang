@@ -1,0 +1,233 @@
+// vader/emit/wasm/emit: `BytecodeModule` -> `WasmModule`.
+//
+// One WASM function per bytecode function, in the same order, so that a
+// function index means the same in both; the entry is exported as `main`.
+// Only the ops of a function that returns a constant are translated so far:
+// any other op, or a value type with no WASM form yet, stops the emission with
+// `WasmUnsupported`, which names it.
+
+module "vader/emit/wasm"
+
+Bc :: import "vader/core/bytecode"
+import "std/collections"
+import "std/iter"
+import "std/string_builder"
+import "vader/emit/virt"
+
+/// Why a program could not be emitted for WASM: it uses what the emitter does
+/// not translate yet.
+export WasmUnsupported :: struct {
+    /// What is missing, worded to follow `vader build: `.
+    reason: string
+}
+
+WasmUnsupported implements Error -> self.reason
+
+/// Translate a program to the bytes of a `.wasm` file.
+///
+/// @param m              the program's bytecode.
+/// @param entry_mangled  the mangled name of its entry (`entry_function_index`).
+/// @return               a core module, one function per bytecode function,
+///                       exporting the entry as `main`.
+/// @error                `WasmUnsupported` on the first op or value type the
+///                       emitter does not translate yet.
+export wasm_binary_of :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> u8[] | WasmUnsupported {
+    wasm :: wasm_module_of(m, entry_mangled) else return wasm
+    return encode_module(wasm)
+}
+
+/// Translate a program to a WASM module.
+///
+/// @param m              the program's bytecode.
+/// @param entry_mangled  the mangled name of its entry (`entry_function_index`).
+/// @return               one function per bytecode function, in the same
+///                       order, and the entry exported as `main`.
+/// @error                `WasmUnsupported` on the first op or value type the
+///                       emitter does not translate yet.
+export wasm_module_of :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmModule | WasmUnsupported {
+    types :: TypeTable {}
+    functions: WasmFunction[]: []
+    for f in m.functions {
+        signature :: func_type_of(f) else return signature
+        locals :: value_types_of(f.locals.map((l) -> l.val).collect(), f.name) else return locals
+        body :: body_of(f) else return body
+        functions.push(
+            WasmFunction {
+                .type_index = types.intern(signature),
+                .locals = locals,
+                .body = body,
+            },
+        )
+    }
+    exports: WasmExport[]: []
+    entry :: Bc.entry_function_index(m, entry_mangled)
+    if entry != null {
+        exports.push(WasmExport { .name = "main", .function_index = entry })
+    }
+    return WasmModule {
+        .types = types.types,
+        .functions = functions,
+        .exports = exports,
+    }
+}
+
+// The function types of a module, each once, as the format wants them.
+TypeTable :: struct {
+    types: WasmFuncType[] = []
+    // The index in `types` of each `canonical_func_type_key`.
+    indices: Map<string, i32> = Map<string, i32> {}
+}
+
+// The index of `t` in the table, appended when it is not there yet.
+intern :: fn(table: TypeTable, t: WasmFuncType) -> i32 {
+    index :: table.indices.get_or_put(canonical_func_type_key(t), i32(table.types.len()))
+    if index == table.types.len() {
+        table.types.push(t)
+    }
+    return index
+}
+
+canonical_func_type_key :: fn(t: WasmFuncType) -> string {
+    sb :: StringBuilder {}
+    for p in t.params {
+        sb.append("${value_type_byte(p)},")
+    }
+    sb.append("->")
+    for r in t.results {
+        sb.append("${value_type_byte(r)},")
+    }
+    return sb.to_string()
+}
+
+func_type_of :: fn(f: Bc.BcFunction) -> WasmFuncType | WasmUnsupported {
+    params :: value_types_of(f.signature.params, f.name) else return params
+    results :: value_types_of(result_values(f.signature), f.name) else return results
+    return WasmFuncType { .params = params, .results = results }
+}
+
+// The values a function leaves: none for a `void` one, whose signature still
+// carries one `Void` entry.
+result_values :: fn(signature: Bc.BcSignature) -> Bc.ValType[] =
+    if Bc.bc_result_arity(signature) == 0 { [] } else { signature.results }
+
+value_types_of :: fn(values: Bc.ValType[], function: string) -> WasmValType[] | WasmUnsupported {
+    out: WasmValType[]: []
+    for v in values {
+        t :: value_type_of(v, function) else return t
+        out.push(t)
+    }
+    return out
+}
+
+value_type_of :: fn(v: Bc.ValType, function: string) -> WasmValType | WasmUnsupported = match v {
+    .I8 | .I16 | .I32 | .U8 | .U16 | .U32 | .Bool | .Char -> .I32
+    .I64 | .U64 -> .I64
+    .F32 | .F64 | .String | .Null | .Void | .Pointer | .Ref | .Any -> WasmUnsupported {
+        .reason = "`${function}`: no WASM form yet for a `${Bc.val_type_name(v)}` value",
+    }
+}
+
+body_of :: fn(f: Bc.BcFunction) -> WasmInstr[] | WasmUnsupported {
+    out: WasmInstr[]: []
+    for op in f.body {
+        match op {
+            is Bc.I32Const | Bc.I64Const -> {
+                literal :: constant_of(op, f.name) else return literal
+                out.push(literal)
+            }
+            is Bc.Return                 -> {
+                out.push(Return {})
+            }
+            is Bc.ReturnLit              -> {
+                literal :: constant_of(op.value, f.name) else return literal
+                out.push(literal)
+                out.push(Return {})
+            }
+            _                            -> {
+                return unsupported_op(op, f.name)
+            }
+        }
+    }
+    return out
+}
+
+constant_of :: fn(c: Bc.ConstOp, function: string) -> WasmInstr | WasmUnsupported = match c {
+    is Bc.I32Const -> I32Const { .value = c.value }
+    is Bc.I64Const -> I64Const { .value = c.value }
+    is Bc.F64Const | Bc.BoolConst | Bc.CharConst | Bc.NullConst | Bc.StringConst -> unsupported_op(
+        c,
+        function,
+    )
+}
+
+unsupported_op :: fn(op: Bc.Op, function: string) -> WasmUnsupported {
+    sb :: StringBuilder {}
+    sb.write_op(op)
+    return WasmUnsupported {
+        .reason = "`${function}`: no WASM translation yet for `${sb.to_string()}`",
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/testing"
+
+// A program of one function, the entry, returning an `i32` through `body`.
+program_of :: fn(body: Bc.Op[]) -> Bc.BytecodeModule {
+    signature :: Bc.BcSignature {
+        .params = [],
+        .results = [.I32],
+        .param_types = [],
+        .result_types = [2],
+        .param_names = [],
+    }
+    main :: Bc.BcFunction {
+        .name = "snippet\$main",
+        .is_main = true,
+        .signature = signature,
+        .locals = [],
+        .body = body,
+        .debug = [],
+        .jump_table = [],
+    }
+    return Bc.BytecodeModule {
+        .name = "_main",
+        .types = [],
+        .strings = [],
+        .data_pool = [],
+        .functions = [main],
+        .imports = [],
+        .exports = [],
+        .impl_table = [],
+        .vtables = [],
+    }
+}
+
+@test
+test_wasm_module_of_returns_a_constant :: fn() -> void {
+    program :: program_of([Bc.ReturnLit { .value = Bc.I32Const { .value = 42 } }])
+    wasm :: wasm_module_of(program, "") else panic(wasm.reason)
+    assert_eq(wasm.types.len(), 1)
+    assert(
+        wasm.types[0].results.len() == 1 && wasm.types[0].results[0] == .I32,
+        "main returns one i32",
+    )
+    assert_eq(wasm.functions[0].body.len(), 2)
+    assert_eq(wasm.exports[0].name, "main")
+}
+
+@test
+test_wasm_module_of_names_an_unsupported_op :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.I32Const { .value = 1 },
+        Bc.I32Const { .value = 2 },
+        Bc.I32Add {},
+        Bc.Return {},
+    ]
+    failure :: wasm_module_of(program_of(body), "")
+    assert(failure is WasmUnsupported, "an `i32.add` is not translated yet")
+    if failure is WasmUnsupported {
+        assert(failure.reason.contains("i32.add"), "the reason names the op")
+    }
+}

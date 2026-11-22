@@ -326,6 +326,36 @@ export BytecodeModule :: struct {
     globals: BcGlobal[] = []
 }
 
+/// Find the function a program starts at.
+///
+/// A multi-module program has several `main` functions, all flagged `is_main`,
+/// and the entry is not necessarily the first in the table: the one named
+/// `entry_mangled` wins (`dump_bytecode` stamps the same one as `export main N`).
+/// Without a name, the first `is_main` function with a body does.
+///
+/// @param m              the program's bytecode.
+/// @param entry_mangled  the mangled name of the designated entry, `""` for a
+///                       single-main program.
+/// @return               the entry's index in `m.functions`, null when the
+///                       program has none.
+export entry_function_index :: fn(m: BytecodeModule, entry_mangled: string) -> i32 | null {
+    if entry_mangled != "" {
+        for i in 0..<m.functions.len() {
+            f :: m.functions[i]
+            if f.name == entry_mangled && f.body.len() > 0 {
+                return i32(i)
+            }
+        }
+    }
+    for i in 0..<m.functions.len() {
+        f :: m.functions[i]
+        if f.is_main && f.body.len() > 0 {
+            return i32(i)
+        }
+    }
+    return null
+}
+
 /// A global slot of a module: storage that outlives every call, written only by
 /// code the compiler generates (`@singleton`).
 export BcGlobal :: struct {

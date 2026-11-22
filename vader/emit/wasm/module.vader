@@ -1,0 +1,54 @@
+// vader/emit/wasm/module: the WASM module the emitter builds, before its bytes.
+//
+// A typed value: `encode.vader` writes it in the binary format, and a WAT text
+// can be printed from the same value. It holds what the emitter produces so far
+// (function types, functions, exports, the instructions of a function that
+// returns a constant) and grows with it.
+
+module "vader/emit/wasm"
+
+/// A WASM value type.
+export WasmValType :: enum { I32, I64, F32, F64 }
+
+/// A function type: what a function takes, and what it leaves on the stack.
+export WasmFuncType :: struct {
+    params: WasmValType[]
+    results: WasmValType[]
+}
+
+/// One function the module defines.
+export WasmFunction :: struct {
+    /// Its type, an index into `WasmModule.types`.
+    type_index: i32
+    /// The locals declared past the parameters.
+    locals: WasmValType[]
+    /// The instructions, without the `end` that closes the body: the encoder
+    /// writes it.
+    body: WasmInstr[]
+}
+
+/// A function the module exports under a name.
+export WasmExport :: struct {
+    name: string
+    /// An index into `WasmModule.functions`.
+    function_index: i32
+}
+
+/// A core WASM module.
+export WasmModule :: struct {
+    types: WasmFuncType[]
+    functions: WasmFunction[]
+    exports: WasmExport[]
+}
+
+/// A WASM instruction.
+export WasmInstr :: I32Const | I64Const | Return
+
+/// `i32.const value`.
+export I32Const :: struct { value: i32 }
+
+/// `i64.const value`.
+export I64Const :: struct { value: i64 }
+
+/// `return`: leave the function with the values on top of the stack.
+export Return :: struct {}

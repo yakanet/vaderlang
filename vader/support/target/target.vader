@@ -74,6 +74,12 @@ Target implements Display -> "${self.os}-${self.arch}"
 /// @return  the host's OS and architecture.
 export host_target :: fn() -> Target = Target { .os = current_os(), .arch = current_arch() }
 
+/// Whether a program built for `target` is WebAssembly, which the WASM emitter
+/// writes instead of a C compiler (ADR 0175).
+///
+/// @param target  the target.
+export is_wasm :: fn(target: Target) -> bool = target.arch == .Wasm32
+
 // ---- parsing --------------------------------------------------------------
 
 /// Why a target string could not be read. Carries the offending fragment so the

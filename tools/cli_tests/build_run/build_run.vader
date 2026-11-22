@@ -1,7 +1,7 @@
 // tools/cli_tests/build_run/build_run: `vader build --run` builds, then runs the
 // program on the command's own standard streams, hands it what follows the path,
-// and exits with its code; and a build for another platform asks for its C
-// compiler.
+// and exits with its code; a build for another platform asks for its C
+// compiler, and one for WASM writes the module itself.
 //
 // The test reads the streams through pipes: what it reads is what the program
 // wrote to the streams it inherited from the command. The builds of a project
@@ -155,12 +155,10 @@ test_an_executable_for_another_platform_needs_a_c_compiler_for_it :: fn() -> voi
     // pass the check.
     dir :: staged("cross", program("app", 0))
     no_cc: [string, string | null][]: [["CC", ""]]
-    for target in [other_platform(), "browser-wasm32"] {
-        cross :: vader_in(dir, ["build", "--target=${target}", "main.vader"], no_cc)
-        assert(cross.exit == 2, "`${target}` exits with 2: ${cross.stderr}")
-        said :: "name a compiler for `${target}` with `--cc`"
-        assert(said in cross.stderr, cross.stderr)
-    }
+    cross :: vader_in(dir, ["build", "--target=${other_platform()}", "main.vader"], no_cc)
+    assert(cross.exit == 2, "`${other_platform()}` exits with 2: ${cross.stderr}")
+    said :: "name a compiler for `${other_platform()}` with `--cc`"
+    assert(said in cross.stderr, cross.stderr)
     // The C needs no compiler, whatever the target.
     argv :: [
         "build",
@@ -171,6 +169,33 @@ test_an_executable_for_another_platform_needs_a_c_compiler_for_it :: fn() -> voi
     ]
     emitted :: vader_in(dir, argv, no_cc)
     assert(emitted.exit == 0, emitted.stderr)
+}
+
+// A WASM executable is a module the compiler writes itself (ADR 0175).
+@test
+test_an_executable_for_wasm_is_a_module_that_needs_no_c_compiler :: fn() -> void {
+    dir :: staged(
+        "wasm",
+        """
+        module "main"
+
+        main :: fn() -> i32 {
+            return 42
+        }
+        """,
+    )
+    no_cc: [string, string | null][]: [["CC", ""]]
+    argv :: ["build", "--target=wasi-wasm32", "--out=${dir}/main.wasm", "main.vader"]
+    built :: vader_in(dir, argv, no_cc)
+    assert(built.exit == 0, built.stderr)
+    bytes :: read_file_bytes("${dir}/main.wasm") else {
+        fail("no module written: ${bytes.message()}")
+        return
+    }
+    assert(
+        bytes.len() > 8 && bytes[1] == 'a' && bytes[2] == 's' && bytes[3] == 'm',
+        "a WASM module",
+    )
 }
 
 @test

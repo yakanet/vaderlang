@@ -150,7 +150,7 @@ cmd_build :: fn(args: string[]) -> i32 {
     if input is i32 {
         return input
     }
-    if build_target != null && build_target != host_target() && emit == "executable"
+    if build_target != null && build_target != host_target() && needs_c_compiler(request)
         && input !is DrivenProject && refuses_foreign_executable(build_target, cc_flag) {
         return 2
     }

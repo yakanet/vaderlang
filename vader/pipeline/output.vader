@@ -12,6 +12,7 @@ import "std/console"
 import "std/path"
 import "vader/emit/c"
 import "vader/emit/virt"
+Wasm :: import "vader/emit/wasm"
 Prof :: import "vader/support/profile"
 import "vader/support/target"
 
@@ -98,8 +99,18 @@ wants_debug :: fn(request: BuildRequest) -> bool =
 marks_proven_bounds :: fn(request: BuildRequest) -> bool =
     request.emit != "bytecode-text" && (request.release || request.verify_bounds)
 
-// The OS the binary is built for: the request's target, the host's without one.
-target_os :: fn(request: BuildRequest) = (request.target else host_target()).os
+// The platform the program is built for: the request's target, the host without one.
+target_of :: fn(request: BuildRequest) = request.target else host_target()
+
+// The OS the binary is built for.
+target_os :: fn(request: BuildRequest) = target_of(request).os
+
+/// Whether the artefact `request` asks for goes through a C compiler: an
+/// executable does, except a WASM module, which the WASM emitter writes itself.
+///
+/// @param request  the emit kind and the target.
+export needs_c_compiler :: fn(request: BuildRequest) -> bool =
+    request.emit == "executable" && !target_of(request).is_wasm()
 
 /// What keeps a prepared program from being emitted or run, its diagnostics
 /// aside: a program without `main` has nothing to start at.
@@ -139,6 +150,9 @@ write_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: BuildReques
     // the single TU rather than being refused.
     split :: !resolved.no_split && resolved.out != "-"
     if resolved.emit == "executable" {
+        if !needs_c_compiler(resolved) {
+            return write_wasm(b, stem, resolved)
+        }
         out :: output_path(resolved.out, stem)
         if split {
             return build_native_split(b, file, out, resolved)
@@ -189,6 +203,21 @@ write_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: BuildReques
     if write_out(out, dump_bytecode(b.module, b.entry)) != 0 {
         return 1
     }
+    eprintln("vader build: wrote ${out.to_native()}")
+    return 0
+}
+
+// Write the `.wasm` module of a program built for a WASM target.
+write_wasm :: fn(b: CfgBytecode, stem: Path, request: BuildRequest) -> i32 {
+    bytes :: Wasm.wasm_binary_of(b.module, b.entry) else {
+        eprintln("vader build: ${bytes.reason}")
+        return 1
+    }
+    out :: output_path(request.out, "${stem}.wasm".to_path())
+    if write_out(out, bytes) != 0 {
+        return 1
+    }
+    Prof.end_program(out.filename())
     eprintln("vader build: wrote ${out.to_native()}")
     return 0
 }

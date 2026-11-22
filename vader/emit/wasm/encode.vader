@@ -1,0 +1,276 @@
+// vader/emit/wasm/encode: `WasmModule` -> the bytes of a `.wasm` file.
+//
+// The binary format of the WebAssembly core specification: the magic and the
+// version, then the sections in the order the format requires, each written as
+// its id, the byte size of its content, then the content. An integer is LEB128,
+// a vector is its length followed by its items.
+
+module "vader/emit/wasm"
+
+// ---- encoding -------------------------------------------------------------
+
+/// Write `m` in the WebAssembly binary format.
+///
+/// @param m  the module.
+/// @return   the bytes of a `.wasm` file.
+/// @example
+///   bytes :: encode_module(WasmModule { .types = [], .functions = [], .exports = [] })
+///   bytes.len()   // 8: the magic and the version alone
+export encode_module :: fn(m: WasmModule) -> u8[] {
+    out: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]
+    if m.types.len() > 0 {
+        out.push_section(SECTION_TYPE, type_section(m.types))
+    }
+    if m.functions.len() > 0 {
+        out.push_section(SECTION_FUNCTION, function_section(m.functions))
+    }
+    if m.exports.len() > 0 {
+        out.push_section(SECTION_EXPORT, export_section(m.exports))
+    }
+    if m.functions.len() > 0 {
+        out.push_section(SECTION_CODE, code_section(m.functions))
+    }
+    return out
+}
+
+SECTION_TYPE: u8: 1
+SECTION_FUNCTION: u8: 3
+SECTION_EXPORT: u8: 7
+SECTION_CODE: u8: 10
+
+// The byte that opens a function type.
+FUNC_TYPE: u8: 0x60
+// The export kind of a function.
+EXPORT_FUNCTION: u8: 0x00
+// The byte that closes an expression, a function body included.
+END: u8: 0x0B
+
+push_section :: fn(out: u8[], id: u8, content: u8[]) -> void {
+    out.push(id)
+    out.push_sized(content)
+}
+
+// `content` preceded by its byte size, as a section or a function body is.
+push_sized :: fn(out: u8[], content: u8[]) -> void {
+    out.push_count(content.len())
+    out.push_all(content)
+}
+
+// The length of a vector, or any other count.
+push_count :: fn(out: u8[], count: i64) -> void = out.push_unsigned(u64(count))
+
+type_section :: fn(types: WasmFuncType[]) -> u8[] {
+    out: u8[]: []
+    out.push_count(types.len())
+    for t in types {
+        out.push(FUNC_TYPE)
+        out.push_value_types(t.params)
+        out.push_value_types(t.results)
+    }
+    return out
+}
+
+function_section :: fn(functions: WasmFunction[]) -> u8[] {
+    out: u8[]: []
+    out.push_count(functions.len())
+    for f in functions {
+        out.push_count(i64(f.type_index))
+    }
+    return out
+}
+
+export_section :: fn(exports: WasmExport[]) -> u8[] {
+    out: u8[]: []
+    out.push_count(exports.len())
+    for e in exports {
+        out.push_name(e.name)
+        out.push(EXPORT_FUNCTION)
+        out.push_count(i64(e.function_index))
+    }
+    return out
+}
+
+code_section :: fn(functions: WasmFunction[]) -> u8[] {
+    out: u8[]: []
+    out.push_count(functions.len())
+    for f in functions {
+        out.push_sized(function_body(f))
+    }
+    return out
+}
+
+// The locals of `f`, one run of a type per entry, then its instructions and
+// the `end` that closes them.
+function_body :: fn(f: WasmFunction) -> u8[] {
+    runs :: local_runs(f.locals)
+    out: u8[]: []
+    out.push_count(runs.len())
+    for run in runs {
+        out.push_count(run.count)
+        out.push(value_type_byte(run.value_type))
+    }
+    for instr in f.body {
+        out.push_instr(instr)
+    }
+    out.push(END)
+    return out
+}
+
+// Consecutive locals of one type, which the format declares as one entry.
+LocalRun :: struct {
+    count: i64
+    value_type: WasmValType
+}
+
+local_runs :: fn(locals: WasmValType[]) -> LocalRun[] {
+    runs: LocalRun[]: []
+    for t in locals {
+        if runs.len() > 0 && runs[runs.len() - 1].value_type == t {
+            runs[runs.len() - 1].count += 1
+        } else {
+            runs.push(LocalRun { .count = 1, .value_type = t })
+        }
+    }
+    return runs
+}
+
+push_instr :: fn(out: u8[], instr: WasmInstr) -> void {
+    match instr {
+        is I32Const -> {
+            out.push(0x41)
+            out.push_signed(i64(instr.value))
+        }
+        is I64Const -> {
+            out.push(0x42)
+            out.push_signed(instr.value)
+        }
+        is Return   -> { out.push(0x0F) }
+    }
+}
+
+push_value_types :: fn(out: u8[], types: WasmValType[]) -> void {
+    out.push_count(types.len())
+    for t in types {
+        out.push(value_type_byte(t))
+    }
+}
+
+value_type_byte :: fn(t: WasmValType) -> u8 = match t {
+    .I32 -> 0x7F
+    .I64 -> 0x7E
+    .F32 -> 0x7D
+    .F64 -> 0x7C
+}
+
+// A name is a vector of UTF-8 bytes.
+push_name :: fn(out: u8[], name: string) -> void {
+    out.push_count(name.byte_len())
+    out.push_all(name.bytes())
+}
+
+// ---- LEB128 ---------------------------------------------------------------
+
+// Seven bits per byte, the low ones first; the high bit says another byte
+// follows.
+push_unsigned :: fn(out: u8[], value: u64) -> void {
+    rest := value
+    for rest >= 0x80 {
+        out.push(u8(rest & 0x7F) | 0x80)
+        rest = rest >> 7
+    }
+    out.push(u8(rest))
+}
+
+// Seven bits per byte as unsigned, and the last byte ends where the bits left
+// are all copies of its sign bit (0x40).
+push_signed :: fn(out: u8[], value: i64) -> void {
+    rest := value
+    done := false
+    for !done {
+        low :: rest & 0x7F
+        rest = rest >> 7
+        sign_clear :: low & 0x40 == 0
+        done = rest == 0 && sign_clear || rest == -1 && !sign_clear
+        out.push(u8(continued_byte(low, done)))
+    }
+}
+
+continued_byte :: fn(low: i64, last: bool) -> i64 = if last { low } else { low | 0x80 }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+unsigned_bytes :: fn(value: u64) -> u8[] {
+    out: u8[]: []
+    out.push_unsigned(value)
+    return out
+}
+
+signed_bytes :: fn(value: i64) -> u8[] {
+    out: u8[]: []
+    out.push_signed(value)
+    return out
+}
+
+// `assert_eq` takes no array: an array has no `Equals`.
+assert_bytes :: fn(actual: u8[], expected: u8[]) -> void =
+    assert(actual.content_equals(expected), "expected ${expected}, got ${actual}")
+
+@test
+test_unsigned_leb_one_byte :: fn() -> void {
+    assert_bytes(unsigned_bytes(0), [0x00])
+    assert_bytes(unsigned_bytes(127), [0x7F])
+}
+
+@test
+test_unsigned_leb_several_bytes :: fn() -> void {
+    assert_bytes(unsigned_bytes(128), [0x80, 0x01])
+    assert_bytes(unsigned_bytes(624485), [0xE5, 0x8E, 0x26])
+}
+
+@test
+test_signed_leb_positive :: fn() -> void {
+    assert_bytes(signed_bytes(42), [0x2A])
+    assert_bytes(signed_bytes(63), [0x3F])
+    assert_bytes(signed_bytes(64), [0xC0, 0x00])
+}
+
+@test
+test_signed_leb_negative :: fn() -> void {
+    assert_bytes(signed_bytes(-1), [0x7F])
+    assert_bytes(signed_bytes(-64), [0x40])
+    assert_bytes(signed_bytes(-65), [0xBF, 0x7F])
+    assert_bytes(signed_bytes(-123456), [0xC0, 0xBB, 0x78])
+}
+
+@test
+test_local_runs_group_consecutive_types :: fn() -> void {
+    runs :: local_runs([.I32, .I32, .I64, .I32])
+    assert_eq(runs.len(), 3)
+    assert_eq(runs[0].count, 2)
+    assert(runs[1].value_type == .I64, "the I64 local is a run of its own")
+}
+
+// The module `(func (export "main") (result i32) i32.const 42 return)`, as
+// `wasm-tools parse` writes it: the header, then one line per section.
+@test
+test_encode_module_returning_a_constant :: fn() -> void {
+    m :: WasmModule {
+        .types = [WasmFuncType { .params = [], .results = [.I32] }],
+        .functions = [
+            WasmFunction {
+                .type_index = 0,
+                .locals = [],
+                .body = [I32Const { .value = 42 }, Return {}],
+            },
+        ],
+        .exports = [WasmExport { .name = "main", .function_index = 0 }],
+    }
+    expected: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]
+    expected.push_all([0x01, 0x05, 0x01, 0x60, 0x00, 0x01, 0x7F])
+    expected.push_all([0x03, 0x02, 0x01, 0x00])
+    expected.push_all([0x07, 0x08, 0x01, 0x04, 0x6D, 0x61, 0x69, 0x6E, 0x00, 0x00])
+    expected.push_all([0x0A, 0x07, 0x01, 0x05, 0x00, 0x41, 0x2A, 0x0F, 0x0B])
+    assert_bytes(encode_module(m), expected)
+}
