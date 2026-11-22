@@ -20,7 +20,7 @@ main :: fn() -> i32 {
     job :: () -> bump(level)
     a :: launch(job)
     b :: launch(job)
-    a.join()
-    b.join()
+    _ :: a.join()
+    _ :: b.join()
     return 0
 }

@@ -14,6 +14,7 @@ import "std/fs"
 import "std/iter"
 import "std/path"
 import "std/string"
+import "std/testing"
 import "tools/cli_tests/cli"
 import "tools/cli_tests/rpc"
 
@@ -193,8 +194,8 @@ export drive :: fn(
 export write_files :: fn(dir: string, files: [string, string][]) -> void {
     for file in files {
         path :: "${dir}/${file.0}"
-        create_dir(to_path(path).parent().as_string())
-        write_file(path, file.1)
+        assert_succeeds(create_dir(to_path(path).parent().as_string()))
+        assert_succeeds(write_file(path, file.1))
     }
 }
 

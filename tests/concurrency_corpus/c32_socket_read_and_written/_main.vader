@@ -33,7 +33,7 @@ main :: fn() -> i32 {
     outbox :: Channel<string> { .capacity = 16 }
     a :: launch(() -> read_lines(conn, events))
     b :: launch(() -> drain_outbox(conn, outbox))
-    a.join()
-    b.join()
+    _ :: a.join()
+    _ :: b.join()
     return 0
 }

@@ -47,6 +47,6 @@ main :: fn() -> i32 {
     events.send(Said { .text = "hi" })
     events.close()
     t :: launch(() -> hub(events))
-    t.join()
+    _ :: t.join()
     return 0
 }

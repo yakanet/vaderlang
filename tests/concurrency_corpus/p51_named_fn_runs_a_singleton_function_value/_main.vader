@@ -19,6 +19,6 @@ work :: fn() -> void = current().work()
 
 main :: fn() -> i32 {
     t :: launch(work)
-    t.join()
+    _ :: t.join()
     return 0
 }

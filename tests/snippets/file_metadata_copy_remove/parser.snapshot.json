@@ -39,6 +39,14 @@
         "decorators": []
       },
       {
+        "kind": "ImportDecl",
+        "path": "std/testing",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "main",
         "visibility": "private",
@@ -86,14 +94,27 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "create_dir"
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "IdentExpr",
-                      "name": "dir"
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "create_dir"
+                      },
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "IdentExpr",
+                            "name": "dir"
+                          },
+                          "spread": false
+                        }
+                      ]
                     },
                     "spread": false
                   }
@@ -106,37 +127,50 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "write_file"
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "write_file"
+                      },
+                      "args": [
                         {
-                          "kind": "interpolation",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "dir"
-                          }
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "interpolation",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "dir"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": "/a.txt"
+                              }
+                            ]
+                          },
+                          "spread": false
                         },
                         {
-                          "kind": "text",
-                          "value": "/a.txt"
-                        }
-                      ]
-                    },
-                    "spread": false
-                  },
-                  {
-                    "name": null,
-                    "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "hello"
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "hello"
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },
@@ -275,44 +309,57 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "copy"
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "copy"
+                      },
+                      "args": [
                         {
-                          "kind": "interpolation",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "dir"
-                          }
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "interpolation",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "dir"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": "/a.txt"
+                              }
+                            ]
+                          },
+                          "spread": false
                         },
                         {
-                          "kind": "text",
-                          "value": "/a.txt"
-                        }
-                      ]
-                    },
-                    "spread": false
-                  },
-                  {
-                    "name": null,
-                    "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "interpolation",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "dir"
-                          }
-                        },
-                        {
-                          "kind": "text",
-                          "value": "/b.txt"
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "interpolation",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "dir"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": "/b.txt"
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },
@@ -327,44 +374,57 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "rename"
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "rename"
+                      },
+                      "args": [
                         {
-                          "kind": "interpolation",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "dir"
-                          }
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "interpolation",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "dir"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": "/b.txt"
+                              }
+                            ]
+                          },
+                          "spread": false
                         },
                         {
-                          "kind": "text",
-                          "value": "/b.txt"
-                        }
-                      ]
-                    },
-                    "spread": false
-                  },
-                  {
-                    "name": null,
-                    "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "interpolation",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "dir"
-                          }
-                        },
-                        {
-                          "kind": "text",
-                          "value": "/c.txt"
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "interpolation",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "dir"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": "/c.txt"
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },
@@ -379,34 +439,47 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "set_read_only"
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "set_read_only"
+                      },
+                      "args": [
                         {
-                          "kind": "interpolation",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "dir"
-                          }
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "interpolation",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "dir"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": "/c.txt"
+                              }
+                            ]
+                          },
+                          "spread": false
                         },
                         {
-                          "kind": "text",
-                          "value": "/c.txt"
+                          "name": null,
+                          "value": {
+                            "kind": "BoolLitExpr",
+                            "value": true
+                          },
+                          "spread": false
                         }
                       ]
-                    },
-                    "spread": false
-                  },
-                  {
-                    "name": null,
-                    "value": {
-                      "kind": "BoolLitExpr",
-                      "value": true
                     },
                     "spread": false
                   }

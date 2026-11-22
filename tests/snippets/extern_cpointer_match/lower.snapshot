@@ -44,7 +44,7 @@
               @unreachable("non-exhaustive match (T3013 should have caught this)")
           } :i32 | void
       }
-      std.fs.remove(path, RemoveOptions { .recursive = false, .force = false })
+      _: IOError | void = std.fs.remove(path, RemoveOptions { .recursive = false, .force = false })
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {

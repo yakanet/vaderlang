@@ -17,6 +17,6 @@ main :: fn() -> i32 {
     bump :: () -> { counter.n += 1 }
     t :: launch(() -> bump())
     bump()
-    t.join()
+    _ :: t.join()
     return counter.n - 2
 }

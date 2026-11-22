@@ -113,10 +113,10 @@ test_a_module_is_tested_without_the_tests_of_the_modules_it_imports :: fn() -> v
     // The test of `helper` does not compile: it stops the run of `helper`, and
     // is not loaded for the run of `app`.
     dir :: scratch_dir("test_other_modules")
-    create_dir("${dir}/app")
-    create_dir("${dir}/helper")
-    write_file("${dir}/vader.json", r"""{"entries": {"app": "app/app.vader"}}""")
-    write_file(
+    assert_succeeds(create_dir("${dir}/app"))
+    assert_succeeds(create_dir("${dir}/helper"))
+    assert_succeeds(write_file("${dir}/vader.json", r"""{"entries": {"app": "app/app.vader"}}"""))
+    assert_succeeds(write_file(
         "${dir}/helper/helper.vader",
         r"""
         module "helper"
@@ -131,8 +131,8 @@ test_a_module_is_tested_without_the_tests_of_the_modules_it_imports :: fn() -> v
             assert_eq(one(), wrong)
         }
         """,
-    )
-    write_file(
+    ))
+    assert_succeeds(write_file(
         "${dir}/app/app.vader",
         r"""
         module "app"
@@ -148,7 +148,7 @@ test_a_module_is_tested_without_the_tests_of_the_modules_it_imports :: fn() -> v
             assert_eq(main(), 1)
         }
         """,
-    )
+    ))
     own :: vader_in(dir, ["test", "app"])
     assert(own.exit == 0 && "1 pass" in own.stdout, own.stdout + own.stderr)
     other :: vader_in(dir, ["test", "helper"])
@@ -161,7 +161,7 @@ test_a_test_is_checked_by_vader_test_alone :: fn() -> void {
     // nor an import only they use shows, `std/string` included, which serves
     // through `in` alone.
     dir :: scratch_dir("test_checked_alone")
-    write_file(
+    assert_succeeds(write_file(
         "${dir}/app.vader",
         r"""
         module "app"
@@ -178,7 +178,7 @@ test_a_test_is_checked_by_vader_test_alone :: fn() -> void {
             assert_eq(main(), wrong)
         }
         """,
-    )
+    ))
     checked :: vader_in(dir, ["check", "app.vader"])
     assert(checked.exit == 0 && checked.stderr == "", checked.stdout + checked.stderr)
     tested :: vader_in(dir, ["test", "app.vader"])
@@ -190,7 +190,7 @@ test_a_test_is_checked_by_vader_test_alone :: fn() -> void {
 test_list_names_the_tests_of_a_module_that_does_not_type_check :: fn() -> void {
     // Listing compiles nothing: the error waits for the run.
     dir :: scratch_dir("test_list_unchecked")
-    write_file(
+    assert_succeeds(write_file(
         "${dir}/app.vader",
         r"""
         module "app"
@@ -205,7 +205,7 @@ test_list_names_the_tests_of_a_module_that_does_not_type_check :: fn() -> void {
             assert_eq(main(), wrong)
         }
         """,
-    )
+    ))
     listing :: vader_in(dir, ["test", "--list", "app.vader"])
     assert(listing.exit == 0, listing.stdout + listing.stderr)
     assert_eq(listing.stdout.trim(), "app:app.vader:test_main")
@@ -216,11 +216,13 @@ test_a_folder_is_tested_within_the_project_above_it :: fn() -> void {
     // Run from inside `app`, which holds no `vader.json`: `helper` is found from
     // the project above.
     dir :: scratch_dir("test_project_above")
-    create_dir("${dir}/app")
-    create_dir("${dir}/helper")
-    write_file("${dir}/vader.json", r"""{"entries": {"app": "app/app.vader"}}""")
-    write_file("${dir}/helper/helper.vader", "module \"helper\"\n\nexport one :: fn() -> i32 = 1\n")
-    write_file(
+    assert_succeeds(create_dir("${dir}/app"))
+    assert_succeeds(create_dir("${dir}/helper"))
+    assert_succeeds(write_file("${dir}/vader.json", r"""{"entries": {"app": "app/app.vader"}}"""))
+    assert_succeeds(
+        write_file("${dir}/helper/helper.vader", "module \"helper\"\n\nexport one :: fn() -> i32 = 1\n"),
+    )
+    assert_succeeds(write_file(
         "${dir}/app/app.vader",
         r"""
         module "app"
@@ -236,7 +238,7 @@ test_a_folder_is_tested_within_the_project_above_it :: fn() -> void {
             assert_eq(main(), 1)
         }
         """,
-    )
+    ))
     inside :: vader_in("${dir}/app", ["test", "."])
     assert(inside.exit == 0 && "1 pass" in inside.stdout, inside.stdout + inside.stderr)
 }

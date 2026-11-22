@@ -20,7 +20,7 @@ main :: fn() -> i32 {
     stats :: Stats {}
     a :: launch(() -> count_into(stats, "a.log"))
     b :: launch(() -> count_into(stats, "b.log"))
-    a.join()
-    b.join()
+    _ :: a.join()
+    _ :: b.join()
     return i32(stats.lines) - 2
 }

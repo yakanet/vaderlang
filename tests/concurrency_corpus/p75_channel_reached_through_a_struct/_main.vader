@@ -28,6 +28,6 @@ main :: fn() -> i32 {
     w.jobs.send(1)
     w.jobs.send(2)
     w.jobs.close()
-    t.join()
+    _ :: t.join()
     return i32(w.done.load()) - 2
 }

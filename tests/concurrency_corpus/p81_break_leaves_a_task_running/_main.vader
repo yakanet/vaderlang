@@ -21,7 +21,7 @@ main :: fn() -> i32 {
         if i == 1 {
             break
         }
-        t.join()
+        _ :: t.join()
     }
     return count.n
 }

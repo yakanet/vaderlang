@@ -21,6 +21,6 @@ main :: fn() -> i32 {
     b :: Button { .on_click = () -> { counter.n += 1 } }
     t :: launch(() -> b.on_click())
     counter.n += 1
-    t.join()
+    _ :: t.join()
     return counter.n
 }

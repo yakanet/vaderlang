@@ -18,7 +18,7 @@ main :: fn() -> i32 {
     a :: launch(() -> { hits.n += 1 })
     b :: launch(() -> { misses.n += 1 })
     for t in [a, b] {
-        t.join()
+        _ :: t.join()
     }
     return hits.n + misses.n
 }

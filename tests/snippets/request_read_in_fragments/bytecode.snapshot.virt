@@ -27,7 +27,9 @@ type 24 struct std_io$FailingWriter { sink:27,calls:11,failure:4,seen:11 }
 type 25 ref std_io$Reader
 type 26 union 4,0
 type 27 ref std_io$Writer
-type 28 array 4
+type 28 union 29,1
+type 29 ref std_core$Error
+type 30 array 4
 string 0 "POST /notes HTTP/1.1\r\nContent-Length: 5\r\n\r\nhello and more"
 string 1 "start: "
 string 2 "header: "
@@ -88,14 +90,17 @@ string 56 "AddressNotAvailable"
 string 57 "NotConnected"
 string 58 "TimedOut"
 string 59 "NoDescriptor"
-string 60 "the stream failed"
-data 0 structs 4 3 1 strref 60 u8 00 i32 00000000
+string 60 "assert_succeeds failed: "
+string 61 "the stream failed"
+data 0 structs 4 3 1 strref 61 u8 00 i32 00000000
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=11 param_types=5 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=7 param_types=5 param_c_out= param_by_address= (string) -> ref
 import 2 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=5 param_types=7 param_c_out= param_by_address= (ref) -> string
-import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=11 param_types=2,7,11 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+import 3 panic std_core$Intrinsic$panic intrinsic=panic result_type=1 param_types=5 param_c_out= param_by_address= (string) -> void
+import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=11 param_types=2,7,11 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 4 std_core$Error
 impl 19 std_io$Reader
 impl 20 std_io$Writer
 impl 22 std_io$Reader
@@ -103,15 +108,15 @@ impl 23 std_io$Reader
 impl 24 std_io$Writer
 impl 14 std_io$Reader
 impl 16 std_io$Writer
-impl 4 std_core$Error
 impl 10 std_core$ByteAccess
-vtable std_io$Reader.read 19 26
-vtable std_io$Reader.read 22 28
-vtable std_io$Reader.read 23 29
-vtable std_io$Reader.read 14 31
-vtable std_io$Writer.write 20 27
-vtable std_io$Writer.write 24 30
-vtable std_io$Writer.write 16 32
+vtable std_core$Error.message 4 26
+vtable std_io$Reader.read 19 27
+vtable std_io$Reader.read 22 29
+vtable std_io$Reader.read 23 30
+vtable std_io$Reader.read 14 32
+vtable std_io$Writer.write 20 28
+vtable std_io$Writer.write 24 31
+vtable std_io$Writer.write 16 33
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -259,8 +264,8 @@ fn 0 snippet$main () -> i32
   local.tee 1   ; $arr_8
   string.const 13   ; "HTTP/1.1 "
   retag 5   ; string
-  call 32   ; std_io$BufferedWriter$Writer$write
-  drop
+  call 33   ; std_io$BufferedWriter$Writer$write
+  call 36   ; std_testing$assert_succeeds
   i64.const 43
   buffer.new
   local.set 3   ; __buf_0
@@ -286,8 +291,8 @@ fn 0 snippet$main () -> i32
   local.get 1   ; $arr_8
   string.const 15   ; "204 No Content\r\n"
   retag 5   ; string
-  call 32   ; std_io$BufferedWriter$Writer$write
-  drop
+  call 33   ; std_io$BufferedWriter$Writer$write
+  call 36   ; std_testing$assert_succeeds
   i64.const 52
   buffer.new
   local.set 3   ; __buf_0
@@ -316,8 +321,8 @@ fn 0 snippet$main () -> i32
   local.set 3   ; __buf_0
   local.get 1   ; $arr_8
   local.get 3   ; __buf_0
-  call 32   ; std_io$BufferedWriter$Writer$write
-  drop
+  call 33   ; std_io$BufferedWriter$Writer$write
+  call 36   ; std_testing$assert_succeeds
   i64.const 38
   buffer.new
   local.set 3   ; __buf_0
@@ -342,7 +347,7 @@ fn 0 snippet$main () -> i32
   call 14   ; std_console$println__string
   local.get 1   ; $arr_8
   call 20   ; std_io$flush
-  drop
+  call 36   ; std_testing$assert_succeeds
   i64.const 37
   buffer.new
   local.set 1   ; $arr_8
@@ -419,9 +424,9 @@ fn 0 snippet$main () -> i32
   i64.const 4
   struct.new 22   ; std_io$FragmentedReader
   local.set 0   ; $struct_5
-  data.const 0 28   ; pool[0] std_io$IOError[]
+  data.const 0 30   ; pool[0] std_io$IOError[]
   i64.const 0
-  array.get 28 safe   ; std_io$IOError[]
+  array.get 30 safe   ; std_io$IOError[]
   local.set 1   ; $arr_8
   local.get 0   ; $struct_5
   i64.const 1
@@ -479,7 +484,7 @@ fn 0 snippet$main () -> i32
   local.tee 0   ; $struct_5
   string.const 25   ; "late"
   retag 5   ; string
-  call 32   ; std_io$BufferedWriter$Writer$write
+  call 33   ; std_io$BufferedWriter$Writer$write
   call 3   ; snippet$outcome
   local.set 2   ; $call_16
   string.const 24   ; "gathered: "
@@ -538,7 +543,7 @@ fn 3 snippet$outcome (any) -> string
   local.get 0   ; arg 0
   ref.cast 4   ; std_io$IOError
   struct.get 4 1   ; std_io$IOError.kind
-  call 33   ; std_io$IOErrorKind$std_core$Display$to_string
+  call 34   ; std_io$IOErrorKind$std_core$Display$to_string
   local.set 1   ; $call_4
   local.get 0   ; arg 0
   ref.cast 4   ; std_io$IOError
@@ -886,16 +891,16 @@ fn 13 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 3   ; system_posix$sys_write
+  call.import 4   ; system_posix$sys_write
   local.tee 4   ; written
   i64.const 0
   i64.lt
   if $L1 void
-    call.import 4   ; system_posix$sys_last_errno
+    call.import 5   ; system_posix$sys_last_errno
     i32.const 32
     i32.eq
     if $L2 void
-      call.import 5   ; system_posix$sys_end_on_broken_pipe
+      call.import 6   ; system_posix$sys_end_on_broken_pipe
       local.get 4   ; written
       i64.to_i32
       return
@@ -1192,7 +1197,7 @@ fn 17 std_io$peek (ref,i64) -> any
   local.set 8   ; $field_35
   local.get 3   ; $field_6
   local.get 1   ; arg 1
-  call 35   ; std_math$min__i64
+  call 37   ; std_math$min__i64
   local.set 3   ; $field_6
   local.get 8   ; $field_35
   local.get 3   ; $field_6
@@ -1245,7 +1250,7 @@ fn 18 std_io$read_exact (ref,i64) -> any
       local.set 5   ; $slice_16
       local.get 0   ; arg 0
       local.get 5   ; $slice_16
-      call 31   ; std_io$BufferedReader$Reader$read
+      call 32   ; std_io$BufferedReader$Reader$read
       local.tee 6   ; __fallback_0
       local.set 7   ; got
       local.get 6   ; __fallback_0
@@ -1780,7 +1785,13 @@ fn 25 std_io$reserve (ref) -> void
   return
 end
 
-fn 26 std_io$BytesReader$Reader$read (ref,ref) -> any
+fn 26 std_io$IOError$std_core$Error$message (ref) -> string
+  local.field 0 4 0   ; arg 0 std_io$IOError.msg
+  ref.cast 5   ; string
+  return
+end
+
+fn 27 std_io$BytesReader$Reader$read (ref,ref) -> any
   local bytes ref
   local $len_9 i64
   local $field_10 i64
@@ -1794,7 +1805,7 @@ fn 26 std_io$BytesReader$Reader$read (ref,ref) -> any
     return
   end $L0
   local.field 0 19 0   ; arg 0 std_io$BytesReader.content
-  call 34   ; std_io$bytes_of
+  call 35   ; std_io$bytes_of
   local.tee 2   ; bytes
   array.len
   local.set 3   ; $len_9
@@ -1814,7 +1825,7 @@ fn 26 std_io$BytesReader$Reader$read (ref,ref) -> any
     local.set 4   ; $field_10
     local.get 3   ; $len_9
     local.get 4   ; $field_10
-    call 35   ; std_math$min__i64
+    call 37   ; std_math$min__i64
     local.set 3   ; $len_9
     local.field 0 19 1   ; arg 0 std_io$BytesReader.position
     ref.cast 11   ; i64
@@ -1840,13 +1851,13 @@ fn 26 std_io$BytesReader$Reader$read (ref,ref) -> any
   return.lit null.const
 end
 
-fn 27 std_io$BytesWriter$Writer$write (ref,any) -> any
+fn 28 std_io$BytesWriter$Writer$write (ref,any) -> any
   local $field_2 ref
   local $call_3 ref
   local.field 0 20 0   ; arg 0 std_io$BytesWriter.written
   local.set 2   ; $field_2
   local.get 1   ; arg 1
-  call 34   ; std_io$bytes_of
+  call 35   ; std_io$bytes_of
   local.set 3   ; $call_3
   local.get 2   ; $field_2
   local.get 3   ; $call_3
@@ -1855,7 +1866,7 @@ fn 27 std_io$BytesWriter$Writer$write (ref,any) -> any
   return
 end
 
-fn 28 std_io$FragmentedReader$Reader$read (ref,ref) -> any
+fn 29 std_io$FragmentedReader$Reader$read (ref,ref) -> any
   local $field_2 any
   local $len_4 i64
   local $field_5 i64
@@ -1869,7 +1880,7 @@ fn 28 std_io$FragmentedReader$Reader$read (ref,ref) -> any
   local.set 4   ; $field_5
   local.get 3   ; $len_4
   local.get 4   ; $field_5
-  call 35   ; std_math$min__i64
+  call 37   ; std_math$min__i64
   local.set 3   ; $len_4
   local.get 1   ; arg 1
   i64.const 0
@@ -1880,7 +1891,7 @@ fn 28 std_io$FragmentedReader$Reader$read (ref,ref) -> any
   return
 end
 
-fn 29 std_io$FailingReader$Reader$read (ref,ref) -> any
+fn 30 std_io$FailingReader$Reader$read (ref,ref) -> any
   local $field_2 i64
   local $field_3 i64
   local __spread_0 ref
@@ -1931,7 +1942,7 @@ fn 29 std_io$FailingReader$Reader$read (ref,ref) -> any
   return
 end
 
-fn 30 std_io$FailingWriter$Writer$write (ref,any) -> any
+fn 31 std_io$FailingWriter$Writer$write (ref,any) -> any
   local $field_2 i64
   local $field_3 i64
   local __spread_0 ref
@@ -1982,7 +1993,7 @@ fn 30 std_io$FailingWriter$Writer$write (ref,any) -> any
   return
 end
 
-fn 31 std_io$BufferedReader$Reader$read (ref,ref) -> any
+fn 32 std_io$BufferedReader$Reader$read (ref,ref) -> any
   local $field_6 i64
   local $field_7 i64
   local $field_12 any
@@ -2055,7 +2066,7 @@ fn 31 std_io$BufferedReader$Reader$read (ref,ref) -> any
   local.set 3   ; $field_7
   local.get 2   ; $field_6
   local.get 3   ; $field_7
-  call 35   ; std_math$min__i64
+  call 37   ; std_math$min__i64
   local.set 2   ; $field_6
   local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
   local.set 6   ; $field_28
@@ -2081,14 +2092,14 @@ fn 31 std_io$BufferedReader$Reader$read (ref,ref) -> any
   return
 end
 
-fn 32 std_io$BufferedWriter$Writer$write (ref,any) -> any
+fn 33 std_io$BufferedWriter$Writer$write (ref,any) -> any
   local bytes ref
   local $len_5 i64
   local $len_6 i64
   local __fallback_0 any
   local flushed any
   local.get 1   ; arg 1
-  call 34   ; std_io$bytes_of
+  call 35   ; std_io$bytes_of
   local.set 2   ; bytes
   local.field 0 16 2   ; arg 0 std_io$BufferedWriter.buffer
   array.len
@@ -2144,7 +2155,7 @@ fn 32 std_io$BufferedWriter$Writer$write (ref,any) -> any
   return
 end
 
-fn 33 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
+fn 34 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 0
@@ -2319,7 +2330,7 @@ fn 33 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   return
 end
 
-fn 34 std_io$bytes_of (any) -> ref
+fn 35 std_io$bytes_of (any) -> ref
   local.get 0   ; arg 0
   type_check 5   ; string
   if $L0 void
@@ -2333,7 +2344,25 @@ fn 34 std_io$bytes_of (any) -> ref
   return
 end
 
-fn 35 std_math$min__i64 (i64,i64) -> i64
+fn 36 std_testing$assert_succeeds (any) -> void
+  local $vcall_4 string
+  local.get 0   ; arg 0
+  type_check 29   ; ref std_core$Error
+  if $L0 void
+  else
+    return
+  end $L0
+  local.get 0   ; arg 0
+  virtual.call 1 std_core$Error.message -> string
+  local.set 1   ; $vcall_4
+  string.const 60   ; "assert_succeeds failed: "
+  local.get 1   ; $vcall_4
+  call 4   ; concat_2
+  call.import 3   ; std_core$Intrinsic$panic
+  unreachable "a no-return call returned"
+end
+
+fn 37 std_math$min__i64 (i64,i64) -> i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i64.lt

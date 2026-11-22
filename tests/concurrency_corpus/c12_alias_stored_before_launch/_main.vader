@@ -48,6 +48,6 @@ main :: fn() -> i32 {
     history.push(level)
     ai :: launch(() -> think(level))
     history[0].bots.clear()
-    ai.join()
+    _ :: ai.join()
     return 0
 }

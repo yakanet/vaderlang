@@ -14,7 +14,7 @@ import "std/task"
 main :: fn() -> i32 {
     first :: launch(() -> read_line())
     second :: launch(() -> read_line())
-    join(first)
-    join(second)
+    _ :: join(first)
+    _ :: join(second)
     return 0
 }

@@ -20,6 +20,6 @@ apply :: fn(work: fn() -> void) -> void = work()
 
 main :: fn() -> i32 {
     t :: launch(() -> apply(upload))
-    t.join()
+    _ :: t.join()
     return 0
 }

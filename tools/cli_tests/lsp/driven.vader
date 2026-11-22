@@ -64,14 +64,14 @@ import "std/testing"
 @test
 test_the_server_reads_the_search_roots_a_driver_declares :: fn() -> void {
     dir :: scratch_dir("lsp_driven")
-    create_dir("${dir}/src")
-    create_dir("${dir}/vendor/greet")
-    write_file("${dir}/build.vader", ROOTED_DRIVER)
-    write_file("${dir}/src/main.vader", GREETED_MAIN)
-    write_file(
+    assert_succeeds(create_dir("${dir}/src"))
+    assert_succeeds(create_dir("${dir}/vendor/greet"))
+    assert_succeeds(write_file("${dir}/build.vader", ROOTED_DRIVER))
+    assert_succeeds(write_file("${dir}/src/main.vader", GREETED_MAIN))
+    assert_succeeds(write_file(
         "${dir}/vendor/greet/greet.vader",
         "module \"greet\"\n\nexport greeting :: fn() -> string = \"hi\"\n",
-    )
+    ))
     compiled :: described(dir)
     assert_eq(compiled.exit, 0)
     assert("packaged" !in compiled.stderr, compiled.stderr)
@@ -85,7 +85,9 @@ test_the_server_reads_the_search_roots_a_driver_declares :: fn() -> void {
     // resolves.
     after_first :: mark(client)
     driver :: "${dir}/build.vader"
-    write_file(driver, ROOTED_DRIVER.replace_all("    ctx.include_paths.push(\"vendor\")\n", ""))
+    assert_succeeds(
+        write_file(driver, ROOTED_DRIVER.replace_all("    ctx.include_paths.push(\"vendor\")\n", "")),
+    )
     assert_eq(described(dir).exit, 0)
     saved :: """{"textDocument":{"uri":${quoted(file_uri(driver))}}}"""
     client.send(notification("textDocument/didSave", saved))
@@ -97,10 +99,10 @@ test_the_server_reads_the_search_roots_a_driver_declares :: fn() -> void {
 @test
 test_the_server_refuses_a_project_with_both_a_driver_and_a_manifest :: fn() -> void {
     dir :: scratch_dir("lsp_both")
-    create_dir("${dir}/src")
-    write_file("${dir}/build.vader", ROOTED_DRIVER)
-    write_file("${dir}/vader.json", r"""{"entries": {"app": "src/main.vader"}}""")
-    write_file("${dir}/src/main.vader", GREETED_MAIN)
+    assert_succeeds(create_dir("${dir}/src"))
+    assert_succeeds(write_file("${dir}/build.vader", ROOTED_DRIVER))
+    assert_succeeds(write_file("${dir}/vader.json", r"""{"entries": {"app": "src/main.vader"}}"""))
+    assert_succeeds(write_file("${dir}/src/main.vader", GREETED_MAIN))
     client :: start_client(dir, "{}", RunOptions { .cwd = dir, .env = toolchain_env() })
     uri :: file_uri("${dir}/src/main.vader")
     client.send(did_open(uri, GREETED_MAIN))

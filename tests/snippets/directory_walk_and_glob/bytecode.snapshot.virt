@@ -41,45 +41,47 @@ type 38 union 2,36,20
 type 39 union 7,20
 type 40 array 20
 type 41 fn (3) -> 4
-type 42 union 36,0
-type 43 fn (14,14) -> 4
-type 44 fn (5,5) -> 4
-type 45 array 46
-type 46 ref _
-type 47 fn (46,46) -> 4
-type 48 struct std_string$StringChars { s:5,cursor:7 }
-type 49 union 8,16
-type 50 struct std_glob$GlobOptions { pathname:4,globstar:4,explicit_period:4 }
-type 51 union 52,29
-type 52 struct std_glob$Glob { options:50,tokens:71 }
-type 53 array 8
-type 54 union 55,29
-type 55 struct __Tuple_2_ca1b4b98917b36a8 { _0:56,_1:7 }
-type 56 union 57,58,59,60,61,62
-type 57 struct std_glob$GlobAnyChar {  }
-type 58 struct std_glob$GlobBracket { ranges:72,classes:9,negated:4 }
-type 59 struct std_glob$GlobDeepStar {  }
-type 60 struct std_glob$GlobDirectories {  }
-type 61 struct std_glob$GlobLiteral { ch:8 }
-type 62 struct std_glob$GlobStar {  }
-type 63 array 4
-type 64 union 65,29,0
-type 65 struct __Tuple_u8_i64_485b013f { _0:10,_1:7 }
+type 42 union 43,1
+type 43 ref std_core$Error
+type 44 union 36,0
+type 45 fn (14,14) -> 4
+type 46 fn (5,5) -> 4
+type 47 array 48
+type 48 ref _
+type 49 fn (48,48) -> 4
+type 50 struct std_string$StringChars { s:5,cursor:7 }
+type 51 union 8,16
+type 52 struct std_glob$GlobOptions { pathname:4,globstar:4,explicit_period:4 }
+type 53 union 54,29
+type 54 struct std_glob$Glob { options:52,tokens:73 }
+type 55 array 8
+type 56 union 57,29
+type 57 struct __Tuple_2_ca1b4b98917b36a8 { _0:58,_1:7 }
+type 58 union 59,60,61,62,63,64
+type 59 struct std_glob$GlobAnyChar {  }
+type 60 struct std_glob$GlobBracket { ranges:74,classes:9,negated:4 }
+type 61 struct std_glob$GlobDeepStar {  }
+type 62 struct std_glob$GlobDirectories {  }
+type 63 struct std_glob$GlobLiteral { ch:8 }
+type 64 struct std_glob$GlobStar {  }
+type 65 array 4
 type 66 union 67,29,0
-type 67 struct __Tuple_char_i64_d35e0494 { _0:8,_1:7 }
-type 68 union 69,0
-type 69 struct __Tuple_i64_i64_f049c617 { _0:7,_1:7 }
-type 70 union 0,10
-type 71 array 56
-type 72 array 73
-type 73 struct std_glob$GlobRange { low:8,high:8 }
-type 74 struct std_string__builder$StringBuilder { parts:15 }
-type 75 fn () -> 1
-type 76 array 16
-type 77 array 57
-type 78 array 62
+type 67 struct __Tuple_u8_i64_485b013f { _0:10,_1:7 }
+type 68 union 69,29,0
+type 69 struct __Tuple_char_i64_d35e0494 { _0:8,_1:7 }
+type 70 union 71,0
+type 71 struct __Tuple_i64_i64_f049c617 { _0:7,_1:7 }
+type 72 union 0,10
+type 73 array 58
+type 74 array 75
+type 75 struct std_glob$GlobRange { low:8,high:8 }
+type 76 struct std_string__builder$StringBuilder { parts:15 }
+type 77 fn () -> 1
+type 78 array 16
 type 79 array 59
-type 80 array 60
+type 80 array 64
+type 81 array 61
+type 82 array 62
 string 0 "/vader_snippet_walk"
 string 1 "/src/front"
 string 2 "/node_modules/x"
@@ -165,68 +167,72 @@ string 81 "AddressNotAvailable"
 string 82 "NotConnected"
 string 83 "TimedOut"
 string 84 "NoDescriptor"
-string 85 "a trailing `\\` quotes nothing"
-string 86 "a class cannot start a range"
-string 87 "the range `"
-string 88 "-"
-string 89 "` is reversed"
-string 90 "POSIX names no class `[:"
-string 91 ":]`"
-string 92 "a class cannot end a range"
-string 93 "the POSIX locale has no element `["
-string 94 "]`"
-string 95 "alnum"
-string 96 "alpha"
-string 97 "blank"
-string 98 "cntrl"
-string 99 "digit"
-string 100 "graph"
-string 101 "lower"
-string 102 "print"
-string 103 "punct"
-string 104 "space"
-string 105 "upper"
-string 106 "xdigit"
-string 107 "path contains a NUL byte"
-string 108 "file is closed"
-data 0 structs 20 3 1 strref 107 u8 0a i32 00000000
-data 1 structs 20 3 1 strref 108 u8 0c i32 00000000
+string 85 "assert_succeeds failed: "
+string 86 "a trailing `\\` quotes nothing"
+string 87 "a class cannot start a range"
+string 88 "the range `"
+string 89 "-"
+string 90 "` is reversed"
+string 91 "POSIX names no class `[:"
+string 92 ":]`"
+string 93 "a class cannot end a range"
+string 94 "the POSIX locale has no element `["
+string 95 "]`"
+string 96 "alnum"
+string 97 "alpha"
+string 98 "blank"
+string 99 "cntrl"
+string 100 "digit"
+string 101 "graph"
+string 102 "lower"
+string 103 "print"
+string 104 "punct"
+string 105 "space"
+string 106 "upper"
+string 107 "xdigit"
+string 108 "path contains a NUL byte"
+string 109 "file is closed"
+data 0 structs 20 3 1 strref 108 u8 0a i32 00000000
+data 1 structs 20 3 1 strref 109 u8 0c i32 00000000
 data 2 structs 16 0 1
-data 3 structs 57 0 1
-data 4 structs 62 0 1
-data 5 structs 59 0 1
-data 6 structs 60 0 1
+data 3 structs 59 0 1
+data 4 structs 64 0 1
+data 5 structs 61 0 1
+data 6 structs 62 0 1
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=5 param_c_out= param_by_address= (string) -> i64
 import 1 byte_at std_core$Intrinsic$byte_at intrinsic=byte_at result_type=10 param_types=5,7 param_c_out= param_by_address= (string,i64) -> u8
 import 2 byte_slice std_core$Intrinsic$byte_slice intrinsic=byte_slice result_type=5 param_types=5,7,7 param_c_out= param_by_address= (string,i64,i64) -> string
 import 3 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=5 param_c_out= param_by_address= (string) -> ref
 import 4 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=5 param_types=9 param_c_out= param_by_address= (ref) -> string
-import 5 current_os std_core$Intrinsic$current_os intrinsic=current_os result_type=10 () -> u8
-import 6 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 7 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=42 param_types=5 param_c_out= param_by_address= (string) -> any
-import 8 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=36 param_c_out= param_by_address= (pointer) -> i32
-import 9 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 10 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
-import 11 extern :vader_path_kind system_posix$sys_path_kind headers=vader.h result_type=2 param_types=5 param_c_out= param_by_address= (string) -> i32
-import 12 extern :vader_path_stat system_posix$sys_path_stat headers=vader.h result_type=2 param_types=5,2,33 param_c_out=0,0,1 param_by_address= (string,i32,ref) -> i32
-import 13 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=42 param_types=36 param_c_out= param_by_address= (pointer) -> any
-import 14 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=5 param_types=36 param_c_out= param_by_address= (pointer) -> string
-import 15 extern :vader_dirent_kind system_posix$dirent_kind headers=vader.h result_type=2 param_types=36 param_c_out= param_by_address= (pointer) -> i32
-import 16 extern :close system_posix$sys_close headers=<unistd.h> result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
-import 17 extern :mkdir system_posix$sys_mkdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=5,11 param_c_out= param_by_address= (string,u32) -> i32
-import 18 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=2 param_types=5 param_c_out= param_by_address= (string) -> i32
-import 19 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=2 param_types=5 param_c_out= param_by_address= (string) -> i32
-import 20 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=5,2,2 param_c_out= param_by_address= (string,i32,i32) -> i32
-import 21 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
-import 22 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=17 param_types=5 param_c_out= param_by_address= (string) -> any
+import 5 panic std_core$Intrinsic$panic intrinsic=panic result_type=1 param_types=5 param_c_out= param_by_address= (string) -> void
+import 6 current_os std_core$Intrinsic$current_os intrinsic=current_os result_type=10 () -> u8
+import 7 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 8 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=44 param_types=5 param_c_out= param_by_address= (string) -> any
+import 9 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=36 param_c_out= param_by_address= (pointer) -> i32
+import 10 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 11 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+import 12 extern :vader_path_kind system_posix$sys_path_kind headers=vader.h result_type=2 param_types=5 param_c_out= param_by_address= (string) -> i32
+import 13 extern :vader_path_stat system_posix$sys_path_stat headers=vader.h result_type=2 param_types=5,2,33 param_c_out=0,0,1 param_by_address= (string,i32,ref) -> i32
+import 14 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=44 param_types=36 param_c_out= param_by_address= (pointer) -> any
+import 15 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=5 param_types=36 param_c_out= param_by_address= (pointer) -> string
+import 16 extern :vader_dirent_kind system_posix$dirent_kind headers=vader.h result_type=2 param_types=36 param_c_out= param_by_address= (pointer) -> i32
+import 17 extern :close system_posix$sys_close headers=<unistd.h> result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
+import 18 extern :mkdir system_posix$sys_mkdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=5,11 param_c_out= param_by_address= (string,u32) -> i32
+import 19 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=2 param_types=5 param_c_out= param_by_address= (string) -> i32
+import 20 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=2 param_types=5 param_c_out= param_by_address= (string) -> i32
+import 21 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=5,2,2 param_c_out= param_by_address= (string,i32,i32) -> i32
+import 22 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
+import 23 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=17 param_types=5 param_c_out= param_by_address= (string) -> any
 impl 31 std_io$Writer
-impl 48 std_core$Iterator
-impl 74 std_core$Display
-impl 6 std_core$ByteAccess
 impl 20 std_core$Error
-impl 24 std_core$Into
+impl 50 std_core$Iterator
 impl 29 std_core$Error
+impl 76 std_core$Display
+impl 6 std_core$ByteAccess
+impl 24 std_core$Into
 impl 31 std_io$Reader
+vtable std_core$Error.message 20 64
+vtable std_core$Error.message 29 107
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -234,26 +240,26 @@ fn 0 snippet$main () -> i32
   local $struct_6 ref
   local w any
   local pending ref
-  local $field_40 ref
-  local $field_41 string
+  local $field_41 ref
+  local $field_42 string
   local __fallback_0 any
   local entry ref
   local __p_0 i64
   local __p_2 string
-  local $call_58 i64
   local $call_59 i64
-  local $add_60 i64
+  local $call_60 i64
+  local $add_61 i64
   local __buf_3 ref
   local __off_4 i64
-  local $field_78 ref
+  local $field_79 ref
   local listed ref
   local __fallback_1 any
   local listed any
-  local $field_86 ref
-  local $cast_87 ref
-  local $field_89 string
+  local $field_87 ref
+  local $cast_88 ref
   local $field_90 string
-  local $add_checked_93 i64
+  local $field_91 string
+  local $add_checked_94 i64
   call 20   ; std_env$temp_dir
   string.const 0   ; "/vader_snippet_walk"
   call 2   ; concat_2
@@ -270,40 +276,40 @@ fn 0 snippet$main () -> i32
   string.const 1   ; "/src/front"
   call 2   ; concat_2
   call 24   ; std_fs$create_dir
-  drop
+  call 67   ; std_testing$assert_succeeds
   local.get 0   ; root
   string.const 2   ; "/node_modules/x"
   call 2   ; concat_2
   call 24   ; std_fs$create_dir
-  drop
+  call 67   ; std_testing$assert_succeeds
   local.get 0   ; root
   string.const 3   ; "/README.md"
   call 2   ; concat_2
   string.const 4   ; "r"
   retag 5   ; string
   call 25   ; std_fs$write_file
-  drop
+  call 67   ; std_testing$assert_succeeds
   local.get 0   ; root
   string.const 5   ; "/src/main.vader"
   call 2   ; concat_2
   string.const 6   ; "m"
   retag 5   ; string
   call 25   ; std_fs$write_file
-  drop
+  call 67   ; std_testing$assert_succeeds
   local.get 0   ; root
   string.const 7   ; "/src/front/lexer.vader"
   call 2   ; concat_2
   string.const 8   ; "l"
   retag 5   ; string
   call 25   ; std_fs$write_file
-  drop
+  call 67   ; std_testing$assert_succeeds
   local.get 0   ; root
   string.const 9   ; "/node_modules/x/index.js"
   call 2   ; concat_2
   string.const 10   ; "i"
   retag 5   ; string
   call 25   ; std_fs$write_file
-  drop
+  call 67   ; std_testing$assert_succeeds
   fn.ref 1 41   ; __lambda_snippet_0 fn
   struct.new 22   ; std_fs$WalkOptions
   local.set 1   ; $struct_6
@@ -321,13 +327,13 @@ fn 0 snippet$main () -> i32
     array.new 25 0   ; std_fs$WalkEntry[]
     local.set 3   ; pending
     local.field 1 24 3   ; $struct_6 std_fs$Walker.listed
-    local.set 4   ; $field_40
+    local.set 4   ; $field_41
     local.field 1 24 1   ; $struct_6 std_fs$Walker.root
     ref.cast 5   ; string
-    local.set 5   ; $field_41
+    local.set 5   ; $field_42
     local.get 3   ; pending
-    local.get 4   ; $field_40
-    local.get 5   ; $field_41
+    local.get 4   ; $field_41
+    local.get 5   ; $field_42
     string.const 11   ; ""
     i64.const 1
     call 27   ; std_fs$push_entries
@@ -340,29 +346,29 @@ fn 0 snippet$main () -> i32
       else
         local.get 6   ; __fallback_0
         ref.cast 3   ; std_fs$WalkEntry
-        local.tee 4   ; $field_40
+        local.tee 4   ; $field_41
         local.set 7   ; entry
         local.field 7 3 4   ; entry std_fs$WalkEntry.depth
         ref.cast 7   ; i64
         local.set 8   ; __p_0
         local.field 7 3 3   ; entry std_fs$WalkEntry.kind
         call 56   ; std_fs$EntryKind$std_core$Display$to_string
-        local.set 5   ; $field_41
+        local.set 5   ; $field_42
         local.field 7 3 1   ; entry std_fs$WalkEntry.relative
         ref.cast 5   ; string
         local.set 9   ; __p_2
-        local.get 5   ; $field_41
+        local.get 5   ; $field_42
         call.import 0   ; std_core$Intrinsic$byte_len
-        local.set 10   ; $call_58
+        local.set 10   ; $call_59
         local.get 9   ; __p_2
         call.import 0   ; std_core$Intrinsic$byte_len
-        local.set 11   ; $call_59
-        local.get 10   ; $call_58
-        local.get 11   ; $call_59
+        local.set 11   ; $call_60
+        local.get 10   ; $call_59
+        local.get 11   ; $call_60
         i64.add
-        local.set 12   ; $add_60
+        local.set 12   ; $add_61
         i64.const 22
-        local.get 12   ; $add_60
+        local.get 12   ; $add_61
         i64.add
         buffer.new
         local.set 13   ; __buf_3
@@ -380,7 +386,7 @@ fn 0 snippet$main () -> i32
         local.set 14   ; __off_4
         local.get 13   ; __buf_3
         local.get 14   ; __off_4
-        local.get 5   ; $field_41
+        local.get 5   ; $field_42
         call 6   ; std_core$write_string_at
         local.set 14   ; __off_4
         local.get 13   ; __buf_3
@@ -397,7 +403,7 @@ fn 0 snippet$main () -> i32
         local.get 14   ; __off_4
         call 5   ; std_core$finish_buffer
         call 19   ; std_console$println__string
-        local.field 4 3 3   ; $field_40 std_fs$WalkEntry.kind
+        local.field 4 3 3   ; $field_41 std_fs$WalkEntry.kind
         i32.const 1
         i32.eq
         if $L3 void
@@ -406,15 +412,15 @@ fn 0 snippet$main () -> i32
         end $L3
         local.field 1 24 2   ; $struct_6 std_fs$Walker.options
         struct.get 22 0   ; std_fs$WalkOptions.descend
-        local.set 15   ; $field_78
-        local.get 4   ; $field_40
-        local.get 15   ; $field_78
+        local.set 15   ; $field_79
+        local.get 4   ; $field_41
+        local.get 15   ; $field_79
         call.indirect 41   ; fn
         if $L4 void
         else
           br $L1
         end $L4
-        local.field 4 3 0   ; $field_40 std_fs$WalkEntry.path
+        local.field 4 3 0   ; $field_41 std_fs$WalkEntry.path
         ref.cast 5   ; string
         call 28   ; std_fs$list_dir
         local.tee 17   ; __fallback_1
@@ -423,34 +429,34 @@ fn 0 snippet$main () -> i32
         type_check 20   ; std_io$IOError
         if $L5 void
           local.field 1 24 0   ; $struct_6 std_fs$Walker.errors
-          local.set 19   ; $field_86
+          local.set 19   ; $field_87
           local.get 18   ; listed
           ref.cast 20   ; std_io$IOError
-          local.set 20   ; $cast_87
-          local.get 19   ; $field_86
-          local.get 20   ; $cast_87
+          local.set 20   ; $cast_88
+          local.get 19   ; $field_87
+          local.get 20   ; $cast_88
           array.push 20   ; std_io$IOError
           br $L1
         end $L5
         local.get 17   ; __fallback_1
         ref.cast 13   ; std_fs$ListedEntry[]
         local.set 16   ; listed
-        local.field 4 3 0   ; $field_40 std_fs$WalkEntry.path
+        local.field 4 3 0   ; $field_41 std_fs$WalkEntry.path
         ref.cast 5   ; string
-        local.set 21   ; $field_89
-        local.field 4 3 1   ; $field_40 std_fs$WalkEntry.relative
+        local.set 21   ; $field_90
+        local.field 4 3 1   ; $field_41 std_fs$WalkEntry.relative
         ref.cast 5   ; string
-        local.set 22   ; $field_90
-        local.field 4 3 4   ; $field_40 std_fs$WalkEntry.depth
+        local.set 22   ; $field_91
+        local.field 4 3 4   ; $field_41 std_fs$WalkEntry.depth
         ref.cast 7   ; i64
         i64.const 1
         i64.checked_add
-        local.set 23   ; $add_checked_93
+        local.set 23   ; $add_checked_94
         local.get 3   ; pending
         local.get 16   ; listed
-        local.get 21   ; $field_89
-        local.get 22   ; $field_90
-        local.get 23   ; $add_checked_93
+        local.get 21   ; $field_90
+        local.get 22   ; $field_91
+        local.get 23   ; $add_checked_94
         call 27   ; std_fs$push_entries
         br $L1
       end $L2
@@ -469,10 +475,10 @@ fn 0 snippet$main () -> i32
     ref.cast 24   ; std_fs$Walker
     struct.get 24 0   ; std_fs$Walker.errors
     array.len
-    local.set 10   ; $call_58
+    local.set 10   ; $call_59
     local.get 1   ; $struct_6
     local.get 8   ; __p_0
-    local.get 10   ; $call_58
+    local.get 10   ; $call_59
     call 7   ; std_core$write_int
     local.set 8   ; __p_0
     local.get 1   ; $struct_6
@@ -492,38 +498,38 @@ fn 0 snippet$main () -> i32
     array.len
     local.set 8   ; __p_0
     i64.const 0
-    local.set 10   ; $call_58
+    local.set 10   ; $call_59
     loop $L7 void
-      local.get 10   ; $call_58
+      local.get 10   ; $call_59
       local.get 8   ; __p_0
       i64.lt
       if $L8 void
         local.get 1   ; $struct_6
-        local.get 10   ; $call_58
+        local.get 10   ; $call_59
         array.get 15   ; string[]
         ref.cast 5   ; string
-        local.set 5   ; $field_41
+        local.set 5   ; $field_42
         local.get 0   ; root
         call.import 0   ; std_core$Intrinsic$byte_len
         i64.const 1
         i64.checked_add
-        local.set 11   ; $call_59
-        local.get 5   ; $field_41
+        local.set 11   ; $call_60
+        local.get 5   ; $field_42
         call.import 0   ; std_core$Intrinsic$byte_len
-        local.set 12   ; $add_60
-        local.get 5   ; $field_41
-        local.get 11   ; $call_59
-        local.get 12   ; $add_60
+        local.set 12   ; $add_61
+        local.get 5   ; $field_42
+        local.get 11   ; $call_60
+        local.get 12   ; $add_61
         call.import 2   ; std_core$Intrinsic$byte_slice
         local.set 9   ; __p_2
         string.const 15   ; "source "
         local.get 9   ; __p_2
         call 2   ; concat_2
         call 19   ; std_console$println__string
-        local.get 10   ; $call_58
+        local.get 10   ; $call_59
         i64.const 1
         i64.add
-        local.set 10   ; $call_58
+        local.set 10   ; $call_59
         br $L7
       end $L8
     end $L7
@@ -531,11 +537,11 @@ fn 0 snippet$main () -> i32
   local.get 0   ; root
   string.const 3   ; "/README.md"
   call 2   ; concat_2
-  local.set 5   ; $field_41
+  local.set 5   ; $field_42
   fn.ref 31 41   ; std_fs$every_directory fn
   struct.new 22   ; std_fs$WalkOptions
   local.set 1   ; $struct_6
-  local.get 5   ; $field_41
+  local.get 5   ; $field_42
   local.get 1   ; $struct_6
   call 26   ; std_fs$walk
   local.tee 2   ; w
@@ -544,10 +550,10 @@ fn 0 snippet$main () -> i32
     local.get 2   ; w
     ref.cast 20   ; std_io$IOError
     struct.get 20 1   ; std_io$IOError.kind
-    call 64   ; std_io$IOErrorKind$std_core$Display$to_string
-    local.set 5   ; $field_41
+    call 65   ; std_io$IOErrorKind$std_core$Display$to_string
+    local.set 5   ; $field_42
     string.const 16   ; "file root: "
-    local.get 5   ; $field_41
+    local.get 5   ; $field_42
     call 2   ; concat_2
     call 19   ; std_console$println__string
   end $L9
@@ -1458,16 +1464,16 @@ fn 18 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 6   ; system_posix$sys_write
+  call.import 7   ; system_posix$sys_write
   local.tee 4   ; written
   i64.const 0
   i64.lt
   if $L1 void
-    call.import 9   ; system_posix$sys_last_errno
+    call.import 10   ; system_posix$sys_last_errno
     i32.const 32
     i32.eq
     if $L2 void
-      call.import 10   ; system_posix$sys_end_on_broken_pipe
+      call.import 11   ; system_posix$sys_end_on_broken_pipe
       local.get 4   ; written
       i64.to_i32
       return
@@ -1520,8 +1526,8 @@ fn 21 std_env$temp_dir_of (any) -> string
   if $L1 void
   else
     local.get 1   ; e
-    call 66   ; std_path$to_path
-    call 68   ; std_path$as_string
+    call 68   ; std_path$to_path
+    call 70   ; std_path$as_string
     return
   end $L1
   return.lit string.const 20   ; "/tmp"
@@ -1529,7 +1535,7 @@ end
 
 fn 22 std_env$get_env (string) -> any
   local.get 0   ; arg 0
-  call.import 22   ; system_libc$sys_getenv
+  call.import 23   ; system_libc$sys_getenv
   return
 end
 
@@ -1598,9 +1604,9 @@ fn 24 std_fs$create_dir (string) -> any
     return
   end $L1
   local.get 0   ; arg 0
-  call 66   ; std_path$to_path
-  call 67   ; std_path$root
-  call 68   ; std_path$as_string
+  call 68   ; std_path$to_path
+  call 69   ; std_path$root
+  call 70   ; std_path$as_string
   call.import 0   ; std_core$Intrinsic$byte_len
   local.set 1   ; i
   local.get 0   ; arg 0
@@ -1757,11 +1763,11 @@ fn 27 std_fs$push_entries (ref,ref,string,string,i64) -> void
   local $field_23 string
   local $field_24 u8
   local $struct_25 ref
-  fn.ref 37 43   ; std_fs$by_name_descending fn
+  fn.ref 37 45   ; std_fs$by_name_descending fn
   local.set 5   ; $fn_ref_5
   local.get 1   ; arg 1
   local.get 5   ; $fn_ref_5
-  call 78   ; std_sort$sort__std_fs_ListedEntry
+  call 80   ; std_sort$sort__std_fs_ListedEntry
   local.tee 5   ; $fn_ref_5
   array.len
   local.set 6   ; __for_len_1
@@ -1777,24 +1783,24 @@ fn 27 std_fs$push_entries (ref,ref,string,string,i64) -> void
       array.get 13   ; std_fs$ListedEntry[]
       local.set 8   ; listed_entry
       local.get 2   ; arg 2
-      call 66   ; std_path$to_path
+      call 68   ; std_path$to_path
       local.set 9   ; $call_15
       local.field 8 14 0   ; listed_entry std_fs$ListedEntry.name
       ref.cast 5   ; string
       local.set 10   ; $field_16
       local.get 9   ; $call_15
       local.get 10   ; $field_16
-      call 69   ; std_path$join
+      call 71   ; std_path$join
       local.set 11   ; $cast_18
       local.get 3   ; arg 3
-      call 66   ; std_path$to_path
+      call 68   ; std_path$to_path
       local.set 12   ; $call_19
       local.field 8 14 0   ; listed_entry std_fs$ListedEntry.name
       ref.cast 5   ; string
       local.set 13   ; $field_20
       local.get 12   ; $call_19
       local.get 13   ; $field_20
-      call 69   ; std_path$join
+      call 71   ; std_path$join
       local.set 14   ; $cast_22
       local.field 8 14 0   ; listed_entry std_fs$ListedEntry.name
       ref.cast 5   ; string
@@ -1831,7 +1837,7 @@ fn 28 std_fs$list_dir (string) -> any
   local kind u8
   local $struct_26 ref
   local.get 0   ; arg 0
-  call.import 7   ; system_posix$sys_opendir
+  call.import 8   ; system_posix$sys_opendir
   local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
@@ -1843,13 +1849,13 @@ fn 28 std_fs$list_dir (string) -> any
   ref.cast 36   ; pointer
   local.tee 1   ; d
   struct.new 27   ; __defer_env_std_fs_1
-  make_closure 29 75   ; __defer_std_fs_0 fn
+  make_closure 29 77   ; __defer_std_fs_0 fn
   defer.push
   array.new 13 0   ; std_fs$ListedEntry[]
   local.set 3   ; out
   loop $L1 void
     local.get 1   ; d
-    call.import 13   ; system_posix$sys_readdir
+    call.import 14   ; system_posix$sys_readdir
     local.tee 2   ; __fallback_0
     type_check 0   ; null
     if $L2 void
@@ -1857,7 +1863,7 @@ fn 28 std_fs$list_dir (string) -> any
       local.get 2   ; __fallback_0
       ref.cast 36   ; pointer
       local.tee 4   ; p
-      call.import 14   ; system_posix$dirent_name
+      call.import 15   ; system_posix$dirent_name
       local.tee 5   ; name
       string.const 26   ; "."
       string.ne
@@ -1873,7 +1879,7 @@ fn 28 std_fs$list_dir (string) -> any
         br $L1
       end $L4
       local.get 4   ; p
-      call.import 15   ; system_posix$dirent_kind
+      call.import 16   ; system_posix$dirent_kind
       local.set 6   ; $call_23
       local.get 0   ; arg 0
       local.get 5   ; name
@@ -1898,7 +1904,7 @@ end
 fn 29 __defer_std_fs_0 (ref) -> void
   local.field 0 27 0   ; arg 0 __defer_env_std_fs_1.cap_0
   ref.cast 36   ; pointer
-  call.import 8   ; system_posix$sys_closedir
+  call.import 9   ; system_posix$sys_closedir
   drop
   return
 end
@@ -1925,11 +1931,11 @@ fn 30 std_fs$glob_files (string,string) -> any
   bool.const true
   bool.const true
   bool.const false
-  struct.new 50   ; std_glob$GlobOptions
+  struct.new 52   ; std_glob$GlobOptions
   local.set 2   ; glob
   local.get 1   ; arg 1
   local.get 2   ; glob
-  call 90   ; std_glob$parse_glob
+  call 92   ; std_glob$parse_glob
   local.tee 3   ; __fallback_0
   local.set 4   ; glob
   local.get 3   ; __fallback_0
@@ -1940,7 +1946,7 @@ fn 30 std_fs$glob_files (string,string) -> any
     return
   end $L0
   local.get 3   ; __fallback_0
-  ref.cast 52   ; std_glob$Glob
+  ref.cast 54   ; std_glob$Glob
   local.set 2   ; glob
   fn.ref 31 41   ; std_fs$every_directory fn
   struct.new 22   ; std_fs$WalkOptions
@@ -1997,7 +2003,7 @@ fn 30 std_fs$glob_files (string,string) -> any
         local.set 9   ; $field_29
         local.get 2   ; glob
         local.get 9   ; $field_29
-        call 91   ; std_glob$matches
+        call 93   ; std_glob$matches
         if $L5 void
           local.field 10 3 0   ; entry std_fs$WalkEntry.path
           ref.cast 5   ; string
@@ -2065,11 +2071,11 @@ fn 30 std_fs$glob_files (string,string) -> any
       br $L2
     end $L3
   end $L2
-  fn.ref 84 44   ; std_string$compare_ascending fn
+  fn.ref 86 46   ; std_string$compare_ascending fn
   local.set 2   ; glob
   local.get 6   ; found
   local.get 2   ; glob
-  call 79   ; std_sort$sort__string
+  call 81   ; std_sort$sort__string
   return
 end
 
@@ -2112,7 +2118,7 @@ fn 33 std_fs$system_remove (string,ref) -> any
   if $L1 void
   else
     local.get 0   ; arg 0
-    call.import 18   ; system_posix$sys_unlink
+    call.import 19   ; system_posix$sys_unlink
     i32.const 0
     i32.eq
     string.const 28   ; "cannot remove file"
@@ -2128,7 +2134,7 @@ end
 fn 34 std_fs$mkdir_one (string) -> bool
   local.get 0   ; arg 0
   i32.const 511
-  call.import 17   ; system_posix$sys_mkdir
+  call.import 18   ; system_posix$sys_mkdir
   i32.const 0
   i32.eq
   if $L0 void
@@ -2233,7 +2239,7 @@ fn 39 std_fs$stat_cells (string,bool) -> any
   local.get 0   ; arg 0
   local.get 3   ; $call_8
   local.get 2   ; cells
-  call.import 12   ; system_posix$sys_path_stat
+  call.import 13   ; system_posix$sys_path_stat
   i32.const 0
   i32.ne
   if $L0 void
@@ -2340,7 +2346,7 @@ end
 
 fn 42 std_fs$is_dir (string) -> bool
   local.get 0   ; arg 0
-  call.import 11   ; system_posix$sys_path_kind
+  call.import 12   ; system_posix$sys_path_kind
   i32.const 2
   i32.eq
   return
@@ -2382,7 +2388,7 @@ end
 fn 44 std_fs$system_close (any) -> any
   local.get 0   ; arg 0
   call 50   ; std_fs$fd_of
-  call.import 16   ; system_posix$sys_close
+  call.import 17   ; system_posix$sys_close
   i32.const 0
   i32.ne
   if $L0 void
@@ -2469,7 +2475,7 @@ end
 
 fn 47 std_fs$system_remove_directory (string) -> any
   local.get 0   ; arg 0
-  call.import 19   ; system_posix$sys_rmdir
+  call.import 20   ; system_posix$sys_rmdir
   i32.const 0
   i32.eq
   string.const 32   ; "cannot remove directory"
@@ -2566,7 +2572,7 @@ fn 49 std_fs$system_open (string,ref) -> any
   local.get 0   ; arg 0
   local.get 2   ; $call_2
   i32.const 438
-  call.import 20   ; system_posix$sys_open
+  call.import 21   ; system_posix$sys_open
   local.tee 2   ; $call_2
   i32.const 0
   i32.lt
@@ -2581,12 +2587,12 @@ fn 49 std_fs$system_open (string,ref) -> any
   i32.eq
   if $L1 void
     local.get 2   ; $call_2
-    call.import 21   ; system_posix$sys_fd_kind
+    call.import 22   ; system_posix$sys_fd_kind
     i32.const 2
     i32.eq
     if $L2 void
       local.get 2   ; $call_2
-      call.import 16   ; system_posix$sys_close
+      call.import 17   ; system_posix$sys_close
       drop
       i32.const 21
       call 54   ; std_fs$is_a_directory
@@ -2790,7 +2796,7 @@ fn 55 std_fs$File$std_io$Writer$write (ref,any) -> any
     return
   end $L0
   local.get 1   ; arg 1
-  call 65   ; std_io$bytes_of
+  call 66   ; std_io$bytes_of
   local.set 2   ; bytes
   i64.const 0
   local.set 3   ; done
@@ -2900,13 +2906,13 @@ fn 57 std_fs$system_write (any,ref) -> any
     local.get 2   ; $call_2
     local.get 1   ; arg 1
     local.get 3   ; $len_3
-    call.import 6   ; system_posix$sys_write
+    call.import 7   ; system_posix$sys_write
     local.tee 4   ; n
     i64.const 0
     i64.ge
     if $L1 void
     else
-      call.import 9   ; system_posix$sys_last_errno
+      call.import 10   ; system_posix$sys_last_errno
       i32.const 4
       i32.ne
       if $L2 void
@@ -2924,7 +2930,7 @@ fn 57 std_fs$system_write (any,ref) -> any
 end
 
 fn 58 std_io$last_io_error (string) -> ref
-  call.import 9   ; system_posix$sys_last_errno
+  call.import 10   ; system_posix$sys_last_errno
   local.get 0   ; arg 0
   call 60   ; std_io$io_error_of
   return
@@ -3367,7 +3373,13 @@ fn 63 std_io$describe_io_error_kind (u8,string) -> string
   return
 end
 
-fn 64 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
+fn 64 std_io$IOError$std_core$Error$message (ref) -> string
+  local.field 0 20 0   ; arg 0 std_io$IOError.msg
+  ref.cast 5   ; string
+  return
+end
+
+fn 65 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 0
@@ -3542,7 +3554,7 @@ fn 64 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   return
 end
 
-fn 65 std_io$bytes_of (any) -> ref
+fn 66 std_io$bytes_of (any) -> ref
   local.get 0   ; arg 0
   type_check 5   ; string
   if $L0 void
@@ -3556,35 +3568,53 @@ fn 65 std_io$bytes_of (any) -> ref
   return
 end
 
-fn 66 std_path$to_path (string) -> string
+fn 67 std_testing$assert_succeeds (any) -> void
+  local $vcall_4 string
+  local.get 0   ; arg 0
+  type_check 43   ; ref std_core$Error
+  if $L0 void
+  else
+    return
+  end $L0
+  local.get 0   ; arg 0
+  virtual.call 1 std_core$Error.message -> string
+  local.set 1   ; $vcall_4
+  string.const 85   ; "assert_succeeds failed: "
+  local.get 1   ; $vcall_4
+  call 2   ; concat_2
+  call.import 5   ; std_core$Intrinsic$panic
+  unreachable "a no-return call returned"
+end
+
+fn 68 std_path$to_path (string) -> string
   local $call_4 u8
   local.get 0   ; arg 0
   string.const 29   ; "/"
-  call 85   ; std_string$ends_with
+  call 87   ; std_string$ends_with
   if $L0 void
   else
     local.get 0   ; arg 0
     return
   end $L0
-  call.import 5   ; std_core$Intrinsic$current_os
+  call.import 6   ; std_core$Intrinsic$current_os
   local.set 1   ; $call_4
   local.get 0   ; arg 0
   local.get 1   ; $call_4
-  call 70   ; std_path$without_trailing_separators
+  call 72   ; std_path$without_trailing_separators
   return
 end
 
-fn 67 std_path$root (string) -> string
+fn 69 std_path$root (string) -> string
   local s string
   local $call_4 u8
   local $call_5 i64
   local.get 0   ; arg 0
   local.set 1   ; s
-  call.import 5   ; std_core$Intrinsic$current_os
+  call.import 6   ; std_core$Intrinsic$current_os
   local.set 2   ; $call_4
   local.get 1   ; s
   local.get 2   ; $call_4
-  call 71   ; std_path$root_length
+  call 73   ; std_path$root_length
   local.set 3   ; $call_5
   local.get 1   ; s
   i64.const 0
@@ -3593,26 +3623,26 @@ fn 67 std_path$root (string) -> string
   return
 end
 
-fn 68 std_path$as_string (string) -> string
+fn 70 std_path$as_string (string) -> string
   local.get 0   ; arg 0
   return
 end
 
-fn 69 std_path$join (string,string) -> string
+fn 71 std_path$join (string,string) -> string
   local $cast_2 string
   local $call_3 u8
   local.get 0   ; arg 0
   local.set 2   ; $cast_2
-  call.import 5   ; std_core$Intrinsic$current_os
+  call.import 6   ; std_core$Intrinsic$current_os
   local.set 3   ; $call_3
   local.get 2   ; $cast_2
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  call 72   ; std_path$join_on
+  call 74   ; std_path$join_on
   return
 end
 
-fn 70 std_path$without_trailing_separators (string,u8) -> string
+fn 72 std_path$without_trailing_separators (string,u8) -> string
   local n i64
   local $sub_checked_7 i64
   local $sub_checked_16 i64
@@ -3640,7 +3670,7 @@ fn 70 std_path$without_trailing_separators (string,u8) -> string
   end $L1
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 71   ; std_path$root_length
+  call 73   ; std_path$root_length
   local.set 3   ; $sub_checked_7
   block $L2 void
     loop $L3 void
@@ -3676,12 +3706,12 @@ fn 70 std_path$without_trailing_separators (string,u8) -> string
   return
 end
 
-fn 71 std_path$root_length (string,u8) -> i64
+fn 73 std_path$root_length (string,u8) -> i64
   local prefix i64
   local $call_4 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 73   ; std_path$prefix_length
+  call 75   ; std_path$prefix_length
   local.set 2   ; prefix
   local.get 0   ; arg 0
   call.import 0   ; std_core$Intrinsic$byte_len
@@ -3708,7 +3738,7 @@ fn 71 std_path$root_length (string,u8) -> i64
   return
 end
 
-fn 72 std_path$join_on (string,string,u8) -> string
+fn 74 std_path$join_on (string,string,u8) -> string
   local or_res bool
   local $call_15 i64
   local $call_25 i64
@@ -3718,12 +3748,12 @@ fn 72 std_path$join_on (string,string,u8) -> string
   if $L0 void
     local.get 0   ; arg 0
     local.get 2   ; arg 2
-    call 70   ; std_path$without_trailing_separators
+    call 72   ; std_path$without_trailing_separators
     return
   end $L0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 73   ; std_path$prefix_length
+  call 75   ; std_path$prefix_length
   i64.const 0
   i64.gt
   if $L1 void
@@ -3732,23 +3762,23 @@ fn 72 std_path$join_on (string,string,u8) -> string
   else
     local.get 1   ; arg 1
     local.get 2   ; arg 2
-    call 74   ; std_path$is_absolute_on
+    call 76   ; std_path$is_absolute_on
     local.set 3   ; or_res
   end $L1
   local.get 3   ; or_res
   if $L2 void
     local.get 1   ; arg 1
     local.get 2   ; arg 2
-    call 70   ; std_path$without_trailing_separators
+    call 72   ; std_path$without_trailing_separators
     return
   end $L2
   local.get 1   ; arg 1
   string.const 29   ; "/"
-  call 88   ; std_string$starts_with
+  call 90   ; std_string$starts_with
   if $L3 void
     local.get 0   ; arg 0
     local.get 2   ; arg 2
-    call 73   ; std_path$prefix_length
+    call 75   ; std_path$prefix_length
     local.set 4   ; $call_15
     local.get 0   ; arg 0
     i64.const 0
@@ -3757,12 +3787,12 @@ fn 72 std_path$join_on (string,string,u8) -> string
     local.get 1   ; arg 1
     call 2   ; concat_2
     local.get 2   ; arg 2
-    call 70   ; std_path$without_trailing_separators
+    call 72   ; std_path$without_trailing_separators
     return
   end $L3
   local.get 0   ; arg 0
   string.const 29   ; "/"
-  call 85   ; std_string$ends_with
+  call 87   ; std_string$ends_with
   if $L4 void
     bool.const true
     local.set 3   ; or_res
@@ -3772,7 +3802,7 @@ fn 72 std_path$join_on (string,string,u8) -> string
     local.set 4   ; $call_15
     local.get 0   ; arg 0
     local.get 2   ; arg 2
-    call 73   ; std_path$prefix_length
+    call 75   ; std_path$prefix_length
     local.set 5   ; $call_25
     local.get 4   ; $call_15
     local.get 5   ; $call_25
@@ -3788,7 +3818,7 @@ fn 72 std_path$join_on (string,string,u8) -> string
     local.get 1   ; arg 1
     call 3   ; concat_3
     local.get 2   ; arg 2
-    call 70   ; std_path$without_trailing_separators
+    call 72   ; std_path$without_trailing_separators
     return
   end $L5
   string.const 29   ; "/"
@@ -3798,11 +3828,11 @@ fn 72 std_path$join_on (string,string,u8) -> string
   local.get 1   ; arg 1
   call 3   ; concat_3
   local.get 2   ; arg 2
-  call 70   ; std_path$without_trailing_separators
+  call 72   ; std_path$without_trailing_separators
   return
 end
 
-fn 73 std_path$prefix_length (string,u8) -> i64
+fn 75 std_path$prefix_length (string,u8) -> i64
   local n i64
   local __fallback_0 any
   local $add_checked_39 i64
@@ -3821,7 +3851,7 @@ fn 73 std_path$prefix_length (string,u8) -> i64
     local.get 0   ; arg 0
     i64.const 0
     call.import 1   ; std_core$Intrinsic$byte_at
-    call 75   ; std_path$is_ascii_letter
+    call 77   ; std_path$is_ascii_letter
     if $L2 void
       local.get 0   ; arg 0
       i64.const 1
@@ -3865,7 +3895,7 @@ fn 73 std_path$prefix_length (string,u8) -> i64
   end $L7
   local.get 0   ; arg 0
   i64.const 2
-  call 76   ; std_path$next_separator
+  call 78   ; std_path$next_separator
   local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L8 void
@@ -3879,7 +3909,7 @@ fn 73 std_path$prefix_length (string,u8) -> i64
   local.set 4   ; $add_checked_39
   local.get 0   ; arg 0
   local.get 4   ; $add_checked_39
-  call 76   ; std_path$next_separator
+  call 78   ; std_path$next_separator
   local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L9 void
@@ -3891,11 +3921,11 @@ fn 73 std_path$prefix_length (string,u8) -> i64
   return
 end
 
-fn 74 std_path$is_absolute_on (string,u8) -> bool
+fn 76 std_path$is_absolute_on (string,u8) -> bool
   local or_res bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 77   ; std_path$is_anchored
+  call 79   ; std_path$is_anchored
   if $L0 void
     local.get 1   ; arg 1
     i32.const 0
@@ -3906,7 +3936,7 @@ fn 74 std_path$is_absolute_on (string,u8) -> bool
     else
       local.get 0   ; arg 0
       local.get 1   ; arg 1
-      call 73   ; std_path$prefix_length
+      call 75   ; std_path$prefix_length
       i64.const 0
       i64.gt
       local.set 2   ; or_res
@@ -3917,7 +3947,7 @@ fn 74 std_path$is_absolute_on (string,u8) -> bool
   return.lit bool.const false
 end
 
-fn 75 std_path$is_ascii_letter (u8) -> bool
+fn 77 std_path$is_ascii_letter (u8) -> bool
   local and_res bool
   local.get 0   ; arg 0
   i32.const 97
@@ -3951,7 +3981,7 @@ fn 75 std_path$is_ascii_letter (u8) -> bool
   return
 end
 
-fn 76 std_path$next_separator (string,i64) -> any
+fn 78 std_path$next_separator (string,i64) -> any
   local i i64
   local __for_hi_0 i64
   local.get 1   ; arg 1
@@ -3984,16 +4014,16 @@ fn 76 std_path$next_separator (string,i64) -> any
   return.lit null.const
 end
 
-fn 77 std_path$is_anchored (string,u8) -> bool
+fn 79 std_path$is_anchored (string,u8) -> bool
   local root i64
   local and_res bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 71   ; std_path$root_length
+  call 73   ; std_path$root_length
   local.set 2   ; root
   local.get 0   ; arg 0
   string.const 29   ; "/"
-  call 88   ; std_string$starts_with
+  call 90   ; std_string$starts_with
   if $L0 void
     return.lit bool.const true
   end $L0
@@ -4019,7 +4049,7 @@ fn 77 std_path$is_anchored (string,u8) -> bool
   return
 end
 
-fn 78 std_sort$sort__std_fs_ListedEntry (ref,ref) -> ref
+fn 80 std_sort$sort__std_fs_ListedEntry (ref,ref) -> ref
   local n i64
   local out ref
   local buf ref
@@ -4042,7 +4072,7 @@ fn 78 std_sort$sort__std_fs_ListedEntry (ref,ref) -> ref
     i64.const 0
     local.get 2   ; n
     local.get 1   ; arg 1
-    call 80   ; std_sort$merge_sort_range__Any
+    call 82   ; std_sort$merge_sort_range__Any
     local.get 3   ; out
     return
   end $L0
@@ -4050,7 +4080,7 @@ fn 78 std_sort$sort__std_fs_ListedEntry (ref,ref) -> ref
   return
 end
 
-fn 79 std_sort$sort__string (ref,ref) -> ref
+fn 81 std_sort$sort__string (ref,ref) -> ref
   local n i64
   local out ref
   local buf ref
@@ -4073,7 +4103,7 @@ fn 79 std_sort$sort__string (ref,ref) -> ref
     i64.const 0
     local.get 2   ; n
     local.get 1   ; arg 1
-    call 81   ; std_sort$merge_sort_range__string
+    call 83   ; std_sort$merge_sort_range__string
     local.get 3   ; out
     return
   end $L0
@@ -4081,7 +4111,7 @@ fn 79 std_sort$sort__string (ref,ref) -> ref
   return
 end
 
-fn 80 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
+fn 82 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
   local n i64
   local i i64
   local $idx_17 any
@@ -4109,7 +4139,7 @@ fn 80 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
     local.get 2   ; arg 2
     local.get 3   ; arg 3
     local.get 4   ; arg 4
-    call 82   ; std_sort$insertion_sort_range__Any
+    call 84   ; std_sort$insertion_sort_range__Any
     return
   end $L1
   local.get 5   ; n
@@ -4125,13 +4155,13 @@ fn 80 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
   local.get 2   ; arg 2
   local.get 5   ; n
   local.get 4   ; arg 4
-  call 80   ; std_sort$merge_sort_range__Any
+  call 82   ; std_sort$merge_sort_range__Any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 5   ; n
   local.get 3   ; arg 3
   local.get 4   ; arg 4
-  call 80   ; std_sort$merge_sort_range__Any
+  call 82   ; std_sort$merge_sort_range__Any
   local.get 2   ; arg 2
   local.set 6   ; i
   loop $L2 void
@@ -4141,12 +4171,12 @@ fn 80 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
     if $L3 void
       local.get 0   ; arg 0
       local.get 6   ; i
-      array.get 45   ; ref[]
+      array.get 47   ; ref[]
       local.set 7   ; $idx_17
       local.get 1   ; arg 1
       local.get 6   ; i
       local.get 7   ; $idx_17
-      array.set 45   ; ref[]
+      array.set 47   ; ref[]
       local.get 6   ; i
       i64.const 1
       i64.add
@@ -4171,12 +4201,12 @@ fn 80 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
       if $L6 void
         local.get 1   ; arg 1
         local.get 8   ; b
-        array.get 45   ; ref[]
+        array.get 47   ; ref[]
         local.set 7   ; $idx_17
         local.get 0   ; arg 0
         local.get 9   ; k
         local.get 7   ; $idx_17
-        array.set 45   ; ref[]
+        array.set 47   ; ref[]
         local.get 8   ; b
         i64.const 1
         i64.checked_add
@@ -4188,12 +4218,12 @@ fn 80 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
         if $L7 void
           local.get 1   ; arg 1
           local.get 6   ; i
-          array.get 45   ; ref[]
+          array.get 47   ; ref[]
           local.set 10   ; $idx_29
           local.get 0   ; arg 0
           local.get 9   ; k
           local.get 10   ; $idx_29
-          array.set 45   ; ref[]
+          array.set 47   ; ref[]
           local.get 6   ; i
           i64.const 1
           i64.checked_add
@@ -4201,25 +4231,25 @@ fn 80 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
         else
           local.get 1   ; arg 1
           local.get 8   ; b
-          array.get 45   ; ref[]
+          array.get 47   ; ref[]
           local.set 11   ; $idx_32
           local.get 1   ; arg 1
           local.get 6   ; i
-          array.get 45   ; ref[]
+          array.get 47   ; ref[]
           local.set 12   ; $idx_33
           local.get 11   ; $idx_32
           local.get 12   ; $idx_33
           local.get 4   ; arg 4
-          call.indirect 47   ; fn
+          call.indirect 49   ; fn
           if $L8 void
             local.get 1   ; arg 1
             local.get 8   ; b
-            array.get 45   ; ref[]
+            array.get 47   ; ref[]
             local.set 13   ; $idx_35
             local.get 0   ; arg 0
             local.get 9   ; k
             local.get 13   ; $idx_35
-            array.set 45   ; ref[]
+            array.set 47   ; ref[]
             local.get 8   ; b
             i64.const 1
             i64.checked_add
@@ -4227,12 +4257,12 @@ fn 80 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
           else
             local.get 1   ; arg 1
             local.get 6   ; i
-            array.get 45   ; ref[]
+            array.get 47   ; ref[]
             local.set 14   ; $idx_38
             local.get 0   ; arg 0
             local.get 9   ; k
             local.get 14   ; $idx_38
-            array.set 45   ; ref[]
+            array.set 47   ; ref[]
             local.get 6   ; i
             i64.const 1
             i64.checked_add
@@ -4250,7 +4280,7 @@ fn 80 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
   return
 end
 
-fn 81 std_sort$merge_sort_range__string (ref,ref,i64,i64,ref) -> void
+fn 83 std_sort$merge_sort_range__string (ref,ref,i64,i64,ref) -> void
   local n i64
   local i i64
   local $idx_17 string
@@ -4278,7 +4308,7 @@ fn 81 std_sort$merge_sort_range__string (ref,ref,i64,i64,ref) -> void
     local.get 2   ; arg 2
     local.get 3   ; arg 3
     local.get 4   ; arg 4
-    call 83   ; std_sort$insertion_sort_range__string
+    call 85   ; std_sort$insertion_sort_range__string
     return
   end $L1
   local.get 5   ; n
@@ -4294,13 +4324,13 @@ fn 81 std_sort$merge_sort_range__string (ref,ref,i64,i64,ref) -> void
   local.get 2   ; arg 2
   local.get 5   ; n
   local.get 4   ; arg 4
-  call 81   ; std_sort$merge_sort_range__string
+  call 83   ; std_sort$merge_sort_range__string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 5   ; n
   local.get 3   ; arg 3
   local.get 4   ; arg 4
-  call 81   ; std_sort$merge_sort_range__string
+  call 83   ; std_sort$merge_sort_range__string
   local.get 2   ; arg 2
   local.set 6   ; i
   loop $L2 void
@@ -4386,7 +4416,7 @@ fn 81 std_sort$merge_sort_range__string (ref,ref,i64,i64,ref) -> void
           local.get 12   ; $idx_33
           retag 5   ; string
           local.get 4   ; arg 4
-          call.indirect 44   ; fn
+          call.indirect 46   ; fn
           if $L8 void
             local.get 1   ; arg 1
             local.get 8   ; b
@@ -4428,7 +4458,7 @@ fn 81 std_sort$merge_sort_range__string (ref,ref,i64,i64,ref) -> void
   return
 end
 
-fn 82 std_sort$insertion_sort_range__Any (ref,i64,i64,ref) -> void
+fn 84 std_sort$insertion_sort_range__Any (ref,i64,i64,ref) -> void
   local i i64
   local x any
   local j i64
@@ -4447,7 +4477,7 @@ fn 82 std_sort$insertion_sort_range__Any (ref,i64,i64,ref) -> void
     if $L1 void
       local.get 0   ; arg 0
       local.get 4   ; i
-      array.get 45   ; ref[]
+      array.get 47   ; ref[]
       local.set 5   ; x
       local.get 4   ; i
       local.set 6   ; j
@@ -4463,12 +4493,12 @@ fn 82 std_sort$insertion_sort_range__Any (ref,i64,i64,ref) -> void
             local.set 7   ; $sub_checked_13
             local.get 0   ; arg 0
             local.get 7   ; $sub_checked_13
-            array.get 45   ; ref[]
+            array.get 47   ; ref[]
             local.set 8   ; $idx_14
             local.get 5   ; x
             local.get 8   ; $idx_14
             local.get 3   ; arg 3
-            call.indirect 47   ; fn
+            call.indirect 49   ; fn
             if $L5 void
             else
               br $L2
@@ -4479,12 +4509,12 @@ fn 82 std_sort$insertion_sort_range__Any (ref,i64,i64,ref) -> void
             local.set 9   ; $sub_checked_17
             local.get 0   ; arg 0
             local.get 9   ; $sub_checked_17
-            array.get 45   ; ref[]
+            array.get 47   ; ref[]
             local.set 10   ; $idx_18
             local.get 0   ; arg 0
             local.get 6   ; j
             local.get 10   ; $idx_18
-            array.set 45   ; ref[]
+            array.set 47   ; ref[]
             local.get 6   ; j
             i64.const 1
             i64.checked_sub
@@ -4496,7 +4526,7 @@ fn 82 std_sort$insertion_sort_range__Any (ref,i64,i64,ref) -> void
       local.get 0   ; arg 0
       local.get 6   ; j
       local.get 5   ; x
-      array.set 45   ; ref[]
+      array.set 47   ; ref[]
       local.get 4   ; i
       i64.const 1
       i64.add
@@ -4507,7 +4537,7 @@ fn 82 std_sort$insertion_sort_range__Any (ref,i64,i64,ref) -> void
   return
 end
 
-fn 83 std_sort$insertion_sort_range__string (ref,i64,i64,ref) -> void
+fn 85 std_sort$insertion_sort_range__string (ref,i64,i64,ref) -> void
   local i i64
   local x string
   local j i64
@@ -4551,7 +4581,7 @@ fn 83 std_sort$insertion_sort_range__string (ref,i64,i64,ref) -> void
             local.get 8   ; $idx_14
             retag 5   ; string
             local.get 3   ; arg 3
-            call.indirect 44   ; fn
+            call.indirect 46   ; fn
             if $L5 void
             else
               br $L2
@@ -4591,7 +4621,7 @@ fn 83 std_sort$insertion_sort_range__string (ref,i64,i64,ref) -> void
   return
 end
 
-fn 84 std_string$compare_ascending (string,string) -> bool
+fn 86 std_string$compare_ascending (string,string) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   string.compare
@@ -4600,7 +4630,7 @@ fn 84 std_string$compare_ascending (string,string) -> bool
   return
 end
 
-fn 85 std_string$ends_with (string,string) -> bool
+fn 87 std_string$ends_with (string,string) -> bool
   local $call_2 i64
   local $call_3 i64
   local.get 1   ; arg 1
@@ -4627,20 +4657,20 @@ fn 85 std_string$ends_with (string,string) -> bool
     local.get 0   ; arg 0
     local.get 2   ; $call_2
     local.get 1   ; arg 1
-    call 87   ; std_string$matches_at
+    call 89   ; std_string$matches_at
     return
   end $L0
   return.lit bool.const false
 end
 
-fn 86 std_string$chars (string) -> ref
+fn 88 std_string$chars (string) -> ref
   local.get 0   ; arg 0
   i64.const 0
-  struct.new 48   ; std_string$StringChars
+  struct.new 50   ; std_string$StringChars
   return
 end
 
-fn 87 std_string$matches_at (string,i64,string) -> bool
+fn 89 std_string$matches_at (string,i64,string) -> bool
   local m i64
   local $call_5 i64
   local $add_checked_14 i64
@@ -4704,25 +4734,25 @@ fn 87 std_string$matches_at (string,i64,string) -> bool
   return.lit bool.const true
 end
 
-fn 88 std_string$starts_with (string,string) -> bool
+fn 90 std_string$starts_with (string,string) -> bool
   local.get 0   ; arg 0
   i64.const 0
   local.get 1   ; arg 1
-  call 87   ; std_string$matches_at
+  call 89   ; std_string$matches_at
   return
 end
 
-fn 89 std_string$StringChars$std_core$Iterator$next (ref) -> any
+fn 91 std_string$StringChars$std_core$Iterator$next (ref) -> any
   local i i64
   local $call_4 i64
   local b u8
   local code u32
   local or_res bool
   local $call_elem_35 i64
-  local.field 0 48 1   ; arg 0 std_string$StringChars.cursor
+  local.field 0 50 1   ; arg 0 std_string$StringChars.cursor
   ref.cast 7   ; i64
   local.set 1   ; i
-  local.field 0 48 0   ; arg 0 std_string$StringChars.s
+  local.field 0 50 0   ; arg 0 std_string$StringChars.s
   ref.cast 5   ; string
   call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; $call_4
@@ -4730,12 +4760,12 @@ fn 89 std_string$StringChars$std_core$Iterator$next (ref) -> any
   local.get 2   ; $call_4
   i64.ge
   if $L0 void
-    data.const 2 76   ; pool[2] std_core$Stop[]
+    data.const 2 78   ; pool[2] std_core$Stop[]
     i64.const 0
-    array.get 76 safe   ; std_core$Stop[]
+    array.get 78 safe   ; std_core$Stop[]
     return
   end $L0
-  local.field 0 48 0   ; arg 0 std_string$StringChars.s
+  local.field 0 50 0   ; arg 0 std_string$StringChars.s
   ref.cast 5   ; string
   local.get 1   ; i
   call.import 1   ; std_core$Intrinsic$byte_at
@@ -4749,13 +4779,13 @@ fn 89 std_string$StringChars$std_core$Iterator$next (ref) -> any
     local.set 2   ; $call_4
     local.get 0   ; arg 0
     local.get 2   ; $call_4
-    struct.set 48 1   ; std_string$StringChars.cursor
+    struct.set 50 1   ; std_string$StringChars.cursor
     local.get 3   ; b
     u8.to_char
     retag 8   ; char
     return
   end $L1
-  local.field 0 48 0   ; arg 0 std_string$StringChars.s
+  local.field 0 50 0   ; arg 0 std_string$StringChars.s
   ref.cast 5   ; string
   local.get 3   ; b
   local.get 1   ; i
@@ -4770,7 +4800,7 @@ fn 89 std_string$StringChars$std_core$Iterator$next (ref) -> any
   local.set 1   ; i
   local.get 0   ; arg 0
   local.get 1   ; i
-  struct.set 48 1   ; std_string$StringChars.cursor
+  struct.set 50 1   ; std_string$StringChars.cursor
   local.get 4   ; code
   i32.const 55295
   u32.gt
@@ -4804,7 +4834,7 @@ fn 89 std_string$StringChars$std_core$Iterator$next (ref) -> any
   end $L2
 end
 
-fn 90 std_glob$parse_glob (string,ref) -> any
+fn 92 std_glob$parse_glob (string,ref) -> any
   local chars ref
   local out ref
   local __fuse_step_0 any
@@ -4815,13 +4845,13 @@ fn 90 std_glob$parse_glob (string,ref) -> any
   local __tup_3 ref
   local token any
   local.get 0   ; arg 0
-  call 86   ; std_string$chars
+  call 88   ; std_string$chars
   local.set 2   ; chars
-  array.new 53 0   ; char[]
+  array.new 55 0   ; char[]
   local.set 3   ; out
   loop $L0 void
     local.get 2   ; chars
-    call 89   ; std_string$StringChars$std_core$Iterator$next
+    call 91   ; std_string$StringChars$std_core$Iterator$next
     local.tee 4   ; __fuse_step_0
     type_check 16   ; std_core$Stop
     if $L1 void
@@ -4837,7 +4867,7 @@ fn 90 std_glob$parse_glob (string,ref) -> any
   end $L0
   local.get 3   ; out
   local.set 2   ; chars
-  array.new 71 0   ; union[]
+  array.new 73 0   ; union[]
   local.set 3   ; out
   i64.const 0
   local.set 6   ; i
@@ -4852,7 +4882,7 @@ fn 90 std_glob$parse_glob (string,ref) -> any
       local.get 2   ; chars
       local.get 6   ; i
       local.get 1   ; arg 1
-      call 92   ; std_glob$token_at
+      call 94   ; std_glob$token_at
       local.tee 4   ; __fuse_step_0
       local.set 8   ; next
       local.get 4   ; __fuse_step_0
@@ -4863,26 +4893,26 @@ fn 90 std_glob$parse_glob (string,ref) -> any
         return
       end $L4
       local.get 4   ; __fuse_step_0
-      ref.cast 55   ; __Tuple_2_ca1b4b98917b36a8
+      ref.cast 57   ; __Tuple_2_ca1b4b98917b36a8
       local.set 9   ; __tup_3
-      local.field 9 55 0   ; __tup_3 __Tuple_2_ca1b4b98917b36a8._0
+      local.field 9 57 0   ; __tup_3 __Tuple_2_ca1b4b98917b36a8._0
       local.set 10   ; token
-      local.field 9 55 1   ; __tup_3 __Tuple_2_ca1b4b98917b36a8._1
+      local.field 9 57 1   ; __tup_3 __Tuple_2_ca1b4b98917b36a8._1
       ref.cast 7   ; i64
       local.set 6   ; i
       local.get 3   ; out
       local.get 10   ; token
-      array.push 56   ; union
+      array.push 58   ; union
       br $L2
     end $L3
   end $L2
   local.get 1   ; arg 1
   local.get 3   ; out
-  struct.new 52   ; std_glob$Glob
+  struct.new 54   ; std_glob$Glob
   return
 end
 
-fn 91 std_glob$matches (ref,string) -> bool
+fn 93 std_glob$matches (ref,string) -> bool
   local chars ref
   local out ref
   local __fuse_step_0 any
@@ -4892,13 +4922,13 @@ fn 91 std_glob$matches (ref,string) -> bool
   local $field_37 ref
   local filled ref
   local.get 1   ; arg 1
-  call 86   ; std_string$chars
+  call 88   ; std_string$chars
   local.set 2   ; chars
-  array.new 53 0   ; char[]
+  array.new 55 0   ; char[]
   local.set 3   ; out
   loop $L0 void
     local.get 2   ; chars
-    call 89   ; std_string$StringChars$std_core$Iterator$next
+    call 91   ; std_string$StringChars$std_core$Iterator$next
     local.tee 4   ; __fuse_step_0
     type_check 16   ; std_core$Stop
     if $L1 void
@@ -4915,7 +4945,7 @@ fn 91 std_glob$matches (ref,string) -> bool
   local.get 3   ; out
   local.set 2   ; chars
   bool.const false
-  array.new 63 1   ; bool[]
+  array.new 65 1   ; bool[]
   local.set 3   ; out
   local.get 2   ; chars
   array.len
@@ -4927,7 +4957,7 @@ fn 91 std_glob$matches (ref,string) -> bool
   array.repeat
   local.set 3   ; out
   bool.const false
-  array.new 63 1   ; bool[]
+  array.new 65 1   ; bool[]
   local.set 7   ; $arr_20
   local.get 2   ; chars
   array.len
@@ -4944,8 +4974,8 @@ fn 91 std_glob$matches (ref,string) -> bool
   local.get 3   ; out
   local.get 6   ; $add_checked_16
   bool.const true
-  array.set 63   ; bool[]
-  local.field 0 52 1   ; arg 0 std_glob$Glob.tokens
+  array.set 65   ; bool[]
+  local.field 0 54 1   ; arg 0 std_glob$Glob.tokens
   array.len
   i64.const 1
   i64.checked_sub
@@ -4955,18 +4985,18 @@ fn 91 std_glob$matches (ref,string) -> bool
     i64.const 0
     i64.ge
     if $L3 void
-      local.field 0 52 1   ; arg 0 std_glob$Glob.tokens
+      local.field 0 54 1   ; arg 0 std_glob$Glob.tokens
       local.get 6   ; $add_checked_16
-      array.get 71   ; union[]
+      array.get 73   ; union[]
       local.set 4   ; __fuse_step_0
-      local.field 0 52 0   ; arg 0 std_glob$Glob.options
+      local.field 0 54 0   ; arg 0 std_glob$Glob.options
       local.set 8   ; $field_37
       local.get 4   ; __fuse_step_0
       local.get 2   ; chars
       local.get 3   ; out
       local.get 7   ; $arr_20
       local.get 8   ; $field_37
-      call 93   ; std_glob$fill_row
+      call 95   ; std_glob$fill_row
       local.get 7   ; $arr_20
       local.set 9   ; filled
       local.get 3   ; out
@@ -4982,12 +5012,12 @@ fn 91 std_glob$matches (ref,string) -> bool
   end $L2
   local.get 3   ; out
   i32.const 0
-  array.get 63   ; bool[]
+  array.get 65   ; bool[]
   ref.cast 4   ; bool
   return
 end
 
-fn 92 std_glob$token_at (ref,i64,ref) -> any
+fn 94 std_glob$token_at (ref,i64,ref) -> any
   local c char
   local $add_checked_8 i64
   local $len_9 i64
@@ -5012,7 +5042,7 @@ fn 92 std_glob$token_at (ref,i64,ref) -> any
     local.get 5   ; $len_9
     i64.eq
     if $L1 void
-      string.const 85   ; "a trailing `\\` quotes nothing"
+      string.const 86   ; "a trailing `\\` quotes nothing"
       local.get 1   ; arg 1
       struct.new 29   ; std_glob$GlobError
       return
@@ -5029,7 +5059,7 @@ fn 92 std_glob$token_at (ref,i64,ref) -> any
     local.get 0   ; arg 0
     local.get 4   ; $add_checked_8
     load_slot_i32
-    struct.new 61   ; std_glob$GlobLiteral
+    struct.new 63   ; std_glob$GlobLiteral
     local.set 7   ; $struct_19
     local.get 1   ; arg 1
     i64.const 2
@@ -5037,7 +5067,7 @@ fn 92 std_glob$token_at (ref,i64,ref) -> any
     local.set 4   ; $add_checked_8
     local.get 7   ; $struct_19
     local.get 4   ; $add_checked_8
-    struct.new 55   ; __Tuple_2_ca1b4b98917b36a8
+    struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
     local.tee 6   ; if_res
     return
   end $L2
@@ -5045,9 +5075,9 @@ fn 92 std_glob$token_at (ref,i64,ref) -> any
   char.const 63
   i32.eq
   if $L3 void
-    data.const 3 77   ; pool[3] std_glob$GlobAnyChar[]
+    data.const 3 79   ; pool[3] std_glob$GlobAnyChar[]
     i64.const 0
-    array.get 77 safe   ; std_glob$GlobAnyChar[]
+    array.get 79 safe   ; std_glob$GlobAnyChar[]
     local.set 7   ; $struct_19
     local.get 1   ; arg 1
     i64.const 1
@@ -5055,17 +5085,17 @@ fn 92 std_glob$token_at (ref,i64,ref) -> any
     local.set 4   ; $add_checked_8
     local.get 7   ; $struct_19
     local.get 4   ; $add_checked_8
-    struct.new 55   ; __Tuple_2_ca1b4b98917b36a8
+    struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
     local.set 6   ; if_res
   else
     local.get 3   ; c
     char.const 42
     i32.eq
     if $L4 void
-      local.field 2 50 1   ; arg 2 std_glob$GlobOptions.globstar
+      local.field 2 52 1   ; arg 2 std_glob$GlobOptions.globstar
       ref.cast 4   ; bool
       if $L5 void
-        local.field 2 50 0   ; arg 2 std_glob$GlobOptions.pathname
+        local.field 2 52 0   ; arg 2 std_glob$GlobOptions.pathname
         ref.cast 4   ; bool
         local.set 8   ; and_res
       else
@@ -5075,24 +5105,24 @@ fn 92 std_glob$token_at (ref,i64,ref) -> any
       local.get 0   ; arg 0
       local.get 1   ; arg 1
       local.get 8   ; and_res
-      call 95   ; std_glob$star_token
+      call 97   ; std_glob$star_token
       local.set 6   ; if_res
     else
       local.get 3   ; c
       char.const 91
       i32.eq
       if $L6 void
-        local.field 2 50 0   ; arg 2 std_glob$GlobOptions.pathname
+        local.field 2 52 0   ; arg 2 std_glob$GlobOptions.pathname
         ref.cast 4   ; bool
         local.set 8   ; and_res
         local.get 0   ; arg 0
         local.get 1   ; arg 1
         local.get 8   ; and_res
-        call 94   ; std_glob$bracket_token
+        call 96   ; std_glob$bracket_token
         local.set 6   ; if_res
       else
         local.get 3   ; c
-        struct.new 61   ; std_glob$GlobLiteral
+        struct.new 63   ; std_glob$GlobLiteral
         local.set 7   ; $struct_19
         local.get 1   ; arg 1
         i64.const 1
@@ -5100,7 +5130,7 @@ fn 92 std_glob$token_at (ref,i64,ref) -> any
         local.set 4   ; $add_checked_8
         local.get 7   ; $struct_19
         local.get 4   ; $add_checked_8
-        struct.new 55   ; __Tuple_2_ca1b4b98917b36a8
+        struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
         local.set 6   ; if_res
       end $L6
     end $L4
@@ -5109,7 +5139,7 @@ fn 92 std_glob$token_at (ref,i64,ref) -> any
   return
 end
 
-fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
+fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
   local n i64
   local closes_directories bool
   local c i64
@@ -5152,7 +5182,7 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
     i64.const 0
     i64.ge
     if $L1 void
-      local.field 4 50 2   ; arg 4 std_glob$GlobOptions.explicit_period
+      local.field 4 52 2   ; arg 4 std_glob$GlobOptions.explicit_period
       ref.cast 4   ; bool
       if $L2 void
         local.get 7   ; c
@@ -5184,7 +5214,7 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
           bool.const true
           local.set 11   ; or_res
         else
-          local.field 4 50 0   ; arg 4 std_glob$GlobOptions.pathname
+          local.field 4 52 0   ; arg 4 std_glob$GlobOptions.pathname
           ref.cast 4   ; bool
           if $L6 void
             local.get 7   ; c
@@ -5223,7 +5253,7 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
       end $L7
       local.get 14   ; takes
       if $L8 void
-        local.field 4 50 0   ; arg 4 std_glob$GlobOptions.pathname
+        local.field 4 52 0   ; arg 4 std_glob$GlobOptions.pathname
         ref.cast 4   ; bool
         bool.not
         if $L9 void
@@ -5257,7 +5287,7 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
           local.set 19   ; $add_checked_54
           local.get 2   ; arg 2
           local.get 19   ; $add_checked_54
-          array.get 63   ; bool[]
+          array.get 65   ; bool[]
           ref.cast 4   ; bool
           local.set 18   ; and_res
         else
@@ -5281,7 +5311,7 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
       local.get 17   ; and_res
       local.set 6   ; closes_directories
       local.get 0   ; arg 0
-      type_check 61   ; std_glob$GlobLiteral
+      type_check 63   ; std_glob$GlobLiteral
       if $L13 void
         local.get 7   ; c
         local.get 5   ; n
@@ -5292,8 +5322,8 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
           load_slot_i32
           local.set 23   ; $idx_64
           local.get 0   ; arg 0
-          ref.cast 61   ; std_glob$GlobLiteral
-          struct.get 61 0   ; std_glob$GlobLiteral.ch
+          ref.cast 63   ; std_glob$GlobLiteral
+          struct.get 63 0   ; std_glob$GlobLiteral.ch
           ref.cast 8   ; char
           local.set 24   ; $field_66
           local.get 23   ; $idx_64
@@ -5312,7 +5342,7 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
           local.set 25   ; $add_checked_70
           local.get 2   ; arg 2
           local.get 25   ; $add_checked_70
-          array.get 63   ; bool[]
+          array.get 65   ; bool[]
           ref.cast 4   ; bool
           local.set 21   ; if_res
         else
@@ -5321,7 +5351,7 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
         end $L15
       else
         local.get 0   ; arg 0
-        type_check 57   ; std_glob$GlobAnyChar
+        type_check 59   ; std_glob$GlobAnyChar
         if $L16 void
           local.get 15   ; single
           if $L17 void
@@ -5331,7 +5361,7 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
             local.set 26   ; $add_checked_75
             local.get 2   ; arg 2
             local.get 26   ; $add_checked_75
-            array.get 63   ; bool[]
+            array.get 65   ; bool[]
             ref.cast 4   ; bool
             local.set 21   ; if_res
           else
@@ -5340,12 +5370,12 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
           end $L17
         else
           local.get 0   ; arg 0
-          type_check 58   ; std_glob$GlobBracket
+          type_check 60   ; std_glob$GlobBracket
           if $L18 void
             local.get 15   ; single
             if $L19 void
               local.get 0   ; arg 0
-              ref.cast 58   ; std_glob$GlobBracket
+              ref.cast 60   ; std_glob$GlobBracket
               local.set 28   ; $cast_80
               local.get 1   ; arg 1
               local.get 7   ; c
@@ -5353,7 +5383,7 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
               local.set 29   ; $idx_81
               local.get 28   ; $cast_80
               local.get 29   ; $idx_81
-              call 96   ; std_glob$admits
+              call 98   ; std_glob$admits
               local.set 27   ; and_res
             else
               bool.const false
@@ -5367,7 +5397,7 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
               local.set 30   ; $add_checked_85
               local.get 2   ; arg 2
               local.get 30   ; $add_checked_85
-              array.get 63   ; bool[]
+              array.get 65   ; bool[]
               ref.cast 4   ; bool
               local.set 21   ; if_res
             else
@@ -5376,11 +5406,11 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
             end $L20
           else
             local.get 0   ; arg 0
-            type_check 62   ; std_glob$GlobStar
+            type_check 64   ; std_glob$GlobStar
             if $L21 void
               local.get 2   ; arg 2
               local.get 7   ; c
-              array.get 63   ; bool[]
+              array.get 65   ; bool[]
               ref.cast 4   ; bool
               if $L22 void
                 bool.const true
@@ -5394,7 +5424,7 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
                   local.set 32   ; $add_checked_93
                   local.get 3   ; arg 3
                   local.get 32   ; $add_checked_93
-                  array.get 63   ; bool[]
+                  array.get 65   ; bool[]
                   ref.cast 4   ; bool
                   local.set 31   ; and_res
                 else
@@ -5406,11 +5436,11 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
               end $L22
             else
               local.get 0   ; arg 0
-              type_check 59   ; std_glob$GlobDeepStar
+              type_check 61   ; std_glob$GlobDeepStar
               if $L24 void
                 local.get 2   ; arg 2
                 local.get 7   ; c
-                array.get 63   ; bool[]
+                array.get 65   ; bool[]
                 ref.cast 4   ; bool
                 if $L25 void
                   bool.const true
@@ -5424,7 +5454,7 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
                     local.set 34   ; $add_checked_101
                     local.get 3   ; arg 3
                     local.get 34   ; $add_checked_101
-                    array.get 63   ; bool[]
+                    array.get 65   ; bool[]
                     ref.cast 4   ; bool
                     local.set 33   ; and_res
                   else
@@ -5436,14 +5466,14 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
                 end $L25
               else
                 local.get 0   ; arg 0
-                type_check 60   ; std_glob$GlobDirectories
+                type_check 62   ; std_glob$GlobDirectories
                 if $L27 void
                 else
                   unreachable "non-exhaustive match (T3013 should have caught this)"
                 end $L27
                 local.get 2   ; arg 2
                 local.get 7   ; c
-                array.get 63   ; bool[]
+                array.get 65   ; bool[]
                 ref.cast 4   ; bool
                 if $L28 void
                   bool.const true
@@ -5460,7 +5490,7 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
       local.get 3   ; arg 3
       local.get 7   ; c
       local.get 21   ; if_res
-      array.set 63   ; bool[]
+      array.set 65   ; bool[]
       local.get 7   ; c
       i64.const 1
       i64.checked_sub
@@ -5471,7 +5501,7 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
   return
 end
 
-fn 94 std_glob$bracket_token (ref,i64,bool) -> any
+fn 96 std_glob$bracket_token (ref,i64,bool) -> any
   local $struct_4 ref
   local $add_checked_6 i64
   local negated bool
@@ -5505,7 +5535,7 @@ fn 94 std_glob$bracket_token (ref,i64,bool) -> any
   local $call_96 string
   local $struct_100 ref
   char.const 91
-  struct.new 61   ; std_glob$GlobLiteral
+  struct.new 63   ; std_glob$GlobLiteral
   local.set 3   ; $struct_4
   local.get 1   ; arg 1
   i64.const 1
@@ -5513,7 +5543,7 @@ fn 94 std_glob$bracket_token (ref,i64,bool) -> any
   local.set 4   ; $add_checked_6
   local.get 3   ; $struct_4
   local.get 4   ; $add_checked_6
-  struct.new 55   ; __Tuple_2_ca1b4b98917b36a8
+  struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
   local.set 3   ; $struct_4
   local.get 1   ; arg 1
   i64.const 1
@@ -5553,7 +5583,7 @@ fn 94 std_glob$bracket_token (ref,i64,bool) -> any
     i64.checked_add
     local.set 4   ; $add_checked_6
   end $L2
-  array.new 72 0   ; std_glob$GlobRange[]
+  array.new 74 0   ; std_glob$GlobRange[]
   local.set 7   ; ranges
   array.new 9 0   ; u8[]
   local.set 8   ; classes
@@ -5591,7 +5621,7 @@ fn 94 std_glob$bracket_token (ref,i64,bool) -> any
           local.get 7   ; ranges
           local.get 8   ; classes
           local.get 5   ; negated
-          struct.new 58   ; std_glob$GlobBracket
+          struct.new 60   ; std_glob$GlobBracket
           local.set 11   ; bracket
           local.get 4   ; $add_checked_6
           i64.const 1
@@ -5599,13 +5629,13 @@ fn 94 std_glob$bracket_token (ref,i64,bool) -> any
           local.set 12   ; $add_checked_43
           local.get 11   ; bracket
           local.get 12   ; $add_checked_43
-          struct.new 55   ; __Tuple_2_ca1b4b98917b36a8
+          struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
           return
         end $L8
       end $L7
       local.get 0   ; arg 0
       local.get 4   ; $add_checked_6
-      call 97   ; std_glob$class_at
+      call 99   ; std_glob$class_at
       local.tee 14   ; __fallback_0
       local.set 15   ; class
       local.get 14   ; __fallback_0
@@ -5621,7 +5651,7 @@ fn 94 std_glob$bracket_token (ref,i64,bool) -> any
       if $L10 void
         local.get 0   ; arg 0
         local.get 4   ; $add_checked_6
-        call 99   ; std_glob$endpoint_at
+        call 101   ; std_glob$endpoint_at
         local.tee 20   ; __fallback_2
         local.set 21   ; low
         local.get 20   ; __fallback_2
@@ -5639,17 +5669,17 @@ fn 94 std_glob$bracket_token (ref,i64,bool) -> any
           return
         end $L12
         local.get 19   ; low
-        ref.cast 67   ; __Tuple_char_i64_d35e0494
+        ref.cast 69   ; __Tuple_char_i64_d35e0494
         local.set 22   ; __tup_3
-        local.field 22 67 0   ; __tup_3 __Tuple_char_i64_d35e0494._0
+        local.field 22 69 0   ; __tup_3 __Tuple_char_i64_d35e0494._0
         ref.cast 8   ; char
         local.set 23   ; low_char
-        local.field 22 67 1   ; __tup_3 __Tuple_char_i64_d35e0494._1
+        local.field 22 69 1   ; __tup_3 __Tuple_char_i64_d35e0494._1
         ref.cast 7   ; i64
         local.set 24   ; after_low
         local.get 0   ; arg 0
         local.get 24   ; after_low
-        call 98   ; std_glob$range_end_at
+        call 100   ; std_glob$range_end_at
         local.tee 26   ; __fallback_4
         local.set 27   ; high
         local.get 26   ; __fallback_4
@@ -5665,22 +5695,22 @@ fn 94 std_glob$bracket_token (ref,i64,bool) -> any
         if $L14 void
           local.get 23   ; low_char
           local.get 23   ; low_char
-          struct.new 73   ; std_glob$GlobRange
+          struct.new 75   ; std_glob$GlobRange
           local.set 28   ; $struct_85
           local.get 7   ; ranges
           local.get 28   ; $struct_85
-          array.push 73   ; std_glob$GlobRange
+          array.push 75   ; std_glob$GlobRange
           local.get 24   ; after_low
           local.set 4   ; $add_checked_6
           br $L3
         end $L14
         local.get 25   ; high
-        ref.cast 67   ; __Tuple_char_i64_d35e0494
+        ref.cast 69   ; __Tuple_char_i64_d35e0494
         local.set 29   ; __tup_5
-        local.field 29 67 0   ; __tup_5 __Tuple_char_i64_d35e0494._0
+        local.field 29 69 0   ; __tup_5 __Tuple_char_i64_d35e0494._0
         ref.cast 8   ; char
         local.set 30   ; high_char
-        local.field 29 67 1   ; __tup_5 __Tuple_char_i64_d35e0494._1
+        local.field 29 69 1   ; __tup_5 __Tuple_char_i64_d35e0494._1
         ref.cast 7   ; i64
         local.set 31   ; after_high
         local.get 30   ; high_char
@@ -5693,11 +5723,11 @@ fn 94 std_glob$bracket_token (ref,i64,bool) -> any
           local.get 30   ; high_char
           call 10   ; std_core$char$Display$to_string
           local.set 33   ; $call_96
-          string.const 87   ; "the range `"
+          string.const 88   ; "the range `"
           local.get 32   ; $call_94
-          string.const 88   ; "-"
+          string.const 89   ; "-"
           local.get 33   ; $call_96
-          string.const 89   ; "` is reversed"
+          string.const 90   ; "` is reversed"
           call 4   ; concat_5
           local.get 4   ; $add_checked_6
           struct.new 29   ; std_glob$GlobError
@@ -5705,30 +5735,30 @@ fn 94 std_glob$bracket_token (ref,i64,bool) -> any
         end $L15
         local.get 23   ; low_char
         local.get 30   ; high_char
-        struct.new 73   ; std_glob$GlobRange
+        struct.new 75   ; std_glob$GlobRange
         local.set 34   ; $struct_100
         local.get 7   ; ranges
         local.get 34   ; $struct_100
-        array.push 73   ; std_glob$GlobRange
+        array.push 75   ; std_glob$GlobRange
         local.get 31   ; after_high
         local.set 4   ; $add_checked_6
         br $L3
       end $L10
       local.get 13   ; class
-      ref.cast 65   ; __Tuple_u8_i64_485b013f
+      ref.cast 67   ; __Tuple_u8_i64_485b013f
       local.set 16   ; __tup_1
-      local.field 16 65 0   ; __tup_1 __Tuple_u8_i64_485b013f._0
+      local.field 16 67 0   ; __tup_1 __Tuple_u8_i64_485b013f._0
       local.set 17   ; named
-      local.field 16 65 1   ; __tup_1 __Tuple_u8_i64_485b013f._1
+      local.field 16 67 1   ; __tup_1 __Tuple_u8_i64_485b013f._1
       ref.cast 7   ; i64
       local.set 18   ; after_class
       local.get 0   ; arg 0
       local.get 18   ; after_class
-      call 98   ; std_glob$range_end_at
+      call 100   ; std_glob$range_end_at
       type_check 0   ; null
       if $L16 void
       else
-        string.const 86   ; "a class cannot start a range"
+        string.const 87   ; "a class cannot start a range"
         local.get 18   ; after_class
         struct.new 29   ; std_glob$GlobError
         return
@@ -5745,7 +5775,7 @@ fn 94 std_glob$bracket_token (ref,i64,bool) -> any
   return
 end
 
-fn 95 std_glob$star_token (ref,i64,bool) -> ref
+fn 97 std_glob$star_token (ref,i64,bool) -> ref
   local end i64
   local $len_4 i64
   local or_res bool
@@ -5820,11 +5850,11 @@ fn 95 std_glob$star_token (ref,i64,bool) -> ref
   end $L5
   local.get 5   ; or_res
   if $L7 void
-    data.const 4 78   ; pool[4] std_glob$GlobStar[]
+    data.const 4 80   ; pool[4] std_glob$GlobStar[]
     i64.const 0
-    array.get 78 safe   ; std_glob$GlobStar[]
+    array.get 80 safe   ; std_glob$GlobStar[]
     local.get 3   ; end
-    struct.new 55   ; __Tuple_2_ca1b4b98917b36a8
+    struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
     return
   end $L7
   local.get 0   ; arg 0
@@ -5834,11 +5864,11 @@ fn 95 std_glob$star_token (ref,i64,bool) -> ref
   local.get 4   ; $len_4
   i64.eq
   if $L8 void
-    data.const 5 79   ; pool[5] std_glob$GlobDeepStar[]
+    data.const 5 81   ; pool[5] std_glob$GlobDeepStar[]
     i64.const 0
-    array.get 79 safe   ; std_glob$GlobDeepStar[]
+    array.get 81 safe   ; std_glob$GlobDeepStar[]
     local.get 3   ; end
-    struct.new 55   ; __Tuple_2_ca1b4b98917b36a8
+    struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
     return
   end $L8
   local.get 0   ; arg 0
@@ -5848,16 +5878,16 @@ fn 95 std_glob$star_token (ref,i64,bool) -> ref
   i32.eq
   if $L9 void
   else
-    data.const 4 78   ; pool[4] std_glob$GlobStar[]
+    data.const 4 80   ; pool[4] std_glob$GlobStar[]
     i64.const 0
-    array.get 78 safe   ; std_glob$GlobStar[]
+    array.get 80 safe   ; std_glob$GlobStar[]
     local.get 3   ; end
-    struct.new 55   ; __Tuple_2_ca1b4b98917b36a8
+    struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
     return
   end $L9
-  data.const 6 80   ; pool[6] std_glob$GlobDirectories[]
+  data.const 6 82   ; pool[6] std_glob$GlobDirectories[]
   i64.const 0
-  array.get 80 safe   ; std_glob$GlobDirectories[]
+  array.get 82 safe   ; std_glob$GlobDirectories[]
   local.set 7   ; $idx_43
   local.get 3   ; end
   i64.const 1
@@ -5865,18 +5895,18 @@ fn 95 std_glob$star_token (ref,i64,bool) -> ref
   local.set 3   ; end
   local.get 7   ; $idx_43
   local.get 3   ; end
-  struct.new 55   ; __Tuple_2_ca1b4b98917b36a8
+  struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
   return
 end
 
-fn 96 std_glob$admits (ref,char) -> bool
+fn 98 std_glob$admits (ref,char) -> bool
   local $call_2 bool
   local $field_3 bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 100   ; std_glob$lists
+  call 102   ; std_glob$lists
   local.set 2   ; $call_2
-  local.field 0 58 2   ; arg 0 std_glob$GlobBracket.negated
+  local.field 0 60 2   ; arg 0 std_glob$GlobBracket.negated
   ref.cast 4   ; bool
   local.set 3   ; $field_3
   local.get 2   ; $call_2
@@ -5885,7 +5915,7 @@ fn 96 std_glob$admits (ref,char) -> bool
   return
 end
 
-fn 97 std_glob$class_at (ref,i64) -> any
+fn 99 std_glob$class_at (ref,i64) -> any
   local __fallback_0 any
   local __tup_1 ref
   local start i64
@@ -5895,33 +5925,33 @@ fn 97 std_glob$class_at (ref,i64) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   char.const 58
-  call 101   ; std_glob$delimited_at
+  call 103   ; std_glob$delimited_at
   local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit null.const
   end $L0
   local.get 2   ; __fallback_0
-  ref.cast 69   ; __Tuple_i64_i64_f049c617
+  ref.cast 71   ; __Tuple_i64_i64_f049c617
   local.set 3   ; __tup_1
-  local.field 3 69 0   ; __tup_1 __Tuple_i64_i64_f049c617._0
+  local.field 3 71 0   ; __tup_1 __Tuple_i64_i64_f049c617._0
   ref.cast 7   ; i64
   local.set 4   ; start
-  local.field 3 69 1   ; __tup_1 __Tuple_i64_i64_f049c617._1
+  local.field 3 71 1   ; __tup_1 __Tuple_i64_i64_f049c617._1
   ref.cast 7   ; i64
   local.set 5   ; close
   local.get 0   ; arg 0
   local.get 4   ; start
   local.get 5   ; close
-  call 102   ; std_glob$chars_between
+  call 104   ; std_glob$chars_between
   local.tee 6   ; name
-  call 103   ; std_glob$posix_class_named
+  call 105   ; std_glob$posix_class_named
   local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L1 void
-    string.const 90   ; "POSIX names no class `[:"
+    string.const 91   ; "POSIX names no class `[:"
     local.get 6   ; name
-    string.const 91   ; ":]`"
+    string.const 92   ; ":]`"
     call 3   ; concat_3
     local.get 1   ; arg 1
     struct.new 29   ; std_glob$GlobError
@@ -5936,11 +5966,11 @@ fn 97 std_glob$class_at (ref,i64) -> any
   local.set 4   ; start
   local.get 7   ; class
   local.get 4   ; start
-  struct.new 65   ; __Tuple_u8_i64_485b013f
+  struct.new 67   ; __Tuple_u8_i64_485b013f
   return
 end
 
-fn 98 std_glob$range_end_at (ref,i64) -> any
+fn 100 std_glob$range_end_at (ref,i64) -> any
   local $add_checked_3 i64
   local $len_4 i64
   local.get 1   ; arg 1
@@ -5983,7 +6013,7 @@ fn 98 std_glob$range_end_at (ref,i64) -> any
   local.get 0   ; arg 0
   local.get 2   ; $add_checked_3
   char.const 58
-  call 101   ; std_glob$delimited_at
+  call 103   ; std_glob$delimited_at
   type_check 0   ; null
   if $L3 void
   else
@@ -5991,7 +6021,7 @@ fn 98 std_glob$range_end_at (ref,i64) -> any
     i64.const 1
     i64.checked_add
     local.set 2   ; $add_checked_3
-    string.const 92   ; "a class cannot end a range"
+    string.const 93   ; "a class cannot end a range"
     local.get 2   ; $add_checked_3
     struct.new 29   ; std_glob$GlobError
     return
@@ -6002,11 +6032,11 @@ fn 98 std_glob$range_end_at (ref,i64) -> any
   local.set 2   ; $add_checked_3
   local.get 0   ; arg 0
   local.get 2   ; $add_checked_3
-  call 99   ; std_glob$endpoint_at
+  call 101   ; std_glob$endpoint_at
   return
 end
 
-fn 99 std_glob$endpoint_at (ref,i64) -> any
+fn 101 std_glob$endpoint_at (ref,i64) -> any
   local $add_checked_6 i64
   local $len_7 i64
   local $idx_12 char
@@ -6053,14 +6083,14 @@ fn 99 std_glob$endpoint_at (ref,i64) -> any
       local.set 2   ; $add_checked_6
       local.get 4   ; $idx_12
       local.get 2   ; $add_checked_6
-      struct.new 67   ; __Tuple_char_i64_d35e0494
+      struct.new 69   ; __Tuple_char_i64_d35e0494
       return
     end $L1
     return.lit null.const
   end $L0
   char.const 61
   char.const 46
-  array.new 53 2   ; char[]
+  array.new 55 2   ; char[]
   local.tee 5   ; __for_arr_0
   array.len
   local.set 2   ; $add_checked_6
@@ -6078,7 +6108,7 @@ fn 99 std_glob$endpoint_at (ref,i64) -> any
       local.get 0   ; arg 0
       local.get 1   ; arg 1
       local.get 4   ; $idx_12
-      call 101   ; std_glob$delimited_at
+      call 103   ; std_glob$delimited_at
       local.tee 6   ; __fallback_3
       type_check 0   ; null
       if $L4 void
@@ -6089,12 +6119,12 @@ fn 99 std_glob$endpoint_at (ref,i64) -> any
         br $L2
       end $L4
       local.get 6   ; __fallback_3
-      ref.cast 69   ; __Tuple_i64_i64_f049c617
+      ref.cast 71   ; __Tuple_i64_i64_f049c617
       local.set 7   ; __tup_4
-      local.field 7 69 0   ; __tup_4 __Tuple_i64_i64_f049c617._0
+      local.field 7 71 0   ; __tup_4 __Tuple_i64_i64_f049c617._0
       ref.cast 7   ; i64
       local.set 8   ; start
-      local.field 7 69 1   ; __tup_4 __Tuple_i64_i64_f049c617._1
+      local.field 7 71 1   ; __tup_4 __Tuple_i64_i64_f049c617._1
       ref.cast 7   ; i64
       local.set 9   ; close
       local.get 8   ; start
@@ -6116,13 +6146,13 @@ fn 99 std_glob$endpoint_at (ref,i64) -> any
         local.set 15   ; $add_checked_52
         local.get 14   ; $idx_50
         local.get 15   ; $add_checked_52
-        struct.new 67   ; __Tuple_char_i64_d35e0494
+        struct.new 69   ; __Tuple_char_i64_d35e0494
         return
       end $L5
       local.get 0   ; arg 0
       local.get 8   ; start
       local.get 9   ; close
-      call 102   ; std_glob$chars_between
+      call 104   ; std_glob$chars_between
       local.set 11   ; name
       local.get 4   ; $idx_12
       call 10   ; std_core$char$Display$to_string
@@ -6130,11 +6160,11 @@ fn 99 std_glob$endpoint_at (ref,i64) -> any
       local.get 4   ; $idx_12
       call 10   ; std_core$char$Display$to_string
       local.set 13   ; $call_46
-      string.const 93   ; "the POSIX locale has no element `["
+      string.const 94   ; "the POSIX locale has no element `["
       local.get 12   ; $call_45
       local.get 11   ; name
       local.get 13   ; $call_46
-      string.const 94   ; "]`"
+      string.const 95   ; "]`"
       call 4   ; concat_5
       local.get 1   ; arg 1
       struct.new 29   ; std_glob$GlobError
@@ -6151,18 +6181,18 @@ fn 99 std_glob$endpoint_at (ref,i64) -> any
   local.set 2   ; $add_checked_6
   local.get 4   ; $idx_12
   local.get 2   ; $add_checked_6
-  struct.new 67   ; __Tuple_char_i64_d35e0494
+  struct.new 69   ; __Tuple_char_i64_d35e0494
   return
 end
 
-fn 100 std_glob$lists (ref,char) -> bool
+fn 102 std_glob$lists (ref,char) -> bool
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
   local range ref
   local $field_11 char
   local $field_13 char
-  local.field 0 58 0   ; arg 0 std_glob$GlobBracket.ranges
+  local.field 0 60 0   ; arg 0 std_glob$GlobBracket.ranges
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -6175,16 +6205,16 @@ fn 100 std_glob$lists (ref,char) -> bool
     if $L1 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 72   ; std_glob$GlobRange[]
+      array.get 74   ; std_glob$GlobRange[]
       local.set 5   ; range
-      local.field 5 73 0   ; range std_glob$GlobRange.low
+      local.field 5 75 0   ; range std_glob$GlobRange.low
       ref.cast 8   ; char
       local.set 6   ; $field_11
       local.get 1   ; arg 1
       local.get 6   ; $field_11
       i32.ge
       if $L2 void
-        local.field 5 73 1   ; range std_glob$GlobRange.high
+        local.field 5 75 1   ; range std_glob$GlobRange.high
         ref.cast 8   ; char
         local.set 7   ; $field_13
         local.get 1   ; arg 1
@@ -6201,7 +6231,7 @@ fn 100 std_glob$lists (ref,char) -> bool
       br $L0
     end $L1
   end $L0
-  local.field 0 58 1   ; arg 0 std_glob$GlobBracket.classes
+  local.field 0 60 1   ; arg 0 std_glob$GlobBracket.classes
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -6216,7 +6246,7 @@ fn 100 std_glob$lists (ref,char) -> bool
       local.get 4   ; __for_i_2
       array.get 9   ; u8[]
       local.get 1   ; arg 1
-      call 104   ; std_glob$holds
+      call 106   ; std_glob$holds
       if $L6 void
         return.lit bool.const true
       end $L6
@@ -6230,7 +6260,7 @@ fn 100 std_glob$lists (ref,char) -> bool
   return.lit bool.const false
 end
 
-fn 101 std_glob$delimited_at (ref,i64,char) -> any
+fn 103 std_glob$delimited_at (ref,i64,char) -> any
   local $add_checked_4 i64
   local $len_5 i64
   local $len_20 i64
@@ -6304,7 +6334,7 @@ fn 101 std_glob$delimited_at (ref,i64,char) -> any
           i64.const 2
           i64.checked_add
           local.get 3   ; $add_checked_4
-          struct.new 69   ; __Tuple_i64_i64_f049c617
+          struct.new 71   ; __Tuple_i64_i64_f049c617
           return
         end $L6
       end $L5
@@ -6318,12 +6348,12 @@ fn 101 std_glob$delimited_at (ref,i64,char) -> any
   return.lit null.const
 end
 
-fn 102 std_glob$chars_between (ref,i64,i64) -> string
+fn 104 std_glob$chars_between (ref,i64,i64) -> string
   local sb ref
   local k i64
   local $idx_8 char
   array.new 15 0   ; string[]
-  struct.new 74   ; std_string__builder$StringBuilder
+  struct.new 76   ; std_string__builder$StringBuilder
   local.set 3   ; sb
   local.get 1   ; arg 1
   local.set 4   ; k
@@ -6338,7 +6368,7 @@ fn 102 std_glob$chars_between (ref,i64,i64) -> string
       local.set 5   ; $idx_8
       local.get 3   ; sb
       local.get 5   ; $idx_8
-      call 105   ; std_string__builder$append_char
+      call 108   ; std_string__builder$append_char
       local.get 4   ; k
       i64.const 1
       i64.add
@@ -6347,14 +6377,14 @@ fn 102 std_glob$chars_between (ref,i64,i64) -> string
     end $L1
   end $L0
   local.get 3   ; sb
-  call 106   ; std_string__builder$StringBuilder$std_core$Display$to_string
+  call 109   ; std_string__builder$StringBuilder$std_core$Display$to_string
   return
 end
 
-fn 103 std_glob$posix_class_named (string) -> any
+fn 105 std_glob$posix_class_named (string) -> any
   local if_res any
   local.get 0   ; arg 0
-  string.const 95   ; "alnum"
+  string.const 96   ; "alnum"
   string.eq
   if $L0 void
     i32.const 0
@@ -6363,7 +6393,7 @@ fn 103 std_glob$posix_class_named (string) -> any
     return
   end $L0
   local.get 0   ; arg 0
-  string.const 96   ; "alpha"
+  string.const 97   ; "alpha"
   string.eq
   if $L1 void
     i32.const 1
@@ -6371,7 +6401,7 @@ fn 103 std_glob$posix_class_named (string) -> any
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
-    string.const 97   ; "blank"
+    string.const 98   ; "blank"
     string.eq
     if $L2 void
       i32.const 2
@@ -6379,7 +6409,7 @@ fn 103 std_glob$posix_class_named (string) -> any
       local.set 1   ; if_res
     else
       local.get 0   ; arg 0
-      string.const 98   ; "cntrl"
+      string.const 99   ; "cntrl"
       string.eq
       if $L3 void
         i32.const 3
@@ -6387,7 +6417,7 @@ fn 103 std_glob$posix_class_named (string) -> any
         local.set 1   ; if_res
       else
         local.get 0   ; arg 0
-        string.const 99   ; "digit"
+        string.const 100   ; "digit"
         string.eq
         if $L4 void
           i32.const 4
@@ -6395,7 +6425,7 @@ fn 103 std_glob$posix_class_named (string) -> any
           local.set 1   ; if_res
         else
           local.get 0   ; arg 0
-          string.const 100   ; "graph"
+          string.const 101   ; "graph"
           string.eq
           if $L5 void
             i32.const 5
@@ -6403,7 +6433,7 @@ fn 103 std_glob$posix_class_named (string) -> any
             local.set 1   ; if_res
           else
             local.get 0   ; arg 0
-            string.const 101   ; "lower"
+            string.const 102   ; "lower"
             string.eq
             if $L6 void
               i32.const 6
@@ -6411,7 +6441,7 @@ fn 103 std_glob$posix_class_named (string) -> any
               local.set 1   ; if_res
             else
               local.get 0   ; arg 0
-              string.const 102   ; "print"
+              string.const 103   ; "print"
               string.eq
               if $L7 void
                 i32.const 7
@@ -6419,7 +6449,7 @@ fn 103 std_glob$posix_class_named (string) -> any
                 local.set 1   ; if_res
               else
                 local.get 0   ; arg 0
-                string.const 103   ; "punct"
+                string.const 104   ; "punct"
                 string.eq
                 if $L8 void
                   i32.const 8
@@ -6427,7 +6457,7 @@ fn 103 std_glob$posix_class_named (string) -> any
                   local.set 1   ; if_res
                 else
                   local.get 0   ; arg 0
-                  string.const 104   ; "space"
+                  string.const 105   ; "space"
                   string.eq
                   if $L9 void
                     i32.const 9
@@ -6435,7 +6465,7 @@ fn 103 std_glob$posix_class_named (string) -> any
                     local.set 1   ; if_res
                   else
                     local.get 0   ; arg 0
-                    string.const 105   ; "upper"
+                    string.const 106   ; "upper"
                     string.eq
                     if $L10 void
                       i32.const 10
@@ -6443,7 +6473,7 @@ fn 103 std_glob$posix_class_named (string) -> any
                       local.set 1   ; if_res
                     else
                       local.get 0   ; arg 0
-                      string.const 106   ; "xdigit"
+                      string.const 107   ; "xdigit"
                       string.eq
                       if $L11 void
                         i32.const 11
@@ -6467,7 +6497,7 @@ fn 103 std_glob$posix_class_named (string) -> any
   return
 end
 
-fn 104 std_glob$holds (u8,char) -> bool
+fn 106 std_glob$holds (u8,char) -> bool
   local if_res bool
   local and_res bool
   local __in_x_0 u32
@@ -6477,7 +6507,7 @@ fn 104 std_glob$holds (u8,char) -> bool
   i32.eq
   if $L0 void
     local.get 1   ; arg 1
-    call 109   ; std_char$is_alphanumeric
+    call 112   ; std_char$is_alphanumeric
     local.tee 2   ; if_res
     return
   end $L0
@@ -6486,7 +6516,7 @@ fn 104 std_glob$holds (u8,char) -> bool
   i32.eq
   if $L1 void
     local.get 1   ; arg 1
-    call 110   ; std_char$is_alpha
+    call 113   ; std_char$is_alpha
     local.set 2   ; if_res
   else
     local.get 0   ; arg 0
@@ -6530,7 +6560,7 @@ fn 104 std_glob$holds (u8,char) -> bool
         i32.eq
         if $L6 void
           local.get 1   ; arg 1
-          call 108   ; std_char$is_digit
+          call 111   ; std_char$is_digit
           local.set 2   ; if_res
         else
           local.get 0   ; arg 0
@@ -6603,7 +6633,7 @@ fn 104 std_glob$holds (u8,char) -> bool
                   local.get 3   ; and_res
                   if $L15 void
                     local.get 1   ; arg 1
-                    call 109   ; std_char$is_alphanumeric
+                    call 112   ; std_char$is_alphanumeric
                     bool.not
                     local.set 2   ; if_res
                   else
@@ -6666,7 +6696,7 @@ fn 104 std_glob$holds (u8,char) -> bool
                         unreachable "non-exhaustive match (T3013 should have caught this)"
                       end $L21
                       local.get 1   ; arg 1
-                      call 108   ; std_char$is_digit
+                      call 111   ; std_char$is_digit
                       if $L22 void
                         bool.const true
                         local.set 3   ; and_res
@@ -6720,10 +6750,16 @@ fn 104 std_glob$holds (u8,char) -> bool
   return
 end
 
-fn 105 std_string__builder$append_char (ref,char) -> void
+fn 107 std_glob$GlobError$std_core$Error$message (ref) -> string
+  local.field 0 29 0   ; arg 0 std_glob$GlobError.msg
+  ref.cast 5   ; string
+  return
+end
+
+fn 108 std_string__builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 74 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 76 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 9   ; std_core$utf8_encode
@@ -6735,7 +6771,7 @@ fn 105 std_string__builder$append_char (ref,char) -> void
   return
 end
 
-fn 106 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> string
+fn 109 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> string
   local n i64
   local buf ref
   local off i64
@@ -6744,7 +6780,7 @@ fn 106 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> str
   local __for_i_2 i64
   local p string
   local $call_27 i64
-  local.field 0 74 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 76 0   ; arg 0 std_string__builder$StringBuilder.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -6756,20 +6792,20 @@ fn 106 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> str
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 74 0   ; arg 0 std_string__builder$StringBuilder.parts
+    local.field 0 76 0   ; arg 0 std_string__builder$StringBuilder.parts
     i32.const 0
     array.get 15   ; string[]
     ref.cast 5   ; string
     return
   end $L1
   local.get 0   ; arg 0
-  call 107   ; std_string__builder$byte_len
+  call 110   ; std_string__builder$byte_len
   local.tee 1   ; n
   buffer.new
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; off
-  local.field 0 74 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 76 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 4   ; __for_arr_0
   array.len
   local.set 5   ; __for_len_1
@@ -6809,7 +6845,7 @@ fn 106 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> str
   return
 end
 
-fn 107 std_string__builder$byte_len (ref) -> i64
+fn 110 std_string__builder$byte_len (ref) -> i64
   local total i64
   local __for_arr_0 ref
   local __for_len_1 i64
@@ -6817,7 +6853,7 @@ fn 107 std_string__builder$byte_len (ref) -> i64
   local $call_12 i64
   i64.const 0
   local.set 1   ; total
-  local.field 0 74 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 76 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -6849,7 +6885,7 @@ fn 107 std_string__builder$byte_len (ref) -> i64
   return
 end
 
-fn 108 std_char$is_digit (char) -> bool
+fn 111 std_char$is_digit (char) -> bool
   char.const 48
   local.get 0   ; arg 0
   i32.le
@@ -6862,18 +6898,18 @@ fn 108 std_char$is_digit (char) -> bool
   return.lit bool.const false
 end
 
-fn 109 std_char$is_alphanumeric (char) -> bool
+fn 112 std_char$is_alphanumeric (char) -> bool
   local.get 0   ; arg 0
-  call 110   ; std_char$is_alpha
+  call 113   ; std_char$is_alpha
   if $L0 void
     return.lit bool.const true
   end $L0
   local.get 0   ; arg 0
-  call 108   ; std_char$is_digit
+  call 111   ; std_char$is_digit
   return
 end
 
-fn 110 std_char$is_alpha (char) -> bool
+fn 113 std_char$is_alpha (char) -> bool
   local and_res bool
   char.const 97
   local.get 0   ; arg 0

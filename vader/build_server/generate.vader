@@ -391,10 +391,10 @@ session_at :: fn(root: string) -> BuildSession =
     // The safety argument for a recursive delete: a hand-written file in the
     // way is left alone.
     root :: join_path(temp_dir(), "vader_gen_probe_sweep")
-    create_dir(root)
+    assert_succeeds(create_dir(root))
     sweep_generated(root)
     mine :: join_path(root, "handwritten.vader")
-    write_file(mine, "module \"mine\"\n")
+    assert_succeeds(write_file(mine, "module \"mine\"\n"))
     session :: session_at(temp_dir())
     session.generated_root = "vader_gen_probe_sweep"
     session.queue_module("gen/probe", "probe :: fn() -> i32 = 7\n")
@@ -406,21 +406,21 @@ session_at :: fn(root: string) -> BuildSession =
         "the sweep should remove the one generated file: removed=${removed} ${detail}",
     )
     assert(exists(mine), "a file without the banner is not ours to delete")
-    remove(mine)
+    _ :: remove(mine)
 }
 
 @test test_flush_reports_a_path_it_cannot_write :: fn() -> void {
     // `create_dir` cannot make a directory under a FILE. The build has to say so
     // rather than settle having generated nothing.
     blocker :: join_path(temp_dir(), "vader_gen_probe_blocker")
-    write_file(blocker, "not a directory\n")
+    assert_succeeds(write_file(blocker, "not a directory\n"))
     session :: session_at(temp_dir())
     session.generated_root = "vader_gen_probe_blocker/inside"
     session.queue_module("gen/probe", "x :: 1")
     assert_eq(session.flush_generated().len(), 0)
     assert_eq(session.diagnostics.len(), 1)
     assert_eq(session.diagnostics[0].code.id, "H6008")
-    remove(blocker)
+    _ :: remove(blocker)
 }
 
 @test test_sweep_of_a_missing_root_is_not_an_error :: fn() -> void {

@@ -538,7 +538,7 @@ test_read_takes_the_room_it_is_given :: fn() -> void {
             return
         }
         assert_eq(read_rest(f, chunk), "abcdefghij")
-        f.close()
+        _ :: f.close()
     }
 }
 
@@ -588,9 +588,9 @@ test_a_write_after_a_read_lands_at_the_position :: fn() -> void {
         return
     }
     into: u8[]: [0] * 3
-    f.read(into)
+    _ :: f.read(into)
     assert(f.write("abc") !is IOError, "the write")
-    f.close()
+    _ :: f.close()
     back :: read_file_string(path)
     assert(back is string && back == "012abc6789", "written after the three bytes read")
 }
@@ -603,9 +603,9 @@ test_append_writes_at_the_end_wherever_the_position :: fn() -> void {
         assert(false, "the file opens")
         return
     }
-    f.seek(0, .Start)
+    _ :: f.seek(0, .Start)
     assert(f.write("+tail") !is IOError, "the write")
-    f.close()
+    _ :: f.close()
     back :: read_file_string(path)
     assert(back is string && back == "head+tail", "appended")
 }
@@ -649,7 +649,7 @@ test_the_lines_of_a_closed_file_end_on_its_error :: fn() -> void {
         assert(false, "the file opens")
         return
     }
-    f.close()
+    _ :: f.close()
     reader :: BufferedReader { .source = f }
     count: i64 = 0
     for line in reader.lines() {
@@ -669,11 +669,11 @@ test_a_buffered_writer_reaches_the_file_at_its_flush :: fn() -> void {
     }
     defer path.remove()
     writer :: BufferedWriter { .sink = f }
-    writer.write("status: ")
-    writer.write([50, 48, 48])
+    assert_succeeds(writer.write("status: "))
+    assert_succeeds(writer.write([50, 48, 48]))
     assert_eq(number_of(f.size()), 0)
     assert(writer.flush() !is IOError, "the flush")
-    f.close()
+    _ :: f.close()
     back :: read_file_string(path)
     assert(back is string && back == "status: 200", "written at the flush")
 }
@@ -687,11 +687,11 @@ test_size_counts_every_write :: fn() -> void {
     }
     defer path.remove()
     assert_eq(number_of(f.size()), 0)
-    f.write("abc")
+    assert_succeeds(f.write("abc"))
     assert_eq(number_of(f.size()), 3)
-    f.write([100, 101])
+    assert_succeeds(f.write([100, 101]))
     assert_eq(number_of(f.size()), 5)
-    f.close()
+    _ :: f.close()
     after :: f.size()
     assert(after is IOError && after.kind == .BadHandle, "a closed file has no size")
 }

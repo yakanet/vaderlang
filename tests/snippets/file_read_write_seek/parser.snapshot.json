@@ -39,6 +39,14 @@
         "decorators": []
       },
       {
+        "kind": "ImportDecl",
+        "path": "std/testing",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "main",
         "visibility": "private",
@@ -169,22 +177,35 @@
               "expr": {
                 "kind": "CallExpr",
                 "callee": {
-                  "kind": "FieldExpr",
-                  "target": {
-                    "kind": "IdentExpr",
-                    "name": "w"
-                  },
-                  "field": "write"
+                  "kind": "IdentExpr",
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IdentExpr",
+                          "name": "w"
+                        },
+                        "field": "write"
+                      },
+                      "args": [
                         {
-                          "kind": "text",
-                          "value": "one\r\ntwo\nthree"
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "one\r\ntwo\nthree"
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },
@@ -194,8 +215,14 @@
               }
             },
             {
-              "kind": "ExprStmt",
-              "expr": {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "_"
+              },
+              "type": null,
+              "value": {
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "FieldExpr",
@@ -497,22 +524,35 @@
               "expr": {
                 "kind": "CallExpr",
                 "callee": {
-                  "kind": "FieldExpr",
-                  "target": {
-                    "kind": "IdentExpr",
-                    "name": "f"
-                  },
-                  "field": "write"
+                  "kind": "IdentExpr",
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IdentExpr",
+                          "name": "f"
+                        },
+                        "field": "write"
+                      },
+                      "args": [
                         {
-                          "kind": "text",
-                          "value": "E"
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "E"
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },
@@ -715,8 +755,14 @@
               }
             },
             {
-              "kind": "ExprStmt",
-              "expr": {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "_"
+              },
+              "type": null,
+              "value": {
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "FieldExpr",
@@ -1307,8 +1353,14 @@
               }
             },
             {
-              "kind": "ExprStmt",
-              "expr": {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "_"
+              },
+              "type": null,
+              "value": {
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",

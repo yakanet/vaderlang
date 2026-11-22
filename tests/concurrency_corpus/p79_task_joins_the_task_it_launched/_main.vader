@@ -20,6 +20,6 @@ main :: fn() -> i32 {
         })
         inner.join()
     })
-    outer.join()
+    _ :: outer.join()
     return count.n
 }

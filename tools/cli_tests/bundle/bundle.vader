@@ -78,21 +78,21 @@ test_a_bundled_namespace_outranks_a_project_module_of_the_same_name :: fn() -> v
     // must not win over the one shipped. Only the bundled root comes before the
     // project.
     bundle :: staged_bundle("bundle_namespace")
-    create_dir("${bundle}/lib/reserved")
-    write_file(
+    assert_succeeds(create_dir("${bundle}/lib/reserved"))
+    assert_succeeds(write_file(
         "${bundle}/lib/reserved/reserved.vader",
         "module \"reserved\"\n\nexport who :: fn() -> i32 = 1\n",
-    )
+    ))
     // The manifest makes the folder a search root: a file on its own searches
     // only its folder.
     dir :: scratch_dir("bundle_clash")
     manifest :: r"""{ "name": "reserved-clash", "entries": { "app": "app.vader" } }"""
-    write_file("${dir}/vader.json", manifest)
-    create_dir("${dir}/reserved")
-    write_file(
+    assert_succeeds(write_file("${dir}/vader.json", manifest))
+    assert_succeeds(create_dir("${dir}/reserved"))
+    assert_succeeds(write_file(
         "${dir}/reserved/reserved.vader",
         "module \"reserved\"\n\nexport who :: fn() -> i32 = 999\n",
-    )
+    ))
     app :: """
         module "app"
 
@@ -104,7 +104,7 @@ test_a_bundled_namespace_outranks_a_project_module_of_the_same_name :: fn() -> v
             return 0
         }
         """
-    write_file("${dir}/app.vader", app)
+    assert_succeeds(write_file("${dir}/app.vader", app))
     ran :: bundled(bundle, dir, ["run", "."])
     assert("who=1" in ran.stdout && "who=999" !in ran.stdout, ran.stdout)
 }

@@ -21,6 +21,6 @@ main :: fn() -> i32 {
     }
     t :: launch(() -> twice())
     counter.n += 1
-    t.join()
+    _ :: t.join()
     return counter.n - 3
 }

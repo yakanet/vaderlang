@@ -35,6 +35,6 @@
   expr 27:5     CallExpr       :: void
   expr 27:5     FieldExpr      :: fn(i64) -> void
   expr 27:5     IdentExpr      :: Channel<i64>
-  expr 28:5     CallExpr       :: Cancelled | Closed | i64
-  expr 28:5     FieldExpr      :: fn() -> Cancelled | Closed | i64
-  expr 28:5     IdentExpr      :: Task<Closed | i64>
+  expr 28:10    CallExpr       :: Cancelled | Closed | i64
+  expr 28:10    FieldExpr      :: fn() -> Cancelled | Closed | i64
+  expr 28:10    IdentExpr      :: Task<Closed | i64>

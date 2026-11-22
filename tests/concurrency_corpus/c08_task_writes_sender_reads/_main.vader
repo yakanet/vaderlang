@@ -21,6 +21,6 @@ main :: fn() -> i32 {
     scores: Score[]: []
     t :: launch(() -> fill_scores(scores))
     println("${scores.len()} scores")
-    t.join()
+    _ :: t.join()
     return 0
 }

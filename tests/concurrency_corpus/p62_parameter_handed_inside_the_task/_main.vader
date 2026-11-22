@@ -20,6 +20,6 @@ main :: fn() -> i32 {
     counter :: Counter {}
     t :: start(() -> { counter.n += 1 })
     counter.n += 1
-    t.join()
+    _ :: t.join()
     return counter.n - 2
 }

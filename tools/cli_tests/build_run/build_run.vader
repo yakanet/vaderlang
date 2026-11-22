@@ -65,7 +65,7 @@ INTERCEPTED_ILL_TYPED :: """
 // A fresh folder named after `name`, holding `source` as its `main.vader`.
 staged :: fn(name: string, source: string) -> string {
     dir :: scratch_dir("build_run_${name}")
-    write_file("${dir}/main.vader", source)
+    assert_succeeds(write_file("${dir}/main.vader", source))
     return dir
 }
 
@@ -129,9 +129,11 @@ test_a_build_removes_the_code_it_no_longer_writes_and_nothing_else :: fn() -> vo
     assert(exists(wrapper), "the build writes the wrapper")
     // Under a name the build owns, but not written by the compiler.
     kept :: "${dir}/build/expanded/other/main.vader"
-    create_dir("${dir}/build/expanded/other")
-    write_file(kept, "// mine\n")
-    write_file("${dir}/main.vader", INTERCEPTED_ILL_TYPED.replace_all("@Logged\n", ""))
+    assert_succeeds(create_dir("${dir}/build/expanded/other"))
+    assert_succeeds(write_file(kept, "// mine\n"))
+    assert_succeeds(
+        write_file("${dir}/main.vader", INTERCEPTED_ILL_TYPED.replace_all("@Logged\n", "")),
+    )
     vader_in(dir, ["build", "main.vader"])
     assert(!exists(wrapper), "the wrapper no longer written is removed")
     assert(!exists("${dir}/build/expanded/intercept"), "its emptied folder too")

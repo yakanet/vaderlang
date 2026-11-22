@@ -49,6 +49,6 @@ main :: fn() -> i32 {
     b :: first_bot(level)
     ai :: launch(() -> think(level))
     b.x = 3
-    ai.join()
+    _ :: ai.join()
     return 0
 }

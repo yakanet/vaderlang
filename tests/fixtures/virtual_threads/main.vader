@@ -431,7 +431,7 @@ child_under_a_timeout :: fn() -> void {
         return
     }
     defer Process.kill(child)
-    launch(() -> Process.read_output(child)).timeout(10.seconds()) else is TimeoutError {
+    _ :: launch(() -> Process.read_output(child)).timeout(10.seconds()) else is TimeoutError {
         println("the timeout expired first")
         return
     }

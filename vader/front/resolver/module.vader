@@ -379,18 +379,18 @@ test_a_path_from_the_root_takes_the_working_drive :: fn() -> void {
 @test
 test_a_build_vader_of_another_module_is_no_driver :: fn() -> void {
     dir :: join_path(temp_dir(), "vader_holds_build_driver_probe")
-    create_dir(dir)
-    write_file(join_path(dir, DRIVER_FILENAME), "module \"tools\"\n")
+    assert_succeeds(create_dir(dir))
+    assert_succeeds(write_file(join_path(dir, DRIVER_FILENAME), "module \"tools\"\n"))
     assert(!holds_build_driver(dir), "a source file named build.vader is no driver")
-    write_file(join_path(dir, DRIVER_FILENAME), "module \"build\"\n")
+    assert_succeeds(write_file(join_path(dir, DRIVER_FILENAME), "module \"build\"\n"))
     assert(holds_build_driver(dir), "one declaring `module \"build\"` is")
 }
 
 @test
 test_the_driver_of_a_project_belongs_to_none :: fn() -> void {
     dir :: join_path(temp_dir(), "vader_project_of_its_driver_probe")
-    create_dir(join_path(dir, "src"))
-    write_file(join_path(dir, DRIVER_FILENAME), "module \"build\"\n")
+    assert_succeeds(create_dir(join_path(dir, "src")))
+    assert_succeeds(write_file(join_path(dir, DRIVER_FILENAME), "module \"build\"\n"))
     assert_eq(find_project_root(join_path(dir, "src/main.vader")) else "", normalized_path(dir))
     assert(find_project_root(join_path(dir, DRIVER_FILENAME)) == null, "the driver is no file of it")
 }

@@ -3,8 +3,8 @@
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
       name: string = "VADER_SNIPPET_ENV"
-      std.env.set_env(name, "first")
-      std.env.set_env(name, "été")
+      std.testing.assert_succeeds(std.env.set_env(name, "first"))
+      std.testing.assert_succeeds(std.env.set_env(name, "été"))
       value: string = {
           __fallback_0: null | string = std.env.get_env(name)
           if __fallback_0 is null { "unset" } else { string(__fallback_0) } :string
@@ -23,13 +23,13 @@
               __for_i_3 = __for_i_3 +% i64(1)
           }
       }
-      std.env.set_env(name, "")
+      std.testing.assert_succeeds(std.env.set_env(name, ""))
       empty: string = {
           __fallback_4: null | string = std.env.get_env(name)
           if __fallback_4 is null { "unset" } else { string(__fallback_4) } :string
       }
       std.console.println<string>(concat_3("empty: [", empty, "]"))
-      std.env.unset_env(name)
+      _: IOError | void = std.env.unset_env(name)
       after: string = {
           __fallback_5: null | string = std.env.get_env(name)
           if __fallback_5 is null { "unset" } else { string(__fallback_5) } :string
@@ -85,6 +85,7 @@
     fn std.env.unset_env  // std_env$unset_env
     struct std.env.EnvVar  // std_env$EnvVar
   std/io
+    fn std.io.IOError.message  // std_io$IOError$std_core$Error$message
     fn std.io.IOErrorKind.to_string  // std_io$IOErrorKind$std_core$Display$to_string
     fn std.io.classified_error  // std_io$classified_error
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
@@ -102,6 +103,8 @@
     fn std.string.first_byte_offset  // std_string$first_byte_offset
     fn std.string.matches_at  // std_string$matches_at
     fn std.string.split_first  // std_string$split_first
+  std/testing
+    fn std.testing.assert_succeeds  // std_testing$assert_succeeds
   system/posix
     const EADDRINUSE: i32  inline
     const EADDRNOTAVAIL: i32  inline

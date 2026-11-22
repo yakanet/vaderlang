@@ -463,7 +463,7 @@ import "std/testing"
 @test
 test_create_unique_dir_gives_a_new_directory_each_time :: fn() -> void {
     parent :: "${temp_dir()}/vader_fs_unique"
-    remove(parent, RemoveOptions { .recursive = true, .force = true })
+    _ :: remove(parent, RemoveOptions { .recursive = true, .force = true })
     first :: create_unique_dir(parent, "work.")
     second :: create_unique_dir(parent, "work.")
     if first is IOError || second is IOError {
@@ -472,16 +472,16 @@ test_create_unique_dir_gives_a_new_directory_each_time :: fn() -> void {
     assert(first != second, "two names")
     assert(is_dir(first) && is_dir(second), "two directories")
     assert(first.starts_with("${parent}/work."), first)
-    remove(parent, RemoveOptions { .recursive = true, .force = true })
+    _ :: remove(parent, RemoveOptions { .recursive = true, .force = true })
 }
 
 @test
 test_mkdir_new_refuses_a_name_that_exists :: fn() -> void {
     dir :: "${temp_dir()}/vader_fs_taken"
-    remove(dir, RemoveOptions { .recursive = true, .force = true })
+    _ :: remove(dir, RemoveOptions { .recursive = true, .force = true })
     assert(mkdir_new(dir), "a new directory")
     assert(!mkdir_new(dir), "a name taken")
-    remove(dir, RemoveOptions { .recursive = true, .force = true })
+    _ :: remove(dir, RemoveOptions { .recursive = true, .force = true })
 }
 
 @test test_is_dir_separates_a_directory_from_a_file :: fn() -> void {

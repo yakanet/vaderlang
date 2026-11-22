@@ -44,6 +44,6 @@ main :: fn() -> i32 {
     level :: Level { .bots = [Bot {}, Bot {}] }
     t :: launch(() -> recenter(level))
     total :: total_x(level)
-    t.join()
+    _ :: t.join()
     return i32(total)
 }

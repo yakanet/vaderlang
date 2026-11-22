@@ -481,11 +481,11 @@ import "std/testing"
 
 @test test_the_reader_accepts_the_scaffolded_manifest :: fn() -> void {
     project :: join_path(temp_dir(), "vader_new_manifest")
-    create_dir(project)
+    assert_succeeds(create_dir(project))
     manifest :: join_path(project, MANIFEST_FILENAME)
-    write_file(manifest, render_manifest("my-app"))
+    assert_succeeds(write_file(manifest, render_manifest("my-app")))
     m :: read_manifest(project)
-    remove(manifest)
+    _ :: remove(manifest)
     assert_eq(m.problems.len(), 0)
     assert_eq(m.entries.len(), 1)
     assert_eq(m.entries[0].name, "my-app")

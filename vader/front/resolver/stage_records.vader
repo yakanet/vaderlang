@@ -357,11 +357,15 @@ recorded_project :: fn(recorded: Sources, text: string) -> string {
 
 // Record in `project` that `echo` wrote `text` for `recorded`.
 record_echo :: fn(project: string, recorded: Sources, text: string) -> void {
-    create_dir(join_path(stage_records_dir(project), "echo"))
-    write_file(stage_plan_path(project), encode_stage_plan(StagePlan { .sources = [SourceSpec { .name = "echo" }] }))
+    assert_succeeds(create_dir(join_path(stage_records_dir(project), "echo")))
+    assert_succeeds(
+        write_file(stage_plan_path(project), encode_stage_plan(StagePlan { .sources = [SourceSpec { .name = "echo" }] })),
+    )
     names :: driver_names(source_files(recorded), project)
     key :: record_key("echo", driver_sources(recorded), names)
-    write_file(stage_record_path(project, "echo", "app"), record_text(key, GeneratedFrame { .text = text }))
+    assert_succeeds(
+        write_file(stage_record_path(project, "echo", "app"), record_text(key, GeneratedFrame { .text = text })),
+    )
 }
 
 // The stage of `project` replayed on `input`.

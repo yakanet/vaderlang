@@ -3,8 +3,8 @@
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
       dir: string = concat_2(std.env.temp_dir(), "/vader_snippet_metadata_copy_remove")
-      std.fs.create_dir(dir)
-      std.fs.write_file(concat_2(dir, "/a.txt"), "hello")
+      std.testing.assert_succeeds(std.fs.create_dir(dir))
+      std.testing.assert_succeeds(std.fs.write_file(concat_2(dir, "/a.txt"), "hello"))
       entry: IOError | Metadata = std.fs.metadata(concat_2(dir, "/a.txt"), MetadataOptions { .follow_links = true })
       if entry is Metadata {
           std.console.println<string>({
@@ -20,9 +20,9 @@
               std.core.finish_buffer(__buf_1, __off_2)
           } :string)
       }
-      std.fs.copy(concat_2(dir, "/a.txt"), concat_2(dir, "/b.txt"))
-      std.fs.rename(concat_2(dir, "/b.txt"), concat_2(dir, "/c.txt"))
-      std.fs.set_read_only(concat_2(dir, "/c.txt"), true)
+      std.testing.assert_succeeds(std.fs.copy(concat_2(dir, "/a.txt"), concat_2(dir, "/b.txt")))
+      std.testing.assert_succeeds(std.fs.rename(concat_2(dir, "/b.txt"), concat_2(dir, "/c.txt")))
+      std.testing.assert_succeeds(std.fs.set_read_only(concat_2(dir, "/c.txt"), true))
       copied: IOError | Metadata = std.fs.metadata(concat_2(dir, "/c.txt"), MetadataOptions { .follow_links = true })
       if copied is Metadata {
           std.console.println<string>({
@@ -160,6 +160,7 @@
     struct std.fs.OpenOptions  // std_fs$OpenOptions
     struct std.fs.RemoveOptions  // std_fs$RemoveOptions
   std/io
+    fn std.io.IOError.message  // std_io$IOError$std_core$Error$message
     fn std.io.IOErrorKind.to_string  // std_io$IOErrorKind$std_core$Display$to_string
     fn std.io.bytes_of  // std_io$bytes_of
     fn std.io.classified_error  // std_io$classified_error
@@ -181,6 +182,8 @@
   std/string
     fn std.string.ends_with  // std_string$ends_with
     fn std.string.matches_at  // std_string$matches_at
+  std/testing
+    fn std.testing.assert_succeeds  // std_testing$assert_succeeds
   system/posix
     const EADDRINUSE: i32  inline
     const EADDRNOTAVAIL: i32  inline

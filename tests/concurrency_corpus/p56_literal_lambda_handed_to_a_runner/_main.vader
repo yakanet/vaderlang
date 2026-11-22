@@ -23,6 +23,6 @@ main :: fn() -> i32 {
     job :: Job { .work = () -> { counter.n += 1 } }
     t :: launch(() -> apply(job.work))
     counter.n += 1
-    t.join()
+    _ :: t.join()
     return counter.n - 2
 }

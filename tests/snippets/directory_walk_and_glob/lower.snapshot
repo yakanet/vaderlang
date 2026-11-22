@@ -3,13 +3,13 @@
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
       root: string = concat_2(std.env.temp_dir(), "/vader_snippet_walk")
-      std.fs.remove(root, RemoveOptions { .recursive = true, .force = true })
-      std.fs.create_dir(concat_2(root, "/src/front"))
-      std.fs.create_dir(concat_2(root, "/node_modules/x"))
-      std.fs.write_file(concat_2(root, "/README.md"), "r")
-      std.fs.write_file(concat_2(root, "/src/main.vader"), "m")
-      std.fs.write_file(concat_2(root, "/src/front/lexer.vader"), "l")
-      std.fs.write_file(concat_2(root, "/node_modules/x/index.js"), "i")
+      _: IOError | void = std.fs.remove(root, RemoveOptions { .recursive = true, .force = true })
+      std.testing.assert_succeeds(std.fs.create_dir(concat_2(root, "/src/front")))
+      std.testing.assert_succeeds(std.fs.create_dir(concat_2(root, "/node_modules/x")))
+      std.testing.assert_succeeds(std.fs.write_file(concat_2(root, "/README.md"), "r"))
+      std.testing.assert_succeeds(std.fs.write_file(concat_2(root, "/src/main.vader"), "m"))
+      std.testing.assert_succeeds(std.fs.write_file(concat_2(root, "/src/front/lexer.vader"), "l"))
+      std.testing.assert_succeeds(std.fs.write_file(concat_2(root, "/node_modules/x/index.js"), "i"))
       w: IOError | Walker = std.fs.walk(root, WalkOptions { .descend = __lambda_snippet_0 })
       if w is Walker {
           {
@@ -84,7 +84,7 @@
       if refused is IOError {
           std.console.println<string>(concat_2("file root: ", std.io.IOErrorKind.to_string(IOError(refused).kind)))
       }
-      std.fs.remove(root, RemoveOptions { .recursive = true, .force = false })
+      _: IOError | void = std.fs.remove(root, RemoveOptions { .recursive = true, .force = false })
       return 0
   }
   __lambda_snippet_0 :: fn(e: WalkEntry) -> bool {
@@ -202,6 +202,7 @@
     struct std.fs.WalkOptions  // std_fs$WalkOptions
     struct std.fs.Walker  // std_fs$Walker
   std/glob
+    fn std.glob.GlobError.message  // std_glob$GlobError$std_core$Error$message
     fn std.glob.admits  // std_glob$admits
     fn std.glob.bracket_token  // std_glob$bracket_token
     fn std.glob.chars_between  // std_glob$chars_between
@@ -228,6 +229,7 @@
     struct std.glob.GlobRange  // std_glob$GlobRange
     struct std.glob.GlobStar  // std_glob$GlobStar
   std/io
+    fn std.io.IOError.message  // std_io$IOError$std_core$Error$message
     fn std.io.IOErrorKind.to_string  // std_io$IOErrorKind$std_core$Display$to_string
     fn std.io.bytes_of  // std_io$bytes_of
     fn std.io.classified_error  // std_io$classified_error
@@ -270,6 +272,8 @@
     fn std.string_builder.append_char  // std_string__builder$append_char
     fn std.string_builder.byte_len  // std_string__builder$byte_len
     struct std.string_builder.StringBuilder  // std_string__builder$StringBuilder
+  std/testing
+    fn std.testing.assert_succeeds  // std_testing$assert_succeeds
   system/posix
     const EADDRINUSE: i32  inline
     const EADDRNOTAVAIL: i32  inline

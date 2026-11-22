@@ -47,6 +47,6 @@ main :: fn() -> i32 {
     bots :: level.bots
     ai :: launch(() -> think(level))
     bots.push(spawn_bot())
-    ai.join()
+    _ :: ai.join()
     return 0
 }

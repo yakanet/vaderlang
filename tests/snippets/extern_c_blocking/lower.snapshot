@@ -32,7 +32,7 @@
       snippet.relayed_fill(buf, 7, i64(3))
       std.console.println<string>(concat_2("memset: ", std.core.u8[].to_string(buf)))
       std.task.send<i64>(gate, i64(1))
-      std.task.join<Closed | i64>(waiting)
+      _: Cancelled | Closed | i64 = std.task.join<Closed | i64>(waiting)
       return 0
   }
   __lambda_env_snippet_1 :: struct { cap_0: Channel<i64> }

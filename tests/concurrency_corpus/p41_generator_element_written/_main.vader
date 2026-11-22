@@ -35,6 +35,6 @@ main :: fn() -> i32 {
     level :: Level { .bots = [Bot {}, Bot { .x = 2 }] }
     t :: launch(() -> nudge_alive(level))
     total :: total_x(level)
-    t.join()
+    _ :: t.join()
     return i32(total) - 2
 }

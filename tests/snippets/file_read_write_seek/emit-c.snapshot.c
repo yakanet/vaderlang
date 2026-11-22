@@ -149,6 +149,7 @@ static const char vader_atom_blob[] =
     "NotConnected" "\0"
     "TimedOut" "\0"
     "NoDescriptor" "\0"
+    "assert_succeeds failed: " "\0"
     "file is closed" "\0"
     "path contains a NUL byte" "\0";
 
@@ -240,17 +241,18 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1213] },
     { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1226] },
     { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1235] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1248] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1263] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1248] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1273] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1288] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 89u
+#define VADER_COMPTIME_ATOM_COUNT 90u
 
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_std_io$IOError_t vader_data_0_e0 = {
-    VADER_STATIC_HEADER(5u), 88u, (uint8_t) UINT64_C(12), (int32_t) UINT64_C(0),
+    VADER_STATIC_HEADER(5u), 89u, (uint8_t) UINT64_C(12), (int32_t) UINT64_C(0),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
     VADER_STATIC_BUF_HEADER(5u, 0u, 1u),
@@ -258,9 +260,9 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
         { 5u, 0u, { .obj = (void*) (struct vader_struct_std_io$IOError_t*) &vader_data_0_e0 } },
     },
 };
-static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(38u, 1u, &vader_data_0_buf);
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(40u, 1u, &vader_data_0_buf);
 static const struct vader_struct_std_io$IOError_t vader_data_1_e0 = {
-    VADER_STATIC_HEADER(5u), 89u, (uint8_t) UINT64_C(10), (int32_t) UINT64_C(0),
+    VADER_STATIC_HEADER(5u), 90u, (uint8_t) UINT64_C(10), (int32_t) UINT64_C(0),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_1_buf = {
     VADER_STATIC_BUF_HEADER(5u, 0u, 1u),
@@ -268,7 +270,7 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_1_buf = {
         { 5u, 0u, { .obj = (void*) (struct vader_struct_std_io$IOError_t*) &vader_data_1_e0 } },
     },
 };
-static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(38u, 1u, &vader_data_1_buf);
+static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(40u, 1u, &vader_data_1_buf);
 
 static int32_t snippet$main(void);
 static vader_string_t snippet$position(vader_box_t l0);
@@ -330,9 +332,11 @@ static void std_io$reserve(void* l0);
 static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2);
 static uint8_t std_io$errno_kind(int32_t l0);
 static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l1);
+static vader_string_t std_io$IOError$std_core$Error$message(void* l0);
 static vader_box_t std_io$BufferedReader$Reader$read(void* l0, void* l1);
 static vader_string_t std_io$IOErrorKind$std_core$Display$to_string(uint8_t l0);
 static void* std_io$bytes_of(vader_box_t l0);
+static void std_testing$assert_succeeds(vader_box_t l0);
 static vader_string_t std_path$to_path(vader_string_t l0);
 static vader_string_t std_path$as_string(vader_string_t l0);
 static vader_string_t std_path$without_trailing_separators(vader_string_t l0, uint8_t l1);
@@ -354,7 +358,7 @@ static vader_box_t vader_fn_lift___defer_std_fs_0(void* env) {
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[40] = {
+const vader_type_info_t vader_type_info_table[42] = {
     [2] = { .slot_size = 4 },
     [3] = { .slot_size = 16 },
     [4] = { .slot_size = 8 },
@@ -436,16 +440,18 @@ const vader_type_info_t vader_type_info_table[40] = {
     [35] = { .slot_size = 16 },
     [36] = { .slot_size = 16 },
     [37] = { .slot_size = 16 },
-    [38] = {
+    [38] = { .slot_size = 16 },
+    [39] = { .slot_size = 16 },
+    [40] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 5u,
     },
-    [39] = {
+    [41] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
         .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
 };
-const size_t vader_type_info_count = 40;
+const size_t vader_type_info_count = 42;
 
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
@@ -477,6 +483,10 @@ static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
 
 static vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
     return vader_string_as_string((vader_array_t*) a0);
+}
+
+static void vader_host_std_core$Intrinsic$panic(vader_string_t a0) {
+    vader_panic(a0);
 }
 
 static uint8_t vader_host_std_core$Intrinsic$current_os(void) {
@@ -630,6 +640,7 @@ static vader_box_t vader_host_system_libc$sys_getenv(vader_string_t a0) {
 
 /* vtable forwards */
 static vader_box_t std_io$Reader$read$$dispatch(vader_box_t recv, vader_box_t a0);
+static vader_string_t std_core$Error$message$$dispatch(vader_box_t recv);
 
 static int32_t snippet$main(void) {
     vader_string_t l0 = 0;
@@ -664,7 +675,8 @@ static int32_t snippet$main(void) {
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
     l1 = l2.payload.obj;
-    std_fs$File$std_io$Writer$write(l1, vader_box_string(6u, 3u));
+    t2 = std_fs$File$std_io$Writer$write(l1, vader_box_string(6u, 3u));
+    std_testing$assert_succeeds(t2);
     std_fs$close(l1);
     vader_struct_std_fs$OpenOptions_t* _a0_obj = (vader_struct_std_fs$OpenOptions_t*) vader_gc_alloc(sizeof(vader_struct_std_fs$OpenOptions_t));
     vader_obj_header_init(_a0_obj, 17u);
@@ -700,7 +712,8 @@ static int32_t snippet$main(void) {
     l4 = snippet$position(t2);
     t0 = concat_2(6u, l4);
     std_console$println__string(t0);
-    std_fs$File$std_io$Writer$write(l1, vader_box_string(6u, 7u));
+    t2 = std_fs$File$std_io$Writer$write(l1, vader_box_string(6u, 7u));
+    std_testing$assert_succeeds(t2);
     t2 = std_fs$seek(l1, INT64_C(0), (uint8_t) 1);
     l4 = snippet$position(t2);
     t0 = concat_2(8u, l4);
@@ -1770,7 +1783,7 @@ static vader_box_t std_fs$list_dir(vader_string_t l0) {
     _a0_obj->f_cap_0 = l1;
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 39u);
+    vader_obj_header_init(_a1_closure, 41u);
     _a1_closure->code = (void*) &vader_fn_lift___defer_std_fs_0;
     _a1_closure->env = t0;
     t0 = (void*) _a1_closure;
@@ -2422,6 +2435,12 @@ static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l
     return l2;
 }
 
+static vader_string_t std_io$IOError$std_core$Error$message(void* l0) {
+    vader_string_t t0;
+    t0 = ((vader_struct_std_io$IOError_t*) l0)->f_msg;
+    return t0;
+}
+
 static vader_box_t std_io$BufferedReader$Reader$read(void* l0, void* l1) {
     int64_t l2, l3;
     vader_box_t l4 = vader_box_null(), l5 = vader_box_null();
@@ -2541,6 +2560,25 @@ static void* std_io$bytes_of(vader_box_t l0) {
     }
     t1 = l0.payload.obj;
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static void std_testing$assert_succeeds(vader_box_t l0) {
+    vader_string_t l1 = 0;
+    vader_string_t t0 = 0;
+    vader_box_t* gc_roots[1] = { &l0 };
+    vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 2u, gc_atom_roots,
+    };
+    vader_gc_top = &gc_frame;
+    if (!((l0.tag == 38u) || (l0.tag == 5u))) {
+        { vader_gc_top = gc_frame.prev; return; }
+    }
+    l1 = std_core$Error$message$$dispatch(l0);
+    t0 = concat_2(88u, l1);
+    vader_host_std_core$Intrinsic$panic(t0);
+    vader_unreachable("a no-return call returned");
+    vader_gc_top = gc_frame.prev;
 }
 
 static vader_string_t std_path$to_path(vader_string_t l0) {
@@ -2742,6 +2780,14 @@ static vader_box_t std_io$Reader$read$$dispatch(vader_box_t recv, vader_box_t a0
         default: vader_unreachable("vtable miss in std_io$Reader.read");
     }
     vader_unreachable("vtable miss in std_io$Reader.read");
+}
+
+static vader_string_t std_core$Error$message$$dispatch(vader_box_t recv) {
+    switch (recv.tag) {
+        case 5u: return std_io$IOError$std_core$Error$message(recv.payload.obj);
+        default: vader_unreachable("vtable miss in std_core$Error.message");
+    }
+    vader_unreachable("vtable miss in std_core$Error.message");
 }
 
 int main(int argc, char** argv) {

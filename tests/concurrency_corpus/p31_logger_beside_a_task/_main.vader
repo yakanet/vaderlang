@@ -22,6 +22,6 @@ start_logger :: fn() -> void {
 main :: fn() -> i32 {
     t :: launch(() -> log().lines.push("main"))
     start_logger()
-    t.join()
+    _ :: t.join()
     return 0
 }

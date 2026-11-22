@@ -18,6 +18,6 @@ main :: fn() -> i32 {
     counter :: Counter {}
     t :: run_later(() -> { counter.n += 1 })
     counter.n += 1
-    t.join()
+    _ :: t.join()
     return counter.n
 }

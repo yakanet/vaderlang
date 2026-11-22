@@ -29,6 +29,6 @@ main :: fn() -> i32 {
     conn :: accept()
     t :: start(conn)
     conn.write("hello")
-    t.join()
+    _ :: t.join()
     return 0
 }

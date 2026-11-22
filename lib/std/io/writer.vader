@@ -104,10 +104,10 @@ CountingWriter implements Writer {
 test_buffered_writer_gathers_small_writes :: fn() -> void {
     sink :: CountingWriter {}
     w :: BufferedWriter { .sink = sink, .capacity = 8 }
-    w.write("ab")
-    w.write("cd")
+    assert_succeeds(w.write("ab"))
+    assert_succeeds(w.write("cd"))
     assert_eq(sink.writes, 0)
-    w.flush()
+    assert_succeeds(w.flush())
     assert_eq(sink.writes, 1)
     assert_eq(shown(sink.written), "abcd")
 }
@@ -116,10 +116,10 @@ test_buffered_writer_gathers_small_writes :: fn() -> void {
 test_buffered_writer_writes_once_it_is_full :: fn() -> void {
     sink :: CountingWriter {}
     w :: BufferedWriter { .sink = sink, .capacity = 4 }
-    w.write("abc")
-    w.write("de")
+    assert_succeeds(w.write("abc"))
+    assert_succeeds(w.write("de"))
     assert_eq(shown(sink.written), "abc")
-    w.flush()
+    assert_succeeds(w.flush())
     assert_eq(shown(sink.written), "abcde")
 }
 
@@ -127,8 +127,8 @@ test_buffered_writer_writes_once_it_is_full :: fn() -> void {
 test_buffered_writer_passes_a_large_write_through_in_order :: fn() -> void {
     sink :: CountingWriter {}
     w :: BufferedWriter { .sink = sink, .capacity = 4 }
-    w.write("ab")
-    w.write("0123456789")
+    assert_succeeds(w.write("ab"))
+    assert_succeeds(w.write("0123456789"))
     assert_eq(sink.writes, 2)
     assert_eq(shown(sink.written), "ab0123456789")
 }
@@ -137,9 +137,9 @@ test_buffered_writer_passes_a_large_write_through_in_order :: fn() -> void {
 test_buffered_writer_takes_bytes_and_text :: fn() -> void {
     sink :: CountingWriter {}
     w :: BufferedWriter { .sink = sink }
-    w.write("a${1 + 1}")
-    w.write(['b', 'c'])
-    w.flush()
+    assert_succeeds(w.write("a${1 + 1}"))
+    assert_succeeds(w.write(['b', 'c']))
+    assert_succeeds(w.flush())
     assert_eq(shown(sink.written), "a2bc")
 }
 
@@ -154,7 +154,7 @@ test_flush_of_nothing_writes_nothing :: fn() -> void {
 @test
 test_flush_reports_the_failure_of_its_sink :: fn() -> void {
     w :: BufferedWriter { .sink = FailingWriter { .sink = BytesWriter {}, .calls = 0 } }
-    w.write("abc")
+    assert_succeeds(w.write("abc"))
     failed :: w.flush()
     assert(failed is IOError, "the sink refused the write")
 }

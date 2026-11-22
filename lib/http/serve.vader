@@ -388,7 +388,7 @@ some_of :: fn(stream: TcpStream, count: i64) -> string {
 // of its body of five, once `reading` says its handler reads the body.
 half_posted :: fn(address: SocketAddress, reading: AtomicBool) -> TcpStream | null {
     stream :: calling(address) else return null
-    stream.write("POST /a HTTP/1.1\r\nHost: h\r\nContent-Length: 5\r\n\r\nhe")
+    assert_succeeds(stream.write("POST /a HTTP/1.1\r\nHost: h\r\nContent-Length: 5\r\n\r\nhe"))
     for !reading.load() {
         sleep(1.millis())
     }
@@ -416,14 +416,14 @@ test_connections_are_served_at_the_same_time :: fn() -> void {
     second :: calling(address) else return
     // The last to connect speaks first: a server that served one connection
     // at a time would wait for the first.
-    second.write(get("/2", true))
+    assert_succeeds(second.write(get("/2", true)))
     assert_eq(rest_of(second), named("/2", true))
-    first.write(get("/1", true))
+    assert_succeeds(first.write(get("/1", true)))
     assert_eq(rest_of(first), named("/1", true))
-    first.close()
-    second.close()
-    listener.close()
-    server.join()
+    _ :: first.close()
+    _ :: second.close()
+    _ :: listener.close()
+    _ :: server.join()
 }
 
 @test
@@ -432,13 +432,13 @@ test_a_connection_carries_its_requests_in_turn :: fn() -> void {
     address :: address_of(listener) else return
     server :: launch(() -> serve(listener, naming))
     stream :: calling(address) else return
-    stream.write(get("/a"))
+    assert_succeeds(stream.write(get("/a")))
     assert_eq(some_of(stream, named("/a").byte_len()), named("/a"))
-    stream.write(get("/b", true))
+    assert_succeeds(stream.write(get("/b", true)))
     assert_eq(rest_of(stream), named("/b", true))
-    stream.close()
-    listener.close()
-    server.join()
+    _ :: stream.close()
+    _ :: listener.close()
+    _ :: server.join()
 }
 
 @test
@@ -457,13 +457,13 @@ test_what_a_handler_keeps_is_shared_by_the_connections :: fn() -> void {
     answers: string[]: []
     for _ in 0..<3 {
         stream :: calling(address) else return
-        stream.write(get("/", true))
+        assert_succeeds(stream.write(get("/", true)))
         answers.push(rest_of(stream).split("\r\n\r\n")[1])
-        stream.close()
+        _ :: stream.close()
     }
     assert_eq(answers.join(" "), "1 2 3")
-    listener.close()
-    server.join()
+    _ :: listener.close()
+    _ :: server.join()
 }
 
 @test
@@ -472,17 +472,17 @@ test_closing_the_listener_ends_the_call_and_its_connections :: fn() -> void {
     address :: address_of(listener) else return
     server :: launch(() -> serve(listener, naming))
     idle :: calling(address) else return
-    idle.write(get("/a"))
+    assert_succeeds(idle.write(get("/a")))
     assert_eq(some_of(idle, named("/a").byte_len()), named("/a"))
     began :: monotonic()
-    listener.close()
+    _ :: listener.close()
     ended :: server.join()
     assert(ended is IOError, "the call tells why it accepts no more")
     // The connection waited for a request: it was closed at once, not given
     // the grace of an exchange under way.
     assert(began.since() < 10.seconds(), "a connection waiting for a request is not waited for")
     assert_eq(rest_of(idle), "")
-    idle.close()
+    _ :: idle.close()
 }
 
 @test
@@ -496,15 +496,15 @@ test_closing_the_listener_lets_an_exchange_under_way_finish :: fn() -> void {
     }
     server :: launch(() -> serve(listener, echo))
     stream :: half_posted(address, reading) else return
-    listener.close()
-    stream.write("llo")
+    _ :: listener.close()
+    assert_succeeds(stream.write("llo"))
     // Whether the response says `close` depends on whether the server had
     // stopped when its head went out: the tests of `serve_paced` pin it.
     answer :: rest_of(stream)
     assert(answer.starts_with("HTTP/1.1 200 OK\r\n"), "the exchange was answered: ${answer}")
     assert(answer.ends_with("\r\n\r\nhello"), "the whole body was read: ${answer}")
     assert(server.join() is IOError, "the call tells why it accepts no more")
-    stream.close()
+    _ :: stream.close()
 }
 
 @test
@@ -513,11 +513,11 @@ test_a_connection_carries_no_more_requests_than_the_server_allows :: fn() -> voi
     address :: address_of(listener) else return
     server :: launch(() -> serve(listener, naming, ServeOptions { .requests = 2 }))
     stream :: calling(address) else return
-    stream.write(get("/a") + get("/b") + get("/c"))
+    assert_succeeds(stream.write(get("/a") + get("/b") + get("/c")))
     assert_eq(rest_of(stream), named("/a") + named("/b", true))
-    stream.close()
-    listener.close()
-    server.join()
+    _ :: stream.close()
+    _ :: listener.close()
+    _ :: server.join()
 }
 
 @test
@@ -531,10 +531,10 @@ test_the_last_exchange_a_connection_may_carry_finishes_as_the_server_stops :: fn
     }
     server :: launch(() -> serve(listener, echo, ServeOptions { .requests = 1 }))
     stream :: half_posted(address, reading) else return
-    listener.close()
-    stream.write("llo")
+    _ :: listener.close()
+    assert_succeeds(stream.write("llo"))
     assert_eq(rest_of(stream), named("hello", true))
-    stream.close()
+    _ :: stream.close()
     assert(server.join() is IOError, "the call tells why it accepts no more")
 }
 
@@ -552,12 +552,12 @@ test_an_exchange_past_the_grace_is_cut :: fn() -> void {
     // The body never comes whole.
     stream :: half_posted(address, reading) else return
     began :: monotonic()
-    listener.close()
+    _ :: listener.close()
     assert(server.join() is IOError, "the call tells why it accepts no more")
     assert(began.since() >= 40.millis(), "the exchange was given its grace")
     assert(began.since() < 10.seconds(), "the exchange was given its grace, no more")
     assert_eq(rest_of(stream), "")
-    stream.close()
+    _ :: stream.close()
 }
 
 @test
@@ -572,16 +572,16 @@ test_a_response_is_not_lost_to_a_body_its_server_left_unread :: fn() -> void {
     }
     server :: launch(() -> serve(listener, hasty))
     stream :: calling(address) else return
-    stream.write(posting("/a", "x" * 32768))
+    assert_succeeds(stream.write(posting("/a", "x" * 32768)))
     // The server is done with the connection before the client reads.
     sleep(50.millis())
     assert_eq(
         rest_of(stream),
         "HTTP/1.1 200 OK\r\nContent-Length: 4\r\nConnection: close\r\n\r\ndone",
     )
-    stream.close()
-    listener.close()
-    server.join()
+    _ :: stream.close()
+    _ :: listener.close()
+    _ :: server.join()
 }
 
 @test
@@ -589,7 +589,7 @@ test_a_client_that_keeps_its_side_open_is_given_its_time_to_close :: fn() -> voi
     listener :: listening() else return
     address :: address_of(listener) else return
     client :: calling(address) else return
-    client.write(get("/a", true))
+    assert_succeeds(client.write(get("/a", true)))
     accepted :: listener.accept() else return assert(false, "no connection: ${accepted.msg}")
     options :: ServeOptions { .timeouts = Timeouts { .linger = 50.millis() } }
     began :: monotonic()
@@ -597,8 +597,8 @@ test_a_client_that_keeps_its_side_open_is_given_its_time_to_close :: fn() -> voi
     assert(began.since() >= 40.millis(), "the server waited for its client to close")
     assert(began.since() < 10.seconds(), "the server waited for its time, no more")
     assert_eq(rest_of(client), named("/a", true))
-    client.close()
-    listener.close()
+    _ :: client.close()
+    _ :: listener.close()
 }
 
 // A `StopSignal` as `serve` leaves it when it stops a connection.
@@ -642,13 +642,13 @@ test_cancelling_the_call_ends_its_connections :: fn() -> void {
     address :: address_of(listener) else return
     server :: launch(() -> serve(listener, naming))
     idle :: calling(address) else return
-    idle.write(get("/a"))
+    assert_succeeds(idle.write(get("/a")))
     assert_eq(some_of(idle, named("/a").byte_len()), named("/a"))
     server.cancel()
     assert(server.join() is Cancelled, "the call was cancelled")
     assert_eq(rest_of(idle), "")
-    idle.close()
-    listener.close()
+    _ :: idle.close()
+    _ :: listener.close()
 }
 
 @test
@@ -669,8 +669,8 @@ test_a_connection_cut_before_it_was_served_is_closed :: fn() -> void {
         ],
     )
     assert_eq(rest_of(client), "")
-    client.close()
-    listener.close()
+    _ :: client.close()
+    _ :: listener.close()
 }
 
 @test
@@ -707,19 +707,19 @@ test_a_connection_past_the_most_served_waits_for_one_to_end :: fn() -> void {
     address :: address_of(listener) else return
     server :: launch(() -> serve(listener, naming, ServeOptions { .connections = 1 }))
     first :: calling(address) else return
-    first.write(get("/1"))
+    assert_succeeds(first.write(get("/1")))
     assert_eq(some_of(first, named("/1").byte_len()), named("/1"))
     // The system takes the second connection; the server leaves it waiting.
     second :: calling(address) else return
-    second.write(get("/2", true))
+    assert_succeeds(second.write(get("/2", true)))
     second.read_by(instant_in(300.millis()))
     assert_eq(some_of(second, 1), "ended after 0 bytes")
     second.read_by(null)
-    first.close()
+    _ :: first.close()
     assert_eq(rest_of(second), named("/2", true))
-    second.close()
-    listener.close()
-    server.join()
+    _ :: second.close()
+    _ :: listener.close()
+    _ :: server.join()
 }
 
 @test
@@ -728,12 +728,12 @@ test_closing_the_listener_of_a_full_server_ends_the_call :: fn() -> void {
     address :: address_of(listener) else return
     server :: launch(() -> serve(listener, naming, ServeOptions { .connections = 1 }))
     kept :: calling(address) else return
-    kept.write(get("/a"))
+    assert_succeeds(kept.write(get("/a")))
     assert_eq(some_of(kept, named("/a").byte_len()), named("/a"))
-    listener.close()
+    _ :: listener.close()
     ended :: server.timeout(10.seconds())
     assert(ended is IOError, "a full server stops when its listener is closed")
-    kept.close()
+    _ :: kept.close()
 }
 
 @test
@@ -743,15 +743,15 @@ test_a_connection_kept_idle_too_long_is_closed :: fn() -> void {
     options :: ServeOptions { .timeouts = Timeouts { .idle = 50.millis() } }
     server :: launch(() -> serve(listener, naming, options))
     stream :: calling(address) else return
-    stream.write(get("/a"))
+    assert_succeeds(stream.write(get("/a")))
     assert_eq(some_of(stream, named("/a").byte_len()), named("/a"))
     began :: monotonic()
     // Nothing more is asked: the server ends the connection, with no answer.
     assert_eq(rest_of(stream), "")
     assert(began.since() >= 40.millis(), "the connection was kept for its time")
-    stream.close()
-    listener.close()
-    server.join()
+    _ :: stream.close()
+    _ :: listener.close()
+    _ :: server.join()
 }
 
 @test
@@ -761,14 +761,14 @@ test_a_head_sent_too_slowly_is_answered_408 :: fn() -> void {
     options :: ServeOptions { .timeouts = Timeouts { .head = 50.millis() } }
     server :: launch(() -> serve(listener, naming, options))
     stream :: calling(address) else return
-    stream.write("GET /a HTTP/1.1\r\nHo")
+    assert_succeeds(stream.write("GET /a HTTP/1.1\r\nHo"))
     assert_eq(
         rest_of(stream),
         "HTTP/1.1 408 Request Timeout\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
     )
-    stream.close()
-    listener.close()
-    server.join()
+    _ :: stream.close()
+    _ :: listener.close()
+    _ :: server.join()
 }
 
 @test
@@ -779,9 +779,9 @@ test_a_client_that_never_speaks_is_let_go :: fn() -> void {
     server :: launch(() -> serve(listener, naming, options))
     stream :: calling(address) else return
     assert_eq(rest_of(stream), "")
-    stream.close()
-    listener.close()
-    server.join()
+    _ :: stream.close()
+    _ :: listener.close()
+    _ :: server.join()
 }
 
 @test
@@ -792,14 +792,14 @@ test_a_client_that_stops_reading_is_let_go :: fn() -> void {
     endless :: fn(request: Request) -> Response = Response { .body = Endless {} }
     options :: ServeOptions { .timeouts = Timeouts { .write = 50.millis() } }
     stream :: calling(address) else return
-    stream.write(get("/a"))
+    assert_succeeds(stream.write(get("/a")))
     accepted :: listener.accept() else return assert(false, "no connection: ${accepted.msg}")
     pace :: Pace { .deadlines = accepted, .timeouts = options.timeouts }
     end :: serve_paced(accepted, accepted, endless, options.limits, pace)
     assert(end.reason == .TimedOut, "the response stopped at a write nobody took")
-    accepted.close()
-    stream.close()
-    listener.close()
+    _ :: accepted.close()
+    _ :: stream.close()
+    _ :: listener.close()
 }
 
 // A body that never ends.
@@ -819,7 +819,7 @@ Endless implements Reader {
 dripped :: fn(stream: TcpStream, wire: string, every: Duration) -> string {
     first: u8[]: [0] * 1
     for byte in wire.bytes() {
-        stream.write([byte])
+        assert_succeeds(stream.write([byte]))
         stream.read_by(instant_in(every))
         got :: stream.read(first)
         if got is i64 {
@@ -846,9 +846,9 @@ test_a_head_sent_a_byte_at_a_time_is_held_to_its_time_in_all :: fn() -> void {
     // Each byte comes well within the time of a head, and the bytes take four
     // times as long: only the head as a whole runs out of it.
     assert_eq(dripped(stream, SLOW_HEAD + "a" * 100, 20.millis()), REQUEST_TIMEOUT)
-    stream.close()
-    listener.close()
-    server.join()
+    _ :: stream.close()
+    _ :: listener.close()
+    _ :: server.join()
 }
 
 @test
@@ -858,12 +858,12 @@ test_the_next_head_of_a_kept_connection_is_held_to_its_time_in_all :: fn() -> vo
     options :: ServeOptions { .timeouts = Timeouts { .head = 500.millis() } }
     server :: launch(() -> serve(listener, naming, options))
     stream :: calling(address) else return
-    stream.write(get("/a"))
+    assert_succeeds(stream.write(get("/a")))
     assert_eq(some_of(stream, named("/a").byte_len()), named("/a"))
     assert_eq(dripped(stream, SLOW_HEAD + "a" * 100, 20.millis()), REQUEST_TIMEOUT)
-    stream.close()
-    listener.close()
-    server.join()
+    _ :: stream.close()
+    _ :: listener.close()
+    _ :: server.join()
 }
 
 @test
@@ -874,11 +874,11 @@ test_a_body_announced_and_never_sent_ends_its_connection :: fn() -> void {
     options :: ServeOptions { .timeouts = Timeouts { .body = 100.millis() } }
     server :: launch(() -> serve(listener, echoing, options))
     stream :: calling(address) else return
-    stream.write("POST /a HTTP/1.1\r\nHost: h\r\nContent-Length: 1000000\r\n\r\n")
+    assert_succeeds(stream.write("POST /a HTTP/1.1\r\nHost: h\r\nContent-Length: 1000000\r\n\r\n"))
     assert_eq(rest_of(stream), REQUEST_TIMEOUT)
-    stream.close()
-    listener.close()
-    server.join()
+    _ :: stream.close()
+    _ :: listener.close()
+    _ :: server.join()
 }
 
 @test
@@ -888,17 +888,19 @@ test_a_chunk_size_that_is_no_size_ends_its_connection_at_once :: fn() -> void {
     ignoring :: fn(request: Request) -> Response = Response {}
     server :: launch(() -> serve(listener, ignoring))
     stream :: calling(address) else return
-    stream.write("POST /a HTTP/1.1\r\nHost: h\r\nTransfer-Encoding: chunked\r\n\r\n")
+    assert_succeeds(
+        stream.write("POST /a HTTP/1.1\r\nHost: h\r\nTransfer-Encoding: chunked\r\n\r\n"),
+    )
     // The size comes in a read of its own, after the server has begun to wait
     // for it.
     sleep(20.millis())
-    stream.write("zz\r\n")
+    assert_succeeds(stream.write("zz\r\n"))
     // The size is no size: the body cannot be read past, and the connection
     // ends now, not when the time of a body has passed.
     assert_eq(rest_of(stream), EMPTY_OK)
-    stream.close()
-    listener.close()
-    server.join()
+    _ :: stream.close()
+    _ :: listener.close()
+    _ :: server.join()
 }
 
 // How many requests the busy connection of the next test sends ahead.
@@ -927,20 +929,20 @@ test_a_connection_that_never_waits_lets_the_others_be_served :: fn() -> void {
     other :: calling(address) else return
     // The other connection is served once first: from then on it waits for
     // its next request, which only its socket can wake it for.
-    other.write(get("/first"))
+    assert_succeeds(other.write(get("/first")))
     assert_eq(some_of(other, EMPTY_OK.byte_len()), EMPTY_OK)
     busy :: calling(address) else return
     // The busy connection always has a request to read, and room to write
     // the response: nothing makes it wait.
-    busy.write(get("/busy") * SENT_AHEAD)
+    assert_succeeds(busy.write(get("/busy") * SENT_AHEAD))
     for served.load() == 0 {
         sleep(1.millis())
     }
-    other.write(get("/other", true))
+    assert_succeeds(other.write(get("/other", true)))
     assert_eq(rest_of(other), "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
     assert(before.load() < SENT_AHEAD, "served after ${before.load()} requests of the busy one")
-    busy.close()
-    other.close()
-    listener.close()
-    server.join()
+    _ :: busy.close()
+    _ :: other.close()
+    _ :: listener.close()
+    _ :: server.join()
 }

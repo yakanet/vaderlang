@@ -39,6 +39,14 @@
         "decorators": []
       },
       {
+        "kind": "ImportDecl",
+        "path": "std/testing",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "main",
         "visibility": "private",
@@ -81,8 +89,14 @@
               }
             },
             {
-              "kind": "ExprStmt",
-              "expr": {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "_"
+              },
+              "type": null,
+              "value": {
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
@@ -135,24 +149,37 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "create_dir"
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "create_dir"
+                      },
+                      "args": [
                         {
-                          "kind": "interpolation",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "root"
-                          }
-                        },
-                        {
-                          "kind": "text",
-                          "value": "/src/front"
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "interpolation",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "root"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": "/src/front"
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },
@@ -167,24 +194,37 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "create_dir"
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "create_dir"
+                      },
+                      "args": [
                         {
-                          "kind": "interpolation",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "root"
-                          }
-                        },
-                        {
-                          "kind": "text",
-                          "value": "/node_modules/x"
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "interpolation",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "root"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": "/node_modules/x"
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },
@@ -199,37 +239,50 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "write_file"
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "write_file"
+                      },
+                      "args": [
                         {
-                          "kind": "interpolation",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "root"
-                          }
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "interpolation",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "root"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": "/README.md"
+                              }
+                            ]
+                          },
+                          "spread": false
                         },
                         {
-                          "kind": "text",
-                          "value": "/README.md"
-                        }
-                      ]
-                    },
-                    "spread": false
-                  },
-                  {
-                    "name": null,
-                    "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "r"
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "r"
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },
@@ -244,37 +297,50 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "write_file"
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "write_file"
+                      },
+                      "args": [
                         {
-                          "kind": "interpolation",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "root"
-                          }
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "interpolation",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "root"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": "/src/main.vader"
+                              }
+                            ]
+                          },
+                          "spread": false
                         },
                         {
-                          "kind": "text",
-                          "value": "/src/main.vader"
-                        }
-                      ]
-                    },
-                    "spread": false
-                  },
-                  {
-                    "name": null,
-                    "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "m"
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "m"
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },
@@ -289,37 +355,50 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "write_file"
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "write_file"
+                      },
+                      "args": [
                         {
-                          "kind": "interpolation",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "root"
-                          }
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "interpolation",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "root"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": "/src/front/lexer.vader"
+                              }
+                            ]
+                          },
+                          "spread": false
                         },
                         {
-                          "kind": "text",
-                          "value": "/src/front/lexer.vader"
-                        }
-                      ]
-                    },
-                    "spread": false
-                  },
-                  {
-                    "name": null,
-                    "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "l"
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "l"
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },
@@ -334,37 +413,50 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "write_file"
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "write_file"
+                      },
+                      "args": [
                         {
-                          "kind": "interpolation",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "root"
-                          }
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "interpolation",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "root"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": "/node_modules/x/index.js"
+                              }
+                            ]
+                          },
+                          "spread": false
                         },
                         {
-                          "kind": "text",
-                          "value": "/node_modules/x/index.js"
-                        }
-                      ]
-                    },
-                    "spread": false
-                  },
-                  {
-                    "name": null,
-                    "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "i"
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "i"
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },
@@ -851,8 +943,14 @@
               }
             },
             {
-              "kind": "ExprStmt",
-              "expr": {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "_"
+              },
+              "type": null,
+              "value": {
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",

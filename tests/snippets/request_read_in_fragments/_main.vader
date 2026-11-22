@@ -2,6 +2,7 @@ module "snippet"
 
 import "std/console"
 import "std/io"
+import "std/testing"
 
 // A request read from a stream that hands out three bytes at a time, through a
 // `BufferedReader` smaller than its lines, then an answer gathered by a
@@ -28,13 +29,13 @@ main :: fn() -> i32 {
 
     answer :: BytesWriter {}
     writer :: BufferedWriter { .sink = answer, .capacity = 16 }
-    writer.write("HTTP/1.1 ")
+    assert_succeeds(writer.write("HTTP/1.1 "))
     println("gathered, not written: ${answer.written.len()}")
-    writer.write("204 No Content\r\n")
+    assert_succeeds(writer.write("204 No Content\r\n"))
     println("a write the buffer cannot hold: ${answer.written.len()}")
-    writer.write([13, 10])
+    assert_succeeds(writer.write([13, 10]))
     println("before the flush: ${answer.written.len()}")
-    writer.flush()
+    assert_succeeds(writer.flush())
     println("after the flush: ${answer.written.len()}")
     written :: BufferedReader { .source = BytesReader { .content = answer.written } }
     for line in written.lines() {

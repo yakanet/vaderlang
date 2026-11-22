@@ -37,13 +37,13 @@ program :: fn(module: string, says: string) -> string = """
 // its `vader.json`, which it has none of when null.
 stage :: fn(name: string, manifest: string | null) -> string {
     dir :: scratch_dir("project_${name}")
-    create_dir("${dir}/src")
-    create_dir("${dir}/data")
-    write_file("${dir}/src/main.vader", program("src", "app"))
-    write_file("${dir}/tool.vader", program("tool", "tool"))
-    write_file("${dir}/data/greeting.txt", "hello\n")
+    assert_succeeds(create_dir("${dir}/src"))
+    assert_succeeds(create_dir("${dir}/data"))
+    assert_succeeds(write_file("${dir}/src/main.vader", program("src", "app")))
+    assert_succeeds(write_file("${dir}/tool.vader", program("tool", "tool")))
+    assert_succeeds(write_file("${dir}/data/greeting.txt", "hello\n"))
     if manifest != null {
-        write_file("${dir}/vader.json", manifest)
+        assert_succeeds(write_file("${dir}/vader.json", manifest))
     }
     return dir
 }
@@ -143,14 +143,14 @@ test_build_run_runs_the_one_entry_or_the_one_entry_names :: fn() -> void {
 test_a_file_of_a_project_runs_with_its_search_roots :: fn() -> void {
     manifest :: r"""{"includePaths": ["libs"], "entries": {"app": "src/main.vader"}}"""
     dir :: stage("search_roots", manifest)
-    create_dir("${dir}/libs")
-    create_dir("${dir}/libs/greet")
-    write_file(
+    assert_succeeds(create_dir("${dir}/libs"))
+    assert_succeeds(create_dir("${dir}/libs/greet"))
+    assert_succeeds(write_file(
         "${dir}/libs/greet/greet.vader",
         "module \"greet\"\n\n/// The word the program prints.\nexport word :: fn() -> string = \"greeted\"\n",
-    )
+    ))
     file :: "${dir}/src/main.vader"
-    write_file(
+    assert_succeeds(write_file(
         file,
         r"""
         module "src"
@@ -163,7 +163,7 @@ test_a_file_of_a_project_runs_with_its_search_roots :: fn() -> void {
             return 0
         }
         """,
-    )
+    ))
     // The project above the file, as an editor opens it.
     alone :: vader(["run", file])
     assert_eq(alone.stderr, "")
@@ -177,8 +177,8 @@ test_a_file_of_a_project_runs_with_its_search_roots :: fn() -> void {
 @test
 test_a_file_on_its_own_runs_with_the_search_roots_it_is_given :: fn() -> void {
     libs :: scratch_dir("include_paths_libs")
-    create_dir("${libs}/greet")
-    write_file(
+    assert_succeeds(create_dir("${libs}/greet"))
+    assert_succeeds(write_file(
         "${libs}/greet/greet.vader",
         r"""
         module "greet"
@@ -186,9 +186,9 @@ test_a_file_on_its_own_runs_with_the_search_roots_it_is_given :: fn() -> void {
         /// The word the program prints.
         export word :: fn() -> string = "given"
         """,
-    )
+    ))
     file :: "${scratch_dir("include_paths_file")}/main.vader"
-    write_file(
+    assert_succeeds(write_file(
         file,
         r"""
         module "main"
@@ -201,7 +201,7 @@ test_a_file_on_its_own_runs_with_the_search_roots_it_is_given :: fn() -> void {
             return 0
         }
         """,
-    )
+    ))
     ran :: vader(["run", "--include-paths=${libs}", file])
     assert_eq(ran.stderr, "")
     assert_eq(ran.stdout, "given\n")
@@ -241,7 +241,7 @@ test_eject_writes_the_driver_a_manifest_stands_for :: fn() -> void {
         {"includePaths": ["$VADER_HOME/third_party"], "entries": {"app": "src/main.vader"}, "assets": ["data"]}
         """
     dir :: stage("eject", manifest.trim())
-    remove("${dir}/tool.vader")
+    _ :: remove("${dir}/tool.vader")
     assert_eq(vader(["eject", "--preserve-manifest", dir]).exit, 0)
     driver :: read_file_string("${dir}/build.vader") else panic(driver.message())
     assert(r"""ctx.include_paths.push(r"$VADER_HOME/third_party")""" in driver, driver)
@@ -252,7 +252,7 @@ test_eject_writes_the_driver_a_manifest_stands_for :: fn() -> void {
     both :: vader(["eject", dir])
     assert(both.exit == 1, "a folder with both")
     assert("holds both a `build.vader` and a `vader.json`" in both.stderr, both.stderr)
-    remove("${dir}/build.vader")
+    _ :: remove("${dir}/build.vader")
     assert_eq(vader(["eject", dir]).exit, 0)
     assert(!exists("${dir}/vader.json"), "the manifest removed")
     again :: vader(["eject", dir])
@@ -303,7 +303,7 @@ test_a_folder_that_does_not_say_what_to_build_is_refused :: fn() -> void {
         assert(built.exit == 1 && refusal.2 in built.stderr, "`${refusal.0}`: ${built.stderr}")
     }
     both :: stage("both", TWO_ENTRIES)
-    write_file("${both}/build.vader", "module \"build\"\n")
+    assert_succeeds(write_file("${both}/build.vader", "module \"build\"\n"))
     twice :: vader(["build", both])
     assert(twice.exit == 1, "a folder with both")
     assert("holds both a `build.vader` and a `vader.json`" in twice.stderr, twice.stderr)

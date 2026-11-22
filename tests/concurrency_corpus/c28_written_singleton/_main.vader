@@ -25,6 +25,6 @@ handle :: fn(key: string) -> void {}
 main :: fn() -> i32 {
     t :: launch(() -> read_key())
     handle(read_key())
-    t.join()
+    _ :: t.join()
     return 0
 }

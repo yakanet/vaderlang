@@ -41,7 +41,7 @@
           __off_5 = std.core.write_bool(__buf_4, __off_5, std.fs.exists(path))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
-      std.fs.remove(path, RemoveOptions { .recursive = false, .force = false })
+      _: IOError | void = std.fs.remove(path, RemoveOptions { .recursive = false, .force = false })
       std.console.println<string>({
           __buf_6: Buffer = std_core$Intrinsic$new_byte_buffer(i64(13))
           __off_7: i64 = 0

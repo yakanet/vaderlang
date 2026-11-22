@@ -148,7 +148,7 @@ export run_command :: fn(
     defer child.kill()
     input :: options.stdin
     if input != null {
-        child.write_input(input.bytes())
+        assert_succeeds(child.write_input(input.bytes()))
     }
     feed :: options.feed
     if feed == null {
@@ -177,7 +177,7 @@ fed_and_waited :: fn(child: ChildProcess, feed: Feed | null) -> ProcessResult | 
             break
         }
     }
-    child.write_input(feed.line.bytes())
+    assert_succeeds(child.write_input(feed.line.bytes()))
     child.close_input()
     ended :: child.wait()
     // What `read_output` took is no longer in what the wait answers.
@@ -219,8 +219,8 @@ export succeeded :: fn(ran: ProcessResult | ProcessError) -> ProcessResult | Pro
 /// @param name  tells the folder apart from those of the other tests.
 export scratch_dir :: fn(name: string) -> string {
     dir :: "${temp_dir()}/vader_cli_${name}"
-    remove(dir, RemoveOptions { .recursive = true, .force = true })
-    create_dir(dir)
+    _ :: remove(dir, RemoveOptions { .recursive = true, .force = true })
+    assert_succeeds(create_dir(dir))
     return dir
 }
 
@@ -232,9 +232,9 @@ export scratch_dir :: fn(name: string) -> string {
 /// @param entry   the source of the program it builds.
 export driven_project :: fn(name: string, driver: string, entry: string) -> string {
     dir :: scratch_dir(name)
-    create_dir("${dir}/src")
-    write_file("${dir}/build.vader", driver)
-    write_file("${dir}/src/main.vader", entry)
+    assert_succeeds(create_dir("${dir}/src"))
+    assert_succeeds(write_file("${dir}/build.vader", driver))
+    assert_succeeds(write_file("${dir}/src/main.vader", entry))
     return dir
 }
 
@@ -315,8 +315,8 @@ export build_binary :: fn(name: string, flags: string[], source: string) -> stri
 /// @return           the folder.
 export staged_library_root :: fn(name: string, namespace: string, source: string) -> string {
     dir :: scratch_dir(name)
-    create_dir("${dir}/lib/${namespace}")
-    write_file("${dir}/lib/${namespace}/${namespace}.vader", source)
+    assert_succeeds(create_dir("${dir}/lib/${namespace}"))
+    assert_succeeds(write_file("${dir}/lib/${namespace}/${namespace}.vader", source))
     for copied in ["std", "system"] {
         tree :: copy_tree("lib/${copied}", "${dir}/lib/${copied}") else is Error {
             panic(tree.message())
@@ -330,7 +330,7 @@ export staged_library_root :: fn(name: string, namespace: string, source: string
 /// @param name  tells the folder apart from those of the other tests.
 export scratch_source :: fn(name: string, source: string) -> string {
     file :: "${scratch_dir(name)}/main.vader"
-    write_file(file, source)
+    assert_succeeds(write_file(file, source))
     return file
 }
 

@@ -155,7 +155,7 @@ export open_session :: fn(
 ///
 /// @param message  the JSON of the message.
 export send :: fn(session: Session, message: string) -> void {
-    session.child.write_input(frame(message).bytes())
+    assert_succeeds(session.child.write_input(frame(message).bytes()))
 }
 
 /// The first message from the position `from` of `session.messages` on that

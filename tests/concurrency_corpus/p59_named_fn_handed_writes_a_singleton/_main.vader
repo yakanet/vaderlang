@@ -24,6 +24,6 @@ apply :: fn(work: fn() -> void) -> void = work()
 main :: fn() -> i32 {
     t :: launch(() -> apply(note))
     log().lines += 1
-    t.join()
+    _ :: t.join()
     return 0
 }

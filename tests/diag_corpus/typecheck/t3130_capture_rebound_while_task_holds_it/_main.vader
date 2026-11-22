@@ -10,6 +10,6 @@ main :: fn() -> i32 {
     n := 0
     t :: launch(() -> report(n))
     n = 5
-    t.join()
+    _ :: t.join()
     return i32(n) - 5
 }

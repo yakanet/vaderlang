@@ -3,7 +3,7 @@
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
       path: string = concat_2(std.env.temp_dir(), "/vader_io_roundtrip.txt")
-      std.fs.write_file(path, "hello from vader")
+      std.testing.assert_succeeds(std.fs.write_file(path, "hello from vader"))
       std.console.println<string>({
           __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(13))
           __off_1: i64 = 0
@@ -82,6 +82,7 @@
     struct std.fs.File  // std_fs$File
     struct std.fs.OpenOptions  // std_fs$OpenOptions
   std/io
+    fn std.io.IOError.message  // std_io$IOError$std_core$Error$message
     fn std.io.bytes_of  // std_io$bytes_of
     fn std.io.classified_error  // std_io$classified_error
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
@@ -100,6 +101,8 @@
   std/string
     fn std.string.ends_with  // std_string$ends_with
     fn std.string.matches_at  // std_string$matches_at
+  std/testing
+    fn std.testing.assert_succeeds  // std_testing$assert_succeeds
   system/posix
     const EADDRINUSE: i32  inline
     const EADDRNOTAVAIL: i32  inline

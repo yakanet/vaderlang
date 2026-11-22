@@ -42,7 +42,7 @@ test_a_shipped_library_cannot_import_the_compiler :: fn() -> void {
             return 0
         }
         """
-    write_file("${dir}/app.vader", app)
+    assert_succeeds(write_file("${dir}/app.vader", app))
     ran :: run_vader(["run", "app.vader"], RunOptions { .cwd = dir }) else panic(ran.message())
     assert("R2034" in ran.stderr, ran.stderr)
     assert("cannot import `vader/pipeline`" in ran.stderr, ran.stderr)

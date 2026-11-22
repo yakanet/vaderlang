@@ -38,6 +38,6 @@ main :: fn() -> i32 {
     each(level.bots, b -> {
         total += b.x
     })
-    t.join()
+    _ :: t.join()
     return i32(total)
 }

@@ -152,8 +152,7 @@ import "std/testing"
 
 @test
 test_a_formatted_text_is_the_canonical_one :: fn() -> void {
-    formatted :: formatted_text("module \"m\"\nx::1\n", "m.vader")
-    if formatted is CaseFailure {
+    formatted :: formatted_text("module \"m\"\nx::1\n", "m.vader") else {
         fail(formatted.message)
         return
     }

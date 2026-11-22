@@ -19,7 +19,7 @@ start_logger :: fn() -> Task<void> = launch(() -> log().lines.push("start"))
 
 main :: fn() -> i32 {
     t :: start_logger()
-    t.join()
+    _ :: t.join()
     log().lines.push("main")
     return 0
 }

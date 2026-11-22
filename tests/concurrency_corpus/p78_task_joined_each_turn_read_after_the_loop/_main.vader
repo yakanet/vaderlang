@@ -18,7 +18,7 @@ main :: fn() -> i32 {
         t :: launch(fn() {
             count.n += 1
         })
-        t.join()
+        _ :: t.join()
     }
     return count.n
 }

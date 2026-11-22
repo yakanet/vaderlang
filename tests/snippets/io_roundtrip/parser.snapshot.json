@@ -31,6 +31,14 @@
         "decorators": []
       },
       {
+        "kind": "ImportDecl",
+        "path": "std/testing",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "main",
         "visibility": "private",
@@ -78,25 +86,38 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "write_file"
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "IdentExpr",
-                      "name": "path"
-                    },
-                    "spread": false
-                  },
-                  {
-                    "name": null,
-                    "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "write_file"
+                      },
+                      "args": [
                         {
-                          "kind": "text",
-                          "value": "hello from vader"
+                          "name": null,
+                          "value": {
+                            "kind": "IdentExpr",
+                            "name": "path"
+                          },
+                          "spread": false
+                        },
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "hello from vader"
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },

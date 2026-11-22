@@ -23,7 +23,7 @@ main :: fn() -> i32 {
                 break
             }
         }
-        t.join()
+        _ :: t.join()
     }
     return count.n
 }

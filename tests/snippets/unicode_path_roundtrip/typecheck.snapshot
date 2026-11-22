@@ -41,9 +41,9 @@
   expr 23:30    IdentExpr      :: string
   expr 23:5     CallExpr       :: void
   expr 23:5     IdentExpr      :: fn(T) -> void
-  expr 24:12    IdentExpr      :: string
-  expr 24:5     CallExpr       :: IOError | void
-  expr 24:5     IdentExpr      :: fn(string, RemoveOptions) -> IOError | void
+  expr 24:10    CallExpr       :: IOError | void
+  expr 24:10    IdentExpr      :: fn(string, RemoveOptions) -> IOError | void
+  expr 24:17    IdentExpr      :: string
   expr 25:13    StringLitExpr  :: string
   expr 25:24    UnaryExpr      :: bool
   expr 25:25    CallExpr       :: bool

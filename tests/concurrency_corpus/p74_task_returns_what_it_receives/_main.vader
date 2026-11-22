@@ -17,6 +17,6 @@ main :: fn() -> i32 {
     t :: launch(() -> inbox.receive())
     inbox.send(Msg { .text = "hi" })
     inbox.close()
-    t.join()
+    _ :: t.join()
     return 0
 }

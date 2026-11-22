@@ -185,11 +185,13 @@
 [27:15-27:16] IntLit             "1" =1n
 [27:16-27:17] RParen             ")"
 [28:1-28:1  ] Newline            "\n"
-[28:5-28:12 ] Ident              "waiting"
-[28:12-28:13] Dot                "."
-[28:13-28:17] Ident              "join"
-[28:17-28:18] LParen             "("
-[28:18-28:19] RParen             ")"
+[28:5-28:6  ] Ident              "_"
+[28:7-28:9  ] DeclConst          "::"
+[28:10-28:17] Ident              "waiting"
+[28:17-28:18] Dot                "."
+[28:18-28:22] Ident              "join"
+[28:22-28:23] LParen             "("
+[28:23-28:24] RParen             ")"
 [29:1-29:1  ] Newline            "\n"
 [29:5-29:11 ] KwReturn           "return"
 [29:12-29:13] IntLit             "0" =0n

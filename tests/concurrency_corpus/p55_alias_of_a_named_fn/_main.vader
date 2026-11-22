@@ -22,6 +22,6 @@ bump :: fn() -> void {
 main :: fn() -> i32 {
     other :: bump
     t :: launch(() -> other())
-    t.join()
+    _ :: t.join()
     return 0
 }

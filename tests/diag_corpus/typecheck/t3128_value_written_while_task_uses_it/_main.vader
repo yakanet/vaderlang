@@ -24,6 +24,6 @@ main :: fn() -> i32 {
     scores: i64[]: []
     t :: launch(() -> fill(scores))
     n :: scores.len()
-    t.join()
+    _ :: t.join()
     return i32(n + joined_on_the_left_of_else())
 }

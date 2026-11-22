@@ -183,8 +183,8 @@ test_bytes_reader_gives_zero_to_an_empty_array :: fn() -> void {
 @test
 test_bytes_writer_keeps_text_and_bytes_in_order :: fn() -> void {
     w :: BytesWriter {}
-    w.write("status: ")
-    w.write([50, 48, 48])
+    assert_succeeds(w.write("status: "))
+    assert_succeeds(w.write([50, 48, 48]))
     assert_eq(w.written.bytes_to_string(), "status: 200")
 }
 

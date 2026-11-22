@@ -107,7 +107,7 @@ test_lint_given_no_path_reads_the_working_directory :: fn() -> void {
 @test
 test_lint_scopes_the_exports_by_where_a_module_comes_from :: fn() -> void {
     dir :: staged_lint_root("provenance")
-    write_file("${dir}/app.vader", PROBED_APP)
+    assert_succeeds(write_file("${dir}/app.vader", PROBED_APP))
     relative :: run_vader(["lint", "app.vader"], RunOptions { .cwd = dir })
         else panic(relative.message())
     said :: said_by(relative)
@@ -115,7 +115,7 @@ test_lint_scopes_the_exports_by_where_a_module_comes_from :: fn() -> void {
     // By its absolute path, from elsewhere, the folder is the project its
     // `vader.json` describes, and its `lib/` an absolute root: the two agree.
     manifest :: r"""{"name": "p", "includePaths": ["lib"], "entries": {"app": "app.vader"}}"""
-    write_file("${dir}/vader.json", manifest)
+    assert_succeeds(write_file("${dir}/vader.json", manifest))
     absolute :: run_vader(["lint", dir]) else panic(absolute.message())
     said_absolute :: said_by(absolute)
     assert("never_used_in_app" in said_absolute, said_absolute)
@@ -128,7 +128,7 @@ test_lint_flags_an_export_named_build_outside_a_driver :: fn() -> void {
     // The walk of the project merges the declarations of every module: an entry
     // `build` is rooted in the `build` module only.
     dir :: staged_lint_root("stray_build")
-    write_file("${dir}/app.vader", STRAY_BUILD)
+    assert_succeeds(write_file("${dir}/app.vader", STRAY_BUILD))
     ran :: run_vader(["lint", "app.vader"], RunOptions { .cwd = dir }) else panic(ran.message())
     assert("`build` is never used" in said_by(ran), said_by(ran))
 }

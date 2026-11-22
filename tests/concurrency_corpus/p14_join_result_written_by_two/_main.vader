@@ -19,6 +19,6 @@ main :: fn() -> i32 {
     b :: t.join() else panic(b.message())
     u :: launch(() -> { b.n += 1 })
     b.n += 2
-    u.join()
+    _ :: u.join()
     return 0
 }

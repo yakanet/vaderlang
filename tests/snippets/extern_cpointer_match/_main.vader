@@ -56,6 +56,6 @@ main :: fn() -> i32 {
         }
         is null     -> println("matched null")
     }
-    remove(path)
+    _ :: remove(path)
     return 0
 }

@@ -386,14 +386,14 @@ test_a_body_left_unread_is_read_past_by_the_next_request :: fn() -> void {
 test_a_body_read_after_the_next_request_fails :: fn() -> void {
     connection :: answering(OK_HELLO + OK_BYE)
     first :: connection.send(request_for(.Get, "/a")) else panic("the first response is read")
-    connection.send(request_for(.Get, "/b"))
+    _ :: connection.send(request_for(.Get, "/b"))
     assert(first.body.read([0] * 8) is IOError, "the body of the first response is over")
 }
 
 @test
 test_a_response_body_too_long_to_read_past_ends_the_connection :: fn() -> void {
     connection :: answering(OK_HELLO + OK_BYE, Limits { .unread_body = 2 })
-    connection.send(request_for(.Get, "/a"))
+    _ :: connection.send(request_for(.Get, "/a"))
     assert_eq(seen(connection.send(request_for(.Get, "/b"))), "ConnectionEnded")
     assert_eq(written_by(connection), "GET /a HTTP/1.1\r\nHost: example.org\r\n\r\n")
 }
@@ -496,7 +496,7 @@ test_a_body_that_looks_like_a_response_is_never_read_as_one :: fn() -> void {
                 request_for(.Get, "/a"),
             ) else panic("the first response is read")
             if read > 0 {
-                response.body.read([0] * read)
+                _ :: response.body.read([0] * read)
             }
             assert_eq(seen(connection.send(request_for(.Get, "/b"))), "200 bye")
         }

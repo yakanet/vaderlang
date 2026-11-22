@@ -16,6 +16,6 @@ main :: fn() -> i32 {
     level :: Level {}
     t :: launch(() -> (() -> { level.n += 1 })())
     level.n = 3
-    t.join()
+    _ :: t.join()
     return 0
 }

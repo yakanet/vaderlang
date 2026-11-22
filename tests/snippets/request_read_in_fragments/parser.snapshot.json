@@ -23,6 +23,14 @@
         "decorators": []
       },
       {
+        "kind": "ImportDecl",
+        "path": "std/testing",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "main",
         "visibility": "private",
@@ -829,22 +837,35 @@
               "expr": {
                 "kind": "CallExpr",
                 "callee": {
-                  "kind": "FieldExpr",
-                  "target": {
-                    "kind": "IdentExpr",
-                    "name": "writer"
-                  },
-                  "field": "write"
+                  "kind": "IdentExpr",
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IdentExpr",
+                          "name": "writer"
+                        },
+                        "field": "write"
+                      },
+                      "args": [
                         {
-                          "kind": "text",
-                          "value": "HTTP/1.1 "
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "HTTP/1.1 "
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },
@@ -902,22 +923,35 @@
               "expr": {
                 "kind": "CallExpr",
                 "callee": {
-                  "kind": "FieldExpr",
-                  "target": {
-                    "kind": "IdentExpr",
-                    "name": "writer"
-                  },
-                  "field": "write"
+                  "kind": "IdentExpr",
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IdentExpr",
+                          "name": "writer"
+                        },
+                        "field": "write"
+                      },
+                      "args": [
                         {
-                          "kind": "text",
-                          "value": "204 No Content\r\n"
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "204 No Content\r\n"
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },
@@ -975,26 +1009,39 @@
               "expr": {
                 "kind": "CallExpr",
                 "callee": {
-                  "kind": "FieldExpr",
-                  "target": {
-                    "kind": "IdentExpr",
-                    "name": "writer"
-                  },
-                  "field": "write"
+                  "kind": "IdentExpr",
+                  "name": "assert_succeeds"
                 },
                 "args": [
                   {
                     "name": null,
                     "value": {
-                      "kind": "SeqLitExpr",
-                      "elements": [
-                        {
-                          "kind": "IntLitExpr",
-                          "value": "13n"
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IdentExpr",
+                          "name": "writer"
                         },
+                        "field": "write"
+                      },
+                      "args": [
                         {
-                          "kind": "IntLitExpr",
-                          "value": "10n"
+                          "name": null,
+                          "value": {
+                            "kind": "SeqLitExpr",
+                            "elements": [
+                              {
+                                "kind": "IntLitExpr",
+                                "value": "13n"
+                              },
+                              {
+                                "kind": "IntLitExpr",
+                                "value": "10n"
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },
@@ -1052,14 +1099,27 @@
               "expr": {
                 "kind": "CallExpr",
                 "callee": {
-                  "kind": "FieldExpr",
-                  "target": {
-                    "kind": "IdentExpr",
-                    "name": "writer"
-                  },
-                  "field": "flush"
+                  "kind": "IdentExpr",
+                  "name": "assert_succeeds"
                 },
-                "args": []
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IdentExpr",
+                          "name": "writer"
+                        },
+                        "field": "flush"
+                      },
+                      "args": []
+                    },
+                    "spread": false
+                  }
+                ]
               }
             },
             {

@@ -32,6 +32,19 @@ export fail :: fn(msg: string) -> void {
     panic(msg)
 }
 
+/// Assert that an operation with nothing to return succeeded: the setup a test
+/// stands on. Failure prints the message of the error.
+///
+/// @param result  what the operation answered: `void` on success.
+/// @example
+///   # import "std/fs"
+///   assert_succeeds(write_file("/tmp/notes.txt", "hello"))
+export assert_succeeds :: fn(result: void | Error) -> void {
+    if result is Error {
+        panic("assert_succeeds failed: ${result.message()}")
+    }
+}
+
 /// Assert `actual == expected`. Failure message includes both values.
 ///
 /// @param expected  the value `actual` must equal; the failure prints it first.

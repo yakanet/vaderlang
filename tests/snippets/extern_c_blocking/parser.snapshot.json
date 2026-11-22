@@ -465,8 +465,14 @@
               }
             },
             {
-              "kind": "ExprStmt",
-              "expr": {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "_"
+              },
+              "type": null,
+              "value": {
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "FieldExpr",

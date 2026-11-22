@@ -11,6 +11,6 @@ draw :: fn() -> i64 = gpu_draw()
 
 main :: fn() -> i32 {
     t :: launch(draw)
-    t.join()
+    _ :: t.join()
     return 0
 }

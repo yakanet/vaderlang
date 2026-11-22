@@ -164,12 +164,12 @@ import "system/posix"
 // fresh directory of the temp directory.
 probe_tree :: fn(name: string) -> string {
     root :: "${temp_dir()}/vader_walk_${name}"
-    root.remove(RemoveOptions { .recursive = true, .force = true })
-    create_dir("${root}/b/d")
-    write_file("${root}/a.txt", "a")
-    write_file("${root}/b/c.txt", "c")
-    write_file("${root}/b/d/e.txt", "e")
-    write_file("${root}/z.vader", "z")
+    _ :: root.remove(RemoveOptions { .recursive = true, .force = true })
+    assert_succeeds(create_dir("${root}/b/d"))
+    assert_succeeds(write_file("${root}/a.txt", "a"))
+    assert_succeeds(write_file("${root}/b/c.txt", "c"))
+    assert_succeeds(write_file("${root}/b/d/e.txt", "e"))
+    assert_succeeds(write_file("${root}/z.vader", "z"))
     return root
 }
 

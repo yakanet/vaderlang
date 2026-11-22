@@ -424,8 +424,8 @@ serving :: fn(
     address :: address_of(listener) else return
     server :: launch(() -> serve(listener, handler, options))
     check("http://${address}")
-    listener.close()
-    server.join()
+    _ :: listener.close()
+    _ :: server.join()
 }
 
 // How many connections `client` kept idle, each closed.
@@ -436,7 +436,7 @@ closed_kept :: fn(client: HttpClient) -> i64 {
         if kept is Empty | Closed {
             return count
         }
-        kept.stream.close()
+        _ :: kept.stream.close()
         count += 1
     }
 }
@@ -542,8 +542,8 @@ redirecting :: fn(check: fn(string, HttpClient) -> void) -> void {
     client :: HttpClient {}
     check("http://${address}", client)
     client.close()
-    listener.close()
-    server.join()
+    _ :: listener.close()
+    _ :: server.join()
 }
 
 @test

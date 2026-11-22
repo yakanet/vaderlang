@@ -25,6 +25,6 @@ main :: fn() -> i32 {
     relayed_fill(buf, 7, 3)
     println("memset: ${buf}")
     gate.send(1)
-    waiting.join()
+    _ :: waiting.join()
     return 0
 }

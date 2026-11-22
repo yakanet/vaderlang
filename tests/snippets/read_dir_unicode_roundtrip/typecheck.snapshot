@@ -55,6 +55,6 @@
   expr 36:5     CallExpr       :: void
   expr 36:5     IdentExpr      :: fn(T) -> void
   expr 372:60   StructLitExpr  :: RemoveOptions
-  expr 37:12    IdentExpr      :: string
-  expr 37:5     CallExpr       :: IOError | void
-  expr 37:5     IdentExpr      :: fn(string, RemoveOptions) -> IOError | void
+  expr 37:10    CallExpr       :: IOError | void
+  expr 37:10    IdentExpr      :: fn(string, RemoveOptions) -> IOError | void
+  expr 37:17    IdentExpr      :: string

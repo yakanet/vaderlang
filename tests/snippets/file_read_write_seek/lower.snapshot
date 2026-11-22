@@ -15,8 +15,8 @@
               File(__fallback_0)
           } :File
       }
-      std.fs.File.write(w, "one\r\ntwo\nthree")
-      std.fs.close(w)
+      std.testing.assert_succeeds(std.fs.File.write(w, "one\r\ntwo\nthree"))
+      _: IOError | void = std.fs.close(w)
       f: File = {
           __fallback_1: File | IOError = std.fs.open(path, OpenOptions {
               .read = true,
@@ -41,11 +41,11 @@
           std.console.println<string>(concat_2("read: ", std_core$Intrinsic$bytes_to_string(first)))
       }
       std.console.println<string>(concat_2("position: ", snippet.position(std.fs.seek(f, i64(0), SeekFrom(1)))))
-      std.fs.File.write(f, "E")
+      std.testing.assert_succeeds(std.fs.File.write(f, "E"))
       std.console.println<string>(concat_2("after the write: ", snippet.position(std.fs.seek(f, i64(0), SeekFrom(1)))))
       std.console.println<string>(concat_2("end: ", snippet.position(std.fs.seek(f, i64(0), SeekFrom(2)))))
       std.console.println<string>(concat_2("size: ", snippet.position(std.fs.size(f))))
-      std.fs.seek(f, i64(0), SeekFrom(0))
+      _: i64 | IOError = std.fs.seek(f, i64(0), SeekFrom(0))
       reader: BufferedReader = BufferedReader {
           .source = f,
           .capacity = i64(4),
@@ -114,7 +114,7 @@
       if directory is IOError {
           std.console.println<string>(concat_2("directory: ", std.io.IOErrorKind.to_string(IOError(directory).kind)))
       }
-      std.fs.remove(path, RemoveOptions { .recursive = false, .force = false })
+      _: IOError | void = std.fs.remove(path, RemoveOptions { .recursive = false, .force = false })
       return 0
   }
   snippet.position :: fn(at: i64 | IOError) -> string {  // snippet$position
@@ -215,6 +215,7 @@
     struct std.fs.RemoveOptions  // std_fs$RemoveOptions
   std/io
     fn std.io.BufferedReader.read  // std_io$BufferedReader$Reader$read
+    fn std.io.IOError.message  // std_io$IOError$std_core$Error$message
     fn std.io.IOErrorKind.to_string  // std_io$IOErrorKind$std_core$Display$to_string
     fn std.io.bytes_of  // std_io$bytes_of
     fn std.io.classified_error  // std_io$classified_error
@@ -243,6 +244,8 @@
   std/string
     fn std.string.ends_with  // std_string$ends_with
     fn std.string.matches_at  // std_string$matches_at
+  std/testing
+    fn std.testing.assert_succeeds  // std_testing$assert_succeeds
   system/posix
     const EADDRINUSE: i32  inline
     const EADDRNOTAVAIL: i32  inline

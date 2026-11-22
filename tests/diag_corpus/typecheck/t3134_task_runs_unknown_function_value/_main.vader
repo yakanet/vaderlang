@@ -11,6 +11,6 @@ Registry :: struct {
 main :: fn() -> i32 {
     registry :: Registry { .jobs = [() -> 1] }
     t :: launch(registry.jobs[0])
-    t.join()
+    _ :: t.join()
     return 0
 }

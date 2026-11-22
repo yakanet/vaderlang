@@ -647,7 +647,7 @@ test_a_body_that_failed_once_is_at_no_end :: fn() -> void {
     swallowing :: fn(request: Request) -> Response {
         targets.push(request.target)
         buffer: u8[]: [0] * 8
-        request.body.read(buffer)
+        _ :: request.body.read(buffer)
         return Response {}
     }
     head :: "POST /a HTTP/1.1\r\nHost: h\r\nTransfer-Encoding: chunked\r\n\r\n"
@@ -919,7 +919,7 @@ rewritten :: fn(request: Request) -> Response {
 }
 
 partly_read :: fn(request: Request, buffer: u8[]) -> Response {
-    request.body.read(buffer[0..<1])
+    _ :: request.body.read(buffer[0..<1])
     return new_response(STATUS_OK, "ok")
 }
 

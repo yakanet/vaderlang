@@ -453,7 +453,7 @@ import "std/testing"
 // A fresh directory in the temp directory, for one test.
 probe_dir :: fn(name: string) -> string {
     dir :: "${temp_dir()}/vader_entries_${name}"
-    dir.remove(RemoveOptions { .recursive = true, .force = true })
+    _ :: dir.remove(RemoveOptions { .recursive = true, .force = true })
     made :: create_dir(dir)
     assert(made !is IOError, "the probe directory was made")
     return dir
@@ -470,7 +470,7 @@ test_metadata_of_a_file_and_a_directory :: fn() -> void {
     dir :: probe_dir("metadata")
     defer dir.remove(RemoveOptions { .recursive = true })
     file :: "${dir}/a.txt"
-    write_file(file, "hello")
+    assert_succeeds(write_file(file, "hello"))
     entry :: file.metadata() else {
         assert(false, "the file is probed")
         return
@@ -496,7 +496,7 @@ test_metadata_follows_a_link_unless_asked :: fn() -> void {
     }
     dir :: probe_dir("link")
     defer dir.remove(RemoveOptions { .recursive = true })
-    write_file("${dir}/target.txt", "x")
+    assert_succeeds(write_file("${dir}/target.txt", "x"))
     linked :: sys_symlink("${dir}/target.txt", "${dir}/link")
     assert_eq(linked, 0)
     assert_eq(kind_at("${dir}/link", MetadataOptions {}), .File)
@@ -508,7 +508,7 @@ test_set_read_only_and_back :: fn() -> void {
     dir :: probe_dir("read_only")
     defer dir.remove(RemoveOptions { .recursive = true, .force = true })
     file :: "${dir}/a.txt"
-    write_file(file, "x")
+    assert_succeeds(write_file(file, "x"))
     assert(file.set_read_only(true) !is IOError, "made read-only")
     locked :: file.metadata()
     assert(locked is Metadata && locked.read_only, "reported read-only")
@@ -521,8 +521,8 @@ test_set_read_only_and_back :: fn() -> void {
 test_rename_replaces_the_target :: fn() -> void {
     dir :: probe_dir("rename")
     defer dir.remove(RemoveOptions { .recursive = true })
-    write_file("${dir}/from.txt", "new")
-    write_file("${dir}/to.txt", "old")
+    assert_succeeds(write_file("${dir}/from.txt", "new"))
+    assert_succeeds(write_file("${dir}/to.txt", "old"))
     assert("${dir}/from.txt".rename("${dir}/to.txt") !is IOError, "renamed")
     assert(!exists("${dir}/from.txt"), "the old name is gone")
     back :: read_file_string("${dir}/to.txt")
@@ -534,8 +534,8 @@ test_copy_takes_the_content_and_the_permissions :: fn() -> void {
     dir :: probe_dir("copy")
     defer dir.remove(RemoveOptions { .recursive = true, .force = true })
     from :: "${dir}/from.txt"
-    write_file(from, "content")
-    from.set_read_only(true)
+    assert_succeeds(write_file(from, "content"))
+    assert_succeeds(from.set_read_only(true))
     to :: "${dir}/to.txt"
     assert(from.copy(to) !is IOError, "copied")
     back :: read_file_string(to)
@@ -549,7 +549,7 @@ test_copy_onto_itself_is_refused :: fn() -> void {
     dir :: probe_dir("copy_self")
     defer dir.remove(RemoveOptions { .recursive = true })
     file :: "${dir}/a.txt"
-    write_file(file, "kept")
+    assert_succeeds(write_file(file, "kept"))
     refused :: file.copy("${dir}/./a.txt")
     assert(refused is IOError && refused.kind == .InvalidInput, "a copy onto itself is refused")
     back :: read_file_string(file)
@@ -560,9 +560,9 @@ test_copy_onto_itself_is_refused :: fn() -> void {
 test_copy_tree_copies_a_directory_and_what_it_holds :: fn() -> void {
     dir :: probe_dir("copy_tree")
     defer dir.remove(RemoveOptions { .recursive = true })
-    create_dir("${dir}/from/inner/empty")
-    write_file("${dir}/from/a.txt", "a")
-    write_file("${dir}/from/inner/b.txt", "b")
+    assert_succeeds(create_dir("${dir}/from/inner/empty"))
+    assert_succeeds(write_file("${dir}/from/a.txt", "a"))
+    assert_succeeds(write_file("${dir}/from/inner/b.txt", "b"))
     assert("${dir}/from".copy_tree("${dir}/to") !is IOError, "copied")
     a :: read_file_string("${dir}/to/a.txt")
     b :: read_file_string("${dir}/to/inner/b.txt")
@@ -583,7 +583,7 @@ test_copy_tree_of_a_missing_path_is_an_error :: fn() -> void {
 test_remove_takes_a_file_and_an_empty_directory :: fn() -> void {
     dir :: probe_dir("remove")
     file :: "${dir}/a.txt"
-    write_file(file, "x")
+    assert_succeeds(write_file(file, "x"))
     assert(file.remove() !is IOError, "the file is removed")
     assert(!exists(file), "and gone")
     assert(dir.remove() !is IOError, "the empty directory is removed")
@@ -594,7 +594,7 @@ test_remove_takes_a_file_and_an_empty_directory :: fn() -> void {
 test_remove_refuses_a_directory_with_entries :: fn() -> void {
     dir :: probe_dir("remove_full")
     defer dir.remove(RemoveOptions { .recursive = true })
-    write_file("${dir}/a.txt", "x")
+    assert_succeeds(write_file("${dir}/a.txt", "x"))
     refused :: dir.remove()
     assert(refused is IOError && refused.kind == .DirectoryNotEmpty, "entries take recursive")
     assert(exists("${dir}/a.txt"), "and nothing is removed")
@@ -607,10 +607,10 @@ test_remove_recursive_leaves_what_a_link_points_to :: fn() -> void {
     }
     outside :: probe_dir("remove_outside")
     defer outside.remove(RemoveOptions { .recursive = true })
-    write_file("${outside}/kept.txt", "x")
+    assert_succeeds(write_file("${outside}/kept.txt", "x"))
     dir :: probe_dir("remove_tree")
-    create_dir("${dir}/sub")
-    write_file("${dir}/sub/a.txt", "x")
+    assert_succeeds(create_dir("${dir}/sub"))
+    assert_succeeds(write_file("${dir}/sub/a.txt", "x"))
     sys_symlink(outside, "${dir}/sub/link")
     assert(dir.remove(RemoveOptions { .recursive = true }) !is IOError, "the tree is removed")
     assert(!exists(dir), "and gone")

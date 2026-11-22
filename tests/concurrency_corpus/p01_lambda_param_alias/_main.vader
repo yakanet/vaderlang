@@ -28,7 +28,7 @@ main :: fn() -> i32 {
     tasks :: level.bots.map(b -> launch(() -> nudge(b))).collect()
     level.bots[0].x = 5
     for t in tasks {
-        t.join()
+        _ :: t.join()
     }
     return 0
 }

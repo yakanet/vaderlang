@@ -80,12 +80,12 @@ test_new_writes_a_project_that_runs_and_builds :: fn() -> void {
 test_new_refuses_a_folder_it_is_named_that_holds_something_but_not_its_own :: fn() -> void {
     workspace :: scratch_dir("new_modes")
     // Writing into a folder named by mistake cannot be undone.
-    create_dir("${workspace}/taken")
-    write_file("${workspace}/taken/notes.md", "")
+    assert_succeeds(create_dir("${workspace}/taken"))
+    assert_succeeds(write_file("${workspace}/taken/notes.md", ""))
     named :: vader(["new", "taken"], workspace)
     assert(named.exit == 1 && "not empty" in named.stderr, named.stderr)
     // In place, a folder that holds work started is the common case.
-    write_file("${workspace}/started.vader", "")
+    assert_succeeds(write_file("${workspace}/started.vader", ""))
     assert_eq(vader(["new"], workspace).exit, 0)
     assert(exists("${workspace}/vader.json"), "the manifest written in place")
     // Only a manifest there stops it, and the message says why.
@@ -128,14 +128,14 @@ test_a_manifest_ejected_into_a_driver_declares_builds_and_runs_as_it :: fn() -> 
     rooted :: manifest.replace_all("\"includePaths\": []", "\"includePaths\": [\"vendor\"]")
     widened :: rooted.replace_all("\"assets\": []", "\"assets\": [\"data\"]")
     assert("\"vendor\"" in widened && "\"data\"" in widened, widened)
-    write_file(manifest_path, widened)
-    create_dir("${project}/vendor/greet")
-    write_file(
+    assert_succeeds(write_file(manifest_path, widened))
+    assert_succeeds(create_dir("${project}/vendor/greet"))
+    assert_succeeds(write_file(
         "${project}/vendor/greet/greet.vader",
         "module \"greet\"\n\nexport greeting :: fn() -> string = \"hi\"\n",
-    )
-    create_dir("${project}/data")
-    write_file("${project}/data/note.txt", "note\n")
+    ))
+    assert_succeeds(create_dir("${project}/data"))
+    assert_succeeds(write_file("${project}/data/note.txt", "note\n"))
     main :: "${project}/src/main.vader"
     source :: read_file_string(main) else panic(source.message())
     imports :: source.replace_all(
@@ -146,7 +146,7 @@ test_a_manifest_ejected_into_a_driver_declares_builds_and_runs_as_it :: fn() -> 
         "println(\"hello from scaffolded\")",
         "println(\"hello from scaffolded, \${greeting()}\")",
     )
-    write_file(main, greeted)
+    assert_succeeds(write_file(main, greeted))
     before :: vader_in(project, ["info", "--json", "."], [], HEAVY_TIMEOUT)
     assert_eq(before.exit, 0)
     assert_eq(vader_in(project, ["eject", "."], [], HEAVY_TIMEOUT).exit, 0)

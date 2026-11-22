@@ -119,9 +119,9 @@ first_cell_program :: fn(parameter: string, element: string) -> string = """
 // result per path, a split build, a single-unit one and `vader run`.
 first_cell_paths :: fn(name: string, parameter: string, element: string) -> (ProcessResult | ProcessError)[] {
     root :: scratch_dir("ffi_${name}")
-    write_file("${root}/first.h", FIRST_HEADER)
+    assert_succeeds(write_file("${root}/first.h", FIRST_HEADER))
     entry :: "${root}/main.vader"
-    write_file(entry, first_cell_program(parameter, element))
+    assert_succeeds(write_file(entry, first_cell_program(parameter, element)))
     binary :: executable_path("${root}/app")
     long :: RunOptions { .timeout = LONG_TIMEOUT }
     return [
@@ -151,7 +151,7 @@ stage_clibrary :: fn(name: string, with_archive: bool) -> string | ProcessError 
     }
     greeter :: "${dir}/vendor/greeter"
     lib :: "${greeter}/lib/${host_folder()}"
-    create_dir(lib)
+    assert_succeeds(create_dir(lib))
     object :: "${lib}/greeter.o"
     compiled :: succeeded(
         run_command(
@@ -182,7 +182,7 @@ test_an_extern_with_no_header_compiles_beside_a_header_declaring_it_otherwise ::
     }
     dir :: scratch_dir("ffi_without_header")
     entry :: "${dir}/main.vader"
-    write_file(entry, WITHOUT_HEADER)
+    assert_succeeds(write_file(entry, WITHOUT_HEADER))
     for flags in BUILD_MODES {
         output :: built_output(entry, flags, executable_path("${dir}/app"))
             else panic(output.message())
@@ -198,12 +198,14 @@ test_a_quoted_header_beside_the_entry_compiles_with_the_binary_elsewhere :: fn()
         return
     }
     root :: scratch_dir("ffi_quoted_header")
-    create_dir("${root}/src")
-    create_dir("${root}/out")
-    write_file("${root}/src/my.h", "#include <stdlib.h>\n")
-    write_file("${root}/src/vader.h", "#error the runtime's vader.h was shadowed\n")
+    assert_succeeds(create_dir("${root}/src"))
+    assert_succeeds(create_dir("${root}/out"))
+    assert_succeeds(write_file("${root}/src/my.h", "#include <stdlib.h>\n"))
+    assert_succeeds(
+        write_file("${root}/src/vader.h", "#error the runtime's vader.h was shadowed\n"),
+    )
     entry :: "${root}/src/main.vader"
-    write_file(entry, QUOTED_HEADER)
+    assert_succeeds(write_file(entry, QUOTED_HEADER))
     for flags in BUILD_MODES {
         output :: built_output(entry, flags, executable_path("${root}/out/app"))
             else panic(output.message())
@@ -247,7 +249,7 @@ test_a_struct_returned_by_value_crosses_under_vader_run :: fn() -> void {
         return
     }
     dir :: scratch_dir("ffi_by_value_result")
-    copy_tree("${BY_VALUE}/result", dir)
+    assert_succeeds(copy_tree("${BY_VALUE}/result", dir))
     ran :: run_vader(["run", "${dir}/_main.vader"], RunOptions { .timeout = LONG_TIMEOUT })
         else panic(ran.message())
     assert_eq(ran.stderr, "")
@@ -265,7 +267,7 @@ test_runs_started_together_share_one_adapter_library :: fn() -> void {
         return
     }
     dir :: scratch_dir("ffi_runs_together")
-    copy_tree("${BY_VALUE}/result", dir)
+    assert_succeeds(copy_tree("${BY_VALUE}/result", dir))
     options :: RunOptions { .timeout = LONG_TIMEOUT }
     runs: Task<ProcessResult | ProcessError>[]: []
     for _ in 0..<4 {
@@ -287,7 +289,7 @@ test_an_adapter_that_does_not_link_stops_vader_run_and_names_the_extern :: fn() 
         return
     }
     dir :: scratch_dir("ffi_by_value_argument")
-    copy_tree("${BY_VALUE}/argument", dir)
+    assert_succeeds(copy_tree("${BY_VALUE}/argument", dir))
     ran :: run_vader(["run", "${dir}/_main.vader"], RunOptions { .timeout = LONG_TIMEOUT })
         else panic(ran.message())
     assert_eq(ran.exit, 1)
@@ -299,7 +301,7 @@ test_an_adapter_that_does_not_link_stops_vader_run_and_names_the_extern :: fn() 
 @test
 test_without_a_c_compiler_vader_run_says_the_adapters_need_one :: fn() -> void {
     dir :: scratch_dir("ffi_by_value_no_cc")
-    copy_tree("${BY_VALUE}/result", dir)
+    assert_succeeds(copy_tree("${BY_VALUE}/result", dir))
     options :: RunOptions {
         .env = [["CC", "${dir}/no-such-cc"]],
         .timeout = LONG_TIMEOUT,

@@ -25,7 +25,7 @@ main :: fn() -> i32 {
         tasks.push(launch(() -> bump(c)))
     }
     for t in tasks {
-        t.join()
+        _ :: t.join()
     }
     return 0
 }

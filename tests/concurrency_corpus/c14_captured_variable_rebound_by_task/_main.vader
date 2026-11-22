@@ -20,6 +20,6 @@ main :: fn() -> i32 {
     for !done {
         show_spinner()
     }
-    t.join()
+    _ :: t.join()
     return 0
 }

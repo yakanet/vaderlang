@@ -54,9 +54,9 @@ expected_output :: fn() -> string {
 // A folder holding the reader in `src/`, beside its data.
 staged_reader :: fn(name: string) -> string {
     dir :: scratch_dir("comptime_${name}")
-    create_dir("${dir}/src")
-    write_file("${dir}/src/data.bin", DATA)
-    write_file("${dir}/src/main.vader", READER)
+    assert_succeeds(create_dir("${dir}/src"))
+    assert_succeeds(write_file("${dir}/src/data.bin", DATA))
+    assert_succeeds(write_file("${dir}/src/main.vader", READER))
     return dir
 }
 
@@ -141,18 +141,18 @@ SQUARES :: r"""
 // toolchain would ship: what marks one is the file `std/io/io.vader` under it.
 staged_with_a_library :: fn(name: string, body: string) -> string {
     dir :: scratch_dir("comptime_${name}")
-    create_dir("${dir}/vendor")
-    create_dir("${dir}/vendor/std")
-    create_dir("${dir}/vendor/std/io")
-    create_dir("${dir}/vendor/squares")
-    write_file("${dir}/vendor/std/io/io.vader", "module \"std/io\"\n")
-    write_file("${dir}/vendor/squares/squares.vader", SQUARES)
+    assert_succeeds(create_dir("${dir}/vendor"))
+    assert_succeeds(create_dir("${dir}/vendor/std"))
+    assert_succeeds(create_dir("${dir}/vendor/std/io"))
+    assert_succeeds(create_dir("${dir}/vendor/squares"))
+    assert_succeeds(write_file("${dir}/vendor/std/io/io.vader", "module \"std/io\"\n"))
+    assert_succeeds(write_file("${dir}/vendor/squares/squares.vader", SQUARES))
     manifest :: r"""{"includePaths": ["vendor"], "entries": {"app": "main.vader"}}"""
-    write_file("${dir}/vader.json", manifest)
+    assert_succeeds(write_file("${dir}/vader.json", manifest))
     source :: StringBuilder {}
     source.append("module \"app\"\n\nimport \"squares\"\nimport \"std/console\"\n\n")
     source.append("main :: fn() -> i32 {\n    ${body}\n    return 0\n}\n")
-    write_file("${dir}/main.vader", source.to_string())
+    assert_succeeds(write_file("${dir}/main.vader", source.to_string()))
     return dir
 }
 
@@ -186,12 +186,12 @@ test_a_comptime_value_reading_another_runs_after_it_once_in_its_own_folder :: fn
     // The value read is evaluated once, in `assets/`, while its reader sits in
     // `app/`: the line it prints at compile time says how many times it ran.
     dir :: scratch_dir("comptime_layers")
-    create_dir("${dir}/app")
-    create_dir("${dir}/assets")
-    write_file("${dir}/assets/icon.bin", "abc")
-    write_file("${dir}/vader.json", r"""{"entries": {"app": "app/main.vader"}}""")
-    write_file("${dir}/assets/assets.vader", ASSETS)
-    write_file("${dir}/app/main.vader", LAYERED_APP)
+    assert_succeeds(create_dir("${dir}/app"))
+    assert_succeeds(create_dir("${dir}/assets"))
+    assert_succeeds(write_file("${dir}/assets/icon.bin", "abc"))
+    assert_succeeds(write_file("${dir}/vader.json", r"""{"entries": {"app": "app/main.vader"}}"""))
+    assert_succeeds(write_file("${dir}/assets/assets.vader", ASSETS))
+    assert_succeeds(write_file("${dir}/app/main.vader", LAYERED_APP))
     ran :: vader_in(dir, ["run", "."])
     assert_eq(ran.stderr, "")
     assert_eq(ran.stdout, "reading the icon\n6 9\n")

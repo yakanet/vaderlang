@@ -19,7 +19,7 @@ import "tools/cli_tests/rpc"
 diagnostics_for :: fn(name: string, source: string) -> JsonValue[] {
     dir :: scratch_dir("lsp_diagnostics_${name}")
     file :: "${dir}/lint-me.vader"
-    write_file(file, source)
+    assert_succeeds(write_file(file, source))
     uri :: file_uri(file)
     sent :: [initialize(1, dir), INITIALIZED, did_open(uri, source), SHUTDOWN, EXIT]
     last: JsonValue[] = []

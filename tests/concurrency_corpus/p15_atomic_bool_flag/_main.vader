@@ -18,6 +18,6 @@ main :: fn() -> i32 {
     for !done.load() {
         work()
     }
-    t.join()
+    _ :: t.join()
     return 0
 }

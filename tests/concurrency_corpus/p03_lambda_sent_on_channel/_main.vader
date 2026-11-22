@@ -28,6 +28,6 @@ main :: fn() -> i32 {
     jobs.send(() -> bump(level))
     t :: launch(() -> worker(jobs))
     level.n = 3
-    t.join()
+    _ :: t.join()
     return 0
 }

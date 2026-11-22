@@ -107,11 +107,13 @@ test_run_picks_the_main_of_the_named_file :: fn() -> void {
     // Two `main` in one folder-module: `alpha.vader`'s sorts first, and the
     // signatures differ, so both stay. Each exits with its own code.
     dir :: scratch_dir("run_entry")
-    write_file("${dir}/alpha.vader", "module \"scratch\"\nmain :: fn() -> i32 {\n    return 7\n}\n")
-    write_file(
+    assert_succeeds(
+        write_file("${dir}/alpha.vader", "module \"scratch\"\nmain :: fn() -> i32 {\n    return 7\n}\n"),
+    )
+    assert_succeeds(write_file(
         "${dir}/zeta.vader",
         "module \"scratch\"\nmain :: fn(argv: string[]) -> i32 {\n    return 9\n}\n",
-    )
+    ))
     zeta :: run_vader(["run", "${dir}/zeta.vader"]) else panic(zeta.message())
     assert_eq(zeta.exit, 9)
     alpha :: run_vader(["run", "${dir}/alpha.vader"]) else panic(alpha.message())
@@ -121,7 +123,9 @@ test_run_picks_the_main_of_the_named_file :: fn() -> void {
 @test
 test_run_and_build_refuse_a_module_with_no_main :: fn() -> void {
     file :: "${scratch_dir("run_no_main")}/lib.vader"
-    write_file(file, "module \"scratch\"\nshout :: fn() -> i32 {\n    return 3\n}\n")
+    assert_succeeds(
+        write_file(file, "module \"scratch\"\nshout :: fn() -> i32 {\n    return 3\n}\n"),
+    )
     ran :: run_vader(["run", file]) else panic(ran.message())
     assert_eq(ran.exit, 1)
     assert("declares no `main`" in ran.stderr, ran.stderr)

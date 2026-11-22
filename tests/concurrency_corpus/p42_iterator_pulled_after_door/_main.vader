@@ -31,6 +31,6 @@ main :: fn() -> i32 {
     for b in alive {
         total += b.x
     }
-    t.join()
+    _ :: t.join()
     return i32(total) - 2
 }
