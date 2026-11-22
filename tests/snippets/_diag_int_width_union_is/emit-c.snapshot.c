@@ -36,18 +36,18 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[10] = {
-    [1] = { .slot_size = 16 },
-    [2] = { .slot_size = 4 },
-    [3] = { .slot_size = 8 },
-    [4] = { .slot_size = 1 },
-    [5] = { .slot_size = 4 },
-    [6] = {
+    [2] = { .slot_size = 16 },
+    [3] = { .slot_size = 4 },
+    [4] = { .slot_size = 8 },
+    [5] = { .slot_size = 1 },
+    [6] = { .slot_size = 4 },
+    [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [7] = {
+    [8] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 5u,
     },
     [9] = { .slot_size = 1 },
 };
@@ -65,7 +65,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 7u, 4u);
+    return (void*) vader_string_bytes_view(a0, 8u, 5u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -93,10 +93,10 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
 #pragma GCC diagnostic pop
 
 static int32_t snippet$tag(vader_box_t l0) {
-    if (l0.tag == 4u) {
+    if (l0.tag == 5u) {
         return INT32_C(1);
     }
-    if (!(l0.tag == 3u)) {
+    if (!(l0.tag == 4u)) {
         return INT32_C(3);
     }
     return INT32_C(2);
@@ -115,15 +115,15 @@ static int32_t snippet$main(void) {
     vader_gc_top = &gc_frame;
     l0 = (void*) vader_buffer_new((size_t) INT64_C(62));
     l1 = INT64_C(0);
-    t0 = snippet$tag(vader_box_i32(4u, INT32_C(5)));
+    t0 = snippet$tag(vader_box_i32(5u, INT32_C(5)));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
-    t0 = snippet$tag(vader_box_i64(3u, INT64_C(9999999999)));
+    t0 = snippet$tag(vader_box_i64(4u, INT64_C(9999999999)));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
-    t0 = snippet$tag(vader_box_i32(2u, INT32_C(7)));
+    t0 = snippet$tag(vader_box_i32(3u, INT32_C(7)));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     t1 = std_core$finish_buffer(l0, l1);

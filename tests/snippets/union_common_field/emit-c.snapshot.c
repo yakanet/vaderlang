@@ -97,31 +97,31 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[19] = {
-    [1] = { .slot_size = 16 },
-    [2] = {
+    [2] = { .slot_size = 16 },
+    [3] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Point_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Point_t, f_label) },
         .string_count = 1,
     },
-    [3] = {
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Tag_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Tag_t, f_label) },
         .string_count = 1,
     },
-    [4] = { .slot_size = 4 },
-    [5] = { .slot_size = 16 },
-    [6] = {
+    [5] = { .slot_size = 4 },
+    [6] = { .slot_size = 16 },
+    [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Flag_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Flag_t, f_at) },
         .ptr_count = 1,
     },
-    [7] = {
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Pin_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Pin_t, f_at) },
         .ptr_count = 1,
     },
-    [8] = { .slot_size = 4 },
+    [9] = { .slot_size = 4 },
     [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Cat_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Cat_t, f_name) },
@@ -271,7 +271,7 @@ static int32_t snippet$main(void) {
     t1 = std_core$finish_buffer(l2, l3);
     std_console$println__string(t1);
     vader_struct_snippet$Point_t* _a4_obj = (vader_struct_snippet$Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Point_t));
-    vader_obj_header_init(_a4_obj, 2u);
+    vader_obj_header_init(_a4_obj, 3u);
     _a4_obj->f_id = INT32_C(1);
     _a4_obj->f_label = 6u;
     t0 = (void*) _a4_obj;
@@ -279,7 +279,7 @@ static int32_t snippet$main(void) {
     t1 = concat_2(5u, l1);
     std_console$println__string(t1);
     vader_struct_snippet$Tag_t* _a5_obj = (vader_struct_snippet$Tag_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Tag_t));
-    vader_obj_header_init(_a5_obj, 3u);
+    vader_obj_header_init(_a5_obj, 4u);
     _a5_obj->f_rank = INT32_C(2);
     _a5_obj->f_label = 7u;
     t0 = (void*) _a5_obj;
@@ -287,7 +287,7 @@ static int32_t snippet$main(void) {
     t1 = concat_2(5u, l1);
     std_console$println__string(t1);
     vader_struct_snippet$Tag_t* _a6_obj = (vader_struct_snippet$Tag_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Tag_t));
-    vader_obj_header_init(_a6_obj, 3u);
+    vader_obj_header_init(_a6_obj, 4u);
     _a6_obj->f_rank = INT32_C(3);
     _a6_obj->f_label = 8u;
     t0 = (void*) _a6_obj;
@@ -298,12 +298,12 @@ static int32_t snippet$main(void) {
     l3 = INT64_C(0);
     l3 = std_core$write_string_at(l2, l3, 9u);
     vader_struct_snippet$Point_t* _a7_obj = (vader_struct_snippet$Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Point_t));
-    vader_obj_header_init(_a7_obj, 2u);
+    vader_obj_header_init(_a7_obj, 3u);
     _a7_obj->f_id = INT32_C(5);
     _a7_obj->f_label = 10u;
     t0 = (void*) _a7_obj;
     vader_struct_snippet$Flag_t* _a8_obj = (vader_struct_snippet$Flag_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Flag_t));
-    vader_obj_header_init(_a8_obj, 6u);
+    vader_obj_header_init(_a8_obj, 7u);
     _a8_obj->f_at = vader_ref_box(t0);
     _a8_obj->f_raised = true;
     t0 = (void*) _a8_obj;
@@ -316,7 +316,7 @@ static int32_t snippet$main(void) {
     l3 = INT64_C(0);
     l3 = std_core$write_string_at(l2, l3, 9u);
     vader_struct_snippet$Pin_t* _a9_obj = (vader_struct_snippet$Pin_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Pin_t));
-    vader_obj_header_init(_a9_obj, 7u);
+    vader_obj_header_init(_a9_obj, 8u);
     _a9_obj->f_at = vader_box_obj(0u, NULL);
     _a9_obj->f_weight = INT32_C(1);
     t0 = (void*) _a9_obj;
@@ -326,12 +326,12 @@ static int32_t snippet$main(void) {
     t1 = std_core$finish_buffer(l2, l3);
     std_console$println__string(t1);
     vader_struct_snippet$Point_t* _a10_obj = (vader_struct_snippet$Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Point_t));
-    vader_obj_header_init(_a10_obj, 2u);
+    vader_obj_header_init(_a10_obj, 3u);
     _a10_obj->f_id = INT32_C(6);
     _a10_obj->f_label = 11u;
     t0 = (void*) _a10_obj;
     vader_struct_snippet$Flag_t* _a11_obj = (vader_struct_snippet$Flag_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Flag_t));
-    vader_obj_header_init(_a11_obj, 6u);
+    vader_obj_header_init(_a11_obj, 7u);
     _a11_obj->f_at = vader_ref_box(t0);
     _a11_obj->f_raised = false;
     l2 = (void*) _a11_obj;

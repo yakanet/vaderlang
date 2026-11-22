@@ -51,23 +51,23 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[12] = {
-    [1] = { .slot_size = 4 },
-    [2] = { .slot_size = 16 },
-    [3] = { .slot_size = 1 },
-    [4] = {
+    [2] = { .slot_size = 4 },
+    [3] = { .slot_size = 16 },
+    [4] = { .slot_size = 1 },
+    [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_string$ParseError_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_string$ParseError_t, f_msg) },
         .string_count = 1,
     },
-    [5] = { .slot_size = 4 },
     [6] = { .slot_size = 4 },
-    [7] = { .slot_size = 8 },
-    [8] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
-    },
+    [7] = { .slot_size = 4 },
+    [8] = { .slot_size = 8 },
     [9] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
+    },
+    [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
@@ -87,7 +87,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 8u, 3u);
+    return (void*) vader_string_bytes_view(a0, 9u, 4u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -120,22 +120,22 @@ static vader_box_t snippet$parse(uint32_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l0 == 78u) {
-        { vader_box_t __vret = vader_box_i32(3u, INT32_C(0)); vader_gc_top = gc_frame.prev; return __vret; }
+        { vader_box_t __vret = vader_box_i32(4u, INT32_C(0)); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == 69u) {
-        { vader_box_t __vret = vader_box_i32(3u, INT32_C(1)); vader_gc_top = gc_frame.prev; return __vret; }
+        { vader_box_t __vret = vader_box_i32(4u, INT32_C(1)); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == 83u) {
-        { vader_box_t __vret = vader_box_i32(3u, INT32_C(2)); vader_gc_top = gc_frame.prev; return __vret; }
+        { vader_box_t __vret = vader_box_i32(4u, INT32_C(2)); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (!(l0 == 87u)) {
         vader_struct_std_string$ParseError_t* _a0_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
-        vader_obj_header_init(_a0_obj, 4u);
+        vader_obj_header_init(_a0_obj, 5u);
         _a0_obj->f_msg = 1u;
         t0 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    { vader_box_t __vret = vader_box_i32(3u, INT32_C(3)); vader_gc_top = gc_frame.prev; return __vret; }
+    { vader_box_t __vret = vader_box_i32(4u, INT32_C(3)); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t snippet$dir_label(uint8_t l0) {
@@ -169,25 +169,25 @@ static int32_t snippet$main(void) {
     vader_gc_top = &gc_frame;
     l0 = snippet$parse(78u);
     l1 = l0;
-    if (l0.tag == 3u) {
+    if (l0.tag == 4u) {
         t0 = ((uint8_t) l1.payload.i);
         t1 = snippet$dir_label(t0);
         std_console$println__string(t1);
     } else {
-        if (!(l0.tag == 4u)) {
+        if (!(l0.tag == 5u)) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
         std_console$println__string(6u);
     }
     l0 = snippet$parse(63u);
     l1 = l0;
-    if (l0.tag == 3u) {
+    if (l0.tag == 4u) {
         t0 = ((uint8_t) l1.payload.i);
         t1 = snippet$dir_label(t0);
         std_console$println__string(t1);
         { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     }
-    if (!(l0.tag == 4u)) {
+    if (!(l0.tag == 5u)) {
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
     }
     std_console$println__string(6u);

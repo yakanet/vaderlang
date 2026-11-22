@@ -1,29 +1,29 @@
 module _main
 type 0 scalar null
-type 1 scalar u8
-type 2 scalar string
-type 3 scalar i32
-type 4 struct snippet$Some { value:3 }
-type 5 struct snippet$None {  }
-type 6 struct std_core$Buffer {  }
-type 7 scalar i64
-type 8 array 1
-type 9 scalar void
+type 1 scalar void
+type 2 scalar u8
+type 3 scalar string
+type 4 scalar i32
+type 5 struct snippet$Some { value:4 }
+type 6 struct snippet$None {  }
+type 7 struct std_core$Buffer {  }
+type 8 scalar i64
+type 9 array 2
 type 10 scalar bool
-type 11 array 5
+type 11 array 6
 string 0 "Mon"
 string 1 "Tue"
 string 2 "Wed"
 string 3 "got="
 string 4 "nothing"
 string 5 "\n"
-data 0 structs 5 0 1
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=3,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=9 () -> void
-impl 6 std_core$ByteAccess
+data 0 structs 6 0 1
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=3 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=4,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=4 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 7 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$show_day (u8) -> string
@@ -67,7 +67,7 @@ fn 1 snippet$main () -> i32
   call 9   ; std_console$println__string
   i32.const 0
   i32.const 2
-  array.new 8 2   ; u8[]
+  array.new 9 2   ; u8[]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -80,7 +80,7 @@ fn 1 snippet$main () -> i32
     if $L1 void
       local.get 0   ; __for_arr_0
       local.get 2   ; __for_i_2
-      array.get 8   ; u8[]
+      array.get 9   ; u8[]
       call 0   ; snippet$show_day
       call 9   ; std_console$println__string
       local.get 2   ; __for_i_2
@@ -91,9 +91,9 @@ fn 1 snippet$main () -> i32
     end $L1
   end $L0
   i32.const 42
-  struct.new_stack 4   ; snippet$Some
+  struct.new_stack 5   ; snippet$Some
   local.tee 3   ; m
-  type_check 4   ; snippet$Some
+  type_check 5   ; snippet$Some
   if $L2 void
     i64.const 24
     buffer.new
@@ -106,9 +106,9 @@ fn 1 snippet$main () -> i32
     call 4   ; std_core$write_string_at
     local.set 1   ; __for_len_1
     local.get 3   ; m
-    ref.cast 4   ; snippet$Some
-    struct.get 4 0   ; snippet$Some.value
-    ref.cast 3   ; i32
+    ref.cast 5   ; snippet$Some
+    struct.get 5 0   ; snippet$Some.value
+    ref.cast 4   ; i32
     i32.to_i64
     local.set 2   ; __for_i_2
     local.get 0   ; __for_arr_0
@@ -122,7 +122,7 @@ fn 1 snippet$main () -> i32
     call 9   ; std_console$println__string
   else
     local.get 3   ; m
-    type_check 5   ; snippet$None
+    type_check 6   ; snippet$None
     if $L3 void
     else
       unreachable "non-exhaustive match (T3013 should have caught this)"
@@ -134,7 +134,7 @@ fn 1 snippet$main () -> i32
   i64.const 0
   array.get 11 safe   ; snippet$None[]
   local.tee 3   ; m
-  type_check 4   ; snippet$Some
+  type_check 5   ; snippet$Some
   if $L4 void
     i64.const 24
     buffer.new
@@ -147,9 +147,9 @@ fn 1 snippet$main () -> i32
     call 4   ; std_core$write_string_at
     local.set 1   ; __for_len_1
     local.get 3   ; m
-    ref.cast 4   ; snippet$Some
-    struct.get 4 0   ; snippet$Some.value
-    ref.cast 3   ; i32
+    ref.cast 5   ; snippet$Some
+    struct.get 5 0   ; snippet$Some.value
+    ref.cast 4   ; i32
     i32.to_i64
     local.set 2   ; __for_i_2
     local.get 0   ; __for_arr_0
@@ -164,7 +164,7 @@ fn 1 snippet$main () -> i32
     return.lit i32.const 0
   end $L4
   local.get 3   ; m
-  type_check 5   ; snippet$None
+  type_check 6   ; snippet$None
   if $L5 void
   else
     unreachable "non-exhaustive match (T3013 should have caught this)"
@@ -374,7 +374,7 @@ fn 6 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 8   ; u8[]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

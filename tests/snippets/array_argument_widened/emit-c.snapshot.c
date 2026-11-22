@@ -48,44 +48,44 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[18] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Circle_t),
         .slot_size = 8,
     },
-    [2] = { .slot_size = 4 },
-    [3] = {
+    [3] = { .slot_size = 4 },
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Square_t),
         .slot_size = 8,
     },
-    [4] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 5u,
-    },
-    [5] = { .slot_size = 16 },
-    [6] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
-    },
-    [7] = { .slot_size = 16 },
-    [8] = {
+    [5] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 6u,
     },
-    [9] = { .slot_size = 4 },
-    [10] = {
+    [6] = { .slot_size = 16 },
+    [7] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
+    },
+    [8] = { .slot_size = 16 },
+    [9] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
+    },
+    [10] = { .slot_size = 4 },
+    [11] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [11] = { .slot_size = 8 },
-    [12] = {
+    [12] = { .slot_size = 8 },
+    [13] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 13u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 14u,
     },
-    [13] = { .slot_size = 1 },
+    [14] = { .slot_size = 1 },
     [15] = { .slot_size = 1 },
     [16] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 1u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
     },
     [17] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -106,7 +106,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 12u, 13u);
+    return (void*) vader_string_bytes_view(a0, 13u, 14u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -237,14 +237,14 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Circle_t* _a0_obj = (vader_struct_snippet$Circle_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Circle_t));
-    vader_obj_header_init(_a0_obj, 1u);
+    vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_r = INT32_C(1);
     l0 = (void*) _a0_obj;
     vader_struct_snippet$Circle_t* _a1_obj = (vader_struct_snippet$Circle_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Circle_t));
-    vader_obj_header_init(_a1_obj, 1u);
+    vader_obj_header_init(_a1_obj, 2u);
     _a1_obj->f_r = INT32_C(2);
     l1 = (void*) _a1_obj;
-    vader_array_t* _a2_arr = vader_array_new(16u, 2u, 13u, 1u);
+    vader_array_t* _a2_arr = vader_array_new(16u, 2u, 13u, 2u);
     ((void**) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 1u] = l1;
     ((void**) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 0u] = l0;
     l0 = (void*) _a2_arr;
@@ -281,14 +281,14 @@ static int32_t snippet$main(void) {
     t1 = std_core$finish_buffer(l1, l2);
     std_console$println__string(t1);
     vader_struct_snippet$Circle_t* _a4_obj = (vader_struct_snippet$Circle_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Circle_t));
-    vader_obj_header_init(_a4_obj, 1u);
+    vader_obj_header_init(_a4_obj, 2u);
     _a4_obj->f_r = INT32_C(1);
     l0 = (void*) _a4_obj;
     vader_struct_snippet$Square_t* _a5_obj = (vader_struct_snippet$Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Square_t));
-    vader_obj_header_init(_a5_obj, 3u);
+    vader_obj_header_init(_a5_obj, 4u);
     _a5_obj->f_s = INT32_C(4);
     l1 = (void*) _a5_obj;
-    vader_array_t* _a6_arr = vader_array_new(4u, 2u, 0u, 5u);
+    vader_array_t* _a6_arr = vader_array_new(5u, 2u, 0u, 6u);
     vader_array_box_slots(_a6_arr->buf)[vader_array_offset(_a6_arr) + 1u] = vader_ref_box(l1);
     vader_array_box_slots(_a6_arr->buf)[vader_array_offset(_a6_arr) + 0u] = vader_ref_box(l0);
     l0 = (void*) _a6_arr;
@@ -302,10 +302,10 @@ static int32_t snippet$main(void) {
     l0 = (void*) vader_buffer_new((size_t) INT64_C(20));
     l2 = INT64_C(0);
     vader_struct_snippet$Square_t* _a7_obj = (vader_struct_snippet$Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Square_t));
-    vader_obj_header_init(_a7_obj, 3u);
+    vader_obj_header_init(_a7_obj, 4u);
     _a7_obj->f_s = INT32_C(3);
     t2 = (void*) _a7_obj;
-    vader_array_t* _a8_arr = vader_array_new(4u, 1u, 0u, 5u);
+    vader_array_t* _a8_arr = vader_array_new(5u, 1u, 0u, 6u);
     vader_array_box_slots(_a8_arr->buf)[vader_array_offset(_a8_arr) + 0u] = vader_ref_box(t2);
     t2 = (void*) _a8_arr;
     t0 = snippet$total(t2);
@@ -474,8 +474,8 @@ static void std_console$println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static int32_t snippet$Shape$area$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet$Circle$Shape$area(recv.payload.obj);
-        case 3u: return snippet$Square$Shape$area(recv.payload.obj);
+        case 2u: return snippet$Circle$Shape$area(recv.payload.obj);
+        case 4u: return snippet$Square$Shape$area(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet$Shape.area");
     }
     vader_unreachable("vtable miss in snippet$Shape.area");

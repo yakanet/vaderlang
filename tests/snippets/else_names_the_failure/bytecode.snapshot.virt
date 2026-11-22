@@ -1,17 +1,17 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 union 3,0,4
-type 3 struct std_io$IOError { msg:4,kind:10,code:1 }
-type 4 scalar string
-type 5 struct __lambda_env_snippet_1 { cap_0:2 }
-type 6 struct std_core$Buffer {  }
-type 7 scalar i64
-type 8 scalar bool
-type 9 array 10
-type 10 scalar u8
-type 11 scalar void
-type 12 union 3,0
+type 1 scalar void
+type 2 scalar i32
+type 3 union 4,0,5
+type 4 struct std_io$IOError { msg:5,kind:11,code:2 }
+type 5 scalar string
+type 6 struct __lambda_env_snippet_1 { cap_0:3 }
+type 7 struct std_core$Buffer {  }
+type 8 scalar i64
+type 9 scalar bool
+type 10 array 11
+type 11 scalar u8
+type 12 union 4,0
 string 0 "negative "
 string 1 "thing "
 string 2 "absent"
@@ -21,13 +21,13 @@ string 5 "nothing"
 string 6 "true"
 string 7 "false"
 string 8 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=4 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=1,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=11 () -> void
-impl 3 std_core$Error
-impl 6 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=5 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=10 param_types=5 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=2,10,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 4 std_core$Error
+impl 7 std_core$ByteAccess
 export main 4
 
 fn 0 snippet$open_thing (i32) -> any
@@ -66,7 +66,7 @@ fn 0 snippet$open_thing (i32) -> any
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     call 7   ; std_core$finish_buffer
-    retag 4   ; string
+    retag 5   ; string
     return
   end $L1
   i64.const 29
@@ -92,7 +92,7 @@ fn 0 snippet$open_thing (i32) -> any
   call 7   ; std_core$finish_buffer
   i32.const 0
   i32.const 1
-  struct.new 3   ; std_io$IOError
+  struct.new 4   ; std_io$IOError
   return
 end
 
@@ -110,12 +110,12 @@ fn 1 snippet$describe (i32) -> string
     return.lit string.const 2   ; "absent"
   end $L0
   local.get 1   ; __fallback_0
-  type_check 3   ; std_io$IOError
+  type_check 4   ; std_io$IOError
   if $L1 void
     local.get 2   ; s
-    ref.cast 3   ; std_io$IOError
-    struct.get 3 0   ; std_io$IOError.msg
-    ref.cast 4   ; string
+    ref.cast 4   ; std_io$IOError
+    struct.get 4 0   ; std_io$IOError.msg
+    ref.cast 5   ; string
     local.set 3   ; $field_10
     string.const 3   ; "failed: "
     local.get 3   ; $field_10
@@ -123,7 +123,7 @@ fn 1 snippet$describe (i32) -> string
     return
   end $L1
   local.get 1   ; __fallback_0
-  ref.cast 4   ; string
+  ref.cast 5   ; string
   return
 end
 
@@ -139,12 +139,12 @@ fn 2 snippet$with_closure (i32) -> string
   type_check 12   ; union
   if $L0 void
     local.get 3   ; s
-    struct.new 5   ; __lambda_env_snippet_1
+    struct.new 6   ; __lambda_env_snippet_1
     call 5   ; __lambda_snippet_0
     local.set 1   ; s
   else
     local.get 2   ; __fallback_0
-    ref.cast 4   ; string
+    ref.cast 5   ; string
     local.set 1   ; s
   end $L0
   local.get 1   ; s
@@ -163,12 +163,12 @@ fn 3 snippet$typed (i32) -> string
   local.tee 2   ; __fallback_0
   local.set 3   ; s
   local.get 2   ; __fallback_0
-  type_check 3   ; std_io$IOError
+  type_check 4   ; std_io$IOError
   if $L0 void
     local.get 3   ; s
-    ref.cast 3   ; std_io$IOError
-    struct.get 3 0   ; std_io$IOError.msg
-    ref.cast 4   ; string
+    ref.cast 4   ; std_io$IOError
+    struct.get 4 0   ; std_io$IOError.msg
+    ref.cast 5   ; string
     local.tee 1   ; s
     return
   end $L0
@@ -179,7 +179,7 @@ fn 3 snippet$typed (i32) -> string
     local.set 1   ; s
   else
     local.get 2   ; __fallback_0
-    ref.cast 4   ; string
+    ref.cast 5   ; string
     local.set 1   ; s
   end $L1
   local.get 1   ; s
@@ -223,7 +223,7 @@ fn 5 __lambda_snippet_0 (ref) -> string
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
-  local.field 0 5 0   ; arg 0 __lambda_env_snippet_1.cap_0
+  local.field 0 6 0   ; arg 0 __lambda_env_snippet_1.cap_0
   type_check 0   ; null
   local.set 3   ; $type_check_8
   local.get 1   ; __buf_0
@@ -454,7 +454,7 @@ fn 11 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 9   ; u8[]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

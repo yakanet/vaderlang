@@ -1,20 +1,20 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 scalar string
-type 3 array 1
-type 4 struct __lambda_env_snippet_5 { cap_0:1 }
-type 5 array 6
-type 6 fn () -> 1
-type 7 struct std_core$Buffer {  }
-type 8 scalar i64
-type 9 array 10
-type 10 scalar u8
-type 11 scalar void
+type 1 scalar void
+type 2 scalar i32
+type 3 scalar string
+type 4 array 2
+type 5 struct __lambda_env_snippet_5 { cap_0:2 }
+type 6 array 7
+type 7 fn () -> 2
+type 8 struct std_core$Buffer {  }
+type 9 scalar i64
+type 10 array 11
+type 11 scalar u8
 type 12 scalar bool
-type 13 fn (1) -> 1
-type 14 fn (3) -> 1
-type 15 fn () -> 5
+type 13 fn (2) -> 2
+type 14 fn (4) -> 2
+type 15 fn () -> 6
 string 0 "caller "
 string 1 "namespace, omitted: "
 string 2 "Bob"
@@ -31,12 +31,12 @@ string 12 ", "
 string 13 "item "
 string 14 ""
 string 15 "hello"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=1,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=11 () -> void
-impl 7 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=9 param_types=3 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=10 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=2,10,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 8 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$label (i32) -> string
@@ -137,7 +137,7 @@ fn 1 snippet$main () -> i32
   i32.const 1
   i32.const 2
   i32.const 3
-  array.new 3 3   ; i32[]
+  array.new 4 3   ; i32[]
   local.set 2   ; $fn_ref_15
   fn.ref 4 14   ; __lambda_snippet_2 fn
   local.set 4   ; $fn_ref_40
@@ -252,8 +252,8 @@ fn 4 __lambda_snippet_2 (ref) -> i32
 end
 
 fn 5 __lambda_snippet_4 (ref) -> i32
-  local.field 0 4 0   ; arg 0 __lambda_env_snippet_5.cap_0
-  ref.cast 1   ; i32
+  local.field 0 5 0   ; arg 0 __lambda_env_snippet_5.cap_0
+  ref.cast 2   ; i32
   return
 end
 
@@ -262,7 +262,7 @@ fn 6 __lambda_snippet_3 () -> ref
   local i i32
   local $closure_8 ref
   i64.const 3
-  array.reserve 5   ; fn[]
+  array.reserve 6   ; fn[]
   local.set 0   ; out
   i32.const 0
   local.set 1   ; i
@@ -272,12 +272,12 @@ fn 6 __lambda_snippet_3 () -> ref
     i32.lt
     if $L1 void
       local.get 1   ; i
-      struct.new 4   ; __lambda_env_snippet_5
-      make_closure 5 6   ; __lambda_snippet_4 fn
+      struct.new 5   ; __lambda_env_snippet_5
+      make_closure 5 7   ; __lambda_snippet_4 fn
       local.set 2   ; $closure_8
       local.get 0   ; out
       local.get 2   ; $closure_8
-      array.push 6   ; fn
+      array.push 7   ; fn
       local.get 1   ; i
       i32.const 1
       i32.add
@@ -530,7 +530,7 @@ fn 12 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 9   ; u8[]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12
@@ -669,7 +669,7 @@ end
 
 fn 22 snippet_util$apply (i32,ref) -> i32
   local.get 0   ; arg 0
-  retag 1   ; i32
+  retag 2   ; i32
   local.get 1   ; arg 1
   call.indirect 13   ; fn
   return
@@ -715,7 +715,7 @@ fn 25 snippet_util$turns (ref) -> string
     if $L1 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 5   ; fn[]
+      array.get 6   ; fn[]
       local.set 5   ; f
       i64.const 20
       buffer.new
@@ -723,7 +723,7 @@ fn 25 snippet_util$turns (ref) -> string
       i64.const 0
       local.set 7   ; __off_4
       local.get 5   ; f
-      call.indirect 6   ; fn
+      call.indirect 7   ; fn
       i32.to_i64
       local.set 8   ; $cast_18
       local.get 6   ; __buf_3

@@ -1,0 +1,98 @@
+# Lower
+
+## snippet
+  snippet.Refused :: struct { reason: string }  // snippet$Refused
+  snippet.Refused.message :: fn(self: Refused) -> string {  // snippet$Refused$std_core$Error$message
+      self.reason
+  }
+  snippet.store :: fn(fail: bool) -> Refused | void {  // snippet$store
+      if fail {
+          return Refused { .reason = "full" }
+      }
+      return
+  }
+  snippet.store_twice :: fn(fail: bool) -> Refused | void {  // snippet$store_twice
+      first: void = {
+          __fallback_0: Refused | void = snippet.store(false)
+          first: Refused | void = __fallback_0
+          if __fallback_0 is Refused {
+              return Refused(first)
+              @unreachable("an `else` clause leaves")
+          } else {
+              void(__fallback_0)
+          }
+      }
+      second: void = {
+          __fallback_1: Refused | void = snippet.store(fail)
+          second: Refused | void = __fallback_1
+          if __fallback_1 is Refused {
+              return Refused(second)
+              @unreachable("an `else` clause leaves")
+          } else {
+              void(__fallback_1)
+          }
+      }
+      std.console.println<string>("stored twice")
+  }
+  snippet.store_if :: fn(asked: bool) -> null | Refused | void {  // snippet$store_if
+      if !asked {
+          return null
+      }
+      return snippet.store(false)
+  }
+  snippet.describe :: fn(outcome: null | Refused | void) -> string {  // snippet$describe
+      {
+          if outcome is void {
+              "done"
+          } else if outcome is null {
+              "not asked"
+          } else if outcome is Refused {
+              concat_2("refused: ", Refused(outcome).reason)
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :string
+      } :string
+  }
+  snippet.nothing :: fn() -> void {  // snippet$nothing
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      ok: Refused | void = snippet.store_twice(false)
+      std.console.println<bool>(ok is void)
+      std.console.println<string>(snippet.describe(snippet.store_twice(true)))
+      std.console.println<string>(snippet.describe(snippet.store_if(true)))
+      std.console.println<string>(snippet.describe(snippet.store_if(false)))
+      kept: null | void = {
+          __fallback_0: Refused | void = snippet.store(false)
+          if __fallback_0 is Refused { null } else { void(__fallback_0) } :null | void
+      }
+      std.console.println<bool>(kept is void)
+      std.console.println<bool>(snippet.present<void>(snippet.nothing()))
+      return 0
+  }
+  snippet.present<void> :: fn(value: null | void) -> bool {  // snippet$present__void
+      !(value is null)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+  vtable std.core.Error.message for Refused  snippet.Refused.message  // snippet$Refused$std_core$Error$message
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<bool>  // std_console$println__bool
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer

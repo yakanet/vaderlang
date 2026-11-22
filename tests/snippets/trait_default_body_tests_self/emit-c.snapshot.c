@@ -72,24 +72,24 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Square_t),
         .slot_size = 8,
     },
-    [2] = { .slot_size = 4 },
     [3] = { .slot_size = 4 },
-    [4] = { .slot_size = 1 },
-    [5] = { .slot_size = 8 },
-    [6] = {
+    [4] = { .slot_size = 4 },
+    [5] = { .slot_size = 1 },
+    [6] = { .slot_size = 8 },
+    [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [7] = { .slot_size = 8 },
-    [8] = {
+    [8] = { .slot_size = 8 },
+    [9] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 10u,
     },
-    [9] = { .slot_size = 1 },
+    [10] = { .slot_size = 1 },
     [11] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 12u,
@@ -110,7 +110,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 8u, 9u);
+    return (void*) vader_string_bytes_view(a0, 9u, 10u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -245,12 +245,12 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Square_t* _a0_obj = (vader_struct_snippet$Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Square_t));
-    vader_obj_header_init(_a0_obj, 1u);
+    vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_side = INT32_C(3);
     t0 = (void*) _a0_obj;
     vader_array_t* _a1_arr = vader_array_new(11u, 3u, 0u, 12u);
-    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 2u] = vader_box_f64(5u, 1.5);
-    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 1u] = vader_box_i32(2u, INT32_C(41));
+    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 2u] = vader_box_f64(6u, 1.5);
+    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 1u] = vader_box_i32(3u, INT32_C(41));
     vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 0u] = vader_ref_box(t0);
     l0 = (void*) _a1_arr;
     l1 = vader_array_length(((vader_array_t*) l0));
@@ -284,11 +284,11 @@ static int32_t snippet$main(void) {
         l2 = (l2 + INT64_C(1));
     }
     vader_struct_snippet$Square_t* _a3_obj = (vader_struct_snippet$Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Square_t));
-    vader_obj_header_init(_a3_obj, 1u);
+    vader_obj_header_init(_a3_obj, 2u);
     _a3_obj->f_side = INT32_C(1);
     l0 = (void*) _a3_obj;
     vader_struct_snippet$Square_t* _a4_obj = (vader_struct_snippet$Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Square_t));
-    vader_obj_header_init(_a4_obj, 1u);
+    vader_obj_header_init(_a4_obj, 2u);
     _a4_obj->f_side = INT32_C(2);
     l7 = (void*) _a4_obj;
     t3 = snippet$Square$Probe$same_kind(l0, l7);
@@ -494,9 +494,9 @@ static void std_console$println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static int32_t snippet$Probe$describe$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet$Square$Probe$describe(recv.payload.obj);
-        case 2u: return snippet$i32$Probe$describe(((int32_t) recv.payload.i));
-        case 5u: return snippet$f64$Probe$describe(((double) recv.payload.f));
+        case 2u: return snippet$Square$Probe$describe(recv.payload.obj);
+        case 3u: return snippet$i32$Probe$describe(((int32_t) recv.payload.i));
+        case 6u: return snippet$f64$Probe$describe(((double) recv.payload.f));
         default: vader_unreachable("vtable miss in snippet$Probe.describe");
     }
     vader_unreachable("vtable miss in snippet$Probe.describe");
@@ -504,9 +504,9 @@ static int32_t snippet$Probe$describe$$dispatch(vader_box_t recv) {
 
 static vader_string_t snippet$Probe$kind$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet$Square$Probe$kind(recv.payload.obj);
-        case 2u: return snippet$i32$Probe$kind(((int32_t) recv.payload.i));
-        case 5u: return snippet$f64$Probe$kind(((double) recv.payload.f));
+        case 2u: return snippet$Square$Probe$kind(recv.payload.obj);
+        case 3u: return snippet$i32$Probe$kind(((int32_t) recv.payload.i));
+        case 6u: return snippet$f64$Probe$kind(((double) recv.payload.f));
         default: vader_unreachable("vtable miss in snippet$Probe.kind");
     }
     vader_unreachable("vtable miss in snippet$Probe.kind");
@@ -514,9 +514,9 @@ static vader_string_t snippet$Probe$kind$$dispatch(vader_box_t recv) {
 
 static int32_t snippet$Probe$guarded$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet$Square$Probe$guarded(recv.payload.obj);
-        case 2u: return snippet$i32$Probe$guarded(((int32_t) recv.payload.i));
-        case 5u: return snippet$f64$Probe$guarded(((double) recv.payload.f));
+        case 2u: return snippet$Square$Probe$guarded(recv.payload.obj);
+        case 3u: return snippet$i32$Probe$guarded(((int32_t) recv.payload.i));
+        case 6u: return snippet$f64$Probe$guarded(((double) recv.payload.f));
         default: vader_unreachable("vtable miss in snippet$Probe.guarded");
     }
     vader_unreachable("vtable miss in snippet$Probe.guarded");
@@ -524,9 +524,9 @@ static int32_t snippet$Probe$guarded$$dispatch(vader_box_t recv) {
 
 static bool snippet$Probe$aliased$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet$Square$Probe$aliased(recv.payload.obj);
-        case 2u: return snippet$i32$Probe$aliased(((int32_t) recv.payload.i));
-        case 5u: return snippet$f64$Probe$aliased(((double) recv.payload.f));
+        case 2u: return snippet$Square$Probe$aliased(recv.payload.obj);
+        case 3u: return snippet$i32$Probe$aliased(((int32_t) recv.payload.i));
+        case 6u: return snippet$f64$Probe$aliased(((double) recv.payload.f));
         default: vader_unreachable("vtable miss in snippet$Probe.aliased");
     }
     vader_unreachable("vtable miss in snippet$Probe.aliased");
@@ -534,9 +534,9 @@ static bool snippet$Probe$aliased$$dispatch(vader_box_t recv) {
 
 static bool snippet$Probe$absent$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet$Square$Probe$absent(recv.payload.obj);
-        case 2u: return snippet$i32$Probe$absent(((int32_t) recv.payload.i));
-        case 5u: return snippet$f64$Probe$absent(((double) recv.payload.f));
+        case 2u: return snippet$Square$Probe$absent(recv.payload.obj);
+        case 3u: return snippet$i32$Probe$absent(((int32_t) recv.payload.i));
+        case 6u: return snippet$f64$Probe$absent(((double) recv.payload.f));
         default: vader_unreachable("vtable miss in snippet$Probe.absent");
     }
     vader_unreachable("vtable miss in snippet$Probe.absent");

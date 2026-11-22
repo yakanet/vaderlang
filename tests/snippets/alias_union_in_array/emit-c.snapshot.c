@@ -47,18 +47,18 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
     },
-    [2] = { .slot_size = 16 },
-    [3] = {
+    [3] = { .slot_size = 16 },
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_types$Cat_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_types$Cat_t, f_name) },
         .string_count = 1,
     },
-    [4] = {
+    [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_types$Dog_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_types$Dog_t, f_name) },
@@ -135,13 +135,13 @@ static vader_string_t snippet$describe(vader_box_t l0) {
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (l0.tag == 3u) {
+    if (l0.tag == 4u) {
         t0 = l0.payload.obj;
         l1 = ((vader_struct_snippet_types$Cat_t*) t0)->f_name;
         t1 = concat_2(1u, l1);
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (!(l0.tag == 4u)) {
+    if (!(l0.tag == 5u)) {
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
     }
     t0 = l0.payload.obj;
@@ -163,15 +163,15 @@ static int32_t snippet$main(void) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(1u, 0u, 13u, 2u);
+    vader_array_t* _a0_arr = vader_array_new(2u, 0u, 13u, 3u);
     l0 = (void*) _a0_arr;
     vader_struct_snippet_types$Cat_t* _a1_obj = (vader_struct_snippet_types$Cat_t*) vader_gc_alloc(sizeof(vader_struct_snippet_types$Cat_t));
-    vader_obj_header_init(_a1_obj, 3u);
+    vader_obj_header_init(_a1_obj, 4u);
     _a1_obj->f_name = 3u;
     l1 = (void*) _a1_obj;
     snippet$push_pet(l0, vader_ref_box(l1));
     vader_struct_snippet_types$Dog_t* _a2_obj = (vader_struct_snippet_types$Dog_t*) vader_gc_alloc(sizeof(vader_struct_snippet_types$Dog_t));
-    vader_obj_header_init(_a2_obj, 4u);
+    vader_obj_header_init(_a2_obj, 5u);
     _a2_obj->f_name = 4u;
     l1 = (void*) _a2_obj;
     snippet$push_pet(l0, vader_ref_box(l1));

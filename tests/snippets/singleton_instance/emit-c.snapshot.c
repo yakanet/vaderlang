@@ -45,12 +45,12 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_snippet$Counter_t vader_data_0_e0 = {
-    VADER_STATIC_HEADER(1u), (int32_t) UINT64_C(10),
+    VADER_STATIC_HEADER(2u), (int32_t) UINT64_C(10),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
-    VADER_STATIC_BUF_HEADER(1u, 0u, 1u),
+    VADER_STATIC_BUF_HEADER(2u, 0u, 1u),
     .slots = {
-        { 1u, 0u, { .obj = (void*) (struct vader_struct_snippet$Counter_t*) &vader_data_0_e0 } },
+        { 2u, 0u, { .obj = (void*) (struct vader_struct_snippet$Counter_t*) &vader_data_0_e0 } },
     },
 };
 static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(11u, 1u, &vader_data_0_buf);
@@ -101,16 +101,16 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[12] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Counter_t),
         .slot_size = 8,
     },
-    [2] = {
+    [3] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
     },
-    [3] = { .slot_size = 4 },
-    [4] = { .slot_size = 1 },
+    [4] = { .slot_size = 4 },
+    [5] = { .slot_size = 1 },
     [6] = { .slot_size = 4 },
     [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
@@ -124,7 +124,7 @@ const vader_type_info_t vader_type_info_table[12] = {
     [10] = { .slot_size = 1 },
     [11] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 1u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
     },
 };
 const size_t vader_type_info_count = 12;
@@ -174,7 +174,7 @@ static void* __const_snippet$DEFAULT(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Counter_t* _a0_obj = (vader_struct_snippet$Counter_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Counter_t));
-    vader_obj_header_init(_a0_obj, 1u);
+    vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_n = INT32_C(10);
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -356,7 +356,7 @@ static void snippet$bump(void) {
     l5 = ((int64_t) (int32_t) t0);
     l3 = std_core$write_int(l2, l3, l5);
     l6 = std_core$finish_buffer(l2, l3);
-    vader_array_push_scalar((vader_array_t*) l0, vader_box_string(3u, l6));
+    vader_array_push_scalar((vader_array_t*) l0, vader_box_string(4u, l6));
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -485,7 +485,7 @@ static void* snippet$counter$singleton(void) {
     vader_gc_top = &gc_frame;
     std_console$println__string(3u);
     vader_struct_snippet$Counter_t* _a0_obj = (vader_struct_snippet$Counter_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Counter_t));
-    vader_obj_header_init(_a0_obj, 1u);
+    vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_n = INT32_C(0);
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -496,7 +496,7 @@ static void* snippet$log$singleton(void) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(2u, 0u, 0u, 3u);
+    vader_array_t* _a0_arr = vader_array_new(3u, 0u, 0u, 4u);
     t0 = (void*) _a0_arr;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }

@@ -1,10 +1,10 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 struct snippet$Stack__i32 { data:5,size:1 }
-type 3 scalar void
+type 1 scalar void
+type 2 scalar i32
+type 3 struct snippet$Stack__i32 { data:5,size:2 }
 type 4 scalar string
-type 5 array 1
+type 5 array 2
 type 6 struct std_core$Buffer {  }
 type 7 scalar i64
 type 8 array 9
@@ -15,10 +15,10 @@ string 1 "pop = "
 string 2 "\n"
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=4 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=1,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=3 () -> void
-impl 2 snippet$Stackable
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 3 snippet$Stackable
 impl 6 std_core$ByteAccess
 export main 0
 
@@ -29,7 +29,7 @@ fn 0 snippet$main () -> i32
   local $cast_15 i64
   array.new 5 0   ; i32[]
   i32.const 0
-  struct.new 2   ; snippet$Stack__i32
+  struct.new 3   ; snippet$Stack__i32
   local.tee 0   ; s
   i32.const 10
   call 1   ; snippet$Stack$Stackable$push__i32
@@ -113,35 +113,35 @@ end
 
 fn 1 snippet$Stack$Stackable$push__i32 (ref,i32) -> void
   local $add_checked_5 i32
-  local.field 0 2 0   ; arg 0 snippet$Stack__i32.data
+  local.field 0 3 0   ; arg 0 snippet$Stack__i32.data
   local.get 1   ; arg 1
-  array.push 1   ; i32
-  local.field 0 2 1   ; arg 0 snippet$Stack__i32.size
-  ref.cast 1   ; i32
+  array.push 2   ; i32
+  local.field 0 3 1   ; arg 0 snippet$Stack__i32.size
+  ref.cast 2   ; i32
   i32.const 1
   i32.checked_add
   local.set 2   ; $add_checked_5
   local.get 0   ; arg 0
   local.get 2   ; $add_checked_5
-  struct.set 2 1   ; snippet$Stack__i32.size
+  struct.set 3 1   ; snippet$Stack__i32.size
   return
 end
 
 fn 2 snippet$Stack$Stackable$pop__i32 (ref) -> i32
   local $sub_checked_3 i32
   local $field_4 ref
-  local.field 0 2 1   ; arg 0 snippet$Stack__i32.size
-  ref.cast 1   ; i32
+  local.field 0 3 1   ; arg 0 snippet$Stack__i32.size
+  ref.cast 2   ; i32
   i32.const 1
   i32.checked_sub
   local.set 1   ; $sub_checked_3
   local.get 0   ; arg 0
   local.get 1   ; $sub_checked_3
-  struct.set 2 1   ; snippet$Stack__i32.size
-  local.field 0 2 0   ; arg 0 snippet$Stack__i32.data
+  struct.set 3 1   ; snippet$Stack__i32.size
+  local.field 0 3 0   ; arg 0 snippet$Stack__i32.data
   local.set 2   ; $field_4
-  local.field 0 2 1   ; arg 0 snippet$Stack__i32.size
-  ref.cast 1   ; i32
+  local.field 0 3 1   ; arg 0 snippet$Stack__i32.size
+  ref.cast 2   ; i32
   local.set 1   ; $sub_checked_3
   local.get 2   ; $field_4
   local.get 1   ; $sub_checked_3
@@ -150,8 +150,8 @@ fn 2 snippet$Stack$Stackable$pop__i32 (ref) -> i32
 end
 
 fn 3 snippet$Stack$Stackable$len__i32 (ref) -> i32
-  local.field 0 2 1   ; arg 0 snippet$Stack__i32.size
-  ref.cast 1   ; i32
+  local.field 0 3 1   ; arg 0 snippet$Stack__i32.size
+  ref.cast 2   ; i32
   return
 end
 

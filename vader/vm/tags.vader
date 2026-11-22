@@ -388,8 +388,8 @@ pushed_tags :: fn(ctx: TagContext, op: bc.Op, state: u8[], top: u8) -> u8 = matc
     is bc.CharConst -> TAGS_CHAR
     is bc.NullConst -> TAGS_NULL
     is bc.CheckedArith | bc.CheckedNeg -> integer_tags(op.kind)
-    is bc.StringConst | bc.DataConst | bc.TypeConst | bc.FnRef | bc.FnAddr | bc.MakeClosure
-     | bc.StructNew | bc.ArrayNew | bc.ArrayReserve | bc.ArrayRepeat | bc.ArraySlice
+    is bc.StringConst | bc.VoidConst | bc.DataConst | bc.TypeConst | bc.FnRef | bc.FnAddr
+     | bc.MakeClosure | bc.StructNew | bc.ArrayNew | bc.ArrayReserve | bc.ArrayRepeat | bc.ArraySlice
      | bc.BufferNew | bc.BufferToString -> TAGS_REF
     is bc.LocalGet -> state[op.slot]
     is bc.LocalTee | bc.Retag -> top
@@ -460,7 +460,7 @@ accepted_tags :: fn(op: bc.Op, back: i64) -> u8 | null = match op {
     is bc.ArraySet | bc.StoreSlotI32 | bc.StoreSlotI64
      | bc.StoreSlotF64 -> if back == 2 { TAGS_I32_OPERAND } else { null }
     is bc.Unreachable | bc.I32Const | bc.LocalGet | bc.LocalSet | bc.LocalTee | bc.StringConst
-     | bc.NullConst | bc.BoolConst | bc.CharConst | bc.F64Const | bc.I64Const | bc.CallImport
+     | bc.NullConst | bc.VoidConst | bc.BoolConst | bc.CharConst | bc.F64Const | bc.I64Const | bc.CallImport
      | bc.Call | bc.FnRef | bc.MakeClosure | bc.CallIndirect | bc.VirtualCall | bc.StructNew
      | bc.StructGet | bc.StructSet | bc.LocalField | bc.UnionFieldGet | bc.UnionFieldSet
      | bc.ArrayNew | bc.ArrayPush | bc.ArrayLen

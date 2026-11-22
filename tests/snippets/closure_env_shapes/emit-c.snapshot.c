@@ -77,19 +77,19 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 typedef vader_box_t (*vader_fn_erased_sig_1_t)(void* env, vader_box_t a0);
 
 static vader_box_t vader_fn_lift___lambda_snippet_6(void* env, vader_box_t a0) {
-    return vader_box_i32(1u, __lambda_snippet_6(env, ((int32_t) a0.payload.i)));
+    return vader_box_i32(2u, __lambda_snippet_6(env, ((int32_t) a0.payload.i)));
 }
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[17] = {
-    [1] = { .slot_size = 4 },
-    [2] = {
+    [2] = { .slot_size = 4 },
+    [3] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_snippet_1_t),
         .slot_size = 8,
     },
-    [3] = {
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_snippet_3_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_snippet_3_t, f_cap_0) },
@@ -181,7 +181,7 @@ static int32_t snippet$copied_capture(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct___lambda_env_snippet_1_t* _a0_obj = (vader_struct___lambda_env_snippet_1_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_1_t));
-    vader_obj_header_init(_a0_obj, 2u);
+    vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_cap_0 = INT32_C(10);
     t0 = (void*) _a0_obj;
     t1 = __lambda_snippet_0(t0, INT32_C(5));
@@ -204,7 +204,7 @@ static int32_t snippet$shared_capture(void) {
     t0 = (void*) _a0_obj;
     l0 = vader_ref_box(t0);
     vader_struct___lambda_env_snippet_3_t* _a1_obj = (vader_struct___lambda_env_snippet_3_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_3_t));
-    vader_obj_header_init(_a1_obj, 3u);
+    vader_obj_header_init(_a1_obj, 4u);
     _a1_obj->f_cap_0 = l0;
     l1 = (void*) _a1_obj;
     vader_struct___lambda_env_snippet_5_t* _a2_obj = (vader_struct___lambda_env_snippet_5_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_5_t));
@@ -243,7 +243,7 @@ static int32_t snippet$capture_in_field(void) {
     t0 = (void*) _a2_obj;
     l0 = ((vader_struct_snippet$Adder_t*) t0)->f_f;
     vader_fn_t* _a3_fnobj = (vader_fn_t*) l0;
-    t1 = ((vader_fn_erased_sig_1_t) _a3_fnobj->code)(_a3_fnobj->env, vader_box_i32(1u, INT32_C(3)));
+    t1 = ((vader_fn_erased_sig_1_t) _a3_fnobj->code)(_a3_fnobj->env, vader_box_i32(2u, INT32_C(3)));
     t2 = ((int32_t) t1.payload.i);
     { int32_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }

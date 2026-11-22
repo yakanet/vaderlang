@@ -1,8 +1,8 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 struct __defer_env_snippet_1 { cap_0:4 }
-type 3 scalar void
+type 1 scalar void
+type 2 scalar i32
+type 3 struct __defer_env_snippet_1 { cap_0:4 }
 type 4 scalar string
 type 5 scalar i64
 type 6 struct std_core$Buffer {  }
@@ -14,7 +14,7 @@ type 11 union 5,0
 type 12 union 0,4
 type 13 union 4,10
 type 14 union 15,0
-type 15 struct std_io$IOError { msg:4,kind:7,code:1 }
+type 15 struct std_io$IOError { msg:4,kind:7,code:2 }
 type 16 struct std_fs$RemoveOptions { recursive:9,force:9 }
 type 17 union 15,4
 type 18 union 19,15
@@ -22,12 +22,12 @@ type 19 struct std_fs$File { handle:23,closed:9 }
 type 20 union 15,10
 type 21 struct __defer_env_std_fs_1 { cap_0:19 }
 type 22 struct std_fs$OpenOptions { read:9,write:9,append:9,create:9,truncate:9,create_new:9 }
-type 23 union 1,24
+type 23 union 2,24
 type 24 scalar pointer
 type 25 union 26,15
 type 26 array 5
 type 27 union 5,15
-type 28 union 1,24,15
+type 28 union 2,24,15
 type 29 union 15,30
 type 30 array 4
 type 31 union 15,32
@@ -35,7 +35,7 @@ type 32 array 33
 type 33 struct std_fs$ListedEntry { name:4,kind:7 }
 type 34 struct __defer_env_std_fs_3 { cap_0:24 }
 type 35 union 24,0
-type 36 fn () -> 3
+type 36 fn () -> 1
 type 37 array 15
 string 0 "/vader_default_naming_a_std_constant"
 string 1 "0123456789"
@@ -96,22 +96,22 @@ import 3 is_ascii std_core$Intrinsic$is_ascii intrinsic=is_ascii result_type=9 p
 import 4 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=10 param_types=4 param_c_out= param_by_address= (string) -> ref
 import 5 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=4 param_types=10 param_c_out= param_by_address= (ref) -> string
 import 6 current_os std_core$Intrinsic$current_os intrinsic=current_os result_type=7 () -> u8
-import 7 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=1,10,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 7 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,10,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 8 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=35 param_types=4 param_c_out= param_by_address= (string) -> any
-import 9 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=24 param_c_out= param_by_address= (pointer) -> i32
-import 10 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 11 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=3 () -> void
-import 12 extern :vader_path_stat system_posix$sys_path_stat headers=vader.h result_type=1 param_types=4,1,26 param_c_out=0,0,1 param_by_address= (string,i32,ref) -> i32
+import 9 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=24 param_c_out= param_by_address= (pointer) -> i32
+import 10 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 11 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+import 12 extern :vader_path_stat system_posix$sys_path_stat headers=vader.h result_type=2 param_types=4,2,26 param_c_out=0,0,1 param_by_address= (string,i32,ref) -> i32
 import 13 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=35 param_types=24 param_c_out= param_by_address= (pointer) -> any
 import 14 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=4 param_types=24 param_c_out= param_by_address= (pointer) -> string
-import 15 extern :vader_dirent_kind system_posix$dirent_kind headers=vader.h result_type=1 param_types=24 param_c_out= param_by_address= (pointer) -> i32
-import 16 extern :read system_posix$sys_read headers=<unistd.h> result_type=5 param_types=1,10,5 param_c_out=0,1,0 param_by_address= (i32,ref,i64) -> i64
-import 17 extern :close system_posix$sys_close headers=<unistd.h> result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
-import 18 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=1 param_types=4 param_c_out= param_by_address= (string) -> i32
-import 19 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=1 param_types=4 param_c_out= param_by_address= (string) -> i32
-import 20 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=4,1,1 param_c_out= param_by_address= (string,i32,i32) -> i32
-import 21 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
-import 22 extern :vader_fd_size system_posix$sys_fd_size headers=vader.h result_type=5 param_types=1 param_c_out= param_by_address= (i32) -> i64
+import 15 extern :vader_dirent_kind system_posix$dirent_kind headers=vader.h result_type=2 param_types=24 param_c_out= param_by_address= (pointer) -> i32
+import 16 extern :read system_posix$sys_read headers=<unistd.h> result_type=5 param_types=2,10,5 param_c_out=0,1,0 param_by_address= (i32,ref,i64) -> i64
+import 17 extern :close system_posix$sys_close headers=<unistd.h> result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
+import 18 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=2 param_types=4 param_c_out= param_by_address= (string) -> i32
+import 19 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=2 param_types=4 param_c_out= param_by_address= (string) -> i32
+import 20 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=4,2,2 param_c_out= param_by_address= (string,i32,i32) -> i32
+import 21 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
+import 22 extern :vader_fd_size system_posix$sys_fd_size headers=vader.h result_type=5 param_types=2 param_c_out= param_by_address= (i32) -> i64
 import 23 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=12 param_types=4 param_c_out= param_by_address= (string) -> any
 impl 19 std_io$Writer
 impl 6 std_core$ByteAccess
@@ -151,7 +151,7 @@ fn 0 snippet$main () -> i32
     return.lit i32.const 1
   end $L0
   local.get 0   ; path
-  struct.new 2   ; __defer_env_snippet_1
+  struct.new 3   ; __defer_env_snippet_1
   make_closure 1 36   ; __defer_snippet_0 fn
   defer.push
   local.get 0   ; path
@@ -239,7 +239,7 @@ end
 fn 1 __defer_snippet_0 (ref) -> void
   local $field_1 string
   local $struct_4 ref
-  local.field 0 2 0   ; arg 0 __defer_env_snippet_1.cap_0
+  local.field 0 3 0   ; arg 0 __defer_env_snippet_1.cap_0
   ref.cast 4   ; string
   local.set 1   ; $field_1
   bool.const false
@@ -1806,23 +1806,23 @@ fn 38 std_fs$system_open (string,ref) -> any
       return
     end $L2
     local.get 2   ; $call_2
-    retag 1   ; i32
+    retag 2   ; i32
     return
   end $L1
   local.get 2   ; $call_2
-  retag 1   ; i32
+  retag 2   ; i32
   return
 end
 
 fn 39 std_fs$fd_of (any) -> i32
   local.get 0   ; arg 0
-  type_check 1   ; i32
+  type_check 2   ; i32
   if $L0 void
   else
     unreachable "@unreachable match: a variant the arms assert cannot occur was reached"
   end $L0
   local.get 0   ; arg 0
-  ref.cast 1   ; i32
+  ref.cast 2   ; i32
   return
 end
 

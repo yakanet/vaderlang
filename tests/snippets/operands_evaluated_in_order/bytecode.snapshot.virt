@@ -1,18 +1,18 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 struct __lambda_env_snippet_1 { cap_0:5 }
-type 3 scalar string
-type 4 struct snippet$Pair { a:1,b:1 }
-type 5 ref _
-type 6 struct std_core$Buffer {  }
-type 7 scalar i64
-type 8 array 9
-type 9 scalar u8
-type 10 scalar void
+type 1 scalar void
+type 2 scalar i32
+type 3 struct __lambda_env_snippet_1 { cap_0:6 }
+type 4 scalar string
+type 5 struct snippet$Pair { a:2,b:2 }
+type 6 ref _
+type 7 struct std_core$Buffer {  }
+type 8 scalar i64
+type 9 array 10
+type 10 scalar u8
 type 11 scalar bool
-type 12 array 1
-type 13 struct $Cell_i32_2af2b319 { value:1 }
+type 12 array 2
+type 13 struct $Cell_i32_2af2b319 { value:2 }
 string 0 "arguments "
 string 1 "operands "
 string 2 "array elements "
@@ -22,12 +22,12 @@ string 5 "field written "
 string 6 "indexed "
 string 7 "captured "
 string 8 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=3 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=1,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=10 () -> void
-impl 6 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=4 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=4 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=2,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 7 std_core$ByteAccess
 export main 9
 
 fn 0 snippet$pair (i32,i32) -> i32
@@ -106,15 +106,15 @@ fn 4 snippet$struct_fields () -> i32
   local.set 0   ; x
   local.get 1   ; $operand_2
   local.get 0   ; x
-  struct.new_stack 4   ; snippet$Pair
+  struct.new_stack 5   ; snippet$Pair
   local.set 2   ; p
-  local.field 2 4 0   ; p snippet$Pair.a
-  ref.cast 1   ; i32
+  local.field 2 5 0   ; p snippet$Pair.a
+  ref.cast 2   ; i32
   i32.const 10
   i32.checked_mul
   local.set 0   ; x
-  local.field 2 4 1   ; p snippet$Pair.b
-  ref.cast 1   ; i32
+  local.field 2 5 1   ; p snippet$Pair.b
+  ref.cast 2   ; i32
   local.set 1   ; $operand_2
   local.get 0   ; x
   local.get 1   ; $operand_2
@@ -157,24 +157,24 @@ fn 6 snippet$field_written () -> i32
   local $field_13 i32
   i32.const 0
   i32.const 0
-  struct.new_stack 4   ; snippet$Pair
+  struct.new_stack 5   ; snippet$Pair
   local.tee 0   ; first
   local.tee 1   ; p
   local.set 2   ; $operand_5
   i32.const 0
   i32.const 0
-  struct.new_stack 4   ; snippet$Pair
+  struct.new_stack 5   ; snippet$Pair
   local.set 1   ; p
   local.get 2   ; $operand_5
   i32.const 3
-  struct.set_stack 4 0   ; snippet$Pair.a
-  local.field 0 4 0   ; first snippet$Pair.a
-  ref.cast 1   ; i32
+  struct.set_stack 5 0   ; snippet$Pair.a
+  local.field 0 5 0   ; first snippet$Pair.a
+  ref.cast 2   ; i32
   i32.const 10
   i32.checked_mul
   local.set 3   ; $mul_checked_12
-  local.field 1 4 0   ; p snippet$Pair.a
-  ref.cast 1   ; i32
+  local.field 1 5 0   ; p snippet$Pair.a
+  ref.cast 2   ; i32
   local.set 4   ; $field_13
   local.get 3   ; $mul_checked_12
   local.get 4   ; $field_13
@@ -206,7 +206,7 @@ fn 8 snippet$captured () -> i32
   i32.const 1
   struct.new 13   ; $Cell_i32_2af2b319
   local.tee 0   ; x
-  struct.new 2   ; __lambda_env_snippet_1
+  struct.new 3   ; __lambda_env_snippet_1
   local.set 1   ; bump
   local.field 0 13 0   ; x $Cell_i32_2af2b319.value
   local.set 2   ; $cell_get_5
@@ -403,10 +403,10 @@ fn 9 snippet$main () -> i32
 end
 
 fn 10 __lambda_snippet_0 (ref) -> i32
-  local.field 0 2 0   ; arg 0 __lambda_env_snippet_1.cap_0
+  local.field 0 3 0   ; arg 0 __lambda_env_snippet_1.cap_0
   i32.const 5
   struct.set 13 0   ; $Cell_i32_2af2b319.value
-  local.field 0 2 0   ; arg 0 __lambda_env_snippet_1.cap_0
+  local.field 0 3 0   ; arg 0 __lambda_env_snippet_1.cap_0
   struct.get 13 0   ; $Cell_i32_2af2b319.value
   return
 end
@@ -611,7 +611,7 @@ fn 15 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 8   ; u8[]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

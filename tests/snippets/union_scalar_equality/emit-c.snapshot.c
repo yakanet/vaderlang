@@ -39,20 +39,20 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[11] = {
-    [1] = { .slot_size = 1 },
-    [2] = { .slot_size = 16 },
-    [3] = { .slot_size = 1 },
-    [4] = { .slot_size = 16 },
-    [5] = { .slot_size = 4 },
+    [2] = { .slot_size = 1 },
+    [3] = { .slot_size = 16 },
+    [4] = { .slot_size = 1 },
+    [5] = { .slot_size = 16 },
     [6] = { .slot_size = 4 },
-    [7] = {
+    [7] = { .slot_size = 4 },
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [8] = { .slot_size = 8 },
-    [9] = {
+    [9] = { .slot_size = 8 },
+    [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
     },
 };
 const size_t vader_type_info_count = 11;
@@ -69,7 +69,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 9u, 3u);
+    return (void*) vader_string_bytes_view(a0, 10u, 4u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -98,14 +98,14 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
 
 static vader_box_t snippet$maybe_direction(bool l0) {
     if (l0) {
-        return vader_box_i32(3u, INT32_C(1));
+        return vader_box_i32(4u, INT32_C(1));
     }
     return vader_box_obj(0u, NULL);
 }
 
 static vader_box_t snippet$maybe_count(bool l0) {
     if (l0) {
-        return vader_box_i32(5u, INT32_C(0));
+        return vader_box_i32(6u, INT32_C(0));
     }
     return vader_box_obj(0u, NULL);
 }
@@ -127,25 +127,25 @@ static int32_t snippet$main(void) {
     l1 = snippet$maybe_direction(false);
     l2 = (void*) vader_buffer_new((size_t) INT64_C(17));
     l3 = INT64_C(0);
-    l4 = vader_box_eq(l0, vader_box_i32(3u, INT32_C(1)));
+    l4 = vader_box_eq(l0, vader_box_i32(4u, INT32_C(1)));
     l3 = std_core$write_bool(l2, l3, l4);
     l3 = std_core$write_string_at(l2, l3, 1u);
-    l4 = vader_box_eq(l0, vader_box_i32(3u, INT32_C(0)));
+    l4 = vader_box_eq(l0, vader_box_i32(4u, INT32_C(0)));
     l3 = std_core$write_bool(l2, l3, l4);
     l3 = std_core$write_string_at(l2, l3, 1u);
-    l4 = !(vader_box_eq(l0, vader_box_i32(3u, INT32_C(1))));
+    l4 = !(vader_box_eq(l0, vader_box_i32(4u, INT32_C(1))));
     l3 = std_core$write_bool(l2, l3, l4);
     t0 = std_core$finish_buffer(l2, l3);
     std_console$println__string(t0);
     l2 = (void*) vader_buffer_new((size_t) INT64_C(17));
     l3 = INT64_C(0);
-    l4 = vader_box_eq(l1, vader_box_i32(3u, INT32_C(0)));
+    l4 = vader_box_eq(l1, vader_box_i32(4u, INT32_C(0)));
     l3 = std_core$write_bool(l2, l3, l4);
     l3 = std_core$write_string_at(l2, l3, 1u);
-    l4 = vader_box_eq(vader_box_i32(3u, INT32_C(0)), l1);
+    l4 = vader_box_eq(vader_box_i32(4u, INT32_C(0)), l1);
     l3 = std_core$write_bool(l2, l3, l4);
     l3 = std_core$write_string_at(l2, l3, 1u);
-    l4 = !(vader_box_eq(l1, vader_box_i32(3u, INT32_C(0))));
+    l4 = !(vader_box_eq(l1, vader_box_i32(4u, INT32_C(0))));
     l3 = std_core$write_bool(l2, l3, l4);
     t0 = std_core$finish_buffer(l2, l3);
     std_console$println__string(t0);
@@ -153,19 +153,19 @@ static int32_t snippet$main(void) {
     l1 = snippet$maybe_count(false);
     l2 = (void*) vader_buffer_new((size_t) INT64_C(29));
     l3 = INT64_C(0);
-    l4 = vader_box_eq(l0, vader_box_i32(5u, INT32_C(0)));
+    l4 = vader_box_eq(l0, vader_box_i32(6u, INT32_C(0)));
     l3 = std_core$write_bool(l2, l3, l4);
     l3 = std_core$write_string_at(l2, l3, 1u);
-    l4 = vader_box_eq(vader_box_i32(5u, INT32_C(0)), l0);
+    l4 = vader_box_eq(vader_box_i32(6u, INT32_C(0)), l0);
     l3 = std_core$write_bool(l2, l3, l4);
     l3 = std_core$write_string_at(l2, l3, 1u);
-    l4 = vader_box_eq(l1, vader_box_i32(5u, INT32_C(0)));
+    l4 = vader_box_eq(l1, vader_box_i32(6u, INT32_C(0)));
     l3 = std_core$write_bool(l2, l3, l4);
     l3 = std_core$write_string_at(l2, l3, 1u);
-    l4 = !(vader_box_eq(l1, vader_box_i32(5u, INT32_C(0))));
+    l4 = !(vader_box_eq(l1, vader_box_i32(6u, INT32_C(0))));
     l3 = std_core$write_bool(l2, l3, l4);
     l3 = std_core$write_string_at(l2, l3, 1u);
-    l4 = vader_box_eq(l0, vader_box_i32(5u, INT32_C(1)));
+    l4 = vader_box_eq(l0, vader_box_i32(6u, INT32_C(1)));
     l3 = std_core$write_bool(l2, l3, l4);
     t0 = std_core$finish_buffer(l2, l3);
     std_console$println__string(t0);

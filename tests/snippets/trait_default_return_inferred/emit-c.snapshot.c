@@ -74,28 +74,28 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Square_t),
         .slot_size = 8,
     },
-    [2] = { .slot_size = 4 },
-    [3] = { .slot_size = 16 },
-    [4] = {
+    [3] = { .slot_size = 4 },
+    [4] = { .slot_size = 16 },
+    [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Strip_t),
         .slot_size = 8,
     },
-    [5] = { .slot_size = 16 },
-    [6] = { .slot_size = 4 },
-    [7] = {
+    [6] = { .slot_size = 16 },
+    [7] = { .slot_size = 4 },
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [8] = { .slot_size = 8 },
-    [9] = {
+    [9] = { .slot_size = 8 },
+    [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 10u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
     },
-    [10] = { .slot_size = 1 },
+    [11] = { .slot_size = 1 },
     [12] = { .slot_size = 1 },
 };
 const size_t vader_type_info_count = 13;
@@ -112,7 +112,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 9u, 10u);
+    return (void*) vader_string_bytes_view(a0, 10u, 11u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -213,7 +213,7 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Square_t* _a0_obj = (vader_struct_snippet$Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Square_t));
-    vader_obj_header_init(_a0_obj, 1u);
+    vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_side = INT32_C(3);
     l0 = (void*) _a0_obj;
     l1 = snippet$Square$Shape$twice(l0);
@@ -265,7 +265,7 @@ static int32_t snippet$main(void) {
     l3 = std_core$write_int(l2, l3, l4);
     t0 = std_core$finish_buffer(l2, l3);
     std_console$println__string(t0);
-    t3 = snippet$Square$Shape$pick(l0, vader_box_string(6u, 7u));
+    t3 = snippet$Square$Shape$pick(l0, vader_box_string(7u, 7u));
     l5 = t3.payload.s;
     l3 = vader_host_std_core$Intrinsic$byte_len(l5);
     l2 = (void*) vader_buffer_new((size_t) (INT64_C(26) + l3));
@@ -273,13 +273,13 @@ static int32_t snippet$main(void) {
     l3 = std_core$write_string_at(l2, l3, 8u);
     l3 = std_core$write_string_at(l2, l3, l5);
     l3 = std_core$write_string_at(l2, l3, 9u);
-    t3 = snippet$Square$Shape$pick(l0, vader_box_i32(2u, INT32_C(2)));
+    t3 = snippet$Square$Shape$pick(l0, vader_box_i32(3u, INT32_C(2)));
     l4 = ((int64_t) t3.payload.i);
     l3 = std_core$write_int(l2, l3, l4);
     t0 = std_core$finish_buffer(l2, l3);
     std_console$println__string(t0);
     vader_struct_snippet$Strip_t* _a1_obj = (vader_struct_snippet$Strip_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Strip_t));
-    vader_obj_header_init(_a1_obj, 4u);
+    vader_obj_header_init(_a1_obj, 5u);
     _a1_obj->f_length = INT32_C(4);
     t2 = (void*) _a1_obj;
     l1 = snippet$Strip$Shape$twice(t2);
@@ -466,8 +466,8 @@ static void std_console$println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static int32_t snippet$Shape$twice$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet$Square$Shape$twice(recv.payload.obj);
-        case 4u: return snippet$Strip$Shape$twice(recv.payload.obj);
+        case 2u: return snippet$Square$Shape$twice(recv.payload.obj);
+        case 5u: return snippet$Strip$Shape$twice(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet$Shape.twice");
     }
     vader_unreachable("vtable miss in snippet$Shape.twice");

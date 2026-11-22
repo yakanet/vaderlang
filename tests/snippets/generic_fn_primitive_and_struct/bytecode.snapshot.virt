@@ -1,11 +1,12 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 array 1
-type 3 array 4
-type 4 ref _
-type 5 struct snippet$Point { x:1 }
-type 6 array 5
+type 1 scalar void
+type 2 scalar i32
+type 3 array 2
+type 4 array 5
+type 5 ref _
+type 6 struct snippet$Point { x:2 }
+type 7 array 6
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -16,21 +17,21 @@ fn 0 snippet$main () -> i32
   i32.const 10
   i32.const 20
   i32.const 30
-  array.new 2 3   ; i32[]
+  array.new 3 3   ; i32[]
   call 1   ; snippet$second__i32
   local.set 0   ; s
   i32.const 1
-  struct.new 5   ; snippet$Point
+  struct.new 6   ; snippet$Point
   local.set 1   ; $struct_8
   i32.const 2
-  struct.new 5   ; snippet$Point
+  struct.new 6   ; snippet$Point
   local.set 2   ; $struct_10
   local.get 1   ; $struct_8
   local.get 2   ; $struct_10
-  array.new 6 2   ; snippet$Point[]
+  array.new 7 2   ; snippet$Point[]
   call 2   ; snippet$second__snippet_Point
-  struct.get 5 0   ; snippet$Point.x
-  ref.cast 1   ; i32
+  struct.get 6 0   ; snippet$Point.x
+  ref.cast 2   ; i32
   local.set 3   ; $field_15
   local.get 0   ; s
   local.get 3   ; $field_15
@@ -48,6 +49,6 @@ end
 fn 2 snippet$second__snippet_Point (ref) -> any
   local.get 0   ; arg 0
   i32.const 1
-  array.get 3   ; ref[]
+  array.get 4   ; ref[]
   return
 end

@@ -57,86 +57,86 @@ typedef vader_box_t (*vader_fn_erased_sig_2_t)(void* env, vader_box_t a0, vader_
 
 static vader_box_t vader_fn_tramp___lambda_snippet_0(void* env, vader_box_t a0) {
     (void) env;
-    return vader_box_i32(2u, __lambda_snippet_0(((int32_t) a0.payload.i)));
+    return vader_box_i32(3u, __lambda_snippet_0(((int32_t) a0.payload.i)));
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_0 = {
-    VADER_STATIC_HEADER(1u), (void*) &vader_fn_tramp___lambda_snippet_0, NULL,
+    VADER_STATIC_HEADER(2u), (void*) &vader_fn_tramp___lambda_snippet_0, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_1(void* env, vader_box_t a0) {
     (void) env;
-    return vader_box_i32(2u, __lambda_snippet_1(((int32_t) a0.payload.i)));
+    return vader_box_i32(3u, __lambda_snippet_1(((int32_t) a0.payload.i)));
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_1 = {
-    VADER_STATIC_HEADER(1u), (void*) &vader_fn_tramp___lambda_snippet_1, NULL,
+    VADER_STATIC_HEADER(2u), (void*) &vader_fn_tramp___lambda_snippet_1, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_2(void* env, vader_box_t a0) {
     (void) env;
-    return vader_box_i32(2u, __lambda_snippet_2(((int32_t) a0.payload.i)));
+    return vader_box_i32(3u, __lambda_snippet_2(((int32_t) a0.payload.i)));
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_2 = {
-    VADER_STATIC_HEADER(1u), (void*) &vader_fn_tramp___lambda_snippet_2, NULL,
+    VADER_STATIC_HEADER(2u), (void*) &vader_fn_tramp___lambda_snippet_2, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_3(void* env, vader_box_t a0, vader_box_t a1) {
     (void) env;
-    return vader_box_i32(2u, __lambda_snippet_3(((int32_t) a0.payload.i), ((int32_t) a1.payload.i)));
+    return vader_box_i32(3u, __lambda_snippet_3(((int32_t) a0.payload.i), ((int32_t) a1.payload.i)));
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_3 = {
-    VADER_STATIC_HEADER(3u), (void*) &vader_fn_tramp___lambda_snippet_3, NULL,
+    VADER_STATIC_HEADER(4u), (void*) &vader_fn_tramp___lambda_snippet_3, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_4(void* env) {
     (void) env;
-    return vader_box_i32(2u, __lambda_snippet_4());
+    return vader_box_i32(3u, __lambda_snippet_4());
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_4 = {
-    VADER_STATIC_HEADER(4u), (void*) &vader_fn_tramp___lambda_snippet_4, NULL,
+    VADER_STATIC_HEADER(5u), (void*) &vader_fn_tramp___lambda_snippet_4, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_5(void* env, vader_box_t a0) {
     (void) env;
-    return vader_box_i32(2u, __lambda_snippet_5(((int32_t) a0.payload.i)));
+    return vader_box_i32(3u, __lambda_snippet_5(((int32_t) a0.payload.i)));
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_5 = {
-    VADER_STATIC_HEADER(1u), (void*) &vader_fn_tramp___lambda_snippet_5, NULL,
+    VADER_STATIC_HEADER(2u), (void*) &vader_fn_tramp___lambda_snippet_5, NULL,
 };
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[12] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
         .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
-    [2] = { .slot_size = 4 },
-    [3] = {
-        .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
-    },
+    [3] = { .slot_size = 4 },
     [4] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
         .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
-    [5] = { .slot_size = 4 },
-    [6] = {
+    [5] = {
+        .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
+    },
+    [6] = { .slot_size = 4 },
+    [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [7] = { .slot_size = 8 },
-    [8] = {
+    [8] = { .slot_size = 8 },
+    [9] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 10u,
     },
-    [9] = { .slot_size = 1 },
+    [10] = { .slot_size = 1 },
     [11] = { .slot_size = 1 },
 };
 const size_t vader_type_info_count = 12;
@@ -153,7 +153,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 8u, 9u);
+    return (void*) vader_string_bytes_view(a0, 9u, 10u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -188,7 +188,7 @@ static int32_t snippet$call_it(void* l0, int32_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_fn_t* _a0_fnobj = (vader_fn_t*) l0;
-    t0 = ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(2u, l1));
+    t0 = ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(3u, l1));
     t1 = ((int32_t) t0.payload.i);
     { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -201,7 +201,7 @@ static int32_t snippet$call_two(void* l0, int32_t l1, int32_t l2) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_fn_t* _a0_fnobj = (vader_fn_t*) l0;
-    t0 = ((vader_fn_erased_sig_2_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(2u, l1), vader_box_i32(2u, l2));
+    t0 = ((vader_fn_erased_sig_2_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(3u, l1), vader_box_i32(3u, l2));
     t1 = ((int32_t) t0.payload.i);
     { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }

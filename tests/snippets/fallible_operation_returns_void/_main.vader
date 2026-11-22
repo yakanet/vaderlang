@@ -1,0 +1,62 @@
+// An operation with nothing to return that may fail answers `void | E`. A bare
+// `return`, and the end of a body, give `void`; a bare `else` never takes it, so
+// the caller binds the result and hands the error up in one line. `void` stays
+// apart from `null` in one union, `is void` tests it, and a generic union
+// `T | null` instantiated with `void` keeps the two apart too.
+module "snippet"
+
+import "std/console"
+
+Refused :: struct {
+    reason: string
+}
+
+Refused implements Error {
+    message :: fn(self) -> string = self.reason
+}
+
+// A bare `return` on success.
+store :: fn(fail: bool) -> void | Refused {
+    if fail {
+        return Refused { .reason = "full" }
+    }
+    return
+}
+
+// The end of the body on success, after a call handed its error up.
+store_twice :: fn(fail: bool) -> void | Refused {
+    first :: store(false) else return first
+    second :: store(fail) else return second
+    println("stored twice")
+}
+
+// `null` when nothing was asked, `void` when the store succeeded.
+store_if :: fn(asked: bool) -> void | null | Refused {
+    if !asked {
+        return null
+    }
+    return store(false)
+}
+
+describe :: fn(outcome: void | null | Refused) -> string = match outcome {
+    is void    -> "done"
+    is null    -> "not asked"
+    is Refused -> "refused: ${outcome.reason}"
+}
+
+// A generic union over a type argument that may be `void`.
+present :: fn<T>(value: T | null) -> bool = value != null
+
+nothing :: fn() -> void {}
+
+main :: fn() -> i32 {
+    ok :: store_twice(false)
+    println(ok is void)
+    println(describe(store_twice(true)))
+    println(describe(store_if(true)))
+    println(describe(store_if(false)))
+    kept :: store(false) else null
+    println(kept is void)
+    println(present<void>(nothing()))
+    return 0
+}

@@ -27,22 +27,22 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[7] = {
-    [1] = { .slot_size = 16 },
-    [2] = {
+const vader_type_info_t vader_type_info_table[8] = {
+    [2] = { .slot_size = 16 },
+    [3] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Pair_t), .slot_size = 8,
     },
-    [3] = {
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Wrap_t), .slot_size = 8,
     },
-    [4] = { .slot_size = 1 },
-    [5] = { .slot_size = 4 },
-    [6] = {
+    [5] = { .slot_size = 1 },
+    [6] = { .slot_size = 4 },
+    [7] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 5u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 6u,
     },
 };
-const size_t vader_type_info_count = 7;
+const size_t vader_type_info_count = 8;
 
 static int32_t snippet$run(vader_box_t l0, bool l1, bool l2) {
     void* l3 = NULL;
@@ -54,17 +54,17 @@ static int32_t snippet$run(vader_box_t l0, bool l1, bool l2) {
     void** gc_raw_roots[2] = { &l3, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(6u, 3u, 7u, 5u);
+    vader_array_t* _a0_arr = vader_array_new(7u, 3u, 7u, 6u);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 2u] = (int32_t) INT32_C(3);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 1u] = (int32_t) INT32_C(2);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (int32_t) INT32_C(1);
     l3 = (void*) _a0_arr;
     l4 = INT32_C(0);
-    if (l0.tag == 2u) {
+    if (l0.tag == 3u) {
         t0 = l0.payload.obj;
         l4 = ((vader_struct_snippet$Pair_t*) t0)->f_a;
     } else {
-        if (!(l0.tag == 3u)) {
+        if (!(l0.tag == 4u)) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
         t0 = l0.payload.obj;
@@ -99,7 +99,7 @@ static int32_t snippet$main(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Pair_t* _a0_obj = (vader_struct_snippet$Pair_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Pair_t));
-    vader_obj_header_init(_a0_obj, 2u);
+    vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_a = INT32_C(5);
     t0 = (void*) _a0_obj;
     t1 = snippet$run(vader_ref_box(t0), true, true);

@@ -1,37 +1,37 @@
 module _main
 type 0 scalar null
-type 1 struct snippet$Square {  }
-type 2 scalar i32
-type 3 struct snippet_shapes$Info { label:5 }
-type 4 struct snippet$Circle {  }
-type 5 scalar string
-type 6 struct std_core$Buffer {  }
-type 7 scalar i64
-type 8 array 9
-type 9 scalar u8
-type 10 scalar void
+type 1 scalar void
+type 2 struct snippet$Square {  }
+type 3 scalar i32
+type 4 struct snippet_shapes$Info { label:6 }
+type 5 struct snippet$Circle {  }
+type 6 scalar string
+type 7 struct std_core$Buffer {  }
+type 8 scalar i64
+type 9 array 10
+type 10 scalar u8
 type 11 scalar bool
-type 12 array 1
-type 13 array 4
+type 12 array 2
+type 13 array 5
 string 0 "square"
 string 1 "circle"
 string 2 "round"
 string 3 " "
 string 4 "\n"
-data 0 structs 1 0 1
-data 1 structs 4 0 1
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=5 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=10 () -> void
-impl 1 snippet_shapes$Maker
-impl 4 snippet_shapes$Maker
-impl 6 std_core$ByteAccess
-vtable snippet_shapes$Maker.make 1 0
-vtable snippet_shapes$Maker.make 4 2
-vtable snippet_shapes$Maker.info 1 1
-vtable snippet_shapes$Maker.info 4 3
+data 0 structs 2 0 1
+data 1 structs 5 0 1
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=3,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 2 snippet_shapes$Maker
+impl 5 snippet_shapes$Maker
+impl 7 std_core$ByteAccess
+vtable snippet_shapes$Maker.make 2 0
+vtable snippet_shapes$Maker.make 5 2
+vtable snippet_shapes$Maker.info 2 1
+vtable snippet_shapes$Maker.info 5 3
 export main 4
 
 fn 0 snippet$Square$snippet_shapes$Maker$make (ref) -> i32
@@ -40,7 +40,7 @@ end
 
 fn 1 snippet$Square$snippet_shapes$Maker$info (ref) -> ref
   string.const 0   ; "square"
-  struct.new 3   ; snippet_shapes$Info
+  struct.new 4   ; snippet_shapes$Info
   return
 end
 
@@ -50,7 +50,7 @@ end
 
 fn 3 snippet$Circle$snippet_shapes$Maker$info (ref) -> ref
   string.const 2   ; "round"
-  struct.new 3   ; snippet_shapes$Info
+  struct.new 4   ; snippet_shapes$Info
   return
 end
 
@@ -76,8 +76,8 @@ fn 4 snippet$main () -> i32
   local.set 2   ; __p_0
   local.get 0   ; square
   virtual.call 1 snippet_shapes$Maker.info -> ref
-  struct.get 3 0   ; snippet_shapes$Info.label
-  ref.cast 5   ; string
+  struct.get 4 0   ; snippet_shapes$Info.label
+  ref.cast 6   ; string
   local.tee 3   ; __p_1
   call.import 0   ; std_core$Intrinsic$byte_len
   local.set 4   ; $call_14
@@ -115,8 +115,8 @@ fn 4 snippet$main () -> i32
   local.set 3   ; __p_1
   local.get 1   ; circle
   virtual.call 1 snippet_shapes$Maker.info -> ref
-  struct.get 3 0   ; snippet_shapes$Info.label
-  ref.cast 5   ; string
+  struct.get 4 0   ; snippet_shapes$Info.label
+  ref.cast 6   ; string
   local.set 7   ; $field_29
   local.get 3   ; __p_1
   string.const 3   ; " "
@@ -367,7 +367,7 @@ fn 10 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 8   ; u8[]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

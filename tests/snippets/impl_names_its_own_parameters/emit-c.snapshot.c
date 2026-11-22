@@ -75,40 +75,40 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
-    [1] = { .slot_size = 4 },
-    [2] = {
+    [2] = { .slot_size = 4 },
+    [3] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Box__i32_t),
         .slot_size = 8,
     },
-    [3] = { .slot_size = 4 },
-    [4] = {
+    [4] = { .slot_size = 4 },
+    [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Box__string_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Box__string_t, f_v) },
         .string_count = 1,
     },
-    [5] = {
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Pair__i32__string_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Pair__i32__string_t, f_second) },
         .string_count = 1,
     },
-    [6] = {
+    [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Pair__string__i32_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Pair__string__i32_t, f_first) },
         .string_count = 1,
     },
-    [7] = {
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [8] = { .slot_size = 8 },
-    [9] = {
+    [9] = { .slot_size = 8 },
+    [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 10u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
     },
-    [10] = { .slot_size = 1 },
+    [11] = { .slot_size = 1 },
     [12] = { .slot_size = 1 },
 };
 const size_t vader_type_info_count = 13;
@@ -125,7 +125,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 9u, 10u);
+    return (void*) vader_string_bytes_view(a0, 10u, 11u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -169,11 +169,11 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Box__i32_t* _a0_obj = (vader_struct_snippet$Box__i32_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Box__i32_t));
-    vader_obj_header_init(_a0_obj, 2u);
+    vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_v = INT32_C(42);
     l0 = (void*) _a0_obj;
     vader_struct_snippet$Box__string_t* _a1_obj = (vader_struct_snippet$Box__string_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Box__string_t));
-    vader_obj_header_init(_a1_obj, 4u);
+    vader_obj_header_init(_a1_obj, 5u);
     _a1_obj->f_v = 1u;
     l1 = (void*) _a1_obj;
     l2 = snippet$Box$Getter$get__i32(l0);
@@ -188,7 +188,7 @@ static int32_t snippet$main(void) {
     t0 = std_core$finish_buffer(l1, l4);
     std_console$println__string(t0);
     vader_struct_snippet$Pair__i32__string_t* _a2_obj = (vader_struct_snippet$Pair__i32__string_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Pair__i32__string_t));
-    vader_obj_header_init(_a2_obj, 5u);
+    vader_obj_header_init(_a2_obj, 6u);
     _a2_obj->f_first = INT32_C(1);
     _a2_obj->f_second = 3u;
     l1 = (void*) _a2_obj;
@@ -243,7 +243,7 @@ static void* snippet$Pair$Swap$swapped__i32__string(void* l0) {
     l1 = ((vader_struct_snippet$Pair__i32__string_t*) l0)->f_second;
     l2 = ((vader_struct_snippet$Pair__i32__string_t*) l0)->f_first;
     vader_struct_snippet$Pair__string__i32_t* _a0_obj = (vader_struct_snippet$Pair__string__i32_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Pair__string__i32_t));
-    vader_obj_header_init(_a0_obj, 6u);
+    vader_obj_header_init(_a0_obj, 7u);
     _a0_obj->f_first = l1;
     _a0_obj->f_second = l2;
     t0 = (void*) _a0_obj;

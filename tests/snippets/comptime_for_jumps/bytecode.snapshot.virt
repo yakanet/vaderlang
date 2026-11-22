@@ -1,17 +1,17 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 struct __defer_env_snippet_1 { cap_0:1 }
-type 3 scalar void
-type 4 struct __defer_env_snippet_3 { cap_0:1 }
-type 5 struct __defer_env_snippet_5 { cap_0:1 }
+type 1 scalar void
+type 2 scalar i32
+type 3 struct __defer_env_snippet_1 { cap_0:2 }
+type 4 struct __defer_env_snippet_3 { cap_0:2 }
+type 5 struct __defer_env_snippet_5 { cap_0:2 }
 type 6 scalar string
 type 7 struct std_core$Buffer {  }
 type 8 scalar i64
 type 9 array 10
 type 10 scalar u8
 type 11 scalar bool
-type 12 fn () -> 3
+type 12 fn () -> 1
 string 0 "continue: "
 string 1 ":"
 string 2 "break: "
@@ -20,9 +20,9 @@ string 4 "  defer of a copy, round "
 string 5 "\n"
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=6 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=6 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=1,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=3 () -> void
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=2,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 7 std_core$ByteAccess
 export main 0
 
@@ -176,7 +176,7 @@ fn 0 snippet$main () -> i32
     i32.lt
     if $L6 void
       local.get 0   ; i
-      struct.new 2   ; __defer_env_snippet_1
+      struct.new 3   ; __defer_env_snippet_1
       make_closure 1 12   ; __defer_snippet_0 fn
       defer.push
       i32.const 1
@@ -353,8 +353,8 @@ fn 1 __defer_snippet_0 (ref) -> void
   string.const 4   ; "  defer of a copy, round "
   call 6   ; std_core$write_string_at
   local.set 2   ; __off_1
-  local.field 0 2 0   ; arg 0 __defer_env_snippet_1.cap_0
-  ref.cast 1   ; i32
+  local.field 0 3 0   ; arg 0 __defer_env_snippet_1.cap_0
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 3   ; $cast_9
   local.get 1   ; __buf_0
@@ -384,7 +384,7 @@ fn 2 __defer_snippet_2 (ref) -> void
   call 6   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 4 0   ; arg 0 __defer_env_snippet_3.cap_0
-  ref.cast 1   ; i32
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 3   ; $cast_9
   local.get 1   ; __buf_0
@@ -414,7 +414,7 @@ fn 3 __defer_snippet_4 (ref) -> void
   call 6   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 5 0   ; arg 0 __defer_env_snippet_5.cap_0
-  ref.cast 1   ; i32
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 3   ; $cast_9
   local.get 1   ; __buf_0

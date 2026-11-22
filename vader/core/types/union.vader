@@ -396,6 +396,12 @@ export counterpart :: fn(t: Type, variant: Type) -> Type | null {
     return null
 }
 
+/// Whether `t` is a union one of whose members is `void`, as the result of an
+/// operation that may fail with nothing to return.
+///
+/// @param t  the type to test.
+export admits_void :: fn(t: Type) -> bool = t is UnionType && t.variants.any_match(is_void)
+
 /// Subtract a single variant from a type. Returns the remaining type
 /// (or `Never` if nothing remains). For non-union sources subtracting
 /// the same shape yields `Never` ; subtracting a different shape is a

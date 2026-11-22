@@ -1,36 +1,36 @@
 module _main
 type 0 scalar null
-type 1 struct snippet$A { a:2 }
-type 2 scalar i32
-type 3 struct snippet$Box { v:2 }
-type 4 scalar i64
-type 5 scalar string
-type 6 array 2
-type 7 scalar bool
-type 8 struct snippet$B { b:2 }
-type 9 struct std_core$Buffer {  }
-type 10 array 11
-type 11 scalar u8
-type 12 scalar void
+type 1 scalar void
+type 2 struct snippet$A { a:3 }
+type 3 scalar i32
+type 4 struct snippet$Box { v:3 }
+type 5 scalar i64
+type 6 scalar string
+type 7 array 3
+type 8 scalar bool
+type 9 struct snippet$B { b:3 }
+type 10 struct std_core$Buffer {  }
+type 11 array 12
+type 12 scalar u8
 string 0 "w:"
 string 1 "w:1"
 string 2 "w:2"
 string 3 "all ok"
 string 4 "FAIL"
 string 5 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=4 param_types=5 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=10 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=2,10,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=12 () -> void
-impl 1 snippet$Widget
-impl 8 snippet$Widget
-impl 9 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=11 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=3,11,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 2 snippet$Widget
+impl 9 snippet$Widget
+impl 10 std_core$ByteAccess
 export main 12
 
 fn 0 snippet$A$Widget$base (ref) -> i32
-  local.field 0 1 0   ; arg 0 snippet$A.a
-  ref.cast 2   ; i32
+  local.field 0 2 0   ; arg 0 snippet$A.a
+  ref.cast 3   ; i32
   return
 end
 
@@ -39,7 +39,7 @@ fn 1 snippet$A$Widget$boxed (ref) -> ref
   call 0   ; snippet$A$Widget$base
   i32.const 100
   i32.checked_add
-  struct.new 3   ; snippet$Box
+  struct.new 4   ; snippet$Box
   return
 end
 
@@ -94,7 +94,7 @@ fn 4 snippet$A$Widget$pair (ref) -> ref
   local.set 2   ; $add_checked_4
   local.get 1   ; $call_1
   local.get 2   ; $add_checked_4
-  array.new 6 2   ; i32[]
+  array.new 7 2   ; i32[]
   return
 end
 
@@ -114,8 +114,8 @@ fn 5 snippet$A$Widget$above (ref,ref) -> bool
 end
 
 fn 6 snippet$B$Widget$base (ref) -> i32
-  local.field 0 8 0   ; arg 0 snippet$B.b
-  ref.cast 2   ; i32
+  local.field 0 9 0   ; arg 0 snippet$B.b
+  ref.cast 3   ; i32
   return
 end
 
@@ -124,7 +124,7 @@ fn 7 snippet$B$Widget$boxed (ref) -> ref
   call 6   ; snippet$B$Widget$base
   i32.const 100
   i32.checked_add
-  struct.new 3   ; snippet$Box
+  struct.new 4   ; snippet$Box
   return
 end
 
@@ -179,7 +179,7 @@ fn 10 snippet$B$Widget$pair (ref) -> ref
   local.set 2   ; $add_checked_4
   local.get 1   ; $call_1
   local.get 2   ; $add_checked_4
-  array.new 6 2   ; i32[]
+  array.new 7 2   ; i32[]
   return
 end
 
@@ -205,17 +205,17 @@ fn 12 snippet$main () -> i32
   local pa ref
   local high ref
   i32.const 1
-  struct.new 1   ; snippet$A
+  struct.new 2   ; snippet$A
   local.set 0   ; a
   i32.const 2
-  struct.new 8   ; snippet$B
+  struct.new 9   ; snippet$B
   local.set 1   ; b
   bool.const true
   local.set 2   ; ok
   local.get 0   ; a
   call 1   ; snippet$A$Widget$boxed
-  struct.get 3 0   ; snippet$Box.v
-  ref.cast 2   ; i32
+  struct.get 4 0   ; snippet$Box.v
+  ref.cast 3   ; i32
   i32.const 101
   i32.ne
   if $L0 void
@@ -224,8 +224,8 @@ fn 12 snippet$main () -> i32
   end $L0
   local.get 1   ; b
   call 7   ; snippet$B$Widget$boxed
-  struct.get 3 0   ; snippet$Box.v
-  ref.cast 2   ; i32
+  struct.get 4 0   ; snippet$Box.v
+  ref.cast 3   ; i32
   i32.const 102
   i32.ne
   if $L1 void
@@ -305,10 +305,10 @@ fn 12 snippet$main () -> i32
     local.set 2   ; ok
   end $L9
   i32.const 0
-  struct.new 1   ; snippet$A
+  struct.new 2   ; snippet$A
   local.set 3   ; pa
   i32.const 5
-  struct.new 8   ; snippet$B
+  struct.new 9   ; snippet$B
   local.set 4   ; high
   local.get 0   ; a
   local.get 3   ; pa
@@ -537,7 +537,7 @@ fn 17 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 10   ; u8[]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

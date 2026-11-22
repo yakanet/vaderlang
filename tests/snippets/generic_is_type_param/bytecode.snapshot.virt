@@ -1,30 +1,30 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 array 3
-type 3 struct snippet$Circle { r:1 }
-type 4 union 3,5
-type 5 struct snippet$Square { s:1 }
-type 6 scalar bool
-type 7 array 5
-type 8 scalar string
-type 9 struct std_core$Buffer {  }
-type 10 scalar i64
-type 11 array 12
-type 12 scalar u8
-type 13 scalar void
+type 1 scalar void
+type 2 scalar i32
+type 3 array 4
+type 4 struct snippet$Circle { r:2 }
+type 5 union 4,6
+type 6 struct snippet$Square { s:2 }
+type 7 scalar bool
+type 8 array 6
+type 9 scalar string
+type 10 struct std_core$Buffer {  }
+type 11 scalar i64
+type 12 array 13
+type 13 scalar u8
 string 0 " "
 string 1 "yes"
 string 2 "no"
 string 3 "true"
 string 4 "false"
 string 5 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=10 param_types=8 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=11 param_types=8 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=1,11,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=13 () -> void
-impl 9 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=11 param_types=9 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=12 param_types=9 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=11 param_types=2,12,11 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 10 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -38,7 +38,7 @@ fn 0 snippet$main () -> i32
   local $struct_39 ref
   local __buf_10 ref
   i32.const 2
-  struct.new 5   ; snippet$Square
+  struct.new 6   ; snippet$Square
   local.set 0   ; sq
   i64.const 11
   buffer.new
@@ -117,7 +117,7 @@ fn 0 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   i32.const 0
-  struct.new 3   ; snippet$Circle
+  struct.new 4   ; snippet$Circle
   local.set 7   ; $struct_39
   local.get 0   ; sq
   local.get 7   ; $struct_39
@@ -134,7 +134,7 @@ fn 0 snippet$main () -> i32
   call 22   ; std_core$write_string_at
   local.set 2   ; __off_1
   i32.const 0
-  struct.new 5   ; snippet$Square
+  struct.new 6   ; snippet$Square
   local.set 7   ; $struct_39
   local.get 0   ; sq
   local.get 7   ; $struct_39
@@ -155,7 +155,7 @@ fn 0 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   i32.const 0
-  struct.new 3   ; snippet$Circle
+  struct.new 4   ; snippet$Circle
   local.set 7   ; $struct_39
   local.get 0   ; sq
   local.get 7   ; $struct_39
@@ -172,7 +172,7 @@ fn 0 snippet$main () -> i32
   call 22   ; std_core$write_string_at
   local.set 2   ; __off_1
   i32.const 0
-  struct.new 5   ; snippet$Square
+  struct.new 6   ; snippet$Square
   local.set 7   ; $struct_39
   local.get 0   ; sq
   local.get 7   ; $struct_39
@@ -193,7 +193,7 @@ fn 0 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   i32.const 0
-  struct.new 3   ; snippet$Circle
+  struct.new 4   ; snippet$Circle
   local.set 7   ; $struct_39
   local.get 0   ; sq
   local.get 7   ; $struct_39
@@ -210,7 +210,7 @@ fn 0 snippet$main () -> i32
   call 22   ; std_core$write_string_at
   local.set 2   ; __off_1
   i32.const 0
-  struct.new 5   ; snippet$Square
+  struct.new 6   ; snippet$Square
   local.set 7   ; $struct_39
   local.get 0   ; sq
   local.get 7   ; $struct_39
@@ -226,12 +226,12 @@ fn 0 snippet$main () -> i32
   call 21   ; std_core$finish_buffer
   call 27   ; std_console$println__string
   i32.const 0
-  struct.new 3   ; snippet$Circle
-  array.new 2 1   ; snippet$Circle[]
+  struct.new 4   ; snippet$Circle
+  array.new 3 1   ; snippet$Circle[]
   local.set 1   ; __buf_0
   i32.const 0
-  struct.new 5   ; snippet$Square
-  array.new 7 1   ; snippet$Square[]
+  struct.new 6   ; snippet$Square
+  array.new 8 1   ; snippet$Square[]
   local.set 7   ; $struct_39
   i64.const 11
   buffer.new
@@ -298,13 +298,13 @@ end
 
 fn 5 snippet$is_a__snippet_Circle__snippet_Circle___snippet_Square (any) -> bool
   local.get 0   ; arg 0
-  type_check 3   ; snippet$Circle
+  type_check 4   ; snippet$Circle
   return
 end
 
 fn 6 snippet$is_a__snippet_Square__snippet_Circle___snippet_Square (any) -> bool
   local.get 0   ; arg 0
-  type_check 5   ; snippet$Square
+  type_check 6   ; snippet$Square
   return
 end
 
@@ -322,7 +322,7 @@ end
 
 fn 9 snippet$kind__snippet_Circle__snippet_Circle___snippet_Square (any) -> string
   local.get 0   ; arg 0
-  type_check 3   ; snippet$Circle
+  type_check 4   ; snippet$Circle
   if $L0 void
     return.lit string.const 1   ; "yes"
   end $L0
@@ -331,7 +331,7 @@ end
 
 fn 10 snippet$kind__snippet_Square__snippet_Circle___snippet_Square (any) -> string
   local.get 0   ; arg 0
-  type_check 5   ; snippet$Square
+  type_check 6   ; snippet$Square
   if $L0 void
     return.lit string.const 1   ; "yes"
   end $L0
@@ -340,13 +340,13 @@ end
 
 fn 11 snippet$same_kind__snippet_Circle__snippet_Circle___snippet_Square (any,ref) -> bool
   local.get 0   ; arg 0
-  type_check 3   ; snippet$Circle
+  type_check 4   ; snippet$Circle
   return
 end
 
 fn 12 snippet$same_kind__snippet_Square__snippet_Circle___snippet_Square (any,ref) -> bool
   local.get 0   ; arg 0
-  type_check 5   ; snippet$Square
+  type_check 6   ; snippet$Square
   return
 end
 
@@ -380,13 +380,13 @@ end
 
 fn 17 snippet$holds_kind__snippet_Circle (ref,any) -> bool
   local.get 1   ; arg 1
-  type_check 3   ; snippet$Circle
+  type_check 4   ; snippet$Circle
   return
 end
 
 fn 18 snippet$holds_kind__snippet_Square (ref,any) -> bool
   local.get 1   ; arg 1
-  type_check 5   ; snippet$Square
+  type_check 6   ; snippet$Square
   return
 end
 
@@ -534,7 +534,7 @@ fn 24 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 11   ; u8[]
+      array.slice 12   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

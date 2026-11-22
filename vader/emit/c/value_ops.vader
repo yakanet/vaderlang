@@ -58,6 +58,9 @@ push_const :: fn(s: FnState, c: Bc.ConstOp) -> void = push_lit(
     const_lit_c(s.ctx, c),
 )
 
+/// The box of the one `void` value: the reserved `void` tag, no payload.
+void_box :: fn(ctx: EmitCtx) -> CExpression = verbatim("vader_box_obj(${ctx.void_tag}u, NULL)")
+
 /// Stack ValType produced by a constant op. Exhaustive over `ConstOp`.
 /// `NullConst` boxes to `.Any` on the C stack: a deliberate divergence
 /// from `emit/bytecode::const_val_type`, which wants `.Null` for its

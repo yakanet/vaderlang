@@ -89,22 +89,22 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[12] = {
-    [1] = { .slot_size = 4 },
     [2] = { .slot_size = 4 },
-    [3] = {
+    [3] = { .slot_size = 4 },
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_snippet_1_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_snippet_1_t, f_cap_0) },
         .ptr_count = 1,
     },
-    [4] = { .slot_size = 16 },
-    [5] = { .slot_size = 8 },
-    [6] = {
+    [5] = { .slot_size = 16 },
+    [6] = { .slot_size = 8 },
+    [7] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
     },
-    [7] = { .slot_size = 1 },
-    [8] = {
+    [8] = { .slot_size = 1 },
+    [9] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
@@ -130,7 +130,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 6u, 7u);
+    return (void*) vader_string_bytes_view(a0, 7u, 8u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -229,7 +229,7 @@ static vader_string_t snippet$captured_local(vader_string_t l0) {
     t0 = (void*) _a0_obj;
     l1 = vader_ref_box(t0);
     vader_struct___lambda_env_snippet_1_t* _a1_obj = (vader_struct___lambda_env_snippet_1_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_1_t));
-    vader_obj_header_init(_a1_obj, 3u);
+    vader_obj_header_init(_a1_obj, 4u);
     _a1_obj->f_cap_0 = l1;
     l2 = (void*) _a1_obj;
     l3 = concat_2(((vader_struct_$Cell_string_704be0d8_t*) l1.payload.obj)->f_value, 9u);

@@ -1,9 +1,10 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 scalar bool
-type 3 array 1
-impl 3 std_core$Contains
+type 1 scalar void
+type 2 scalar i32
+type 3 scalar bool
+type 4 array 2
+impl 4 std_core$Contains
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -25,7 +26,7 @@ fn 0 snippet$main () -> i32
   i32.const 1
   i32.const 2
   i32.const 3
-  array.new 3 3   ; i32[]
+  array.new 4 3   ; i32[]
   local.get 0   ; a
   call 1   ; std_core$$array$Contains$contains__i32
   bool.const true

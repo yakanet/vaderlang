@@ -57,25 +57,25 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[10] = {
-    [1] = { .slot_size = 4 },
     [2] = { .slot_size = 4 },
-    [3] = {
+    [3] = { .slot_size = 4 },
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Settings_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Settings_t, f_name) },
         .string_count = 1,
     },
-    [4] = { .slot_size = 1 },
-    [5] = {
+    [5] = { .slot_size = 1 },
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [6] = { .slot_size = 8 },
-    [7] = {
+    [7] = { .slot_size = 8 },
+    [8] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
     },
-    [8] = { .slot_size = 1 },
+    [9] = { .slot_size = 1 },
 };
 const size_t vader_type_info_count = 10;
 
@@ -91,7 +91,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 7u, 8u);
+    return (void*) vader_string_bytes_view(a0, 8u, 9u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -139,19 +139,19 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Settings_t* _a1_obj = &_a0_storage;
-    vader_obj_header_init(_a1_obj, 3u);
+    vader_obj_header_init(_a1_obj, 4u);
     _a1_obj->f_name = 1u;
     _a1_obj->f_timeout = INT32_C(30);
     _a1_obj->f_debug = false;
     l0 = (void*) _a1_obj;
     vader_struct_snippet$Settings_t* _a3_obj = &_a2_storage;
-    vader_obj_header_init(_a3_obj, 3u);
+    vader_obj_header_init(_a3_obj, 4u);
     _a3_obj->f_name = 2u;
     _a3_obj->f_timeout = INT32_C(30);
     _a3_obj->f_debug = true;
     l1 = (void*) _a3_obj;
     vader_struct_snippet$Settings_t* _a5_obj = &_a4_storage;
-    vader_obj_header_init(_a5_obj, 3u);
+    vader_obj_header_init(_a5_obj, 4u);
     _a5_obj->f_name = 3u;
     _a5_obj->f_timeout = INT32_C(5);
     _a5_obj->f_debug = true;

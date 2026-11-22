@@ -1,0 +1,34 @@
+// `void` bound to a type parameter: an array of `void` holds one box per element,
+// whether written as a literal, pushed or set; a field or a parameter of type
+// `void` holds nothing, and reads back as `void` where a union expects a value,
+// called directly or through a function value.
+module "snippet"
+
+import "std/console"
+
+nothing :: fn() -> void {}
+
+Holder :: struct<T> {
+    value: T
+}
+
+kept :: fn<T>(x: T) -> T | null = x
+
+applied :: fn<T>(f: fn(T) -> T | null, x: T) -> T | null = f(x)
+
+held :: fn<T>(h: Holder<T>) -> T | null = h.value
+
+main :: fn() -> i32 {
+    written: void[]: [nothing(), nothing()]
+    println(written.len())
+    written.push(nothing())
+    written[0] = nothing()
+    println(written.len())
+    println(kept(written[2]) is void)
+    println(kept(nothing()) is void)
+    println(applied(kept, nothing()) is void)
+    holder :: Holder<void> { .value = nothing() }
+    holder.value = nothing()
+    println(held(holder) is void)
+    return 0
+}

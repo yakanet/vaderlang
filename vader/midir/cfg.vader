@@ -578,6 +578,7 @@ export ConstValue ::
     | ConstChar
     | ConstString
     | ConstNull
+    | ConstVoid
 
 export ConstInt    :: struct { value: i64 }
 export ConstFloat  :: struct { value: f64 }
@@ -586,6 +587,9 @@ export ConstChar   :: struct { value: i32 }
 /// Index into `CFGProject.strings`.
 export ConstString :: struct { index: i32 }
 export ConstNull   :: struct {}
+/// The one value of `void`, given where a slot holds a value whatever its type:
+/// the success of a result typed `void | E`.
+export ConstVoid   :: struct {}
 
 // ---- project + module shapes ----------------------------------------------
 

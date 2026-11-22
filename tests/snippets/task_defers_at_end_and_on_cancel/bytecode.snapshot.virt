@@ -1,10 +1,10 @@
 module _main
 type 0 scalar null
-type 1 scalar string
-type 2 scalar i32
-type 3 struct __defer_env_snippet_1 { cap_0:1 }
-type 4 scalar void
-type 5 struct __defer_env_snippet_3 { cap_0:1 }
+type 1 scalar void
+type 2 scalar string
+type 3 scalar i32
+type 4 struct __defer_env_snippet_1 { cap_0:2 }
+type 5 struct __defer_env_snippet_3 { cap_0:2 }
 type 6 struct __defer_env_snippet_5 {  }
 type 7 struct __defer_env_snippet_7 {  }
 type 8 struct std_core$Buffer {  }
@@ -21,22 +21,22 @@ type 18 scalar char
 type 19 scalar f32
 type 20 scalar f64
 type 21 array 14
-type 22 struct std_core$FloatDec32 { mantissa:16,exp:2 }
-type 23 struct std_core$Dec64 { mantissa:10,exp:2 }
+type 22 struct std_core$FloatDec32 { mantissa:16,exp:3 }
+type 23 struct std_core$Dec64 { mantissa:10,exp:3 }
 type 24 struct __Tuple_u64_u64_u64_2d035edd { _0:10,_1:10,_2:10 }
 type 25 array 9
 type 26 union 9,0
-type 27 fn () -> 4
+type 27 fn () -> 1
 type 28 struct std_task$Task__i32 shared { number:9,thread:9,ended:17,result:37,waiters:38 }
 type 29 struct std_task$Started { count:9 }
-type 30 fn () -> 2
+type 30 fn () -> 3
 type 31 struct __lambda_env_std_task_1 { cap_0:28,cap_1:30 }
 type 32 struct __defer_env_std_task_9 { cap_0:28 }
-type 33 union 11,2
+type 33 union 11,3
 type 34 struct __defer_env_std_task_3 {  }
 type 35 struct __defer_env_std_task_5 { cap_0:28,cap_1:9 }
 type 36 struct __defer_env_std_task_7 {  }
-type 37 array 2
+type 37 array 3
 type 38 array 39
 type 39 struct std_task$Waiter { thread:9,group:40,index:9 }
 type 40 union 41,0
@@ -83,25 +83,25 @@ data 6 agg 1 struct 34 0
 data 7 structs 11 0 1
 data 8 agg 1 struct 36 0
 data 9 agg 1 struct 44 0
-global 0 2 started.state
+global 0 3 started.state
 global 1 29 started.instance
 global 2 42 started.gate
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=9 param_types=1 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=21 param_types=1 param_c_out= param_by_address= (string) -> ref
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=9 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=21 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 2 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=9 param_types=27,9 param_c_out= param_by_address= (ref,i64) -> i64
-import 3 park std_core$Intrinsic$park intrinsic=park result_type=4 () -> void
-import 4 wake std_core$Intrinsic$wake intrinsic=wake result_type=4 param_types=9 param_c_out= param_by_address= (i64) -> void
-import 5 sleep_for std_core$Intrinsic$sleep_for intrinsic=sleep_for result_type=4 param_types=9 param_c_out= param_by_address= (i64) -> void
-import 6 cancel_thread std_core$Intrinsic$cancel_thread intrinsic=cancel_thread result_type=4 param_types=9 param_c_out= param_by_address= (i64) -> void
+import 3 park std_core$Intrinsic$park intrinsic=park result_type=1 () -> void
+import 4 wake std_core$Intrinsic$wake intrinsic=wake result_type=1 param_types=9 param_c_out= param_by_address= (i64) -> void
+import 5 sleep_for std_core$Intrinsic$sleep_for intrinsic=sleep_for result_type=1 param_types=9 param_c_out= param_by_address= (i64) -> void
+import 6 cancel_thread std_core$Intrinsic$cancel_thread intrinsic=cancel_thread result_type=1 param_types=9 param_c_out= param_by_address= (i64) -> void
 import 7 current_thread std_core$Intrinsic$current_thread intrinsic=current_thread result_type=9 () -> i64
 import 8 is_cancelled std_core$Intrinsic$is_cancelled intrinsic=is_cancelled result_type=17 () -> bool
-import 9 task_ended std_core$Intrinsic$task_ended intrinsic=task_ended result_type=4 () -> void
-import 10 monitor_enter std_core$Intrinsic$monitor_enter intrinsic=monitor_enter result_type=4 param_types=17 param_c_out= param_by_address= (bool) -> void
-import 11 monitor_exit std_core$Intrinsic$monitor_exit intrinsic=monitor_exit result_type=4 () -> void
-import 12 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=1 param_types=21 param_c_out= param_by_address= (ref) -> string
-import 13 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=2,21,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 14 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 15 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=4 () -> void
+import 9 task_ended std_core$Intrinsic$task_ended intrinsic=task_ended result_type=1 () -> void
+import 10 monitor_enter std_core$Intrinsic$monitor_enter intrinsic=monitor_enter result_type=1 param_types=17 param_c_out= param_by_address= (bool) -> void
+import 11 monitor_exit std_core$Intrinsic$monitor_exit intrinsic=monitor_exit result_type=1 () -> void
+import 12 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=2 param_types=21 param_c_out= param_by_address= (ref) -> string
+import 13 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=3,21,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 14 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
+import 15 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 11 std_core$Display
 impl 28 std_core$Display
 impl 8 std_core$ByteAccess
@@ -110,7 +110,7 @@ impl 28 std_core$Equals
 vtable std_core$Display.to_string 11 14
 vtable std_core$Display.to_string 12 15
 vtable std_core$Display.to_string 13 16
-vtable std_core$Display.to_string 2 17
+vtable std_core$Display.to_string 3 17
 vtable std_core$Display.to_string 9 18
 vtable std_core$Display.to_string 14 19
 vtable std_core$Display.to_string 15 20
@@ -118,7 +118,7 @@ vtable std_core$Display.to_string 16 21
 vtable std_core$Display.to_string 10 22
 vtable std_core$Display.to_string 17 23
 vtable std_core$Display.to_string 18 24
-vtable std_core$Display.to_string 1 25
+vtable std_core$Display.to_string 2 25
 vtable std_core$Display.to_string 0 26
 vtable std_core$Display.to_string 19 27
 vtable std_core$Display.to_string 20 28
@@ -127,7 +127,7 @@ export main 3
 
 fn 0 snippet$step (string) -> i32
   local.get 0   ; arg 0
-  struct.new 3   ; __defer_env_snippet_1
+  struct.new 4   ; __defer_env_snippet_1
   make_closure 4 27   ; __defer_snippet_0 fn
   defer.push
   i64.const 1
@@ -200,8 +200,8 @@ end
 
 fn 4 __defer_snippet_0 (ref) -> void
   local $field_2 string
-  local.field 0 3 0   ; arg 0 __defer_env_snippet_1.cap_0
-  ref.cast 1   ; string
+  local.field 0 4 0   ; arg 0 __defer_env_snippet_1.cap_0
+  ref.cast 2   ; string
   local.set 1   ; $field_2
   string.const 3   ; "defer 1 "
   local.get 1   ; $field_2
@@ -213,7 +213,7 @@ end
 fn 5 __defer_snippet_2 (ref) -> void
   local $field_2 string
   local.field 0 5 0   ; arg 0 __defer_env_snippet_3.cap_0
-  ref.cast 1   ; string
+  ref.cast 2   ; string
   local.set 1   ; $field_2
   string.const 4   ; "defer 2 "
   local.get 1   ; $field_2
@@ -996,7 +996,7 @@ fn 32 std_core$format_f32 (f32) -> string
   u32.to_i64
   local.set 5   ; $cast_34
   local.field 4 22 1   ; d std_core$FloatDec32.exp
-  ref.cast 2   ; i32
+  ref.cast 3   ; i32
   local.set 6   ; $field_35
   local.get 5   ; $cast_34
   local.get 6   ; $field_35
@@ -1067,7 +1067,7 @@ fn 33 std_core$format_f64 (f64) -> string
   ref.cast 10   ; u64
   local.set 1   ; bits
   local.field 4 23 1   ; d std_core$Dec64.exp
-  ref.cast 2   ; i32
+  ref.cast 3   ; i32
   local.set 5   ; $field_34
   local.get 1   ; bits
   local.get 5   ; $field_34
@@ -3621,7 +3621,7 @@ fn 74 std_task$run__i32 (ref,ref) -> void
     local.set 3   ; $call_ind_6
     local.get 2   ; $field_5
     local.get 3   ; $call_ind_6
-    array.push 2   ; i32
+    array.push 3   ; i32
     defer.pop_exec 1
     return
   end $L0
@@ -3773,7 +3773,7 @@ fn 80 std_task$outcome__i32 (ref) -> any
     local.field 0 28 3   ; arg 0 std_task$Task__i32.result
     i32.const 0
     load_slot_i32
-    retag 2   ; i32
+    retag 3   ; i32
     return
   end $L0
   data.const 7 51   ; pool[7] std_core$Cancelled[]

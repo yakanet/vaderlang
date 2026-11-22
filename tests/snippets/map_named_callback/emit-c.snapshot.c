@@ -57,35 +57,35 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Rec_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Rec_t, f_name) },
         .string_count = 1,
     },
-    [2] = {
+    [3] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
     },
-    [3] = { .slot_size = 4 },
     [4] = { .slot_size = 4 },
-    [5] = {
+    [5] = { .slot_size = 4 },
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [6] = { .slot_size = 8 },
-    [7] = {
+    [7] = { .slot_size = 8 },
+    [8] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
     },
-    [8] = { .slot_size = 1 },
+    [9] = { .slot_size = 1 },
     [10] = { .slot_size = 1 },
     [11] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 1u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
     },
     [12] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
     },
 };
 const size_t vader_type_info_count = 13;
@@ -102,7 +102,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 7u, 8u);
+    return (void*) vader_string_bytes_view(a0, 8u, 9u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -143,9 +143,9 @@ static void* snippet$keys(void* l0) {
     l1 = ((vader_struct_snippet$Rec_t*) l0)->f_name;
     t0 = ((vader_struct_snippet$Rec_t*) l0)->f_name;
     l2 = concat_2(t0, 1u);
-    vader_array_t* _a0_arr = vader_array_new(2u, 2u, 0u, 3u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 1u] = vader_box_string(3u, l2);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 0u] = vader_box_string(3u, l1);
+    vader_array_t* _a0_arr = vader_array_new(3u, 2u, 0u, 4u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 1u] = vader_box_string(4u, l2);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 0u] = vader_box_string(4u, l1);
     t1 = (void*) _a0_arr;
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -175,20 +175,20 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Rec_t* _a0_obj = (vader_struct_snippet$Rec_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Rec_t));
-    vader_obj_header_init(_a0_obj, 1u);
+    vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_name = 2u;
     l0 = (void*) _a0_obj;
     vader_struct_snippet$Rec_t* _a1_obj = (vader_struct_snippet$Rec_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Rec_t));
-    vader_obj_header_init(_a1_obj, 1u);
+    vader_obj_header_init(_a1_obj, 2u);
     _a1_obj->f_name = 3u;
     l1 = (void*) _a1_obj;
-    vader_array_t* _a2_arr = vader_array_new(11u, 2u, 13u, 1u);
+    vader_array_t* _a2_arr = vader_array_new(11u, 2u, 13u, 2u);
     ((void**) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 1u] = l1;
     ((void**) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 0u] = l0;
     l0 = (void*) _a2_arr;
     l2 = l0;
     t0 = vader_array_length(((vader_array_t*) l2));
-    vader_array_t* _a3_arr = vader_array_reserve(12u, (int64_t) t0, 13u, 2u);
+    vader_array_t* _a3_arr = vader_array_reserve(12u, (int64_t) t0, 13u, 3u);
     l3 = (void*) _a3_arr;
     l4 = vader_array_length(((vader_array_t*) l2));
     l5 = INT64_C(0);
@@ -234,7 +234,7 @@ static int32_t snippet$main(void) {
     std_console$println__string(t3);
     l2 = l0;
     t0 = vader_array_length(((vader_array_t*) l2));
-    vader_array_t* _a8_arr = vader_array_reserve(12u, (int64_t) t0, 13u, 2u);
+    vader_array_t* _a8_arr = vader_array_reserve(12u, (int64_t) t0, 13u, 3u);
     l3 = (void*) _a8_arr;
     l4 = vader_array_length(((vader_array_t*) l2));
     l5 = INT64_C(0);
@@ -268,7 +268,7 @@ static int32_t snippet$main(void) {
     t3 = std_core$finish_buffer(l1, l5);
     std_console$println__string(t3);
     t0 = vader_array_length(((vader_array_t*) l0));
-    vader_array_t* _a12_arr = vader_array_reserve(11u, (int64_t) t0, 13u, 1u);
+    vader_array_t* _a12_arr = vader_array_reserve(11u, (int64_t) t0, 13u, 2u);
     l1 = (void*) _a12_arr;
     l4 = vader_array_length(((vader_array_t*) l0));
     l5 = INT64_C(0);

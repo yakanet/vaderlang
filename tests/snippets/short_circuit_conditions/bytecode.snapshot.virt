@@ -1,18 +1,18 @@
 module _main
 type 0 scalar null
-type 1 struct std_string__builder$StringBuilder { parts:12 }
-type 2 scalar string
-type 3 scalar bool
-type 4 array 5
-type 5 scalar i32
-type 6 scalar i64
-type 7 union 5,0
-type 8 struct std_core$Buffer {  }
-type 9 array 10
-type 10 scalar u8
-type 11 scalar void
-type 12 array 2
-type 13 array 3
+type 1 scalar void
+type 2 struct std_string__builder$StringBuilder { parts:12 }
+type 3 scalar string
+type 4 scalar bool
+type 5 array 6
+type 6 scalar i32
+type 7 scalar i64
+type 8 union 6,0
+type 9 struct std_core$Buffer {  }
+type 10 array 11
+type 11 scalar u8
+type 12 array 3
+type 13 array 4
 string 0 "a"
 string 1 "b"
 string 2 "T1 "
@@ -31,13 +31,13 @@ string 14 "true"
 string 15 "false"
 string 16 "\n"
 string 17 ""
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=6 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=5,9,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=5 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=11 () -> void
-impl 1 std_core$Display
-impl 8 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=3 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=10 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=6,10,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=6 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 2 std_core$Display
+impl 9 std_core$ByteAccess
 export main 5
 
 fn 0 snippet$trace (ref,string,bool) -> bool
@@ -58,7 +58,7 @@ fn 1 snippet$shapes (bool,bool,bool) -> string
   local $cast_55 i64
   local $call_59 string
   array.new 12 0   ; string[]
-  struct.new 1   ; std_string__builder$StringBuilder
+  struct.new 2   ; std_string__builder$StringBuilder
   local.tee 3   ; sb
   string.const 0   ; "a"
   local.get 0   ; arg 0
@@ -296,12 +296,12 @@ fn 3 snippet$guard (any,i32) -> i32
     return.lit i32.const -1
   end $L1
   local.get 0   ; arg 0
-  ref.cast 5   ; i32
+  ref.cast 6   ; i32
   i32.const 3
   i32.gt
   if $L2 void
     local.get 0   ; arg 0
-    ref.cast 5   ; i32
+    ref.cast 6   ; i32
     local.get 1   ; arg 1
     i32.checked_add
     return
@@ -311,11 +311,11 @@ fn 3 snippet$guard (any,i32) -> i32
   i32.ne
   if $L3 void
     local.get 0   ; arg 0
-    ref.cast 5   ; i32
+    ref.cast 6   ; i32
     return
   end $L3
   local.get 0   ; arg 0
-  ref.cast 5   ; i32
+  ref.cast 6   ; i32
   local.get 1   ; arg 1
   i32.checked_add
   return
@@ -334,7 +334,7 @@ fn 4 snippet$diverge (any,bool) -> i32
     return.lit i32.const 99
   end $L1
   local.get 2   ; __fallback_0
-  ref.cast 5   ; i32
+  ref.cast 6   ; i32
   i32.const 0
   i32.gt
   if $L2 void
@@ -377,7 +377,7 @@ fn 5 snippet$main () -> i32
       local.get 0   ; __for_arr_0
       local.get 2   ; __for_i_2
       array.get 13   ; bool[]
-      ref.cast 3   ; bool
+      ref.cast 4   ; bool
       local.set 3   ; a
       bool.const false
       bool.const true
@@ -395,7 +395,7 @@ fn 5 snippet$main () -> i32
           local.get 4   ; __for_arr_3
           local.get 6   ; __for_i_5
           array.get 13   ; bool[]
-          ref.cast 3   ; bool
+          ref.cast 4   ; bool
           local.set 7   ; b
           bool.const false
           bool.const true
@@ -413,7 +413,7 @@ fn 5 snippet$main () -> i32
               local.get 8   ; __for_arr_6
               local.get 10   ; __for_i_8
               array.get 13   ; bool[]
-              ref.cast 3   ; bool
+              ref.cast 4   ; bool
               local.set 11   ; c
               local.get 3   ; a
               local.get 7   ; b
@@ -494,7 +494,7 @@ fn 5 snippet$main () -> i32
   i32.const 7
   i32.const 3
   i32.const 9
-  array.new 4 5   ; i32[]
+  array.new 5 5   ; i32[]
   local.set 0   ; __for_arr_0
   i64.const 62
   buffer.new
@@ -566,7 +566,7 @@ fn 5 snippet$main () -> i32
   call 8   ; std_core$write_string_at
   local.set 1   ; __for_len_1
   i32.const 2
-  retag 5   ; i32
+  retag 6   ; i32
   i32.const -1
   call 3   ; snippet$guard
   i32.to_i64
@@ -582,7 +582,7 @@ fn 5 snippet$main () -> i32
   call 8   ; std_core$write_string_at
   local.set 1   ; __for_len_1
   i32.const 2
-  retag 5   ; i32
+  retag 6   ; i32
   i32.const 1
   call 3   ; snippet$guard
   i32.to_i64
@@ -598,7 +598,7 @@ fn 5 snippet$main () -> i32
   call 8   ; std_core$write_string_at
   local.set 1   ; __for_len_1
   i32.const 2
-  retag 5   ; i32
+  retag 6   ; i32
   i32.const 2
   call 3   ; snippet$guard
   i32.to_i64
@@ -614,7 +614,7 @@ fn 5 snippet$main () -> i32
   call 8   ; std_core$write_string_at
   local.set 1   ; __for_len_1
   i32.const 5
-  retag 5   ; i32
+  retag 6   ; i32
   i32.const 1
   call 3   ; snippet$guard
   i32.to_i64
@@ -664,7 +664,7 @@ fn 5 snippet$main () -> i32
   call 8   ; std_core$write_string_at
   local.set 1   ; __for_len_1
   i32.const 3
-  retag 5   ; i32
+  retag 6   ; i32
   bool.const false
   call 4   ; snippet$diverge
   i32.to_i64
@@ -680,7 +680,7 @@ fn 5 snippet$main () -> i32
   call 8   ; std_core$write_string_at
   local.set 1   ; __for_len_1
   i32.const -3
-  retag 5   ; i32
+  retag 6   ; i32
   bool.const false
   call 4   ; snippet$diverge
   i32.to_i64
@@ -914,7 +914,7 @@ fn 11 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 9   ; u8[]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12
@@ -997,9 +997,9 @@ fn 14 std_console$println__string (string) -> void
 end
 
 fn 15 std_string__builder$append (ref,string) -> void
-  local.field 0 1 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 2 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.get 1   ; arg 1
-  array.push 2   ; string
+  array.push 3   ; string
   return
 end
 
@@ -1012,7 +1012,7 @@ fn 16 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> stri
   local __for_i_2 i64
   local p string
   local $call_27 i64
-  local.field 0 1 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 2 0   ; arg 0 std_string__builder$StringBuilder.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -1024,10 +1024,10 @@ fn 16 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> stri
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 1 0   ; arg 0 std_string__builder$StringBuilder.parts
+    local.field 0 2 0   ; arg 0 std_string__builder$StringBuilder.parts
     i32.const 0
     array.get 12   ; string[]
-    ref.cast 2   ; string
+    ref.cast 3   ; string
     return
   end $L1
   local.get 0   ; arg 0
@@ -1037,7 +1037,7 @@ fn 16 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> stri
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; off
-  local.field 0 1 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 2 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 4   ; __for_arr_0
   array.len
   local.set 5   ; __for_len_1
@@ -1051,7 +1051,7 @@ fn 16 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> stri
       local.get 4   ; __for_arr_0
       local.get 6   ; __for_i_2
       array.get 12   ; string[]
-      ref.cast 2   ; string
+      ref.cast 3   ; string
       local.set 7   ; p
       local.get 2   ; buf
       local.get 3   ; off
@@ -1085,7 +1085,7 @@ fn 17 std_string__builder$byte_len (ref) -> i64
   local $call_12 i64
   i64.const 0
   local.set 1   ; total
-  local.field 0 1 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 2 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -1099,7 +1099,7 @@ fn 17 std_string__builder$byte_len (ref) -> i64
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
       array.get 12   ; string[]
-      ref.cast 2   ; string
+      ref.cast 3   ; string
       call.import 0   ; std_core$Intrinsic$byte_len
       local.set 5   ; $call_12
       local.get 1   ; total

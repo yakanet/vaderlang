@@ -1,0 +1,29 @@
+// A task whose function returns nothing ends with `void`: joining it, all of
+// them, or waiting for it with a time limit, gives `void` and not `Cancelled`.
+module "snippet"
+
+import "std/console"
+import "std/task"
+import "std/time"
+
+work :: fn() -> void {
+    println("worked")
+}
+
+outcome_of :: fn(result: void | Cancelled | TimeoutError) -> string = match result {
+    is void         -> "done"
+    is Cancelled    -> "cancelled"
+    is TimeoutError -> "timed out"
+}
+
+main :: fn() -> i32 {
+    one :: launch(work)
+    println(outcome_of(one.join()))
+    two :: launch(work)
+    println(outcome_of(two.timeout(5.seconds())))
+    tasks: Task<void>[]: [launch(work), launch(work)]
+    for result in join_all(tasks) {
+        println(outcome_of(result))
+    }
+    return 0
+}

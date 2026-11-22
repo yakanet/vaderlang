@@ -44,26 +44,26 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_snippet$Spec_t vader_data_0_e0 = {
-    VADER_STATIC_HEADER(3u), 4u, (int32_t) UINT64_C(1),
+    VADER_STATIC_HEADER(4u), 4u, (int32_t) UINT64_C(1),
 };
 static const struct vader_struct_snippet$Spec_t vader_data_0_e1 = {
-    VADER_STATIC_HEADER(3u), 3u, (int32_t) UINT64_C(2),
+    VADER_STATIC_HEADER(4u), 3u, (int32_t) UINT64_C(2),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_0_buf = {
-    VADER_STATIC_BUF_HEADER(3u, 0u, 2u),
+    VADER_STATIC_BUF_HEADER(4u, 0u, 2u),
     .slots = {
-        { 3u, 0u, { .obj = (void*) (struct vader_struct_snippet$Spec_t*) &vader_data_0_e0 } },
-        { 3u, 0u, { .obj = (void*) (struct vader_struct_snippet$Spec_t*) &vader_data_0_e1 } },
+        { 4u, 0u, { .obj = (void*) (struct vader_struct_snippet$Spec_t*) &vader_data_0_e0 } },
+        { 4u, 0u, { .obj = (void*) (struct vader_struct_snippet$Spec_t*) &vader_data_0_e1 } },
     },
 };
 static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(11u, 2u, &vader_data_0_buf);
 static const struct vader_struct_snippet$Spec_t vader_data_1_e0 = {
-    VADER_STATIC_HEADER(3u), 8u, (int32_t) UINT64_C(0),
+    VADER_STATIC_HEADER(4u), 8u, (int32_t) UINT64_C(0),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_1_buf = {
-    VADER_STATIC_BUF_HEADER(3u, 0u, 1u),
+    VADER_STATIC_BUF_HEADER(4u, 0u, 1u),
     .slots = {
-        { 3u, 0u, { .obj = (void*) (struct vader_struct_snippet$Spec_t*) &vader_data_1_e0 } },
+        { 4u, 0u, { .obj = (void*) (struct vader_struct_snippet$Spec_t*) &vader_data_1_e0 } },
     },
 };
 static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(11u, 1u, &vader_data_1_buf);
@@ -85,28 +85,28 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[12] = {
-    [1] = { .slot_size = 4 },
-    [2] = { .slot_size = 16 },
-    [3] = {
+    [2] = { .slot_size = 4 },
+    [3] = { .slot_size = 16 },
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Spec_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Spec_t, f_name) },
         .string_count = 1,
     },
-    [4] = { .slot_size = 4 },
-    [5] = {
+    [5] = { .slot_size = 4 },
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [6] = { .slot_size = 8 },
-    [7] = {
+    [7] = { .slot_size = 8 },
+    [8] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
     },
-    [8] = { .slot_size = 1 },
+    [9] = { .slot_size = 1 },
     [10] = { .slot_size = 1 },
     [11] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
     },
 };
 const size_t vader_type_info_count = 12;
@@ -123,7 +123,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 7u, 8u);
+    return (void*) vader_string_bytes_view(a0, 8u, 9u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -193,7 +193,7 @@ static vader_string_t snippet$describe(vader_string_t l0) {
         t0 = concat_2(l0, 1u);
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (!(l1.tag == 3u)) {
+    if (!(l1.tag == 4u)) {
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
     }
     l3 = l0;
@@ -233,7 +233,7 @@ static int32_t snippet$main(void) {
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     t1 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) INT64_C(0));
     l0 = vader_ref_box(t1);
-    if (l0.tag == 3u) {
+    if (l0.tag == 4u) {
         t1 = l0.payload.obj;
         l1 = ((vader_struct_snippet$Spec_t*) t1)->f_name;
         t0 = concat_2(6u, l1);

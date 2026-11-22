@@ -1,0 +1,82 @@
+# Typecheck
+
+## tests/snippets/fallible_operation_returns_void
+  FnDecl         describe             :: fn(null | Refused | void) -> string
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         nothing              :: fn() -> void
+  FnDecl         present              :: fn(null | T) -> bool
+  StructDecl     Refused              :: Refused
+  FnDecl         store                :: fn(bool) -> Refused | void
+  FnDecl         store_if             :: fn(bool) -> null | Refused | void
+  FnDecl         store_twice          :: fn(bool) -> Refused | void
+  expr 15:37    FieldExpr      :: string
+  expr 15:37    IdentExpr      :: Refused
+  expr 20:5     IfExpr         :: void
+  expr 20:8     IdentExpr      :: bool
+  expr 21:16    StructLitExpr  :: Refused
+  expr 21:36    StringLitExpr  :: string
+  expr 28:14    CallExpr       :: Refused | void
+  expr 28:14    FallbackExpr   :: void
+  expr 28:14    IdentExpr      :: fn(bool) -> Refused | void
+  expr 28:39    IdentExpr      :: Refused
+  expr 29:15    CallExpr       :: Refused | void
+  expr 29:15    FallbackExpr   :: void
+  expr 29:15    IdentExpr      :: fn(bool) -> Refused | void
+  expr 29:21    IdentExpr      :: bool
+  expr 29:39    IdentExpr      :: Refused
+  expr 30:13    StringLitExpr  :: string
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 35:5     IfExpr         :: void
+  expr 35:8     UnaryExpr      :: bool
+  expr 35:9     IdentExpr      :: bool
+  expr 38:12    CallExpr       :: Refused | void
+  expr 38:12    IdentExpr      :: fn(bool) -> Refused | void
+  expr 41:60    MatchExpr      :: string
+  expr 41:66    IdentExpr      :: null | Refused | void
+  expr 42:19    StringLitExpr  :: string
+  expr 43:19    StringLitExpr  :: string
+  expr 44:19    StringLitExpr  :: string
+  expr 44:31    FieldExpr      :: string
+  expr 44:31    IdentExpr      :: Refused
+  expr 48:45    BinaryExpr     :: bool
+  expr 48:45    IdentExpr      :: null | T
+  expr 53:11    CallExpr       :: Refused | void
+  expr 53:11    IdentExpr      :: fn(bool) -> Refused | void
+  expr 54:13    BinaryExpr     :: bool
+  expr 54:13    IdentExpr      :: Refused | void
+  expr 54:19    IdentExpr      :: void
+  expr 54:5     CallExpr       :: void
+  expr 54:5     IdentExpr      :: fn(T) -> void
+  expr 55:13    CallExpr       :: string
+  expr 55:13    IdentExpr      :: fn(null | Refused | void) -> string
+  expr 55:22    CallExpr       :: Refused | void
+  expr 55:22    IdentExpr      :: fn(bool) -> Refused | void
+  expr 55:5     CallExpr       :: void
+  expr 55:5     IdentExpr      :: fn(T) -> void
+  expr 56:13    CallExpr       :: string
+  expr 56:13    IdentExpr      :: fn(null | Refused | void) -> string
+  expr 56:22    CallExpr       :: null | Refused | void
+  expr 56:22    IdentExpr      :: fn(bool) -> null | Refused | void
+  expr 56:5     CallExpr       :: void
+  expr 56:5     IdentExpr      :: fn(T) -> void
+  expr 57:13    CallExpr       :: string
+  expr 57:13    IdentExpr      :: fn(null | Refused | void) -> string
+  expr 57:22    CallExpr       :: null | Refused | void
+  expr 57:22    IdentExpr      :: fn(bool) -> null | Refused | void
+  expr 57:5     CallExpr       :: void
+  expr 57:5     IdentExpr      :: fn(T) -> void
+  expr 58:13    CallExpr       :: Refused | void
+  expr 58:13    FallbackExpr   :: null | void
+  expr 58:13    IdentExpr      :: fn(bool) -> Refused | void
+  expr 59:13    BinaryExpr     :: bool
+  expr 59:13    IdentExpr      :: null | void
+  expr 59:21    IdentExpr      :: void
+  expr 59:5     CallExpr       :: void
+  expr 59:5     IdentExpr      :: fn(T) -> void
+  expr 60:13    CallExpr       :: bool
+  expr 60:13    IdentExpr      :: fn(null | T) -> bool
+  expr 60:27    CallExpr       :: void
+  expr 60:27    IdentExpr      :: fn() -> void
+  expr 60:5     CallExpr       :: void
+  expr 60:5     IdentExpr      :: fn(T) -> void

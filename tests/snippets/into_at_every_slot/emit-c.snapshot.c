@@ -144,51 +144,51 @@ static vader_box_t vader_fn_tramp___lambda_snippet_0(void* env, vader_box_t a0) 
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_0 = {
-    VADER_STATIC_HEADER(5u), (void*) &vader_fn_tramp___lambda_snippet_0, NULL,
+    VADER_STATIC_HEADER(6u), (void*) &vader_fn_tramp___lambda_snippet_0, NULL,
 };
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[25] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Celsius_t),
         .slot_size = 8,
     },
-    [2] = {
+    [3] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Label_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Label_t, f_text) },
         .string_count = 1,
     },
-    [3] = { .slot_size = 4 },
-    [4] = { .slot_size = 16 },
-    [5] = {
+    [4] = { .slot_size = 4 },
+    [5] = { .slot_size = 16 },
+    [6] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
         .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
-    [6] = {
+    [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Box_t), .slot_size = 8,
     },
-    [7] = { .slot_size = 16 },
-    [8] = { .slot_size = 4 },
-    [9] = {
+    [8] = { .slot_size = 16 },
+    [9] = { .slot_size = 4 },
+    [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Holder_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Holder_t, f_l) },
         .ref_count = 1,
     },
-    [10] = {
+    [11] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [11] = { .slot_size = 8 },
-    [12] = { .slot_size = 1 },
-    [13] = {
+    [12] = { .slot_size = 8 },
+    [13] = { .slot_size = 1 },
+    [14] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 12u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 13u,
     },
-    [14] = { .slot_size = 8 },
+    [15] = { .slot_size = 8 },
     [16] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections$Map__string__Any_t), .slot_size = 8,
@@ -206,7 +206,7 @@ const vader_type_info_t vader_type_info_table[25] = {
     },
     [21] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
     },
     [22] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -214,11 +214,11 @@ const vader_type_info_t vader_type_info_table[25] = {
     },
     [23] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
     },
     [24] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
     },
 };
 const size_t vader_type_info_count = 25;
@@ -243,7 +243,7 @@ static vader_string_t vader_host_std_core$Intrinsic$byte_slice(vader_string_t a0
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 13u, 12u);
+    return (void*) vader_string_bytes_view(a0, 14u, 13u);
 }
 
 static uint64_t vader_host_std_core$Intrinsic$string_hash(vader_string_t a0) {
@@ -297,7 +297,7 @@ static void* snippet$Celsius$std_core$Into$into(void* l0) {
     l2 = std_core$write_string_at(l1, l2, 1u);
     t1 = std_core$finish_buffer(l1, l2);
     vader_struct_snippet$Label_t* _a0_obj = (vader_struct_snippet$Label_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Label_t));
-    vader_obj_header_init(_a0_obj, 2u);
+    vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_text = t1;
     t2 = (void*) _a0_obj;
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
@@ -336,7 +336,7 @@ static void* snippet$fallback(vader_box_t l0) {
     l1 = l0;
     if (l1.tag == 0u) {
         vader_struct_snippet$Celsius_t* _a0_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
-        vader_obj_header_init(_a0_obj, 1u);
+        vader_obj_header_init(_a0_obj, 2u);
         _a0_obj->f_v = INT32_C(4);
         t0 = (void*) _a0_obj;
         t1 = snippet$Celsius$std_core$Into$into(t0);
@@ -413,11 +413,11 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Label_t* _a1_obj = &_a0_storage;
-    vader_obj_header_init(_a1_obj, 2u);
+    vader_obj_header_init(_a1_obj, 3u);
     _a1_obj->f_text = 4u;
     l0 = (void*) _a1_obj;
     vader_struct_snippet$Celsius_t* _a2_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
-    vader_obj_header_init(_a2_obj, 1u);
+    vader_obj_header_init(_a2_obj, 2u);
     _a2_obj->f_v = INT32_C(3);
     t0 = (void*) _a2_obj;
     l0 = snippet$Celsius$std_core$Into$into(t0);
@@ -425,15 +425,15 @@ static int32_t snippet$main(void) {
     t1 = concat_3(5u, l1, 6u);
     std_console$println__string(t1);
     vader_struct_snippet$Label_t* _a4_obj = &_a3_storage;
-    vader_obj_header_init(_a4_obj, 2u);
+    vader_obj_header_init(_a4_obj, 3u);
     _a4_obj->f_text = 4u;
     t0 = (void*) _a4_obj;
     vader_struct_snippet$Holder_t* _a6_obj = &_a5_storage;
-    vader_obj_header_init(_a6_obj, 9u);
+    vader_obj_header_init(_a6_obj, 10u);
     _a6_obj->f_l = t0;
     l2 = (void*) _a6_obj;
     vader_struct_snippet$Celsius_t* _a7_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
-    vader_obj_header_init(_a7_obj, 1u);
+    vader_obj_header_init(_a7_obj, 2u);
     _a7_obj->f_v = INT32_C(6);
     t0 = (void*) _a7_obj;
     l3 = snippet$Celsius$std_core$Into$into(t0);
@@ -441,11 +441,11 @@ static int32_t snippet$main(void) {
     l1 = ((vader_struct_snippet$Label_t*) ((vader_struct_snippet$Holder_t*) l2)->f_l)->f_text;
     t1 = concat_3(7u, l1, 6u);
     std_console$println__string(t1);
-    vader_array_t* _a8_arr = vader_array_new(21u, 0u, 0u, 3u);
+    vader_array_t* _a8_arr = vader_array_new(21u, 0u, 0u, 4u);
     l2 = (void*) _a8_arr;
     vader_array_t* _a9_arr = vader_array_new(22u, 0u, 0u, 18u);
     l3 = (void*) _a9_arr;
-    vader_array_t* _a10_arr = vader_array_new(23u, 0u, 7u, 8u);
+    vader_array_t* _a10_arr = vader_array_new(23u, 0u, 7u, 9u);
     l4 = (void*) _a10_arr;
     vader_struct_std_collections$Map__string__Any_t* _a11_obj = (vader_struct_std_collections$Map__string__Any_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$Map__string__Any_t));
     vader_obj_header_init(_a11_obj, 16u);
@@ -458,7 +458,7 @@ static int32_t snippet$main(void) {
     _a11_obj->f_tombs = INT64_C(0);
     l2 = (void*) _a11_obj;
     vader_struct_snippet$Celsius_t* _a12_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
-    vader_obj_header_init(_a12_obj, 1u);
+    vader_obj_header_init(_a12_obj, 2u);
     _a12_obj->f_v = INT32_C(8);
     t0 = (void*) _a12_obj;
     l3 = snippet$Celsius$std_core$Into$into(t0);
@@ -466,7 +466,7 @@ static int32_t snippet$main(void) {
     l5 = std_collections$Map$std_core$Index$at__string__Any(l2, 8u);
     if (l5.tag == 0u) {
         vader_struct_snippet$Label_t* _a14_obj = &_a13_storage;
-        vader_obj_header_init(_a14_obj, 2u);
+        vader_obj_header_init(_a14_obj, 3u);
         _a14_obj->f_text = 9u;
         l2 = (void*) _a14_obj;
     } else {
@@ -477,7 +477,7 @@ static int32_t snippet$main(void) {
     std_console$println__string(t1);
     l6 = INT32_C(0);
     vader_struct_snippet$Celsius_t* _a15_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
-    vader_obj_header_init(_a15_obj, 1u);
+    vader_obj_header_init(_a15_obj, 2u);
     _a15_obj->f_v = INT32_C(13);
     t0 = (void*) _a15_obj;
     l0 = snippet$Celsius$std_core$Into$into(t0);
@@ -493,10 +493,10 @@ static int32_t snippet$main(void) {
     l7 = std_core$write_int(l0, l7, l8);
     t1 = std_core$finish_buffer(l0, l7);
     std_console$println__string(t1);
-    vader_array_t* _a16_arr = vader_array_new(24u, 0u, 13u, 2u);
+    vader_array_t* _a16_arr = vader_array_new(24u, 0u, 13u, 3u);
     l0 = (void*) _a16_arr;
     vader_struct_snippet$Celsius_t* _a17_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
-    vader_obj_header_init(_a17_obj, 1u);
+    vader_obj_header_init(_a17_obj, 2u);
     _a17_obj->f_v = INT32_C(14);
     t0 = (void*) _a17_obj;
     l2 = snippet$Celsius$std_core$Into$into(t0);
@@ -513,7 +513,7 @@ static int32_t snippet$main(void) {
     t1 = concat_3(14u, l1, 6u);
     std_console$println__string(t1);
     vader_struct_snippet$Celsius_t* _a19_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
-    vader_obj_header_init(_a19_obj, 1u);
+    vader_obj_header_init(_a19_obj, 2u);
     _a19_obj->f_v = INT32_C(5);
     t0 = (void*) _a19_obj;
     l0 = snippet$Celsius$std_core$Into$into(t0);
@@ -521,7 +521,7 @@ static int32_t snippet$main(void) {
     t1 = concat_3(15u, l1, 6u);
     std_console$println__string(t1);
     vader_struct_snippet$Celsius_t* _a20_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
-    vader_obj_header_init(_a20_obj, 1u);
+    vader_obj_header_init(_a20_obj, 2u);
     _a20_obj->f_v = INT32_C(9);
     t0 = (void*) _a20_obj;
     t1 = snippet$Celsius$std_core$Into$into$1(t0);
@@ -529,7 +529,7 @@ static int32_t snippet$main(void) {
     t1 = concat_3(16u, l1, 6u);
     std_console$println__string(t1);
     vader_struct_snippet$Celsius_t* _a21_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
-    vader_obj_header_init(_a21_obj, 1u);
+    vader_obj_header_init(_a21_obj, 2u);
     _a21_obj->f_v = INT32_C(10);
     t0 = (void*) _a21_obj;
     l0 = snippet$Celsius$std_core$Into$into(t0);
@@ -537,29 +537,29 @@ static int32_t snippet$main(void) {
     t1 = concat_3(17u, l1, 6u);
     std_console$println__string(t1);
     vader_struct_snippet$Box_t* _a22_obj = (vader_struct_snippet$Box_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Box_t));
-    vader_obj_header_init(_a22_obj, 6u);
+    vader_obj_header_init(_a22_obj, 7u);
     _a22_obj->f_n = INT32_C(1);
     l0 = (void*) _a22_obj;
     vader_struct_snippet$Celsius_t* _a23_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
-    vader_obj_header_init(_a23_obj, 1u);
+    vader_obj_header_init(_a23_obj, 2u);
     _a23_obj->f_v = INT32_C(15);
     l2 = (void*) _a23_obj;
     l1 = snippet$through_trait(vader_ref_box(l0), l2);
     t1 = concat_3(18u, l1, 6u);
     std_console$println__string(t1);
     vader_struct_snippet$Box_t* _a24_obj = (vader_struct_snippet$Box_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Box_t));
-    vader_obj_header_init(_a24_obj, 6u);
+    vader_obj_header_init(_a24_obj, 7u);
     _a24_obj->f_n = INT32_C(1);
     l0 = (void*) _a24_obj;
     vader_struct_snippet$Celsius_t* _a25_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
-    vader_obj_header_init(_a25_obj, 1u);
+    vader_obj_header_init(_a25_obj, 2u);
     _a25_obj->f_v = INT32_C(16);
     l2 = (void*) _a25_obj;
     l1 = snippet$through_bound__snippet_Box(l0, l2);
     t1 = concat_3(19u, l1, 6u);
     std_console$println__string(t1);
     vader_struct_snippet$Celsius_t* _a26_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
-    vader_obj_header_init(_a26_obj, 1u);
+    vader_obj_header_init(_a26_obj, 2u);
     _a26_obj->f_v = INT32_C(11);
     t0 = (void*) _a26_obj;
     t2 = snippet$returned(t0);
@@ -568,7 +568,7 @@ static int32_t snippet$main(void) {
     std_console$println__string(t1);
     l0 = (void*) &vader_fn_static___lambda_snippet_0;
     vader_struct_snippet$Celsius_t* _a27_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
-    vader_obj_header_init(_a27_obj, 1u);
+    vader_obj_header_init(_a27_obj, 2u);
     _a27_obj->f_v = INT32_C(12);
     l2 = (void*) _a27_obj;
     t0 = snippet$apply(l0, l2);
@@ -758,7 +758,7 @@ static void std_collections$rehash__string__Any(void* l0, int64_t l1) {
     } else {
         l2 = INT64_C(0);
     }
-    vader_array_t* _a0_arr = vader_array_reserve(23u, (int64_t) l2, 7u, 8u);
+    vader_array_t* _a0_arr = vader_array_reserve(23u, (int64_t) l2, 7u, 9u);
     l3 = (void*) _a0_arr;
     l2 = INT64_C(0);
     vader_array_t* _pc15_hdr = (vader_array_t*) l3;
@@ -915,14 +915,14 @@ static bool std_collections$put__string__Any(void* l0, vader_string_t l1, vader_
         vader_array_t* _a3_slotarr = ((vader_array_t*) ((vader_struct_std_collections$Map__string__Any_t*) l0)->f_ekeys);
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l6)
-        vader_array_box_slots(_a3_slotarr->buf)[vader_array_offset(_a3_slotarr) + (size_t) l6] = vader_box_string(3u, l1);
+        vader_array_box_slots(_a3_slotarr->buf)[vader_array_offset(_a3_slotarr) + (size_t) l6] = vader_box_string(4u, l1);
         vader_array_t* _a4_slotarr = ((vader_array_t*) ((vader_struct_std_collections$Map__string__Any_t*) l0)->f_evals);
         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l6)
         vader_array_ref_store_box(_a4_slotarr->buf, vader_array_offset(_a4_slotarr) + (size_t) l6, l2);
         VADER_WRITE_BARRIER(_a4_slotarr->buf);
     } else {
-        vader_array_push_scalar((vader_array_t*) ((vader_struct_std_collections$Map__string__Any_t*) l0)->f_ekeys, vader_box_string(3u, l1));
+        vader_array_push_scalar((vader_array_t*) ((vader_struct_std_collections$Map__string__Any_t*) l0)->f_ekeys, vader_box_string(4u, l1));
         vader_array_push((vader_array_t*) ((vader_struct_std_collections$Map__string__Any_t*) l0)->f_evals, l2);
     }
     l8 = vader_chk_add(i64, l6, INT64_C(1));
@@ -1127,7 +1127,7 @@ static bool std_ascii$is_white_byte(uint8_t l0) {
 /* vtable dispatchers */
 static vader_string_t snippet$Shower$show$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 6u: return snippet$Box$Shower$show(recv.payload.obj, a0.payload.obj);
+        case 7u: return snippet$Box$Shower$show(recv.payload.obj, a0.payload.obj);
         default: vader_unreachable("vtable miss in snippet$Shower.show");
     }
     vader_unreachable("vtable miss in snippet$Shower.show");

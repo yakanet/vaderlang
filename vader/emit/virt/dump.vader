@@ -748,6 +748,7 @@ write_op_refs :: fn(out: StringBuilder, refs: (OperandRef | null)[], op: Op) -> 
         is BoolConst                -> out.append("bool.const ${op.value}")
         is CharConst                -> out.append("char.const ${u32(op.value)}")
         is NullConst                -> out.append("null.const")
+        is VoidConst                -> out.append("void.const")
         is StringConst              -> printed(out, refs, "string.const", [refer(.String, op.index)])
         is LocalGet                 -> printed(out, refs, "local.get", [refer(.Local, op.slot)])
         is LocalSet                 -> printed(out, refs, "local.set", [refer(.Local, op.slot)])

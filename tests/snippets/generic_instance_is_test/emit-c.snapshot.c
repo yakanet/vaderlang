@@ -67,35 +67,35 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
-    [1] = { .slot_size = 16 },
-    [2] = {
+    [2] = { .slot_size = 16 },
+    [3] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Spec__bool_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Spec__bool_t, f_name) },
         .string_count = 1,
     },
-    [3] = {
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Spec__string_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Spec__string_t, f_name), offsetof(vader_struct_snippet$Spec__string_t, f_dflt) },
         .string_count = 2,
     },
-    [4] = { .slot_size = 4 },
     [5] = { .slot_size = 4 },
-    [6] = { .slot_size = 1 },
-    [7] = {
+    [6] = { .slot_size = 4 },
+    [7] = { .slot_size = 1 },
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [8] = { .slot_size = 8 },
-    [9] = {
+    [9] = { .slot_size = 8 },
+    [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 10u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
     },
-    [10] = { .slot_size = 1 },
+    [11] = { .slot_size = 1 },
     [12] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 1u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
     },
 };
 const size_t vader_type_info_count = 13;
@@ -112,7 +112,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 9u, 10u);
+    return (void*) vader_string_bytes_view(a0, 10u, 11u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -154,7 +154,7 @@ static vader_string_t snippet$describe(vader_box_t l0) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (l0.tag == 2u) {
+    if (l0.tag == 3u) {
         t0 = l0.payload.obj;
         l1 = ((vader_struct_snippet$Spec__bool_t*) t0)->f_name;
         l2 = vader_host_std_core$Intrinsic$byte_len(l1);
@@ -168,7 +168,7 @@ static vader_string_t snippet$describe(vader_box_t l0) {
         t1 = std_core$finish_buffer(l3, l2);
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (!(l0.tag == 3u)) {
+    if (!(l0.tag == 4u)) {
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
     }
     t0 = l0.payload.obj;
@@ -196,16 +196,16 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Spec__bool_t* _a0_obj = (vader_struct_snippet$Spec__bool_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Spec__bool_t));
-    vader_obj_header_init(_a0_obj, 2u);
+    vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_name = 3u;
     _a0_obj->f_dflt = false;
     l0 = (void*) _a0_obj;
     vader_struct_snippet$Spec__string_t* _a1_obj = (vader_struct_snippet$Spec__string_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Spec__string_t));
-    vader_obj_header_init(_a1_obj, 3u);
+    vader_obj_header_init(_a1_obj, 4u);
     _a1_obj->f_name = 4u;
     _a1_obj->f_dflt = 4u;
     l1 = (void*) _a1_obj;
-    vader_array_t* _a2_arr = vader_array_new(12u, 2u, 13u, 1u);
+    vader_array_t* _a2_arr = vader_array_new(12u, 2u, 13u, 2u);
     ((void**) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 1u] = l1;
     ((void**) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 0u] = l0;
     l0 = (void*) _a2_arr;
@@ -216,12 +216,12 @@ static int32_t snippet$main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l3)
         l4 = vader_array_ref_load_box(_a3_slotarr->buf, vader_array_offset(_a3_slotarr) + (size_t) l3);
-        if (l4.tag == 2u) {
+        if (l4.tag == 3u) {
             t0 = l4.payload.obj;
             l5 = ((vader_struct_snippet$Spec__bool_t*) t0)->f_name;
             t1 = concat_3(5u, l5, 6u);
             std_console$println__string(t1);
-        } else if (l4.tag == 3u) {
+        } else if (l4.tag == 4u) {
             t0 = l4.payload.obj;
             l6 = ((vader_struct_snippet$Spec__string_t*) t0)->f_name;
             t1 = concat_3(5u, l6, 7u);

@@ -830,16 +830,16 @@ typedef vader_box_t (*vader_fn_erased_sig_1_t)(void* env, vader_box_t a0);
 static vader_box_t vader_fn_tramp___lambda_snippet_2(void* env, vader_box_t a0) {
     (void) env;
     __lambda_snippet_2(((int32_t) a0.payload.i));
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_2 = {
-    VADER_STATIC_HEADER(3u), (void*) &vader_fn_tramp___lambda_snippet_2, NULL,
+    VADER_STATIC_HEADER(4u), (void*) &vader_fn_tramp___lambda_snippet_2, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_3(void* env, vader_box_t a0) {
     (void) env;
-    return vader_box_i32(1u, __lambda_snippet_3(((int32_t) a0.payload.i)));
+    return vader_box_i32(2u, __lambda_snippet_3(((int32_t) a0.payload.i)));
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_3 = {
@@ -858,7 +858,7 @@ static vader_fn_t vader_fn_static___lambda_snippet_4 = {
 static vader_box_t vader_fn_tramp___lambda_snippet_5(void* env, vader_box_t a0) {
     (void) env;
     __lambda_snippet_5(a0.payload.s);
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_5 = {
@@ -876,7 +876,7 @@ static vader_fn_t vader_fn_static___lambda_snippet_6 = {
 
 static vader_box_t vader_fn_tramp_snippet$same__i32(void* env, vader_box_t a0) {
     (void) env;
-    return vader_box_i32(1u, snippet$same__i32(((int32_t) a0.payload.i)));
+    return vader_box_i32(2u, snippet$same__i32(((int32_t) a0.payload.i)));
 }
 
 static vader_fn_t vader_fn_static_snippet$same__i32 = {
@@ -884,7 +884,7 @@ static vader_fn_t vader_fn_static_snippet$same__i32 = {
 };
 
 static vader_box_t vader_fn_lift___lambda_snippet_0(void* env, vader_box_t a0) {
-    return vader_box_i32(1u, __lambda_snippet_0(env, ((int32_t) a0.payload.i)));
+    return vader_box_i32(2u, __lambda_snippet_0(env, ((int32_t) a0.payload.i)));
 }
 
 static vader_box_t vader_fn_lift___method_snippet_7(void* env, vader_box_t a0) {
@@ -895,9 +895,9 @@ static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[30] = {
-    [1] = { .slot_size = 4 },
-    [2] = { .slot_size = 16 },
-    [3] = {
+    [2] = { .slot_size = 4 },
+    [3] = { .slot_size = 16 },
+    [4] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
         .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
@@ -1030,7 +1030,7 @@ static void snippet$apply(int32_t l0, vader_box_t l1) {
     }
     l2 = l1.payload.obj;
     vader_fn_t* _a0_fnobj = (vader_fn_t*) l2;
-    ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(1u, l0));
+    ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(2u, l0));
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -1045,7 +1045,7 @@ static int32_t snippet$run(vader_box_t l0, int32_t l1) {
     if (!(l0.tag == 0u)) {
         l2 = l0.payload.obj;
         vader_fn_t* _a0_fnobj = (vader_fn_t*) l2;
-        t0 = ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(1u, l1));
+        t0 = ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(2u, l1));
         t1 = ((int32_t) t0.payload.i);
         { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }

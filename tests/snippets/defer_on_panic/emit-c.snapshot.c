@@ -44,13 +44,13 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct___defer_env_snippet_1_t vader_data_0_e0 = {
-    VADER_STATIC_HEADER(2u),
+    VADER_STATIC_HEADER(3u),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
-    VADER_STATIC_BUF_HEADER(2u, 0u, 1u),
+    VADER_STATIC_BUF_HEADER(3u, 0u, 1u),
     .slots = {
         {
-            2u, 0u,
+            3u, 0u,
             { .obj = (void*) (struct vader_struct___defer_env_snippet_1_t*) &vader_data_0_e0 },
         },
     },
@@ -97,25 +97,25 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static vader_box_t vader_fn_lift___defer_snippet_0(void* env) {
     __defer_snippet_0(env);
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static vader_box_t vader_fn_lift___defer_snippet_2(void* env) {
     __defer_snippet_2(env);
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static vader_box_t vader_fn_lift___defer_snippet_4(void* env) {
     __defer_snippet_4(env);
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[16] = {
-    [1] = { .slot_size = 4 },
-    [2] = {
+    [2] = { .slot_size = 4 },
+    [3] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___defer_env_snippet_1_t),
         .slot_size = 8,
     },
@@ -141,7 +141,7 @@ const vader_type_info_t vader_type_info_table[16] = {
     [11] = { .slot_size = 1 },
     [12] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
     },
     [13] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,

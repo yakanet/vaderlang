@@ -201,12 +201,12 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_std_io$IOError_t vader_data_0_e0 = {
-    VADER_STATIC_HEADER(3u), 61u, (uint8_t) UINT64_C(0), (int32_t) UINT64_C(0),
+    VADER_STATIC_HEADER(4u), 61u, (uint8_t) UINT64_C(0), (int32_t) UINT64_C(0),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
-    VADER_STATIC_BUF_HEADER(3u, 0u, 1u),
+    VADER_STATIC_BUF_HEADER(4u, 0u, 1u),
     .slots = {
-        { 3u, 0u, { .obj = (void*) (struct vader_struct_std_io$IOError_t*) &vader_data_0_e0 } },
+        { 4u, 0u, { .obj = (void*) (struct vader_struct_std_io$IOError_t*) &vader_data_0_e0 } },
     },
 };
 static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(26u, 1u, &vader_data_0_buf);
@@ -253,28 +253,28 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[27] = {
-    [1] = { .slot_size = 4 },
-    [2] = { .slot_size = 16 },
-    [3] = {
+    [2] = { .slot_size = 4 },
+    [3] = { .slot_size = 16 },
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_io$IOError_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_io$IOError_t, f_msg) },
         .string_count = 1,
     },
-    [4] = { .slot_size = 4 },
-    [5] = { .slot_size = 16 },
-    [6] = {
+    [5] = { .slot_size = 4 },
+    [6] = { .slot_size = 16 },
+    [7] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
     },
-    [7] = { .slot_size = 1 },
-    [8] = { .slot_size = 16 },
-    [9] = {
+    [8] = { .slot_size = 1 },
+    [9] = { .slot_size = 16 },
+    [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [10] = { .slot_size = 8 },
-    [11] = { .slot_size = 16 },
+    [11] = { .slot_size = 8 },
+    [12] = { .slot_size = 16 },
     [13] = { .slot_size = 1 },
     [14] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_io$BufferedReader_t),
@@ -333,7 +333,7 @@ const vader_type_info_t vader_type_info_table[27] = {
     [25] = { .slot_size = 16 },
     [26] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
     },
 };
 const size_t vader_type_info_count = 27;
@@ -350,7 +350,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 6u, 7u);
+    return (void*) vader_string_bytes_view(a0, 7u, 8u);
 }
 
 static vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
@@ -404,7 +404,7 @@ static int32_t snippet$main(void) {
     vader_gc_top = &gc_frame;
     vader_struct_std_io$BytesReader_t* _a0_obj = (vader_struct_std_io$BytesReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BytesReader_t));
     vader_obj_header_init(_a0_obj, 18u);
-    _a0_obj->f_content = vader_box_string(4u, 1u);
+    _a0_obj->f_content = vader_box_string(5u, 1u);
     _a0_obj->f_position = INT64_C(0);
     t0 = (void*) _a0_obj;
     vader_struct_std_io$FragmentedReader_t* _a1_obj = (vader_struct_std_io$FragmentedReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$FragmentedReader_t));
@@ -412,7 +412,7 @@ static int32_t snippet$main(void) {
     _a1_obj->f_source = vader_ref_box(t0);
     _a1_obj->f_size = INT64_C(3);
     l0 = (void*) _a1_obj;
-    vader_array_t* _a2_arr = vader_array_new(6u, 0u, 1u, 7u);
+    vader_array_t* _a2_arr = vader_array_new(7u, 0u, 1u, 8u);
     l1 = (void*) _a2_arr;
     vader_struct_std_io$BufferedReader_t* _a3_obj = (vader_struct_std_io$BufferedReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BufferedReader_t));
     vader_obj_header_init(_a3_obj, 14u);
@@ -461,10 +461,10 @@ static int32_t snippet$main(void) {
     std_console$println__string(t2);
     vader_struct_std_io$BytesReader_t* _a4_obj = (vader_struct_std_io$BytesReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BytesReader_t));
     vader_obj_header_init(_a4_obj, 18u);
-    _a4_obj->f_content = vader_box_string(4u, 12u);
+    _a4_obj->f_content = vader_box_string(5u, 12u);
     _a4_obj->f_position = INT64_C(0);
     l0 = (void*) _a4_obj;
-    vader_array_t* _a5_arr = vader_array_new(6u, 0u, 1u, 7u);
+    vader_array_t* _a5_arr = vader_array_new(7u, 0u, 1u, 8u);
     l1 = (void*) _a5_arr;
     vader_struct_std_io$BufferedReader_t* _a6_obj = (vader_struct_std_io$BufferedReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BufferedReader_t));
     vader_obj_header_init(_a6_obj, 14u);
@@ -479,13 +479,13 @@ static int32_t snippet$main(void) {
     l2 = snippet$bytes_text(t1);
     t2 = concat_2(13u, l2);
     std_console$println__string(t2);
-    vader_array_t* _a7_arr = vader_array_new(6u, 0u, 1u, 7u);
+    vader_array_t* _a7_arr = vader_array_new(7u, 0u, 1u, 8u);
     t0 = (void*) _a7_arr;
     vader_struct_std_io$BytesWriter_t* _a8_obj = (vader_struct_std_io$BytesWriter_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BytesWriter_t));
     vader_obj_header_init(_a8_obj, 19u);
     _a8_obj->f_written = t0;
     l0 = (void*) _a8_obj;
-    vader_array_t* _a9_arr = vader_array_new(6u, 0u, 1u, 7u);
+    vader_array_t* _a9_arr = vader_array_new(7u, 0u, 1u, 8u);
     l1 = (void*) _a9_arr;
     vader_struct_std_io$BufferedWriter_t* _a10_obj = (vader_struct_std_io$BufferedWriter_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BufferedWriter_t));
     vader_obj_header_init(_a10_obj, 16u);
@@ -493,7 +493,7 @@ static int32_t snippet$main(void) {
     _a10_obj->f_capacity = INT64_C(16);
     _a10_obj->f_buffer = l1;
     l1 = (void*) _a10_obj;
-    std_io$BufferedWriter$Writer$write(l1, vader_box_string(4u, 14u));
+    std_io$BufferedWriter$Writer$write(l1, vader_box_string(5u, 14u));
     l3 = (void*) vader_buffer_new((size_t) INT64_C(43));
     l4 = INT64_C(0);
     l4 = std_core$write_string_at(l3, l4, 15u);
@@ -501,7 +501,7 @@ static int32_t snippet$main(void) {
     l4 = std_core$write_int(l3, l4, l5);
     t2 = std_core$finish_buffer(l3, l4);
     std_console$println__string(t2);
-    std_io$BufferedWriter$Writer$write(l1, vader_box_string(4u, 16u));
+    std_io$BufferedWriter$Writer$write(l1, vader_box_string(5u, 16u));
     l3 = (void*) vader_buffer_new((size_t) INT64_C(52));
     l4 = INT64_C(0);
     l4 = std_core$write_string_at(l3, l4, 17u);
@@ -509,7 +509,7 @@ static int32_t snippet$main(void) {
     l4 = std_core$write_int(l3, l4, l5);
     t2 = std_core$finish_buffer(l3, l4);
     std_console$println__string(t2);
-    vader_array_t* _a11_arr = vader_array_new(6u, 2u, 1u, 7u);
+    vader_array_t* _a11_arr = vader_array_new(7u, 2u, 1u, 8u);
     ((uint8_t*) _a11_arr->buf->slots)[vader_array_offset(_a11_arr) + 1u] = (uint8_t) INT32_C(10);
     ((uint8_t*) _a11_arr->buf->slots)[vader_array_offset(_a11_arr) + 0u] = (uint8_t) INT32_C(13);
     l3 = (void*) _a11_arr;
@@ -534,7 +534,7 @@ static int32_t snippet$main(void) {
     _a12_obj->f_content = vader_ref_box(((vader_struct_std_io$BytesWriter_t*) l0)->f_written);
     _a12_obj->f_position = INT64_C(0);
     l0 = (void*) _a12_obj;
-    vader_array_t* _a13_arr = vader_array_new(6u, 0u, 1u, 7u);
+    vader_array_t* _a13_arr = vader_array_new(7u, 0u, 1u, 8u);
     l1 = (void*) _a13_arr;
     vader_struct_std_io$BufferedReader_t* _a14_obj = (vader_struct_std_io$BufferedReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BufferedReader_t));
     vader_obj_header_init(_a14_obj, 14u);
@@ -549,7 +549,7 @@ static int32_t snippet$main(void) {
         l7 = std_io$read_line(l0, INT64_C(1048576));
         if (!(l7.tag == 0u)) {
             l6 = l7;
-            if (l6.tag == 3u) {
+            if (l6.tag == 4u) {
                 l1 = l6.payload.obj;
                 ((vader_struct_std_io$BufferedReader_t*) l0)->f_error = vader_ref_box(l1);
                 VADER_WRITE_BARRIER((vader_struct_std_io$BufferedReader_t*) l0);
@@ -564,7 +564,7 @@ static int32_t snippet$main(void) {
     }
     vader_struct_std_io$BytesReader_t* _a15_obj = (vader_struct_std_io$BytesReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BytesReader_t));
     vader_obj_header_init(_a15_obj, 18u);
-    _a15_obj->f_content = vader_box_string(4u, 21u);
+    _a15_obj->f_content = vader_box_string(5u, 21u);
     _a15_obj->f_position = INT64_C(0);
     t0 = (void*) _a15_obj;
     vader_struct_std_io$FragmentedReader_t* _a16_obj = (vader_struct_std_io$FragmentedReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$FragmentedReader_t));
@@ -583,7 +583,7 @@ static int32_t snippet$main(void) {
     _a18_obj->f_failure = l1;
     _a18_obj->f_seen = INT64_C(0);
     l0 = (void*) _a18_obj;
-    vader_array_t* _a19_arr = vader_array_new(6u, 0u, 1u, 7u);
+    vader_array_t* _a19_arr = vader_array_new(7u, 0u, 1u, 8u);
     l1 = (void*) _a19_arr;
     vader_struct_std_io$BufferedReader_t* _a20_obj = (vader_struct_std_io$BufferedReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BufferedReader_t));
     vader_obj_header_init(_a20_obj, 14u);
@@ -602,14 +602,14 @@ static int32_t snippet$main(void) {
     l2 = snippet$line_text(t1);
     t2 = concat_2(23u, l2);
     std_console$println__string(t2);
-    vader_array_t* _a21_arr = vader_array_new(6u, 0u, 1u, 7u);
+    vader_array_t* _a21_arr = vader_array_new(7u, 0u, 1u, 8u);
     t0 = (void*) _a21_arr;
     vader_struct_std_io$BytesWriter_t* _a22_obj = (vader_struct_std_io$BytesWriter_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BytesWriter_t));
     vader_obj_header_init(_a22_obj, 19u);
     _a22_obj->f_written = t0;
     l0 = (void*) _a22_obj;
     vader_struct_std_io$IOError_t* _a23_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
-    vader_obj_header_init(_a23_obj, 3u);
+    vader_obj_header_init(_a23_obj, 4u);
     _a23_obj->f_msg = 24u;
     _a23_obj->f_kind = (uint8_t) 8;
     _a23_obj->f_code = INT32_C(0);
@@ -621,7 +621,7 @@ static int32_t snippet$main(void) {
     _a24_obj->f_failure = l1;
     _a24_obj->f_seen = INT64_C(0);
     l0 = (void*) _a24_obj;
-    vader_array_t* _a25_arr = vader_array_new(6u, 0u, 1u, 7u);
+    vader_array_t* _a25_arr = vader_array_new(7u, 0u, 1u, 8u);
     l1 = (void*) _a25_arr;
     vader_struct_std_io$BufferedWriter_t* _a26_obj = (vader_struct_std_io$BufferedWriter_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BufferedWriter_t));
     vader_obj_header_init(_a26_obj, 16u);
@@ -629,7 +629,7 @@ static int32_t snippet$main(void) {
     _a26_obj->f_capacity = INT64_C(8192);
     _a26_obj->f_buffer = l1;
     l0 = (void*) _a26_obj;
-    t1 = std_io$BufferedWriter$Writer$write(l0, vader_box_string(4u, 26u));
+    t1 = std_io$BufferedWriter$Writer$write(l0, vader_box_string(5u, 26u));
     l2 = snippet$outcome(t1);
     t2 = concat_2(25u, l2);
     std_console$println__string(t2);
@@ -648,7 +648,7 @@ static vader_string_t snippet$line_text(vader_box_t l0) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (!(l0.tag == 4u)) {
+    if (!(l0.tag == 5u)) {
         t0 = snippet$outcome(l0);
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -666,7 +666,7 @@ static vader_string_t snippet$bytes_text(vader_box_t l0) {
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (!(l0.tag == 6u)) {
+    if (!(l0.tag == 7u)) {
         t0 = snippet$outcome(l0);
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -687,7 +687,7 @@ static vader_string_t snippet$outcome(vader_box_t l0) {
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (!(l0.tag == 3u)) {
+    if (!(l0.tag == 4u)) {
         { vader_gc_top = gc_frame.prev; return 29u; }
     }
     t0 = l0.payload.obj;
@@ -819,10 +819,10 @@ static vader_box_t std_core$index_of__u8(void* l0, uint8_t l1) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
-        t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l2, 7u);
+        t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l2, 8u);
         t1 = ((uint8_t) t0.payload.i);
         if (t1 == l1) {
-            return vader_box_i64(10u, l2);
+            return vader_box_i64(11u, l2);
         }
         l2 = (l2 + INT64_C(1));
     }
@@ -836,7 +836,7 @@ static void* std_core$clone__u8(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     t0 = vader_array_length(((vader_array_t*) l0));
-    vader_array_t* _a0_arr = vader_array_reserve(6u, (int64_t) t0, 1u, 7u);
+    vader_array_t* _a0_arr = vader_array_reserve(7u, (int64_t) t0, 1u, 8u);
     l1 = (void*) _a0_arr;
     vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l0);
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -935,7 +935,7 @@ static vader_box_t std_io$read_line(void* l0, int64_t l1) {
     if (l2.tag == 0u) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
-    if (!(l2.tag == 3u)) {
+    if (!(l2.tag == 4u)) {
         l3 = l2.payload.obj;
         t0 = l2.payload.obj;
         l4 = vader_array_length(((vader_array_t*) t0));
@@ -945,7 +945,7 @@ static vader_box_t std_io$read_line(void* l0, int64_t l1) {
         vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l3, (int64_t) INT64_C(0), (int64_t) l4);
         t0 = (void*) _a0_arr;
         t1 = vader_host_std_core$Intrinsic$bytes_to_string(t0);
-        { vader_box_t __vret = vader_box_string(4u, t1); vader_gc_top = gc_frame.prev; return __vret; }
+        { vader_box_t __vret = vader_box_string(5u, t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
     t0 = l2.payload.obj;
     { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
@@ -967,7 +967,7 @@ static vader_box_t std_io$read_until(void* l0, uint8_t l1, int64_t l2) {
     if (l3.tag == 0u) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
-    if (l3.tag == 3u) {
+    if (l3.tag == 4u) {
         t0 = l3.payload.obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -978,7 +978,7 @@ static vader_box_t std_io$read_until(void* l0, uint8_t l1, int64_t l2) {
     vader_array_t* _a0_slotarr = ((vader_array_t*) l6);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
-    t1 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l5, 7u);
+    t1 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l5, 8u);
     t2 = ((uint8_t) t1.payload.i);
     if (t2 == l1) {
         l5 = vader_chk_sub(i64, l4, INT64_C(1));
@@ -1024,7 +1024,7 @@ static vader_box_t std_io$peek(void* l0, int64_t l1) {
         l3 = std_core$write_int(l4, l3, l5);
         t0 = std_core$finish_buffer(l4, l3);
         vader_struct_std_io$IOError_t* _a0_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
-        vader_obj_header_init(_a0_obj, 3u);
+        vader_obj_header_init(_a0_obj, 4u);
         _a0_obj->f_msg = t0;
         _a0_obj->f_kind = (uint8_t) 10;
         _a0_obj->f_code = INT32_C(0);
@@ -1051,7 +1051,7 @@ static vader_box_t std_io$peek(void* l0, int64_t l1) {
             l10 = std_io$Reader$read$$dispatch(l7, vader_ref_box(t1));
             if (l10.tag == 0u) break;
             l6 = l10;
-            if (l6.tag == 3u) {
+            if (l6.tag == 4u) {
                 t1 = l6.payload.obj;
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
             }
@@ -1099,14 +1099,14 @@ static vader_box_t std_io$read_exact(void* l0, int64_t l1) {
     vader_gc_top = &gc_frame;
     if ((l1 < INT64_C(0))) {
         vader_struct_std_io$IOError_t* _a0_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
-        vader_obj_header_init(_a0_obj, 3u);
+        vader_obj_header_init(_a0_obj, 4u);
         _a0_obj->f_msg = 33u;
         _a0_obj->f_kind = (uint8_t) 10;
         _a0_obj->f_code = INT32_C(0);
         t0 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_array_t* _a1_arr = vader_array_new(6u, 1u, 1u, 7u);
+    vader_array_t* _a1_arr = vader_array_new(7u, 1u, 1u, 8u);
     ((uint8_t*) _a1_arr->buf->slots)[vader_array_offset(_a1_arr) + 0u] = (uint8_t) INT32_C(0);
     t0 = (void*) _a1_arr;
     vader_array_t* _a2_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) l1);
@@ -1117,7 +1117,7 @@ static vader_box_t std_io$read_exact(void* l0, int64_t l1) {
         l5 = (void*) _a3_arr;
         l6 = std_io$BufferedReader$Reader$read(l0, l5);
         l7 = l6;
-        if (l6.tag == 3u) {
+        if (l6.tag == 4u) {
             t0 = l7.payload.obj;
             { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -1132,7 +1132,7 @@ static vader_box_t std_io$read_exact(void* l0, int64_t l1) {
             l9 = std_core$write_string_at(l8, l9, 36u);
             t1 = std_core$finish_buffer(l8, l9);
             vader_struct_std_io$IOError_t* _a4_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
-            vader_obj_header_init(_a4_obj, 3u);
+            vader_obj_header_init(_a4_obj, 4u);
             _a4_obj->f_msg = t1;
             _a4_obj->f_kind = (uint8_t) 13;
             _a4_obj->f_code = INT32_C(0);
@@ -1162,7 +1162,7 @@ static vader_box_t std_io$read_to_end(void* l0, int64_t l1) {
         vader_gc_top, 2u, 6u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(6u, 0u, 1u, 7u);
+    vader_array_t* _a0_arr = vader_array_new(7u, 0u, 1u, 8u);
     l2 = (void*) _a0_arr;
     for (;;) {
         l3 = ((vader_struct_std_io$BufferedReader_t*) l0)->f_next;
@@ -1173,7 +1173,7 @@ static vader_box_t std_io$read_to_end(void* l0, int64_t l1) {
                 { vader_box_t __vret = vader_ref_box(l2); vader_gc_top = gc_frame.prev; return __vret; }
             }
             l5 = l6;
-            if (l5.tag == 3u) {
+            if (l5.tag == 4u) {
                 t0 = l5.payload.obj;
                 { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
             }
@@ -1194,7 +1194,7 @@ static vader_box_t std_io$read_to_end(void* l0, int64_t l1) {
             l14 = std_core$write_string_at(l13, l14, 38u);
             t2 = std_core$finish_buffer(l13, l14);
             vader_struct_std_io$IOError_t* _a2_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
-            vader_obj_header_init(_a2_obj, 3u);
+            vader_obj_header_init(_a2_obj, 4u);
             _a2_obj->f_msg = t2;
             _a2_obj->f_kind = (uint8_t) 10;
             _a2_obj->f_code = INT32_C(0);
@@ -1244,7 +1244,7 @@ static vader_box_t std_io$take_through(void* l0, uint8_t l1, int64_t l2) {
         vader_gc_top, 4u, 7u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(6u, 0u, 1u, 7u);
+    vader_array_t* _a0_arr = vader_array_new(7u, 0u, 1u, 8u);
     l3 = (void*) _a0_arr;
     for (;;) {
         l4 = ((vader_struct_std_io$BufferedReader_t*) l0)->f_next;
@@ -1252,7 +1252,7 @@ static vader_box_t std_io$take_through(void* l0, uint8_t l1, int64_t l2) {
         if (l4 == l5) {
             l6 = std_io$refill(l0);
             l7 = l6;
-            if (l6.tag == 3u) {
+            if (l6.tag == 4u) {
                 t0 = l7.payload.obj;
                 { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
             }
@@ -1286,7 +1286,7 @@ static vader_box_t std_io$take_through(void* l0, uint8_t l1, int64_t l2) {
             l16 = std_core$write_string_at(l15, l16, 39u);
             t3 = std_core$finish_buffer(l15, l16);
             vader_struct_std_io$IOError_t* _a2_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
-            vader_obj_header_init(_a2_obj, 3u);
+            vader_obj_header_init(_a2_obj, 4u);
             _a2_obj->f_msg = t3;
             _a2_obj->f_kind = (uint8_t) 10;
             _a2_obj->f_code = INT32_C(0);
@@ -1331,7 +1331,7 @@ static int64_t std_io$line_break_of(void* l0) {
     vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
-    t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l2, 7u);
+    t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l2, 8u);
     t1 = ((uint8_t) t0.payload.i);
     if (t1 != INT32_C(10)) {
         return INT64_C(0);
@@ -1341,7 +1341,7 @@ static int64_t std_io$line_break_of(void* l0) {
         vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l1)
-        t0 = vader_array_read_u8(_a1_slotarr, vader_array_offset(_a1_slotarr) + (size_t) l1, 7u);
+        t0 = vader_array_read_u8(_a1_slotarr, vader_array_offset(_a1_slotarr) + (size_t) l1, 8u);
         t1 = ((uint8_t) t0.payload.i);
         if (t1 == INT32_C(13)) {
             return INT64_C(2);
@@ -1387,12 +1387,12 @@ static vader_box_t std_io$refill(void* l0) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
     l1 = l2;
-    if (!(l1.tag == 3u)) {
+    if (!(l1.tag == 4u)) {
         ((vader_struct_std_io$BufferedReader_t*) l0)->f_next = INT64_C(0);
         l3 = ((int64_t) l1.payload.i);
         ((vader_struct_std_io$BufferedReader_t*) l0)->f_filled = l3;
         t0 = ((int64_t) l1.payload.i);
-        { vader_box_t __vret = vader_box_i64(10u, t0); vader_gc_top = gc_frame.prev; return __vret; }
+        { vader_box_t __vret = vader_box_i64(11u, t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     t1 = l1.payload.obj;
     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
@@ -1407,7 +1407,7 @@ static void std_io$reserve(void* l0) {
     vader_gc_top = &gc_frame;
     t0 = vader_array_length(((vader_array_t*) ((vader_struct_std_io$BufferedReader_t*) l0)->f_buffer));
     if (t0 == INT64_C(0)) {
-        vader_array_t* _a0_arr = vader_array_new(6u, 1u, 1u, 7u);
+        vader_array_t* _a0_arr = vader_array_new(7u, 1u, 1u, 8u);
         ((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint8_t) INT32_C(0);
         l1 = (void*) _a0_arr;
         l2 = ((vader_struct_std_io$BufferedReader_t*) l0)->f_capacity;
@@ -1429,7 +1429,7 @@ static vader_box_t std_io$BytesReader$Reader$read(void* l0, void* l1) {
     vader_gc_top = &gc_frame;
     t0 = vader_array_length(((vader_array_t*) l1));
     if (t0 == INT64_C(0)) {
-        { vader_box_t __vret = vader_box_i64(10u, INT64_C(0)); vader_gc_top = gc_frame.prev; return __vret; }
+        { vader_box_t __vret = vader_box_i64(11u, INT64_C(0)); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l2 = std_io$bytes_of(((vader_struct_std_io$BytesReader_t*) l0)->f_content);
     l3 = vader_array_length(((vader_array_t*) l2));
@@ -1443,7 +1443,7 @@ static vader_box_t std_io$BytesReader$Reader$read(void* l0, void* l1) {
         t0 = ((vader_struct_std_io$BytesReader_t*) l0)->f_position;
         l4 = vader_chk_add(i64, t0, l3);
         ((vader_struct_std_io$BytesReader_t*) l0)->f_position = l4;
-        { vader_box_t __vret = vader_box_i64(10u, l3); vader_gc_top = gc_frame.prev; return __vret; }
+        { vader_box_t __vret = vader_box_i64(11u, l3); vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
 }
@@ -1512,7 +1512,7 @@ static vader_box_t std_io$FailingReader$Reader$read(void* l0, void* l1) {
     l6 = ((vader_struct_std_io$IOError_t*) l4)->f_kind;
     l7 = ((vader_struct_std_io$IOError_t*) l4)->f_code;
     vader_struct_std_io$IOError_t* _a0_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
-    vader_obj_header_init(_a0_obj, 3u);
+    vader_obj_header_init(_a0_obj, 4u);
     _a0_obj->f_msg = l5;
     _a0_obj->f_kind = l6;
     _a0_obj->f_code = l7;
@@ -1552,7 +1552,7 @@ static vader_box_t std_io$FailingWriter$Writer$write(void* l0, vader_box_t l1) {
     l6 = ((vader_struct_std_io$IOError_t*) l4)->f_kind;
     l7 = ((vader_struct_std_io$IOError_t*) l4)->f_code;
     vader_struct_std_io$IOError_t* _a0_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
-    vader_obj_header_init(_a0_obj, 3u);
+    vader_obj_header_init(_a0_obj, 4u);
     _a0_obj->f_msg = l5;
     _a0_obj->f_kind = l6;
     _a0_obj->f_code = l7;
@@ -1573,7 +1573,7 @@ static vader_box_t std_io$BufferedReader$Reader$read(void* l0, void* l1) {
     vader_gc_top = &gc_frame;
     t0 = vader_array_length(((vader_array_t*) l1));
     if (t0 == INT64_C(0)) {
-        { vader_box_t __vret = vader_box_i64(10u, INT64_C(0)); vader_gc_top = gc_frame.prev; return __vret; }
+        { vader_box_t __vret = vader_box_i64(11u, INT64_C(0)); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l2 = ((vader_struct_std_io$BufferedReader_t*) l0)->f_next;
     l3 = ((vader_struct_std_io$BufferedReader_t*) l0)->f_filled;
@@ -1590,7 +1590,7 @@ static vader_box_t std_io$BufferedReader$Reader$read(void* l0, void* l1) {
             { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
         }
         l4 = l5;
-        if (l4.tag == 3u) {
+        if (l4.tag == 4u) {
             t2 = l4.payload.obj;
             { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -1606,7 +1606,7 @@ static vader_box_t std_io$BufferedReader$Reader$read(void* l0, void* l1) {
     t0 = ((vader_struct_std_io$BufferedReader_t*) l0)->f_next;
     l3 = vader_chk_add(i64, t0, l2);
     ((vader_struct_std_io$BufferedReader_t*) l0)->f_next = l3;
-    { vader_box_t __vret = vader_box_i64(10u, l2); vader_gc_top = gc_frame.prev; return __vret; }
+    { vader_box_t __vret = vader_box_i64(11u, l2); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t std_io$BufferedWriter$Writer$write(void* l0, vader_box_t l1) {
@@ -1627,7 +1627,7 @@ static vader_box_t std_io$BufferedWriter$Writer$write(void* l0, vader_box_t l1) 
     if ((l3 > l4)) {
         l5 = std_io$flush(l0);
         l6 = l5;
-        if (l5.tag == 3u) {
+        if (l5.tag == 4u) {
             t0 = l6.payload.obj;
             { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -1706,7 +1706,7 @@ static void* std_io$bytes_of(vader_box_t l0) {
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (l0.tag == 4u) {
+    if (l0.tag == 5u) {
         t0 = l0.payload.s;
         t1 = vader_host_std_core$Intrinsic$bytes(t0);
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }

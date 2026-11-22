@@ -63,7 +63,7 @@ copy_inside :: fn(walk: CopyWalk, copy: Value) -> Trap | null = match copy {
     is StructVal -> walk.copy_each(copy.fields)
     is ArrayVal -> walk.copy_each(copy.elements)
     is ObjVal -> walk.copy_each(copy.slots)
-    is FnVal | I32Val | I64Val | F64Val | StringVal | NullVal | BoolVal | CharVal | TypeVal -> null
+    is FnVal | I32Val | I64Val | F64Val | StringVal | NullVal | VoidVal | BoolVal | CharVal | TypeVal -> null
 }
 
 // Replace each of `values`, held by a copy, by its copy.
@@ -87,7 +87,7 @@ copy_of :: fn(walk: CopyWalk, v: Value) -> Value | Trap = match v {
     is FnVal -> Trap {
         .message = "deep_copy: a function value cannot be copied at pc=${walk.at_pc}",
     }
-    is I32Val | I64Val | F64Val | StringVal | NullVal | BoolVal | CharVal | TypeVal -> v
+    is I32Val | I64Val | F64Val | StringVal | NullVal | VoidVal | BoolVal | CharVal | TypeVal -> v
 }
 
 copy_struct :: fn(walk: CopyWalk, s: StructVal) -> Value {

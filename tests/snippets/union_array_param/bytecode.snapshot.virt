@@ -1,37 +1,37 @@
 module _main
 type 0 scalar null
-type 1 union 2,3
-type 2 scalar string
-type 3 array 4
-type 4 scalar u8
-type 5 scalar i64
-type 6 scalar i32
-type 7 struct std_core$Buffer {  }
-type 8 scalar void
+type 1 scalar void
+type 2 union 3,4
+type 3 scalar string
+type 4 array 5
+type 5 scalar u8
+type 6 scalar i64
+type 7 scalar i32
+type 8 struct std_core$Buffer {  }
 type 9 scalar bool
 string 0 "hi"
 string 1 " "
 string 2 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=3 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=6,3,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=6 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=8 () -> void
-impl 7 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=6 param_types=3 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=4 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=7,4,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=7 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 8 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$byte_count (any) -> i64
   local.get 0   ; arg 0
-  type_check 2   ; string
+  type_check 3   ; string
   if $L0 void
   else
     local.get 0   ; arg 0
-    ref.cast 3   ; u8[]
+    ref.cast 4   ; u8[]
     array.len
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 2   ; string
+  ref.cast 3   ; string
   call.import 1   ; std_core$Intrinsic$bytes
   array.len
   return
@@ -46,7 +46,7 @@ fn 1 snippet$main () -> i32
   i32.const 2
   i32.const 3
   i32.const 4
-  array.new 3 4   ; u8[]
+  array.new 4 4   ; u8[]
   local.set 0   ; a
   i64.const 62
   buffer.new
@@ -54,7 +54,7 @@ fn 1 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   string.const 0   ; "hi"
-  retag 2   ; string
+  retag 3   ; string
   call 0   ; snippet$byte_count
   local.set 3   ; $call_12
   local.get 1   ; __buf_0
@@ -296,7 +296,7 @@ fn 6 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 3   ; u8[]
+      array.slice 4   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

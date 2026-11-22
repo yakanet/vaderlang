@@ -1,37 +1,37 @@
 module _main
 type 0 scalar null
-type 1 scalar i64
-type 2 scalar i32
-type 3 struct snippet$fib$$Layer { state:12,site:9 }
-type 4 struct snippet$fib$$Layer2 { state:16,site:15 }
-type 5 struct snippet$add$$Layer { state:20,site:15 }
-type 6 struct snippet$add$$Layer2 { state:21,site:9 }
-type 7 struct __Tuple_i32_i32_3103e027 { _0:2,_1:2 }
-type 8 struct snippet$Trace__Any__i32 {  }
-type 9 struct std_core$Site__snippet_Traced { function:17,module:17,location:17,marker:10 }
-type 10 ref _
-type 11 fn (10) -> 2
-type 12 struct snippet$Trace__i64__i64 {  }
-type 13 fn (1) -> 1
-type 14 struct snippet$Count__Any__i32 { calls:1 }
-type 15 struct std_core$Site__snippet_Counted { function:17,module:17,location:17,marker:10 }
-type 16 struct snippet$Count__i64__i64 { calls:1 }
-type 17 scalar string
-type 18 struct snippet$Traced {  }
-type 19 struct snippet$Counted {  }
-type 20 struct snippet$Count___i32__i32___i32 { calls:1 }
-type 21 struct snippet$Trace___i32__i32___i32 {  }
-type 22 struct snippet$Count___Any__Any___i32 { calls:1 }
-type 23 struct snippet$Trace___Any__Any___i32 {  }
-type 24 struct std_core$Buffer {  }
-type 25 array 26
-type 26 scalar u8
-type 27 scalar void
-type 28 struct std_core$Site__Any { function:17,module:17,location:17,marker:10 }
+type 1 scalar void
+type 2 scalar i64
+type 3 scalar i32
+type 4 struct snippet$fib$$Layer { state:13,site:10 }
+type 5 struct snippet$fib$$Layer2 { state:17,site:16 }
+type 6 struct snippet$add$$Layer { state:21,site:16 }
+type 7 struct snippet$add$$Layer2 { state:22,site:10 }
+type 8 struct __Tuple_i32_i32_3103e027 { _0:3,_1:3 }
+type 9 struct snippet$Trace__Any__i32 {  }
+type 10 struct std_core$Site__snippet_Traced { function:18,module:18,location:18,marker:11 }
+type 11 ref _
+type 12 fn (11) -> 3
+type 13 struct snippet$Trace__i64__i64 {  }
+type 14 fn (2) -> 2
+type 15 struct snippet$Count__Any__i32 { calls:2 }
+type 16 struct std_core$Site__snippet_Counted { function:18,module:18,location:18,marker:11 }
+type 17 struct snippet$Count__i64__i64 { calls:2 }
+type 18 scalar string
+type 19 struct snippet$Traced {  }
+type 20 struct snippet$Counted {  }
+type 21 struct snippet$Count___i32__i32___i32 { calls:2 }
+type 22 struct snippet$Trace___i32__i32___i32 {  }
+type 23 struct snippet$Count___Any__Any___i32 { calls:2 }
+type 24 struct snippet$Trace___Any__Any___i32 {  }
+type 25 struct std_core$Buffer {  }
+type 26 array 27
+type 27 scalar u8
+type 28 struct std_core$Site__Any { function:18,module:18,location:18,marker:11 }
 type 29 scalar bool
-type 30 fn (7) -> 2
-type 31 array 18
-type 32 array 19
+type 30 fn (8) -> 3
+type 31 array 19
+type 32 array 20
 string 0 "fib"
 string 1 "snippet"
 string 2 "_main.vader:45"
@@ -43,22 +43,22 @@ string 7 " -> "
 string 8 "counted: call "
 string 9 " of "
 string 10 "\n"
-data 0 structs 18 0 1
-data 1 structs 19 0 1
-global 0 2 fib$$layer.state
-global 1 3 fib$$layer.instance
-global 2 2 fib$$layer2.state
-global 3 4 fib$$layer2.instance
-global 4 2 add$$layer.state
-global 5 5 add$$layer.instance
-global 6 2 add$$layer2.state
-global 7 6 add$$layer2.instance
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=1 param_types=17 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=25 param_types=17 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=1 param_types=2,25,1 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=27 () -> void
-impl 24 std_core$ByteAccess
+data 0 structs 19 0 1
+data 1 structs 20 0 1
+global 0 3 fib$$layer.state
+global 1 4 fib$$layer.instance
+global 2 3 fib$$layer2.state
+global 3 5 fib$$layer2.instance
+global 4 3 add$$layer.state
+global 5 6 add$$layer.instance
+global 6 3 add$$layer2.state
+global 7 7 add$$layer2.instance
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=2 param_types=18 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=26 param_types=18 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=2 param_types=3,26,2 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 25 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$fib$$intercepted (i64) -> i64
@@ -138,11 +138,11 @@ fn 3 snippet$fib (i64) -> i64
     call 2   ; snippet$fib$$layer
     local.set 1   ; layer
   end $L0
-  local.field 1 3 0   ; layer snippet$fib$$Layer.state
+  local.field 1 4 0   ; layer snippet$fib$$Layer.state
   local.set 2   ; $field_7
-  local.field 1 3 1   ; layer snippet$fib$$Layer.site
+  local.field 1 4 1   ; layer snippet$fib$$Layer.site
   local.set 1   ; layer
-  fn.ref 11 13   ; __lambda_snippet_0 fn
+  fn.ref 11 14   ; __lambda_snippet_0 fn
   local.set 3   ; $fn_ref_9
   local.get 2   ; $field_7
   local.get 1   ; layer
@@ -191,11 +191,11 @@ fn 5 snippet$fib$$proceed2 (i64) -> i64
     call 4   ; snippet$fib$$layer2
     local.set 1   ; layer
   end $L0
-  local.field 1 4 0   ; layer snippet$fib$$Layer2.state
+  local.field 1 5 0   ; layer snippet$fib$$Layer2.state
   local.set 2   ; $field_7
-  local.field 1 4 1   ; layer snippet$fib$$Layer2.site
+  local.field 1 5 1   ; layer snippet$fib$$Layer2.site
   local.set 1   ; layer
-  fn.ref 13 13   ; __lambda_snippet_1 fn
+  fn.ref 13 14   ; __lambda_snippet_1 fn
   local.set 3   ; $fn_ref_9
   local.get 2   ; $field_7
   local.get 1   ; layer
@@ -245,13 +245,13 @@ fn 7 snippet$add (i32,i32) -> i32
     call 6   ; snippet$add$$layer
     local.set 2   ; layer
   end $L0
-  local.field 2 5 0   ; layer snippet$add$$Layer.state
+  local.field 2 6 0   ; layer snippet$add$$Layer.state
   local.set 3   ; $field_8
-  local.field 2 5 1   ; layer snippet$add$$Layer.site
+  local.field 2 6 1   ; layer snippet$add$$Layer.site
   local.set 2   ; layer
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  struct.new 7   ; __Tuple_i32_i32_3103e027
+  struct.new 8   ; __Tuple_i32_i32_3103e027
   local.set 4   ; $struct_10
   fn.ref 15 30   ; __lambda_snippet_2 fn
   local.set 5   ; $fn_ref_11
@@ -303,13 +303,13 @@ fn 9 snippet$add$$proceed2 (i32,i32) -> i32
     call 8   ; snippet$add$$layer2
     local.set 2   ; layer
   end $L0
-  local.field 2 6 0   ; layer snippet$add$$Layer2.state
+  local.field 2 7 0   ; layer snippet$add$$Layer2.state
   local.set 3   ; $field_8
-  local.field 2 6 1   ; layer snippet$add$$Layer2.site
+  local.field 2 7 1   ; layer snippet$add$$Layer2.site
   local.set 2   ; layer
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  struct.new 7   ; __Tuple_i32_i32_3103e027
+  struct.new 8   ; __Tuple_i32_i32_3103e027
   local.set 4   ; $struct_10
   fn.ref 17 30   ; __lambda_snippet_3 fn
   local.set 5   ; $fn_ref_11
@@ -324,7 +324,7 @@ end
 fn 10 snippet$fib$$layer$singleton () -> ref
   local $struct_0 ref
   local $idx_6 ref
-  struct.new 12   ; snippet$Trace__i64__i64
+  struct.new 13   ; snippet$Trace__i64__i64
   local.set 0   ; $struct_0
   data.const 0 31   ; pool[0] snippet$Traced[]
   i64.const 0
@@ -338,7 +338,7 @@ fn 10 snippet$fib$$layer$singleton () -> ref
   local.set 1   ; $idx_6
   local.get 0   ; $struct_0
   local.get 1   ; $idx_6
-  struct.new 3   ; snippet$fib$$Layer
+  struct.new 4   ; snippet$fib$$Layer
   return
 end
 
@@ -352,7 +352,7 @@ fn 12 snippet$fib$$layer2$singleton () -> ref
   local $struct_1 ref
   local $idx_7 ref
   i64.const 0
-  struct.new 16   ; snippet$Count__i64__i64
+  struct.new 17   ; snippet$Count__i64__i64
   local.set 0   ; $struct_1
   data.const 1 32   ; pool[1] snippet$Counted[]
   i64.const 0
@@ -366,7 +366,7 @@ fn 12 snippet$fib$$layer2$singleton () -> ref
   local.set 1   ; $idx_7
   local.get 0   ; $struct_1
   local.get 1   ; $idx_7
-  struct.new 4   ; snippet$fib$$Layer2
+  struct.new 5   ; snippet$fib$$Layer2
   return
 end
 
@@ -380,7 +380,7 @@ fn 14 snippet$add$$layer$singleton () -> ref
   local $struct_1 ref
   local $idx_7 ref
   i64.const 0
-  struct.new 22   ; snippet$Count___Any__Any___i32
+  struct.new 23   ; snippet$Count___Any__Any___i32
   local.set 0   ; $struct_1
   data.const 1 32   ; pool[1] snippet$Counted[]
   i64.const 0
@@ -394,18 +394,18 @@ fn 14 snippet$add$$layer$singleton () -> ref
   local.set 1   ; $idx_7
   local.get 0   ; $struct_1
   local.get 1   ; $idx_7
-  struct.new 5   ; snippet$add$$Layer
+  struct.new 6   ; snippet$add$$Layer
   return
 end
 
 fn 15 __lambda_snippet_2 (ref) -> i32
   local $field_1 i32
   local $field_2 i32
-  local.field 0 7 0   ; arg 0 __Tuple_i32_i32_3103e027._0
-  ref.cast 2   ; i32
+  local.field 0 8 0   ; arg 0 __Tuple_i32_i32_3103e027._0
+  ref.cast 3   ; i32
   local.set 1   ; $field_1
-  local.field 0 7 1   ; arg 0 __Tuple_i32_i32_3103e027._1
-  ref.cast 2   ; i32
+  local.field 0 8 1   ; arg 0 __Tuple_i32_i32_3103e027._1
+  ref.cast 3   ; i32
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
@@ -416,7 +416,7 @@ end
 fn 16 snippet$add$$layer2$singleton () -> ref
   local $struct_0 ref
   local $idx_6 ref
-  struct.new 23   ; snippet$Trace___Any__Any___i32
+  struct.new 24   ; snippet$Trace___Any__Any___i32
   local.set 0   ; $struct_0
   data.const 0 31   ; pool[0] snippet$Traced[]
   i64.const 0
@@ -430,18 +430,18 @@ fn 16 snippet$add$$layer2$singleton () -> ref
   local.set 1   ; $idx_6
   local.get 0   ; $struct_0
   local.get 1   ; $idx_6
-  struct.new 6   ; snippet$add$$Layer2
+  struct.new 7   ; snippet$add$$Layer2
   return
 end
 
 fn 17 __lambda_snippet_3 (ref) -> i32
   local $field_1 i32
   local $field_2 i32
-  local.field 0 7 0   ; arg 0 __Tuple_i32_i32_3103e027._0
-  ref.cast 2   ; i32
+  local.field 0 8 0   ; arg 0 __Tuple_i32_i32_3103e027._0
+  ref.cast 3   ; i32
   local.set 1   ; $field_1
-  local.field 0 7 1   ; arg 0 __Tuple_i32_i32_3103e027._1
-  ref.cast 2   ; i32
+  local.field 0 8 1   ; arg 0 __Tuple_i32_i32_3103e027._1
+  ref.cast 3   ; i32
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
@@ -455,8 +455,8 @@ fn 18 snippet$traced__Any__i32 (ref,ref,any,ref) -> i32
   local $call_12 i64
   local __buf_1 ref
   local $cast_23 i64
-  local.field 1 9 0   ; arg 1 std_core$Site__snippet_Traced.function
-  ref.cast 17   ; string
+  local.field 1 10 0   ; arg 1 std_core$Site__snippet_Traced.function
+  ref.cast 18   ; string
   local.set 4   ; $field_5
   string.const 5   ; "traced: enter "
   local.get 4   ; $field_5
@@ -464,10 +464,10 @@ fn 18 snippet$traced__Any__i32 (ref,ref,any,ref) -> i32
   call 31   ; std_console$println__string
   local.get 2   ; arg 2
   local.get 3   ; arg 3
-  call.indirect 11   ; fn
+  call.indirect 12   ; fn
   local.set 5   ; result
-  local.field 1 9 0   ; arg 1 std_core$Site__snippet_Traced.function
-  ref.cast 17   ; string
+  local.field 1 10 0   ; arg 1 std_core$Site__snippet_Traced.function
+  ref.cast 18   ; string
   local.tee 4   ; $field_5
   call.import 0   ; std_core$Intrinsic$byte_len
   local.set 6   ; $call_12
@@ -514,20 +514,20 @@ fn 19 snippet$traced__i64__i64 (ref,ref,i64,ref) -> i64
   local result i64
   local $call_12 i64
   local __buf_1 ref
-  local.field 1 9 0   ; arg 1 std_core$Site__snippet_Traced.function
-  ref.cast 17   ; string
+  local.field 1 10 0   ; arg 1 std_core$Site__snippet_Traced.function
+  ref.cast 18   ; string
   local.set 4   ; $field_5
   string.const 5   ; "traced: enter "
   local.get 4   ; $field_5
   call 22   ; concat_2
   call 31   ; std_console$println__string
   local.get 2   ; arg 2
-  retag 1   ; i64
+  retag 2   ; i64
   local.get 3   ; arg 3
-  call.indirect 13   ; fn
+  call.indirect 14   ; fn
   local.set 5   ; result
-  local.field 1 9 0   ; arg 1 std_core$Site__snippet_Traced.function
-  ref.cast 17   ; string
+  local.field 1 10 0   ; arg 1 std_core$Site__snippet_Traced.function
+  ref.cast 18   ; string
   local.tee 4   ; $field_5
   call.import 0   ; std_core$Intrinsic$byte_len
   local.set 6   ; $call_12
@@ -571,19 +571,19 @@ fn 20 snippet$counted__Any__i32 (ref,ref,any,ref) -> i32
   local __p_1 string
   local $call_12 i64
   local __buf_2 ref
-  local.field 0 14 0   ; arg 0 snippet$Count__Any__i32.calls
-  ref.cast 1   ; i64
+  local.field 0 15 0   ; arg 0 snippet$Count__Any__i32.calls
+  ref.cast 2   ; i64
   i64.const 1
   i64.checked_add
   local.set 4   ; $add_checked_6
   local.get 0   ; arg 0
   local.get 4   ; $add_checked_6
-  struct.set 14 0   ; snippet$Count__Any__i32.calls
-  local.field 0 14 0   ; arg 0 snippet$Count__Any__i32.calls
-  ref.cast 1   ; i64
+  struct.set 15 0   ; snippet$Count__Any__i32.calls
+  local.field 0 15 0   ; arg 0 snippet$Count__Any__i32.calls
+  ref.cast 2   ; i64
   local.set 4   ; $add_checked_6
-  local.field 1 15 0   ; arg 1 std_core$Site__snippet_Counted.function
-  ref.cast 17   ; string
+  local.field 1 16 0   ; arg 1 std_core$Site__snippet_Counted.function
+  ref.cast 18   ; string
   local.tee 5   ; __p_1
   call.import 0   ; std_core$Intrinsic$byte_len
   local.set 6   ; $call_12
@@ -620,7 +620,7 @@ fn 20 snippet$counted__Any__i32 (ref,ref,any,ref) -> i32
   call 31   ; std_console$println__string
   local.get 2   ; arg 2
   local.get 3   ; arg 3
-  call.indirect 11   ; fn
+  call.indirect 12   ; fn
   return
 end
 
@@ -629,19 +629,19 @@ fn 21 snippet$counted__i64__i64 (ref,ref,i64,ref) -> i64
   local __p_1 string
   local $call_12 i64
   local __buf_2 ref
-  local.field 0 16 0   ; arg 0 snippet$Count__i64__i64.calls
-  ref.cast 1   ; i64
+  local.field 0 17 0   ; arg 0 snippet$Count__i64__i64.calls
+  ref.cast 2   ; i64
   i64.const 1
   i64.checked_add
   local.set 4   ; $add_checked_6
   local.get 0   ; arg 0
   local.get 4   ; $add_checked_6
-  struct.set 16 0   ; snippet$Count__i64__i64.calls
-  local.field 0 16 0   ; arg 0 snippet$Count__i64__i64.calls
-  ref.cast 1   ; i64
+  struct.set 17 0   ; snippet$Count__i64__i64.calls
+  local.field 0 17 0   ; arg 0 snippet$Count__i64__i64.calls
+  ref.cast 2   ; i64
   local.set 4   ; $add_checked_6
-  local.field 1 15 0   ; arg 1 std_core$Site__snippet_Counted.function
-  ref.cast 17   ; string
+  local.field 1 16 0   ; arg 1 std_core$Site__snippet_Counted.function
+  ref.cast 18   ; string
   local.tee 5   ; __p_1
   call.import 0   ; std_core$Intrinsic$byte_len
   local.set 6   ; $call_12
@@ -677,9 +677,9 @@ fn 21 snippet$counted__i64__i64 (ref,ref,i64,ref) -> i64
   call 23   ; std_core$finish_buffer
   call 31   ; std_console$println__string
   local.get 2   ; arg 2
-  retag 1   ; i64
+  retag 2   ; i64
   local.get 3   ; arg 3
-  call.indirect 13   ; fn
+  call.indirect 14   ; fn
   return
 end
 
@@ -883,7 +883,7 @@ fn 26 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 25   ; u8[]
+      array.slice 26   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

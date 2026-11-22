@@ -1,33 +1,33 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 scalar string
-type 3 struct std_core$Buffer {  }
-type 4 scalar i64
-type 5 scalar u64
-type 6 array 7
-type 7 scalar u8
-type 8 scalar void
+type 1 scalar void
+type 2 scalar i32
+type 3 scalar string
+type 4 struct std_core$Buffer {  }
+type 5 scalar i64
+type 6 scalar u64
+type 7 array 8
+type 8 scalar u8
 type 9 scalar bool
-type 10 struct std_collections$Map__i32__Any { ekeys:14,evals:15,index:14,mask:4,grow_at:4,size:4,tombs:4 }
+type 10 struct std_collections$Map__i32__Any { ekeys:14,evals:15,index:14,mask:5,grow_at:5,size:5,tombs:5 }
 type 11 union 12,0
 type 12 ref _
-type 13 struct std_collections$Map__i32__i32___snippet_lib_Wrap { ekeys:14,evals:15,index:14,mask:4,grow_at:4,size:4,tombs:4 }
-type 14 array 1
+type 13 struct std_collections$Map__i32__i32___snippet_lib_Wrap { ekeys:14,evals:15,index:14,mask:5,grow_at:5,size:5,tombs:5 }
+type 14 array 2
 type 15 array 12
 type 16 struct snippet_lib$Wrap { items:14 }
-type 17 struct snippet_lib$Out { first:1 }
-type 18 union 1,0,16
+type 17 struct snippet_lib$Out { first:2 }
+type 18 union 2,0,16
 string 0 "null"
 string 1 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=6 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,6,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=8 () -> void
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=3 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=7 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,7,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 10 std_core$Index
 impl 10 std_core$IndexSet
-impl 3 std_core$ByteAccess
+impl 4 std_core$ByteAccess
 impl 10 std_core$Contains
 impl 10 std_core$Into
 impl 13 std_core$Index
@@ -94,7 +94,7 @@ fn 0 snippet$main () -> i32
     local.get 3   ; $call_15
     ref.cast 17   ; snippet_lib$Out
     struct.get 17 0   ; snippet_lib$Out.first
-    ref.cast 1   ; i32
+    ref.cast 2   ; i32
     i32.to_i64
     local.set 5   ; $cast_27
     local.get 0   ; $arr_0
@@ -304,7 +304,7 @@ fn 5 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 6   ; u8[]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12
@@ -460,7 +460,7 @@ fn 13 std_collections$rehash__i32__Any (ref,i64) -> void
     if $L2 void
       local.get 3   ; fresh
       i32.const 0
-      array.push 1 3   ; i32 fresh
+      array.push 2 3   ; i32 fresh
       local.get 2   ; if_res
       i64.const 1
       i64.add
@@ -475,7 +475,7 @@ fn 13 std_collections$rehash__i32__Any (ref,i64) -> void
   i64.const 0
   local.set 4   ; e
   local.field 0 10 5   ; arg 0 std_collections$Map__i32__Any.size
-  ref.cast 4   ; i64
+  ref.cast 5   ; i64
   local.set 5   ; __for_hi_1
   loop $L3 void
     local.get 4   ; e
@@ -554,7 +554,7 @@ fn 14 std_collections$grow_index__i32__Any (ref) -> void
   local.set 1   ; new_count
   loop $L0 void
     local.field 0 10 5   ; arg 0 std_collections$Map__i32__Any.size
-    ref.cast 4   ; i64
+    ref.cast 5   ; i64
     i64.const 4
     i64.checked_mul
     local.set 2   ; $mul_checked_5
@@ -601,7 +601,7 @@ fn 15 std_collections$put__i32__Any (ref,i32,any) -> bool
     call 4   ; std_core$i32$Hash$hash
     local.set 5   ; perturb
     local.field 0 10 3   ; arg 0 std_collections$Map__i32__Any.mask
-    ref.cast 4   ; i64
+    ref.cast 5   ; i64
     local.set 6   ; $field_13
     local.get 5   ; perturb
     local.get 6   ; $field_13
@@ -651,7 +651,7 @@ fn 15 std_collections$put__i32__Any (ref,i32,any) -> bool
         u64.shr
         local.set 5   ; perturb
         local.field 0 10 3   ; arg 0 std_collections$Map__i32__Any.mask
-        ref.cast 4   ; i64
+        ref.cast 5   ; i64
         local.set 9   ; $field_36
         local.get 6   ; $field_13
         local.get 5   ; perturb
@@ -665,7 +665,7 @@ fn 15 std_collections$put__i32__Any (ref,i32,any) -> bool
     local.set 4   ; empty
   end $L0
   local.field 0 10 5   ; arg 0 std_collections$Map__i32__Any.size
-  ref.cast 4   ; i64
+  ref.cast 5   ; i64
   local.set 6   ; $field_13
   local.field 0 10 0   ; arg 0 std_collections$Map__i32__Any.ekeys
   array.len
@@ -685,7 +685,7 @@ fn 15 std_collections$put__i32__Any (ref,i32,any) -> bool
   else
     local.field 0 10 0   ; arg 0 std_collections$Map__i32__Any.ekeys
     local.get 1   ; arg 1
-    array.push 1   ; i32
+    array.push 2   ; i32
     local.field 0 10 1   ; arg 0 std_collections$Map__i32__Any.evals
     local.get 2   ; arg 2
     array.push 12   ; ref
@@ -698,14 +698,14 @@ fn 15 std_collections$put__i32__Any (ref,i32,any) -> bool
   local.get 8   ; ei
   struct.set 10 5   ; std_collections$Map__i32__Any.size
   local.field 0 10 6   ; arg 0 std_collections$Map__i32__Any.tombs
-  ref.cast 4   ; i64
+  ref.cast 5   ; i64
   local.set 8   ; ei
   local.get 6   ; $field_13
   local.get 8   ; ei
   i64.checked_add
   local.set 8   ; ei
   local.field 0 10 4   ; arg 0 std_collections$Map__i32__Any.grow_at
-  ref.cast 4   ; i64
+  ref.cast 5   ; i64
   local.set 9   ; $field_36
   local.get 8   ; ei
   local.get 9   ; $field_36
@@ -720,7 +720,7 @@ fn 15 std_collections$put__i32__Any (ref,i32,any) -> bool
   i64.ge
   if $L8 void
     local.field 0 10 6   ; arg 0 std_collections$Map__i32__Any.tombs
-    ref.cast 4   ; i64
+    ref.cast 5   ; i64
     i64.const 1
     i64.checked_sub
     local.set 8   ; ei
@@ -771,7 +771,7 @@ fn 16 std_collections$get__i32__Any (ref,i32) -> any
   call 4   ; std_core$i32$Hash$hash
   local.set 2   ; perturb
   local.field 0 10 3   ; arg 0 std_collections$Map__i32__Any.mask
-  ref.cast 4   ; i64
+  ref.cast 5   ; i64
   local.set 3   ; $field_9
   local.get 2   ; perturb
   local.get 3   ; $field_9
@@ -812,7 +812,7 @@ fn 16 std_collections$get__i32__Any (ref,i32) -> any
       u64.shr
       local.set 2   ; perturb
       local.field 0 10 3   ; arg 0 std_collections$Map__i32__Any.mask
-      ref.cast 4   ; i64
+      ref.cast 5   ; i64
       local.set 6   ; $field_31
       local.get 3   ; $field_9
       local.get 2   ; perturb

@@ -89,6 +89,9 @@ export EmitCtx :: struct {
     /// BcType index of the `null` primitive (`0` when absent). Tags the
     /// boxed null literal. Cached so per-op const emit stays a field read.
     null_tag: i32
+    /// BcType index of the `void` primitive, reserved at `1` beside `null`.
+    /// Tags the box of the one `void` value.
+    void_tag: i32
     /// BcType index of the `string` primitive, or `-1` when absent.
     string_tag: i32
     /// BcType index of the `string[]` array (element == `string_tag`), or
@@ -133,6 +136,7 @@ new_ctx :: fn(m: BytecodeModule, opts: CEmitOptions, internal_fns: bool[] = []) 
         .atom_ids = compute_atom_ids(m.strings, opts.atom_universe),
         .atom_table = atom_table_of(m.strings, opts.atom_universe),
         .null_tag = class_tag_of(m.types, .Null),
+        .void_tag = class_tag_of(m.types, .Void),
         .string_tag = string_tag,
         .string_array_tag = string_array_tag(m.types, string_tag),
         .may_alloc = compute_may_alloc(m.functions, import_may_collect),
@@ -505,7 +509,10 @@ external :: fn(
 struct_definition :: fn(types: BcType[], names: string[], s: BcStruct, type_index: i64) -> CStructDefinition {
     fields: CField[]: [CField { .type = "vader_obj_header_t", .name = "header" }]
     for f in s.fields {
-        fields.push(CField { .type = c_type_for(types[f.type_index]), .name = field_c_name(f.name) })
+        // A `void` field (a type parameter bound to `void`) holds nothing.
+        if val_type_of_bc_type(types[f.type_index]) != .Void {
+            fields.push(CField { .type = c_type_for(types[f.type_index]), .name = field_c_name(f.name) })
+        }
     }
     return CStructDefinition { .name = names[type_index], .fields = fields }
 }
@@ -1129,6 +1136,10 @@ boxed_parameters :: fn(first: CParameter, count: i64) -> CParameter[] {
 value_parameters :: fn(slots: ValType[], prefix: string) -> CParameter[] {
     parameters: CParameter[]: []
     for i in 0..<slots.len() {
+        // A `void` parameter (a type parameter bound to `void`) holds nothing.
+        if slots[i] == .Void {
+            continue
+        }
         type :: c_type_for_val_bare(slots[i])
         parameters.push(CParameter { .type = type, .name = "${prefix}${i}" })
     }

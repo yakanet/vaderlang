@@ -1,10 +1,10 @@
 module _main
 type 0 scalar null
-type 1 array 2
-type 2 union 3,4
-type 3 struct snippet_types$Cat { name:6 }
-type 4 struct snippet_types$Dog { name:6 }
-type 5 scalar void
+type 1 scalar void
+type 2 array 3
+type 3 union 4,5
+type 4 struct snippet_types$Cat { name:6 }
+type 5 struct snippet_types$Dog { name:6 }
 type 6 scalar string
 type 7 scalar i32
 type 8 scalar i64
@@ -21,25 +21,25 @@ import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 p
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=6 param_c_out= param_by_address= (string) -> ref
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=7,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=7 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=5 () -> void
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 11 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$push_pet (ref,any) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  array.push 2   ; union
+  array.push 3   ; union
   return
 end
 
 fn 1 snippet$describe (any) -> string
   local $field_5 string
   local.get 0   ; arg 0
-  type_check 3   ; snippet_types$Cat
+  type_check 4   ; snippet_types$Cat
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 3   ; snippet_types$Cat
-    struct.get 3 0   ; snippet_types$Cat.name
+    ref.cast 4   ; snippet_types$Cat
+    struct.get 4 0   ; snippet_types$Cat.name
     ref.cast 6   ; string
     local.set 1   ; $field_5
     string.const 0   ; "cat "
@@ -48,14 +48,14 @@ fn 1 snippet$describe (any) -> string
     return
   end $L0
   local.get 0   ; arg 0
-  type_check 4   ; snippet_types$Dog
+  type_check 5   ; snippet_types$Dog
   if $L1 void
   else
     unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   local.get 0   ; arg 0
-  ref.cast 4   ; snippet_types$Dog
-  struct.get 4 0   ; snippet_types$Dog.name
+  ref.cast 5   ; snippet_types$Dog
+  struct.get 5 0   ; snippet_types$Dog.name
   ref.cast 6   ; string
   local.set 1   ; $field_5
   string.const 1   ; "dog "
@@ -69,16 +69,16 @@ fn 2 snippet$main () -> i32
   local $struct_3 ref
   local __for_len_1 i64
   local __for_i_2 i64
-  array.new 1 0   ; union[]
+  array.new 2 0   ; union[]
   local.set 0   ; pets
   string.const 2   ; "Whiskers"
-  struct.new 3   ; snippet_types$Cat
+  struct.new 4   ; snippet_types$Cat
   local.set 1   ; $struct_3
   local.get 0   ; pets
   local.get 1   ; $struct_3
   call 0   ; snippet$push_pet
   string.const 3   ; "Rex"
-  struct.new 4   ; snippet_types$Dog
+  struct.new 5   ; snippet_types$Dog
   local.set 1   ; $struct_3
   local.get 0   ; pets
   local.get 1   ; $struct_3
@@ -95,7 +95,7 @@ fn 2 snippet$main () -> i32
     if $L1 void
       local.get 0   ; pets
       local.get 3   ; __for_i_2
-      array.get 1   ; union[]
+      array.get 2   ; union[]
       call 1   ; snippet$describe
       call 7   ; std_console$println__string
       local.get 3   ; __for_i_2

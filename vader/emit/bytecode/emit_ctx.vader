@@ -138,17 +138,21 @@ export EmitterCtx :: struct {
 }
 
 /// Construct a fresh `EmitterCtx`. Reserves type-table slot 0 for the
-/// `null` primitive (runtime depends on the tag invariant).
+/// `null` primitive (runtime depends on the tag invariant), and slot 1 for
+/// `void`, whose one value is the box of that tag.
 ///
 /// @return  a fresh emitter context ready for `emit_bytecode_from_cfg` to fill.
 export new_emitter_ctx :: fn() -> EmitterCtx {
     types: BcType[]: []
     types.push(BcScalar { .val = .Null })
+    types.push(BcScalar { .val = .Void })
     type_key :: Map<string, i32> {}
     type_key["null"] = 0
+    type_key["void"] = 1
     type_hash :: Map<u64, i32> {}
     type_hash[type_intern_hash(TY_NULL)] = 0
-    type_by_slot: Type[]: [TY_NULL]
+    type_hash[type_intern_hash(TY_VOID)] = 1
+    type_by_slot: Type[]: [TY_NULL, TY_VOID]
     return EmitterCtx {
         .types                       = types,
         .type_key                    = type_key,
@@ -363,12 +367,18 @@ import "std/testing"
 
 @test test_new_emitter_ctx_reserves_null_slot :: fn() -> void {
     ctx :: new_emitter_ctx()
-    assert_eq(ctx.types.len(), 1)
+    assert_eq(ctx.types.len(), 2)
     null_idx :: ctx.type_key["null"]
     match null_idx {
         is i32 -> assert_eq(null_idx, 0)
         _ -> assert_eq("null missing", "")
     }
+}
+
+@test test_new_emitter_ctx_reserves_void_slot :: fn() -> void {
+    ctx :: new_emitter_ctx()
+    assert(ctx.type_key["void"] == 1, "void sits at slot 1")
+    assert_eq(intern_type(TY_VOID, ctx), 1)
 }
 
 @test test_intern_type_idempotent :: fn() -> void {

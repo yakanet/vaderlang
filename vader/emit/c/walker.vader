@@ -329,6 +329,7 @@ emit_op :: fn(s: FnState, pc: i32, op: Bc.Op) -> void {
         is Bc.BoolConst             -> push_const(s, op)
         is Bc.CharConst             -> push_const(s, op)
         is Bc.NullConst             -> push_const(s, op)
+        is Bc.VoidConst             -> push_lit(s, .Any, void_box(s.ctx))
         is Bc.StringConst           -> push_const(s, op)
         is Bc.LocalGet              -> emit_local_get(s, op)
         is Bc.LocalSet              -> emit_local_set(s, op.slot, false)

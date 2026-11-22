@@ -1577,6 +1577,8 @@ emit_const_instr :: fn(ctx: FnEmitCfg, c: InstrConst, pos: i64) -> void {
         push_emit(ctx, CharConst { .value = char(u32(v.value)) }, c.span)
     } else if v is ConstNull {
         push_emit(ctx, NullConst {}, c.span)
+    } else if v is ConstVoid {
+        push_emit(ctx, VoidConst {}, c.span)
     } else if v is ConstString {
         // Pick the const width from the literal's type : a 64-bit integer
         // (`i64`/`u64`) keeps its full `u64` payload via

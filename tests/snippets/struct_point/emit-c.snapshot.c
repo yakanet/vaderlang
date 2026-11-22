@@ -20,14 +20,14 @@ static int32_t snippet$main(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
-const vader_type_info_t vader_type_info_table[3] = {
-    [1] = { .slot_size = 4 },
-    [2] = {
+const vader_type_info_t vader_type_info_table[4] = {
+    [2] = { .slot_size = 4 },
+    [3] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Point_t),
         .slot_size = 8,
     },
 };
-const size_t vader_type_info_count = 3;
+const size_t vader_type_info_count = 4;
 
 static int32_t snippet$main(void) {
     void* l0 = NULL;
@@ -39,7 +39,7 @@ static int32_t snippet$main(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 1u, gc_stack_objs };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Point_t* _a1_obj = &_a0_storage;
-    vader_obj_header_init(_a1_obj, 2u);
+    vader_obj_header_init(_a1_obj, 3u);
     _a1_obj->f_x = INT32_C(3);
     _a1_obj->f_y = INT32_C(4);
     l0 = (void*) _a1_obj;

@@ -23,12 +23,12 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[6] = {
-    [1] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
-    },
+const vader_type_info_t vader_type_info_table[7] = {
     [2] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+    },
+    [3] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Field_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_std_core$Field_t, f_type) },
@@ -36,11 +36,11 @@ const vader_type_info_t vader_type_info_table[6] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_core$Field_t, f_name) },
         .string_count = 1,
     },
-    [3] = { .slot_size = 4 },
     [4] = { .slot_size = 4 },
-    [5] = { .slot_size = 16 },
+    [5] = { .slot_size = 4 },
+    [6] = { .slot_size = 16 },
 };
-const size_t vader_type_info_count = 6;
+const size_t vader_type_info_count = 7;
 
 static int32_t snippet$count_fields(void* l0) {
     int64_t t0;
@@ -54,7 +54,7 @@ static int32_t snippet$main(void) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(1u, 0u, 13u, 2u);
+    vader_array_t* _a0_arr = vader_array_new(2u, 0u, 13u, 3u);
     t0 = (void*) _a0_arr;
     t1 = snippet$count_fields(t0);
     { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }

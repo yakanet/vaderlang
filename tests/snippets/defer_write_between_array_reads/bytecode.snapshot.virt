@@ -1,22 +1,22 @@
 module _main
 type 0 scalar null
-type 1 array 2
-type 2 scalar i32
-type 3 scalar i64
-type 4 struct __defer_env_snippet_1 { cap_0:1,cap_1:3 }
-type 5 scalar void
+type 1 scalar void
+type 2 array 3
+type 3 scalar i32
+type 4 scalar i64
+type 5 struct __defer_env_snippet_1 { cap_0:2,cap_1:4 }
 type 6 scalar string
 type 7 struct std_core$Buffer {  }
 type 8 array 9
 type 9 scalar u8
 type 10 scalar bool
-type 11 fn () -> 5
+type 11 fn () -> 1
 string 0 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=3 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=4 param_types=6 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=6 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=2,8,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=5 () -> void
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=3,8,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 7 std_core$ByteAccess
 export main 1
 
@@ -29,7 +29,7 @@ fn 0 snippet$read_around_defer (ref,i64) -> i32
   local.set 2   ; before
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  struct.new 4   ; __defer_env_snippet_1
+  struct.new 5   ; __defer_env_snippet_1
   make_closure 2 11   ; __defer_snippet_0 fn
   defer.push
   defer.pop_exec 1
@@ -54,7 +54,7 @@ fn 1 snippet$main () -> i32
   local.set 1   ; __off_1
   i32.const 1
   i32.const 2
-  array.new 1 2   ; i32[]
+  array.new 2 2   ; i32[]
   i64.const 0
   call 0   ; snippet$read_around_defer
   i32.to_i64
@@ -74,10 +74,10 @@ end
 fn 2 __defer_snippet_0 (ref) -> void
   local $field_1 ref
   local $field_2 i64
-  local.field 0 4 0   ; arg 0 __defer_env_snippet_1.cap_0
+  local.field 0 5 0   ; arg 0 __defer_env_snippet_1.cap_0
   local.set 1   ; $field_1
-  local.field 0 4 1   ; arg 0 __defer_env_snippet_1.cap_1
-  ref.cast 3   ; i64
+  local.field 0 5 1   ; arg 0 __defer_env_snippet_1.cap_1
+  ref.cast 4   ; i64
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2

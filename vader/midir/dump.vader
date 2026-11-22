@@ -145,6 +145,7 @@ dump_const :: fn(v: ConstValue) -> string {
         is ConstChar   -> { return "char(${v.value})" }
         is ConstString -> { return "string(#${v.index})" }
         is ConstNull   -> { return "null" }
+        is ConstVoid   -> { return "void" }
     }
 }
 

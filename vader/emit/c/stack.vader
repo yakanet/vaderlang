@@ -382,9 +382,20 @@ push_temporary :: fn(s: FnState, temporary: CTemporary, val: ValType) -> void {
 /// temp. The eager-result idiom shared by every op that forces its value into
 /// a slot (`push_eager`'s div/rem, call results, struct/array results).
 push_into_temporary :: fn(s: FnState, value: CExpression, val: ValType) -> void {
+    if val == .Void {
+        s.stack.push(evaluated_void(s, value))
+        return
+    }
     temporary :: new_temporary(s, val)
     assign(s, temporary, value)
     push_temporary(s, temporary, val)
+}
+
+/// A `void` value has no storage, so no temporary holds it: `value` runs as a
+/// statement, and the entry left is `void` itself.
+evaluated_void :: fn(s: FnState, value: CExpression) -> StackVal {
+    evaluate(s, value)
+    return StackLit { .expression = verbatim("((void) 0)"), .val = .Void }
 }
 
 /// Allocate a fresh monotone scratch C identifier `_aN_<suffix>`: block-
@@ -401,6 +412,9 @@ aux :: fn(s: FnState, suffix: string) -> string {
 /// `tN = <e>;`, and return the `StackTemporary`.
 materialise_entry :: fn(s: FnState, e: StackVal) -> StackVal {
     val :: val_of(e)
+    if val == .Void {
+        return evaluated_void(s, expression_of(e))
+    }
     temporary :: new_temporary(s, val)
     assign(s, temporary, expression_of(e))
     return StackTemporary { .temporary = temporary, .val = val }

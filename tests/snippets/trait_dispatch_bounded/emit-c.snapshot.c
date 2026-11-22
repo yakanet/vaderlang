@@ -62,28 +62,28 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[12] = {
-    [1] = { .slot_size = 4 },
-    [2] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 1u,
-    },
+    [2] = { .slot_size = 4 },
     [3] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
     },
-    [4] = { .slot_size = 4 },
-    [5] = { .slot_size = 1 },
-    [6] = {
+    [4] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 5u,
+    },
+    [5] = { .slot_size = 4 },
+    [6] = { .slot_size = 1 },
+    [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [7] = { .slot_size = 8 },
     [8] = { .slot_size = 8 },
-    [9] = {
+    [9] = { .slot_size = 8 },
+    [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 10u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
     },
-    [10] = { .slot_size = 1 },
+    [11] = { .slot_size = 1 },
 };
 const size_t vader_type_info_count = 12;
 
@@ -99,7 +99,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 9u, 10u);
+    return (void*) vader_string_bytes_view(a0, 10u, 11u);
 }
 
 static uint64_t vader_host_std_core$Intrinsic$string_hash(vader_string_t a0) {
@@ -157,7 +157,7 @@ static int32_t snippet$main(void) {
     l1 = std_core$write_int(l0, l1, l2);
     t1 = std_core$finish_buffer(l0, l1);
     std_console$println__string(t1);
-    vader_array_t* _a0_arr = vader_array_new(2u, 6u, 7u, 1u);
+    vader_array_t* _a0_arr = vader_array_new(3u, 6u, 7u, 2u);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 5u] = (int32_t) INT32_C(2);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 4u] = (int32_t) INT32_C(5);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 3u] = (int32_t) INT32_C(2);
@@ -173,12 +173,12 @@ static int32_t snippet$main(void) {
     l1 = std_core$write_int(l3, l1, l2);
     t1 = std_core$finish_buffer(l3, l1);
     std_console$println__string(t1);
-    vader_array_t* _a1_arr = vader_array_new(3u, 5u, 0u, 4u);
-    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 4u] = vader_box_string(4u, 3u);
-    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 3u] = vader_box_string(4u, 5u);
-    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 2u] = vader_box_string(4u, 3u);
-    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 1u] = vader_box_string(4u, 4u);
-    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 0u] = vader_box_string(4u, 3u);
+    vader_array_t* _a1_arr = vader_array_new(4u, 5u, 0u, 5u);
+    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 4u] = vader_box_string(5u, 3u);
+    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 3u] = vader_box_string(5u, 5u);
+    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 2u] = vader_box_string(5u, 3u);
+    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 1u] = vader_box_string(5u, 4u);
+    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 0u] = vader_box_string(5u, 3u);
     l0 = (void*) _a1_arr;
     l3 = (void*) vader_buffer_new((size_t) INT64_C(40));
     l1 = INT64_C(0);

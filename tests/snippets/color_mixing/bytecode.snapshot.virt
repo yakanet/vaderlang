@@ -1,24 +1,24 @@
 module _main
 type 0 scalar null
-type 1 struct snippet$Rgb { r:2,g:2,b:2 }
-type 2 scalar i32
-type 3 scalar string
-type 4 struct std_core$Buffer {  }
-type 5 scalar i64
-type 6 array 7
-type 7 scalar u8
-type 8 scalar void
+type 1 scalar void
+type 2 struct snippet$Rgb { r:3,g:3,b:3 }
+type 3 scalar i32
+type 4 scalar string
+type 5 struct std_core$Buffer {  }
+type 6 scalar i64
+type 7 array 8
+type 8 scalar u8
 type 9 scalar bool
 string 0 " "
 string 1 " x"
 string 2 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=3 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=6 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,6,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=8 () -> void
-impl 1 std_core$Add
-impl 4 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=6 param_types=4 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=7 param_types=4 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=3,7,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 2 std_core$Add
+impl 5 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$Color$std_core$Add$add (ref,ref) -> ref
@@ -26,11 +26,11 @@ fn 0 snippet$Color$std_core$Add$add (ref,ref) -> ref
   local $field_3 i32
   local $field_8 i32
   local $field_13 i32
-  local.field 0 1 0   ; arg 0 snippet$Rgb.r
-  ref.cast 2   ; i32
+  local.field 0 2 0   ; arg 0 snippet$Rgb.r
+  ref.cast 3   ; i32
   local.set 2   ; $field_2
-  local.field 1 1 0   ; arg 1 snippet$Rgb.r
-  ref.cast 2   ; i32
+  local.field 1 2 0   ; arg 1 snippet$Rgb.r
+  ref.cast 3   ; i32
   local.set 3   ; $field_3
   local.get 2   ; $field_2
   local.get 3   ; $field_3
@@ -38,11 +38,11 @@ fn 0 snippet$Color$std_core$Add$add (ref,ref) -> ref
   i32.const 2
   i32.div
   local.set 2   ; $field_2
-  local.field 0 1 1   ; arg 0 snippet$Rgb.g
-  ref.cast 2   ; i32
+  local.field 0 2 1   ; arg 0 snippet$Rgb.g
+  ref.cast 3   ; i32
   local.set 3   ; $field_3
-  local.field 1 1 1   ; arg 1 snippet$Rgb.g
-  ref.cast 2   ; i32
+  local.field 1 2 1   ; arg 1 snippet$Rgb.g
+  ref.cast 3   ; i32
   local.set 4   ; $field_8
   local.get 3   ; $field_3
   local.get 4   ; $field_8
@@ -50,11 +50,11 @@ fn 0 snippet$Color$std_core$Add$add (ref,ref) -> ref
   i32.const 2
   i32.div
   local.set 3   ; $field_3
-  local.field 0 1 2   ; arg 0 snippet$Rgb.b
-  ref.cast 2   ; i32
+  local.field 0 2 2   ; arg 0 snippet$Rgb.b
+  ref.cast 3   ; i32
   local.set 4   ; $field_8
-  local.field 1 1 2   ; arg 1 snippet$Rgb.b
-  ref.cast 2   ; i32
+  local.field 1 2 2   ; arg 1 snippet$Rgb.b
+  ref.cast 3   ; i32
   local.set 5   ; $field_13
   local.get 4   ; $field_8
   local.get 5   ; $field_13
@@ -65,7 +65,7 @@ fn 0 snippet$Color$std_core$Add$add (ref,ref) -> ref
   local.get 2   ; $field_2
   local.get 3   ; $field_3
   local.get 4   ; $field_8
-  struct.new 1   ; snippet$Rgb
+  struct.new 2   ; snippet$Rgb
   return
 end
 
@@ -80,12 +80,12 @@ fn 1 snippet$main () -> i32
   i32.const 200
   i32.const 0
   i32.const 0
-  struct.new 1   ; snippet$Rgb
+  struct.new 2   ; snippet$Rgb
   local.set 0   ; red
   i32.const 0
   i32.const 0
   i32.const 200
-  struct.new 1   ; snippet$Rgb
+  struct.new 2   ; snippet$Rgb
   local.set 1   ; blue
   local.get 0   ; red
   local.get 1   ; blue
@@ -96,8 +96,8 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __buf_0
   i64.const 0
   local.set 3   ; __off_1
-  local.field 1 1 0   ; blue snippet$Rgb.r
-  ref.cast 2   ; i32
+  local.field 1 2 0   ; blue snippet$Rgb.r
+  ref.cast 3   ; i32
   i32.to_i64
   local.set 4   ; $cast_18
   local.get 2   ; __buf_0
@@ -110,8 +110,8 @@ fn 1 snippet$main () -> i32
   string.const 0   ; " "
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 1 1 1   ; blue snippet$Rgb.g
-  ref.cast 2   ; i32
+  local.field 1 2 1   ; blue snippet$Rgb.g
+  ref.cast 3   ; i32
   i32.to_i64
   local.set 4   ; $cast_18
   local.get 2   ; __buf_0
@@ -124,8 +124,8 @@ fn 1 snippet$main () -> i32
   string.const 0   ; " "
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.field 1 1 2   ; blue snippet$Rgb.b
-  ref.cast 2   ; i32
+  local.field 1 2 2   ; blue snippet$Rgb.b
+  ref.cast 3   ; i32
   i32.to_i64
   local.set 4   ; $cast_18
   local.get 2   ; __buf_0
@@ -196,8 +196,8 @@ fn 1 snippet$main () -> i32
   i64.const 0
   local.set 3   ; __off_1
   local.get 0   ; red
-  struct.get 1 0   ; snippet$Rgb.r
-  ref.cast 2   ; i32
+  struct.get 2 0   ; snippet$Rgb.r
+  ref.cast 3   ; i32
   i32.to_i64
   local.set 4   ; $cast_18
   local.get 1   ; blue
@@ -425,7 +425,7 @@ fn 6 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 6   ; u8[]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

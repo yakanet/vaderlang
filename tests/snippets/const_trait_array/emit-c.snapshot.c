@@ -34,16 +34,16 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_snippet$Circle_t vader_data_0_e0 = {
-    VADER_STATIC_HEADER(1u), (int32_t) UINT64_C(1),
+    VADER_STATIC_HEADER(2u), (int32_t) UINT64_C(1),
 };
 static const struct vader_struct_snippet$Square_t vader_data_0_e1 = {
-    VADER_STATIC_HEADER(3u), (int32_t) UINT64_C(2),
+    VADER_STATIC_HEADER(4u), (int32_t) UINT64_C(2),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_0_buf = {
     VADER_STATIC_BUF_HEADER(12u, 0u, 2u),
     .slots = {
-        { 1u, 0u, { .obj = (void*) (struct vader_struct_snippet$Circle_t*) &vader_data_0_e0 } },
-        { 3u, 0u, { .obj = (void*) (struct vader_struct_snippet$Square_t*) &vader_data_0_e1 } },
+        { 2u, 0u, { .obj = (void*) (struct vader_struct_snippet$Circle_t*) &vader_data_0_e0 } },
+        { 4u, 0u, { .obj = (void*) (struct vader_struct_snippet$Square_t*) &vader_data_0_e1 } },
     },
 };
 static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(11u, 2u, &vader_data_0_buf);
@@ -65,26 +65,26 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Circle_t),
         .slot_size = 8,
     },
-    [2] = { .slot_size = 4 },
-    [3] = {
+    [3] = { .slot_size = 4 },
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Square_t),
         .slot_size = 8,
     },
-    [4] = { .slot_size = 4 },
-    [5] = {
+    [5] = { .slot_size = 4 },
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [6] = { .slot_size = 8 },
-    [7] = {
+    [7] = { .slot_size = 8 },
+    [8] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
     },
-    [8] = { .slot_size = 1 },
+    [9] = { .slot_size = 1 },
     [10] = { .slot_size = 1 },
     [11] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -106,7 +106,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 7u, 8u);
+    return (void*) vader_string_bytes_view(a0, 8u, 9u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -362,8 +362,8 @@ static void std_console$println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static int32_t snippet$Shape$area$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet$Circle$Shape$area(recv.payload.obj);
-        case 3u: return snippet$Square$Shape$area(recv.payload.obj);
+        case 2u: return snippet$Circle$Shape$area(recv.payload.obj);
+        case 4u: return snippet$Square$Shape$area(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet$Shape.area");
     }
     vader_unreachable("vtable miss in snippet$Shape.area");

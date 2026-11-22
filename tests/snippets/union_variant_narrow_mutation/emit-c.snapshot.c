@@ -57,27 +57,27 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[12] = {
-    [1] = { .slot_size = 16 },
-    [2] = {
+    [2] = { .slot_size = 16 },
+    [3] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
     },
-    [3] = { .slot_size = 4 },
-    [4] = {
+    [4] = { .slot_size = 4 },
+    [5] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 5u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 6u,
     },
-    [5] = { .slot_size = 4 },
-    [6] = { .slot_size = 8 },
-    [7] = {
+    [6] = { .slot_size = 4 },
+    [7] = { .slot_size = 8 },
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [8] = {
+    [9] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 10u,
     },
-    [9] = { .slot_size = 1 },
+    [10] = { .slot_size = 1 },
     [11] = { .slot_size = 1 },
 };
 const size_t vader_type_info_count = 12;
@@ -94,7 +94,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 8u, 9u);
+    return (void*) vader_string_bytes_view(a0, 9u, 10u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -128,9 +128,9 @@ static int64_t snippet$fill(vader_box_t l0) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    if (!(l0.tag == 2u)) {
+    if (!(l0.tag == 3u)) {
         t0 = l0.payload.obj;
-        vader_array_push_scalar((vader_array_t*) t0, vader_box_string(5u, 1u));
+        vader_array_push_scalar((vader_array_t*) t0, vader_box_string(6u, 1u));
         t0 = l0.payload.obj;
         t1 = vader_array_length(((vader_array_t*) t0));
         { int64_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -150,7 +150,7 @@ static int64_t snippet$total(vader_box_t l0) {
     int64_t l3, l4;
     void* t0;
     int64_t t1;
-    if (!(l0.tag == 2u)) {
+    if (!(l0.tag == 3u)) {
         t0 = l0.payload.obj;
         t1 = vader_array_length(((vader_array_t*) t0));
         return t1;
@@ -186,13 +186,13 @@ static int32_t snippet$main(void) {
         vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(2u, 2u, 7u, 3u);
+    vader_array_t* _a0_arr = vader_array_new(3u, 2u, 7u, 4u);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 1u] = (int32_t) INT32_C(20);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (int32_t) INT32_C(10);
     l0 = (void*) _a0_arr;
-    vader_array_t* _a1_arr = vader_array_new(4u, 2u, 0u, 5u);
-    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 1u] = vader_box_string(5u, 3u);
-    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 0u] = vader_box_string(5u, 2u);
+    vader_array_t* _a1_arr = vader_array_new(5u, 2u, 0u, 6u);
+    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 1u] = vader_box_string(6u, 3u);
+    vader_array_box_slots(_a1_arr->buf)[vader_array_offset(_a1_arr) + 0u] = vader_box_string(6u, 2u);
     l1 = (void*) _a1_arr;
     l2 = (void*) vader_buffer_new((size_t) INT64_C(52));
     l3 = INT64_C(0);

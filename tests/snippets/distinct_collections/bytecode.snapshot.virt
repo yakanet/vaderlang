@@ -1,9 +1,10 @@
 module _main
 type 0 scalar null
-type 1 array 2
-type 2 scalar i64
-type 3 scalar i32
-type 4 union 0,2
+type 1 scalar void
+type 2 array 3
+type 3 scalar i64
+type 4 scalar i32
+type 5 union 0,3
 export main 2
 
 fn 0 snippet$sum_ids (ref) -> i32
@@ -51,7 +52,7 @@ fn 1 snippet$unwrap_or (any,i32) -> i32
   if $L0 void
   else
     local.get 0   ; arg 0
-    ref.cast 2   ; i64
+    ref.cast 3   ; i64
     i64.to_i32
     return
   end $L0
@@ -64,10 +65,10 @@ fn 2 snippet$main () -> i32
   local present i32
   i64.const 10
   i64.const 20
-  array.new 1 2   ; i64[]
+  array.new 2 2   ; i64[]
   local.set 0   ; ids
   i64.const 12
-  retag 2   ; i64
+  retag 3   ; i64
   i32.const -1
   call 1   ; snippet$unwrap_or
   local.set 1   ; present

@@ -305,6 +305,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
 export prune_unused_types :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> BcDataEntry[] {
     reachable :: Set<i32> {}
     reachable.add(0)   // null slot is load-bearing for the runtime
+    reachable.add(1)   // so is the void slot: its tag is the `void` value
 
     // Visit transitively.
     roots: i32[]: []
@@ -435,7 +436,7 @@ export type_index_of :: fn(op: Op) -> i32 = match op {
 // Every `Op` that carries no type-table index: what `type_index_of` and
 // `remap_type_in_op` pass through. Spelled out so both match exhaustively : an
 // op added to `Op` must be placed here or given its own arm.
-TypelessOp :: Unreachable | I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst
+TypelessOp :: Unreachable | I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst | VoidConst
     | BoolConst | CharConst | F64Const | I64Const | CallImport | Call | VirtualCall | ArrayLen
     | Convert | DeferPush | DeferPopExec | SizeOfType | I32Add | I32Sub | I32Mul | I32Div
     | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | I32Neg | I32BitNot | I32BitAnd

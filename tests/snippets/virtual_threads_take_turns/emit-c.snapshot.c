@@ -139,67 +139,67 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static vader_box_t vader_fn_tramp_snippet$joiner$keep(void* env) {
     (void) env;
     snippet$joiner$keep();
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static vader_fn_t vader_fn_static_snippet$joiner$keep = {
-    VADER_STATIC_HEADER(2u), (void*) &vader_fn_tramp_snippet$joiner$keep, NULL,
+    VADER_STATIC_HEADER(3u), (void*) &vader_fn_tramp_snippet$joiner$keep, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_2(void* env) {
     (void) env;
     __lambda_snippet_2();
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_2 = {
-    VADER_STATIC_HEADER(2u), (void*) &vader_fn_tramp___lambda_snippet_2, NULL,
+    VADER_STATIC_HEADER(3u), (void*) &vader_fn_tramp___lambda_snippet_2, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_3(void* env) {
     (void) env;
     __lambda_snippet_3();
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_3 = {
-    VADER_STATIC_HEADER(2u), (void*) &vader_fn_tramp___lambda_snippet_3, NULL,
+    VADER_STATIC_HEADER(3u), (void*) &vader_fn_tramp___lambda_snippet_3, NULL,
 };
 
 static vader_box_t vader_fn_lift___lambda_snippet_0(void* env) {
     __lambda_snippet_0(env);
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static vader_box_t vader_fn_lift___lambda_snippet_4(void* env) {
     __lambda_snippet_4(env);
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static vader_box_t vader_fn_lift___defer_std_runtime_scheduler_0(void* env) {
     __defer_std_runtime_scheduler_0(env);
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static vader_box_t vader_fn_lift___defer_std_runtime_scheduler_2(void* env) {
     __defer_std_runtime_scheduler_2(env);
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static vader_box_t vader_fn_lift___defer_std_runtime_scheduler_4(void* env) {
     __defer_std_runtime_scheduler_4(env);
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[21] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Joiner_t),
         .slot_size = 8,
     },
-    [2] = {
+    [3] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
         .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
@@ -381,7 +381,7 @@ static void snippet$spawn(void* l0) {
     _a0_obj->f_cap_1 = l1;
     t2 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 2u);
+    vader_obj_header_init(_a1_closure, 3u);
     _a1_closure->code = (void*) &vader_fn_lift___lambda_snippet_0;
     _a1_closure->env = t2;
     l3 = (void*) _a1_closure;
@@ -462,7 +462,7 @@ static int32_t snippet$main(void) {
     _a0_obj->f_cap_0 = l0;
     t1 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 2u);
+    vader_obj_header_init(_a1_closure, 3u);
     _a1_closure->code = (void*) &vader_fn_lift___lambda_snippet_4;
     _a1_closure->env = t1;
     t1 = (void*) _a1_closure;
@@ -498,7 +498,7 @@ static void* snippet$joiner$singleton(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Joiner_t* _a0_obj = (vader_struct_snippet$Joiner_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Joiner_t));
-    vader_obj_header_init(_a0_obj, 1u);
+    vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_running = INT64_C(0);
     _a0_obj->f_started = INT64_C(0);
     _a0_obj->f_main_thread = INT64_C(0);
@@ -825,7 +825,7 @@ static bool std_runtime_scheduler$run_gated(void* l0, void* l1) {
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     t0 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) INT64_C(0));
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 2u);
+    vader_obj_header_init(_a1_closure, 3u);
     _a1_closure->code = (void*) &vader_fn_lift___defer_std_runtime_scheduler_0;
     _a1_closure->env = t0;
     t0 = (void*) _a1_closure;
@@ -850,7 +850,7 @@ static bool std_runtime_scheduler$run_gated(void* l0, void* l1) {
     _a2_obj->f_cap_0 = l0;
     t0 = (void*) _a2_obj;
     vader_fn_t* _a3_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a3_closure, 2u);
+    vader_obj_header_init(_a3_closure, 3u);
     _a3_closure->code = (void*) &vader_fn_lift___defer_std_runtime_scheduler_2;
     _a3_closure->env = t0;
     t0 = (void*) _a3_closure;
@@ -891,7 +891,7 @@ static void std_runtime_scheduler$await_gate(void* l0, int64_t l1) {
     _a0_obj->f_cap_1 = l1;
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 2u);
+    vader_obj_header_init(_a1_closure, 3u);
     _a1_closure->code = (void*) &vader_fn_lift___defer_std_runtime_scheduler_4;
     _a1_closure->env = t0;
     t0 = (void*) _a1_closure;

@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted (2026-11-14). Amends the Decision of 0011.
+Accepted (2026-11-14). Amends the Decision of 0011. Amended by 0172: an
+operation with nothing to return succeeds with `void`, which `else` never
+takes.
 
 ## Context
 

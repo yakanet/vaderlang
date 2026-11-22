@@ -1,22 +1,23 @@
 module _main
 type 0 scalar null
-type 1 scalar string
-type 2 scalar i32
-type 3 struct snippet$Box { v:2 }
-type 4 scalar i64
-type 5 scalar u8
-type 6 scalar u32
-type 7 scalar bool
-type 8 struct std_core$Buffer {  }
+type 1 scalar void
+type 2 scalar string
+type 3 scalar i32
+type 4 struct snippet$Box { v:3 }
+type 5 scalar i64
+type 6 scalar u8
+type 7 scalar u32
+type 8 scalar bool
+type 9 struct std_core$Buffer {  }
 string 0 ", "
 string 1 "Alice"
 string 2 "Hello"
 string 3 "Eve"
 string 4 "Hey"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=4 param_types=1 param_c_out= param_by_address= (string) -> i64
-import 1 byte_at std_core$Intrinsic$byte_at intrinsic=byte_at result_type=5 param_types=1,4 param_c_out= param_by_address= (string,i64) -> u8
-import 2 is_ascii std_core$Intrinsic$is_ascii intrinsic=is_ascii result_type=7 param_types=1 param_c_out= param_by_address= (string) -> bool
-impl 8 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 1 byte_at std_core$Intrinsic$byte_at intrinsic=byte_at result_type=6 param_types=2,5 param_c_out= param_by_address= (string,i64) -> u8
+import 2 is_ascii std_core$Intrinsic$is_ascii intrinsic=is_ascii result_type=8 param_types=2 param_c_out= param_by_address= (string) -> bool
+impl 9 std_core$ByteAccess
 export main 4
 
 fn 0 snippet$greet (string,string) -> string
@@ -56,8 +57,8 @@ fn 2 snippet$pick_1 (i32,i32) -> i32
 end
 
 fn 3 snippet$scale (ref,i32,i32) -> i32
-  local.field 0 3 0   ; arg 0 snippet$Box.v
-  ref.cast 2   ; i32
+  local.field 0 4 0   ; arg 0 snippet$Box.v
+  ref.cast 3   ; i32
   local.get 1   ; arg 1
   i32.checked_mul
   local.get 2   ; arg 2
@@ -91,7 +92,7 @@ fn 4 snippet$main () -> i32
   call 2   ; snippet$pick_1
   local.set 3   ; p
   i32.const 6
-  struct.new 3   ; snippet$Box
+  struct.new 4   ; snippet$Box
   i32.const 2
   i32.const 1
   call 3   ; snippet$scale

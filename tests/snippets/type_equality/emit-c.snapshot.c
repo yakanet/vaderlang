@@ -39,20 +39,20 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[12] = {
-    [1] = { .slot_size = 16 },
-    [2] = { .slot_size = 1 },
-    [3] = { .slot_size = 4 },
+    [2] = { .slot_size = 16 },
+    [3] = { .slot_size = 1 },
     [4] = { .slot_size = 4 },
-    [5] = {
+    [5] = { .slot_size = 4 },
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [6] = { .slot_size = 8 },
-    [7] = {
+    [7] = { .slot_size = 8 },
+    [8] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
     },
-    [8] = { .slot_size = 1 },
+    [9] = { .slot_size = 1 },
     [10] = { .slot_size = 8 },
     [11] = { .slot_size = 4 },
 };
@@ -70,7 +70,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 7u, 8u);
+    return (void*) vader_string_bytes_view(a0, 8u, 9u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -122,17 +122,17 @@ static int32_t snippet$main(void) {
     l1 = std_core$write_bool(l0, l1, l4);
     l1 = std_core$write_string_at(l0, l1, 1u);
     l2 = vader_box_obj(0u, (void*)(uintptr_t)10u);
-    l3 = vader_box_obj(0u, (void*)(uintptr_t)6u);
+    l3 = vader_box_obj(0u, (void*)(uintptr_t)7u);
     l4 = vader_box_eq(l2, l3);
     l1 = std_core$write_bool(l0, l1, l4);
     l1 = std_core$write_string_at(l0, l1, 1u);
     l2 = vader_box_obj(0u, (void*)(uintptr_t)11u);
-    l3 = vader_box_obj(0u, (void*)(uintptr_t)3u);
+    l3 = vader_box_obj(0u, (void*)(uintptr_t)4u);
     l4 = vader_box_eq(l2, l3);
     l1 = std_core$write_bool(l0, l1, l4);
     l1 = std_core$write_string_at(l0, l1, 1u);
-    l2 = vader_box_obj(0u, (void*)(uintptr_t)4u);
-    l3 = vader_box_obj(0u, (void*)(uintptr_t)4u);
+    l2 = vader_box_obj(0u, (void*)(uintptr_t)5u);
+    l3 = vader_box_obj(0u, (void*)(uintptr_t)5u);
     l4 = vader_box_eq(l2, l3);
     l1 = std_core$write_bool(l0, l1, l4);
     t0 = std_core$finish_buffer(l0, l1);
@@ -155,7 +155,7 @@ static int32_t snippet$main(void) {
     l1 = std_core$write_bool(l0, l1, l4);
     l1 = std_core$write_string_at(l0, l1, 1u);
     l2 = vader_box_obj(0u, (void*)(uintptr_t)10u);
-    l3 = vader_box_obj(0u, (void*)(uintptr_t)6u);
+    l3 = vader_box_obj(0u, (void*)(uintptr_t)7u);
     l4 = snippet$same(l2, l3);
     l1 = std_core$write_bool(l0, l1, l4);
     t0 = std_core$finish_buffer(l0, l1);
@@ -168,7 +168,7 @@ static int32_t snippet$main(void) {
     l1 = std_core$write_bool(l0, l1, l4);
     l1 = std_core$write_string_at(l0, l1, 1u);
     l2 = vader_box_obj(0u, (void*)(uintptr_t)10u);
-    l3 = vader_box_obj(0u, (void*)(uintptr_t)6u);
+    l3 = vader_box_obj(0u, (void*)(uintptr_t)7u);
     l4 = vader_box_eq(l2, l3);
     l1 = std_core$write_bool(l0, l1, l4);
     l1 = std_core$write_string_at(l0, l1, 1u);

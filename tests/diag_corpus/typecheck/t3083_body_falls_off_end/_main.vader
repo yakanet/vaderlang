@@ -23,6 +23,24 @@ returns_void :: fn(n: i32) -> void {
     _ :: n + 1
 }
 
+// Quiet: a result that admits `void` is given `void` at the end of the body.
+fallible_void :: fn(n: i32) -> void | Refused {
+    _ :: n + 1
+}
+
+// A result that admits no `void` still needs a value, `null` included.
+// Not called: calling it would hang, abort, or return nothing.
+@allow_unused
+fallible_value :: fn(n: i32) -> i32 | Refused {
+    _ :: n + 1
+}
+
+Refused :: struct {}
+
+Refused implements Error {
+    message :: fn(self) -> string = "refused"
+}
+
 // Quiet: diverges through a `@no_return` call.
 // Not called: calling it would hang, abort, or return nothing.
 @allow_unused
@@ -89,6 +107,7 @@ item_at :: fn(xs: i32[], i: i64) -> i32 | null {
 
 main :: fn() -> i32 {
     returns_void(1)
+    _ :: fallible_void(1)
     lambda_void()
     return both(true) + lambda_falls_off()
 }

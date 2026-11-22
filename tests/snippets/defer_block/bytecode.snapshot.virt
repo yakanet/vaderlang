@@ -1,7 +1,7 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 scalar void
+type 1 scalar void
+type 2 scalar i32
 type 3 struct __defer_env_snippet_1 {  }
 type 4 struct __defer_env_snippet_3 {  }
 type 5 struct __defer_env_snippet_5 {  }
@@ -13,7 +13,7 @@ type 10 array 11
 type 11 scalar u8
 type 12 scalar bool
 type 13 array 3
-type 14 fn () -> 2
+type 14 fn () -> 1
 type 15 array 4
 type 16 array 5
 type 17 array 6
@@ -33,9 +33,9 @@ data 2 agg 1 struct 5 0
 data 3 agg 1 struct 6 0
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=9 param_types=7 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=10 param_types=7 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=1,10,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=2 () -> void
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=2,10,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 8 std_core$ByteAccess
 export main 3
 

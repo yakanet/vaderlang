@@ -1,14 +1,14 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 scalar bool
-type 3 scalar i64
-type 4 array 5
-type 5 scalar string
-type 6 struct std_core$Buffer {  }
-type 7 array 8
-type 8 scalar u8
-type 9 scalar void
+type 1 scalar void
+type 2 scalar i32
+type 3 scalar bool
+type 4 scalar i64
+type 5 array 6
+type 6 scalar string
+type 7 struct std_core$Buffer {  }
+type 8 array 9
+type 9 scalar u8
 string 0 "i32 sum: "
 string 1 "i32 product: "
 string 2 "i32 negated minimum: "
@@ -20,12 +20,12 @@ string 7 "i64 grows at the maximum: "
 string 8 "true"
 string 9 "false"
 string 10 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=3 param_types=5 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=7 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=1,7,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=9 () -> void
-impl 6 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=4 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=2,8,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 7 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$grows (i32) -> bool
@@ -496,7 +496,7 @@ fn 8 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 7   ; u8[]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

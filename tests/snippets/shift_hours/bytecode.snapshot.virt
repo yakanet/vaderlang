@@ -1,26 +1,26 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 scalar u8
-type 3 scalar bool
-type 4 array 2
-type 5 scalar string
-type 6 struct std_core$Buffer {  }
-type 7 scalar i64
-type 8 scalar u64
-type 9 scalar void
+type 1 scalar void
+type 2 scalar i32
+type 3 scalar u8
+type 4 scalar bool
+type 5 array 3
+type 6 scalar string
+type 7 struct std_core$Buffer {  }
+type 8 scalar i64
+type 9 scalar u64
 string 0 "ends at "
 string 1 "worked "
 string 2 "long shifts "
 string 3 "first month "
 string 4 "bytes "
 string 5 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=5 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=4 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=1,4,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=9 () -> void
-impl 6 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=5 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=2,5,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 7 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -64,7 +64,7 @@ fn 0 snippet$main () -> i32
   i32.const 2
   i32.const 3
   i32.const 4
-  array.new 4 3   ; u8[]
+  array.new 5 3   ; u8[]
   local.set 1   ; __buf_0
   i64.const 27
   buffer.new
@@ -118,8 +118,8 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 1   ; __buf_0
         local.get 7   ; __fuse_i_3
-        array.get 4   ; u8[]
-        ref.cast 2   ; u8
+        array.get 5   ; u8[]
+        ref.cast 3   ; u8
         local.tee 8   ; x
         call 1   ; __lambda_snippet_0
         if $L3 void
@@ -295,8 +295,8 @@ fn 4 snippet$total__Int_in_0___23 (ref) -> u8
       if $L2 void
         local.get 2   ; __for_arr_1
         local.get 4   ; __for_i_3
-        array.get 4   ; u8[]
-        ref.cast 2   ; u8
+        array.get 5   ; u8[]
+        ref.cast 3   ; u8
         local.set 5   ; length
         local.get 1   ; sum
         local.get 5   ; length
@@ -521,7 +521,7 @@ fn 12 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 4   ; u8[]
+      array.slice 5   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

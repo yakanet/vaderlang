@@ -57,17 +57,17 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[10] = {
-    [1] = { .slot_size = 16 },
-    [2] = { .slot_size = 4 },
+    [2] = { .slot_size = 16 },
     [3] = { .slot_size = 4 },
-    [4] = { .slot_size = 1 },
+    [4] = { .slot_size = 4 },
     [5] = { .slot_size = 1 },
-    [6] = { .slot_size = 8 },
-    [7] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 5u,
-    },
+    [6] = { .slot_size = 1 },
+    [7] = { .slot_size = 8 },
     [8] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 6u,
+    },
+    [9] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
@@ -86,7 +86,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 7u, 5u);
+    return (void*) vader_string_bytes_view(a0, 8u, 6u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -119,7 +119,7 @@ static vader_string_t snippet$inspect(vader_box_t l0) {
     bool l3;
     int32_t t0;
     l1 = l0;
-    if (l1.tag == 2u) {
+    if (l1.tag == 3u) {
         t0 = ((int32_t) l0.payload.i);
         l3 = (t0 > INT32_C(100));
     } else {
@@ -129,10 +129,10 @@ static vader_string_t snippet$inspect(vader_box_t l0) {
         l2 = 1u;
         return l2;
     }
-    if (l1.tag == 2u) {
+    if (l1.tag == 3u) {
         l2 = 2u;
     } else {
-        if (!(l1.tag == 3u)) {
+        if (!(l1.tag == 4u)) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
         l2 = l0.payload.s;
@@ -145,7 +145,7 @@ static vader_string_t snippet$wave_through(vader_box_t l0, bool l1) {
     vader_string_t l3;
     bool l4;
     l2 = l0;
-    if (l2.tag == 2u) {
+    if (l2.tag == 3u) {
         l4 = l1;
     } else {
         l4 = false;
@@ -154,10 +154,10 @@ static vader_string_t snippet$wave_through(vader_box_t l0, bool l1) {
         l3 = 3u;
         return l3;
     }
-    if (l2.tag == 2u) {
+    if (l2.tag == 3u) {
         l3 = 4u;
     } else {
-        if (!(l2.tag == 3u)) {
+        if (!(l2.tag == 4u)) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
         l3 = 5u;
@@ -198,13 +198,13 @@ static int32_t snippet$main(void) {
     vader_string_t* gc_atom_roots[4] = { &l0, &l1, &l2, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 4u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l0 = snippet$inspect(vader_box_i32(2u, INT32_C(250)));
-    l1 = snippet$inspect(vader_box_i32(2u, INT32_C(40)));
-    l2 = snippet$inspect(vader_box_string(3u, 10u));
+    l0 = snippet$inspect(vader_box_i32(3u, INT32_C(250)));
+    l1 = snippet$inspect(vader_box_i32(3u, INT32_C(40)));
+    l2 = snippet$inspect(vader_box_string(4u, 10u));
     t0 = concat_5(l0, 9u, l1, 9u, l2);
     std_console$println__string(t0);
-    l0 = snippet$wave_through(vader_box_i32(2u, INT32_C(40)), true);
-    l1 = snippet$wave_through(vader_box_i32(2u, INT32_C(40)), false);
+    l0 = snippet$wave_through(vader_box_i32(3u, INT32_C(40)), true);
+    l1 = snippet$wave_through(vader_box_i32(3u, INT32_C(40)), false);
     t0 = concat_3(l0, 9u, l1);
     std_console$println__string(t0);
     l0 = snippet$lane_call((uint8_t) 1, true);

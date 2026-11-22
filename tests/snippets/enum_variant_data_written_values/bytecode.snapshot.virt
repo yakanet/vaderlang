@@ -1,15 +1,15 @@
 module _main
 type 0 scalar null
-type 1 scalar u8
-type 2 scalar string
-type 3 scalar i32
-type 4 struct snippet$StatusInfo { code:3,reason:2,retry:5 }
-type 5 scalar bool
-type 6 struct std_core$Buffer {  }
-type 7 scalar i64
-type 8 array 1
-type 9 scalar void
-type 10 array 4
+type 1 scalar void
+type 2 scalar u8
+type 3 scalar string
+type 4 scalar i32
+type 5 struct snippet$StatusInfo { code:4,reason:3,retry:6 }
+type 6 scalar bool
+type 7 struct std_core$Buffer {  }
+type 8 scalar i64
+type 9 array 2
+type 10 array 5
 type 11 array 12
 type 12 scalar u16
 string 0 "fine"
@@ -37,16 +37,16 @@ string 21 "Service Unavailable"
 string 22 "error"
 string 23 "warning"
 string 24 "info"
-data 0 structs 4 3 3 i32 c8000000 strref 19 bool 00 i32 94010000 strref 20 bool 00 i32 f7010000 strref 21 bool 01
+data 0 structs 5 3 3 i32 c8000000 strref 19 bool 00 i32 94010000 strref 20 bool 00 i32 f7010000 strref 21 bool 01
 data 1 u16 hex"c8009401f701"
-data 2 structs 4 3 3 i32 00000000 strref 19 bool 00 i32 00000000 strref 20 bool 00 i32 00000000 strref 21 bool 00
-data 3 structs 4 3 3 i32 00000000 strref 22 bool 00 i32 00000000 strref 23 bool 00 i32 00000000 strref 24 bool 00
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=3,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=9 () -> void
-impl 6 std_core$ByteAccess
+data 2 structs 5 3 3 i32 00000000 strref 19 bool 00 i32 00000000 strref 20 bool 00 i32 00000000 strref 21 bool 00
+data 3 structs 5 3 3 i32 00000000 strref 22 bool 00 i32 00000000 strref 23 bool 00 i32 00000000 strref 24 bool 00
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=3 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=4,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=4 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 7 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$describe (u8) -> string
@@ -96,8 +96,8 @@ fn 1 snippet$describe_reply (u8) -> string
   local.get 1   ; $data_const_1
   local.get 2   ; $cast_2
   array.get 10   ; snippet$StatusInfo[]
-  struct.get 4 0   ; snippet$StatusInfo.code
-  ref.cast 3   ; i32
+  struct.get 5 0   ; snippet$StatusInfo.code
+  ref.cast 4   ; i32
   local.set 3   ; __p_0
   data.const 0 10   ; pool[0] snippet$StatusInfo[]
   local.set 1   ; $data_const_1
@@ -107,8 +107,8 @@ fn 1 snippet$describe_reply (u8) -> string
   local.get 1   ; $data_const_1
   local.get 2   ; $cast_2
   array.get 10   ; snippet$StatusInfo[]
-  struct.get 4 1   ; snippet$StatusInfo.reason
-  ref.cast 2   ; string
+  struct.get 5 1   ; snippet$StatusInfo.reason
+  ref.cast 3   ; string
   local.tee 4   ; __p_1
   call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; $cast_2
@@ -150,8 +150,8 @@ fn 1 snippet$describe_reply (u8) -> string
   local.get 6   ; $data_const_25
   local.get 5   ; $cast_18
   array.get 10   ; snippet$StatusInfo[]
-  struct.get 4 2   ; snippet$StatusInfo.retry
-  ref.cast 5   ; bool
+  struct.get 5 2   ; snippet$StatusInfo.retry
+  ref.cast 6   ; bool
   local.set 7   ; $field_28
   local.get 1   ; $data_const_1
   local.get 2   ; $cast_2
@@ -193,7 +193,7 @@ fn 2 snippet$main () -> i32
   i32.const 0
   i32.const 1
   i32.const 2
-  array.new 8 3   ; u8[]
+  array.new 9 3   ; u8[]
   local.tee 0   ; statuses
   local.tee 1   ; __for_arr_0
   array.len
@@ -207,7 +207,7 @@ fn 2 snippet$main () -> i32
     if $L1 void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
-      array.get 8   ; u8[]
+      array.get 9   ; u8[]
       local.set 4   ; s
       data.const 1 11   ; pool[1] u16[]
       local.set 5   ; $data_const_13
@@ -231,8 +231,8 @@ fn 2 snippet$main () -> i32
       local.get 9   ; $data_const_20
       local.get 10   ; $cast_21
       array.get 10   ; snippet$StatusInfo[]
-      struct.get 4 1   ; snippet$StatusInfo.reason
-      ref.cast 2   ; string
+      struct.get 5 1   ; snippet$StatusInfo.reason
+      ref.cast 3   ; string
       local.set 11   ; __p_5
       local.get 4   ; s
       call 0   ; snippet$describe
@@ -317,8 +317,8 @@ fn 2 snippet$main () -> i32
       local.get 21   ; $data_const_53
       local.get 22   ; $cast_54
       array.get 10   ; snippet$StatusInfo[]
-      struct.get 4 0   ; snippet$StatusInfo.code
-      ref.cast 3   ; i32
+      struct.get 5 0   ; snippet$StatusInfo.code
+      ref.cast 4   ; i32
       i32.to_i64
       local.set 23   ; $cast_57
       local.get 18   ; __buf_7
@@ -340,7 +340,7 @@ fn 2 snippet$main () -> i32
   i32.const 0
   i32.const 1
   i32.const 2
-  array.new 8 3   ; u8[]
+  array.new 9 3   ; u8[]
   local.tee 1   ; __for_arr_0
   array.len
   local.set 2   ; __for_len_1
@@ -353,7 +353,7 @@ fn 2 snippet$main () -> i32
     if $L3 void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
-      array.get 8   ; u8[]
+      array.get 9   ; u8[]
       local.tee 4   ; s
       u8.to_i64
       i64.const 1
@@ -368,8 +368,8 @@ fn 2 snippet$main () -> i32
       local.get 5   ; $data_const_13
       local.get 6   ; $cast_14
       array.get 10   ; snippet$StatusInfo[]
-      struct.get 4 1   ; snippet$StatusInfo.reason
-      ref.cast 2   ; string
+      struct.get 5 1   ; snippet$StatusInfo.reason
+      ref.cast 3   ; string
       local.tee 8   ; __p_4
       call.import 0   ; std_core$Intrinsic$byte_len
       local.set 10   ; $cast_21
@@ -440,7 +440,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __for_len_1
   local.get 0   ; statuses
   i32.const 1
-  array.get 8   ; u8[]
+  array.get 9   ; u8[]
   i32.const 1
   i32.eq
   local.set 24   ; $eq_117
@@ -466,7 +466,7 @@ fn 2 snippet$main () -> i32
   i32.const 0
   i32.const 1
   i32.const 2
-  array.new 8 3   ; u8[]
+  array.new 9 3   ; u8[]
   local.tee 0   ; statuses
   array.len
   local.set 2   ; __for_len_1
@@ -479,7 +479,7 @@ fn 2 snippet$main () -> i32
     if $L5 void
       local.get 0   ; statuses
       local.get 3   ; __for_i_2
-      array.get 8   ; u8[]
+      array.get 9   ; u8[]
       call 1   ; snippet$describe_reply
       local.set 8   ; __p_4
       string.const 9   ; "field code: "
@@ -501,8 +501,8 @@ fn 2 snippet$main () -> i32
   local.get 0   ; statuses
   local.get 2   ; __for_len_1
   array.get 10   ; snippet$StatusInfo[]
-  struct.get 4 1   ; snippet$StatusInfo.reason
-  ref.cast 2   ; string
+  struct.get 5 1   ; snippet$StatusInfo.reason
+  ref.cast 3   ; string
   local.set 8   ; __p_4
   data.const 3 10   ; pool[3] snippet$StatusInfo[]
   local.set 0   ; statuses
@@ -512,8 +512,8 @@ fn 2 snippet$main () -> i32
   local.get 0   ; statuses
   local.get 2   ; __for_len_1
   array.get 10   ; snippet$StatusInfo[]
-  struct.get 4 1   ; snippet$StatusInfo.reason
-  ref.cast 2   ; string
+  struct.get 5 1   ; snippet$StatusInfo.reason
+  ref.cast 3   ; string
   local.set 11   ; __p_5
   local.get 8   ; __p_4
   call.import 0   ; std_core$Intrinsic$byte_len
@@ -850,7 +850,7 @@ fn 9 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 8   ; u8[]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

@@ -99,25 +99,25 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[16] = {
-    [1] = { .slot_size = 16 },
-    [2] = { .slot_size = 4 },
+    [2] = { .slot_size = 16 },
     [3] = { .slot_size = 4 },
-    [4] = { .slot_size = 1 },
-    [5] = {
+    [4] = { .slot_size = 4 },
+    [5] = { .slot_size = 1 },
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [6] = { .slot_size = 8 },
-    [7] = { .slot_size = 1 },
-    [8] = { .slot_size = 2 },
-    [9] = { .slot_size = 1 },
-    [10] = { .slot_size = 2 },
-    [11] = { .slot_size = 4 },
-    [12] = { .slot_size = 8 },
-    [13] = { .slot_size = 4 },
-    [14] = {
+    [7] = { .slot_size = 8 },
+    [8] = { .slot_size = 1 },
+    [9] = { .slot_size = 2 },
+    [10] = { .slot_size = 1 },
+    [11] = { .slot_size = 2 },
+    [12] = { .slot_size = 4 },
+    [13] = { .slot_size = 8 },
+    [14] = { .slot_size = 4 },
+    [15] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 10u,
     },
 };
 const size_t vader_type_info_count = 16;
@@ -134,7 +134,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 14u, 9u);
+    return (void*) vader_string_bytes_view(a0, 15u, 10u);
 }
 
 static void vader_host_std_core$Intrinsic$panic(vader_string_t a0) {
@@ -263,11 +263,11 @@ static int32_t snippet$main(void) {
     l0 = (void*) vader_buffer_new((size_t) INT64_C(53));
     l1 = INT64_C(0);
     l1 = std_core$write_string_at(l0, l1, 19u);
-    t1 = snippet$order(vader_box_string(3u, 17u), vader_box_string(3u, 18u));
+    t1 = snippet$order(vader_box_string(4u, 17u), vader_box_string(4u, 18u));
     l3 = ((int64_t) (int32_t) t1);
     l1 = std_core$write_int(l0, l1, l3);
     l1 = std_core$write_string_at(l0, l1, 4u);
-    t1 = snippet$order(vader_box_string(3u, 18u), vader_box_string(3u, 18u));
+    t1 = snippet$order(vader_box_string(4u, 18u), vader_box_string(4u, 18u));
     l3 = ((int64_t) (int32_t) t1);
     l1 = std_core$write_int(l0, l1, l3);
     t0 = std_core$finish_buffer(l0, l1);
@@ -602,16 +602,16 @@ static void std_testing$assert_lt__string(vader_string_t l0, vader_string_t l1) 
 /* vtable dispatchers */
 static int32_t std_core$Comparable$compare$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 7u: return std_core$i8$Comparable$compare(((int8_t) recv.payload.i), ((int8_t) a0.payload.i));
-        case 8u: return std_core$i16$Comparable$compare(((int16_t) recv.payload.i), ((int16_t) a0.payload.i));
-        case 2u: return std_core$i32$Comparable$compare(((int32_t) recv.payload.i), ((int32_t) a0.payload.i));
-        case 6u: return std_core$i64$Comparable$compare(((int64_t) recv.payload.i), ((int64_t) a0.payload.i));
-        case 9u: return std_core$u8$Comparable$compare(((uint8_t) recv.payload.i), ((uint8_t) a0.payload.i));
-        case 10u: return std_core$u16$Comparable$compare(((uint16_t) recv.payload.i), ((uint16_t) a0.payload.i));
-        case 11u: return std_core$u32$Comparable$compare(((uint32_t) recv.payload.i), ((uint32_t) a0.payload.i));
-        case 12u: return std_core$u64$Comparable$compare(((uint64_t) recv.payload.i), ((uint64_t) a0.payload.i));
-        case 13u: return std_core$char$Comparable$compare(((uint32_t) recv.payload.i), ((uint32_t) a0.payload.i));
-        case 3u: return std_core$string$Comparable$compare(recv.payload.s, a0.payload.s);
+        case 8u: return std_core$i8$Comparable$compare(((int8_t) recv.payload.i), ((int8_t) a0.payload.i));
+        case 9u: return std_core$i16$Comparable$compare(((int16_t) recv.payload.i), ((int16_t) a0.payload.i));
+        case 3u: return std_core$i32$Comparable$compare(((int32_t) recv.payload.i), ((int32_t) a0.payload.i));
+        case 7u: return std_core$i64$Comparable$compare(((int64_t) recv.payload.i), ((int64_t) a0.payload.i));
+        case 10u: return std_core$u8$Comparable$compare(((uint8_t) recv.payload.i), ((uint8_t) a0.payload.i));
+        case 11u: return std_core$u16$Comparable$compare(((uint16_t) recv.payload.i), ((uint16_t) a0.payload.i));
+        case 12u: return std_core$u32$Comparable$compare(((uint32_t) recv.payload.i), ((uint32_t) a0.payload.i));
+        case 13u: return std_core$u64$Comparable$compare(((uint64_t) recv.payload.i), ((uint64_t) a0.payload.i));
+        case 14u: return std_core$char$Comparable$compare(((uint32_t) recv.payload.i), ((uint32_t) a0.payload.i));
+        case 4u: return std_core$string$Comparable$compare(recv.payload.s, a0.payload.s);
         default: vader_unreachable("vtable miss in std_core$Comparable.compare");
     }
     vader_unreachable("vtable miss in std_core$Comparable.compare");

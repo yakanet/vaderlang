@@ -65,25 +65,25 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
-    [1] = { .slot_size = 1 },
-    [2] = { .slot_size = 4 },
-    [3] = { .slot_size = 1 },
+    [2] = { .slot_size = 1 },
+    [3] = { .slot_size = 4 },
     [4] = { .slot_size = 1 },
-    [5] = { .slot_size = 4 },
+    [5] = { .slot_size = 1 },
     [6] = { .slot_size = 4 },
-    [7] = { .slot_size = 16 },
-    [8] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
-    },
+    [7] = { .slot_size = 4 },
+    [8] = { .slot_size = 16 },
     [9] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+    },
+    [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [10] = { .slot_size = 8 },
-    [11] = {
+    [11] = { .slot_size = 8 },
+    [12] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 1u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
     },
 };
 const size_t vader_type_info_count = 13;
@@ -100,7 +100,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 11u, 1u);
+    return (void*) vader_string_bytes_view(a0, 12u, 2u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -255,7 +255,7 @@ static vader_string_t snippet$shift_of(vader_box_t l0) {
     vader_string_t l1;
     bool l2;
     uint8_t t0;
-    if (l0.tag == 1u) {
+    if (l0.tag == 2u) {
         t0 = ((uint8_t) l0.payload.i);
         l2 = (t0 >= INT32_C(0));
     } else {
@@ -271,7 +271,7 @@ static vader_string_t snippet$shift_of(vader_box_t l0) {
         l1 = 5u;
         return l1;
     }
-    if (l0.tag == 1u) {
+    if (l0.tag == 2u) {
         t0 = ((uint8_t) l0.payload.i);
         l2 = (t0 >= INT32_C(8));
     } else {
@@ -358,7 +358,7 @@ static int32_t snippet$main(void* l0) {
     t0 = std_core$finish_buffer(l5, l6);
     std_console$println__string(t0);
     l9 = vader_box_obj(0u, NULL);
-    l2 = snippet$shift_of(vader_box_i32(1u, (int32_t)(uint32_t) l1));
+    l2 = snippet$shift_of(vader_box_i32(2u, (int32_t)(uint32_t) l1));
     l3 = snippet$shift_of(l9);
     t0 = concat_3(l2, 9u, l3);
     std_console$println__string(t0);
@@ -595,6 +595,6 @@ int main(int argc, char** argv) {
     vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
     atexit(vader_atom_shutdown);
     atexit(vader_gc_shutdown);
-    void* __args = (void*) vader_runtime_argv(argc, argv, 8u, 2u);
+    void* __args = (void*) vader_runtime_argv(argc, argv, 9u, 3u);
     return vader_scheduler_exit((int) snippet$main(__args));
 }

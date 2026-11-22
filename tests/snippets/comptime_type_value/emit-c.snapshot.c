@@ -33,8 +33,8 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[11] = {
-    [1] = { .slot_size = 4 },
-    [2] = { .slot_size = 16 },
+    [2] = { .slot_size = 4 },
+    [3] = { .slot_size = 16 },
     [4] = { .slot_size = 4 },
     [5] = { .slot_size = 8 },
     [6] = {
@@ -93,7 +93,7 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
 static int32_t snippet$main(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    snippet$accept_type(vader_box_obj(0u, (void*)(uintptr_t)1u));
+    snippet$accept_type(vader_box_obj(0u, (void*)(uintptr_t)2u));
     snippet$accept_type(vader_box_obj(0u, (void*)(uintptr_t)5u));
     snippet$accept_type(vader_box_obj(0u, (void*)(uintptr_t)10u));
     snippet$accept_type(vader_box_obj(0u, (void*)(uintptr_t)4u));

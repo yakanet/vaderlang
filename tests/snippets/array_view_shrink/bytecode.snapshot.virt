@@ -1,13 +1,13 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 array 3
-type 3 struct snippet$Node { v:1 }
-type 4 scalar void
+type 1 scalar void
+type 2 scalar i32
+type 3 array 4
+type 4 struct snippet$Node { v:2 }
 type 5 scalar string
 type 6 struct std_core$Buffer {  }
 type 7 scalar i64
-type 8 array 1
+type 8 array 2
 type 9 array 10
 type 10 scalar u8
 type 11 scalar bool
@@ -27,10 +27,10 @@ string 11 "0"
 string 12 "\n"
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=5 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 2 collect std_core$Intrinsic$collect intrinsic=collect result_type=4 () -> void
-import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=1,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=4 () -> void
+import 2 collect std_core$Intrinsic$collect intrinsic=collect result_type=1 () -> void
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 8 std_core$Display
 impl 6 std_core$ByteAccess
 export main 3
@@ -52,7 +52,7 @@ fn 0 snippet$make_nodes (i32) -> ref
     local.set 1   ; if_res
   end $L0
   local.get 1   ; if_res
-  array.reserve 2   ; snippet$Node[]
+  array.reserve 3   ; snippet$Node[]
   local.set 2   ; nodes
   i32.const 0
   local.set 3   ; i
@@ -64,11 +64,11 @@ fn 0 snippet$make_nodes (i32) -> ref
       local.get 3   ; i
       i32.const 7
       i32.checked_mul
-      struct.new 3   ; snippet$Node
+      struct.new 4   ; snippet$Node
       local.set 4   ; $struct_13
       local.get 2   ; nodes
       local.get 4   ; $struct_13
-      array.push 3   ; snippet$Node
+      array.push 4   ; snippet$Node
       local.get 3   ; i
       i32.const 1
       i32.add
@@ -86,7 +86,7 @@ fn 1 snippet$collect_and_churn () -> void
   local $struct_8 ref
   call.import 2   ; std_core$Intrinsic$collect
   i64.const 100000
-  array.reserve 2   ; snippet$Node[]
+  array.reserve 3   ; snippet$Node[]
   local.set 0   ; junk
   i32.const 0
   local.set 1   ; _
@@ -96,11 +96,11 @@ fn 1 snippet$collect_and_churn () -> void
     i32.lt
     if $L1 void
       i32.const -1
-      struct.new 3   ; snippet$Node
+      struct.new 4   ; snippet$Node
       local.set 2   ; $struct_8
       local.get 0   ; junk
       local.get 2   ; $struct_8
-      array.push 3   ; snippet$Node
+      array.push 4   ; snippet$Node
       local.get 1   ; _
       i32.const 1
       i32.add
@@ -135,7 +135,7 @@ fn 2 snippet$print_nodes (string,ref) -> void
     if $L1 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 2   ; snippet$Node[]
+      array.get 3   ; snippet$Node[]
       local.set 5   ; n
       i64.const 21
       buffer.new
@@ -147,8 +147,8 @@ fn 2 snippet$print_nodes (string,ref) -> void
       string.const 0   ; " "
       call 7   ; std_core$write_string_at
       local.set 7   ; __off_4
-      local.field 5 3 0   ; n snippet$Node.v
-      ref.cast 1   ; i32
+      local.field 5 4 0   ; n snippet$Node.v
+      ref.cast 2   ; i32
       i32.to_i64
       local.set 8   ; $cast_18
       local.get 6   ; __buf_3
@@ -183,7 +183,7 @@ fn 3 snippet$main () -> i32
   local.tee 0   ; cleared
   i64.const 0
   i64.const 10
-  array.slice 2   ; snippet$Node[]
+  array.slice 3   ; snippet$Node[]
   local.set 1   ; whole
   local.get 0   ; cleared
   array.clear
@@ -196,7 +196,7 @@ fn 3 snippet$main () -> i32
   local.tee 0   ; cleared
   i64.const 0
   i64.const 4
-  array.slice 2   ; snippet$Node[]
+  array.slice 3   ; snippet$Node[]
   local.set 1   ; whole
   local.get 0   ; cleared
   array.remove_last
@@ -209,11 +209,11 @@ fn 3 snippet$main () -> i32
   local.get 1   ; whole
   call 2   ; snippet$print_nodes
   i32.const 99
-  struct.new 3   ; snippet$Node
+  struct.new 4   ; snippet$Node
   local.set 2   ; $struct_19
   local.get 0   ; cleared
   local.get 2   ; $struct_19
-  array.push 3   ; snippet$Node
+  array.push 4   ; snippet$Node
   string.const 4   ; "owner after push:"
   local.get 0   ; cleared
   call 2   ; snippet$print_nodes
@@ -232,7 +232,7 @@ fn 3 snippet$main () -> i32
   array.clear
   local.get 1   ; whole
   i32.const 9
-  array.push 1   ; i32
+  array.push 2   ; i32
   local.get 0   ; cleared
   call 9   ; std_core$$array$Display$to_string__i32
   local.set 3   ; $call_33
@@ -258,7 +258,7 @@ fn 3 snippet$main () -> i32
   drop
   local.get 1   ; whole
   i32.const 9
-  array.push 1   ; i32
+  array.push 2   ; i32
   local.get 0   ; cleared
   call 9   ; std_core$$array$Display$to_string__i32
   local.set 3   ; $call_33

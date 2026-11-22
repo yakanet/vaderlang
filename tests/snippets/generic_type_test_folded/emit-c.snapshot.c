@@ -76,29 +76,29 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
-    [1] = { .slot_size = 4 },
-    [2] = { .slot_size = 16 },
-    [3] = { .slot_size = 8 },
-    [4] = { .slot_size = 4 },
-    [5] = { .slot_size = 1 },
-    [6] = {
+    [2] = { .slot_size = 4 },
+    [3] = { .slot_size = 16 },
+    [4] = { .slot_size = 8 },
+    [5] = { .slot_size = 4 },
+    [6] = { .slot_size = 1 },
+    [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Square_t),
         .slot_size = 8,
     },
-    [7] = {
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Circle_t),
         .slot_size = 8,
     },
-    [8] = {
+    [9] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [9] = { .slot_size = 8 },
-    [10] = {
+    [10] = { .slot_size = 8 },
+    [11] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 12u,
     },
-    [11] = { .slot_size = 1 },
+    [12] = { .slot_size = 1 },
 };
 const size_t vader_type_info_count = 13;
 
@@ -114,7 +114,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 10u, 11u);
+    return (void*) vader_string_bytes_view(a0, 11u, 12u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -159,7 +159,7 @@ static int32_t snippet$main(void) {
     t0 = snippet$int_of__string(1u);
     std_console$println__i32(t0);
     vader_struct_snippet$Square_t* _a0_obj = (vader_struct_snippet$Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Square_t));
-    vader_obj_header_init(_a0_obj, 6u);
+    vader_obj_header_init(_a0_obj, 7u);
     _a0_obj->f_side = INT32_C(3);
     t1 = (void*) _a0_obj;
     t0 = snippet$int_of__snippet_Square(vader_ref_box(t1));
@@ -167,7 +167,7 @@ static int32_t snippet$main(void) {
     t0 = snippet$side_or_zero__i32(INT32_C(7));
     std_console$println__i32(t0);
     vader_struct_snippet$Square_t* _a1_obj = (vader_struct_snippet$Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Square_t));
-    vader_obj_header_init(_a1_obj, 6u);
+    vader_obj_header_init(_a1_obj, 7u);
     _a1_obj->f_side = INT32_C(5);
     t1 = (void*) _a1_obj;
     t0 = snippet$side_or_zero__snippet_Square(vader_ref_box(t1));
@@ -175,13 +175,13 @@ static int32_t snippet$main(void) {
     t0 = snippet$measure__f64(1.5);
     std_console$println__i32(t0);
     vader_struct_snippet$Square_t* _a2_obj = (vader_struct_snippet$Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Square_t));
-    vader_obj_header_init(_a2_obj, 6u);
+    vader_obj_header_init(_a2_obj, 7u);
     _a2_obj->f_side = INT32_C(1);
     t1 = (void*) _a2_obj;
     t0 = snippet$measure__snippet_Circle(vader_ref_box(t1));
     std_console$println__i32(t0);
     vader_struct_snippet$Circle_t* _a3_obj = (vader_struct_snippet$Circle_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Circle_t));
-    vader_obj_header_init(_a3_obj, 7u);
+    vader_obj_header_init(_a3_obj, 8u);
     _a3_obj->f_radius = INT32_C(2);
     t1 = (void*) _a3_obj;
     t0 = snippet$measure__snippet_Circle(vader_ref_box(t1));
@@ -189,7 +189,7 @@ static int32_t snippet$main(void) {
     t2 = snippet$is_big_square__i32(INT32_C(9));
     std_console$println__bool(t2);
     vader_struct_snippet$Square_t* _a4_obj = (vader_struct_snippet$Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Square_t));
-    vader_obj_header_init(_a4_obj, 6u);
+    vader_obj_header_init(_a4_obj, 7u);
     _a4_obj->f_side = INT32_C(3);
     t1 = (void*) _a4_obj;
     t2 = snippet$is_big_square__snippet_Square(vader_ref_box(t1));
@@ -201,7 +201,7 @@ static int32_t snippet$main(void) {
     t0 = snippet$side_if_positive__i32(INT32_C(5), INT32_C(1));
     std_console$println__i32(t0);
     vader_struct_snippet$Square_t* _a5_obj = (vader_struct_snippet$Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Square_t));
-    vader_obj_header_init(_a5_obj, 6u);
+    vader_obj_header_init(_a5_obj, 7u);
     _a5_obj->f_side = INT32_C(6);
     t1 = (void*) _a5_obj;
     t0 = snippet$side_if_positive__snippet_Square(vader_ref_box(t1), INT32_C(1));
@@ -209,7 +209,7 @@ static int32_t snippet$main(void) {
     t0 = snippet$side_unless_negative__i32(INT32_C(5), INT32_C(1));
     std_console$println__i32(t0);
     vader_struct_snippet$Square_t* _a6_obj = (vader_struct_snippet$Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Square_t));
-    vader_obj_header_init(_a6_obj, 6u);
+    vader_obj_header_init(_a6_obj, 7u);
     _a6_obj->f_side = INT32_C(7);
     t1 = (void*) _a6_obj;
     t0 = snippet$side_unless_negative__snippet_Square(vader_ref_box(t1), INT32_C(1));
@@ -217,7 +217,7 @@ static int32_t snippet$main(void) {
     t0 = snippet$side_in_loop__i32(INT32_C(5));
     std_console$println__i32(t0);
     vader_struct_snippet$Square_t* _a7_obj = (vader_struct_snippet$Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Square_t));
-    vader_obj_header_init(_a7_obj, 6u);
+    vader_obj_header_init(_a7_obj, 7u);
     _a7_obj->f_side = INT32_C(8);
     t1 = (void*) _a7_obj;
     t0 = snippet$side_in_loop__snippet_Square(vader_ref_box(t1));
@@ -233,7 +233,7 @@ static int32_t snippet$side_in_loop__snippet_Square(vader_box_t l0) {
     int32_t l1, l2;
     void* t0;
     l1 = INT32_C(0);
-    if (l0.tag == 6u) {
+    if (l0.tag == 7u) {
         t0 = l0.payload.obj;
         l2 = ((vader_struct_snippet$Square_t*) t0)->f_side;
         l1 = vader_chk_add(i32, l1, l2);
@@ -255,12 +255,12 @@ static int32_t snippet$int_of__i32(int32_t l0) {
 static int32_t snippet$int_of__snippet_Square(vader_box_t l0) {
     int32_t t0, t1;
     void* t2;
-    if (l0.tag == 1u) {
+    if (l0.tag == 2u) {
         t0 = ((int32_t) l0.payload.i);
         t1 = vader_chk_add(i32, t0, INT32_C(1));
         return t1;
     }
-    if (!(l0.tag == 6u)) {
+    if (!(l0.tag == 7u)) {
         return INT32_C(0);
     }
     t2 = l0.payload.obj;
@@ -280,7 +280,7 @@ static int32_t snippet$side_or_zero__i32(int32_t l0) {
 static int32_t snippet$side_or_zero__snippet_Square(vader_box_t l0) {
     void* t0;
     int32_t t1;
-    if (!(l0.tag == 6u)) {
+    if (!(l0.tag == 7u)) {
         return INT32_C(0);
     }
     t0 = l0.payload.obj;
@@ -297,7 +297,7 @@ static int32_t snippet$measure__snippet_Circle(vader_box_t l0) {
     bool l2;
     void* t0;
     int32_t t1;
-    if (l0.tag == 6u) {
+    if (l0.tag == 7u) {
         t0 = l0.payload.obj;
         t1 = ((vader_struct_snippet$Square_t*) t0)->f_side;
         l2 = t1 == INT32_C(1);
@@ -308,11 +308,11 @@ static int32_t snippet$measure__snippet_Circle(vader_box_t l0) {
         l1 = INT32_C(-1);
         return l1;
     }
-    if (l0.tag == 6u) {
+    if (l0.tag == 7u) {
         t0 = l0.payload.obj;
         t1 = ((vader_struct_snippet$Square_t*) t0)->f_side;
         l1 = vader_chk_mul(i32, t1, INT32_C(4));
-    } else if ((l0.tag == 3u)) {
+    } else if ((l0.tag == 4u)) {
         l1 = INT32_C(2);
     } else {
         l1 = INT32_C(0);
@@ -327,7 +327,7 @@ static bool snippet$is_big_square__i32(int32_t l0) {
 static bool snippet$is_big_square__snippet_Square(vader_box_t l0) {
     void* t0;
     int32_t t1;
-    if (l0.tag == 6u) {
+    if (l0.tag == 7u) {
         t0 = l0.payload.obj;
         t1 = ((vader_struct_snippet$Square_t*) t0)->f_side;
         return (t1 > INT32_C(2));
@@ -356,7 +356,7 @@ static int32_t snippet$side_if_positive__snippet_Square(vader_box_t l0, int32_t 
     void* t0;
     int32_t t1;
     if ((l1 > INT32_C(0))) {
-        if (l0.tag == 6u) {
+        if (l0.tag == 7u) {
             t0 = l0.payload.obj;
             t1 = ((vader_struct_snippet$Square_t*) t0)->f_side;
             return t1;
@@ -379,7 +379,7 @@ static int32_t snippet$side_unless_negative__snippet_Square(vader_box_t l0, int3
     if ((l1 < INT32_C(0))) {
         return INT32_C(0);
     }
-    if (l0.tag == 6u) {
+    if (l0.tag == 7u) {
         t0 = l0.payload.obj;
         t1 = ((vader_struct_snippet$Square_t*) t0)->f_side;
         return t1;

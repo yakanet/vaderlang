@@ -285,14 +285,23 @@ emit_call_import :: fn(s: FnState, op: Bc.CallImport) -> void {
 /// the result through `emit_call_result`. Each arg is reconciled to its
 /// param's ValType by `coerce_expr` (box / unbox / cast as needed).
 emit_call_to :: fn(s: FnState, callee_name: string, sig: BcSignature) -> void {
-    n :: i32(sig.params.len())
-    // Top-of-stack is the last argument, so pop into `args` back-to-front :
-    // pop #k lands in slot `n-1-k`, restoring source order.
-    args: CExpression[]: [verbatim("")] * i64(n)
+    // Top-of-stack is the last argument, so pop into `popped` back-to-front :
+    // pop #k lands in slot `n-1-k`, restoring source order. A `void` parameter
+    // holds nothing: no value was pushed for it, and the C function does not
+    // declare it.
+    n :: sig.params.len()
+    popped: CExpression[]: [verbatim("")] * n
     for k in 0..<n {
-        v :: pop(s)
         slot :: n - 1 - k
-        args[slot] = coerced_as(s, v, sig.params[slot])
+        if sig.params[slot] != .Void {
+            popped[slot] = coerced_as(s, pop(s), sig.params[slot])
+        }
+    }
+    args: CExpression[]: []
+    for slot in 0..<n {
+        if sig.params[slot] != .Void {
+            args.push(popped[slot])
+        }
     }
     if bc_result_arity(sig) > 1 {
         emit_multi_call(s, callee_name, args, sig)

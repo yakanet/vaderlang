@@ -172,6 +172,7 @@ export Op :: Unreachable
     | FnAddr
     | CheckedArith
     | CheckedNeg
+    | VoidConst
 
 /// Trap unconditionally: the bytecode reached a point the compiler proved
 /// (or asserted, via `@unreachable match`) can never execute. Carries a
@@ -195,6 +196,9 @@ export LocalTee :: struct { slot: i32 }
 export StringConst :: struct { index: i32 }
 /// Push the singleton `NullVal` (the runtime `null`).
 export NullConst :: struct {}
+/// Push the one value of `void`: the box of the reserved `void` tag natively,
+/// `VoidVal` on the VM. Only where a slot holds a value whatever its type.
+export VoidConst :: struct {}
 /// Push a `BoolVal(value)`.
 export BoolConst :: struct { value: bool }
 /// Push a `CharVal(value)`. The codepoint is parsed from the .virt

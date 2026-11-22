@@ -152,7 +152,7 @@ Also reserved:
 
 - `const`, reserved: it cannot be used as an identifier.
 - `module`, a keyword only at the start of a file's module declaration.
-- `void`, which names the type of expressions that produce no value (§6 *Declaration*). It cannot name a function, struct, parameter, local, type parameter, pattern binding or namespace import.
+- `void`, the type of what an expression that produces nothing gives (§6 *Declaration*, §4 *Nothing to return*). It cannot name a function, struct, parameter, local, type parameter, pattern binding or namespace import.
 - `Self`, a type name rather than a keyword. Inside a `trait` or `implements` body it denotes the implementing type. Using it elsewhere is an error. The receiver parameter `self` is a keyword.
 
 ### Literals
@@ -1228,7 +1228,7 @@ show :: fn(r: Result) -> string {
 }
 ```
 
-A union is written `A | B | C`, in place or named by an alias. A value that may be absent is typed `T | null` (*Nullability*, below).
+A union is written `A | B | C`, in place or named by an alias. A value that may be absent is typed `T | null` (*Nullability*, below), and an operation that may fail with nothing to return `void | E` (*Nothing to return*, below).
 
 A union value, like a trait value, carries the run-time type of what it holds (`docs/RUNTIME.md` *Boxes and tags*): for an enum or an integer range type, the integer that stores it; for a distinct type, its backing. A union of two variants that carry the same run-time type is an error: `Direction | u8` (an enum and its backing), `Fruit | Direction` (two enums with one backing), `Path | string` (a distinct type and its backing).
 
@@ -1279,7 +1279,7 @@ Comparing with `null` a value that can never be `null` is an error, as `n is nul
 
 #### Fallback `else`
 
-`left else fallback` evaluates `left` once. When `left` is a failure, it gives the fallback; otherwise it gives the value of `left`. A failure is `null`, or a value whose type implements `Error` (§10 *`Error` trait*). The result has the type of `left` without its failures.
+`left else fallback` evaluates `left` once. When `left` is a failure, it gives the fallback; otherwise it gives the value of `left`. A failure is `null`, or a value whose type implements `Error` (§10 *`Error` trait*). `void` is not one (*Nothing to return*, below). The result has the type of `left` without its failures.
 
 The fallback is one of:
 
@@ -2279,6 +2279,24 @@ match u {
 }
 ```
 
+### Nothing to return
+
+`void` has one value, which carries nothing. A function declared `-> void` returns nothing; where a slot holds a value whatever its type, a member of a union or a type argument, `void` is that value.
+
+An operation that has nothing to return but may fail answers `void | E`:
+
+```vader
+save :: fn(path: string, text: string) -> void | IOError {
+    written :: write_file(path, text) else return written
+    println("saved ${path}")
+}
+```
+
+- `void` is not a failure: on `void | IOError`, a bare `else` takes the error alone. `null` and `void` are two members of a union, `null` a value that is absent, `void` an operation that succeeded with none to give.
+- In a function whose result admits `void`, a bare `return`, or a body that ends without a trailing expression, gives `void`.
+- A call of a function that returns nothing gives `void` where a value is expected: `results.push(work())`, with `work` returning nothing and `results` a `void[]`, stores it.
+- `r is void` tests for it.
+
 ### Equality
 
 ```vader
@@ -2498,7 +2516,7 @@ add_one :: fn(x: i32) -> i32 = x + 1
 
 In a function with a return type, every path must produce a value of that type. Two cases are errors:
 
-- the body reaches its closing brace without a trailing expression and without diverging: `f :: fn() -> i32 { n :: 1 }`;
+- the body reaches its closing brace without a trailing expression and without diverging: `f :: fn() -> i32 { n :: 1 }`. A return type that admits `void` is the exception: the body then gives `void` (§4 *Nothing to return*);
 - the trailing expression has the wrong type: `fn(c: bool) -> i32 { if c { return 7 } }` ends on an `if` with no value.
 
 A body **diverges** when its last statement is a `return`, a `break`, a `continue`, a call to a `@no_return` function (`panic`, `todo`), or a loop that no `break` leaves, so `fn() -> i32 { for { ... } }` is valid. The same rule applies to a lambda whose result type is set by an annotation or by its slot.

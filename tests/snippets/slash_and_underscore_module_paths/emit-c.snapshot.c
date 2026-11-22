@@ -51,24 +51,24 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Badge_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Badge_t, f_name) },
         .string_count = 1,
     },
-    [2] = { .slot_size = 4 },
-    [3] = { .slot_size = 16 },
+    [3] = { .slot_size = 4 },
     [4] = { .slot_size = 16 },
     [5] = { .slot_size = 16 },
-    [6] = { .slot_size = 4 },
-    [7] = { .slot_size = 8 },
-    [8] = {
+    [6] = { .slot_size = 16 },
+    [7] = { .slot_size = 4 },
+    [8] = { .slot_size = 8 },
+    [9] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 10u,
     },
-    [9] = { .slot_size = 1 },
-    [10] = {
+    [10] = { .slot_size = 1 },
+    [11] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
@@ -88,7 +88,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 8u, 9u);
+    return (void*) vader_string_bytes_view(a0, 9u, 10u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -208,7 +208,7 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Badge_t* _a0_obj = (vader_struct_snippet$Badge_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Badge_t));
-    vader_obj_header_init(_a0_obj, 1u);
+    vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_name = 4u;
     l0 = (void*) _a0_obj;
     t0 = snippet$via_slash(vader_ref_box(l0));
@@ -319,7 +319,7 @@ static void std_console$println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static vader_string_t snippet_kit_tags$Tag$tag$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet$Badge$snippet_kit_tags$Tag$tag(recv.payload.obj);
+        case 2u: return snippet$Badge$snippet_kit_tags$Tag$tag(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet_kit_tags$Tag.tag");
     }
     vader_unreachable("vtable miss in snippet_kit_tags$Tag.tag");
@@ -327,7 +327,7 @@ static vader_string_t snippet_kit_tags$Tag$tag$$dispatch(vader_box_t recv) {
 
 static vader_string_t snippet_kit__tags$Tag$tag$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet$Badge$snippet_kit__tags$Tag$tag(recv.payload.obj);
+        case 2u: return snippet$Badge$snippet_kit__tags$Tag$tag(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet_kit__tags$Tag.tag");
     }
     vader_unreachable("vtable miss in snippet_kit__tags$Tag.tag");
@@ -335,7 +335,7 @@ static vader_string_t snippet_kit__tags$Tag$tag$$dispatch(vader_box_t recv) {
 
 static vader_string_t snippet_kit$tags_Tag$tag$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet$Badge$snippet_kit$tags_Tag$tag(recv.payload.obj);
+        case 2u: return snippet$Badge$snippet_kit$tags_Tag$tag(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet_kit$tags_Tag.tag");
     }
     vader_unreachable("vtable miss in snippet_kit$tags_Tag.tag");

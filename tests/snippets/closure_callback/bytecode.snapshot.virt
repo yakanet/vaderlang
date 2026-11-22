@@ -1,22 +1,23 @@
 module _main
 type 0 scalar null
-type 1 fn (2) -> 2
-type 2 scalar i32
-type 3 struct __lambda_env_snippet_1 { cap_0:2 }
+type 1 scalar void
+type 2 fn (3) -> 3
+type 3 scalar i32
+type 4 struct __lambda_env_snippet_1 { cap_0:3 }
 export main 1
 
 fn 0 snippet$apply (ref,i32) -> i32
   local.get 1   ; arg 1
-  retag 2   ; i32
+  retag 3   ; i32
   local.get 0   ; arg 0
-  call.indirect 1   ; fn
+  call.indirect 2   ; fn
   return
 end
 
 fn 1 snippet$main () -> i32
   i32.const 100
-  struct.new 3   ; __lambda_env_snippet_1
-  make_closure 2 1   ; __lambda_snippet_0 fn
+  struct.new 4   ; __lambda_env_snippet_1
+  make_closure 2 2   ; __lambda_snippet_0 fn
   i32.const 23
   call 0   ; snippet$apply
   return
@@ -24,8 +25,8 @@ end
 
 fn 2 __lambda_snippet_0 (ref,i32) -> i32
   local $field_2 i32
-  local.field 0 3 0   ; arg 0 __lambda_env_snippet_1.cap_0
-  ref.cast 2   ; i32
+  local.field 0 4 0   ; arg 0 __lambda_env_snippet_1.cap_0
+  ref.cast 3   ; i32
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   local.get 2   ; $field_2

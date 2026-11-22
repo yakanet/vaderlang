@@ -43,22 +43,22 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[14] = {
-    [1] = { .slot_size = 8 },
-    [2] = { .slot_size = 4 },
-    [3] = { .slot_size = 1 },
-    [4] = { .slot_size = 16 },
+    [2] = { .slot_size = 8 },
+    [3] = { .slot_size = 4 },
+    [4] = { .slot_size = 1 },
     [5] = { .slot_size = 16 },
-    [6] = { .slot_size = 4 },
-    [7] = { .slot_size = 16 },
-    [8] = { .slot_size = 4 },
-    [9] = { .slot_size = 16 },
-    [10] = {
+    [6] = { .slot_size = 16 },
+    [7] = { .slot_size = 4 },
+    [8] = { .slot_size = 16 },
+    [9] = { .slot_size = 4 },
+    [10] = { .slot_size = 16 },
+    [11] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [11] = {
+    [12] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
     },
     [13] = { .slot_size = 1 },
 };
@@ -76,7 +76,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 11u, 3u);
+    return (void*) vader_string_bytes_view(a0, 12u, 4u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -161,7 +161,7 @@ static int32_t snippet$digit(vader_box_t l0) {
         l1 = INT32_C(0);
         return l1;
     }
-    if (l0.tag == 2u) {
+    if (l0.tag == 3u) {
         t0 = ((int32_t) l0.payload.i);
         l2 = (t0 >= INT32_C(0));
     } else {
@@ -185,7 +185,7 @@ static int32_t snippet$mixed(vader_box_t l0) {
     int32_t l1;
     bool l2;
     int64_t t0;
-    if (l0.tag == 1u) {
+    if (l0.tag == 2u) {
         t0 = ((int64_t) l0.payload.i);
         l2 = (t0 >= INT64_C(-5));
     } else {
@@ -201,7 +201,7 @@ static int32_t snippet$mixed(vader_box_t l0) {
         l1 = INT32_C(1);
         return l1;
     }
-    if (l0.tag == 1u) {
+    if (l0.tag == 2u) {
         t0 = ((int64_t) l0.payload.i);
         l2 = (t0 >= INT64_C(0));
     } else {
@@ -215,7 +215,7 @@ static int32_t snippet$mixed(vader_box_t l0) {
     }
     if (l2) {
         l1 = INT32_C(2);
-    } else if (l0.tag == 6u) {
+    } else if (l0.tag == 7u) {
         l1 = INT32_C(3);
     } else {
         l1 = INT32_C(4);
@@ -226,7 +226,7 @@ static int32_t snippet$mixed(vader_box_t l0) {
 static int32_t snippet$letter(vader_box_t l0) {
     bool l1;
     uint32_t t0;
-    if (l0.tag == 8u) {
+    if (l0.tag == 9u) {
         t0 = ((uint32_t) l0.payload.i);
         l1 = (t0 >= 97u);
     } else {
@@ -272,7 +272,7 @@ static int32_t snippet$short(int64_t l0) {
 static int32_t snippet$maybe(vader_box_t l0) {
     bool l1;
     int64_t t0;
-    if (l0.tag == 1u) {
+    if (l0.tag == 2u) {
         t0 = ((int64_t) l0.payload.i);
         l1 = (t0 >= INT64_C(0));
     } else {
@@ -341,45 +341,45 @@ static int32_t snippet$main(void) {
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
-    t0 = snippet$digit(vader_box_i32(2u, INT32_C(3)));
+    t0 = snippet$digit(vader_box_i32(3u, INT32_C(3)));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
-    t0 = snippet$digit(vader_box_i32(2u, INT32_C(30)));
+    t0 = snippet$digit(vader_box_i32(3u, INT32_C(30)));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
-    t0 = snippet$digit(vader_box_i32(2u, INT32_C(-1)));
+    t0 = snippet$digit(vader_box_i32(3u, INT32_C(-1)));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     t1 = std_core$finish_buffer(l0, l1);
     std_console$println__string(t1);
     l0 = (void*) vader_buffer_new((size_t) INT64_C(83));
     l1 = INT64_C(0);
-    t0 = snippet$mixed(vader_box_i64(1u, INT64_C(-3)));
+    t0 = snippet$mixed(vader_box_i64(2u, INT64_C(-3)));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
-    t0 = snippet$mixed(vader_box_i64(1u, INT64_C(4)));
+    t0 = snippet$mixed(vader_box_i64(2u, INT64_C(4)));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
-    t0 = snippet$mixed(vader_box_string(6u, 2u));
+    t0 = snippet$mixed(vader_box_string(7u, 2u));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
-    t0 = snippet$mixed(vader_box_i64(1u, INT64_C(5000000000)));
+    t0 = snippet$mixed(vader_box_i64(2u, INT64_C(5000000000)));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     t1 = std_core$finish_buffer(l0, l1);
     std_console$println__string(t1);
     l0 = (void*) vader_buffer_new((size_t) INT64_C(62));
     l1 = INT64_C(0);
-    t0 = snippet$letter(vader_box_i32(8u, (int32_t) 113u));
+    t0 = snippet$letter(vader_box_i32(9u, (int32_t) 113u));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
-    t0 = snippet$letter(vader_box_i32(8u, (int32_t) 81u));
+    t0 = snippet$letter(vader_box_i32(9u, (int32_t) 81u));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
@@ -405,7 +405,7 @@ static int32_t snippet$main(void) {
     std_console$println__string(t1);
     l0 = (void*) vader_buffer_new((size_t) INT64_C(62));
     l1 = INT64_C(0);
-    t0 = snippet$maybe(vader_box_i64(1u, INT64_C(3)));
+    t0 = snippet$maybe(vader_box_i64(2u, INT64_C(3)));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
@@ -413,7 +413,7 @@ static int32_t snippet$main(void) {
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
-    t0 = snippet$maybe(vader_box_i64(1u, INT64_C(30)));
+    t0 = snippet$maybe(vader_box_i64(2u, INT64_C(30)));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     t1 = std_core$finish_buffer(l0, l1);

@@ -38,6 +38,7 @@ The C layouts below are excerpts of `runtime/c/vader.h`, the authority.
 | function value | a pointer to a `vader_fn_t` | `FnVal` |
 | union, `T \| null`, trait value, `any`, erased type parameter | a box (`vader_box_t`, 16 bytes) | the member's own value |
 | `null` | the box of tag 0 | `NullVal` |
+| `void`, where a slot holds a value whatever its type | the box of tag 1, no payload | `VoidVal` |
 
 A generic instance follows the table with its type arguments substituted, except
 that in a mixed or an erased instance a type parameter bound to a reference type
@@ -80,7 +81,7 @@ id, or a pointer to an object.
 
 The **tag** is the index, in the module's type table, of the value's own type (the
 concrete struct, the integer type), never of the union it sits in. Index 0 is
-reserved for `null`, whatever the slot's type. An object's
+reserved for `null` and index 1 for `void`, whatever the slot's type. An object's
 header carries the same index (*Objects*), so a pointer taken out of a box gets its
 tag back; a scalar gets its tag from its own type where it enters a boxed slot (the
 `retag` op,

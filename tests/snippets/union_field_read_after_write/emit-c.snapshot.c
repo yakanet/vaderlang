@@ -61,19 +61,19 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[12] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Dog_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Dog_t, f_name) },
         .string_count = 1,
     },
-    [2] = { .slot_size = 16 },
-    [3] = {
+    [3] = { .slot_size = 16 },
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Cat_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Cat_t, f_name) },
         .string_count = 1,
     },
-    [4] = { .slot_size = 4 },
     [5] = { .slot_size = 4 },
+    [6] = { .slot_size = 4 },
     [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
@@ -179,7 +179,7 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Dog_t* _a0_obj = (vader_struct_snippet$Dog_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Dog_t));
-    vader_obj_header_init(_a0_obj, 1u);
+    vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_name = 4u;
     _a0_obj->f_age = INT32_C(1);
     l0 = (void*) _a0_obj;
@@ -205,7 +205,7 @@ static int32_t snippet$main(void) {
     t0 = std_core$finish_buffer(l1, l2);
     std_console$println__string(t0);
     vader_struct_snippet$Cat_t* _a1_obj = (vader_struct_snippet$Cat_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Cat_t));
-    vader_obj_header_init(_a1_obj, 3u);
+    vader_obj_header_init(_a1_obj, 4u);
     _a1_obj->f_name = 5u;
     _a1_obj->f_age = INT32_C(3);
     l0 = (void*) _a1_obj;

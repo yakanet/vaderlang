@@ -1,7 +1,7 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 scalar void
+type 1 scalar void
+type 2 scalar i32
 type 3 scalar string
 type 4 struct std_core$Buffer {  }
 type 5 scalar i64
@@ -17,21 +17,21 @@ type 14 scalar char
 type 15 scalar f32
 type 16 scalar f64
 type 17 array 10
-type 18 struct std_core$FloatDec32 { mantissa:12,exp:1 }
-type 19 struct std_core$Dec64 { mantissa:6,exp:1 }
+type 18 struct std_core$FloatDec32 { mantissa:12,exp:2 }
+type 19 struct std_core$Dec64 { mantissa:6,exp:2 }
 type 20 struct __Tuple_u64_u64_u64_2d035edd { _0:6,_1:6,_2:6 }
 type 21 array 5
 type 22 union 5,0
-type 23 fn () -> 2
+type 23 fn () -> 1
 type 24 struct std_task$Task__i32 shared { number:5,thread:5,ended:13,result:32,waiters:33 }
 type 25 struct std_task$Started { count:5 }
-type 26 fn () -> 1
+type 26 fn () -> 2
 type 27 struct __lambda_env_std_task_1 { cap_0:24,cap_1:26 }
 type 28 struct __defer_env_std_task_7 { cap_0:24 }
-type 29 union 7,1
+type 29 union 7,2
 type 30 struct __defer_env_std_task_3 {  }
 type 31 struct __defer_env_std_task_5 { cap_0:24,cap_1:5 }
-type 32 array 1
+type 32 array 2
 type 33 array 34
 type 34 struct std_task$Waiter { thread:5,group:35,index:5 }
 type 35 union 36,0
@@ -65,27 +65,27 @@ data 3 u64 hex"000000000000001000000000000000140000000000000019000000000000401f0
 data 4 agg 1 struct 30 0
 data 5 structs 7 0 1
 data 6 agg 1 struct 39 0
-global 0 1 selfish.state
-global 1 1 selfish.instance
+global 0 2 selfish.state
+global 1 2 selfish.instance
 global 2 37 selfish.gate
-global 3 1 started.state
+global 3 2 started.state
 global 4 25 started.instance
 global 5 37 started.gate
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=3 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=17 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 2 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=5 param_types=23,5 param_c_out= param_by_address= (ref,i64) -> i64
-import 3 park std_core$Intrinsic$park intrinsic=park result_type=2 () -> void
-import 4 wake std_core$Intrinsic$wake intrinsic=wake result_type=2 param_types=5 param_c_out= param_by_address= (i64) -> void
-import 5 sleep_for std_core$Intrinsic$sleep_for intrinsic=sleep_for result_type=2 param_types=5 param_c_out= param_by_address= (i64) -> void
+import 3 park std_core$Intrinsic$park intrinsic=park result_type=1 () -> void
+import 4 wake std_core$Intrinsic$wake intrinsic=wake result_type=1 param_types=5 param_c_out= param_by_address= (i64) -> void
+import 5 sleep_for std_core$Intrinsic$sleep_for intrinsic=sleep_for result_type=1 param_types=5 param_c_out= param_by_address= (i64) -> void
 import 6 current_thread std_core$Intrinsic$current_thread intrinsic=current_thread result_type=5 () -> i64
 import 7 is_cancelled std_core$Intrinsic$is_cancelled intrinsic=is_cancelled result_type=13 () -> bool
-import 8 task_ended std_core$Intrinsic$task_ended intrinsic=task_ended result_type=2 () -> void
-import 9 monitor_enter std_core$Intrinsic$monitor_enter intrinsic=monitor_enter result_type=2 param_types=13 param_c_out= param_by_address= (bool) -> void
-import 10 monitor_exit std_core$Intrinsic$monitor_exit intrinsic=monitor_exit result_type=2 () -> void
+import 8 task_ended std_core$Intrinsic$task_ended intrinsic=task_ended result_type=1 () -> void
+import 9 monitor_enter std_core$Intrinsic$monitor_enter intrinsic=monitor_enter result_type=1 param_types=13 param_c_out= param_by_address= (bool) -> void
+import 10 monitor_exit std_core$Intrinsic$monitor_exit intrinsic=monitor_exit result_type=1 () -> void
 import 11 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=3 param_types=17 param_c_out= param_by_address= (ref) -> string
-import 12 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=1,17,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 13 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 14 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=2 () -> void
+import 12 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,17,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 13 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 14 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 7 std_core$Display
 impl 24 std_core$Display
 impl 4 std_core$ByteAccess
@@ -94,7 +94,7 @@ impl 24 std_core$Equals
 vtable std_core$Display.to_string 7 10
 vtable std_core$Display.to_string 8 11
 vtable std_core$Display.to_string 9 12
-vtable std_core$Display.to_string 1 13
+vtable std_core$Display.to_string 2 13
 vtable std_core$Display.to_string 5 14
 vtable std_core$Display.to_string 10 15
 vtable std_core$Display.to_string 11 16
@@ -960,7 +960,7 @@ fn 28 std_core$format_f32 (f32) -> string
   u32.to_i64
   local.set 5   ; $cast_34
   local.field 4 18 1   ; d std_core$FloatDec32.exp
-  ref.cast 1   ; i32
+  ref.cast 2   ; i32
   local.set 6   ; $field_35
   local.get 5   ; $cast_34
   local.get 6   ; $field_35
@@ -1031,7 +1031,7 @@ fn 29 std_core$format_f64 (f64) -> string
   ref.cast 6   ; u64
   local.set 1   ; bits
   local.field 4 19 1   ; d std_core$Dec64.exp
-  ref.cast 1   ; i32
+  ref.cast 2   ; i32
   local.set 5   ; $field_34
   local.get 1   ; bits
   local.get 5   ; $field_34
@@ -3585,7 +3585,7 @@ fn 70 std_task$run__i32 (ref,ref) -> void
     local.set 3   ; $call_ind_6
     local.get 2   ; $field_5
     local.get 3   ; $call_ind_6
-    array.push 1   ; i32
+    array.push 2   ; i32
     defer.pop_exec 1
     return
   end $L0
@@ -3737,7 +3737,7 @@ fn 76 std_task$outcome__i32 (ref) -> any
     local.field 0 24 3   ; arg 0 std_task$Task__i32.result
     i32.const 0
     load_slot_i32
-    retag 1   ; i32
+    retag 2   ; i32
     return
   end $L0
   data.const 5 44   ; pool[5] std_core$Cancelled[]

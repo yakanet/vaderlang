@@ -1,25 +1,25 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 struct snippet$Point { x:1 }
-type 3 scalar u8
-type 4 scalar string
-type 5 struct std_core$Buffer {  }
-type 6 scalar i64
-type 7 scalar bool
-type 8 array 3
-type 9 scalar void
+type 1 scalar void
+type 2 scalar i32
+type 3 struct snippet$Point { x:2 }
+type 4 scalar u8
+type 5 scalar string
+type 6 struct std_core$Buffer {  }
+type 7 scalar i64
+type 8 scalar bool
+type 9 array 4
 string 0 " "
 string 1 "true"
 string 2 "false"
 string 3 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=6 param_types=4 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=1,8,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=9 () -> void
-impl 2 snippet$Floor
-impl 5 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=5 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=5 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 3 snippet$Floor
+impl 6 std_core$ByteAccess
 export main 9
 
 fn 0 snippet$i32$Floor$lowest () -> i32
@@ -38,7 +38,7 @@ end
 
 fn 3 snippet$Point$Floor$lowest () -> ref
   i32.const 1
-  struct.new 2   ; snippet$Point
+  struct.new 3   ; snippet$Point
   return
 end
 
@@ -73,7 +73,7 @@ fn 9 snippet$main () -> i32
   local $cast_9 i64
   local $eq_41 bool
   i32.const 4
-  struct.new 2   ; snippet$Point
+  struct.new 3   ; snippet$Point
   local.set 0   ; p
   i64.const 41
   buffer.new
@@ -112,8 +112,8 @@ fn 9 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   call 4   ; snippet$Point$Floor$floor
-  struct.get 2 0   ; snippet$Point.x
-  ref.cast 1   ; i32
+  struct.get 3 0   ; snippet$Point.x
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 3   ; $cast_9
   local.get 1   ; __buf_0
@@ -128,8 +128,8 @@ fn 9 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; p
   call 5   ; snippet$Point$Floor$reset
-  struct.get 2 0   ; snippet$Point.x
-  ref.cast 1   ; i32
+  struct.get 3 0   ; snippet$Point.x
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 3   ; $cast_9
   local.get 1   ; __buf_0
@@ -394,7 +394,7 @@ fn 15 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 8   ; u8[]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

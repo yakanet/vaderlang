@@ -1,25 +1,25 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 scalar string
-type 3 array 4
-type 4 scalar u8
-type 5 union 6,0
-type 6 scalar i64
-type 7 array 8
-type 8 struct std_env$EnvVar { name:2,value:2 }
-type 9 struct std_core$Buffer {  }
-type 10 scalar void
+type 1 scalar void
+type 2 scalar i32
+type 3 scalar string
+type 4 array 5
+type 5 scalar u8
+type 6 union 7,0
+type 7 scalar i64
+type 8 array 9
+type 9 struct std_env$EnvVar { name:3,value:3 }
+type 10 struct std_core$Buffer {  }
 type 11 scalar bool
 type 12 union 13,0
-type 13 struct std_io$IOError { msg:2,kind:4,code:1 }
-type 14 union 0,2
-type 15 fn (8,8) -> 11
+type 13 struct std_io$IOError { msg:3,kind:5,code:2 }
+type 14 union 0,3
+type 15 fn (9,9) -> 11
 type 16 array 17
 type 17 ref _
 type 18 fn (17,17) -> 11
 type 19 union 20,0
-type 20 struct __Tuple_string_string_66940ed4 { _0:2,_1:2 }
+type 20 struct __Tuple_string_string_66940ed4 { _0:3,_1:3 }
 string 0 "VADER_SNIPPET_ENV"
 string 1 "first"
 string 2 "été"
@@ -82,18 +82,18 @@ string 58 "AddressNotAvailable"
 string 59 "NotConnected"
 string 60 "TimedOut"
 string 61 "NoDescriptor"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=6 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 byte_at std_core$Intrinsic$byte_at intrinsic=byte_at result_type=4 param_types=2,6 param_c_out= param_by_address= (string,i64) -> u8
-import 2 byte_slice std_core$Intrinsic$byte_slice intrinsic=byte_slice result_type=2 param_types=2,6,6 param_c_out= param_by_address= (string,i64,i64) -> string
-import 3 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=3 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=1,3,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=10 () -> void
-import 7 extern :vader_environ_entry system_posix$sys_environ_entry headers=vader.h result_type=14 param_types=6 param_c_out= param_by_address= (i64) -> any
-import 8 extern :setenv system_posix$sys_setenv headers=<stdlib.h> result_type=1 param_types=2,2,1 param_c_out= param_by_address= (string,string,i32) -> i32
-import 9 extern :unsetenv system_posix$sys_unsetenv headers=<stdlib.h> result_type=1 param_types=2 param_c_out= param_by_address= (string) -> i32
-import 10 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=14 param_types=2 param_c_out= param_by_address= (string) -> any
-impl 9 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=3 param_c_out= param_by_address= (string) -> i64
+import 1 byte_at std_core$Intrinsic$byte_at intrinsic=byte_at result_type=5 param_types=3,7 param_c_out= param_by_address= (string,i64) -> u8
+import 2 byte_slice std_core$Intrinsic$byte_slice intrinsic=byte_slice result_type=3 param_types=3,7,7 param_c_out= param_by_address= (string,i64,i64) -> string
+import 3 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=4 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,4,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+import 7 extern :vader_environ_entry system_posix$sys_environ_entry headers=vader.h result_type=14 param_types=7 param_c_out= param_by_address= (i64) -> any
+import 8 extern :setenv system_posix$sys_setenv headers=<stdlib.h> result_type=2 param_types=3,3,2 param_c_out= param_by_address= (string,string,i32) -> i32
+import 9 extern :unsetenv system_posix$sys_unsetenv headers=<stdlib.h> result_type=2 param_types=3 param_c_out= param_by_address= (string) -> i32
+import 10 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=14 param_types=3 param_c_out= param_by_address= (string) -> any
+impl 10 std_core$ByteAccess
 impl 13 std_core$Error
 export main 0
 
@@ -123,7 +123,7 @@ fn 0 snippet$main () -> i32
     local.set 1   ; value
   else
     local.get 2   ; __fallback_0
-    ref.cast 2   ; string
+    ref.cast 3   ; string
     local.set 1   ; value
   end $L0
   string.const 4   ; "get: "
@@ -143,15 +143,15 @@ fn 0 snippet$main () -> i32
     if $L2 void
       local.get 3   ; __for_arr_1
       local.get 5   ; __for_i_3
-      array.get 7   ; std_env$EnvVar[]
+      array.get 8   ; std_env$EnvVar[]
       local.set 6   ; v
-      local.field 6 8 0   ; v std_env$EnvVar.name
-      ref.cast 2   ; string
+      local.field 6 9 0   ; v std_env$EnvVar.name
+      ref.cast 3   ; string
       local.get 0   ; name
       string.eq
       if $L3 void
-        local.field 6 8 1   ; v std_env$EnvVar.value
-        ref.cast 2   ; string
+        local.field 6 9 1   ; v std_env$EnvVar.value
+        ref.cast 3   ; string
         local.set 1   ; value
         string.const 5   ; "listed: "
         local.get 1   ; value
@@ -178,7 +178,7 @@ fn 0 snippet$main () -> i32
     local.set 1   ; value
   else
     local.get 2   ; __fallback_0
-    ref.cast 2   ; string
+    ref.cast 3   ; string
     local.set 1   ; value
   end $L4
   string.const 7   ; "empty: ["
@@ -198,7 +198,7 @@ fn 0 snippet$main () -> i32
     local.set 0   ; name
   else
     local.get 2   ; __fallback_0
-    ref.cast 2   ; string
+    ref.cast 3   ; string
     local.set 0   ; name
   end $L5
   string.const 9   ; "after unset: "
@@ -310,13 +310,13 @@ fn 3 std_core$index_of__u8 (ref,u8) -> any
     if $L1 void
       local.get 0   ; arg 0
       local.get 2   ; i
-      array.get 3   ; u8[]
-      ref.cast 4   ; u8
+      array.get 4   ; u8[]
+      ref.cast 5   ; u8
       local.get 1   ; arg 1
       i32.eq
       if $L2 void
         local.get 2   ; i
-        retag 6   ; i64
+        retag 7   ; i64
         return
       end $L2
       local.get 2   ; i
@@ -333,7 +333,7 @@ fn 4 std_core$clone__std_env_EnvVar (ref) -> ref
   local out ref
   local.get 0   ; arg 0
   array.len
-  array.reserve 7   ; std_env$EnvVar[]
+  array.reserve 8   ; std_env$EnvVar[]
   local.tee 1   ; out
   local.get 0   ; arg 0
   array.push_all
@@ -376,7 +376,7 @@ fn 5 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 3   ; u8[]
+      array.slice 4   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12
@@ -503,7 +503,7 @@ fn 11 std_env$env_vars () -> ref
   local $field_20 string
   local $field_21 string
   local $struct_22 ref
-  array.new 7 0   ; std_env$EnvVar[]
+  array.new 8 0   ; std_env$EnvVar[]
   local.set 0   ; vars
   i64.const 0
   local.set 1   ; index
@@ -515,7 +515,7 @@ fn 11 std_env$env_vars () -> ref
     if $L1 void
     else
       local.get 3   ; __fallback_0
-      ref.cast 2   ; string
+      ref.cast 3   ; string
       local.set 2   ; entry
       local.get 1   ; index
       i64.const 1
@@ -533,7 +533,7 @@ fn 11 std_env$env_vars () -> ref
       ref.cast 20   ; __Tuple_string_string_66940ed4
       local.set 4   ; parts
       local.field 4 20 0   ; parts __Tuple_string_string_66940ed4._0
-      ref.cast 2   ; string
+      ref.cast 3   ; string
       string.const 6   ; ""
       string.ne
       if $L3 void
@@ -541,18 +541,18 @@ fn 11 std_env$env_vars () -> ref
         br $L0
       end $L3
       local.field 4 20 0   ; parts __Tuple_string_string_66940ed4._0
-      ref.cast 2   ; string
+      ref.cast 3   ; string
       local.set 6   ; $field_20
       local.field 4 20 1   ; parts __Tuple_string_string_66940ed4._1
-      ref.cast 2   ; string
+      ref.cast 3   ; string
       local.set 7   ; $field_21
       local.get 6   ; $field_20
       local.get 7   ; $field_21
-      struct.new 8   ; std_env$EnvVar
+      struct.new 9   ; std_env$EnvVar
       local.set 8   ; $struct_22
       local.get 0   ; vars
       local.get 8   ; $struct_22
-      array.push 8   ; std_env$EnvVar
+      array.push 9   ; std_env$EnvVar
       br $L0
     end $L1
   end $L0
@@ -640,11 +640,11 @@ end
 fn 17 std_env$by_name (ref,ref) -> bool
   local $field_2 string
   local $field_3 string
-  local.field 0 8 0   ; arg 0 std_env$EnvVar.name
-  ref.cast 2   ; string
+  local.field 0 9 0   ; arg 0 std_env$EnvVar.name
+  ref.cast 3   ; string
   local.set 2   ; $field_2
-  local.field 1 8 0   ; arg 1 std_env$EnvVar.name
-  ref.cast 2   ; string
+  local.field 1 9 0   ; arg 1 std_env$EnvVar.name
+  ref.cast 3   ; string
   local.set 3   ; $field_3
   local.get 2   ; $field_2
   local.get 3   ; $field_3
@@ -1589,7 +1589,7 @@ fn 30 std_string$first_byte_offset (string,string) -> any
   i64.eq
   if $L0 void
     i64.const 0
-    retag 6   ; i64
+    retag 7   ; i64
     return
   end $L0
   local.get 3   ; m
@@ -1627,7 +1627,7 @@ fn 30 std_string$first_byte_offset (string,string) -> any
         call 32   ; std_string$matches_at
         if $L5 void
           local.get 5   ; i
-          retag 6   ; i64
+          retag 7   ; i64
           return
         end $L5
       end $L4
@@ -1651,7 +1651,7 @@ fn 31 std_string$cut_at (string,any,string) -> any
   if $L0 void
   else
     local.get 1   ; arg 1
-    ref.cast 6   ; i64
+    ref.cast 7   ; i64
     local.set 3   ; $cast_6
     local.get 0   ; arg 0
     i64.const 0
@@ -1659,7 +1659,7 @@ fn 31 std_string$cut_at (string,any,string) -> any
     call.import 2   ; std_core$Intrinsic$byte_slice
     local.set 4   ; $call_7
     local.get 1   ; arg 1
-    ref.cast 6   ; i64
+    ref.cast 7   ; i64
     local.set 3   ; $cast_6
     local.get 2   ; arg 2
     call.import 0   ; std_core$Intrinsic$byte_len

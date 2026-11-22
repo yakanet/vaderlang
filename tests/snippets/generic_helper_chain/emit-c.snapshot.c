@@ -65,47 +65,47 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[15] = {
-    [1] = { .slot_size = 4 },
     [2] = { .slot_size = 4 },
-    [3] = {
+    [3] = { .slot_size = 4 },
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Box__i32_t),
         .slot_size = 8,
     },
-    [4] = {
+    [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Box__string_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Box__string_t, f_value) },
         .string_count = 1,
     },
-    [5] = {
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_snippet$Box__snippet_Box_i32__t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Box__snippet_Box_i32__t, f_value) },
         .ptr_count = 1,
     },
-    [6] = {
+    [7] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_snippet$Box__snippet_Box_string__t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Box__snippet_Box_string__t, f_value) },
         .ref_count = 1,
     },
-    [7] = { .slot_size = 16 },
-    [8] = {
+    [8] = { .slot_size = 16 },
+    [9] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_snippet$Box__snippet_Box_Any__t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Box__snippet_Box_Any__t, f_value) },
         .ptr_count = 1,
     },
-    [9] = {
+    [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [10] = { .slot_size = 8 },
-    [11] = {
+    [11] = { .slot_size = 8 },
+    [12] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 12u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 13u,
     },
-    [12] = { .slot_size = 1 },
+    [13] = { .slot_size = 1 },
     [14] = { .slot_size = 1 },
 };
 const size_t vader_type_info_count = 15;
@@ -122,7 +122,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 11u, 12u);
+    return (void*) vader_string_bytes_view(a0, 12u, 13u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -166,12 +166,12 @@ static int32_t snippet$main(void) {
     l1 = snippet$outer__string(1u);
     l2 = (void*) vader_buffer_new((size_t) INT64_C(20));
     l3 = INT64_C(0);
-    t0 = ((((vader_obj_header_t*) l0)->type_index == 6u ? vader_ref_box(((vader_struct_snippet$Box__snippet_Box_string__t*) l0)->f_value) : ((vader_struct_snippet$Box__snippet_Box_i32__t*) l0)->f_value).tag == 5u ? ((int32_t) ((vader_struct_snippet$Box__snippet_Box_i32__t*) (((vader_obj_header_t*) l0)->type_index == 6u ? vader_ref_box(((vader_struct_snippet$Box__snippet_Box_string__t*) l0)->f_value) : ((vader_struct_snippet$Box__snippet_Box_i32__t*) l0)->f_value).payload.obj)->f_value.payload.i) : ((((vader_obj_header_t*) l0)->type_index == 6u ? vader_ref_box(((vader_struct_snippet$Box__snippet_Box_string__t*) l0)->f_value) : ((vader_struct_snippet$Box__snippet_Box_i32__t*) l0)->f_value).tag == 8u ? ((int32_t) ((vader_struct_snippet$Box__snippet_Box_Any__t*) (((vader_obj_header_t*) l0)->type_index == 6u ? vader_ref_box(((vader_struct_snippet$Box__snippet_Box_string__t*) l0)->f_value) : ((vader_struct_snippet$Box__snippet_Box_i32__t*) l0)->f_value).payload.obj)->f_value.payload.i) : ((vader_struct_snippet$Box__i32_t*) (((vader_obj_header_t*) l0)->type_index == 6u ? vader_ref_box(((vader_struct_snippet$Box__snippet_Box_string__t*) l0)->f_value) : ((vader_struct_snippet$Box__snippet_Box_i32__t*) l0)->f_value).payload.obj)->f_value));
+    t0 = ((((vader_obj_header_t*) l0)->type_index == 7u ? vader_ref_box(((vader_struct_snippet$Box__snippet_Box_string__t*) l0)->f_value) : ((vader_struct_snippet$Box__snippet_Box_i32__t*) l0)->f_value).tag == 6u ? ((int32_t) ((vader_struct_snippet$Box__snippet_Box_i32__t*) (((vader_obj_header_t*) l0)->type_index == 7u ? vader_ref_box(((vader_struct_snippet$Box__snippet_Box_string__t*) l0)->f_value) : ((vader_struct_snippet$Box__snippet_Box_i32__t*) l0)->f_value).payload.obj)->f_value.payload.i) : ((((vader_obj_header_t*) l0)->type_index == 7u ? vader_ref_box(((vader_struct_snippet$Box__snippet_Box_string__t*) l0)->f_value) : ((vader_struct_snippet$Box__snippet_Box_i32__t*) l0)->f_value).tag == 9u ? ((int32_t) ((vader_struct_snippet$Box__snippet_Box_Any__t*) (((vader_obj_header_t*) l0)->type_index == 7u ? vader_ref_box(((vader_struct_snippet$Box__snippet_Box_string__t*) l0)->f_value) : ((vader_struct_snippet$Box__snippet_Box_i32__t*) l0)->f_value).payload.obj)->f_value.payload.i) : ((vader_struct_snippet$Box__i32_t*) (((vader_obj_header_t*) l0)->type_index == 7u ? vader_ref_box(((vader_struct_snippet$Box__snippet_Box_string__t*) l0)->f_value) : ((vader_struct_snippet$Box__snippet_Box_i32__t*) l0)->f_value).payload.obj)->f_value));
     l4 = ((int64_t) (int32_t) t0);
     l3 = std_core$write_int(l2, l3, l4);
     t1 = std_core$finish_buffer(l2, l3);
     std_console$println__string(t1);
-    t1 = (((vader_obj_header_t*) (((vader_obj_header_t*) l1)->type_index == 5u ? ((vader_struct_snippet$Box__snippet_Box_i32__t*) l1)->f_value.payload.obj : (((vader_obj_header_t*) l1)->type_index == 8u ? ((vader_struct_snippet$Box__snippet_Box_Any__t*) l1)->f_value.payload.obj : ((vader_struct_snippet$Box__snippet_Box_string__t*) l1)->f_value)))->type_index == 5u ? ((vader_struct_snippet$Box__snippet_Box_i32__t*) (((vader_obj_header_t*) l1)->type_index == 5u ? ((vader_struct_snippet$Box__snippet_Box_i32__t*) l1)->f_value.payload.obj : (((vader_obj_header_t*) l1)->type_index == 8u ? ((vader_struct_snippet$Box__snippet_Box_Any__t*) l1)->f_value.payload.obj : ((vader_struct_snippet$Box__snippet_Box_string__t*) l1)->f_value)))->f_value.payload.s : (((vader_obj_header_t*) (((vader_obj_header_t*) l1)->type_index == 5u ? ((vader_struct_snippet$Box__snippet_Box_i32__t*) l1)->f_value.payload.obj : (((vader_obj_header_t*) l1)->type_index == 8u ? ((vader_struct_snippet$Box__snippet_Box_Any__t*) l1)->f_value.payload.obj : ((vader_struct_snippet$Box__snippet_Box_string__t*) l1)->f_value)))->type_index == 8u ? ((vader_struct_snippet$Box__snippet_Box_Any__t*) (((vader_obj_header_t*) l1)->type_index == 5u ? ((vader_struct_snippet$Box__snippet_Box_i32__t*) l1)->f_value.payload.obj : (((vader_obj_header_t*) l1)->type_index == 8u ? ((vader_struct_snippet$Box__snippet_Box_Any__t*) l1)->f_value.payload.obj : ((vader_struct_snippet$Box__snippet_Box_string__t*) l1)->f_value)))->f_value.payload.s : ((vader_struct_snippet$Box__string_t*) (((vader_obj_header_t*) l1)->type_index == 5u ? ((vader_struct_snippet$Box__snippet_Box_i32__t*) l1)->f_value.payload.obj : (((vader_obj_header_t*) l1)->type_index == 8u ? ((vader_struct_snippet$Box__snippet_Box_Any__t*) l1)->f_value.payload.obj : ((vader_struct_snippet$Box__snippet_Box_string__t*) l1)->f_value)))->f_value));
+    t1 = (((vader_obj_header_t*) (((vader_obj_header_t*) l1)->type_index == 6u ? ((vader_struct_snippet$Box__snippet_Box_i32__t*) l1)->f_value.payload.obj : (((vader_obj_header_t*) l1)->type_index == 9u ? ((vader_struct_snippet$Box__snippet_Box_Any__t*) l1)->f_value.payload.obj : ((vader_struct_snippet$Box__snippet_Box_string__t*) l1)->f_value)))->type_index == 6u ? ((vader_struct_snippet$Box__snippet_Box_i32__t*) (((vader_obj_header_t*) l1)->type_index == 6u ? ((vader_struct_snippet$Box__snippet_Box_i32__t*) l1)->f_value.payload.obj : (((vader_obj_header_t*) l1)->type_index == 9u ? ((vader_struct_snippet$Box__snippet_Box_Any__t*) l1)->f_value.payload.obj : ((vader_struct_snippet$Box__snippet_Box_string__t*) l1)->f_value)))->f_value.payload.s : (((vader_obj_header_t*) (((vader_obj_header_t*) l1)->type_index == 6u ? ((vader_struct_snippet$Box__snippet_Box_i32__t*) l1)->f_value.payload.obj : (((vader_obj_header_t*) l1)->type_index == 9u ? ((vader_struct_snippet$Box__snippet_Box_Any__t*) l1)->f_value.payload.obj : ((vader_struct_snippet$Box__snippet_Box_string__t*) l1)->f_value)))->type_index == 9u ? ((vader_struct_snippet$Box__snippet_Box_Any__t*) (((vader_obj_header_t*) l1)->type_index == 6u ? ((vader_struct_snippet$Box__snippet_Box_i32__t*) l1)->f_value.payload.obj : (((vader_obj_header_t*) l1)->type_index == 9u ? ((vader_struct_snippet$Box__snippet_Box_Any__t*) l1)->f_value.payload.obj : ((vader_struct_snippet$Box__snippet_Box_string__t*) l1)->f_value)))->f_value.payload.s : ((vader_struct_snippet$Box__string_t*) (((vader_obj_header_t*) l1)->type_index == 6u ? ((vader_struct_snippet$Box__snippet_Box_i32__t*) l1)->f_value.payload.obj : (((vader_obj_header_t*) l1)->type_index == 9u ? ((vader_struct_snippet$Box__snippet_Box_Any__t*) l1)->f_value.payload.obj : ((vader_struct_snippet$Box__snippet_Box_string__t*) l1)->f_value)))->f_value));
     std_console$println__string(t1);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
@@ -192,7 +192,7 @@ static void* snippet$middle__i32(int32_t l0) {
     vader_gc_top = &gc_frame;
     t0 = snippet$inner__i32(l0);
     vader_struct_snippet$Box__i32_t* _a0_obj = (vader_struct_snippet$Box__i32_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Box__i32_t));
-    vader_obj_header_init(_a0_obj, 3u);
+    vader_obj_header_init(_a0_obj, 4u);
     _a0_obj->f_value = t0;
     t1 = (void*) _a0_obj;
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -209,7 +209,7 @@ static void* snippet$middle__string(vader_string_t l0) {
     vader_gc_top = &gc_frame;
     t0 = snippet$inner__string(l0);
     vader_struct_snippet$Box__string_t* _a0_obj = (vader_struct_snippet$Box__string_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Box__string_t));
-    vader_obj_header_init(_a0_obj, 4u);
+    vader_obj_header_init(_a0_obj, 5u);
     _a0_obj->f_value = t0;
     t1 = (void*) _a0_obj;
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -222,7 +222,7 @@ static void* snippet$outer__i32(int32_t l0) {
     vader_gc_top = &gc_frame;
     t0 = snippet$middle__i32(l0);
     vader_struct_snippet$Box__snippet_Box_Any__t* _a0_obj = (vader_struct_snippet$Box__snippet_Box_Any__t*) vader_gc_alloc(sizeof(vader_struct_snippet$Box__snippet_Box_Any__t));
-    vader_obj_header_init(_a0_obj, 8u);
+    vader_obj_header_init(_a0_obj, 9u);
     _a0_obj->f_value = vader_ref_box(t0);
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -238,7 +238,7 @@ static void* snippet$outer__string(vader_string_t l0) {
     vader_gc_top = &gc_frame;
     t0 = snippet$middle__string(l0);
     vader_struct_snippet$Box__snippet_Box_string__t* _a0_obj = (vader_struct_snippet$Box__snippet_Box_string__t*) vader_gc_alloc(sizeof(vader_struct_snippet$Box__snippet_Box_string__t));
-    vader_obj_header_init(_a0_obj, 6u);
+    vader_obj_header_init(_a0_obj, 7u);
     _a0_obj->f_value = t0;
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }

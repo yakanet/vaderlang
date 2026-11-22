@@ -1,22 +1,22 @@
 module _main
 type 0 scalar null
-type 1 array 2
-type 2 union 3,4
-type 3 struct snippet$Cat { name:6 }
-type 4 struct snippet$Dog { tricks:5 }
-type 5 scalar i32
-type 6 scalar string
-type 7 struct std_core$Buffer {  }
-type 8 scalar i64
-type 9 array 10
-type 10 scalar u8
-type 11 scalar void
+type 1 scalar void
+type 2 array 3
+type 3 union 4,5
+type 4 struct snippet$Cat { name:7 }
+type 5 struct snippet$Dog { tricks:6 }
+type 6 scalar i32
+type 7 scalar string
+type 8 struct std_core$Buffer {  }
+type 9 scalar i64
+type 10 array 11
+type 11 scalar u8
 type 12 scalar bool
 type 13 scalar f64
-type 14 array 6
+type 14 array 7
 type 15 array 16
-type 16 union 13,5,6
-type 17 union 13,5
+type 16 union 13,6,7
+type 17 union 13,6
 string 0 "tom"
 string 1 "a"
 string 2 "tricks="
@@ -25,12 +25,12 @@ string 4 " first="
 string 5 "numbers="
 string 6 " direct="
 string 7 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=6 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=6 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=5,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=5 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=11 () -> void
-impl 7 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=9 param_types=7 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=10 param_types=7 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=6,10,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=6 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 8 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$total_tricks (ref) -> i32
@@ -55,14 +55,14 @@ fn 0 snippet$total_tricks (ref) -> i32
     if $L1 void
       local.get 2   ; __fuse_arr_0
       local.get 4   ; __fuse_i_2
-      array.get 1   ; union[]
+      array.get 2   ; union[]
       local.tee 5   ; x
-      type_check 4   ; snippet$Dog
+      type_check 5   ; snippet$Dog
       if $L2 void
         local.get 5   ; x
-        ref.cast 4   ; snippet$Dog
-        struct.get 4 0   ; snippet$Dog.tricks
-        ref.cast 5   ; i32
+        ref.cast 5   ; snippet$Dog
+        struct.get 5 0   ; snippet$Dog.tricks
+        ref.cast 6   ; i32
         local.set 6   ; $field_14
         local.get 1   ; n
         local.get 6   ; $field_14
@@ -94,18 +94,18 @@ fn 1 snippet$main () -> i32
   local __fuse_i_1 i64
   local __fuse_i_1 i64
   string.const 0   ; "tom"
-  struct.new 3   ; snippet$Cat
+  struct.new 4   ; snippet$Cat
   local.set 0   ; $struct_1
   i32.const 3
-  struct.new 4   ; snippet$Dog
+  struct.new 5   ; snippet$Dog
   local.set 1   ; $struct_3
   i32.const 4
-  struct.new 4   ; snippet$Dog
+  struct.new 5   ; snippet$Dog
   local.set 2   ; $struct_5
   local.get 0   ; $struct_1
   local.get 1   ; $struct_3
   local.get 2   ; $struct_5
-  array.new 1 3   ; union[]
+  array.new 2 3   ; union[]
   local.tee 0   ; $struct_1
   local.set 2   ; $struct_5
   array.new 14 0   ; string[]
@@ -122,17 +122,17 @@ fn 1 snippet$main () -> i32
     if $L1 void
       local.get 2   ; $struct_5
       local.get 5   ; __fuse_i_1
-      array.get 1   ; union[]
+      array.get 2   ; union[]
       local.tee 6   ; x
-      type_check 3   ; snippet$Cat
+      type_check 4   ; snippet$Cat
       if $L2 void
         local.get 6   ; x
-        ref.cast 3   ; snippet$Cat
+        ref.cast 4   ; snippet$Cat
         call 2   ; __lambda_snippet_0
         local.set 7   ; x
         local.get 3   ; out
         local.get 7   ; x
-        array.push 6 3   ; string out
+        array.push 7 3   ; string out
       end $L2
       local.get 5   ; __fuse_i_1
       i64.const 1
@@ -144,13 +144,13 @@ fn 1 snippet$main () -> i32
   local.get 3   ; out
   local.set 1   ; $struct_3
   i32.const 1
-  retag 5   ; i32
+  retag 6   ; i32
   string.const 1   ; "a"
-  retag 6   ; string
+  retag 7   ; string
   f64.const 2.5 4612811918334230528
   retag 13   ; f64
   i32.const 3
-  retag 5   ; i32
+  retag 6   ; i32
   array.new 15 4   ; union[]
   local.set 2   ; $struct_5
   local.get 0   ; $struct_1
@@ -162,7 +162,7 @@ fn 1 snippet$main () -> i32
   local.get 1   ; $struct_3
   i32.const 0
   array.get 14   ; string[]
-  ref.cast 6   ; string
+  ref.cast 7   ; string
   local.tee 7   ; x
   call.import 0   ; std_core$Intrinsic$byte_len
   local.set 5   ; __fuse_i_1
@@ -224,8 +224,8 @@ fn 1 snippet$main () -> i32
     if $L4 void
       local.get 0   ; $struct_1
       local.get 10   ; __fuse_i_1
-      array.get 1   ; union[]
-      type_check 4   ; snippet$Dog
+      array.get 2   ; union[]
+      type_check 5   ; snippet$Dog
       if $L5 void
         local.get 5   ; __fuse_i_1
         i64.const 1
@@ -305,8 +305,8 @@ fn 1 snippet$main () -> i32
 end
 
 fn 2 __lambda_snippet_0 (ref) -> string
-  local.field 0 3 0   ; arg 0 snippet$Cat.name
-  ref.cast 6   ; string
+  local.field 0 4 0   ; arg 0 snippet$Cat.name
+  ref.cast 7   ; string
   return
 end
 
@@ -510,7 +510,7 @@ fn 7 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 9   ; u8[]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

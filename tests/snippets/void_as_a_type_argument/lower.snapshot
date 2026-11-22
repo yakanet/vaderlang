@@ -1,0 +1,44 @@
+# Lower
+
+## snippet
+  snippet.nothing :: fn() -> void {  // snippet$nothing
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      written: void[] = [snippet.nothing(), snippet.nothing()] :void[]
+      std.console.println<i64>(@array.len(written))
+      @array.push(written, snippet.nothing())
+      written[0] = snippet.nothing()
+      std.console.println<i64>(@array.len(written))
+      std.console.println<bool>(snippet.kept<void>(written[2]) is void)
+      std.console.println<bool>(snippet.kept<void>(snippet.nothing()) is void)
+      std.console.println<bool>(snippet.applied<void>(snippet.kept<void>, snippet.nothing()) is void)
+      holder: Holder<void> = Holder<void> { .value = snippet.nothing() }
+      holder.value = snippet.nothing()
+      std.console.println<bool>(snippet.held<void>(holder) is void)
+      return 0
+  }
+  snippet.Holder<void> :: struct { value: void }  // snippet$Holder__void
+  snippet.kept<void> :: fn(x: void) -> null | void {  // snippet$kept__void
+      x
+  }
+  snippet.applied<void> :: fn(f: fn(void) -> null | void, x: void) -> null | void {  // snippet$applied__void
+      f(x)
+  }
+  snippet.held<void> :: fn(h: Holder<void>) -> null | void {  // snippet$held__void
+      h.value
+  }
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<bool>  // std_console$println__bool
+    fn std.console.println<i64>  // std_console$println__i64
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer

@@ -92,7 +92,7 @@ infer_lambda :: fn(
         // No expectation reads as "promises nothing", which the void gate below
         // already rejects, so the two cases need only one test.
         promised :: expected_ret else TY_VOID
-        if !is_void(promised) && promised !is UnresolvedType {
+        if !is_void(promised) && !admits_void(promised) && promised !is UnresolvedType {
             diags.push(
                 typecheck_error(
                     .BodyFallsOffEnd, e.span,

@@ -46,11 +46,11 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
-static const struct vader_struct_snippet$Marker_t vader_data_0_e0 = { VADER_STATIC_HEADER(6u) };
+static const struct vader_struct_snippet$Marker_t vader_data_0_e0 = { VADER_STATIC_HEADER(7u) };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
-    VADER_STATIC_BUF_HEADER(6u, 0u, 1u),
+    VADER_STATIC_BUF_HEADER(7u, 0u, 1u),
     .slots = {
-        { 6u, 0u, { .obj = (void*) (struct vader_struct_snippet$Marker_t*) &vader_data_0_e0 } },
+        { 7u, 0u, { .obj = (void*) (struct vader_struct_snippet$Marker_t*) &vader_data_0_e0 } },
     },
 };
 static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(12u, 1u, &vader_data_0_buf);
@@ -71,7 +71,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Route_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Route_t, f_path) },
@@ -79,30 +79,30 @@ const vader_type_info_t vader_type_info_table[13] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Route_t, f_tags) },
         .ref_count = 1,
     },
-    [2] = { .slot_size = 4 },
     [3] = { .slot_size = 4 },
-    [4] = { .slot_size = 1 },
-    [5] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
-    },
+    [4] = { .slot_size = 4 },
+    [5] = { .slot_size = 1 },
     [6] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+    },
+    [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Marker_t),
         .slot_size = 8,
     },
-    [7] = {
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [8] = { .slot_size = 8 },
-    [9] = {
+    [9] = { .slot_size = 8 },
+    [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 5u,
     },
     [11] = { .slot_size = 1 },
     [12] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 6u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
     },
 };
 const size_t vader_type_info_count = 13;
@@ -119,7 +119,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 9u, 4u);
+    return (void*) vader_string_bytes_view(a0, 10u, 5u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -189,21 +189,21 @@ static int32_t snippet$main(void) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(5u, 0u, 0u, 2u);
+    vader_array_t* _a0_arr = vader_array_new(6u, 0u, 0u, 3u);
     l0 = (void*) _a0_arr;
     vader_struct_snippet$Route_t* _a1_obj = (vader_struct_snippet$Route_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Route_t));
-    vader_obj_header_init(_a1_obj, 1u);
+    vader_obj_header_init(_a1_obj, 2u);
     _a1_obj->f_method = (uint8_t) 0;
     _a1_obj->f_path = 4u;
     _a1_obj->f_tags = l0;
     t0 = (void*) _a1_obj;
     t1 = snippet$describe(t0);
     std_console$println__string(t1);
-    vader_array_t* _a2_arr = vader_array_new(5u, 1u, 0u, 2u);
-    vader_array_box_slots(_a2_arr->buf)[vader_array_offset(_a2_arr) + 0u] = vader_box_string(2u, 6u);
+    vader_array_t* _a2_arr = vader_array_new(6u, 1u, 0u, 3u);
+    vader_array_box_slots(_a2_arr->buf)[vader_array_offset(_a2_arr) + 0u] = vader_box_string(3u, 6u);
     l0 = (void*) _a2_arr;
     vader_struct_snippet$Route_t* _a3_obj = (vader_struct_snippet$Route_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Route_t));
-    vader_obj_header_init(_a3_obj, 1u);
+    vader_obj_header_init(_a3_obj, 2u);
     _a3_obj->f_method = (uint8_t) 1;
     _a3_obj->f_path = 5u;
     _a3_obj->f_tags = l0;

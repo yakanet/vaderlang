@@ -1,50 +1,50 @@
 module _main
 type 0 scalar null
-type 1 struct snippet$Countdown { current:3 }
-type 2 union 3,4
-type 3 scalar i32
-type 4 struct std_core$Stop {  }
-type 5 scalar string
-type 6 struct std_core$Buffer {  }
-type 7 scalar i64
-type 8 array 9
-type 9 scalar u8
-type 10 scalar void
+type 1 scalar void
+type 2 struct snippet$Countdown { current:4 }
+type 3 union 4,5
+type 4 scalar i32
+type 5 struct std_core$Stop {  }
+type 6 scalar string
+type 7 struct std_core$Buffer {  }
+type 8 scalar i64
+type 9 array 10
+type 10 scalar u8
 type 11 scalar bool
-type 12 array 4
+type 12 array 5
 string 0 "\n"
-data 0 structs 4 0 1
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=5 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=3,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=10 () -> void
-impl 1 std_core$Iterator
-impl 6 std_core$ByteAccess
+data 0 structs 5 0 1
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=4,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=4 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 2 std_core$Iterator
+impl 7 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$Countdown$std_core$Iterator$next (ref) -> any
   local v i32
   local $sub_checked_11 i32
-  local.field 0 1 0   ; arg 0 snippet$Countdown.current
-  ref.cast 3   ; i32
+  local.field 0 2 0   ; arg 0 snippet$Countdown.current
+  ref.cast 4   ; i32
   i32.const 0
   i32.le
   if $L0 void
   else
-    local.field 0 1 0   ; arg 0 snippet$Countdown.current
-    ref.cast 3   ; i32
+    local.field 0 2 0   ; arg 0 snippet$Countdown.current
+    ref.cast 4   ; i32
     local.set 1   ; v
-    local.field 0 1 0   ; arg 0 snippet$Countdown.current
-    ref.cast 3   ; i32
+    local.field 0 2 0   ; arg 0 snippet$Countdown.current
+    ref.cast 4   ; i32
     i32.const 1
     i32.checked_sub
     local.set 2   ; $sub_checked_11
     local.get 0   ; arg 0
     local.get 2   ; $sub_checked_11
-    struct.set 1 0   ; snippet$Countdown.current
+    struct.set 2 0   ; snippet$Countdown.current
     local.get 1   ; v
-    retag 3   ; i32
+    retag 4   ; i32
     return
   end $L0
   data.const 0 12   ; pool[0] std_core$Stop[]
@@ -61,17 +61,17 @@ fn 1 snippet$main () -> i32
   local __off_3 i64
   local $cast_14 i64
   i32.const 5
-  struct.new 1   ; snippet$Countdown
+  struct.new 2   ; snippet$Countdown
   local.set 0   ; __iter_0
   loop $L0 void
     local.get 0   ; __iter_0
     call 0   ; snippet$Countdown$std_core$Iterator$next
     local.tee 1   ; __step_1
-    type_check 4   ; std_core$Stop
+    type_check 5   ; std_core$Stop
     if $L1 void
     else
       local.get 1   ; __step_1
-      ref.cast 3   ; i32
+      ref.cast 4   ; i32
       local.set 2   ; x
       i64.const 20
       buffer.new
@@ -281,7 +281,7 @@ fn 5 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 8   ; u8[]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

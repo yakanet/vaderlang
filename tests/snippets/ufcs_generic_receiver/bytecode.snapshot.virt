@@ -1,10 +1,10 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 scalar string
-type 3 ref _
-type 4 scalar void
-type 5 array 1
+type 1 scalar void
+type 2 scalar i32
+type 3 scalar string
+type 4 ref _
+type 5 array 2
 type 6 struct std_core$Buffer {  }
 type 7 scalar i64
 type 8 array 9
@@ -16,11 +16,11 @@ string 2 "t"
 string 3 "generic "
 string 4 "generic clear"
 string 5 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=1,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=4 () -> void
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=3 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 6 std_core$ByteAccess
 export main 1
 

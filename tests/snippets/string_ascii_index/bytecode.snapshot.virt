@@ -1,7 +1,7 @@
 module _main
 type 0 scalar null
-type 1 scalar string
-type 2 scalar void
+type 1 scalar void
+type 2 scalar string
 type 3 scalar i32
 type 4 scalar i64
 type 5 struct std_core$Buffer {  }
@@ -11,7 +11,7 @@ type 8 scalar u32
 type 9 scalar char
 type 10 struct std_core$Range__i64 { start:4,end:4,inclusive:6,done:6,cursor:4 }
 type 11 array 7
-type 12 array 1
+type 12 array 2
 type 13 struct std_string__builder$StringBuilder { parts:12 }
 string 0 ": ascii "
 string 1 ", len "
@@ -43,16 +43,16 @@ string 26 "true"
 string 27 "false"
 string 28 "\n"
 string 29 ""
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=4 param_types=1 param_c_out= param_by_address= (string) -> i64
-import 1 byte_at std_core$Intrinsic$byte_at intrinsic=byte_at result_type=7 param_types=1,4 param_c_out= param_by_address= (string,i64) -> u8
-import 2 byte_slice std_core$Intrinsic$byte_slice intrinsic=byte_slice result_type=1 param_types=1,4,4 param_c_out= param_by_address= (string,i64,i64) -> string
-import 3 is_ascii std_core$Intrinsic$is_ascii intrinsic=is_ascii result_type=6 param_types=1 param_c_out= param_by_address= (string) -> bool
-import 4 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=11 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 5 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=1 param_types=11 param_c_out= param_by_address= (ref) -> string
-import 6 collect std_core$Intrinsic$collect intrinsic=collect result_type=2 () -> void
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 1 byte_at std_core$Intrinsic$byte_at intrinsic=byte_at result_type=7 param_types=2,4 param_c_out= param_by_address= (string,i64) -> u8
+import 2 byte_slice std_core$Intrinsic$byte_slice intrinsic=byte_slice result_type=2 param_types=2,4,4 param_c_out= param_by_address= (string,i64,i64) -> string
+import 3 is_ascii std_core$Intrinsic$is_ascii intrinsic=is_ascii result_type=6 param_types=2 param_c_out= param_by_address= (string) -> bool
+import 4 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=11 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 5 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=2 param_types=11 param_c_out= param_by_address= (ref) -> string
+import 6 collect std_core$Intrinsic$collect intrinsic=collect result_type=1 () -> void
 import 7 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=3,11,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 8 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
-import 9 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=2 () -> void
+import 9 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 13 std_core$Display
 impl 5 std_core$ByteAccess
 impl 10 std_core$Contains
@@ -258,7 +258,7 @@ fn 1 snippet$main () -> i32
           local.set 0   ; $call_9
           local.get 3   ; garbage
           local.get 0   ; $call_9
-          array.push 1   ; string
+          array.push 2   ; string
           i64.const 46
           buffer.new
           local.set 9   ; __buf_2
@@ -296,7 +296,7 @@ fn 1 snippet$main () -> i32
           local.set 1   ; $call_15
           local.get 3   ; garbage
           local.get 1   ; $call_15
-          array.push 1   ; string
+          array.push 2   ; string
           local.get 4   ; i
           i32.const 1
           i32.add
@@ -1847,7 +1847,7 @@ fn 24 std_string$join (ref,string) -> string
       local.get 0   ; arg 0
       local.get 3   ; i
       array.get 12   ; string[]
-      ref.cast 1   ; string
+      ref.cast 2   ; string
       local.set 5   ; $idx_12
       local.get 2   ; sb
       local.get 5   ; $idx_12
@@ -1867,7 +1867,7 @@ end
 fn 25 std_string__builder$append (ref,string) -> void
   local.field 0 13 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.get 1   ; arg 1
-  array.push 1   ; string
+  array.push 2   ; string
   return
 end
 
@@ -1895,7 +1895,7 @@ fn 26 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> stri
     local.field 0 13 0   ; arg 0 std_string__builder$StringBuilder.parts
     i32.const 0
     array.get 12   ; string[]
-    ref.cast 1   ; string
+    ref.cast 2   ; string
     return
   end $L1
   local.get 0   ; arg 0
@@ -1919,7 +1919,7 @@ fn 26 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> stri
       local.get 4   ; __for_arr_0
       local.get 6   ; __for_i_2
       array.get 12   ; string[]
-      ref.cast 1   ; string
+      ref.cast 2   ; string
       local.set 7   ; p
       local.get 2   ; buf
       local.get 3   ; off
@@ -1967,7 +1967,7 @@ fn 27 std_string__builder$byte_len (ref) -> i64
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
       array.get 12   ; string[]
-      ref.cast 1   ; string
+      ref.cast 2   ; string
       call.import 0   ; std_core$Intrinsic$byte_len
       local.set 5   ; $call_12
       local.get 1   ; total

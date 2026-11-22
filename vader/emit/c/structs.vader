@@ -30,11 +30,13 @@ emit_struct_new :: fn(s: FnState, op: Bc.StructNew) -> void {
         n :: i32(t.fields.len())
         // Pop top-to-bottom : pop #k is the value for field `n-1-k`.
         field_vals: CExpression[]: [verbatim("")] * i64(n)
+        // A `void` field holds nothing, and nothing was pushed for it.
         for k in 0..<n {
-            v :: pop(s)
             fi :: n - 1 - k
-            f :: t.fields[fi]
-            field_vals[fi] = coerced_as(s, v, val_type_of_field(s.ctx.module.types, f.type_index))
+            field_val :: val_type_of_field(s.ctx.module.types, t.fields[fi].type_index)
+            if field_val != .Void {
+                field_vals[fi] = coerced_as(s, pop(s), field_val)
+            }
         }
         // Storage : a C local for the escape-proven stack variant, a GC heap
         // block otherwise. The popped field values live in ref temps that
@@ -64,7 +66,9 @@ emit_struct_new :: fn(s: FnState, op: Bc.StructNew) -> void {
         init_object_header(s, obj, op.type_id)
         for i in 0..<n {
             f :: t.fields[i]
-            assign(s, verbatim("${obj}->${field_c_name(f.name)}"), field_vals[i])
+            if val_type_of_field(s.ctx.module.types, f.type_index) != .Void {
+                assign(s, verbatim("${obj}->${field_c_name(f.name)}"), field_vals[i])
+            }
         }
         push_object(s, verbatim(obj))
     } else {
@@ -119,6 +123,10 @@ push_struct_field :: fn(
         cname :: s.ctx.struct_c_names[type_index]
         f :: t.fields[field_index]
         fval :: val_type_of_field(types, f.type_index)
+        // A `void` field carries nothing on the stack, as a `void` local does.
+        if fval == .Void {
+            return
+        }
         // A `.Ref` receiver is a raw `void*` ; an `.Any` receiver is a box
         // (erased element / downcast) whose object is in `.payload.obj`.
         recv_ptr :: object_pointer(recv, recv_val)
@@ -265,9 +273,14 @@ emit_struct_set :: fn(s: FnState, op: Bc.StructSet) -> void {
     t :: s.ctx.module.types[op.type_id]
     if t is BcStruct {
         cname :: s.ctx.struct_c_names[op.type_id]
+        f :: t.fields[op.field_index]
+        if val_type_of_field(s.ctx.module.types, f.type_index) == .Void {
+            // Nothing was pushed for the value, and the field holds nothing.
+            pop(s)
+            return
+        }
         value :: pop(s)
         obj :: pop(s)
-        f :: t.fields[op.field_index]
         // A `.Ref` receiver is a raw `void*` ; an `.Any` one is a box -> `.payload.obj`.
         obj_ptr :: object_pointer_of(obj)
         place :: field_of(cname, obj_ptr, f.name)

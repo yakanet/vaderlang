@@ -1,3 +1,4 @@
 [16:1] error[T3083] not every path through the body returns a value: `falls_off` promises i32
-[57:18] error[T3083] not every path through the body returns a value: this lambda promises i32
-[73:1] error[T3083] not every path through the body returns a value: `left_through_condition` promises i32
+[34:1] error[T3083] not every path through the body returns a value: `fallible_value` promises i32 | Refused
+[75:18] error[T3083] not every path through the body returns a value: this lambda promises i32
+[91:1] error[T3083] not every path through the body returns a value: `left_through_condition` promises i32

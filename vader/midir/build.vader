@@ -360,8 +360,9 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
     if fn_ctx.current !is null {
         cur :: fn_ctx.blocks[i64(fn_ctx.current)]
         if cur.terminator is null {
+            values :: implicit_return_values(trailing, d.return_type)
             cur.terminator = TermReturn {
-                .values = implicit_return_values(trailing, d.return_type),
+                .values = void_if_none(fn_ctx, values, d.return_type, body.span),
                 .span = body.span,
             }
         }
@@ -413,6 +414,18 @@ implicit_return_values :: fn(trailing: LocalId | null, return_type: Type) -> Loc
     }
     return [trailing]
 }
+
+// What a return hands back when it has no value: nothing from a fn that
+// returns nothing, the one `void` value from a fn whose result is a union
+// holding `void`. Control that already left builds nothing.
+void_if_none :: fn(fn_ctx: FnCtx, values: LocalId[], return_type: Type, span: Span) -> LocalId[] {
+    if values.len() > 0 || !admits_void(return_type) {
+        return values
+    }
+    value :: void_value(fn_ctx, return_type, span) else return values
+    return [value]
+}
+
 
 build_block_value :: fn(fn_ctx: FnCtx, b: LoweredBlock, slot: Type) -> LocalId | null {
     for s in b.stmts {
@@ -500,7 +513,13 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
                     values.push(built)
                 }
             }
-            terminate(fn_ctx, TermReturn { .values = values, .span = s.span })
+            terminate(
+                fn_ctx,
+                TermReturn {
+                    .values = void_if_none(fn_ctx, values, fn_ctx.return_type, s.span),
+                    .span = s.span,
+                },
+            )
         }
         is LoweredLoop -> { build_loop(fn_ctx, s) }
         is LoweredLabelledBlock -> { build_labelled_block(fn_ctx, s) }
@@ -922,11 +941,22 @@ build_extern_args :: fn(
 build_args :: fn(fn_ctx: FnCtx, args: LoweredExpr[], params: Type[]) -> LocalId[] | null {
     out: LocalId[]: []
     for i in 0..<args.len() {
-        built :: build_held(fn_ctx, args[i], type_at(params, i))
+        built :: held_or_nothing(fn_ctx, args[i], type_at(params, i))
         local :: kept_in(fn_ctx, built, args, i, args[i].span) else return null
         out.push(local)
     }
     return out
+}
+
+// `e` as `slot` holds it. A `void` expression builds no local, and a `void`
+// parameter or field (a type parameter bound to `void`) holds nothing: the call
+// or the literal still takes place, given an unwritten `void` local.
+held_or_nothing :: fn(fn_ctx: FnCtx, e: LoweredExpr, slot: Type | null) -> LocalId | null {
+    held :: build_held(fn_ctx, e, slot)
+    if held != null || fn_ctx.current is null || !is_void(e.type) {
+        return held
+    }
+    return fresh_tmp(fn_ctx, "void", TY_VOID)
 }
 
 build_virtual_call :: fn(fn_ctx: FnCtx, e: LoweredVirtualCall) -> LocalId | null {
@@ -1384,7 +1414,7 @@ build_struct_lit :: fn(fn_ctx: FnCtx, e: LoweredStructLit) -> LocalId | null {
         values.push(f.value)
     }
     for i in 0..<values.len() {
-        built :: build_held(fn_ctx, values[i], type_at(field_slots, i))
+        built :: held_or_nothing(fn_ctx, values[i], type_at(field_slots, i))
         local :: kept_in(fn_ctx, built, values, i, values[i].span) else return null
         field_locals.push(local)
     }
@@ -1627,11 +1657,29 @@ build_held :: fn(fn_ctx: FnCtx, e: LoweredExpr, slot: Type | null) -> LocalId | 
         }
     }
     if !is_stored_as_integer(e.type) {
-        value :: build_expr(fn_ctx, e) else return null
+        value :: build_expr(fn_ctx, e)
+        if slot != null && is_void(e.type) && holds_box(slot) {
+            return void_value(fn_ctx, slot, e.span)
+        }
+        if value == null {
+            return null
+        }
         return held_in(fn_ctx, value, slot, e.span)
     }
     stored :: build_stored(fn_ctx, e) else return null
     return held_use_in(fn_ctx, stored, e.type, slot, e.span)
+}
+
+// Whether a `void` entering `slot` is held as a value: a union holding `void`,
+// or a box (the element of a `void[]`).
+holds_box :: fn(slot: Type) -> bool = slot is AnyType || admits_void(slot)
+
+// The one `void` value, held in `slot`; nothing when control already left.
+void_value :: fn(fn_ctx: FnCtx, slot: Type, span: Span) -> LocalId | null {
+    if fn_ctx.current is null {
+        return null
+    }
+    return emit_const(fn_ctx, slot, ConstVoid {}, span)
 }
 
 emit :: fn(fn_ctx: FnCtx, instr: Instruction) -> void {

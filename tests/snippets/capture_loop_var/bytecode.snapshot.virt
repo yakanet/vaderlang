@@ -1,12 +1,12 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 scalar bool
-type 3 struct __lambda_env_snippet_1 { cap_0:10 }
-type 4 scalar void
-type 5 struct __defer_env_snippet_3 { cap_0:1 }
-type 6 struct __lambda_env_snippet_5 { cap_0:1 }
-type 7 struct __defer_env_snippet_7 { cap_0:1 }
+type 1 scalar void
+type 2 scalar i32
+type 3 scalar bool
+type 4 struct __lambda_env_snippet_1 { cap_0:10 }
+type 5 struct __defer_env_snippet_3 { cap_0:2 }
+type 6 struct __lambda_env_snippet_5 { cap_0:2 }
+type 7 struct __defer_env_snippet_7 { cap_0:2 }
 type 8 struct __lambda_env_snippet_10 { cap_0:9 }
 type 9 scalar i64
 type 10 scalar string
@@ -15,7 +15,7 @@ type 12 array 13
 type 13 scalar u8
 type 14 array 10
 type 15 array 16
-type 16 fn () -> 4
+type 16 fn () -> 1
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -28,9 +28,9 @@ string 8 "nested n="
 string 9 "\n"
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=9 param_types=10 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=12 param_types=10 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=1,12,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=4 () -> void
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=2,12,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 11 std_core$ByteAccess
 export main 2
 
@@ -79,7 +79,7 @@ fn 2 snippet$main () -> i32
       local.get 3   ; __for_i_2
       array.get 14   ; string[]
       ref.cast 10   ; string
-      struct.new 3   ; __lambda_env_snippet_1
+      struct.new 4   ; __lambda_env_snippet_1
       make_closure 3 16   ; __lambda_snippet_0 fn
       local.set 4   ; $closure_17
       local.get 1   ; thunks
@@ -233,7 +233,7 @@ end
 
 fn 3 __lambda_snippet_0 (ref) -> void
   local $field_2 string
-  local.field 0 3 0   ; arg 0 __lambda_env_snippet_1.cap_0
+  local.field 0 4 0   ; arg 0 __lambda_env_snippet_1.cap_0
   ref.cast 10   ; string
   local.set 1   ; $field_2
   string.const 4   ; "thunk "
@@ -258,7 +258,7 @@ fn 4 __defer_snippet_2 (ref) -> void
   call 11   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 5 0   ; arg 0 __defer_env_snippet_3.cap_0
-  ref.cast 1   ; i32
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 3   ; $cast_9
   local.get 1   ; __buf_0
@@ -288,7 +288,7 @@ fn 5 __lambda_snippet_4 (ref) -> void
   call 11   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 6 0   ; arg 0 __lambda_env_snippet_5.cap_0
-  ref.cast 1   ; i32
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 3   ; $cast_9
   local.get 1   ; __buf_0
@@ -318,7 +318,7 @@ fn 6 __defer_snippet_6 (ref) -> void
   call 11   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 7 0   ; arg 0 __defer_env_snippet_7.cap_0
-  ref.cast 1   ; i32
+  ref.cast 2   ; i32
   i32.to_i64
   local.set 3   ; $cast_9
   local.get 1   ; __buf_0

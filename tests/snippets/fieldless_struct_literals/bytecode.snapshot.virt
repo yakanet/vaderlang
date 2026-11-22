@@ -1,19 +1,19 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 union 3,1
-type 3 struct snippet$Exhausted {  }
-type 4 union 5,6
-type 5 struct snippet$Marker {  }
-type 6 struct snippet$Other {  }
-type 7 scalar bool
-type 8 scalar string
-type 9 struct std_core$Buffer {  }
-type 10 scalar i64
-type 11 array 12
-type 12 scalar u8
-type 13 scalar void
-type 14 array 3
+type 1 scalar void
+type 2 scalar i32
+type 3 union 4,2
+type 4 struct snippet$Exhausted {  }
+type 5 union 6,7
+type 6 struct snippet$Marker {  }
+type 7 struct snippet$Other {  }
+type 8 scalar bool
+type 9 scalar string
+type 10 struct std_core$Buffer {  }
+type 11 scalar i64
+type 12 array 13
+type 13 scalar u8
+type 14 array 4
 string 0 "total: "
 string 1 "two literals: "
 string 2 "one literal: "
@@ -21,13 +21,13 @@ string 3 "across variants: "
 string 4 "true"
 string 5 "false"
 string 6 "\n"
-data 0 structs 3 0 1
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=10 param_types=8 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=11 param_types=8 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=1,11,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=13 () -> void
-impl 9 std_core$ByteAccess
+data 0 structs 4 0 1
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=11 param_types=9 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=12 param_types=9 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=11 param_types=2,12,11 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 10 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$next_even (i32) -> any
@@ -39,7 +39,7 @@ fn 0 snippet$next_even (i32) -> any
     local.get 0   ; arg 0
     i32.const 2
     i32.checked_mul
-    retag 1   ; i32
+    retag 2   ; i32
     return
   end $L0
   data.const 0 14   ; pool[0] snippet$Exhausted[]
@@ -80,10 +80,10 @@ fn 2 snippet$main () -> i32
         local.get 1   ; i
         call 0   ; snippet$next_even
         local.tee 2   ; step
-        type_check 3   ; snippet$Exhausted
+        type_check 4   ; snippet$Exhausted
         br_if $L0
         local.get 2   ; step
-        ref.cast 1   ; i32
+        ref.cast 2   ; i32
         local.set 3   ; $cast_9
         local.get 0   ; total
         local.get 3   ; $cast_9
@@ -119,7 +119,7 @@ fn 2 snippet$main () -> i32
   local.get 5   ; __off_1
   call 4   ; std_core$finish_buffer
   call 11   ; std_console$println__string
-  struct.new 5   ; snippet$Marker
+  struct.new 6   ; snippet$Marker
   local.set 4   ; __buf_0
   i64.const 19
   buffer.new
@@ -131,9 +131,9 @@ fn 2 snippet$main () -> i32
   string.const 1   ; "two literals: "
   call 5   ; std_core$write_string_at
   local.set 5   ; __off_1
-  struct.new 5   ; snippet$Marker
+  struct.new 6   ; snippet$Marker
   local.set 8   ; $struct_32
-  struct.new 5   ; snippet$Marker
+  struct.new 6   ; snippet$Marker
   local.set 9   ; $struct_33
   local.get 8   ; $struct_32
   local.get 9   ; $struct_33
@@ -181,9 +181,9 @@ fn 2 snippet$main () -> i32
   string.const 3   ; "across variants: "
   call 5   ; std_core$write_string_at
   local.set 5   ; __off_1
-  struct.new 5   ; snippet$Marker
+  struct.new 6   ; snippet$Marker
   local.set 7   ; __buf_2
-  struct.new 6   ; snippet$Other
+  struct.new 7   ; snippet$Other
   local.set 8   ; $struct_32
   local.get 7   ; __buf_2
   local.get 8   ; $struct_32
@@ -418,7 +418,7 @@ fn 8 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 11   ; u8[]
+      array.slice 12   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

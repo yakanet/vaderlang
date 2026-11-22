@@ -54,33 +54,33 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[14] = {
-    [1] = { .slot_size = 16 },
-    [2] = {
+    [2] = { .slot_size = 16 },
+    [3] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Cat_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Cat_t, f_name) },
         .string_count = 1,
     },
-    [3] = {
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Dog_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Dog_t, f_sound) },
         .string_count = 1,
     },
-    [4] = {
+    [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Fish_t), .slot_size = 8,
     },
-    [5] = { .slot_size = 1 },
-    [6] = { .slot_size = 4 },
+    [6] = { .slot_size = 1 },
     [7] = { .slot_size = 4 },
-    [8] = {
+    [8] = { .slot_size = 4 },
+    [9] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [9] = { .slot_size = 8 },
-    [10] = {
+    [10] = { .slot_size = 8 },
+    [11] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 12u,
     },
-    [11] = { .slot_size = 1 },
+    [12] = { .slot_size = 1 },
     [13] = { .slot_size = 16 },
 };
 const size_t vader_type_info_count = 14;
@@ -97,7 +97,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 10u, 11u);
+    return (void*) vader_string_bytes_view(a0, 11u, 12u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -125,7 +125,7 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
 #pragma GCC diagnostic pop
 
 static bool snippet$is_pet(vader_box_t l0) {
-    return (l0.tag == 2u || l0.tag == 3u);
+    return (l0.tag == 3u || l0.tag == 4u);
 }
 
 static int32_t snippet$main(void) {
@@ -143,7 +143,7 @@ static int32_t snippet$main(void) {
     l0 = (void*) vader_buffer_new((size_t) INT64_C(5));
     l1 = INT64_C(0);
     vader_struct_snippet$Cat_t* _a0_obj = (vader_struct_snippet$Cat_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Cat_t));
-    vader_obj_header_init(_a0_obj, 2u);
+    vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_name = 1u;
     t0 = (void*) _a0_obj;
     l2 = snippet$is_pet(vader_ref_box(t0));
@@ -153,7 +153,7 @@ static int32_t snippet$main(void) {
     l0 = (void*) vader_buffer_new((size_t) INT64_C(5));
     l1 = INT64_C(0);
     vader_struct_snippet$Dog_t* _a1_obj = (vader_struct_snippet$Dog_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Dog_t));
-    vader_obj_header_init(_a1_obj, 3u);
+    vader_obj_header_init(_a1_obj, 4u);
     _a1_obj->f_sound = 2u;
     t0 = (void*) _a1_obj;
     l2 = snippet$is_pet(vader_ref_box(t0));
@@ -163,7 +163,7 @@ static int32_t snippet$main(void) {
     l0 = (void*) vader_buffer_new((size_t) INT64_C(5));
     l1 = INT64_C(0);
     vader_struct_snippet$Fish_t* _a2_obj = (vader_struct_snippet$Fish_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Fish_t));
-    vader_obj_header_init(_a2_obj, 4u);
+    vader_obj_header_init(_a2_obj, 5u);
     _a2_obj->f_fins = INT32_C(4);
     t0 = (void*) _a2_obj;
     l2 = snippet$is_pet(vader_ref_box(t0));

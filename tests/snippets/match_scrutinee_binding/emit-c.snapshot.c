@@ -47,11 +47,11 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
-static const struct vader_struct_snippet$Point_t vader_data_0_e0 = { VADER_STATIC_HEADER(4u) };
+static const struct vader_struct_snippet$Point_t vader_data_0_e0 = { VADER_STATIC_HEADER(5u) };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
-    VADER_STATIC_BUF_HEADER(4u, 0u, 1u),
+    VADER_STATIC_BUF_HEADER(5u, 0u, 1u),
     .slots = {
-        { 4u, 0u, { .obj = (void*) (struct vader_struct_snippet$Point_t*) &vader_data_0_e0 } },
+        { 5u, 0u, { .obj = (void*) (struct vader_struct_snippet$Point_t*) &vader_data_0_e0 } },
     },
 };
 static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(13u, 1u, &vader_data_0_buf);
@@ -75,35 +75,35 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[14] = {
-    [1] = { .slot_size = 4 },
-    [2] = { .slot_size = 16 },
-    [3] = {
+    [2] = { .slot_size = 4 },
+    [3] = { .slot_size = 16 },
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Circle_t),
         .slot_size = 8,
     },
-    [4] = {
+    [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Point_t),
         .slot_size = 8,
     },
-    [5] = {
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Square_t),
         .slot_size = 8,
     },
-    [6] = { .slot_size = 4 },
-    [7] = {
+    [7] = { .slot_size = 4 },
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [8] = { .slot_size = 8 },
-    [9] = {
+    [9] = { .slot_size = 8 },
+    [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 10u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
     },
-    [10] = { .slot_size = 1 },
+    [11] = { .slot_size = 1 },
     [12] = { .slot_size = 1 },
     [13] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 5u,
     },
 };
 const size_t vader_type_info_count = 14;
@@ -120,7 +120,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 9u, 10u);
+    return (void*) vader_string_bytes_view(a0, 10u, 11u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -154,7 +154,7 @@ static vader_box_t snippet$shape_at(int32_t l0) {
     vader_gc_top = &gc_frame;
     if (l0 == INT32_C(0)) {
         vader_struct_snippet$Circle_t* _a0_obj = (vader_struct_snippet$Circle_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Circle_t));
-        vader_obj_header_init(_a0_obj, 3u);
+        vader_obj_header_init(_a0_obj, 4u);
         _a0_obj->f_radius = INT32_C(3);
         t0 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
@@ -167,7 +167,7 @@ static vader_box_t snippet$shape_at(int32_t l0) {
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_struct_snippet$Square_t* _a2_obj = (vader_struct_snippet$Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Square_t));
-    vader_obj_header_init(_a2_obj, 5u);
+    vader_obj_header_init(_a2_obj, 6u);
     _a2_obj->f_side = INT32_C(4);
     t0 = (void*) _a2_obj;
     { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
@@ -184,7 +184,7 @@ static int32_t snippet$area(int32_t l0) {
     vader_gc_top = &gc_frame;
     l1 = snippet$shape_at(l0);
     l2 = l1;
-    if (l1.tag == 3u) {
+    if (l1.tag == 4u) {
         t0 = l2.payload.obj;
         l3 = ((vader_struct_snippet$Circle_t*) t0)->f_radius;
         t0 = l2.payload.obj;
@@ -193,14 +193,14 @@ static int32_t snippet$area(int32_t l0) {
         l3 = vader_chk_mul(i32, t1, INT32_C(3));
         { int32_t __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l1.tag == 5u) {
+    if (l1.tag == 6u) {
         t0 = l2.payload.obj;
         l4 = ((vader_struct_snippet$Square_t*) t0)->f_side;
         t0 = l2.payload.obj;
         l5 = ((vader_struct_snippet$Square_t*) t0)->f_side;
         l3 = vader_chk_mul(i32, l4, l5);
     } else {
-        if (!(l1.tag == 4u)) {
+        if (!(l1.tag == 5u)) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
         l3 = INT32_C(0);
@@ -223,7 +223,7 @@ static vader_string_t snippet$describe(int32_t l0) {
     vader_gc_top = &gc_frame;
     l1 = snippet$shape_at(l0);
     l2 = l1;
-    if (l1.tag == 3u) {
+    if (l1.tag == 4u) {
         t0 = l2.payload.obj;
         t1 = ((vader_struct_snippet$Circle_t*) t0)->f_radius;
         l4 = (t1 > INT32_C(10));
@@ -234,12 +234,12 @@ static vader_string_t snippet$describe(int32_t l0) {
         l3 = 1u;
         { vader_string_t __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l1.tag == 3u) {
+    if (l1.tag == 4u) {
         l3 = 2u;
-    } else if (l1.tag == 5u) {
+    } else if (l1.tag == 6u) {
         l3 = 3u;
     } else {
-        if (!(l1.tag == 4u)) {
+        if (!(l1.tag == 5u)) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
         l3 = 4u;

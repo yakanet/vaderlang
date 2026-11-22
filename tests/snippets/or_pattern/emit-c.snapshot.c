@@ -20,15 +20,15 @@ static int32_t snippet$main(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
-const vader_type_info_t vader_type_info_table[7] = {
-    [1] = { .slot_size = 1 },
+const vader_type_info_t vader_type_info_table[8] = {
     [2] = { .slot_size = 1 },
-    [3] = { .slot_size = 4 },
-    [4] = { .slot_size = 16 },
-    [5] = { .slot_size = 4 },
-    [6] = { .slot_size = 16 },
+    [3] = { .slot_size = 1 },
+    [4] = { .slot_size = 4 },
+    [5] = { .slot_size = 16 },
+    [6] = { .slot_size = 4 },
+    [7] = { .slot_size = 16 },
 };
-const size_t vader_type_info_count = 7;
+const size_t vader_type_info_count = 8;
 
 static bool snippet$can_go(uint8_t l0) {
     bool l1;
@@ -82,10 +82,10 @@ static int32_t snippet$points(int32_t l0) {
 }
 
 static int32_t snippet$kind(vader_box_t l0) {
-    if ((l0.tag == 2u || l0.tag == 3u)) {
+    if ((l0.tag == 3u || l0.tag == 4u)) {
         return INT32_C(1);
     }
-    if (!(l0.tag == 5u)) {
+    if (!(l0.tag == 6u)) {
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
     }
     return INT32_C(2);
@@ -112,9 +112,9 @@ static int32_t snippet$main(void) {
     l0 = vader_chk_add(i32, l0, l1);
     l1 = snippet$points(INT32_C(3));
     l0 = vader_chk_add(i32, l0, l1);
-    l1 = snippet$kind(vader_box_bool(2u, true));
+    l1 = snippet$kind(vader_box_bool(3u, true));
     l0 = vader_chk_add(i32, l0, l1);
-    l1 = snippet$kind(vader_box_string(5u, 1u));
+    l1 = snippet$kind(vader_box_string(6u, 1u));
     t1 = vader_chk_add(i32, l0, l1);
     return t1;
 }

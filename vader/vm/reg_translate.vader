@@ -378,6 +378,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             emit(t, pc, .Append, array, value, 0)
         }
         is bc.StringConst -> { string_constant(module, t, pc, op) }
+        is bc.VoidConst -> { void_constant(t, pc) }
         _ -> {
             if !is_boxed(op) {
                 return false
@@ -469,6 +470,14 @@ one_argument_string_op :: fn(t: Translation, pc: i64, op: RegOp) -> bool {
 string_constant :: fn(module: bc.BytecodeModule, t: Translation, pc: i64, op: bc.StringConst) -> void {
     dst :: canonical(t, t.stack.len())
     t.code.values.push(StringVal(module.strings[op.index]))
+    emit(t, pc, .ConstRef, dst, i32(t.code.values.len() - 1), 0)
+    push_register(t, dst)
+}
+
+// Push the one `void` value.
+void_constant :: fn(t: Translation, pc: i64) -> void {
+    dst :: canonical(t, t.stack.len())
+    t.code.values.push(VoidVal {})
     emit(t, pc, .ConstRef, dst, i32(t.code.values.len() - 1), 0)
     push_register(t, dst)
 }

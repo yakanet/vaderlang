@@ -1,10 +1,11 @@
 module _main
 type 0 scalar null
-type 1 array 2
-type 2 struct std_core$Field { name:4,type:5 }
-type 3 scalar i32
-type 4 scalar string
-type 5 ref _
+type 1 scalar void
+type 2 array 3
+type 3 struct std_core$Field { name:5,type:6 }
+type 4 scalar i32
+type 5 scalar string
+type 6 ref _
 export main 1
 
 fn 0 snippet$count_fields (ref) -> i32
@@ -15,7 +16,7 @@ fn 0 snippet$count_fields (ref) -> i32
 end
 
 fn 1 snippet$main () -> i32
-  array.new 1 0   ; std_core$Field[]
+  array.new 2 0   ; std_core$Field[]
   call 0   ; snippet$count_fields
   return
 end

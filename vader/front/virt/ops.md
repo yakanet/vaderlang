@@ -80,6 +80,10 @@ Push a `char`, written as its base-10 codepoint.
 ### `null.const`
 Push `null`.
 
+### `void.const`
+Push the one value of `void`, where a slot holds a value whatever its type: the success of
+a result typed `void | E`.
+
 ### `string.const <string>`
 Push entry `<string>` of the string table.
 

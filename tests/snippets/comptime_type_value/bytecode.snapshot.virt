@@ -1,8 +1,8 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 ref _
-type 3 scalar void
+type 1 scalar void
+type 2 scalar i32
+type 3 ref _
 type 4 scalar string
 type 5 scalar i64
 type 6 array 7
@@ -14,14 +14,14 @@ string 0 "ok"
 string 1 "\n"
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=4 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=6 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=1,6,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=3 () -> void
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,6,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 8 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  type.const 1   ; i32
+  type.const 2   ; i32
   call 1   ; snippet$accept_type
   type.const 5   ; i64
   call 1   ; snippet$accept_type

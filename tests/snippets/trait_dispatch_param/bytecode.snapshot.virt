@@ -1,7 +1,8 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 scalar u64
+type 1 scalar void
+type 2 scalar i32
+type 3 scalar u64
 export main 0
 
 fn 0 snippet$main () -> i32

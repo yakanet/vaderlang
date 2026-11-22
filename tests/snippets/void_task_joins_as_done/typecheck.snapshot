@@ -1,0 +1,51 @@
+# Typecheck
+
+## tests/snippets/void_task_joins_as_done
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         outcome_of           :: fn(Cancelled | TimeoutError | void) -> string
+  FnDecl         work                 :: fn() -> void
+  expr 10:13    StringLitExpr  :: string
+  expr 10:5     CallExpr       :: void
+  expr 10:5     IdentExpr      :: fn(T) -> void
+  expr 13:71    MatchExpr      :: string
+  expr 13:77    IdentExpr      :: Cancelled | TimeoutError | void
+  expr 14:24    StringLitExpr  :: string
+  expr 15:24    StringLitExpr  :: string
+  expr 16:24    StringLitExpr  :: string
+  expr 20:12    CallExpr       :: Task<void>
+  expr 20:12    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 20:19    IdentExpr      :: fn() -> void
+  expr 21:13    CallExpr       :: string
+  expr 21:13    IdentExpr      :: fn(Cancelled | TimeoutError | void) -> string
+  expr 21:24    CallExpr       :: Cancelled | void
+  expr 21:24    FieldExpr      :: fn() -> Cancelled | void
+  expr 21:24    IdentExpr      :: Task<void>
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 22:12    CallExpr       :: Task<void>
+  expr 22:12    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 22:19    IdentExpr      :: fn() -> void
+  expr 23:13    CallExpr       :: string
+  expr 23:13    IdentExpr      :: fn(Cancelled | TimeoutError | void) -> string
+  expr 23:24    CallExpr       :: Cancelled | TimeoutError | void
+  expr 23:24    FieldExpr      :: fn(Duration) -> Cancelled | TimeoutError | void
+  expr 23:24    IdentExpr      :: Task<void>
+  expr 23:36    CallExpr       :: Duration
+  expr 23:36    FieldExpr      :: fn() -> Duration
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 24:26    SeqLitExpr     :: Task<void>[]
+  expr 24:27    CallExpr       :: Task<void>
+  expr 24:27    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 24:34    IdentExpr      :: fn() -> void
+  expr 24:41    CallExpr       :: Task<void>
+  expr 24:41    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 24:48    IdentExpr      :: fn() -> void
+  expr 25:19    CallExpr       :: (Cancelled | void)[]
+  expr 25:19    IdentExpr      :: fn(Task<T>[]) -> (Cancelled | T)[]
+  expr 25:28    IdentExpr      :: Task<void>[]
+  expr 26:17    CallExpr       :: string
+  expr 26:17    IdentExpr      :: fn(Cancelled | TimeoutError | void) -> string
+  expr 26:28    IdentExpr      :: Cancelled | void
+  expr 26:9     CallExpr       :: void
+  expr 26:9     IdentExpr      :: fn(T) -> void

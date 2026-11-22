@@ -1,20 +1,20 @@
 module _main
 type 0 scalar null
-type 1 union 2,3
-type 2 struct snippet$Cat { name:4 }
-type 3 struct snippet$Dog { sound:4 }
-type 4 scalar string
-type 5 union 2,3,6
-type 6 struct snippet$Pig { weight:8 }
-type 7 union 8,4
-type 8 scalar i32
-type 9 union 2,0
-type 10 scalar bool
-type 11 struct std_core$Buffer {  }
-type 12 scalar i64
-type 13 array 14
-type 14 scalar u8
-type 15 scalar void
+type 1 scalar void
+type 2 union 3,4
+type 3 struct snippet$Cat { name:5 }
+type 4 struct snippet$Dog { sound:5 }
+type 5 scalar string
+type 6 union 3,4,7
+type 7 struct snippet$Pig { weight:9 }
+type 8 union 9,5
+type 9 scalar i32
+type 10 union 3,0
+type 11 scalar bool
+type 12 struct std_core$Buffer {  }
+type 13 scalar i64
+type 14 array 15
+type 15 scalar u8
 string 0 "cat "
 string 1 "dog says "
 string 2 "pig of "
@@ -52,24 +52,24 @@ string 33 "!is as bool, dog: "
 string 34 "true"
 string 35 "false"
 string 36 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=12 param_types=4 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=13 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=12 param_types=8,13,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=8 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=15 () -> void
-impl 11 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=13 param_types=5 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=14 param_types=5 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=13 param_types=9,14,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=9 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 12 std_core$ByteAccess
 export main 8
 
 fn 0 snippet$direct (any) -> string
   local $field_4 string
   local.get 0   ; arg 0
-  type_check 2   ; snippet$Cat
+  type_check 3   ; snippet$Cat
   if $L0 void
   else
     local.get 0   ; arg 0
-    ref.cast 3   ; snippet$Dog
-    struct.get 3 0   ; snippet$Dog.sound
-    ref.cast 4   ; string
+    ref.cast 4   ; snippet$Dog
+    struct.get 4 0   ; snippet$Dog.sound
+    ref.cast 5   ; string
     local.set 1   ; $field_4
     string.const 1   ; "dog says "
     local.get 1   ; $field_4
@@ -77,9 +77,9 @@ fn 0 snippet$direct (any) -> string
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 2   ; snippet$Cat
-  struct.get 2 0   ; snippet$Cat.name
-  ref.cast 4   ; string
+  ref.cast 3   ; snippet$Cat
+  struct.get 3 0   ; snippet$Cat.name
+  ref.cast 5   ; string
   local.set 1   ; $field_4
   string.const 0   ; "cat "
   local.get 1   ; $field_4
@@ -90,13 +90,13 @@ end
 fn 1 snippet$negated (any) -> string
   local $field_4 string
   local.get 0   ; arg 0
-  type_check 2   ; snippet$Cat
+  type_check 3   ; snippet$Cat
   if $L0 void
   else
     local.get 0   ; arg 0
-    ref.cast 3   ; snippet$Dog
-    struct.get 3 0   ; snippet$Dog.sound
-    ref.cast 4   ; string
+    ref.cast 4   ; snippet$Dog
+    struct.get 4 0   ; snippet$Dog.sound
+    ref.cast 5   ; string
     local.set 1   ; $field_4
     string.const 1   ; "dog says "
     local.get 1   ; $field_4
@@ -104,9 +104,9 @@ fn 1 snippet$negated (any) -> string
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 2   ; snippet$Cat
-  struct.get 2 0   ; snippet$Cat.name
-  ref.cast 4   ; string
+  ref.cast 3   ; snippet$Cat
+  struct.get 3 0   ; snippet$Cat.name
+  ref.cast 5   ; string
   local.set 1   ; $field_4
   string.const 0   ; "cat "
   local.get 1   ; $field_4
@@ -117,13 +117,13 @@ end
 fn 2 snippet$not_is (any) -> string
   local $field_4 string
   local.get 0   ; arg 0
-  type_check 2   ; snippet$Cat
+  type_check 3   ; snippet$Cat
   if $L0 void
   else
     local.get 0   ; arg 0
-    ref.cast 3   ; snippet$Dog
-    struct.get 3 0   ; snippet$Dog.sound
-    ref.cast 4   ; string
+    ref.cast 4   ; snippet$Dog
+    struct.get 4 0   ; snippet$Dog.sound
+    ref.cast 5   ; string
     local.set 1   ; $field_4
     string.const 1   ; "dog says "
     local.get 1   ; $field_4
@@ -131,9 +131,9 @@ fn 2 snippet$not_is (any) -> string
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 2   ; snippet$Cat
-  struct.get 2 0   ; snippet$Cat.name
-  ref.cast 4   ; string
+  ref.cast 3   ; snippet$Cat
+  struct.get 3 0   ; snippet$Cat.name
+  ref.cast 5   ; string
   local.set 1   ; $field_4
   string.const 0   ; "cat "
   local.get 1   ; $field_4
@@ -147,12 +147,12 @@ fn 3 snippet$cascade (any) -> string
   local __off_1 i64
   local $cast_20 i64
   local.get 0   ; arg 0
-  type_check 2   ; snippet$Cat
+  type_check 3   ; snippet$Cat
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 2   ; snippet$Cat
-    struct.get 2 0   ; snippet$Cat.name
-    ref.cast 4   ; string
+    ref.cast 3   ; snippet$Cat
+    struct.get 3 0   ; snippet$Cat.name
+    ref.cast 5   ; string
     local.set 1   ; $field_4
     string.const 0   ; "cat "
     local.get 1   ; $field_4
@@ -160,7 +160,7 @@ fn 3 snippet$cascade (any) -> string
     return
   end $L0
   local.get 0   ; arg 0
-  type_check 3   ; snippet$Dog
+  type_check 4   ; snippet$Dog
   if $L1 void
   else
     i64.const 30
@@ -174,9 +174,9 @@ fn 3 snippet$cascade (any) -> string
     call 11   ; std_core$write_string_at
     local.set 3   ; __off_1
     local.get 0   ; arg 0
-    ref.cast 6   ; snippet$Pig
-    struct.get 6 0   ; snippet$Pig.weight
-    ref.cast 8   ; i32
+    ref.cast 7   ; snippet$Pig
+    struct.get 7 0   ; snippet$Pig.weight
+    ref.cast 9   ; i32
     i32.to_i64
     local.set 4   ; $cast_20
     local.get 2   ; __buf_0
@@ -195,9 +195,9 @@ fn 3 snippet$cascade (any) -> string
     return
   end $L1
   local.get 0   ; arg 0
-  ref.cast 3   ; snippet$Dog
-  struct.get 3 0   ; snippet$Dog.sound
-  ref.cast 4   ; string
+  ref.cast 4   ; snippet$Dog
+  struct.get 4 0   ; snippet$Dog.sound
+  ref.cast 5   ; string
   local.set 1   ; $field_4
   string.const 1   ; "dog says "
   local.get 1   ; $field_4
@@ -211,11 +211,11 @@ fn 4 snippet$primitive_is (any) -> string
   local $cast_10 i64
   local $cast_14 string
   local.get 0   ; arg 0
-  type_check 8   ; i32
+  type_check 9   ; i32
   if $L0 void
   else
     local.get 0   ; arg 0
-    ref.cast 4   ; string
+    ref.cast 5   ; string
     local.set 4   ; $cast_14
     string.const 5   ; "str "
     local.get 4   ; $cast_14
@@ -233,7 +233,7 @@ fn 4 snippet$primitive_is (any) -> string
   call 11   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.get 0   ; arg 0
-  ref.cast 8   ; i32
+  ref.cast 9   ; i32
   i32.to_i64
   local.set 3   ; $cast_10
   local.get 1   ; __buf_0
@@ -253,7 +253,7 @@ fn 5 snippet$primitive_not_is (any) -> string
   local $cast_10 i64
   local $cast_14 string
   local.get 0   ; arg 0
-  type_check 4   ; string
+  type_check 5   ; string
   if $L0 void
   else
     i64.const 24
@@ -267,7 +267,7 @@ fn 5 snippet$primitive_not_is (any) -> string
     call 11   ; std_core$write_string_at
     local.set 2   ; __off_1
     local.get 0   ; arg 0
-    ref.cast 8   ; i32
+    ref.cast 9   ; i32
     i32.to_i64
     local.set 3   ; $cast_10
     local.get 1   ; __buf_0
@@ -281,7 +281,7 @@ fn 5 snippet$primitive_not_is (any) -> string
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 4   ; string
+  ref.cast 5   ; string
   local.set 4   ; $cast_14
   string.const 5   ; "str "
   local.get 4   ; $cast_14
@@ -296,9 +296,9 @@ fn 6 snippet$unwrap_or (any,string) -> string
   if $L0 void
   else
     local.get 0   ; arg 0
-    ref.cast 2   ; snippet$Cat
-    struct.get 2 0   ; snippet$Cat.name
-    ref.cast 4   ; string
+    ref.cast 3   ; snippet$Cat
+    struct.get 3 0   ; snippet$Cat.name
+    ref.cast 5   ; string
     local.set 2   ; $field_5
     string.const 0   ; "cat "
     local.get 2   ; $field_5
@@ -311,7 +311,7 @@ end
 
 fn 7 snippet$is_not_dog (any) -> bool
   local.get 0   ; arg 0
-  type_check 3   ; snippet$Dog
+  type_check 4   ; snippet$Dog
   bool.not
   return
 end
@@ -324,7 +324,7 @@ fn 8 snippet$main () -> i32
   local __off_1 i64
   local $call_85 bool
   string.const 7   ; "felix"
-  struct.new 2   ; snippet$Cat
+  struct.new 3   ; snippet$Cat
   call 0   ; snippet$direct
   local.set 0   ; $call_3
   string.const 6   ; "is, cat: "
@@ -332,7 +332,7 @@ fn 8 snippet$main () -> i32
   call 9   ; concat_2
   call 17   ; std_console$println__string
   string.const 9   ; "woof"
-  struct.new 3   ; snippet$Dog
+  struct.new 4   ; snippet$Dog
   call 0   ; snippet$direct
   local.set 0   ; $call_3
   string.const 8   ; "is, dog: "
@@ -340,7 +340,7 @@ fn 8 snippet$main () -> i32
   call 9   ; concat_2
   call 17   ; std_console$println__string
   string.const 11   ; "garfield"
-  struct.new 2   ; snippet$Cat
+  struct.new 3   ; snippet$Cat
   call 1   ; snippet$negated
   local.set 0   ; $call_3
   string.const 10   ; "!(is), cat: "
@@ -348,7 +348,7 @@ fn 8 snippet$main () -> i32
   call 9   ; concat_2
   call 17   ; std_console$println__string
   string.const 13   ; "bark"
-  struct.new 3   ; snippet$Dog
+  struct.new 4   ; snippet$Dog
   call 1   ; snippet$negated
   local.set 0   ; $call_3
   string.const 12   ; "!(is), dog: "
@@ -356,7 +356,7 @@ fn 8 snippet$main () -> i32
   call 9   ; concat_2
   call 17   ; std_console$println__string
   string.const 15   ; "tom"
-  struct.new 2   ; snippet$Cat
+  struct.new 3   ; snippet$Cat
   call 2   ; snippet$not_is
   local.set 0   ; $call_3
   string.const 14   ; "!is, cat: "
@@ -364,7 +364,7 @@ fn 8 snippet$main () -> i32
   call 9   ; concat_2
   call 17   ; std_console$println__string
   string.const 17   ; "grr"
-  struct.new 3   ; snippet$Dog
+  struct.new 4   ; snippet$Dog
   call 2   ; snippet$not_is
   local.set 0   ; $call_3
   string.const 16   ; "!is, dog: "
@@ -372,7 +372,7 @@ fn 8 snippet$main () -> i32
   call 9   ; concat_2
   call 17   ; std_console$println__string
   string.const 19   ; "kitty"
-  struct.new 2   ; snippet$Cat
+  struct.new 3   ; snippet$Cat
   call 3   ; snippet$cascade
   local.set 0   ; $call_3
   string.const 18   ; "guard cascade, cat: "
@@ -380,7 +380,7 @@ fn 8 snippet$main () -> i32
   call 9   ; concat_2
   call 17   ; std_console$println__string
   string.const 21   ; "yap"
-  struct.new 3   ; snippet$Dog
+  struct.new 4   ; snippet$Dog
   call 3   ; snippet$cascade
   local.set 0   ; $call_3
   string.const 20   ; "guard cascade, dog: "
@@ -388,7 +388,7 @@ fn 8 snippet$main () -> i32
   call 9   ; concat_2
   call 17   ; std_console$println__string
   i32.const 200
-  struct.new 6   ; snippet$Pig
+  struct.new 7   ; snippet$Pig
   call 3   ; snippet$cascade
   local.set 0   ; $call_3
   string.const 22   ; "guard cascade, pig: "
@@ -396,7 +396,7 @@ fn 8 snippet$main () -> i32
   call 9   ; concat_2
   call 17   ; std_console$println__string
   i32.const 42
-  retag 8   ; i32
+  retag 9   ; i32
   call 4   ; snippet$primitive_is
   local.set 0   ; $call_3
   string.const 23   ; "primitive is, int: "
@@ -404,7 +404,7 @@ fn 8 snippet$main () -> i32
   call 9   ; concat_2
   call 17   ; std_console$println__string
   string.const 25   ; "hello"
-  retag 4   ; string
+  retag 5   ; string
   call 4   ; snippet$primitive_is
   local.set 0   ; $call_3
   string.const 24   ; "primitive is, str: "
@@ -412,7 +412,7 @@ fn 8 snippet$main () -> i32
   call 9   ; concat_2
   call 17   ; std_console$println__string
   i32.const 7
-  retag 8   ; i32
+  retag 9   ; i32
   call 5   ; snippet$primitive_not_is
   local.set 0   ; $call_3
   string.const 26   ; "primitive !is, int: "
@@ -420,7 +420,7 @@ fn 8 snippet$main () -> i32
   call 9   ; concat_2
   call 17   ; std_console$println__string
   string.const 28   ; "world"
-  retag 4   ; string
+  retag 5   ; string
   call 5   ; snippet$primitive_not_is
   local.set 0   ; $call_3
   string.const 27   ; "primitive !is, str: "
@@ -428,7 +428,7 @@ fn 8 snippet$main () -> i32
   call 9   ; concat_2
   call 17   ; std_console$println__string
   string.const 11   ; "garfield"
-  struct.new 2   ; snippet$Cat
+  struct.new 3   ; snippet$Cat
   string.const 30   ; "nothing"
   call 6   ; snippet$unwrap_or
   local.set 0   ; $call_3
@@ -445,10 +445,10 @@ fn 8 snippet$main () -> i32
   call 9   ; concat_2
   call 17   ; std_console$println__string
   string.const 7   ; "felix"
-  struct.new 2   ; snippet$Cat
+  struct.new 3   ; snippet$Cat
   local.set 1   ; cat
   string.const 9   ; "woof"
-  struct.new 3   ; snippet$Dog
+  struct.new 4   ; snippet$Dog
   local.set 2   ; dog
   i64.const 23
   buffer.new
@@ -714,7 +714,7 @@ fn 14 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 13   ; u8[]
+      array.slice 14   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

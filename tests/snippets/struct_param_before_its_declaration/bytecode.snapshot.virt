@@ -1,18 +1,19 @@
 module _main
 type 0 scalar null
-type 1 struct snippet$Box { v:2 }
-type 2 scalar i32
+type 1 scalar void
+type 2 struct snippet$Box { v:3 }
+type 3 scalar i32
 export main 1
 
 fn 0 snippet$handle (ref) -> i32
-  local.field 0 1 0   ; arg 0 snippet$Box.v
-  ref.cast 2   ; i32
+  local.field 0 2 0   ; arg 0 snippet$Box.v
+  ref.cast 3   ; i32
   return
 end
 
 fn 1 snippet$main () -> i32
   i32.const 7
-  struct.new 1   ; snippet$Box
+  struct.new 2   ; snippet$Box
   call 0   ; snippet$handle
   return
 end

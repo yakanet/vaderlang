@@ -72,43 +72,43 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[16] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Book_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Book_t, f_title) },
         .string_count = 1,
     },
-    [2] = { .slot_size = 4 },
     [3] = { .slot_size = 4 },
-    [4] = {
+    [4] = { .slot_size = 4 },
+    [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_shelf$Sorted__Any_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_shelf$Sorted__Any_t, f_item) },
         .ptr_count = 1,
     },
-    [5] = { .slot_size = 8 },
-    [6] = {
+    [6] = { .slot_size = 8 },
+    [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Pair__Any_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Pair__Any_t, f_left) },
         .ptr_count = 1,
     },
-    [7] = {
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Pair__snippet_Book_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Pair__snippet_Book_t, f_left) },
         .ptr_count = 1,
     },
-    [8] = { .slot_size = 16 },
-    [9] = {
+    [9] = { .slot_size = 16 },
+    [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [10] = { .slot_size = 1 },
-    [11] = { .slot_size = 4 },
-    [12] = { .slot_size = 1 },
-    [13] = {
+    [11] = { .slot_size = 1 },
+    [12] = { .slot_size = 4 },
+    [13] = { .slot_size = 1 },
+    [14] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 10u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
     },
     [15] = {
         .kind = VADER_TYPE_KIND_STRUCT,
@@ -139,7 +139,7 @@ static bool vader_host_std_core$Intrinsic$is_ascii(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 13u, 10u);
+    return (void*) vader_string_bytes_view(a0, 14u, 11u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -190,27 +190,27 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Book_t* _a0_obj = (vader_struct_snippet$Book_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Book_t));
-    vader_obj_header_init(_a0_obj, 1u);
+    vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_title = 1u;
     t0 = (void*) _a0_obj;
     vader_struct_snippet_shelf$Sorted__Any_t* _a1_obj = (vader_struct_snippet_shelf$Sorted__Any_t*) vader_gc_alloc(sizeof(vader_struct_snippet_shelf$Sorted__Any_t));
-    vader_obj_header_init(_a1_obj, 4u);
+    vader_obj_header_init(_a1_obj, 5u);
     _a1_obj->f_item = vader_ref_box(t0);
     l0 = (void*) _a1_obj;
     vader_struct_snippet$Book_t* _a2_obj = (vader_struct_snippet$Book_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Book_t));
-    vader_obj_header_init(_a2_obj, 1u);
+    vader_obj_header_init(_a2_obj, 2u);
     _a2_obj->f_title = 2u;
     t0 = (void*) _a2_obj;
     vader_struct_snippet$Pair__Any_t* _a3_obj = (vader_struct_snippet$Pair__Any_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Pair__Any_t));
-    vader_obj_header_init(_a3_obj, 6u);
+    vader_obj_header_init(_a3_obj, 7u);
     _a3_obj->f_left = vader_ref_box(t0);
     l1 = (void*) _a3_obj;
     vader_struct_snippet$Book_t* _a4_obj = (vader_struct_snippet$Book_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Book_t));
-    vader_obj_header_init(_a4_obj, 1u);
+    vader_obj_header_init(_a4_obj, 2u);
     _a4_obj->f_title = 3u;
     t0 = (void*) _a4_obj;
     vader_struct_snippet_shelf$Sorted__Any_t* _a5_obj = (vader_struct_snippet_shelf$Sorted__Any_t*) vader_gc_alloc(sizeof(vader_struct_snippet_shelf$Sorted__Any_t));
-    vader_obj_header_init(_a5_obj, 4u);
+    vader_obj_header_init(_a5_obj, 5u);
     _a5_obj->f_item = vader_ref_box(t0);
     l2 = (void*) _a5_obj;
     l3 = (void*) vader_buffer_new((size_t) INT64_C(83));
@@ -628,7 +628,7 @@ static void std_console$println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static vader_string_t snippet_shelf$Named$name$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet$Book$snippet_shelf$Named$name(recv.payload.obj);
+        case 2u: return snippet$Book$snippet_shelf$Named$name(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet_shelf$Named.name");
     }
     vader_unreachable("vtable miss in snippet_shelf$Named.name");

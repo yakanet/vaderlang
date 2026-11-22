@@ -1,0 +1,384 @@
+module _main
+type 0 scalar null
+type 1 scalar void
+type 2 scalar bool
+type 3 union 4,1
+type 4 struct snippet$Refused { reason:6 }
+type 5 union 0,4,1
+type 6 scalar string
+type 7 scalar i32
+type 8 union 0,1
+type 9 struct std_core$Buffer {  }
+type 10 scalar i64
+type 11 array 12
+type 12 scalar u8
+string 0 "full"
+string 1 "stored twice"
+string 2 "done"
+string 3 "not asked"
+string 4 "refused: "
+string 5 "true"
+string 6 "false"
+string 7 "\n"
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=10 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=11 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=7,11,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=7 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 4 std_core$Error
+impl 9 std_core$ByteAccess
+export main 5
+
+fn 0 snippet$store (bool) -> any
+  local.get 0   ; arg 0
+  if $L0 void
+  else
+    void.const
+    return
+  end $L0
+  string.const 0   ; "full"
+  struct.new 4   ; snippet$Refused
+  return
+end
+
+fn 1 snippet$store_twice (bool) -> any
+  local __fallback_0 any
+  local first any
+  bool.const false
+  call 0   ; snippet$store
+  local.tee 1   ; __fallback_0
+  local.set 2   ; first
+  local.get 1   ; __fallback_0
+  type_check 4   ; snippet$Refused
+  if $L0 void
+    local.get 2   ; first
+    ref.cast 4   ; snippet$Refused
+    return
+  end $L0
+  local.get 0   ; arg 0
+  call 0   ; snippet$store
+  local.tee 1   ; __fallback_0
+  local.set 2   ; first
+  local.get 1   ; __fallback_0
+  type_check 4   ; snippet$Refused
+  if $L1 void
+  else
+    string.const 1   ; "stored twice"
+    call 15   ; std_console$println__string
+    void.const
+    return
+  end $L1
+  local.get 2   ; first
+  ref.cast 4   ; snippet$Refused
+  return
+end
+
+fn 2 snippet$store_if (bool) -> any
+  local.get 0   ; arg 0
+  if $L0 void
+  else
+    return.lit null.const
+  end $L0
+  bool.const false
+  call 0   ; snippet$store
+  return
+end
+
+fn 3 snippet$describe (any) -> string
+  local if_res string
+  local $field_9 string
+  local.get 0   ; arg 0
+  type_check 1   ; void
+  if $L0 void
+    string.const 2   ; "done"
+    local.tee 1   ; if_res
+    return
+  end $L0
+  local.get 0   ; arg 0
+  type_check 0   ; null
+  if $L1 void
+    string.const 3   ; "not asked"
+    local.set 1   ; if_res
+  else
+    local.get 0   ; arg 0
+    type_check 4   ; snippet$Refused
+    if $L2 void
+    else
+      unreachable "non-exhaustive match (T3013 should have caught this)"
+    end $L2
+    local.get 0   ; arg 0
+    ref.cast 4   ; snippet$Refused
+    struct.get 4 0   ; snippet$Refused.reason
+    ref.cast 6   ; string
+    local.set 2   ; $field_9
+    string.const 4   ; "refused: "
+    local.get 2   ; $field_9
+    call 7   ; concat_2
+    local.set 1   ; if_res
+  end $L1
+  local.get 1   ; if_res
+  return
+end
+
+fn 4 snippet$nothing () -> void
+  return
+end
+
+fn 5 snippet$main () -> i32
+  local kept any
+  bool.const false
+  call 1   ; snippet$store_twice
+  type_check 1   ; void
+  call 14   ; std_console$println__bool
+  bool.const true
+  call 1   ; snippet$store_twice
+  call 3   ; snippet$describe
+  call 15   ; std_console$println__string
+  bool.const true
+  call 2   ; snippet$store_if
+  call 3   ; snippet$describe
+  call 15   ; std_console$println__string
+  bool.const false
+  call 2   ; snippet$store_if
+  call 3   ; snippet$describe
+  call 15   ; std_console$println__string
+  bool.const false
+  call 0   ; snippet$store
+  type_check 4   ; snippet$Refused
+  if $L0 void
+    null.const
+    local.set 0   ; kept
+  else
+    void.const
+    local.set 0   ; kept
+  end $L0
+  local.get 0   ; kept
+  type_check 1   ; void
+  call 14   ; std_console$println__bool
+  call 4   ; snippet$nothing
+  void.const
+  call 6   ; snippet$present__void
+  call 14   ; std_console$println__bool
+  return.lit i32.const 0
+end
+
+fn 6 snippet$present__void (any) -> bool
+  local.get 0   ; arg 0
+  type_check 0   ; null
+  bool.not
+  return
+end
+
+fn 7 concat_2 (string,string) -> string
+  local c0 i64
+  local $call_4 i64
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$Intrinsic$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$Intrinsic$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  buffer.new
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  buffer_to_string
+  return
+end
+
+fn 8 std_core$finish_buffer (ref,i64) -> string
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  buffer_to_string
+  return
+end
+
+fn 9 std_core$write_string_at (ref,i64,string) -> i64
+  local $call_3 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  buffer_write_string
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$Intrinsic$byte_len
+  local.set 3   ; $call_3
+  local.get 1   ; arg 1
+  local.get 3   ; $call_3
+  i64.checked_add
+  return
+end
+
+fn 10 std_core$write_bool (ref,i64,bool) -> i64
+  local.get 2   ; arg 2
+  if $L0 void
+  else
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    string.const 6   ; "false"
+    call 9   ; std_core$write_string_at
+    return
+  end $L0
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  string.const 5   ; "true"
+  call 9   ; std_core$write_string_at
+  return
+end
+
+fn 11 std_console$write (u8,string) -> void
+  local buf ref
+  local sent i64
+  local $len_7 i64
+  local $len_9 i64
+  local chunk ref
+  local $len_12 i64
+  local n i32
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 12   ; std_console$write_text
+  if $L0 void
+    return
+  end $L0
+  local.get 1   ; arg 1
+  call.import 1   ; std_core$Intrinsic$bytes
+  local.set 2   ; buf
+  i64.const 0
+  local.set 3   ; sent
+  loop $L1 void
+    local.get 2   ; buf
+    array.len
+    local.set 4   ; $len_7
+    local.get 3   ; sent
+    local.get 4   ; $len_7
+    i64.ge
+    if $L2 void
+    else
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_9
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_9
+      array.slice 11   ; u8[]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_12
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_12
+      call 13   ; std_console$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_17
+      local.get 3   ; sent
+      local.get 9   ; $cast_17
+      i64.checked_add
+      local.set 3   ; sent
+      br $L1
+    end $L2
+  end $L1
+  return
+end
+
+fn 12 std_console$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 13 std_console$write_bytes (u8,ref,i64) -> i32
+  local fd i32
+  local written i64
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.set 3   ; fd
+  else
+    i32.const 2
+    local.set 3   ; fd
+  end $L0
+  local.get 3   ; fd
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call.import 2   ; system_posix$sys_write
+  local.tee 4   ; written
+  i64.const 0
+  i64.lt
+  if $L1 void
+    call.import 3   ; system_posix$sys_last_errno
+    i32.const 32
+    i32.eq
+    if $L2 void
+      call.import 4   ; system_posix$sys_end_on_broken_pipe
+      local.get 4   ; written
+      i64.to_i32
+      return
+    end $L2
+    local.get 4   ; written
+    i64.to_i32
+    return
+  end $L1
+  local.get 4   ; written
+  i64.to_i32
+  return
+end
+
+fn 14 std_console$println__bool (bool) -> void
+  local __buf_0 ref
+  local __off_1 i64
+  local $call_10 string
+  i64.const 6
+  buffer.new
+  local.set 1   ; __buf_0
+  i64.const 0
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  local.get 0   ; arg 0
+  call 10   ; std_core$write_bool
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  string.const 7   ; "\n"
+  call 9   ; std_core$write_string_at
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  call 8   ; std_core$finish_buffer
+  local.set 3   ; $call_10
+  i32.const 0
+  local.get 3   ; $call_10
+  call 11   ; std_console$write
+  return
+end
+
+fn 15 std_console$println__string (string) -> void
+  local $call_3 string
+  local.get 0   ; arg 0
+  string.const 7   ; "\n"
+  call 7   ; concat_2
+  local.set 1   ; $call_3
+  i32.const 0
+  local.get 1   ; $call_3
+  call 11   ; std_console$write
+  return
+end

@@ -67,34 +67,34 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[15] = {
-    [1] = { .slot_size = 4 },
-    [2] = { .slot_size = 16 },
-    [3] = {
+    [2] = { .slot_size = 4 },
+    [3] = { .slot_size = 16 },
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Bird_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Bird_t, f_name) },
         .string_count = 1,
     },
-    [4] = {
+    [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Cat_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Cat_t, f_name) },
         .string_count = 1,
     },
-    [5] = {
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Dog_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Dog_t, f_name) },
         .string_count = 1,
     },
-    [6] = { .slot_size = 16 },
-    [7] = { .slot_size = 4 },
-    [8] = { .slot_size = 1 },
-    [9] = { .slot_size = 16 },
-    [10] = { .slot_size = 8 },
-    [11] = {
+    [7] = { .slot_size = 16 },
+    [8] = { .slot_size = 4 },
+    [9] = { .slot_size = 1 },
+    [10] = { .slot_size = 16 },
+    [11] = { .slot_size = 8 },
+    [12] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 12u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 13u,
     },
-    [12] = { .slot_size = 1 },
-    [13] = {
+    [13] = { .slot_size = 1 },
+    [14] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
@@ -113,7 +113,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 11u, 12u);
+    return (void*) vader_string_bytes_view(a0, 12u, 13u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -147,20 +147,20 @@ static vader_box_t snippet$pick(int32_t l0) {
     vader_gc_top = &gc_frame;
     if (l0 == INT32_C(0)) {
         vader_struct_snippet$Dog_t* _a0_obj = (vader_struct_snippet$Dog_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Dog_t));
-        vader_obj_header_init(_a0_obj, 5u);
+        vader_obj_header_init(_a0_obj, 6u);
         _a0_obj->f_name = 1u;
         t0 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (!(l0 == INT32_C(1))) {
         vader_struct_snippet$Bird_t* _a1_obj = (vader_struct_snippet$Bird_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Bird_t));
-        vader_obj_header_init(_a1_obj, 3u);
+        vader_obj_header_init(_a1_obj, 4u);
         _a1_obj->f_name = 3u;
         t0 = (void*) _a1_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_struct_snippet$Cat_t* _a2_obj = (vader_struct_snippet$Cat_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Cat_t));
-    vader_obj_header_init(_a2_obj, 4u);
+    vader_obj_header_init(_a2_obj, 5u);
     _a2_obj->f_name = 2u;
     t0 = (void*) _a2_obj;
     { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
@@ -169,7 +169,7 @@ static vader_box_t snippet$pick(int32_t l0) {
 static vader_string_t snippet$furry_name(vader_box_t l0) {
     void* t0;
     vader_string_t t1;
-    if (l0.tag == 5u) {
+    if (l0.tag == 6u) {
         t0 = l0.payload.obj;
         t1 = ((vader_struct_snippet$Dog_t*) t0)->f_name;
         return t1;
@@ -199,10 +199,10 @@ static vader_string_t snippet$describe(int32_t l0) {
     };
     vader_gc_top = &gc_frame;
     l1 = snippet$pick(l0);
-    if (l1.tag == 5u) {
+    if (l1.tag == 6u) {
         l2 = true;
     } else {
-        l2 = l1.tag == 4u;
+        l2 = l1.tag == 5u;
     }
     if (!(l2)) {
         t0 = l1.payload.obj;
@@ -227,7 +227,7 @@ static vader_string_t snippet$not_dog(int32_t l0, bool l1) {
     };
     vader_gc_top = &gc_frame;
     l2 = snippet$pick(l0);
-    if (l2.tag == 5u) {
+    if (l2.tag == 6u) {
         l3 = true;
     } else {
         l3 = l1;
@@ -243,7 +243,7 @@ static vader_string_t snippet$not_dog(int32_t l0, bool l1) {
 static vader_string_t snippet$furry_or_bird(vader_box_t l0) {
     void* t0;
     vader_string_t t1;
-    if (l0.tag == 4u) {
+    if (l0.tag == 5u) {
         t0 = l0.payload.obj;
         t1 = ((vader_struct_snippet$Cat_t*) t0)->f_name;
         return t1;

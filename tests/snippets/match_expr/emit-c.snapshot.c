@@ -44,16 +44,16 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[10] = {
-    [1] = { .slot_size = 16 },
-    [2] = { .slot_size = 4 },
+    [2] = { .slot_size = 16 },
     [3] = { .slot_size = 4 },
-    [4] = { .slot_size = 8 },
-    [5] = {
+    [4] = { .slot_size = 4 },
+    [5] = { .slot_size = 8 },
+    [6] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 6u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
     },
-    [6] = { .slot_size = 1 },
-    [7] = {
+    [7] = { .slot_size = 1 },
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
@@ -73,7 +73,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 5u, 6u);
+    return (void*) vader_string_bytes_view(a0, 6u, 7u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -106,7 +106,7 @@ static vader_string_t snippet$classify(vader_box_t l0) {
     bool l3;
     int32_t t0;
     l1 = l0;
-    if (l1.tag == 2u) {
+    if (l1.tag == 3u) {
         t0 = ((int32_t) l0.payload.i);
         l3 = (t0 > INT32_C(0));
     } else {
@@ -116,9 +116,9 @@ static vader_string_t snippet$classify(vader_box_t l0) {
         l2 = 1u;
         return l2;
     }
-    if (l1.tag == 2u) {
+    if (l1.tag == 3u) {
         l2 = 2u;
-    } else if (l1.tag == 3u) {
+    } else if (l1.tag == 4u) {
         l2 = l0.payload.s;
     } else {
         if (!(l1.tag == 0u)) {
@@ -138,9 +138,9 @@ static int32_t snippet$main(void) {
     vader_string_t* gc_atom_roots[5] = { &l0, &l1, &l2, &l3, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 5u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    l0 = snippet$classify(vader_box_i32(2u, INT32_C(5)));
-    l1 = snippet$classify(vader_box_i32(2u, INT32_C(-1)));
-    l2 = snippet$classify(vader_box_string(3u, 5u));
+    l0 = snippet$classify(vader_box_i32(3u, INT32_C(5)));
+    l1 = snippet$classify(vader_box_i32(3u, INT32_C(-1)));
+    l2 = snippet$classify(vader_box_string(4u, 5u));
     l3 = snippet$classify(vader_box_obj(0u, NULL));
     t0 = concat_7(l0, 4u, l1, 4u, l2, 4u, l3);
     std_console$println__string(t0);

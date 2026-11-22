@@ -14,8 +14,8 @@ static int32_t snippet$triple__i32(int32_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
-const vader_type_info_t vader_type_info_table[2] = { [1] = { .slot_size = 4 } };
-const size_t vader_type_info_count = 2;
+const vader_type_info_t vader_type_info_table[3] = { [2] = { .slot_size = 4 } };
+const size_t vader_type_info_count = 3;
 
 static int32_t snippet$main(void) {
     int32_t l0, l1, l2;

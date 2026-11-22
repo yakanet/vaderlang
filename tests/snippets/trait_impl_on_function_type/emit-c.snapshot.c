@@ -32,11 +32,11 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
-static const struct vader_struct_snippet$Doubled_t vader_data_0_e0 = { VADER_STATIC_HEADER(3u) };
+static const struct vader_struct_snippet$Doubled_t vader_data_0_e0 = { VADER_STATIC_HEADER(4u) };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
-    VADER_STATIC_BUF_HEADER(3u, 0u, 1u),
+    VADER_STATIC_BUF_HEADER(4u, 0u, 1u),
     .slots = {
-        { 3u, 0u, { .obj = (void*) (struct vader_struct_snippet$Doubled_t*) &vader_data_0_e0 } },
+        { 4u, 0u, { .obj = (void*) (struct vader_struct_snippet$Doubled_t*) &vader_data_0_e0 } },
     },
 };
 static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(13u, 1u, &vader_data_0_buf);
@@ -62,59 +62,59 @@ typedef vader_box_t (*vader_fn_erased_sig_1_t)(void* env, vader_box_t a0);
 
 static vader_box_t vader_fn_tramp_snippet$plus_one(void* env, vader_box_t a0) {
     (void) env;
-    return vader_box_i32(2u, snippet$plus_one(((int32_t) a0.payload.i)));
+    return vader_box_i32(3u, snippet$plus_one(((int32_t) a0.payload.i)));
 }
 
 static vader_fn_t vader_fn_static_snippet$plus_one = {
-    VADER_STATIC_HEADER(1u), (void*) &vader_fn_tramp_snippet$plus_one, NULL,
+    VADER_STATIC_HEADER(2u), (void*) &vader_fn_tramp_snippet$plus_one, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_0(void* env, vader_box_t a0) {
     (void) env;
-    return vader_box_i32(2u, __lambda_snippet_0(((int32_t) a0.payload.i)));
+    return vader_box_i32(3u, __lambda_snippet_0(((int32_t) a0.payload.i)));
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_0 = {
-    VADER_STATIC_HEADER(1u), (void*) &vader_fn_tramp___lambda_snippet_0, NULL,
+    VADER_STATIC_HEADER(2u), (void*) &vader_fn_tramp___lambda_snippet_0, NULL,
 };
 
 static vader_box_t vader_fn_lift___lambda_snippet_1(void* env, vader_box_t a0) {
-    return vader_box_i32(2u, __lambda_snippet_1(env, ((int32_t) a0.payload.i)));
+    return vader_box_i32(3u, __lambda_snippet_1(env, ((int32_t) a0.payload.i)));
 }
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[14] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
         .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
-    [2] = { .slot_size = 4 },
-    [3] = {
+    [3] = { .slot_size = 4 },
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Doubled_t),
         .slot_size = 8,
     },
-    [4] = { .slot_size = 16 },
-    [5] = {
+    [5] = { .slot_size = 16 },
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_snippet_2_t),
         .slot_size = 8,
     },
-    [6] = { .slot_size = 4 },
-    [7] = {
+    [7] = { .slot_size = 4 },
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [8] = { .slot_size = 8 },
-    [9] = {
+    [9] = { .slot_size = 8 },
+    [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 10u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
     },
-    [10] = { .slot_size = 1 },
+    [11] = { .slot_size = 1 },
     [12] = { .slot_size = 1 },
     [13] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
     },
 };
 const size_t vader_type_info_count = 14;
@@ -131,7 +131,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 9u, 10u);
+    return (void*) vader_string_bytes_view(a0, 10u, 11u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -169,7 +169,7 @@ static int32_t snippet$fn_i32_____i32$Handler$handle(void* l0, int32_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_fn_t* _a0_fnobj = (vader_fn_t*) l0;
-    t0 = ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(2u, l1));
+    t0 = ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(3u, l1));
     t1 = ((int32_t) t0.payload.i);
     { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -185,7 +185,7 @@ static int32_t snippet$run(vader_box_t l0) {
     vader_box_t* gc_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = snippet$Handler$handle$$dispatch(l0, vader_box_i32(2u, INT32_C(2)));
+    t0 = snippet$Handler$handle$$dispatch(l0, vader_box_i32(3u, INT32_C(2)));
     { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -220,11 +220,11 @@ static int32_t snippet$main(void) {
     l1 = std_core$write_int(l0, l1, l2);
     l1 = std_core$write_string_at(l0, l1, 1u);
     vader_struct___lambda_env_snippet_2_t* _a0_obj = (vader_struct___lambda_env_snippet_2_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_2_t));
-    vader_obj_header_init(_a0_obj, 5u);
+    vader_obj_header_init(_a0_obj, 6u);
     _a0_obj->f_cap_0 = INT32_C(7);
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 1u);
+    vader_obj_header_init(_a1_closure, 2u);
     _a1_closure->code = (void*) &vader_fn_lift___lambda_snippet_1;
     _a1_closure->env = t0;
     t0 = (void*) _a1_closure;
@@ -428,8 +428,8 @@ static void std_console$println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static int32_t snippet$Handler$handle$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 1u: return snippet$fn_i32_____i32$Handler$handle(recv.payload.obj, ((int32_t) a0.payload.i));
-        case 3u: return snippet$Doubled$Handler$handle(recv.payload.obj, ((int32_t) a0.payload.i));
+        case 2u: return snippet$fn_i32_____i32$Handler$handle(recv.payload.obj, ((int32_t) a0.payload.i));
+        case 4u: return snippet$Doubled$Handler$handle(recv.payload.obj, ((int32_t) a0.payload.i));
         default: vader_unreachable("vtable miss in snippet$Handler.handle");
     }
     vader_unreachable("vtable miss in snippet$Handler.handle");

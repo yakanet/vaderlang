@@ -1,16 +1,16 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 scalar bool
-type 3 scalar string
-type 4 struct __lambda_env_snippet_1 { cap_0:5 }
-type 5 ref _
-type 6 struct std_core$Buffer {  }
-type 7 scalar i64
-type 8 array 9
-type 9 scalar u8
-type 10 scalar void
-type 11 struct $Cell_i32_2af2b319 { value:1 }
+type 1 scalar void
+type 2 scalar i32
+type 3 scalar bool
+type 4 scalar string
+type 5 struct __lambda_env_snippet_1 { cap_0:6 }
+type 6 ref _
+type 7 struct std_core$Buffer {  }
+type 8 scalar i64
+type 9 array 10
+type 10 scalar u8
+type 11 struct $Cell_i32_2af2b319 { value:2 }
 string 0 "  int "
 string 1 "  bool "
 string 2 "  str "
@@ -21,12 +21,12 @@ string 6 "bumped"
 string 7 "true"
 string 8 "false"
 string 9 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=3 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=1,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=10 () -> void
-impl 6 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=4 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=4 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=2,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 7 std_core$ByteAccess
 export main 3
 
 fn 0 snippet$say_int (i32) -> i32
@@ -191,7 +191,7 @@ fn 3 snippet$main () -> i32
   i32.const 1
   struct.new 11   ; $Cell_i32_2af2b319
   local.tee 7   ; n
-  struct.new 4   ; __lambda_env_snippet_1
+  struct.new 5   ; __lambda_env_snippet_1
   local.set 6   ; __buf_4
   local.field 7 11 0   ; n $Cell_i32_2af2b319.value
   local.set 0   ; __p_0
@@ -246,7 +246,7 @@ fn 3 snippet$main () -> i32
 end
 
 fn 4 __lambda_snippet_0 (ref) -> string
-  local.field 0 4 0   ; arg 0 __lambda_env_snippet_1.cap_0
+  local.field 0 5 0   ; arg 0 __lambda_env_snippet_1.cap_0
   i32.const 2
   struct.set 11 0   ; $Cell_i32_2af2b319.value
   return.lit string.const 6   ; "bumped"
@@ -469,7 +469,7 @@ fn 10 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 8   ; u8[]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

@@ -336,11 +336,14 @@ laid_out_fields :: fn(slots: SlotTypes, t: Type) -> CFGStructField[] | null {
 }
 
 /// The type an element of an array of type `t` is held as ; null for any other
-/// type.
+/// type. A `void[]` holds boxes: each element is the box of the `void` value.
 ///
 /// @param t  the array's type.
 element_slot :: fn(t: Type) -> Type | null {
     array :: array_backing(t) else return null
+    if is_void(array.element) {
+        return TY_ANY
+    }
     return array.element
 }
 

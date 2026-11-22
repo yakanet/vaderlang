@@ -1,27 +1,27 @@
 module _main
 type 0 scalar null
-type 1 scalar u64
-type 2 union 3,1
-type 3 struct snippet$Err { msg:5 }
-type 4 scalar i32
-type 5 scalar string
-type 6 struct std_core$Buffer {  }
-type 7 scalar i64
-type 8 array 9
-type 9 scalar u8
-type 10 scalar void
+type 1 scalar void
+type 2 scalar u64
+type 3 union 4,2
+type 4 struct snippet$Err { msg:6 }
+type 5 scalar i32
+type 6 scalar string
+type 7 struct std_core$Buffer {  }
+type 8 scalar i64
+type 9 array 10
+type 10 scalar u8
 type 11 scalar bool
 string 0 "zero"
 string 1 "four="
 string 2 "forty="
 string 3 "zero="
 string 4 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=5 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=4,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=4 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=10 () -> void
-impl 6 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=5,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=5 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 7 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$scale (u64) -> any
@@ -35,11 +35,11 @@ fn 0 snippet$scale (u64) -> any
     u64.checked_mul
     i64.const 2
     u64.checked_add
-    retag 1   ; u64
+    retag 2   ; u64
     return
   end $L0
   string.const 0   ; "zero"
-  struct.new 3   ; snippet$Err
+  struct.new 4   ; snippet$Err
   return
 end
 
@@ -51,15 +51,15 @@ fn 1 snippet$show (u64) -> i32
   local.tee 1   ; __scrut_0
   local.set 2   ; n
   local.get 1   ; __scrut_0
-  type_check 1   ; u64
+  type_check 2   ; u64
   if $L0 void
     local.get 2   ; n
-    ref.cast 1   ; u64
+    ref.cast 2   ; u64
     u64.to_i32
     return
   end $L0
   local.get 1   ; __scrut_0
-  type_check 3   ; snippet$Err
+  type_check 4   ; snippet$Err
   if $L1 void
   else
     unreachable "non-exhaustive match (T3013 should have caught this)"
@@ -343,7 +343,7 @@ fn 7 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 8   ; u8[]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

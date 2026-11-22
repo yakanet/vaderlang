@@ -58,14 +58,14 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static vader_box_t vader_fn_lift___defer_snippet_0(void* env) {
     __defer_snippet_0(env);
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[13] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Slot_t), .slot_size = 8,
     },
     [3] = { .slot_size = 4 },
@@ -183,7 +183,7 @@ static int32_t snippet$written_directly(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 1u, gc_stack_objs };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Slot_t* _a1_obj = &_a0_storage;
-    vader_obj_header_init(_a1_obj, 1u);
+    vader_obj_header_init(_a1_obj, 2u);
     _a1_obj->f__0 = INT32_C(1);
     _a1_obj->f__1 = INT32_C(2);
     l0 = (void*) _a1_obj;
@@ -199,7 +199,7 @@ static int32_t snippet$written_by_a_call(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Slot_t* _a0_obj = (vader_struct_snippet$Slot_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Slot_t));
-    vader_obj_header_init(_a0_obj, 1u);
+    vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f__0 = INT32_C(1);
     _a0_obj->f__1 = INT32_C(2);
     l0 = (void*) _a0_obj;
@@ -216,7 +216,7 @@ static int32_t snippet$written_by_a_deferred_block(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Slot_t* _a0_obj = (vader_struct_snippet$Slot_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Slot_t));
-    vader_obj_header_init(_a0_obj, 1u);
+    vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f__0 = INT32_C(1);
     _a0_obj->f__1 = INT32_C(2);
     l0 = (void*) _a0_obj;

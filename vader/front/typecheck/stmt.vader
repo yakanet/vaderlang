@@ -228,12 +228,13 @@ check_fn_body :: fn(
             typed,
             diags,
         )
-    } else if got !is NeverType {
+    } else if got !is NeverType && !admits_void(return_type) {
         // T3083: no trailing expression, and the body does not diverge, so
         // control reaches the closing brace with nothing to hand back. The
         // sibling case (a value of the WRONG type) is T3020 just above;
         // without this arm the two halves disagreed, since `if c { return 7 }`
         // was already an error while a body with no `return` at all was not.
+        // A result that admits `void` is given `void` at the closing brace.
         //
         // `got` is `never` exactly when `check_block` saw the last statement
         // diverge: a `return` / `break` / `continue`, a `@no_return` call, or

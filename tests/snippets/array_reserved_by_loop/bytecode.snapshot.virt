@@ -1,12 +1,12 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 scalar i64
-type 3 scalar bool
-type 4 scalar string
-type 5 array 2
-type 6 scalar void
-type 7 array 1
+type 1 scalar void
+type 2 scalar i32
+type 3 scalar i64
+type 4 scalar bool
+type 5 scalar string
+type 6 array 3
+type 7 array 2
 type 8 scalar i8
 type 9 struct snippet$Bag { items:7 }
 type 10 struct std_core$Buffer {  }
@@ -29,11 +29,11 @@ string 12 "narrow signed: "
 string 13 "field"
 string 14 "split: "
 string 15 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=2 param_types=4 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=11 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=2 param_types=1,11,2 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=6 () -> void
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=3 param_types=5 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=11 param_types=5 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=2,11,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 10 std_core$ByteAccess
 export main 11
 
@@ -140,7 +140,7 @@ fn 3 snippet$over_array (ref) -> ref
   local $call_12 i64
   local.get 0   ; arg 0
   array.len
-  array.reserve 5   ; i64[]
+  array.reserve 6   ; i64[]
   local.set 1   ; out
   local.get 0   ; arg 0
   local.tee 2   ; __for_arr_0
@@ -160,7 +160,7 @@ fn 3 snippet$over_array (ref) -> ref
       local.set 5   ; $call_12
       local.get 1   ; out
       local.get 5   ; $call_12
-      array.push 2 1   ; i64 out
+      array.push 3 1   ; i64 out
       local.get 4   ; __for_i_2
       i64.const 1
       i64.add
@@ -196,7 +196,7 @@ fn 4 snippet$over_range (i32,i32) -> ref
     local.set 2   ; if_res
   end $L0
   local.get 2   ; if_res
-  array.reserve 5   ; i64[]
+  array.reserve 6   ; i64[]
   local.set 4   ; out
   local.get 0   ; arg 0
   local.set 5   ; i
@@ -210,7 +210,7 @@ fn 4 snippet$over_range (i32,i32) -> ref
       local.set 2   ; if_res
       local.get 4   ; out
       local.get 2   ; if_res
-      array.push 2 4   ; i64 out
+      array.push 3 4   ; i64 out
       local.get 5   ; i
       i32.const 1
       i32.add
@@ -249,7 +249,7 @@ fn 5 snippet$over_inclusive (i32,i32) -> ref
     local.set 2   ; if_res
   end $L0
   local.get 2   ; if_res
-  array.reserve 5   ; i64[]
+  array.reserve 6   ; i64[]
   local.set 4   ; out
   local.get 0   ; arg 0
   local.tee 5   ; i
@@ -264,7 +264,7 @@ fn 5 snippet$over_inclusive (i32,i32) -> ref
       local.set 2   ; if_res
       local.get 4   ; out
       local.get 2   ; if_res
-      array.push 2 4   ; i64 out
+      array.push 3 4   ; i64 out
       local.get 5   ; i
       local.get 1   ; arg 1
       i32.lt
@@ -342,7 +342,7 @@ fn 7 snippet$over_field (ref) -> ref
   local $call_14 i64
   local.field 0 9 0   ; arg 0 snippet$Bag.items
   array.len
-  array.reserve 5   ; i64[]
+  array.reserve 6   ; i64[]
   local.set 1   ; out
   local.field 0 9 0   ; arg 0 snippet$Bag.items
   local.tee 2   ; __for_arr_0
@@ -362,7 +362,7 @@ fn 7 snippet$over_field (ref) -> ref
       local.set 5   ; $call_14
       local.get 1   ; out
       local.get 5   ; $call_14
-      array.push 2 1   ; i64 out
+      array.push 3 1   ; i64 out
       local.get 4   ; __for_i_2
       i64.const 1
       i64.add
@@ -385,11 +385,11 @@ fn 8 snippet$split (ref) -> i64
   local $cast_21 i64
   local.get 0   ; arg 0
   array.len
-  array.reserve 5   ; i64[]
+  array.reserve 6   ; i64[]
   local.set 1   ; squares
   local.get 0   ; arg 0
   array.len
-  array.reserve 5   ; i64[]
+  array.reserve 6   ; i64[]
   local.set 2   ; doubles
   local.get 0   ; arg 0
   local.tee 3   ; __for_arr_0
@@ -410,7 +410,7 @@ fn 8 snippet$split (ref) -> i64
       local.set 7   ; $call_17
       local.get 1   ; squares
       local.get 7   ; $call_17
-      array.push 2   ; i64
+      array.push 3   ; i64
       local.get 6   ; x
       i32.const 2
       i32.checked_mul
@@ -420,7 +420,7 @@ fn 8 snippet$split (ref) -> i64
       local.set 8   ; $cast_21
       local.get 2   ; doubles
       local.get 8   ; $cast_21
-      array.push 2   ; i64
+      array.push 3   ; i64
       local.get 5   ; __for_i_2
       i64.const 1
       i64.add
@@ -454,7 +454,7 @@ fn 9 snippet$odd_squares (ref) -> ref
   local __for_i_2 i64
   local x i32
   local $call_12 i64
-  array.new 5 0   ; i64[]
+  array.new 6 0   ; i64[]
   local.set 1   ; out
   local.get 0   ; arg 0
   local.tee 2   ; __for_arr_0
@@ -478,7 +478,7 @@ fn 9 snippet$odd_squares (ref) -> ref
         local.set 6   ; $call_12
         local.get 1   ; out
         local.get 6   ; $call_12
-        array.push 2 1   ; i64 out
+        array.push 3 1   ; i64 out
       end $L2
       local.get 4   ; __for_i_2
       i64.const 1
@@ -498,7 +498,7 @@ fn 10 snippet$until_big (ref) -> ref
   local __for_i_2 i64
   local x i32
   local $call_13 i64
-  array.new 5 0   ; i64[]
+  array.new 6 0   ; i64[]
   local.set 1   ; out
   local.get 0   ; arg 0
   local.tee 2   ; __for_arr_0
@@ -524,7 +524,7 @@ fn 10 snippet$until_big (ref) -> ref
         local.set 6   ; $call_13
         local.get 1   ; out
         local.get 6   ; $call_13
-        array.push 2 1   ; i64 out
+        array.push 3 1   ; i64 out
         local.get 4   ; __for_i_2
         i64.const 1
         i64.add
@@ -574,7 +574,7 @@ fn 11 snippet$main () -> i32
   local.get 0   ; a
   local.tee 1   ; $call_8
   array.len
-  array.reserve 5   ; i64[]
+  array.reserve 6   ; i64[]
   local.set 2   ; out
   local.get 1   ; $call_8
   array.len
@@ -593,7 +593,7 @@ fn 11 snippet$main () -> i32
       local.set 5   ; x
       local.get 2   ; out
       local.get 5   ; x
-      array.push 2   ; i64
+      array.push 3   ; i64
       local.get 4   ; __fuse_i_1
       i64.const 1
       i64.add
@@ -605,7 +605,7 @@ fn 11 snippet$main () -> i32
   local.get 2   ; out
   call 2   ; snippet$show
   i64.const 4
-  array.reserve 5   ; i64[]
+  array.reserve 6   ; i64[]
   local.set 1   ; $call_8
   i32.const 0
   local.set 6   ; x
@@ -619,7 +619,7 @@ fn 11 snippet$main () -> i32
       local.set 3   ; __fuse_len_0
       local.get 1   ; $call_8
       local.get 3   ; __fuse_len_0
-      array.push 2   ; i64
+      array.push 3   ; i64
       local.get 6   ; x
       i32.const 1
       i32.add

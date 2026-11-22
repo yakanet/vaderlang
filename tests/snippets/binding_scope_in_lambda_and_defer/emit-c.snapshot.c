@@ -71,40 +71,40 @@ typedef vader_box_t (*vader_fn_erased_sig_1_t)(void* env, vader_box_t a0);
 static vader_box_t vader_fn_tramp___lambda_snippet_0(void* env, vader_box_t a0) {
     (void) env;
     __lambda_snippet_0(a0);
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_0 = {
-    VADER_STATIC_HEADER(4u), (void*) &vader_fn_tramp___lambda_snippet_0, NULL,
+    VADER_STATIC_HEADER(5u), (void*) &vader_fn_tramp___lambda_snippet_0, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_1(void* env, vader_box_t a0) {
     (void) env;
     __lambda_snippet_1(a0);
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_1 = {
-    VADER_STATIC_HEADER(4u), (void*) &vader_fn_tramp___lambda_snippet_1, NULL,
+    VADER_STATIC_HEADER(5u), (void*) &vader_fn_tramp___lambda_snippet_1, NULL,
 };
 
 static vader_box_t vader_fn_lift___defer_snippet_2(void* env) {
     __defer_snippet_2(env);
-    return vader_box_null();
+    return vader_box_obj(1u, NULL);
 }
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[15] = {
-    [1] = { .slot_size = 16 },
-    [2] = {
+    [2] = { .slot_size = 16 },
+    [3] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Leaf_t), .slot_size = 8,
     },
-    [3] = {
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Pair_t), .slot_size = 8,
     },
-    [4] = {
+    [5] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
         .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
     },
@@ -245,7 +245,7 @@ static int32_t snippet$main(void) {
     l1 = INT64_C(0);
     l1 = std_core$write_string_at(l0, l1, 1u);
     vader_struct_snippet$Leaf_t* _a0_obj = (vader_struct_snippet$Leaf_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Leaf_t));
-    vader_obj_header_init(_a0_obj, 2u);
+    vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_v = INT32_C(7);
     t0 = (void*) _a0_obj;
     t1 = snippet$if_form(vader_ref_box(t0));
@@ -257,7 +257,7 @@ static int32_t snippet$main(void) {
     l1 = INT64_C(0);
     l1 = std_core$write_string_at(l0, l1, 2u);
     vader_struct_snippet$Leaf_t* _a1_obj = (vader_struct_snippet$Leaf_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Leaf_t));
-    vader_obj_header_init(_a1_obj, 2u);
+    vader_obj_header_init(_a1_obj, 3u);
     _a1_obj->f_v = INT32_C(7);
     t0 = (void*) _a1_obj;
     t1 = snippet$match_form(vader_ref_box(t0));
@@ -269,7 +269,7 @@ static int32_t snippet$main(void) {
     l1 = INT64_C(0);
     l1 = std_core$write_string_at(l0, l1, 3u);
     vader_struct_snippet$Leaf_t* _a2_obj = (vader_struct_snippet$Leaf_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Leaf_t));
-    vader_obj_header_init(_a2_obj, 2u);
+    vader_obj_header_init(_a2_obj, 3u);
     _a2_obj->f_v = INT32_C(7);
     t0 = (void*) _a2_obj;
     t1 = snippet$defer_form(vader_ref_box(t0));
@@ -295,7 +295,7 @@ static void __lambda_snippet_0(vader_box_t l0) {
     };
     vader_gc_top = &gc_frame;
     l1 = snippet$unwrap(l0);
-    if (l1.tag == 2u) {
+    if (l1.tag == 3u) {
         l2 = (void*) vader_buffer_new((size_t) INT64_C(23));
         l3 = INT64_C(0);
         l3 = std_core$write_string_at(l2, l3, 4u);
@@ -326,7 +326,7 @@ static void __lambda_snippet_1(vader_box_t l0) {
     vader_gc_top = &gc_frame;
     l1 = snippet$unwrap(l0);
     l2 = l1;
-    if (l1.tag == 2u) {
+    if (l1.tag == 3u) {
         l3 = (void*) vader_buffer_new((size_t) INT64_C(22));
         l4 = INT64_C(0);
         l4 = std_core$write_string_at(l3, l4, 5u);
@@ -338,7 +338,7 @@ static void __lambda_snippet_1(vader_box_t l0) {
         std_console$println__string(t2);
         { vader_gc_top = gc_frame.prev; return; }
     }
-    if (!(l1.tag == 3u)) {
+    if (!(l1.tag == 4u)) {
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
     }
     l3 = (void*) vader_buffer_new((size_t) INT64_C(22));
@@ -368,7 +368,7 @@ static void __defer_snippet_2(void* l0) {
     };
     vader_gc_top = &gc_frame;
     l1 = snippet$unwrap(((vader_struct___defer_env_snippet_3_t*) l0)->f_cap_0);
-    if (l1.tag == 2u) {
+    if (l1.tag == 3u) {
         l2 = (void*) vader_buffer_new((size_t) INT64_C(23));
         l3 = INT64_C(0);
         l3 = std_core$write_string_at(l2, l3, 6u);

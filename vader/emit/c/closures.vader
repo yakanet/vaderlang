@@ -36,6 +36,23 @@ pop_args_boxed :: fn(s: FnState, count: i32) -> CExpression[] {
     return args
 }
 
+/// Pop the arguments of a call through the erased ABI, one box per parameter of
+/// `params` (type indices into `types`). A `void` parameter pushed nothing: it
+/// gets the box of the `void` value.
+pop_erased_args :: fn(s: FnState, params: i32[], types: BcType[]) -> CExpression[] {
+    count :: params.len()
+    args: CExpression[]: [verbatim("")] * count
+    for k in 0..<count {
+        slot :: count - 1 - k
+        if val_type_of_bc_type(types[params[slot]]) == .Void {
+            args[slot] = void_box(s.ctx)
+        } else {
+            args[slot] = coerced_as(s, pop(s), .Any)
+        }
+    }
+    return args
+}
+
 /// A function's C identity, keyed by its own MANGLED name rather than its index
 /// in the module table.
 ///
@@ -134,7 +151,7 @@ emit_call_indirect :: fn(s: FnState, op: Bc.CallIndirect) -> void {
         // `fn_val` is on top: pop it before the args.
         fn_val :: pop(s)
         n :: i32(t.params.len())
-        args :: pop_args_boxed(s, n)
+        args :: pop_erased_args(s, t.params, types)
         fn_obj :: aux(s, "fnobj")
         declare(s, "vader_fn_t*", fn_obj, cast("vader_fn_t*", object_pointer_of(fn_val)))
         call_args: CExpression[]: [verbatim("${fn_obj}->env")]
@@ -303,7 +320,7 @@ emit_fn_ref_tramp :: fn(ctx: EmitCtx, items: CTopLevel[], fn_index: i32, type_id
     body :: CBlock {
         .body = [CExpressionStatement { .expression = cast("void", verbatim("env")) }],
     }
-    body.body.push_all(forward_boxed(cname, tramp_unbox_args(sig.params), sig))
+    body.body.push_all(forward_boxed(ctx, cname, tramp_unbox_args(sig.params), sig))
     items.push(CFunction { .signature = trampoline_signature(ctx, cname, sig), .body = body })
     value :: initializer_list([
         object_header(unsigned(i64(type_id))),
@@ -333,7 +350,7 @@ emit_closure_lift :: fn(ctx: EmitCtx, items: CTopLevel[], fn_index: i32) -> void
     arguments: CExpression[]: [coerce_expr(ctx.module.types, verbatim("env"), .Ref, sig.params[0])]
     arguments.push_all(lift_unbox_tail(sig.params))
     body :: CBlock { .body = [] }
-    body.body.push_all(forward_boxed(cname, arguments, sig))
+    body.body.push_all(forward_boxed(ctx, cname, arguments, sig))
     items.push(CFunction { .signature = lift_signature(ctx, cname, sig), .body = body })
 }
 
@@ -365,7 +382,9 @@ lift_signature :: fn(ctx: EmitCtx, name: string, signature: BcSignature) -> CSig
 tramp_unbox_args :: fn(params: ValType[]) -> CExpression[] {
     arguments: CExpression[]: []
     for j in 0..<params.len() {
-        arguments.push(unbox_expr(verbatim("a${j}"), params[j]))
+        if params[j] != .Void {
+            arguments.push(unbox_expr(verbatim("a${j}"), params[j]))
+        }
     }
     return arguments
 }
@@ -375,21 +394,28 @@ tramp_unbox_args :: fn(params: ValType[]) -> CExpression[] {
 lift_unbox_tail :: fn(params: ValType[]) -> CExpression[] {
     arguments: CExpression[]: []
     for j in 1..<params.len() {
-        arguments.push(unbox_expr(verbatim("a${j - 1}"), params[j]))
+        if params[j] != .Void {
+            arguments.push(unbox_expr(verbatim("a${j - 1}"), params[j]))
+        }
     }
     return arguments
 }
 
 /// Call `cname(arguments...)` and return its result boxed for the erased ABI :
-/// `vader_box_null()` for a void call, the result as is when already a box
+/// the `void` value for a void call, the result as is when already a box
 /// (`any`), widened from a raw `ref`, boxed otherwise.
-forward_boxed :: fn(cname: string, arguments: CExpression[], sig: BcSignature) -> CStatement[] {
+forward_boxed :: fn(
+    ctx: EmitCtx,
+    cname: string,
+    arguments: CExpression[],
+    sig: BcSignature,
+) -> CStatement[] {
     forward :: call(cname, arguments)
     result :: bc_single_result(sig)
     if result == .Void {
         return [
             CExpressionStatement { .expression = forward },
-            CReturn { .value = call("vader_box_null", []) },
+            CReturn { .value = void_box(ctx) },
         ]
     }
     boxed :: if result == .Any {

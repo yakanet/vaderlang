@@ -1,7 +1,7 @@
 module _main
 type 0 scalar null
-type 1 struct snippet$Label { s:10 }
-type 2 scalar void
+type 1 scalar void
+type 2 struct snippet$Label { s:10 }
 type 3 scalar i32
 type 4 struct snippet$Wrapper__i32 { v:3 }
 type 5 struct snippet$Wrapper__string { v:10 }
@@ -24,7 +24,7 @@ import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=12 
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=14 param_types=10 param_c_out= param_by_address= (string) -> ref
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=12 param_types=3,14,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=2 () -> void
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 4 std_core$Into
 impl 5 std_core$Into
 impl 6 std_core$Into
@@ -34,7 +34,7 @@ impl 13 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$show (ref) -> void
-  local.field 0 1 0   ; arg 0 snippet$Label.s
+  local.field 0 2 0   ; arg 0 snippet$Label.s
   ref.cast 10   ; string
   call 14   ; std_console$println__string
   return
@@ -113,7 +113,7 @@ fn 2 snippet$Wrapper$std_core$Into$into__i32 (ref) -> ref
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 8   ; std_core$finish_buffer
-  struct.new 1   ; snippet$Label
+  struct.new 2   ; snippet$Label
   return
 end
 
@@ -125,7 +125,7 @@ fn 3 snippet$Wrapper$std_core$Into$into__string (ref) -> ref
   string.const 1   ; "w:"
   local.get 1   ; $field_2
   call 7   ; concat_2
-  struct.new 1   ; snippet$Label
+  struct.new 2   ; snippet$Label
   return
 end
 
@@ -156,7 +156,7 @@ fn 4 snippet$Wrapper$std_core$Into$into__snippet_Mon$1 (ref) -> ref
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 8   ; std_core$finish_buffer
-  struct.new 1   ; snippet$Label
+  struct.new 2   ; snippet$Label
   return
 end
 
@@ -185,7 +185,7 @@ fn 5 snippet$Wrapper$std_core$Into$into__i64 (ref) -> ref
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 8   ; std_core$finish_buffer
-  struct.new 1   ; snippet$Label
+  struct.new 2   ; snippet$Label
   return
 end
 

@@ -71,20 +71,20 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[16] = {
-    [1] = { .slot_size = 4 },
-    [2] = { .slot_size = 1 },
-    [3] = { .slot_size = 4 },
-    [4] = { .slot_size = 8 },
-    [5] = { .slot_size = 4 },
-    [6] = {
+    [2] = { .slot_size = 4 },
+    [3] = { .slot_size = 1 },
+    [4] = { .slot_size = 4 },
+    [5] = { .slot_size = 8 },
+    [6] = { .slot_size = 4 },
+    [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [7] = { .slot_size = 1 },
-    [8] = { .slot_size = 4 },
-    [9] = {
+    [8] = { .slot_size = 1 },
+    [9] = { .slot_size = 4 },
+    [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
     },
     [11] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Stop_t),
@@ -99,7 +99,7 @@ const vader_type_info_t vader_type_info_table[16] = {
     [13] = { .slot_size = 16 },
     [14] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 5u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 6u,
     },
     [15] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -120,7 +120,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 9u, 7u);
+    return (void*) vader_string_bytes_view(a0, 10u, 8u);
 }
 
 static uint8_t vader_host_std_core$Intrinsic$byte_at(vader_string_t a0, int64_t a1) {
@@ -202,7 +202,7 @@ static int32_t snippet$main(void) {
         l0 = vader_chk_add(i32, l0, l1);
         l1 = (l1 + INT32_C(1));
     }
-    vader_array_t* _a0_arr = vader_array_new(14u, 3u, 7u, 5u);
+    vader_array_t* _a0_arr = vader_array_new(14u, 3u, 7u, 6u);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 2u] = (int32_t) INT32_C(30);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 1u] = (int32_t) INT32_C(20);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (int32_t) INT32_C(10);
@@ -570,7 +570,7 @@ static vader_box_t std_string$StringChars$std_core$Iterator$next(void* l0) {
     if ((l3 < INT32_C(128))) {
         l2 = vader_chk_add(i64, l1, INT64_C(1));
         ((vader_struct_std_string$StringChars_t*) l0)->f_cursor = l2;
-        return vader_box_i32(1u, (int32_t) ((uint32_t) (uint8_t) l3));
+        return vader_box_i32(2u, (int32_t) ((uint32_t) (uint8_t) l3));
     }
     t0 = ((vader_struct_std_string$StringChars_t*) l0)->f_s;
     std_core$decode_tail(t0, l3, l1, &t2, &t3);
@@ -588,10 +588,10 @@ static vader_box_t std_string$StringChars$std_core$Iterator$next(void* l0) {
         if (l5) {
             vader_unreachable("value out of range: no Unicode scalar value");
         } else {
-            return vader_box_i32(1u, (int32_t) ((uint32_t) (uint32_t) l4));
+            return vader_box_i32(2u, (int32_t) ((uint32_t) (uint32_t) l4));
         }
     } else {
-        return vader_box_i32(1u, (int32_t) ((uint32_t) (uint32_t) l4));
+        return vader_box_i32(2u, (int32_t) ((uint32_t) (uint32_t) l4));
     }
 }
 

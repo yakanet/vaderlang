@@ -200,7 +200,7 @@ payload_cast :: fn(type: string, box: CExpression, field: string) -> CExpression
 /// the matching `vader_box_<class>` runtime constructor (unsigned widths
 /// re-cast through the signed payload slot). `null` / `any` pass through
 /// (already boxed) ; a raw `ref` boxes via `vader_ref_box`, its tag read from
-/// the object header ; `void` boxes to the empty box.
+/// the object header ; `void` boxes to its one value, the tag without payload.
 ///
 /// @param value       the value to box.
 /// @param val         its stack value class.
@@ -218,7 +218,7 @@ box_expr :: fn(value: CExpression, val: ValType, type_index: i32) -> CExpression
     .Char                 -> box_call("i32", type_index, cast("int32_t", value))
     .String               -> box_call("string", type_index, value)
     .Null | .Any          -> value
-    .Void                 -> call("vader_box_null", [])
+    .Void                 -> verbatim("vader_box_obj(${type_index}u, NULL)")
     .Pointer              -> box_call("i64", type_index, cast("int64_t", cast("intptr_t", value)))
     .Ref                  -> ref_box(value)
 }

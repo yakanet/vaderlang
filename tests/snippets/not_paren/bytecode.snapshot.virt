@@ -1,7 +1,8 @@
 module _main
 type 0 scalar null
-type 1 scalar bool
-type 2 scalar i32
+type 1 scalar void
+type 2 scalar bool
+type 3 scalar i32
 export main 3
 
 fn 0 snippet$f (bool,bool) -> bool

@@ -1,47 +1,47 @@
 module _main
 type 0 scalar null
-type 1 struct snippet$Circle { r:2 }
-type 2 scalar i32
-type 3 struct snippet$Square { s:2 }
-type 4 array 5
-type 5 ref snippet$Shape
-type 6 array 7
-type 7 union 1,0
-type 8 array 6
-type 9 scalar string
-type 10 struct std_core$Buffer {  }
-type 11 scalar i64
-type 12 array 13
-type 13 scalar u8
-type 14 scalar void
+type 1 scalar void
+type 2 struct snippet$Circle { r:3 }
+type 3 scalar i32
+type 4 struct snippet$Square { s:3 }
+type 5 array 6
+type 6 ref snippet$Shape
+type 7 array 8
+type 8 union 2,0
+type 9 array 7
+type 10 scalar string
+type 11 struct std_core$Buffer {  }
+type 12 scalar i64
+type 13 array 14
+type 14 scalar u8
 type 15 scalar bool
-type 16 array 1
+type 16 array 2
 type 17 array 16
 string 0 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=11 param_types=9 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=12 param_types=9 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=11 param_types=2,12,11 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=14 () -> void
-impl 1 snippet$Shape
-impl 3 snippet$Shape
-impl 10 std_core$ByteAccess
-vtable snippet$Shape.area 1 0
-vtable snippet$Shape.area 3 1
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=12 param_types=10 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=13 param_types=10 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=12 param_types=3,13,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 2 snippet$Shape
+impl 4 snippet$Shape
+impl 11 std_core$ByteAccess
+vtable snippet$Shape.area 2 0
+vtable snippet$Shape.area 4 1
 export main 5
 
 fn 0 snippet$Circle$Shape$area (ref) -> i32
   local $field_2 i32
   local $field_4 i32
-  local.field 0 1 0   ; arg 0 snippet$Circle.r
-  ref.cast 2   ; i32
+  local.field 0 2 0   ; arg 0 snippet$Circle.r
+  ref.cast 3   ; i32
   local.set 1   ; $field_2
   i32.const 3
   local.get 1   ; $field_2
   i32.checked_mul
   local.set 1   ; $field_2
-  local.field 0 1 0   ; arg 0 snippet$Circle.r
-  ref.cast 2   ; i32
+  local.field 0 2 0   ; arg 0 snippet$Circle.r
+  ref.cast 3   ; i32
   local.set 2   ; $field_4
   local.get 1   ; $field_2
   local.get 2   ; $field_4
@@ -52,11 +52,11 @@ end
 fn 1 snippet$Square$Shape$area (ref) -> i32
   local $field_1 i32
   local $field_2 i32
-  local.field 0 3 0   ; arg 0 snippet$Square.s
-  ref.cast 2   ; i32
+  local.field 0 4 0   ; arg 0 snippet$Square.s
+  ref.cast 3   ; i32
   local.set 1   ; $field_1
-  local.field 0 3 0   ; arg 0 snippet$Square.s
-  ref.cast 2   ; i32
+  local.field 0 4 0   ; arg 0 snippet$Square.s
+  ref.cast 3   ; i32
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
@@ -85,7 +85,7 @@ fn 2 snippet$total (ref) -> i32
     if $L1 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 4   ; ref snippet$Shape[]
+      array.get 5   ; ref snippet$Shape[]
       virtual.call 1 snippet$Shape.area -> i32
       local.set 5   ; $vcall_11
       local.get 1   ; sum
@@ -123,7 +123,7 @@ fn 3 snippet$present (ref) -> i32
     if $L1 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 6   ; union[]
+      array.get 7   ; union[]
       type_check 0   ; null
       if $L2 void
       else
@@ -164,7 +164,7 @@ fn 4 snippet$rows_present (ref) -> i32
     if $L1 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 8   ; union[][]
+      array.get 9   ; union[][]
       call 3   ; snippet$present
       local.set 5   ; $call_11
       local.get 1   ; n
@@ -188,10 +188,10 @@ fn 5 snippet$main () -> i32
   local __off_1 i64
   local $cast_12 i64
   i32.const 1
-  struct.new 1   ; snippet$Circle
+  struct.new 2   ; snippet$Circle
   local.set 0   ; $struct_1
   i32.const 2
-  struct.new 1   ; snippet$Circle
+  struct.new 2   ; snippet$Circle
   local.set 1   ; $struct_3
   local.get 0   ; $struct_1
   local.get 1   ; $struct_3
@@ -272,14 +272,14 @@ fn 5 snippet$main () -> i32
   call 7   ; std_core$finish_buffer
   call 12   ; std_console$println__string
   i32.const 1
-  struct.new 1   ; snippet$Circle
+  struct.new 2   ; snippet$Circle
   local.set 0   ; $struct_1
   i32.const 4
-  struct.new 3   ; snippet$Square
+  struct.new 4   ; snippet$Square
   local.set 1   ; $struct_3
   local.get 0   ; $struct_1
   local.get 1   ; $struct_3
-  array.new 4 2   ; ref snippet$Shape[]
+  array.new 5 2   ; ref snippet$Shape[]
   local.set 0   ; $struct_1
   i64.const 20
   buffer.new
@@ -305,8 +305,8 @@ fn 5 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   i32.const 3
-  struct.new 3   ; snippet$Square
-  array.new 4 1   ; ref snippet$Shape[]
+  struct.new 4   ; snippet$Square
+  array.new 5 1   ; ref snippet$Shape[]
   call 2   ; snippet$total
   i32.to_i64
   local.set 3   ; $cast_12
@@ -507,7 +507,7 @@ fn 9 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 12   ; u8[]
+      array.slice 13   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

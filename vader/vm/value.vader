@@ -135,6 +135,7 @@ export describe_value_tag :: fn(v: Value) -> string = match v {
     is ArrayVal   -> "array"
     is FnVal      -> "fn"
     is NullVal    -> "null"
+    is VoidVal    -> "void"
     is BoolVal    -> "bool"
     is CharVal    -> "char"
     is TypeVal    -> "type"
@@ -327,6 +328,7 @@ export read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Tra
 /// place of a pointer: each `type.const` boxes a new `TypeVal`.
 export value_ref_eq :: fn(a: Value, b: Value) -> bool = match a {
     is NullVal   -> b is NullVal
+    is VoidVal   -> b is VoidVal
     is I32Val    -> b is I32Val && a == b
     is BoolVal   -> b is BoolVal && a == b
     is CharVal   -> b is CharVal && a == b
@@ -547,6 +549,7 @@ export Value :: I32Val
        | ArrayVal
        | FnVal
        | NullVal
+       | VoidVal
        | BoolVal
        | CharVal
        | TypeVal
@@ -642,6 +645,10 @@ export FnVal :: struct {
 /// way to discriminate. Sprint 5a addition.
 export NullVal :: struct {}
 
+/// The one value of `void`, held where a slot takes a value whatever its type:
+/// the success of a result typed `void | E`. Distinct from `NullVal`.
+export VoidVal :: struct {}
+
 /// Runtime reification of a `type` value: pushed by `type.const N`,
 /// `type_id` keys `Module.types`.
 export TypeVal :: struct { type_id: i32 }
@@ -692,6 +699,10 @@ FnVal implements Display {
 
 NullVal implements Display {
     to_string :: fn(self) -> string = "null"
+}
+
+VoidVal implements Display {
+    to_string :: fn(self) -> string = "void"
 }
 
 BoolVal implements Display {
@@ -757,6 +768,7 @@ export display_value :: fn(v: Value) -> string = match v {
     is ArrayVal -> v.to_string()
     is FnVal -> v.to_string()
     is NullVal -> v.to_string()
+    is VoidVal -> v.to_string()
     is BoolVal -> v.to_string()
     is CharVal -> v.to_string()
     is TypeVal -> v.to_string()

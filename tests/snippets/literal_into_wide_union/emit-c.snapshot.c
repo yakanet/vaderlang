@@ -44,19 +44,19 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[10] = {
-    [1] = { .slot_size = 16 },
-    [2] = { .slot_size = 8 },
-    [3] = { .slot_size = 4 },
+    [2] = { .slot_size = 16 },
+    [3] = { .slot_size = 8 },
     [4] = { .slot_size = 4 },
-    [5] = {
+    [5] = { .slot_size = 4 },
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [6] = {
+    [7] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
     },
-    [7] = { .slot_size = 1 },
+    [8] = { .slot_size = 1 },
     [9] = { .slot_size = 1 },
 };
 const size_t vader_type_info_count = 10;
@@ -73,7 +73,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 6u, 7u);
+    return (void*) vader_string_bytes_view(a0, 7u, 8u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -111,7 +111,7 @@ static vader_string_t snippet$describe(vader_box_t l0) {
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (!(l0.tag == 2u)) {
+    if (!(l0.tag == 3u)) {
         { vader_gc_top = gc_frame.prev; return 2u; }
     }
     l1 = (void*) vader_buffer_new((size_t) INT64_C(24));
@@ -128,16 +128,16 @@ static int32_t snippet$main(void) {
     vader_string_t* gc_atom_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    t0 = snippet$describe(vader_box_i64(2u, INT64_C(7)));
+    t0 = snippet$describe(vader_box_i64(3u, INT64_C(7)));
     std_console$println__string(t0);
-    if (vader_box_i64(2u, INT64_C(8)).tag == 2u) {
+    if (vader_box_i64(3u, INT64_C(8)).tag == 3u) {
         std_console$println__string(3u);
     } else {
         std_console$println__string(4u);
     }
-    t0 = snippet$describe(vader_box_i64(2u, INT64_C(9)));
+    t0 = snippet$describe(vader_box_i64(3u, INT64_C(9)));
     std_console$println__string(t0);
-    t0 = snippet$describe(vader_box_i64(2u, INT64_C(10)));
+    t0 = snippet$describe(vader_box_i64(3u, INT64_C(10)));
     std_console$println__string(t0);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }

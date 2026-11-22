@@ -14,11 +14,11 @@ static uint64_t std_core$i32$Hash$hash(int32_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
-const vader_type_info_t vader_type_info_table[3] = {
-    [1] = { .slot_size = 4 },
-    [2] = { .slot_size = 8 },
+const vader_type_info_t vader_type_info_table[4] = {
+    [2] = { .slot_size = 4 },
+    [3] = { .slot_size = 8 },
 };
-const size_t vader_type_info_count = 3;
+const size_t vader_type_info_count = 4;
 
 static int32_t snippet$main(void) {
     uint64_t t0;

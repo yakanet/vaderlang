@@ -1,44 +1,44 @@
 module _main
 type 0 scalar null
-type 1 union 2,3,4
-type 2 struct snippet$A { x:5 }
-type 3 struct snippet$B { y:5 }
-type 4 struct snippet$C { z:5 }
-type 5 scalar i32
-type 6 scalar string
-type 7 struct std_core$Buffer {  }
-type 8 scalar i64
-type 9 array 10
-type 10 scalar u8
-type 11 scalar void
+type 1 scalar void
+type 2 union 3,4,5
+type 3 struct snippet$A { x:6 }
+type 4 struct snippet$B { y:6 }
+type 5 struct snippet$C { z:6 }
+type 6 scalar i32
+type 7 scalar string
+type 8 struct std_core$Buffer {  }
+type 9 scalar i64
+type 10 array 11
+type 11 scalar u8
 type 12 scalar bool
 string 0 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=6 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=6 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=5,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=5 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=11 () -> void
-impl 7 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=9 param_types=7 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=10 param_types=7 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=6,10,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=6 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 8 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$pick (any,any) -> i32
   local $field_5 i32
   local $field_7 i32
   local.get 0   ; arg 0
-  type_check 2   ; snippet$A
+  type_check 3   ; snippet$A
   if $L0 void
     local.get 1   ; arg 1
-    type_check 2   ; snippet$A
+    type_check 3   ; snippet$A
     if $L1 void
       local.get 0   ; arg 0
-      ref.cast 2   ; snippet$A
-      struct.get 2 0   ; snippet$A.x
-      ref.cast 5   ; i32
+      ref.cast 3   ; snippet$A
+      struct.get 3 0   ; snippet$A.x
+      ref.cast 6   ; i32
       local.set 2   ; $field_5
       local.get 1   ; arg 1
-      ref.cast 2   ; snippet$A
-      struct.get 2 0   ; snippet$A.x
-      ref.cast 5   ; i32
+      ref.cast 3   ; snippet$A
+      struct.get 3 0   ; snippet$A.x
+      ref.cast 6   ; i32
       local.set 3   ; $field_7
       local.get 2   ; $field_5
       local.get 3   ; $field_7
@@ -46,17 +46,17 @@ fn 0 snippet$pick (any,any) -> i32
       return
     end $L1
     local.get 1   ; arg 1
-    type_check 3   ; snippet$B
+    type_check 4   ; snippet$B
     if $L2 void
       local.get 0   ; arg 0
-      ref.cast 2   ; snippet$A
-      struct.get 2 0   ; snippet$A.x
-      ref.cast 5   ; i32
+      ref.cast 3   ; snippet$A
+      struct.get 3 0   ; snippet$A.x
+      ref.cast 6   ; i32
       local.set 2   ; $field_5
       local.get 1   ; arg 1
-      ref.cast 3   ; snippet$B
-      struct.get 3 0   ; snippet$B.y
-      ref.cast 5   ; i32
+      ref.cast 4   ; snippet$B
+      struct.get 4 0   ; snippet$B.y
+      ref.cast 6   ; i32
       local.set 3   ; $field_7
       local.get 2   ; $field_5
       local.get 3   ; $field_7
@@ -64,17 +64,17 @@ fn 0 snippet$pick (any,any) -> i32
       return
     end $L2
     local.get 1   ; arg 1
-    type_check 4   ; snippet$C
+    type_check 5   ; snippet$C
     if $L3 void
       local.get 0   ; arg 0
-      ref.cast 2   ; snippet$A
-      struct.get 2 0   ; snippet$A.x
-      ref.cast 5   ; i32
+      ref.cast 3   ; snippet$A
+      struct.get 3 0   ; snippet$A.x
+      ref.cast 6   ; i32
       local.set 2   ; $field_5
       local.get 1   ; arg 1
-      ref.cast 4   ; snippet$C
-      struct.get 4 0   ; snippet$C.z
-      ref.cast 5   ; i32
+      ref.cast 5   ; snippet$C
+      struct.get 5 0   ; snippet$C.z
+      ref.cast 6   ; i32
       local.set 3   ; $field_7
       local.get 2   ; $field_5
       local.get 3   ; $field_7
@@ -83,20 +83,20 @@ fn 0 snippet$pick (any,any) -> i32
     end $L3
   end $L0
   local.get 0   ; arg 0
-  type_check 3   ; snippet$B
+  type_check 4   ; snippet$B
   if $L4 void
     local.get 1   ; arg 1
-    type_check 2   ; snippet$A
+    type_check 3   ; snippet$A
     if $L5 void
       local.get 0   ; arg 0
-      ref.cast 3   ; snippet$B
-      struct.get 3 0   ; snippet$B.y
-      ref.cast 5   ; i32
+      ref.cast 4   ; snippet$B
+      struct.get 4 0   ; snippet$B.y
+      ref.cast 6   ; i32
       local.set 2   ; $field_5
       local.get 1   ; arg 1
-      ref.cast 2   ; snippet$A
-      struct.get 2 0   ; snippet$A.x
-      ref.cast 5   ; i32
+      ref.cast 3   ; snippet$A
+      struct.get 3 0   ; snippet$A.x
+      ref.cast 6   ; i32
       local.set 3   ; $field_7
       local.get 2   ; $field_5
       local.get 3   ; $field_7
@@ -104,17 +104,17 @@ fn 0 snippet$pick (any,any) -> i32
       return
     end $L5
     local.get 1   ; arg 1
-    type_check 3   ; snippet$B
+    type_check 4   ; snippet$B
     if $L6 void
       local.get 0   ; arg 0
-      ref.cast 3   ; snippet$B
-      struct.get 3 0   ; snippet$B.y
-      ref.cast 5   ; i32
+      ref.cast 4   ; snippet$B
+      struct.get 4 0   ; snippet$B.y
+      ref.cast 6   ; i32
       local.set 2   ; $field_5
       local.get 1   ; arg 1
-      ref.cast 3   ; snippet$B
-      struct.get 3 0   ; snippet$B.y
-      ref.cast 5   ; i32
+      ref.cast 4   ; snippet$B
+      struct.get 4 0   ; snippet$B.y
+      ref.cast 6   ; i32
       local.set 3   ; $field_7
       local.get 2   ; $field_5
       local.get 3   ; $field_7
@@ -123,15 +123,15 @@ fn 0 snippet$pick (any,any) -> i32
     end $L6
   end $L4
   local.get 1   ; arg 1
-  type_check 4   ; snippet$C
+  type_check 5   ; snippet$C
   if $L7 void
   else
     return.lit i32.const -1
   end $L7
   local.get 1   ; arg 1
-  ref.cast 4   ; snippet$C
-  struct.get 4 0   ; snippet$C.z
-  ref.cast 5   ; i32
+  ref.cast 5   ; snippet$C
+  struct.get 5 0   ; snippet$C.z
+  ref.cast 6   ; i32
   return
 end
 
@@ -147,10 +147,10 @@ fn 1 snippet$main () -> i32
   i64.const 0
   local.set 1   ; __off_1
   i32.const 1
-  struct.new 2   ; snippet$A
+  struct.new 3   ; snippet$A
   local.set 2   ; $struct_6
   i32.const 2
-  struct.new 4   ; snippet$C
+  struct.new 5   ; snippet$C
   local.set 3   ; $struct_8
   local.get 2   ; $struct_6
   local.get 3   ; $struct_8
@@ -172,10 +172,10 @@ fn 1 snippet$main () -> i32
   i64.const 0
   local.set 1   ; __off_1
   i32.const 10
-  struct.new 3   ; snippet$B
+  struct.new 4   ; snippet$B
   local.set 2   ; $struct_6
   i32.const 5
-  struct.new 2   ; snippet$A
+  struct.new 3   ; snippet$A
   local.set 3   ; $struct_8
   local.get 2   ; $struct_6
   local.get 3   ; $struct_8
@@ -197,10 +197,10 @@ fn 1 snippet$main () -> i32
   i64.const 0
   local.set 1   ; __off_1
   i32.const 10
-  struct.new 3   ; snippet$B
+  struct.new 4   ; snippet$B
   local.set 2   ; $struct_6
   i32.const 6
-  struct.new 3   ; snippet$B
+  struct.new 4   ; snippet$B
   local.set 3   ; $struct_8
   local.get 2   ; $struct_6
   local.get 3   ; $struct_8
@@ -222,10 +222,10 @@ fn 1 snippet$main () -> i32
   i64.const 0
   local.set 1   ; __off_1
   i32.const 0
-  struct.new 4   ; snippet$C
+  struct.new 5   ; snippet$C
   local.set 2   ; $struct_6
   i32.const 9
-  struct.new 4   ; snippet$C
+  struct.new 5   ; snippet$C
   local.set 3   ; $struct_8
   local.get 2   ; $struct_6
   local.get 3   ; $struct_8
@@ -247,10 +247,10 @@ fn 1 snippet$main () -> i32
   i64.const 0
   local.set 1   ; __off_1
   i32.const 0
-  struct.new 4   ; snippet$C
+  struct.new 5   ; snippet$C
   local.set 2   ; $struct_6
   i32.const 9
-  struct.new 2   ; snippet$A
+  struct.new 3   ; snippet$A
   local.set 3   ; $struct_8
   local.get 2   ; $struct_6
   local.get 3   ; $struct_8
@@ -454,7 +454,7 @@ fn 5 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 9   ; u8[]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

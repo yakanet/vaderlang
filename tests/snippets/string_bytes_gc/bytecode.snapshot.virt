@@ -1,25 +1,25 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 array 3
-type 3 scalar u8
-type 4 scalar u64
-type 5 scalar string
-type 6 struct std_core$Buffer {  }
-type 7 scalar i64
-type 8 scalar void
+type 1 scalar void
+type 2 scalar i32
+type 3 array 4
+type 4 scalar u8
+type 5 scalar u64
+type 6 scalar string
+type 7 struct std_core$Buffer {  }
+type 8 scalar i64
 type 9 scalar bool
 string 0 "vader-byte-view-payload-"
 string 1 "byte-view GC corruption after major cycles"
 string 2 "ok: 4 byte views survived 2 major GCs; sum="
 string 3 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=5 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=2 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 2 collect std_core$Intrinsic$collect intrinsic=collect result_type=8 () -> void
-import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=1,2,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=8 () -> void
-impl 6 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=3 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 collect std_core$Intrinsic$collect intrinsic=collect result_type=1 () -> void
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=2,3,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 7 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$view_of (i32) -> ref
@@ -72,8 +72,8 @@ fn 1 snippet$fold (ref) -> u64
     if $L1 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 2   ; u8[]
-      ref.cast 3   ; u8
+      array.get 3   ; u8[]
+      ref.cast 4   ; u8
       u8.to_i64
       local.set 5   ; $cast_12
       local.get 1   ; acc
@@ -481,7 +481,7 @@ fn 8 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 2   ; u8[]
+      array.slice 3   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

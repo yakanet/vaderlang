@@ -1,7 +1,7 @@
 module _main
 type 0 scalar null
-type 1 scalar u64
-type 2 scalar void
+type 1 scalar void
+type 2 scalar u64
 type 3 scalar i32
 type 4 scalar string
 type 5 struct std_core$Buffer {  }
@@ -17,7 +17,7 @@ import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=6 p
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=4 param_c_out= param_by_address= (string) -> ref
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=3,8,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=2 () -> void
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 5 std_core$ByteAccess
 export main 1
 

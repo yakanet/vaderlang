@@ -1,27 +1,27 @@
 module _main
 type 0 scalar null
-type 1 union 2,3
-type 2 scalar i32
-type 3 struct snippet$Point { x:2,y:2 }
-type 4 fn () -> 2
-type 5 struct __lambda_env_snippet_1 { cap_0:1 }
-type 6 struct __lambda_env_snippet_3 { cap_0:1 }
-type 7 struct __lambda_env_snippet_5 { cap_0:1 }
-type 8 struct __lambda_env_snippet_7 { cap_0:1 }
-type 9 scalar string
-type 10 struct std_core$Buffer {  }
-type 11 scalar i64
-type 12 array 13
-type 13 scalar u8
-type 14 scalar void
+type 1 scalar void
+type 2 union 3,4
+type 3 scalar i32
+type 4 struct snippet$Point { x:3,y:3 }
+type 5 fn () -> 3
+type 6 struct __lambda_env_snippet_1 { cap_0:2 }
+type 7 struct __lambda_env_snippet_3 { cap_0:2 }
+type 8 struct __lambda_env_snippet_5 { cap_0:2 }
+type 9 struct __lambda_env_snippet_7 { cap_0:2 }
+type 10 scalar string
+type 11 struct std_core$Buffer {  }
+type 12 scalar i64
+type 13 array 14
+type 14 scalar u8
 type 15 scalar bool
 string 0 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=11 param_types=9 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=12 param_types=9 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=11 param_types=2,12,11 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=14 () -> void
-impl 10 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=12 param_types=10 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=13 param_types=10 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=12 param_types=3,13,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 11 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$deferred (any) -> ref
@@ -29,22 +29,22 @@ fn 0 snippet$deferred (any) -> ref
   local.get 0   ; arg 0
   local.set 1   ; v
   local.get 0   ; arg 0
-  type_check 3   ; snippet$Point
+  type_check 4   ; snippet$Point
   if $L0 void
     local.get 1   ; v
-    struct.new 6   ; __lambda_env_snippet_3
-    make_closure 4 4   ; __lambda_snippet_2 fn
+    struct.new 7   ; __lambda_env_snippet_3
+    make_closure 4 5   ; __lambda_snippet_2 fn
     return
   end $L0
   local.get 0   ; arg 0
-  type_check 2   ; i32
+  type_check 3   ; i32
   if $L1 void
   else
     unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   local.get 1   ; v
-  struct.new 5   ; __lambda_env_snippet_1
-  make_closure 3 4   ; __lambda_snippet_0 fn
+  struct.new 6   ; __lambda_env_snippet_1
+  make_closure 3 5   ; __lambda_snippet_0 fn
   return
 end
 
@@ -53,24 +53,24 @@ fn 1 snippet$mixed (any) -> i32
   local.get 0   ; arg 0
   local.set 1   ; v
   local.get 0   ; arg 0
-  type_check 3   ; snippet$Point
+  type_check 4   ; snippet$Point
   if $L0 void
     local.get 1   ; v
-    struct.new 8   ; __lambda_env_snippet_7
-    make_closure 6 4   ; __lambda_snippet_6 fn
-    call.indirect 4   ; fn
+    struct.new 9   ; __lambda_env_snippet_7
+    make_closure 6 5   ; __lambda_snippet_6 fn
+    call.indirect 5   ; fn
     return
   end $L0
   local.get 0   ; arg 0
-  type_check 2   ; i32
+  type_check 3   ; i32
   if $L1 void
   else
     unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   local.get 1   ; v
-  struct.new 7   ; __lambda_env_snippet_5
-  make_closure 5 4   ; __lambda_snippet_4 fn
-  call.indirect 4   ; fn
+  struct.new 8   ; __lambda_env_snippet_5
+  make_closure 5 5   ; __lambda_snippet_4 fn
+  call.indirect 5   ; fn
   return
 end
 
@@ -81,7 +81,7 @@ fn 2 snippet$main () -> i32
   local $cast_11 i64
   i32.const 3
   i32.const 4
-  struct.new 3   ; snippet$Point
+  struct.new 4   ; snippet$Point
   call 0   ; snippet$deferred
   local.set 0   ; g
   i64.const 20
@@ -90,7 +90,7 @@ fn 2 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   local.get 0   ; g
-  call.indirect 4   ; fn
+  call.indirect 5   ; fn
   i32.to_i64
   local.set 3   ; $cast_11
   local.get 1   ; __buf_0
@@ -103,7 +103,7 @@ fn 2 snippet$main () -> i32
   call 8   ; std_core$finish_buffer
   call 13   ; std_console$println__string
   i32.const 21
-  retag 2   ; i32
+  retag 3   ; i32
   call 0   ; snippet$deferred
   local.set 0   ; g
   i64.const 20
@@ -112,7 +112,7 @@ fn 2 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   local.get 0   ; g
-  call.indirect 4   ; fn
+  call.indirect 5   ; fn
   i32.to_i64
   local.set 3   ; $cast_11
   local.get 1   ; __buf_0
@@ -131,7 +131,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   i32.const 9
   i32.const 1
-  struct.new 3   ; snippet$Point
+  struct.new 4   ; snippet$Point
   call 1   ; snippet$mixed
   i32.to_i64
   local.set 3   ; $cast_11
@@ -150,7 +150,7 @@ fn 2 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   i32.const 5
-  retag 2   ; i32
+  retag 3   ; i32
   call 1   ; snippet$mixed
   i32.to_i64
   local.set 3   ; $cast_11
@@ -167,8 +167,8 @@ fn 2 snippet$main () -> i32
 end
 
 fn 3 __lambda_snippet_0 (ref) -> i32
-  local.field 0 5 0   ; arg 0 __lambda_env_snippet_1.cap_0
-  ref.cast 2   ; i32
+  local.field 0 6 0   ; arg 0 __lambda_env_snippet_1.cap_0
+  ref.cast 3   ; i32
   i32.const 2
   i32.checked_mul
   return
@@ -177,15 +177,15 @@ end
 fn 4 __lambda_snippet_2 (ref) -> i32
   local $field_3 i32
   local $field_6 i32
-  local.field 0 6 0   ; arg 0 __lambda_env_snippet_3.cap_0
-  ref.cast 3   ; snippet$Point
-  struct.get 3 0   ; snippet$Point.x
-  ref.cast 2   ; i32
+  local.field 0 7 0   ; arg 0 __lambda_env_snippet_3.cap_0
+  ref.cast 4   ; snippet$Point
+  struct.get 4 0   ; snippet$Point.x
+  ref.cast 3   ; i32
   local.set 1   ; $field_3
-  local.field 0 6 0   ; arg 0 __lambda_env_snippet_3.cap_0
-  ref.cast 3   ; snippet$Point
-  struct.get 3 1   ; snippet$Point.y
-  ref.cast 2   ; i32
+  local.field 0 7 0   ; arg 0 __lambda_env_snippet_3.cap_0
+  ref.cast 4   ; snippet$Point
+  struct.get 4 1   ; snippet$Point.y
+  ref.cast 3   ; i32
   local.set 2   ; $field_6
   local.get 1   ; $field_3
   local.get 2   ; $field_6
@@ -194,16 +194,16 @@ fn 4 __lambda_snippet_2 (ref) -> i32
 end
 
 fn 5 __lambda_snippet_4 (ref) -> i32
-  local.field 0 7 0   ; arg 0 __lambda_env_snippet_5.cap_0
-  ref.cast 2   ; i32
+  local.field 0 8 0   ; arg 0 __lambda_env_snippet_5.cap_0
+  ref.cast 3   ; i32
   return
 end
 
 fn 6 __lambda_snippet_6 (ref) -> i32
-  local.field 0 8 0   ; arg 0 __lambda_env_snippet_7.cap_0
-  ref.cast 3   ; snippet$Point
-  struct.get 3 0   ; snippet$Point.x
-  ref.cast 2   ; i32
+  local.field 0 9 0   ; arg 0 __lambda_env_snippet_7.cap_0
+  ref.cast 4   ; snippet$Point
+  struct.get 4 0   ; snippet$Point.x
+  ref.cast 3   ; i32
   return
 end
 
@@ -392,7 +392,7 @@ fn 10 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 12   ; u8[]
+      array.slice 13   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

@@ -1,37 +1,37 @@
 module _main
 type 0 scalar null
-type 1 scalar i32
-type 2 scalar string
-type 3 union 4,0
-type 4 scalar pointer
-type 5 array 6
-type 6 scalar u8
-type 7 union 8,0
-type 8 scalar i64
-type 9 struct std_core$Buffer {  }
-type 10 scalar void
+type 1 scalar void
+type 2 scalar i32
+type 3 scalar string
+type 4 union 5,0
+type 5 scalar pointer
+type 6 array 7
+type 7 scalar u8
+type 8 union 9,0
+type 9 scalar i64
+type 10 struct std_core$Buffer {  }
 type 11 scalar bool
-type 12 union 0,2
-type 13 union 2,5
+type 12 union 0,3
+type 13 union 3,6
 type 14 union 15,0
-type 15 struct std_io$IOError { msg:2,kind:6,code:1 }
+type 15 struct std_io$IOError { msg:3,kind:7,code:2 }
 type 16 struct std_fs$RemoveOptions { recursive:11,force:11 }
 type 17 union 18,15
 type 18 struct std_fs$File { handle:20,closed:11 }
 type 19 struct std_fs$OpenOptions { read:11,write:11,append:11,create:11,truncate:11,create_new:11 }
-type 20 union 1,4
+type 20 union 2,5
 type 21 union 22,15
-type 22 array 8
-type 23 union 1,4,15
+type 22 array 9
+type 23 union 2,5,15
 type 24 union 15,25
-type 25 array 2
+type 25 array 3
 type 26 union 15,27
 type 27 array 28
-type 28 struct std_fs$ListedEntry { name:2,kind:6 }
-type 29 struct __defer_env_std_fs_1 { cap_0:4 }
-type 30 union 8,15
+type 28 struct std_fs$ListedEntry { name:3,kind:7 }
+type 29 struct __defer_env_std_fs_1 { cap_0:5 }
+type 30 union 9,15
 type 31 array 15
-type 32 fn () -> 10
+type 32 fn () -> 1
 string 0 "/vader_cpointer_probe"
 string 1 "x"
 string 2 "setup failed: "
@@ -85,30 +85,30 @@ string 49 "path contains a NUL byte"
 string 50 "file is closed"
 data 0 structs 15 3 1 strref 49 u8 0a i32 00000000
 data 1 structs 15 3 1 strref 50 u8 0c i32 00000000
-import 0 extern fopen snippet$c_fopen headers=<stdio.h> result_type=3 param_types=2,2 param_c_out= param_by_address= (string,string) -> any
-import 1 extern fclose snippet$c_fclose headers=<stdio.h> result_type=1 param_types=4 param_c_out= param_by_address= (pointer) -> i32
-import 2 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 3 byte_at std_core$Intrinsic$byte_at intrinsic=byte_at result_type=6 param_types=2,8 param_c_out= param_by_address= (string,i64) -> u8
-import 4 byte_slice std_core$Intrinsic$byte_slice intrinsic=byte_slice result_type=2 param_types=2,8,8 param_c_out= param_by_address= (string,i64,i64) -> string
-import 5 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=5 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 6 current_os std_core$Intrinsic$current_os intrinsic=current_os result_type=6 () -> u8
-import 7 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=1,5,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 8 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=3 param_types=2 param_c_out= param_by_address= (string) -> any
-import 9 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=4 param_c_out= param_by_address= (pointer) -> i32
-import 10 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 11 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=10 () -> void
-import 12 extern :vader_path_stat system_posix$sys_path_stat headers=vader.h result_type=1 param_types=2,1,22 param_c_out=0,0,1 param_by_address= (string,i32,ref) -> i32
-import 13 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=3 param_types=4 param_c_out= param_by_address= (pointer) -> any
-import 14 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=2 param_types=4 param_c_out= param_by_address= (pointer) -> string
-import 15 extern :vader_dirent_kind system_posix$dirent_kind headers=vader.h result_type=1 param_types=4 param_c_out= param_by_address= (pointer) -> i32
-import 16 extern :close system_posix$sys_close headers=<unistd.h> result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
-import 17 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=1 param_types=2 param_c_out= param_by_address= (string) -> i32
-import 18 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=1 param_types=2 param_c_out= param_by_address= (string) -> i32
-import 19 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=2,1,1 param_c_out= param_by_address= (string,i32,i32) -> i32
-import 20 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
-import 21 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=12 param_types=2 param_c_out= param_by_address= (string) -> any
+import 0 extern fopen snippet$c_fopen headers=<stdio.h> result_type=4 param_types=3,3 param_c_out= param_by_address= (string,string) -> any
+import 1 extern fclose snippet$c_fclose headers=<stdio.h> result_type=2 param_types=5 param_c_out= param_by_address= (pointer) -> i32
+import 2 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=9 param_types=3 param_c_out= param_by_address= (string) -> i64
+import 3 byte_at std_core$Intrinsic$byte_at intrinsic=byte_at result_type=7 param_types=3,9 param_c_out= param_by_address= (string,i64) -> u8
+import 4 byte_slice std_core$Intrinsic$byte_slice intrinsic=byte_slice result_type=3 param_types=3,9,9 param_c_out= param_by_address= (string,i64,i64) -> string
+import 5 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=6 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 6 current_os std_core$Intrinsic$current_os intrinsic=current_os result_type=7 () -> u8
+import 7 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=2,6,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 8 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=4 param_types=3 param_c_out= param_by_address= (string) -> any
+import 9 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=5 param_c_out= param_by_address= (pointer) -> i32
+import 10 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 11 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+import 12 extern :vader_path_stat system_posix$sys_path_stat headers=vader.h result_type=2 param_types=3,2,22 param_c_out=0,0,1 param_by_address= (string,i32,ref) -> i32
+import 13 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=4 param_types=5 param_c_out= param_by_address= (pointer) -> any
+import 14 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=3 param_types=5 param_c_out= param_by_address= (pointer) -> string
+import 15 extern :vader_dirent_kind system_posix$dirent_kind headers=vader.h result_type=2 param_types=5 param_c_out= param_by_address= (pointer) -> i32
+import 16 extern :close system_posix$sys_close headers=<unistd.h> result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
+import 17 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=2 param_types=3 param_c_out= param_by_address= (string) -> i32
+import 18 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=2 param_types=3 param_c_out= param_by_address= (string) -> i32
+import 19 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=3,2,2 param_c_out= param_by_address= (string,i32,i32) -> i32
+import 20 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
+import 21 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=12 param_types=3 param_c_out= param_by_address= (string) -> any
 impl 18 std_io$Writer
-impl 9 std_core$ByteAccess
+impl 10 std_core$ByteAccess
 impl 15 std_core$Error
 impl 18 std_io$Reader
 export main 0
@@ -118,13 +118,13 @@ fn 0 snippet$main () -> i32
   local __fallback_0 any
   local wrote any
   local $field_12 string
-  local $struct_44 ref
+  local $struct_46 ref
   call 8   ; std_env$temp_dir
   string.const 0   ; "/vader_cpointer_probe"
   call 1   ; concat_2
   local.tee 0   ; path
   string.const 1   ; "x"
-  retag 2   ; string
+  retag 3   ; string
   call 11   ; std_fs$write_file
   local.tee 1   ; __fallback_0
   local.set 2   ; wrote
@@ -134,7 +134,7 @@ fn 0 snippet$main () -> i32
     local.get 2   ; wrote
     ref.cast 15   ; std_io$IOError
     struct.get 15 0   ; std_io$IOError.msg
-    ref.cast 2   ; string
+    ref.cast 3   ; string
     local.set 3   ; $field_12
     string.const 2   ; "setup failed: "
     local.get 3   ; $field_12
@@ -146,12 +146,12 @@ fn 0 snippet$main () -> i32
   string.const 3   ; "rb"
   call.import 0   ; snippet$c_fopen
   local.tee 1   ; __fallback_0
-  type_check 4   ; pointer
+  type_check 5   ; pointer
   if $L1 void
     string.const 4   ; "matched CPointer"
     call 7   ; std_console$println__string
     local.get 1   ; __fallback_0
-    ref.cast 4   ; pointer
+    ref.cast 5   ; pointer
     call.import 1   ; snippet$c_fclose
     drop
   else
@@ -172,12 +172,12 @@ fn 0 snippet$main () -> i32
   string.const 3   ; "rb"
   call.import 0   ; snippet$c_fopen
   local.tee 1   ; __fallback_0
-  type_check 4   ; pointer
+  type_check 5   ; pointer
   if $L3 void
     string.const 8   ; "unexpectedly opened"
     call 7   ; std_console$println__string
     local.get 1   ; __fallback_0
-    ref.cast 4   ; pointer
+    ref.cast 5   ; pointer
     call.import 1   ; snippet$c_fclose
     drop
   else
@@ -193,9 +193,9 @@ fn 0 snippet$main () -> i32
   bool.const false
   bool.const false
   struct.new 16   ; std_fs$RemoveOptions
-  local.set 4   ; $struct_44
+  local.set 4   ; $struct_46
   local.get 0   ; path
-  local.get 4   ; $struct_44
+  local.get 4   ; $struct_46
   call 12   ; std_fs$remove
   drop
   return.lit i32.const 0
@@ -286,13 +286,13 @@ fn 3 std_core$index_of__u8 (ref,u8) -> any
     if $L1 void
       local.get 0   ; arg 0
       local.get 2   ; i
-      array.get 5   ; u8[]
-      ref.cast 6   ; u8
+      array.get 6   ; u8[]
+      ref.cast 7   ; u8
       local.get 1   ; arg 1
       i32.eq
       if $L2 void
         local.get 2   ; i
-        retag 8   ; i64
+        retag 9   ; i64
         return
       end $L2
       local.get 2   ; i
@@ -340,7 +340,7 @@ fn 4 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 5   ; u8[]
+      array.slice 6   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12
@@ -440,7 +440,7 @@ fn 9 std_env$temp_dir_of (any) -> string
     local.set 1   ; e
   else
     local.get 2   ; __fallback_0
-    ref.cast 2   ; string
+    ref.cast 3   ; string
     local.set 1   ; e
   end $L0
   local.get 1   ; e
@@ -751,7 +751,7 @@ fn 21 std_fs$remove_directory (string,ref) -> any
         local.get 4   ; __for_arr_1
         local.get 6   ; __for_i_3
         array.get 25   ; string[]
-        ref.cast 2   ; string
+        ref.cast 3   ; string
         local.set 7   ; name
         local.get 0   ; arg 0
         string.const 16   ; "/"
@@ -895,23 +895,23 @@ fn 23 std_fs$system_open (string,ref) -> any
       return
     end $L2
     local.get 2   ; $call_2
-    retag 1   ; i32
+    retag 2   ; i32
     return
   end $L1
   local.get 2   ; $call_2
-  retag 1   ; i32
+  retag 2   ; i32
   return
 end
 
 fn 24 std_fs$fd_of (any) -> i32
   local.get 0   ; arg 0
-  type_check 1   ; i32
+  type_check 2   ; i32
   if $L0 void
   else
     unreachable "@unreachable match: a variant the arms assert cannot occur was reached"
   end $L0
   local.get 0   ; arg 0
-  ref.cast 1   ; i32
+  ref.cast 2   ; i32
   return
 end
 
@@ -971,11 +971,11 @@ fn 26 std_fs$read_dir (string) -> any
       local.get 6   ; __for_i_3
       array.get 27   ; std_fs$ListedEntry[]
       struct.get 28 0   ; std_fs$ListedEntry.name
-      ref.cast 2   ; string
+      ref.cast 3   ; string
       local.set 7   ; $field_23
       local.get 4   ; names
       local.get 7   ; $field_23
-      array.push 2 4   ; string names
+      array.push 3 4   ; string names
       local.get 6   ; __for_i_3
       i64.const 1
       i64.add
@@ -1174,7 +1174,7 @@ fn 32 std_fs$list_dir (string) -> any
     return
   end $L0
   local.get 2   ; __fallback_0
-  ref.cast 4   ; pointer
+  ref.cast 5   ; pointer
   local.tee 1   ; d
   struct.new 29   ; __defer_env_std_fs_1
   make_closure 33 32   ; __defer_std_fs_0 fn
@@ -1189,7 +1189,7 @@ fn 32 std_fs$list_dir (string) -> any
     if $L2 void
     else
       local.get 2   ; __fallback_0
-      ref.cast 4   ; pointer
+      ref.cast 5   ; pointer
       local.tee 4   ; p
       call.import 14   ; system_posix$dirent_name
       local.tee 5   ; name
@@ -1231,7 +1231,7 @@ end
 
 fn 33 __defer_std_fs_0 (ref) -> void
   local.field 0 29 0   ; arg 0 __defer_env_std_fs_1.cap_0
-  ref.cast 4   ; pointer
+  ref.cast 5   ; pointer
   call.import 9   ; system_posix$sys_closedir
   drop
   return
@@ -1306,7 +1306,7 @@ fn 35 std_fs$File$std_io$Writer$write (ref,any) -> any
       local.get 2   ; bytes
       local.get 3   ; done
       local.get 7   ; $len_14
-      array.slice 5   ; u8[]
+      array.slice 6   ; u8[]
       local.set 8   ; $slice_15
       local.get 6   ; $field_13
       local.get 8   ; $slice_15
@@ -1321,7 +1321,7 @@ fn 35 std_fs$File$std_io$Writer$write (ref,any) -> any
         return
       end $L3
       local.get 9   ; __fallback_0
-      ref.cast 8   ; i64
+      ref.cast 9   ; i64
       local.tee 5   ; n
       i64.const 0
       i64.eq
@@ -1375,7 +1375,7 @@ fn 36 std_fs$system_write (any,ref) -> any
     end $L1
   end $L0
   local.get 4   ; n
-  retag 8   ; i64
+  retag 9   ; i64
   return
 end
 
@@ -1824,15 +1824,15 @@ end
 
 fn 43 std_io$bytes_of (any) -> ref
   local.get 0   ; arg 0
-  type_check 2   ; string
+  type_check 3   ; string
   if $L0 void
     local.get 0   ; arg 0
-    ref.cast 2   ; string
+    ref.cast 3   ; string
     call.import 5   ; std_core$Intrinsic$bytes
     return
   end $L0
   local.get 0   ; arg 0
-  ref.cast 5   ; u8[]
+  ref.cast 6   ; u8[]
   return
 end
 
@@ -2026,7 +2026,7 @@ fn 48 std_path$prefix_length (string,u8) -> i64
     return
   end $L8
   local.get 3   ; __fallback_0
-  ref.cast 8   ; i64
+  ref.cast 9   ; i64
   i64.const 1
   i64.checked_add
   local.set 4   ; $add_checked_39
@@ -2040,7 +2040,7 @@ fn 48 std_path$prefix_length (string,u8) -> i64
     return
   end $L9
   local.get 3   ; __fallback_0
-  ref.cast 8   ; i64
+  ref.cast 9   ; i64
   return
 end
 
@@ -2098,7 +2098,7 @@ fn 50 std_path$next_separator (string,i64) -> any
       i32.eq
       if $L2 void
         local.get 2   ; i
-        retag 8   ; i64
+        retag 9   ; i64
         return
       end $L2
       local.get 2   ; i

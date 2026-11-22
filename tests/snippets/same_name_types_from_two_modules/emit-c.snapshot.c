@@ -81,50 +81,50 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[17] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_shapes__a$Point_t),
         .slot_size = 8,
     },
-    [2] = { .slot_size = 4 },
-    [3] = {
+    [3] = { .slot_size = 4 },
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_shapes__b$Point_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_shapes__b$Point_t, f_name) },
         .string_count = 1,
     },
-    [4] = { .slot_size = 16 },
-    [5] = { .slot_size = 4 },
-    [6] = { .slot_size = 16 },
-    [7] = {
+    [5] = { .slot_size = 16 },
+    [6] = { .slot_size = 4 },
+    [7] = { .slot_size = 16 },
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Box__Any_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Box__Any_t, f_v) },
         .ptr_count = 1,
     },
-    [8] = { .slot_size = 16 },
-    [9] = { .slot_size = 1 },
-    [10] = {
+    [9] = { .slot_size = 16 },
+    [10] = { .slot_size = 1 },
+    [11] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_snippet$Box__snippet_shapes__a_Point_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Box__snippet_shapes__a_Point_t, f_v) },
         .ptr_count = 1,
     },
-    [11] = {
+    [12] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_snippet$Box__snippet_shapes__b_Point_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet$Box__snippet_shapes__b_Point_t, f_v) },
         .ptr_count = 1,
     },
-    [12] = {
+    [13] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [13] = { .slot_size = 8 },
-    [14] = {
+    [14] = { .slot_size = 8 },
+    [15] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 15u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 16u,
     },
-    [15] = { .slot_size = 1 },
+    [16] = { .slot_size = 1 },
 };
 const size_t vader_type_info_count = 17;
 
@@ -140,7 +140,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 14u, 15u);
+    return (void*) vader_string_bytes_view(a0, 15u, 16u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -238,12 +238,12 @@ static int32_t snippet$main(void) {
     vader_gc_top = &gc_frame;
     t0 = snippet_shapes__a$make();
     vader_struct_snippet$Box__Any_t* _a1_obj = &_a0_storage;
-    vader_obj_header_init(_a1_obj, 7u);
+    vader_obj_header_init(_a1_obj, 8u);
     _a1_obj->f_v = vader_ref_box(t0);
     l0 = (void*) _a1_obj;
     t0 = snippet_shapes__b$make();
     vader_struct_snippet$Box__Any_t* _a3_obj = &_a2_storage;
-    vader_obj_header_init(_a3_obj, 7u);
+    vader_obj_header_init(_a3_obj, 8u);
     _a3_obj->f_v = vader_ref_box(t0);
     l1 = (void*) _a3_obj;
     l2 = ((vader_struct_snippet_shapes__a$Point_t*) ((vader_struct_snippet$Box__snippet_shapes__a_Point_t*) l0)->f_v.payload.obj)->f_x;
@@ -301,18 +301,18 @@ static void* snippet$wrap__snippet_shapes__a_Point(vader_box_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Box__Any_t* _a0_obj = (vader_struct_snippet$Box__Any_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Box__Any_t));
-    vader_obj_header_init(_a0_obj, 7u);
+    vader_obj_header_init(_a0_obj, 8u);
     _a0_obj->f_v = l0;
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static bool snippet$holds__snippet_shapes__a_Point(void* l0, vader_box_t l1) {
-    return l1.tag == 1u;
+    return l1.tag == 2u;
 }
 
 static bool snippet$holds__snippet_shapes__b_Point(void* l0, vader_box_t l1) {
-    return l1.tag == 3u;
+    return l1.tag == 4u;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
@@ -495,7 +495,7 @@ static void* snippet_shapes__a$make(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_snippet_shapes__a$Point_t* _a0_obj = (vader_struct_snippet_shapes__a$Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet_shapes__a$Point_t));
-    vader_obj_header_init(_a0_obj, 1u);
+    vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_x = INT32_C(1);
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -507,7 +507,7 @@ static void* snippet_shapes__b$make(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_snippet_shapes__b$Point_t* _a0_obj = (vader_struct_snippet_shapes__b$Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet_shapes__b$Point_t));
-    vader_obj_header_init(_a0_obj, 3u);
+    vader_obj_header_init(_a0_obj, 4u);
     _a0_obj->f_name = 7u;
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -516,8 +516,8 @@ static void* snippet_shapes__b$make(void) {
 /* vtable dispatchers */
 static vader_string_t snippet$Describe$describe$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet$snippet_shapes__a$Point$Describe$describe(recv.payload.obj);
-        case 3u: return snippet$snippet_shapes__b$Point$Describe$describe(recv.payload.obj);
+        case 2u: return snippet$snippet_shapes__a$Point$Describe$describe(recv.payload.obj);
+        case 4u: return snippet$snippet_shapes__b$Point$Describe$describe(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet$Describe.describe");
     }
     vader_unreachable("vtable miss in snippet$Describe.describe");

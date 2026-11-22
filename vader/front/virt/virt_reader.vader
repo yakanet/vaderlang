@@ -337,6 +337,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
         return null
     }
     if head == "null.const"     { return NullConst {} }
+    if head == "void.const"     { return VoidConst {} }
     if head == "bool.const"     { return parse_bool_const(cleaned) }
     if head == "bool.eq"        { return BoolEq {} }
     if head == "bool.ne"        { return BoolNe {} }
@@ -1085,6 +1086,7 @@ one_of_each_op :: fn() -> Op[] = [
     FnAddr { .function_index = 28 },
     CheckedArith { .kind = .U16, .op = .Mul },
     CheckedNeg { .kind = .I64 },
+    VoidConst {},
 ]
 
 @test test_every_op_round_trips :: fn() -> void {

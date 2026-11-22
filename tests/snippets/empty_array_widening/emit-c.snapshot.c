@@ -52,26 +52,26 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[11] = {
-    [1] = {
+    [2] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
     },
-    [2] = { .slot_size = 4 },
     [3] = { .slot_size = 4 },
-    [4] = {
+    [4] = { .slot_size = 4 },
+    [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [5] = { .slot_size = 8 },
-    [6] = {
+    [6] = { .slot_size = 8 },
+    [7] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
     },
-    [7] = { .slot_size = 1 },
+    [8] = { .slot_size = 1 },
     [9] = { .slot_size = 1 },
     [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
     },
 };
 const size_t vader_type_info_count = 11;
@@ -88,7 +88,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 6u, 7u);
+    return (void*) vader_string_bytes_view(a0, 7u, 8u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -151,7 +151,7 @@ static int32_t snippet$main(void) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_reserve(1u, (int64_t) INT64_C(9), 7u, 2u);
+    vader_array_t* _a0_arr = vader_array_reserve(2u, (int64_t) INT64_C(9), 7u, 3u);
     l0 = (void*) _a0_arr;
     l1 = INT32_C(0);
     vader_array_t* _pc5_hdr = (vader_array_t*) l0;
@@ -208,7 +208,7 @@ static int32_t snippet$main(void) {
     l3 = std_core$write_int(l2, l3, l4);
     t1 = std_core$finish_buffer(l2, l3);
     std_console$println__string(t1);
-    vader_array_t* _a3_arr = vader_array_reserve(10u, (int64_t) INT64_C(9), 0u, 3u);
+    vader_array_t* _a3_arr = vader_array_reserve(10u, (int64_t) INT64_C(9), 0u, 4u);
     l0 = (void*) _a3_arr;
     l1 = INT32_C(0);
     while ((l1 < INT32_C(9))) {
@@ -218,7 +218,7 @@ static int32_t snippet$main(void) {
         l4 = ((int64_t) (int32_t) l1);
         l3 = std_core$write_int(l2, l3, l4);
         l5 = std_core$finish_buffer(l2, l3);
-        vader_array_push_scalar((vader_array_t*) l0, vader_box_string(3u, l5));
+        vader_array_push_scalar((vader_array_t*) l0, vader_box_string(4u, l5));
         l1 = (l1 + INT32_C(1));
     }
     l3 = vader_array_length(((vader_array_t*) l0));
@@ -243,7 +243,7 @@ static int32_t snippet$main(void) {
     l4 = std_core$write_string_at(l0, l4, l6);
     t1 = std_core$finish_buffer(l0, l4);
     std_console$println__string(t1);
-    vader_array_t* _a5_arr = vader_array_new(1u, 0u, 7u, 2u);
+    vader_array_t* _a5_arr = vader_array_new(2u, 0u, 7u, 3u);
     l0 = (void*) _a5_arr;
     vader_array_push_i32((vader_array_t*) l0, INT32_C(1));
     vader_array_push_i32((vader_array_t*) l0, INT32_C(2));
@@ -271,7 +271,7 @@ static int32_t snippet$main(void) {
     l3 = std_core$write_int(l2, l3, l4);
     t1 = std_core$finish_buffer(l2, l3);
     std_console$println__string(t1);
-    vader_array_t* _a8_arr = vader_array_reserve(1u, (int64_t) INT64_C(9), 7u, 2u);
+    vader_array_t* _a8_arr = vader_array_reserve(2u, (int64_t) INT64_C(9), 7u, 3u);
     l0 = (void*) _a8_arr;
     l1 = INT32_C(0);
     vader_array_t* _pc265_hdr = (vader_array_t*) l0;

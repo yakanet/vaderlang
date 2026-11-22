@@ -1,7 +1,7 @@
 module _main
 type 0 scalar null
-type 1 struct snippet$User { name:4,age:3 }
-type 2 scalar void
+type 1 scalar void
+type 2 struct snippet$User { name:4,age:3 }
 type 3 scalar i32
 type 4 scalar string
 type 5 struct std_core$Buffer {  }
@@ -21,7 +21,7 @@ import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=6 p
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=7 param_types=4 param_c_out= param_by_address= (string) -> ref
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=3,7,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=2 () -> void
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 5 std_core$ByteAccess
 export main 1
 
@@ -30,7 +30,7 @@ fn 0 snippet$derive_print (ref) -> void
   local $call_7 i64
   local __buf_1 ref
   local $cast_17 i64
-  local.field 0 1 0   ; arg 0 snippet$User.name
+  local.field 0 2 0   ; arg 0 snippet$User.name
   ref.cast 4   ; string
   local.set 1   ; $field_2
   string.const 0   ; "name: "
@@ -58,7 +58,7 @@ fn 0 snippet$derive_print (ref) -> void
   string.const 2   ; ": "
   call 4   ; std_core$write_string_at
   local.set 2   ; $call_7
-  local.field 0 1 1   ; arg 0 snippet$User.age
+  local.field 0 2 1   ; arg 0 snippet$User.age
   ref.cast 3   ; i32
   i32.to_i64
   local.set 4   ; $cast_17
@@ -82,9 +82,9 @@ fn 1 snippet$main () -> i32
   local $cast_19 i64
   string.const 3   ; "alice"
   i32.const 30
-  struct.new 1   ; snippet$User
+  struct.new 2   ; snippet$User
   local.set 0   ; u
-  local.field 0 1 0   ; u snippet$User.name
+  local.field 0 2 0   ; u snippet$User.name
   ref.cast 4   ; string
   local.tee 1   ; __p_0
   call.import 0   ; std_core$Intrinsic$byte_len
@@ -111,7 +111,7 @@ fn 1 snippet$main () -> i32
   string.const 5   ; " ("
   call 4   ; std_core$write_string_at
   local.set 2   ; $call_7
-  local.field 0 1 1   ; u snippet$User.age
+  local.field 0 2 1   ; u snippet$User.age
   ref.cast 3   ; i32
   i32.to_i64
   local.set 4   ; $cast_19

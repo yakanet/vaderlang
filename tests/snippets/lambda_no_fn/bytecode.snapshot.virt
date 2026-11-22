@@ -1,15 +1,15 @@
 module _main
 type 0 scalar null
-type 1 fn (2) -> 2
-type 2 scalar i32
-type 3 fn (2,2) -> 2
-type 4 fn () -> 2
-type 5 scalar string
-type 6 struct std_core$Buffer {  }
-type 7 scalar i64
-type 8 array 9
-type 9 scalar u8
-type 10 scalar void
+type 1 scalar void
+type 2 fn (3) -> 3
+type 3 scalar i32
+type 4 fn (3,3) -> 3
+type 5 fn () -> 3
+type 6 scalar string
+type 7 struct std_core$Buffer {  }
+type 8 scalar i64
+type 9 array 10
+type 10 scalar u8
 type 11 scalar bool
 string 0 "inc(5) = "
 string 1 "dbl(5) = "
@@ -18,35 +18,35 @@ string 3 "add(3, 4) = "
 string 4 "forty_two() = "
 string 5 "block(3) = "
 string 6 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=5 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=10 () -> void
-impl 6 std_core$ByteAccess
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=3,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+impl 7 std_core$ByteAccess
 export main 3
 
 fn 0 snippet$call_it (ref,i32) -> i32
   local.get 1   ; arg 1
-  retag 2   ; i32
+  retag 3   ; i32
   local.get 0   ; arg 0
-  call.indirect 1   ; fn
+  call.indirect 2   ; fn
   return
 end
 
 fn 1 snippet$call_two (ref,i32,i32) -> i32
   local.get 1   ; arg 1
-  retag 2   ; i32
+  retag 3   ; i32
   local.get 2   ; arg 2
-  retag 2   ; i32
+  retag 3   ; i32
   local.get 0   ; arg 0
-  call.indirect 3   ; fn
+  call.indirect 4   ; fn
   return
 end
 
 fn 2 snippet$call_none (ref) -> i32
   local.get 0   ; arg 0
-  call.indirect 4   ; fn
+  call.indirect 5   ; fn
   return
 end
 
@@ -65,7 +65,7 @@ fn 3 snippet$main () -> i32
   string.const 0   ; "inc(5) = "
   call 12   ; std_core$write_string_at
   local.set 1   ; __off_1
-  fn.ref 4 1   ; __lambda_snippet_0 fn
+  fn.ref 4 2   ; __lambda_snippet_0 fn
   i32.const 5
   call 0   ; snippet$call_it
   i32.to_i64
@@ -89,7 +89,7 @@ fn 3 snippet$main () -> i32
   string.const 1   ; "dbl(5) = "
   call 12   ; std_core$write_string_at
   local.set 1   ; __off_1
-  fn.ref 5 1   ; __lambda_snippet_1 fn
+  fn.ref 5 2   ; __lambda_snippet_1 fn
   i32.const 5
   call 0   ; snippet$call_it
   i32.to_i64
@@ -113,7 +113,7 @@ fn 3 snippet$main () -> i32
   string.const 2   ; "sqr(5) = "
   call 12   ; std_core$write_string_at
   local.set 1   ; __off_1
-  fn.ref 6 1   ; __lambda_snippet_2 fn
+  fn.ref 6 2   ; __lambda_snippet_2 fn
   i32.const 5
   call 0   ; snippet$call_it
   i32.to_i64
@@ -137,7 +137,7 @@ fn 3 snippet$main () -> i32
   string.const 3   ; "add(3, 4) = "
   call 12   ; std_core$write_string_at
   local.set 1   ; __off_1
-  fn.ref 7 3   ; __lambda_snippet_3 fn
+  fn.ref 7 4   ; __lambda_snippet_3 fn
   i32.const 3
   i32.const 4
   call 1   ; snippet$call_two
@@ -162,7 +162,7 @@ fn 3 snippet$main () -> i32
   string.const 4   ; "forty_two() = "
   call 12   ; std_core$write_string_at
   local.set 1   ; __off_1
-  fn.ref 8 4   ; __lambda_snippet_4 fn
+  fn.ref 8 5   ; __lambda_snippet_4 fn
   call 2   ; snippet$call_none
   i32.to_i64
   local.set 2   ; $cast_10
@@ -175,7 +175,7 @@ fn 3 snippet$main () -> i32
   local.get 1   ; __off_1
   call 11   ; std_core$finish_buffer
   call 17   ; std_console$println__string
-  fn.ref 9 1   ; __lambda_snippet_5 fn
+  fn.ref 9 2   ; __lambda_snippet_5 fn
   i32.const 3
   call 0   ; snippet$call_it
   local.set 3   ; r
@@ -445,7 +445,7 @@ fn 14 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 8   ; u8[]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

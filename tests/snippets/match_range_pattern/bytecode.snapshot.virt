@@ -1,7 +1,8 @@
 module _main
 type 0 scalar null
-type 1 scalar char
-type 2 scalar i32
+type 1 scalar void
+type 2 scalar char
+type 3 scalar i32
 export main 2
 
 fn 0 snippet$classify (char) -> i32

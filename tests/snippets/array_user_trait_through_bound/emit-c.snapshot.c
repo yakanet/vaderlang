@@ -881,10 +881,10 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[23] = {
-    [1] = { .slot_size = 4 },
-    [2] = {
+    [2] = { .slot_size = 4 },
+    [3] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 1u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
     },
     [4] = { .slot_size = 16 },
     [5] = { .slot_size = 4 },
@@ -986,7 +986,7 @@ static int32_t snippet$main(void) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(2u, 3u, 7u, 1u);
+    vader_array_t* _a0_arr = vader_array_new(3u, 3u, 7u, 2u);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 2u] = (int32_t) INT32_C(3);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 1u] = (int32_t) INT32_C(2);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (int32_t) INT32_C(1);
@@ -1028,7 +1028,7 @@ static void snippet$$array$Resettable$clear__i32(void* l0) {
 }
 
 static vader_box_t snippet$$array$Popper$remove_last__i32(void* l0) {
-    return vader_box_i32(1u, INT32_C(77));
+    return vader_box_i32(2u, INT32_C(77));
 }
 
 static void snippet$reset__i32__(void* l0) {
@@ -2627,7 +2627,7 @@ static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 9u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));
         case 10u: return std_core$i16$Display$to_string(((int16_t) recv.payload.i));
-        case 1u: return std_core$i32$Display$to_string(((int32_t) recv.payload.i));
+        case 2u: return std_core$i32$Display$to_string(((int32_t) recv.payload.i));
         case 7u: return std_core$i64$Display$to_string(((int64_t) recv.payload.i));
         case 11u: return std_core$u8$Display$to_string(((uint8_t) recv.payload.i));
         case 12u: return std_core$u16$Display$to_string(((uint16_t) recv.payload.i));

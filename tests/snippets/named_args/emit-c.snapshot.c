@@ -41,22 +41,22 @@ static bool std_core$is_utf8_continuation(uint8_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
-const vader_type_info_t vader_type_info_table[9] = {
-    [1] = { .slot_size = 4 },
+const vader_type_info_t vader_type_info_table[10] = {
     [2] = { .slot_size = 4 },
-    [3] = {
+    [3] = { .slot_size = 4 },
+    [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Box_t), .slot_size = 8,
     },
-    [4] = { .slot_size = 8 },
-    [5] = { .slot_size = 1 },
-    [6] = { .slot_size = 4 },
-    [7] = { .slot_size = 1 },
-    [8] = {
+    [5] = { .slot_size = 8 },
+    [6] = { .slot_size = 1 },
+    [7] = { .slot_size = 4 },
+    [8] = { .slot_size = 1 },
+    [9] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
 };
-const size_t vader_type_info_count = 9;
+const size_t vader_type_info_count = 10;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -125,7 +125,7 @@ static int32_t snippet$main(void) {
     l2 = snippet$combine(INT32_C(1), INT32_C(2), INT32_C(3));
     l3 = snippet$pick_1(INT32_C(5), INT32_C(4));
     vader_struct_snippet$Box_t* _a0_obj = (vader_struct_snippet$Box_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Box_t));
-    vader_obj_header_init(_a0_obj, 3u);
+    vader_obj_header_init(_a0_obj, 4u);
     _a0_obj->f_v = INT32_C(6);
     t0 = (void*) _a0_obj;
     l4 = snippet$scale(t0, INT32_C(2), INT32_C(1));
