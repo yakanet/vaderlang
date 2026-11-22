@@ -137,16 +137,14 @@ dump_terminator :: fn(t: Terminator) -> string {
     }
 }
 
-dump_const :: fn(v: ConstValue) -> string {
-    match v {
-        is ConstInt    -> { return "int(${v.value})" }
-        is ConstFloat  -> { return "float(${v.value})" }
-        is ConstBool   -> { return "bool(${v.value})" }
-        is ConstChar   -> { return "char(${v.value})" }
-        is ConstString -> { return "string(#${v.index})" }
-        is ConstNull   -> { return "null" }
-        is ConstVoid   -> { return "void" }
-    }
+dump_const :: fn(v: ConstValue) -> string = match v {
+    is ConstInt    -> "int(${v.value})"
+    is ConstFloat  -> "float(${v.value})"
+    is ConstBool   -> "bool(${v.value})"
+    is ConstChar   -> "char(${v.value})"
+    is ConstString -> "string(#${v.index})"
+    is ConstNull   -> "null"
+    is ConstVoid   -> "void"
 }
 
 dump_dst :: fn(d: LocalId | null) -> string {
