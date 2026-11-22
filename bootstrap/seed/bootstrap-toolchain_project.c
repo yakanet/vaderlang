@@ -14,8 +14,8 @@ vader_box_t toolchain_project$asset_problem(vader_string_t l0) {
     if (!(t0)) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
-    t1 = concat_3(1983u, l0, 1452u);
-    { vader_box_t __vret = vader_box_string(594u, t1); vader_gc_top = gc_frame.prev; return __vret; }
+    t1 = concat_3(1991u, l0, 1458u);
+    { vader_box_t __vret = vader_box_string(595u, t1); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 vader_box_t toolchain_project$entry_name_problem(vader_string_t l0) {
@@ -25,13 +25,13 @@ vader_box_t toolchain_project$entry_name_problem(vader_string_t l0) {
     vader_gc_top = &gc_frame;
     t0 = toolchain_project$is_portable_name(l0);
     if (!(t0)) {
-        { vader_box_t __vret = vader_box_string(594u, 2129u); vader_gc_top = gc_frame.prev; return __vret; }
+        { vader_box_t __vret = vader_box_string(595u, 2137u); vader_gc_top = gc_frame.prev; return __vret; }
     }
     t0 = toolchain_project$is_windows_device_name(l0);
     if (!(t0)) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
-    { vader_box_t __vret = vader_box_string(594u, 2128u); vader_gc_top = gc_frame.prev; return __vret; }
+    { vader_box_t __vret = vader_box_string(595u, 2136u); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 vader_box_t toolchain_project$entry_named(void* l0, vader_string_t l1) {
@@ -80,14 +80,14 @@ static bool toolchain_project$is_portable_name(vader_string_t l0) {
     if (l0 == 0u) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
-    t0 = std_string$starts_with(l0, 458u);
+    t0 = std_string$starts_with(l0, 459u);
     if (t0) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
     l1 = std_string$chars(l0);
     for (;;) {
         l2 = std_string$StringChars$std_core$Iterator$next(l1);
-        if (!(l2.tag == 1031u)) {
+        if (!(l2.tag == 1036u)) {
             t1 = ((uint32_t) l2.payload.i);
             t0 = __lambda_toolchain_project_0(t1);
             if (t0) {
@@ -114,11 +114,11 @@ static bool toolchain_project$is_windows_device_name(vader_string_t l0) {
     };
     vader_gc_top = &gc_frame;
     l1 = std_string$to_lower(l0);
-    vader_array_t* _a0_arr = vader_array_new(28u, 4u, 0u, 594u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 3u] = vader_box_string(594u, 2898u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 2u] = vader_box_string(594u, 1993u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 1u] = vader_box_string(594u, 2966u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 0u] = vader_box_string(594u, 2194u);
+    vader_array_t* _a0_arr = vader_array_new(28u, 4u, 0u, 595u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 3u] = vader_box_string(595u, 2907u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 2u] = vader_box_string(595u, 2001u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 1u] = vader_box_string(595u, 2976u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 0u] = vader_box_string(595u, 2203u);
     t0 = (void*) _a0_arr;
     t1 = std_core$$array$Contains$contains__string(t0, l1);
     if (t1) {
@@ -126,11 +126,11 @@ static bool toolchain_project$is_windows_device_name(vader_string_t l0) {
     }
     t2 = vader_host_std_core$Intrinsic$byte_len(l1);
     if (t2 == INT64_C(4)) {
-        t1 = std_string$starts_with(l1, 2174u);
+        t1 = std_string$starts_with(l1, 2182u);
         if (t1) {
             l2 = true;
         } else {
-            l2 = std_string$starts_with(l1, 2767u);
+            l2 = std_string$starts_with(l1, 2776u);
         }
     } else {
         l2 = false;
@@ -160,17 +160,17 @@ static bool toolchain_project$leaves_project(vader_string_t l0) {
     };
     vader_gc_top = &gc_frame;
     l1 = (void*) &vader_fn_static___lambda_toolchain_project_1;
-    l2 = std_string$replace_chars_where(l0, l1, 513u);
-    t0 = std_string$starts_with(l2, 513u);
+    l2 = std_string$replace_chars_where(l0, l1, 514u);
+    t0 = std_string$starts_with(l2, 514u);
     if (t0) {
         l3 = true;
     } else {
-        l3 = std_string$string$std_core$Contains$contains(l2, 540u);
+        l3 = std_string$string$std_core$Contains$contains(l2, 541u);
     }
     if (l3) {
         { vader_gc_top = gc_frame.prev; return true; }
     }
-    t1 = std_string$split(l2, 513u);
-    t0 = std_core$$array$Contains$contains__string(t1, 472u);
+    t1 = std_string$split(l2, 514u);
+    t0 = std_core$$array$Contains$contains__string(t1, 473u);
     { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }

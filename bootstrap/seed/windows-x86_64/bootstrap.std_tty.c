@@ -14,19 +14,19 @@ static bool std_tty$stdout_is_tty$singleton(void);
 
 vader_string_t std_tty$bold(vader_string_t l0) {
     vader_string_t t0;
-    t0 = std_tty$paint(533u, l0);
+    t0 = std_tty$paint(534u, l0);
     return t0;
 }
 
 vader_string_t std_tty$cyan(vader_string_t l0) {
     vader_string_t t0;
-    t0 = std_tty$paint(539u, l0);
+    t0 = std_tty$paint(540u, l0);
     return t0;
 }
 
 vader_string_t std_tty$dim(vader_string_t l0) {
     vader_string_t t0;
-    t0 = std_tty$paint(535u, l0);
+    t0 = std_tty$paint(536u, l0);
     return t0;
 }
 
@@ -36,7 +36,7 @@ static vader_string_t std_tty$escape(bool l0, vader_string_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     if (l0) {
-        t0 = concat_3(15u, l1, 2770u);
+        t0 = concat_3(15u, l1, 2779u);
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_gc_top = gc_frame.prev; return 0u; }
@@ -70,7 +70,7 @@ static bool std_tty$is_tty(uint8_t l0) {
 
 vader_string_t std_tty$magenta(vader_string_t l0) {
     vader_string_t t0;
-    t0 = std_tty$paint(538u, l0);
+    t0 = std_tty$paint(539u, l0);
     return t0;
 }
 
@@ -127,7 +127,7 @@ static bool std_tty$no_color_set$singleton(void) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l0 = std_env$get_env(865u);
+    l0 = std_env$get_env(866u);
     if (l0.tag == 0u) {
         l1 = 0u;
         l2 = 0u;
@@ -148,7 +148,7 @@ static vader_string_t std_tty$paint(vader_string_t l0, vader_string_t l1) {
     vader_gc_top = &gc_frame;
     l2 = std_tty$should_colorize();
     l3 = std_tty$escape(l2, l0);
-    l4 = std_tty$escape(l2, 528u);
+    l4 = std_tty$escape(l2, 529u);
     t0 = concat_3(l3, l1, l4);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -176,7 +176,7 @@ static bool std_tty$probe_tty(uint8_t l0) {
     if (t0 == INT64_C(-1)) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
-    vader_array_t* _a0_arr = vader_array_new(33u, 1u, 3u, 601u);
+    vader_array_t* _a0_arr = vader_array_new(33u, 1u, 3u, 602u);
     ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (int32_t) INT32_C(0);
     l3 = (void*) _a0_arr;
     t1 = vader_host_system_windows$get_console_mode(l2, l3);
@@ -195,7 +195,7 @@ static bool std_tty$probe_tty(uint8_t l0) {
 
 vader_string_t std_tty$red(vader_string_t l0) {
     vader_string_t t0;
-    t0 = std_tty$paint(536u, l0);
+    t0 = std_tty$paint(537u, l0);
     return t0;
 }
 
@@ -323,6 +323,6 @@ static bool std_tty$stdout_is_tty$singleton(void) {
 
 vader_string_t std_tty$yellow(vader_string_t l0) {
     vader_string_t t0;
-    t0 = std_tty$paint(537u, l0);
+    t0 = std_tty$paint(538u, l0);
     return t0;
 }
