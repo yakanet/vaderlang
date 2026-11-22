@@ -4472,7 +4472,7 @@ serve :: fn(handler: Handler) -> void {
 
 The types of `std/task` that several tasks reach at once, each through its own operations: `Task`, `Channel`, `Shared`, `AtomicInt` and `AtomicBool`. `deep_copy` shares them instead of copying them.
 
-- `Channel<T> { .capacity = n }` is a queue of messages. `send` parks while it is full and `receive` while it is empty; a message sent belongs to its receiver. After `close`, the receivers take the messages it holds, then get `Closed`. A `for` over a channel receives until it is closed and drained, and a capacity of `UNBOUNDED` never makes a sender wait.
+- `Channel<T> { .capacity = n }` is a queue of messages. `send` parks while it is full and `receive` while it is empty; a message sent belongs to its receiver. After `close`, the receivers take the messages it holds, then get `Closed`. A `for` over a channel receives until it is closed and drained, and a capacity of `UNBOUNDED` never makes a sender wait. `poll` and `offer` never park: `poll` gives `Empty` when the channel holds no message, and `offer` gives the message back when the channel is full or closed, `Sent` otherwise.
 - `shared(value)` gives a `Shared<T>`, and `cell.locked(body)` runs `body` on its value, holding its lock. `body` must not park (no `send`, `receive` or `join`), and nothing it reaches of the value may outlive it.
 - `AtomicInt` (`load`, `store`, `fetch_add`, `compare_and_set`) and `AtomicBool` (`load`, `store`) hold a value several tasks read and write at once.
 

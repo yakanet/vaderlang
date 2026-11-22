@@ -390,6 +390,7 @@
     fn std.task.locked<string[], string>  // std_task$locked__string____string
     fn std.task.locked<string[], void>  // std_task$locked__string____void
     fn std.task.outcome<i64>  // std_task$outcome__i64
+    fn std.task.put<i64>  // std_task$put__i64
     fn std.task.receive<i64>  // std_task$receive__i64
     fn std.task.run<i64>  // std_task$run__i64
     fn std.task.send<i64>  // std_task$send__i64
@@ -397,6 +398,7 @@
     fn std.task.start_thread  // std_task$start_thread
     fn std.task.started  // std_task$started
     fn std.task.stop_waiting<i64>  // std_task$stop_waiting__i64
+    fn std.task.taken<i64>  // std_task$taken__i64
     fn std.task.wake_receiver<i64>  // std_task$wake_receiver__i64
     fn std.task.wake_sender<i64>  // std_task$wake_sender__i64
     fn std_task$Task$std_core$Equals$equals__i64$guard

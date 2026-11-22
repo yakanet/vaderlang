@@ -53,6 +53,16 @@ export Closed :: struct {}
 
 Closed implements Display -> "closed"
 
+/// What `poll` gives back when the channel holds no message and is open.
+export Empty :: struct {}
+
+Empty implements Display -> "empty"
+
+/// What `offer` gives back once its message is sent.
+export Sent :: struct {}
+
+Sent implements Display -> "sent"
+
 Channel<T> implements<T> Iterator<T> {
     next :: fn(self) -> T | Stop {
         message :: receive(self)
@@ -88,12 +98,7 @@ export send :: fn<T>(channel: Channel<T>, message: T) -> void {
     if channel.closed {
         panic("send: the channel is closed")
     }
-    channel.messages.push(message)
-    wake_receiver(channel)
-    if channel.messages.len() < channel.capacity {
-        wake_sender(channel)
-    }
-    channel.mutex.unlock()
+    put(channel, message)
 }
 
 /// Take the oldest message of `channel`, parking while it is empty.
@@ -118,6 +123,59 @@ export receive :: fn<T>(channel: Channel<T>) -> T | Closed {
         channel.mutex.unlock()
         return Closed {}
     }
+    return taken(channel)
+}
+
+/// Take the oldest message of `channel` when it holds one, without parking.
+///
+/// @param channel  the channel to receive from.
+/// @return         the message; `Empty` when the channel holds none and is open,
+///                 `Closed` once it is closed and every message taken.
+/// @example
+///   jobs :: Channel<i32> { .capacity = 2 }
+///   jobs.poll()   // empty
+///   jobs.send(1)
+///   jobs.poll()   // 1
+@task_primitive(writes = "messages", takes = true)
+export poll :: fn<T>(channel: Channel<T>) -> T | Empty | Closed {
+    channel.mutex.lock()
+    if channel.messages.is_empty() {
+        closed :: channel.closed
+        channel.mutex.unlock()
+        if closed {
+            return Closed {}
+        }
+        return Empty {}
+    }
+    return taken(channel)
+}
+
+/// Send `message` to `channel` when it has room, without parking.
+///
+/// @param channel  the channel to send on.
+/// @param message  the message: it belongs to its receiver once sent, and comes
+///                 back to the caller otherwise.
+/// @return         `Sent`; `message` back when the channel is full, or closed.
+/// @example
+///   jobs :: Channel<i32> { .capacity = 1 }
+///   jobs.offer(1)   // sent
+///   jobs.offer(2)   // 2
+@task_primitive(gives = "message", grows = "messages", takes = true)
+export offer :: fn<T>(channel: Channel<T>, message: T) -> T | Sent {
+    publish(message)
+    channel.mutex.lock()
+    if channel.closed || channel.messages.len() >= channel.capacity {
+        channel.mutex.unlock()
+        return message
+    }
+    put(channel, message)
+    return Sent {}
+}
+
+// Take the oldest message of `channel`, which holds one, under its mutex, and
+// let the mutex go: a sender waiting for room may go on, and so may the next
+// receiver while messages are left.
+taken :: fn<T>(channel: Channel<T>) -> T {
     message :: channel.messages.remove_first()
     wake_sender(channel)
     if !channel.messages.is_empty() {
@@ -125,6 +183,18 @@ export receive :: fn<T>(channel: Channel<T>) -> T | Closed {
     }
     channel.mutex.unlock()
     return message
+}
+
+// Add `message` to `channel`, which has room for it, under its mutex, and let
+// the mutex go: a receiver may go on, and so may the next sender while room
+// is left.
+put :: fn<T>(channel: Channel<T>, message: T) -> void {
+    channel.messages.push(message)
+    wake_receiver(channel)
+    if channel.messages.len() < channel.capacity {
+        wake_sender(channel)
+    }
+    channel.mutex.unlock()
 }
 
 /// Close `channel`: its receivers take the messages it holds, then get `Closed`.
@@ -216,6 +286,7 @@ wake_receiver :: fn<T>(channel: Channel<T>) -> void {
 
 import "std/string"
 import "std/testing"
+import "std/time"
 
 @test
 test_channel_gives_back_messages_in_order :: fn() -> void {
@@ -250,6 +321,34 @@ test_unbounded_channel_grows_past_a_wrapped_ring :: fn() -> void {
         out.push("${channel.receive()}")
     }
     assert_eq(out.join(" "), "2 3 4 5 6")
+}
+
+@test
+test_poll_takes_what_a_channel_holds_and_parks_for_nothing :: fn() -> void {
+    channel :: Channel<i32> { .capacity = 2 }
+    assert_eq("${channel.poll()}", "empty")
+    channel.send(1)
+    assert_eq("${channel.poll()} ${channel.poll()}", "1 empty")
+    channel.close()
+    assert_eq("${channel.poll()}", "closed")
+}
+
+@test
+test_offer_sends_while_there_is_room_and_gives_back_otherwise :: fn() -> void {
+    channel :: Channel<i32> { .capacity = 1 }
+    assert_eq("${channel.offer(1)} ${channel.offer(2)}", "sent 2")
+    assert_eq("${channel.receive()}", "1")
+    channel.close()
+    assert_eq("${channel.offer(3)}", "3")
+}
+
+@test
+test_an_offer_wakes_a_parked_receiver :: fn() -> void {
+    channel :: Channel<i32> { .capacity = 1 }
+    receiver :: launch(() -> channel.receive())
+    sleep(1.millis())
+    assert_eq("${channel.offer(7)}", "sent")
+    assert_eq("${receiver.join()}", "7")
 }
 
 @test

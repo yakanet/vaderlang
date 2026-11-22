@@ -254,6 +254,7 @@
     fn std.task.launch<i64>  // std_task$launch__i64
     fn std.task.outcome<Any>  // std_task$outcome__Any
     fn std.task.outcome<i64>  // std_task$outcome__i64
+    fn std.task.put<i64>  // std_task$put__i64
     fn std.task.receive<i64>  // std_task$receive__i64
     fn std.task.run<Any>  // std_task$run__Any
     fn std.task.run<i64>  // std_task$run__i64
@@ -262,6 +263,7 @@
     fn std.task.started  // std_task$started
     fn std.task.stop_waiting<Any>  // std_task$stop_waiting__Any
     fn std.task.stop_waiting<i64>  // std_task$stop_waiting__i64
+    fn std.task.taken<i64>  // std_task$taken__i64
     fn std.task.wake_receiver<i64>  // std_task$wake_receiver__i64
     fn std.task.wake_sender<i64>  // std_task$wake_sender__i64
     fn std_task$Task$std_core$Equals$equals__i64$guard
