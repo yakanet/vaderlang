@@ -152,16 +152,19 @@ stream_of :: fn(socket: Socket) -> TcpStream {
 /// Connect to the listener at `address`.
 ///
 /// @param address  where the other end listens.
+/// @param within   how long the connection may take to be made; null for as
+///                 long as the system tries.
 /// @error          `IOError` when nothing listens there, or the machine cannot
-///                 be reached.
+///                 be reached; of `.TimedOut` when `within` passed first.
 /// @example
-///   stream :: connect(loopback(8080))
+///   # import "std/time"
+///   stream :: connect(loopback(8080), 5.seconds())
 ///   if stream is TcpStream {
 ///       stream.write("hello\n")
 ///       stream.close()
 ///   }
-export connect :: fn(address: SocketAddress) -> TcpStream | IOError {
-    socket :: system_connect(address) else return socket
+export connect :: fn(address: SocketAddress, within: Duration | null = null) -> TcpStream | IOError {
+    socket :: system_connect(address, within) else return socket
     return stream_of(socket)
 }
 
@@ -408,12 +411,12 @@ system_accept :: fn(socket: Socket, closed: AtomicBool) -> Socket | IOError {
 }
 
 // A socket connected to `address`, in the mode `system_listen` describes,
-// parking until the other end answers.
+// parking until the other end answers, or `within` has passed.
 @target
-system_connect :: fn(address: SocketAddress) -> Socket | IOError
+system_connect :: fn(address: SocketAddress, within: Duration | null) -> Socket | IOError
 
 @target(.Linux, .Darwin)
-system_connect :: fn(address: SocketAddress) -> Socket | IOError {
+system_connect :: fn(address: SocketAddress, within: Duration | null) -> Socket | IOError {
     fd :: sys_socket(family_of(address), SOCK_STREAM, 0)
     if fd < 0 {
         return last_io_error("cannot open a socket")
@@ -430,7 +433,9 @@ system_connect :: fn(address: SocketAddress) -> Socket | IOError {
     if code != EINPROGRESS && code != EINTR {
         return closing(fd, io_error_of(code, "cannot connect to ${address}"))
     }
-    wait_blocked_write_for(Fd(fd), NO_LIMIT)
+    if !wait_blocked_write_for(Fd(fd), within else NO_LIMIT) {
+        return closing(fd, not_connected_in_time(address))
+    }
     // Writable once the connection is made or has failed: the socket holds
     // which.
     failure: i32[]: [0]
@@ -444,7 +449,8 @@ system_connect :: fn(address: SocketAddress) -> Socket | IOError {
 }
 
 @target(.Windows)
-system_connect :: fn(address: SocketAddress) -> Socket | IOError {
+system_connect :: fn(address: SocketAddress, within: Duration | null) -> Socket | IOError {
+    deadline :: deadline_after(within)
     handle :: open_windows_socket(address) else is IOError { return handle }
     encoded :: sockaddr_of(address)
     if winsock_connect(handle, encoded, i32(encoded.len())) == 0 {
@@ -458,7 +464,9 @@ system_connect :: fn(address: SocketAddress) -> Socket | IOError {
     // whether it is over, and how it went.
     happened: i32[]: [0] * NETWORK_EVENTS_CELLS
     for happened[0] & FD_CONNECT == 0 {
-        wait_writable(handle)
+        if !wait_writable_for(handle, time_left(deadline).nanos()) {
+            return abandoning(handle, not_connected_in_time(address))
+        }
         if wsa_enum_network_events(handle, null, happened) != 0 {
             return abandoning(handle, last_io_error("cannot connect to ${address}"))
         }
@@ -468,6 +476,18 @@ system_connect :: fn(address: SocketAddress) -> Socket | IOError {
         return abandoning(handle, io_error_of(outcome, "cannot connect to ${address}"))
     }
     return handle
+}
+
+// Why a connection to `address` was given up: `within` passed first.
+not_connected_in_time :: fn(address: SocketAddress) -> IOError =
+    IOError { .msg = "cannot connect to ${address} in time", .kind = .TimedOut }
+
+// The deadline `within` from now, as a stream holds one.
+deadline_after :: fn(within: Duration | null) -> i64 {
+    if within == null {
+        return NO_DEADLINE
+    }
+    return deadline_word(monotonic() + within)
 }
 
 // Have the connection `socket` send each write as it is made: the system
@@ -1166,6 +1186,18 @@ test_connect_fails_where_nothing_listens :: fn() -> void {
         return assert(false, "nothing listens on a closed port")
     }
     assert_eq(refused.kind, .ConnectionRefused)
+}
+
+@test
+test_a_connection_that_is_not_made_in_time_is_given_up :: fn() -> void {
+    // TEST-NET-1 (RFC 5737) is routed nowhere: the attempt goes unanswered, or
+    // fails at once on a machine with no route out.
+    started :: monotonic()
+    unanswered :: connect(SocketAddress { .ip = ipv4(192, 0, 2, 1), .port = 80 }, 50.millis())
+    if unanswered is TcpStream {
+        return assert(false, "nothing answers on TEST-NET-1")
+    }
+    assert(started.since().to_seconds() < 5, "the attempt ends with its time")
 }
 
 @test
