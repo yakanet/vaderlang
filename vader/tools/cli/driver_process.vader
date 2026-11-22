@@ -47,11 +47,9 @@ PipedDriver :: struct {
 }
 
 PipedDriver implements DriverPeer {
-    send :: fn(self, frame: ServerFrame) -> null | ProtocolError {
-        written :: self.child.write_input(encode_server_frame(frame).bytes()) else is ProcessError {
-            return ProtocolError { .msg = "it stopped reading: ${written.message()}" }
-        }
-        return null
+    send :: fn(self, frame: ServerFrame) -> void | ProtocolError {
+        written :: self.child.write_input(encode_server_frame(frame).bytes())
+            else return ProtocolError { .msg = "it stopped reading: ${written.message()}" }
     }
 
     receive :: fn(self) -> DriverFrame | ProtocolError {
@@ -83,7 +81,7 @@ drained :: fn(driver: PipedDriver) -> bool = driver.ended && driver.next == driv
 // watchdog kills a driver silent for
 // `DRIVER_TIMEOUT_MS`: it holds a copy of the child, the same process, so that
 // no task shares the child this one waits on.
-read_more :: fn(driver: PipedDriver) -> null | ProtocolError {
+read_more :: fn(driver: PipedDriver) -> void | ProtocolError {
     child :: driver.child
     watched :: child.deep_copy()
     watchdog :: launch(() -> kill_after(watched, DRIVER_TIMEOUT_MS))
@@ -106,7 +104,6 @@ read_more :: fn(driver: PipedDriver) -> null | ProtocolError {
         driver.relay(rest)
         driver.ended = true
     }
-    return null
 }
 
 // Kill `child` once `ms` milliseconds went by, unless cancelled first.

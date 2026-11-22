@@ -124,14 +124,13 @@ parse_int_list :: fn(csv: string) -> i32[] {
 ///
 /// @param cleaned  the .virt line, already comment-stripped.
 /// @param strings  the module-wide string pool, appended to in place.
-/// @return         `null` when a string was appended, else why it could not be.
-parse_string_decl :: fn(cleaned: string, strings: string[]) -> DirectiveError | null {
+/// @error          `DirectiveError` saying why the string could not be appended.
+parse_string_decl :: fn(cleaned: string, strings: string[]) -> void | DirectiveError {
     after :: cleaned.trim_prefix("string ")
     text :: quoted_text(after) else {
         return DirectiveError { .reason = "expected `string <index> \"...\"`, got no quoted text" }
     }
     strings.push(text)
-    return null
 }
 
 // The text `line` quotes from its first `"` to its end, escapes decoded ; null when

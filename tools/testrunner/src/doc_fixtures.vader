@@ -12,7 +12,6 @@
 module "tools/testrunner/src"
 
 import "std/fs"
-import "std/io"
 import "std/time"
 import "tools/cli_tests/cli"
 
@@ -48,14 +47,11 @@ find_doc_fixtures :: fn(found: Discovery) -> void {
 check_doc :: fn(case: Case, dir: string, update: bool) -> StageReport | CaseFailure {
     began :: monotonic()
     project :: "${dir}/project"
-    staged :: copy_sources(entry_path(case), project) else is IOError {
-        return doc_failure("`${project}`: ${staged.msg}")
-    }
+    staged :: copy_sources(entry_path(case), project)
+        else return doc_failure("`${project}`: ${staged.msg}")
     options :: RunOptions { .cwd = project, .env = toolchain_env() }
     ran :: ran_or_failure(run_vader(["doc", case.entry], options))
-    if ran is CaseFailure {
-        return doc_failure(ran.message)
-    }
+        else return doc_failure(ran.message)
     if ran.exit != 0 || ran.stderr != "" {
         return doc_failure("`vader doc ${case.entry}` exited ${ran.exit}\n${ran.stderr}")
     }

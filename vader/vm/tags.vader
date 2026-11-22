@@ -495,9 +495,8 @@ integer_operand_tags :: fn(kind: bc.ValType) -> u8 {
 ///
 /// @param module  a module `verify_module` accepted.
 /// @param facts   its inferred tags (`infer_module_tags`).
-/// @return        `null` when every tested operand is proven.
 /// @error         a `VerifyError` at the first arm whose operand is not.
-check_module_tags :: fn(module: bc.BytecodeModule, facts: FunctionTags[]) -> VerifyError | null {
+check_module_tags :: fn(module: bc.BytecodeModule, facts: FunctionTags[]) -> void | VerifyError {
     for fi in 0..<module.functions.len() {
         f :: module.functions[fi]
         ft :: facts[fi]
@@ -518,7 +517,6 @@ check_module_tags :: fn(module: bc.BytecodeModule, facts: FunctionTags[]) -> Ver
             }
         }
     }
-    return null
 }
 
 // A tag set spelled `i32|char`.

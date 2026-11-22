@@ -182,7 +182,7 @@ frame_names :: fn(m: RegMachine) -> string[] {
 reg_call :: fn(
     state: VmState, code: RegModule, m: RegMachine, entry: i32, window: i64, depth0: i64, resume: i64,
     is_comptime: bool,
-) -> Trap | null {
+) -> void | Trap {
     f := code.functions[entry]
     if depth0 >= i64(MAX_FRAME_DEPTH) {
         return overflow_trap(f.name)
@@ -518,16 +518,12 @@ reg_call :: fn(
             }
             .Boxed -> {
                 failed :: run_boxed(state, m, f, pc, base, is_comptime)
-                if failed != null {
-                    return failed
-                }
+                    else is Trap { return failed }
             }
             .CallImport -> {
                 note_host_call(m, pc, depth)
                 failed :: call_import(state, m, operand_a(w), base + i64(operand_b(w)), f.origin[pc], is_comptime)
-                if failed != null {
-                    return failed
-                }
+                    else is Trap { return failed }
             }
             .StringByteLen -> {
                 at :: base + i64(operand_b(w))
@@ -576,9 +572,7 @@ reg_call :: fn(
             }
             .DeferRun -> {
                 failed :: run_defers(state, code, m, f, pc, base + f.registers, depth, is_comptime)
-                if failed != null {
-                    return failed
-                }
+                    else is Trap { return failed }
             }
             .Line -> {
                 session :: m.debug
@@ -606,9 +600,7 @@ reg_call :: fn(
             }
             .SetField -> {
                 failed :: set_field(m, base, operand_a(w), operand_b(w), operand_c(w), f, pc)
-                if failed != null {
-                    return failed
-                }
+                    else is Trap { return failed }
             }
             .IsStruct -> {
                 held :: struct_at(m, base + i64(operand_b(w)))
@@ -624,10 +616,7 @@ reg_call :: fn(
                 if !try_set_element(m, base, operand_a(w), operand_b(w), operand_c(w)) {
                     failed :: set_element(
                         m, base, operand_a(w), operand_b(w), operand_c(w), f, pc, op,
-                    )
-                    if failed != null {
-                        return failed
-                    }
+                    ) else is Trap { return failed }
                 }
             }
             .Length -> {
@@ -775,7 +764,7 @@ reg_call :: fn(
                     if many && depth0 == 0 {
                         return Trap { .message = "return: a multi-value return reached the outermost frame" }
                     }
-                    return null
+                    return
                 }
                 pc = m.frame_return[depth]
                 base = m.frame_base[depth - 1]
@@ -835,7 +824,7 @@ receiver_trap :: fn(
 }
 
 // The pc of a trap message is read only once the op traps: `f.origin[pc]`.
-set_field :: fn(m: RegMachine, base: i64, obj: i32, value: i32, field: i32, f: RegFunction, pc: i64) -> Trap | null {
+set_field :: fn(m: RegMachine, base: i64, obj: i32, value: i32, field: i32, f: RegFunction, pc: i64) -> void | Trap {
     target :: m.refs[base + i64(obj)]
     if target is StructVal {
         if field < 0 || i64(field) >= target.fields.len() {
@@ -843,10 +832,10 @@ set_field :: fn(m: RegMachine, base: i64, obj: i32, value: i32, field: i32, f: R
             return Trap { .message = "struct.set field ${field} out of range (struct has ${count} fields) at pc=${f.origin[pc]}" }
         }
         target.fields[field] = register_value(m, base + i64(value))
-        return null
+        return
     }
     failed :: read_struct(target, f.origin[pc], "struct.set receiver")
-    return if failed is Trap { failed } else { null }
+        else is Trap { return failed }
 }
 
 // Read an element into register `dst`, allocating nothing so it takes no GC frame.
@@ -917,7 +906,7 @@ set_element :: fn(
     f: RegFunction,
     pc: i64,
     op: RegOp,
-) -> Trap | null {
+) -> void | Trap {
     at :: base + i64(array_reg)
     array :: array_at(m, at) else return element_trap(m, base, array_reg, index_reg, f, pc, op)
     index :: i32(m.bits[base + i64(index_reg)])
@@ -926,7 +915,6 @@ set_element :: fn(
     }
     own_bytes(array)
     array.elements[index] = register_value(m, base + i64(value))
-    return null
 }
 
 // The name an element op traps under: a `load_slot*` or `store_slot*` has its own.
@@ -1025,7 +1013,7 @@ scratch_frame :: fn() -> Frame {
 // registers from r[b].
 run_boxed :: fn(
     state: VmState, m: RegMachine, f: RegFunction, pc: i64, base: i64, is_comptime: bool,
-) -> Trap | null {
+) -> void | Trap {
     w :: f.words[pc]
     at :: base + i64(operand_b(w))
     counts :: operand_c(w)
@@ -1050,7 +1038,6 @@ run_boxed :: fn(
         m.tags[at + i] = frame.tag[i]
         m.refs[at + i] = frame.stack[i]
     }
-    return null
 }
 
 // Where a debugged thread stands as it calls the host.
@@ -1062,7 +1049,7 @@ note_host_call :: fn(m: RegMachine, pc: i64, depth: i64) -> void {
 
 // Call host import `index` with its arguments from register `at` ; its result
 // lands in `at`.
-call_import :: fn(state: VmState, m: RegMachine, index: i32, at: i64, origin: i32, is_comptime: bool) -> Trap | null {
+call_import :: fn(state: VmState, m: RegMachine, index: i32, at: i64, origin: i32, is_comptime: bool) -> void | Trap {
     info :: state.bc.imports[index]
     args: Value[]: []
     for i in 0..<info.signature.params.len() {
@@ -1075,7 +1062,6 @@ call_import :: fn(state: VmState, m: RegMachine, index: i32, at: i64, origin: i3
     if bc.bc_single_result(info.signature) != .Void {
         m.set_register(at, outcome.value)
     }
-    return null
 }
 
 // Serve `info`, import `index` of `state`, on `args`: an `@extern` by a foreign
@@ -1136,10 +1122,10 @@ enter_frame :: fn(m: RegMachine, f: RegFunction, base: i64) -> void {
 run_defers :: fn(
     state: VmState, code: RegModule, m: RegMachine, f: RegFunction, pc: i64, at: i64, depth: i64,
     is_comptime: bool,
-) -> Trap | null {
+) -> void | Trap {
     count :: operand_a(f.words[pc])
     if count <= 0 {
-        return null
+        return
     }
     origin :: f.origin[pc]
     if m.defer_count < i64(count) {
@@ -1160,11 +1146,8 @@ run_defers :: fn(
     for k > 0 {
         k -= 1
         failed :: run_thunk(state, code, m, batch[k], at, depth, pc + 1, is_comptime)
-        if failed != null {
-            return failed
-        }
+            else is Trap { return failed }
     }
-    return null
 }
 
 // The fn value a deferred closure holds, checked to take exactly its environment.
@@ -1195,7 +1178,7 @@ run_thunk :: fn(
     depth: i64,
     resume: i64,
     is_comptime: bool,
-) -> Trap | null {
+) -> void | Trap {
     reserve_registers(m, at + 1)
     if thunk.env != null {
         set_register(m, at, thunk.env)
@@ -1214,9 +1197,7 @@ unwind :: fn(state: VmState, code: RegModule, m: RegMachine, is_comptime: bool) 
         if thunk is Trap {
             return
         }
-        if run_thunk(state, code, m, thunk, 0, 0, 0, is_comptime) != null {
-            return
-        }
+        run_thunk(state, code, m, thunk, 0, 0, 0, is_comptime) else is Trap { return }
     }
 }
 

@@ -101,7 +101,7 @@ export READ_LIMIT_DEFAULT: i64: 16 * 1024 * 1024
 /// @param path     filesystem path.
 /// @param content  what the file holds afterwards.
 /// @error          `IOError` if the file can't be opened or written.
-export write_file :: fn(path: string, content: u8[] | string) -> null | IOError {
+export write_file :: fn(path: string, content: u8[] | string) -> void | IOError {
     f :: path.create() else return f
     written :: f.write(content)
     // Closed either way, and its failure reported: some file systems keep for
@@ -132,10 +132,9 @@ mkdir_one :: fn(path: string) -> bool = create_directory(to_wide(path), null) ||
 /// exist, and it does. Permissions follow the process umask.
 ///
 /// @param path  directory to create, `/`-separated.
-/// @return      `null` on success.
 /// @error       `IOError` when a component cannot be created: a parent that is
 ///              a file, a read-only mount, a path over 4096 bytes.
-export create_dir :: fn(path: string) -> null | IOError {
+export create_dir :: fn(path: string) -> void | IOError {
     if path.byte_len() == 0 {
         return IOError { .msg = "empty path" }
     }
@@ -161,7 +160,6 @@ export create_dir :: fn(path: string) -> null | IOError {
     if !mkdir_one(path) {
         return IOError { .msg = "cannot create directory" }
     }
-    return null
 }
 
 // Create one directory that was not there. False when the name is taken as well
@@ -198,7 +196,7 @@ UNIQUE_DIR_ATTEMPTS :: 64
 ///   # import "std/env"
 ///   work :: create_unique_dir(temp_dir(), "build.")   // ".../build.9f3a61c20b5d7e44"
 export create_unique_dir :: fn(parent: string, prefix: string) -> string | IOError {
-    made :: create_dir(parent) else is IOError { return made }
+    made :: create_dir(parent) else return made
     seed :: u64(i64(monotonic()))
     for attempt in 0..<UNIQUE_DIR_ATTEMPTS {
         path :: "${parent}/${prefix}${scrambled(seed +% u64(attempt)).to_hex()}"

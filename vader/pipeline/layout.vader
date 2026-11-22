@@ -148,7 +148,7 @@ remove_stale :: fn(dir: string, names: Set<string>, owned: Set<string>) -> void 
         return
     }
     for path in stale {
-        failed :: remove(path) else is IOError {
+        failed :: remove(path) else {
             eprintln("vader build: cannot remove `${path.to_native()}`: ${failed.message()}")
             continue
         }
@@ -219,7 +219,7 @@ export write_text :: fn(path: string, content: string) -> bool {
     if !ensure_dir(path.to_path().parent().as_string()) {
         return false
     }
-    failed :: write_file(path, content) else is IOError {
+    failed :: write_file(path, content) else {
         eprintln("vader build: cannot write `${path.to_native()}`: ${failed.message()}")
         return false
     }
@@ -243,7 +243,7 @@ repoint :: fn(diags: Diagnostic[], written: Map<string, string>) -> void {
 /// @param path  the folder to make.
 /// @return      false after saying it could not be made.
 export ensure_dir :: fn(path: string) -> bool {
-    made :: create_dir(path) else is IOError {
+    made :: create_dir(path) else {
         eprintln("vader build: cannot create `${path.to_native()}`: ${made.message()}")
         return false
     }
@@ -308,7 +308,7 @@ refresh_copy :: fn(source: string, target: string) -> bool {
         eprintln("vader build: cannot read `${source.to_native()}`: ${bytes.message()}")
         return false
     }
-    written :: write_file(target, bytes) else is IOError {
+    written :: write_file(target, bytes) else {
         eprintln("vader build: cannot write `${target.to_native()}`: ${written.message()}")
         return false
     }

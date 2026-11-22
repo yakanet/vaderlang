@@ -145,7 +145,7 @@ assert_each_refused :: fn(answers: (ProcessResult | ProcessError)[], said: strin
 // `with_archive`; or why it could not be made.
 stage_clibrary :: fn(name: string, with_archive: bool) -> string | ProcessError {
     dir :: scratch_dir("ffi_${name}")
-    copied :: copy_tree(CLIBRARY, dir) else is IOError { return ProcessError { .msg = copied.msg } }
+    copied :: copy_tree(CLIBRARY, dir) else return ProcessError { .msg = copied.msg }
     if !with_archive {
         return dir
     }

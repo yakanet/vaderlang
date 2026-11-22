@@ -46,6 +46,8 @@ export VirtParseError :: struct {
     reason:      string
 }
 
+VirtParseError implements Error -> self.reason
+
 /// Why a module-level directive could not be read: the reason without the
 /// position.
 ///
@@ -59,6 +61,8 @@ export DirectiveError :: struct {
     reason: string
 }
 
+DirectiveError implements Error -> self.reason
+
 /// Render the error as the two-line message both CLI entry points print: a
 /// `command: path:line: reason` header, then the offending line indented under
 /// it. Shared so the two call sites can't drift apart on the format.
@@ -71,15 +75,14 @@ export display_virt_parse_error :: fn(e: VirtParseError, command: string, path: 
     "${command}: ${path}:${e.line_number}: ${e.reason}\n  ${e.line}"
 
 // Pair a directive parser's reason with the line it came from. Returns the
-// positioned error, or null when the directive parsed: the caller still does its
+// positioned error, or `void` when the directive parsed: the caller still does its
 // own `return`, since a helper cannot return on its behalf.
 positioned :: fn(
-    failure: DirectiveError | null, line_number: i64, line: string,
-) -> VirtParseError | null {
+    failure: void | DirectiveError, line_number: i64, line: string,
+) -> void | VirtParseError {
     if failure is DirectiveError {
         return VirtParseError { .line_number = line_number, .line = line, .reason = failure.reason }
     }
-    return null
 }
 
 /// Where one function of a `.virt` dump sits, by 0-based line.
@@ -214,9 +217,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
             if head == "module" { module_name = parse_module_name(cleaned) continue }
             if head == "type" {
                 failed :: positioned(parse_type_decl_bc(cleaned, types), line_index, cleaned)
-                    else is VirtParseError {
-                        return failed
-                    }
+                    else return failed
                 type_lines.push(here)
                 continue
             }
@@ -225,46 +226,38 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
             // after it: the pool analogue of the pc shift fixed for instructions.
             if head == "string" {
                 failed :: positioned(parse_string_decl(cleaned, strings), line_index, cleaned)
-                    else is VirtParseError {
-                        return failed
-                    }
+                    else return failed
                 string_lines.push(here)
                 continue
             }
             if head == "data" {
                 failed :: positioned(
                     parse_data_decl_bc(cleaned, data_pool, strings), line_index, cleaned,
-                ) else is VirtParseError { return failed }
+                ) else return failed
                 data_lines.push(here)
                 continue
             }
             if head == "global" {
                 failed :: positioned(parse_global_decl_bc(cleaned, globals), line_index, cleaned)
-                    else is VirtParseError {
-                        return failed
-                    }
+                    else return failed
                 global_lines.push(here)
                 continue
             }
             if head == "import" {
                 failed :: positioned(
                     parse_import_decl_bc(cleaned, imports, types), line_index, cleaned,
-                ) else is VirtParseError { return failed }
+                ) else return failed
                 import_lines.push(here)
                 continue
             }
             if head == "impl" {
                 failed :: positioned(parse_impl_decl_bc(cleaned, impl_table), line_index, cleaned)
-                    else is VirtParseError {
-                        return failed
-                    }
+                    else return failed
                 continue
             }
             if head == "vtable" {
                 failed :: positioned(parse_vtable_decl_bc(cleaned, vtables), line_index, cleaned)
-                    else is VirtParseError {
-                        return failed
-                    }
+                    else return failed
                 continue
             }
             if head == "export" {
@@ -369,7 +362,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
 // ---- module-level directive parsers ---------------------------------------
 
 // Parse `global N <type> <name>` into `globals`, in slot order.
-parse_global_decl_bc :: fn(cleaned: string, globals: BcGlobal[]) -> DirectiveError | null {
+parse_global_decl_bc :: fn(cleaned: string, globals: BcGlobal[]) -> void | DirectiveError {
     words :: cleaned.split(" ")
     if words.len() != 4 {
         return DirectiveError { .reason = "expected `global <index> <type> <name>`" }
@@ -377,7 +370,6 @@ parse_global_decl_bc :: fn(cleaned: string, globals: BcGlobal[]) -> DirectiveErr
     type_id :: parse_int_in_base(words[2], 10)
         else return DirectiveError { .reason = "global type index \"${words[2]}\" is not a number" }
     globals.push(BcGlobal { .name = words[3], .type_id = i32(type_id) })
-    return null
 }
 
 parse_module_name :: fn(cleaned: string) -> string {
@@ -387,7 +379,7 @@ parse_module_name :: fn(cleaned: string) -> string {
 /// Parse `type N <decl>` into the matching `BcType`, appended in ordinal order:
 /// the index is implicit in the array position.
 ///
-/// Returns the reason the line could not be read, or `null` on success. It used to
+/// Returns the reason the line could not be read, or `void` on success. It used to
 /// push a `BcRef { "" }` placeholder for anything it didn't recognise, on the
 /// stated grounds of "keeping ordinals aligned". Aligned ordinals over a wrong
 /// type buy nothing: an opaque ref where the emitter expects a struct makes every
@@ -397,8 +389,8 @@ parse_module_name :: fn(cleaned: string) -> string {
 ///
 /// @param cleaned  the `type ...` line, comment already stripped.
 /// @param types    the type table, appended to in ordinal order.
-/// @return         `null` when a type was appended, else why it could not be.
-parse_type_decl_bc :: fn(cleaned: string, types: BcType[]) -> DirectiveError | null {
+/// @error          `DirectiveError` saying why the type could not be appended.
+parse_type_decl_bc :: fn(cleaned: string, types: BcType[]) -> void | DirectiveError {
     after_type :: cleaned.trim_prefix("type ").trim()
     first_space :: after_type.index_of(' ') else {
         return DirectiveError {
@@ -418,12 +410,12 @@ parse_type_decl_bc :: fn(cleaned: string, types: BcType[]) -> DirectiveError | n
             .symbol_id = i32(types.len()),
             .shared    = parsed.shared,
         })
-        return null
+        return
     }
     if rest.starts_with("scalar ") {
         kind :: rest.trim_prefix("scalar ").trim()
         types.push(BcScalar { .val = vt_or_void(kind) })
-        return null
+        return
     }
     if rest.starts_with("array ") {
         element_text :: rest.trim_prefix("array ").trim()
@@ -433,16 +425,16 @@ parse_type_decl_bc :: fn(cleaned: string, types: BcType[]) -> DirectiveError | n
             }
         }
         types.push(BcArray { .element = i32(parsed) })
-        return null
+        return
     }
     if rest.starts_with("ref ") {
         name :: unquote_name(rest.trim_prefix("ref ").trim())
         normalised :: if name == "_" { "" } else { name }
         types.push(BcRef { .trait_name = normalised })
-        return null
+        return
     }
-    if rest.starts_with("fn ") { types.push(parse_fn_type_bc(rest)) return null }
-    if rest.starts_with("union ") { types.push(parse_union_type_bc(rest)) return null }
+    if rest.starts_with("fn ") { types.push(parse_fn_type_bc(rest)) return }
+    if rest.starts_with("union ") { types.push(parse_union_type_bc(rest)) return }
     return DirectiveError { .reason = "unrecognised type kind in `${rest}`" }
 }
 
@@ -563,7 +555,7 @@ parse_union_type_bc :: fn(rest: string) -> BcUnion {
 /// keyword (when present) shifts the name/mangled tokens by one.
 parse_import_decl_bc :: fn(
     cleaned: string, imports: BcImport[], types: BcType[],
-) -> DirectiveError | null {
+) -> void | DirectiveError {
     after :: cleaned.trim_prefix("import ")
     open :: after.index_of('(')
     head_part :: before_first(after, '(')
@@ -715,7 +707,6 @@ parse_import_decl_bc :: fn(
         .blocking      = blocking,
         .library       = library,
     })
-    return null
 }
 
 // The library an import names by `<lib>:` before its symbol, or null for one
@@ -738,7 +729,7 @@ read_library_attribute :: fn(library: CLibrary, attr: string) -> void {
     }
 }
 
-parse_impl_decl_bc :: fn(cleaned: string, impl_table: ImplEntry[]) -> DirectiveError | null {
+parse_impl_decl_bc :: fn(cleaned: string, impl_table: ImplEntry[]) -> void | DirectiveError {
     after :: cleaned.trim_prefix("impl ").trim()
     space :: after.index_of(' ') else {
         return DirectiveError { .reason = "expected `impl <type-index> <trait>`, got `${after}`" }
@@ -749,10 +740,9 @@ parse_impl_decl_bc :: fn(cleaned: string, impl_table: ImplEntry[]) -> DirectiveE
     }
     trait_name :: after.byte_slice(space + 1, after.byte_len()).trim()
     impl_table.push(ImplEntry { .type_index = i32(parsed), .trait_name = trait_name })
-    return null
 }
 
-parse_vtable_decl_bc :: fn(cleaned: string, vtables: VtableRow[]) -> DirectiveError | null {
+parse_vtable_decl_bc :: fn(cleaned: string, vtables: VtableRow[]) -> void | DirectiveError {
     after :: cleaned.trim_prefix("vtable ").trim()
     last_space :: after.last_index_of(' ') else {
         return DirectiveError {
@@ -779,7 +769,6 @@ parse_vtable_decl_bc :: fn(cleaned: string, vtables: VtableRow[]) -> DirectiveEr
         .receiver_type_index = i32(type_parsed),
         .fn_index            = i32(fn_parsed),
     })
-    return null
 }
 
 register_vtable_row :: fn(vtables: VtableRow[], key: string, entry: VtableEntry) -> void {
@@ -809,7 +798,7 @@ parse_export_decl_bc :: fn(cleaned: string, exports: BcExport[]) -> i32 {
 /// lowers to `.rodata` (the VM reader materialises to values in `reduce_data_pool`).
 parse_data_decl_bc :: fn(
     cleaned: string, data_pool: BcDataEntry[], strings: string[],
-) -> DirectiveError | null {
+) -> void | DirectiveError {
     after :: cleaned.trim_prefix("data ")
     sp1 :: after.index_of(' ') else {
         return DirectiveError {
@@ -821,15 +810,15 @@ parse_data_decl_bc :: fn(
     payload :: after_first(kind_payload, ' ')
     if kind_name == "str" {
         data_pool.push(BcStrData { .values = parse_quoted_strings(payload) })
-        return null
+        return
     }
     if kind_name == "agg" {
         data_pool.push(parse_agg_decl(payload, strings))
-        return null
+        return
     }
     if kind_name == "structs" {
         data_pool.push(parse_structs_decl(payload, strings))
-        return null
+        return
     }
     // Every other kind carries a `hex"..."` blob. A malformed one used to be
     // dropped, which removed a whole pool entry and renumbered every later index.
@@ -852,7 +841,6 @@ parse_data_decl_bc :: fn(
         items = filled_indexed(bytes_arr.len() / esz, (i) -> read_le(bytes_arr, i * esz, esz))
     }
     data_pool.push(BcPrimData { .kind = kind, .items = items })
-    return null
 }
 
 /// Tokenise a `"v0" "v1" ...` sequence into the decoded string values. Each token

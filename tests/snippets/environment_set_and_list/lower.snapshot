@@ -35,7 +35,7 @@
           if __fallback_5 is null { "unset" } else { string(__fallback_5) } :string
       }
       std.console.println<string>(concat_2("after unset: ", after))
-      refused: IOError | null = std.env.set_env("A=B", "x")
+      refused: IOError | void = std.env.set_env("A=B", "x")
       if refused is IOError {
           std.console.println<string>(concat_2("refused: ", std.io.IOErrorKind.to_string(IOError(refused).kind)))
       }

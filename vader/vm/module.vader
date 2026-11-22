@@ -102,10 +102,7 @@ prepare_for :: fn(module: bc.BytecodeModule, debug: bool) -> VmState | VerifyErr
 prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | VerifyError {
     depths :: verify_module(bc_mod) else is VerifyError { return depths }
     facts :: infer_module_tags(bc_mod, depths)
-    mistyped :: check_module_tags(bc_mod, facts)
-    if mistyped != null {
-        return mistyped
-    }
+    mistyped :: check_module_tags(bc_mod, facts) else return mistyped
     import_ids: bc.IntrinsicId[]: [] * bc_mod.imports.len()
     for imp in bc_mod.imports {
         import_ids.push(imp.intrinsic)

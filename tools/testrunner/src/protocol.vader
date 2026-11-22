@@ -80,6 +80,8 @@ CaseFailure :: struct {
     message: string
 }
 
+CaseFailure implements Error -> self.message
+
 // The end of a case.
 CaseDone :: struct {
     duration_us: i64

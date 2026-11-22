@@ -4,7 +4,7 @@
   FnDecl         bytes_text           :: fn(IOError | null | u8[]) -> string
   FnDecl         line_text            :: fn(IOError | null | string) -> string
   FnDecl         main                 :: fn() -> i32
-  FnDecl         outcome              :: fn(IOError | null) -> string
+  FnDecl         outcome              :: fn(IOError | null | void) -> string
   expr 104:16   IdentExpr      :: i64
   expr 11:16    StringLitExpr  :: string
   expr 12:15    StructLitExpr  :: BufferedReader
@@ -99,8 +99,8 @@
   expr 30:15    StructLitExpr  :: BufferedWriter
   expr 30:40    IdentExpr      :: BytesWriter
   expr 31:18    StringLitExpr  :: string
-  expr 31:5     CallExpr       :: IOError | null
-  expr 31:5     FieldExpr      :: fn(string | u8[]) -> IOError | null
+  expr 31:5     CallExpr       :: IOError | void
+  expr 31:5     FieldExpr      :: fn(string | u8[]) -> IOError | void
   expr 31:5     IdentExpr      :: BufferedWriter
   expr 32:13    StringLitExpr  :: string
   expr 32:39    CallExpr       :: i64
@@ -110,8 +110,8 @@
   expr 32:5     CallExpr       :: void
   expr 32:5     IdentExpr      :: fn(T) -> void
   expr 33:18    StringLitExpr  :: string
-  expr 33:5     CallExpr       :: IOError | null
-  expr 33:5     FieldExpr      :: fn(string | u8[]) -> IOError | null
+  expr 33:5     CallExpr       :: IOError | void
+  expr 33:5     FieldExpr      :: fn(string | u8[]) -> IOError | void
   expr 33:5     IdentExpr      :: BufferedWriter
   expr 34:13    StringLitExpr  :: string
   expr 34:48    CallExpr       :: i64
@@ -121,8 +121,8 @@
   expr 34:5     CallExpr       :: void
   expr 34:5     IdentExpr      :: fn(T) -> void
   expr 35:18    SeqLitExpr     :: u8[]
-  expr 35:5     CallExpr       :: IOError | null
-  expr 35:5     FieldExpr      :: fn(string | u8[]) -> IOError | null
+  expr 35:5     CallExpr       :: IOError | void
+  expr 35:5     FieldExpr      :: fn(string | u8[]) -> IOError | void
   expr 35:5     IdentExpr      :: BufferedWriter
   expr 36:13    StringLitExpr  :: string
   expr 36:34    CallExpr       :: i64
@@ -131,8 +131,8 @@
   expr 36:34    IdentExpr      :: BytesWriter
   expr 36:5     CallExpr       :: void
   expr 36:5     IdentExpr      :: fn(T) -> void
-  expr 37:5     CallExpr       :: IOError | null
-  expr 37:5     FieldExpr      :: fn() -> IOError | null
+  expr 37:5     CallExpr       :: IOError | void
+  expr 37:5     FieldExpr      :: fn() -> IOError | void
   expr 37:5     IdentExpr      :: BufferedWriter
   expr 38:13    StringLitExpr  :: string
   expr 38:33    CallExpr       :: i64
@@ -181,18 +181,18 @@
   expr 60:66    DotVariantExpr :: IOErrorKind
   expr 63:13    StringLitExpr  :: string
   expr 63:26    CallExpr       :: string
-  expr 63:26    IdentExpr      :: fn(IOError | null) -> string
-  expr 63:34    CallExpr       :: IOError | null
-  expr 63:34    FieldExpr      :: fn(string | u8[]) -> IOError | null
+  expr 63:26    IdentExpr      :: fn(IOError | null | void) -> string
+  expr 63:34    CallExpr       :: IOError | void
+  expr 63:34    FieldExpr      :: fn(string | u8[]) -> IOError | void
   expr 63:34    IdentExpr      :: BufferedWriter
   expr 63:48    StringLitExpr  :: string
   expr 63:5     CallExpr       :: void
   expr 63:5     IdentExpr      :: fn(T) -> void
   expr 64:13    StringLitExpr  :: string
   expr 64:25    CallExpr       :: string
-  expr 64:25    IdentExpr      :: fn(IOError | null) -> string
-  expr 64:33    CallExpr       :: IOError | null
-  expr 64:33    FieldExpr      :: fn() -> IOError | null
+  expr 64:25    IdentExpr      :: fn(IOError | null | void) -> string
+  expr 64:33    CallExpr       :: IOError | void
+  expr 64:33    FieldExpr      :: fn() -> IOError | void
   expr 64:33    IdentExpr      :: BufferedWriter
   expr 64:5     CallExpr       :: void
   expr 64:5     IdentExpr      :: fn(T) -> void
@@ -202,7 +202,7 @@
   expr 69:8     IdentExpr      :: IOError | null | string
   expr 70:16    IdentExpr      :: string
   expr 72:12    CallExpr       :: string
-  expr 72:12    IdentExpr      :: fn(IOError | null) -> string
+  expr 72:12    IdentExpr      :: fn(IOError | null | void) -> string
   expr 72:20    IdentExpr      :: IOError | null
   expr 76:5     IfExpr         :: void
   expr 76:8     BinaryExpr     :: bool
@@ -211,12 +211,12 @@
   expr 77:16    FieldExpr      :: fn() -> string
   expr 77:16    IdentExpr      :: u8[]
   expr 79:12    CallExpr       :: string
-  expr 79:12    IdentExpr      :: fn(IOError | null) -> string
+  expr 79:12    IdentExpr      :: fn(IOError | null | void) -> string
   expr 79:20    IdentExpr      :: IOError | null
   expr 83:18    IdentExpr      :: IOError
   expr 83:5     IfExpr         :: void
   expr 83:8     BinaryExpr     :: bool
-  expr 83:8     IdentExpr      :: IOError | null
+  expr 83:8     IdentExpr      :: IOError | null | void
   expr 84:16    StringLitExpr  :: string
   expr 84:19    FieldExpr      :: IOErrorKind
   expr 84:19    IdentExpr      :: IOError

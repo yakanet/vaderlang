@@ -98,7 +98,7 @@ cmd_new :: fn(args: string[]) -> i32 {
     target :: resolve_target(chosen) else is ScaffoldError { return refuse(asking, target.msg) }
     setup :: choose_build(parsed) else return refuse(asking, unanswered(setup))
     wants_git :: choose_git(parsed) else return refuse(asking, unanswered(wants_git))
-    written :: scaffold(target, setup) else is ScaffoldError { return refuse(asking, written.msg) }
+    written :: scaffold(target, setup) else return refuse(asking, written.msg)
     complaint := ""
     if wants_git {
         complaint = init_git(target.dir) else ""
@@ -232,6 +232,8 @@ ScaffoldError :: struct {
     msg: string
 }
 
+ScaffoldError implements Error -> self.msg
+
 /// The path standing for "the working directory": what a bare `vader new` gets.
 IN_PLACE :: "."
 
@@ -308,9 +310,9 @@ directory_name :: fn(path: string) -> string {
 
 // Write the three files. Creating `<dir>/src` creates `<dir>` on the way: the
 // intrinsic is `mkdir -p`, and an existing directory is success.
-scaffold :: fn(project: NewProject, setup: BuildSetup) -> null | ScaffoldError {
+scaffold :: fn(project: NewProject, setup: BuildSetup) -> void | ScaffoldError {
     source_dir :: join_path(project.dir, SOURCE_DIR)
-    made :: create_dir(source_dir) else is IOError {
+    made :: create_dir(source_dir) else {
         return ScaffoldError {
             .msg = "cannot create `${source_dir.to_native()}`: ${made.message()}",
         }
@@ -334,11 +336,9 @@ scaffold :: fn(project: NewProject, setup: BuildSetup) -> null | ScaffoldError {
     return write_one(join_path(project.dir, ".gitignore"), render_gitignore())
 }
 
-write_one :: fn(path: string, content: string) -> null | ScaffoldError {
-    res :: write_file(path, content) else is IOError {
-        return ScaffoldError { .msg = "cannot write `${path.to_native()}`: ${res.message()}" }
-    }
-    return null
+write_one :: fn(path: string, content: string) -> void | ScaffoldError {
+    res :: write_file(path, content)
+        else return ScaffoldError { .msg = "cannot write `${path.to_native()}`: ${res.message()}" }
 }
 
 /// The manifest: the identity, the include-path list the loader consults, the

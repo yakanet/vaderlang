@@ -144,7 +144,7 @@
       }
       return snippet.outcome((IOError | null)(bytes))
   }
-  snippet.outcome :: fn(result: IOError | null) -> string {  // snippet$outcome
+  snippet.outcome :: fn(result: IOError | null | void) -> string {  // snippet$outcome
       if result is IOError {
           return concat_3(std.io.IOErrorKind.to_string(IOError(result).kind), ": ", IOError(result).msg)
       }

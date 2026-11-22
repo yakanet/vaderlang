@@ -99,7 +99,7 @@ export local_address :: fn(listener: TcpListener) -> SocketAddress | IOError {
 ///
 /// @param listener  the listening socket.
 /// @error           `IOError` when the system reports a failure on closing.
-export close :: fn(listener: TcpListener) -> null | IOError {
+export close :: fn(listener: TcpListener) -> void | IOError {
     return close_once(listener.socket, listener.closed)
 }
 
@@ -218,7 +218,7 @@ TcpStream implements Reader {
 }
 
 TcpStream implements Writer {
-    write :: fn(self, content: u8[] | string) -> null | IOError {
+    write :: fn(self, content: u8[] | string) -> void | IOError {
         // Before the checks, as `read` does.
         give_way_now_and_then()
         if self.closed.load() {
@@ -320,7 +320,7 @@ export peer_address :: fn(stream: TcpStream) -> SocketAddress | IOError {
 /// @param stream  the connection.
 /// @error         `IOError` when the stream is closed, or the connection is
 ///                gone.
-export close_write :: fn(stream: TcpStream) -> null | IOError {
+export close_write :: fn(stream: TcpStream) -> void | IOError {
     if stream.closed.load() {
         return SOCKET_CLOSED
     }
@@ -332,14 +332,14 @@ export close_write :: fn(stream: TcpStream) -> null | IOError {
 ///
 /// @param stream  the connection.
 /// @error         `IOError` when the system reports a failure on closing.
-export close :: fn(stream: TcpStream) -> null | IOError {
+export close :: fn(stream: TcpStream) -> void | IOError {
     return close_once(stream.socket, stream.closed)
 }
 
 // Give `socket` back to the system unless `closed` says it went already.
-close_once :: fn(socket: Socket, closed: AtomicBool) -> null | IOError {
+close_once :: fn(socket: Socket, closed: AtomicBool) -> void | IOError {
     if closed.load() {
-        return null
+        return
     }
     closed.store(true)
     return system_close(socket)
@@ -405,10 +405,7 @@ system_accept :: fn(socket: Socket, closed: AtomicBool) -> Socket | IOError {
         }
         code :: sys_last_errno()
         if code == EAGAIN {
-            parked :: park(socket, false, closed, NO_DEADLINE)
-            if parked != null {
-                return parked
-            }
+            parked :: park(socket, false, closed, NO_DEADLINE) else return parked
         } else if code != EINTR && code != ECONNABORTED {
             // A connection dropped before it was taken says nothing of the
             // next: only another failure ends the call.
@@ -433,10 +430,7 @@ system_accept :: fn(socket: Socket, closed: AtomicBool) -> Socket | IOError {
         if code != WSAEWOULDBLOCK {
             return io_error_of(i32(code), "cannot accept")
         }
-        parked :: park(socket, false, closed, NO_DEADLINE)
-        if parked != null {
-            return parked
-        }
+        parked :: park(socket, false, closed, NO_DEADLINE) else return parked
     }
 }
 
@@ -572,10 +566,7 @@ system_receive :: fn(
         }
         code :: sys_last_errno()
         if code == EAGAIN {
-            parked :: park(socket, false, closed, deadline)
-            if parked != null {
-                return parked
-            }
+            parked :: park(socket, false, closed, deadline) else return parked
         } else if code != EINTR {
             return io_error_of(code, "read failed")
         }
@@ -602,10 +593,7 @@ system_receive :: fn(
         if code != WSAEWOULDBLOCK {
             return io_error_of(i32(code), "read failed")
         }
-        parked :: park(socket, false, closed, deadline)
-        if parked != null {
-            return parked
-        }
+        parked :: park(socket, false, closed, deadline) else return parked
     }
 }
 
@@ -617,7 +605,7 @@ system_send :: fn(
     bytes: u8[],
     closed: AtomicBool,
     deadline: i64,
-) -> null | IOError
+) -> void | IOError
 
 @target(.Linux, .Darwin)
 system_send :: fn(
@@ -625,7 +613,7 @@ system_send :: fn(
     bytes: u8[],
     closed: AtomicBool,
     deadline: i64,
-) -> null | IOError {
+) -> void | IOError {
     fd :: fd_of(socket)
     done: i64 = 0
     for done < bytes.len() {
@@ -642,15 +630,11 @@ system_send :: fn(
         }
         code :: sys_last_errno()
         if code == EAGAIN {
-            parked :: park(socket, true, closed, deadline)
-            if parked != null {
-                return parked
-            }
+            parked :: park(socket, true, closed, deadline) else return parked
         } else if code != EINTR {
             return io_error_of(code, "write failed")
         }
     }
-    return null
 }
 
 @target(.Windows)
@@ -659,7 +643,7 @@ system_send :: fn(
     bytes: u8[],
     closed: AtomicBool,
     deadline: i64,
-) -> null | IOError {
+) -> void | IOError {
     stream :: handle_of(socket)
     done: i64 = 0
     for done < bytes.len() {
@@ -678,12 +662,8 @@ system_send :: fn(
         if code != WSAEWOULDBLOCK {
             return io_error_of(i32(code), "write failed")
         }
-        parked :: park(socket, true, closed, deadline)
-        if parked != null {
-            return parked
-        }
+        parked :: park(socket, true, closed, deadline) else return parked
     }
-    return null
 }
 
 // The address of the other end of `socket` when `peer`, of this end otherwise.
@@ -722,26 +702,26 @@ system_address :: fn(socket: Socket, peer: bool) -> SocketAddress | IOError {
 }
 
 @target
-system_close_write :: fn(socket: Socket) -> null | IOError
+system_close_write :: fn(socket: Socket) -> void | IOError
 
 @target(.Linux, .Darwin)
-system_close_write :: fn(socket: Socket) -> null | IOError =
+system_close_write :: fn(socket: Socket) -> void | IOError =
     failure_unless(sys_shutdown(fd_of(socket), SHUT_WR) == 0, "cannot end the sending side")
 
 @target(.Windows)
-system_close_write :: fn(socket: Socket) -> null | IOError = failure_unless(
+system_close_write :: fn(socket: Socket) -> void | IOError = failure_unless(
     winsock_shutdown(handle_of(socket), SD_SEND) == 0,
     "cannot end the sending side",
 )
 
 @target
-system_close :: fn(socket: Socket) -> null | IOError
+system_close :: fn(socket: Socket) -> void | IOError
 
 // The tasks parked on the socket are woken first: the system hands the number
 // of a closed descriptor out again. Not asked again on `EINTR`: Linux has closed
 // the descriptor by then, and another socket may already have its number.
 @target(.Linux, .Darwin)
-system_close :: fn(socket: Socket) -> null | IOError {
+system_close :: fn(socket: Socket) -> void | IOError {
     stop_waiting(socket_descriptor(socket))
     return failure_unless(sys_close(fd_of(socket)) == 0, "close failed")
 }
@@ -749,7 +729,7 @@ system_close :: fn(socket: Socket) -> null | IOError {
 // As on the other systems, the tasks parked on the socket are woken first;
 // then the scheduler forgets it, the system handing its number out again.
 @target(.Windows)
-system_close :: fn(socket: Socket) -> null | IOError {
+system_close :: fn(socket: Socket) -> void | IOError {
     handle :: handle_of(socket)
     stop_waiting(handle)
     forget_socket(i64(handle))
@@ -840,7 +820,7 @@ winsock_length :: fn(bytes: u8[]) -> i32 = i32(min(bytes.len(), WINSOCK_CHUNK))
 // write when `to_write`. Null once it is worth asking again; an error when
 // `closed` says the socket went meanwhile, its number then naming nothing of
 // this socket's, or when `deadline` came first.
-park :: fn(socket: Socket, to_write: bool, closed: AtomicBool, deadline: i64) -> null | IOError {
+park :: fn(socket: Socket, to_write: bool, closed: AtomicBool, deadline: i64) -> void | IOError {
     left :: time_left(deadline).nanos()
     in_time :: awaited(socket_descriptor(socket), to_write, left)
     if closed.load() {
@@ -849,7 +829,6 @@ park :: fn(socket: Socket, to_write: bool, closed: AtomicBool, deadline: i64) ->
     if !in_time {
         return TIMED_OUT
     }
-    return null
 }
 
 // Wait as `std/io` does after a read of `d` found it would block, or a write
@@ -1185,7 +1164,7 @@ test_a_write_nobody_reads_fails_at_its_deadline :: fn() -> void {
     // write parks. 64 MiB is more than it keeps for a socket.
     outcome := "everything was taken"
     for _ in 0..<1024 {
-        written :: ends.client.write(piece) else is IOError {
+        written :: ends.client.write(piece) else {
             outcome = "${written.kind}"
             break
         }
@@ -1248,7 +1227,7 @@ test_a_closed_stream_refuses_reads_and_writes :: fn() -> void {
     stream.close()
     assert(stream.write("late") is IOError, "a write after close")
     assert(stream.read([0] * 8) is IOError, "a read after close")
-    assert(stream.close() == null, "a second close does nothing")
+    assert(stream.close() is void, "a second close does nothing")
     listener.close()
 }
 

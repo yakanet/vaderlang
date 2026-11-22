@@ -96,7 +96,7 @@ fail :: fn(p: Parser, msg: string) -> JsonError {
     return JsonError { .msg = msg, .pos = p.pos }
 }
 
-expect_byte :: fn(p: Parser, expected: char) -> JsonError | null {
+expect_byte :: fn(p: Parser, expected: char) -> void | JsonError {
     if at_end(p) {
         return fail(p, "unexpected end of input")
     }
@@ -104,7 +104,6 @@ expect_byte :: fn(p: Parser, expected: char) -> JsonError | null {
         return fail(p, "unexpected character")
     }
     advance(p)
-    return null
 }
 
 match_keyword :: fn(p: Parser, kw: string) -> bool {
@@ -245,7 +244,7 @@ parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
 /// @return   the decoded string body.
 /// @error    `JsonError` on unterminated input or a bad escape.
 parse_string :: fn(p: Parser) -> string | JsonError {
-    opening :: expect_byte(p, '"') else is JsonError { return opening }
+    opening :: expect_byte(p, '"') else return opening
     start :: p.pos
     for scan in p.pos..<p.src.byte_len() {
         b :: p.src.byte_at(scan)
@@ -373,7 +372,7 @@ decode_unicode_escape :: fn(p: Parser, sb: StringBuilder) -> bool {
 // ---- array parser ---------------------------------------------------------
 
 parse_array :: fn(p: Parser, depth: i32) -> JsonArray | JsonError {
-    opening :: expect_byte(p, '[') else is JsonError { return opening }
+    opening :: expect_byte(p, '[') else return opening
     items: JsonValue[]: []
     skip_ws(p)
     if !at_end(p) && peek_byte(p) == ']' {
@@ -405,7 +404,7 @@ parse_array :: fn(p: Parser, depth: i32) -> JsonArray | JsonError {
 // ---- object parser --------------------------------------------------------
 
 parse_object :: fn(p: Parser, depth: i32) -> JsonObject | JsonError {
-    opening :: expect_byte(p, '{') else is JsonError { return opening }
+    opening :: expect_byte(p, '{') else return opening
     entries :: Map<string, JsonValue> {}
     skip_ws(p)
     if !at_end(p) && peek_byte(p) == '}' {
@@ -416,7 +415,7 @@ parse_object :: fn(p: Parser, depth: i32) -> JsonObject | JsonError {
         skip_ws(p)
         key :: parse_string(p) else return key
         skip_ws(p)
-        colon :: expect_byte(p, ':') else is JsonError { return colon }
+        colon :: expect_byte(p, ':') else return colon
         value :: parse_value(p, depth + 1) else return value
         entries[key] = value
         skip_ws(p)

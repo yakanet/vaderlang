@@ -81,7 +81,7 @@ export build_ffi_adapters :: fn(
     argv :: flags + header_check_flags(cc_flavour(cc))
     for k in 0..<units.units.len() {
         source :: dir.join_path("${units.names[k]}.c")
-        written :: write_file(source, units.units[k]) else is IOError {
+        written :: write_file(source, units.units[k]) else {
             discard(dir)
             return AdapterBuildError { .message = "cannot be written to `${source.to_native()}`: ${written.message()}" }
         }
@@ -100,7 +100,7 @@ export build_ffi_adapters :: fn(
         _ :: remove(library)
         return AdapterBuildError { .message = "do not compile (`${cc}` exit ${compiled.exit}, sources in `${dir.to_native()}`):\n${compiled.stderr}" }
     }
-    marked :: write_file(built, "") else is IOError {
+    marked :: write_file(built, "") else {
         discard(dir)
         return AdapterBuildError { .message = "cannot be written to `${built.to_native()}`: ${marked.message()}" }
     }
@@ -117,7 +117,7 @@ export build_ffi_adapters :: fn(
 // Give the folder `dir`, a library built whole, the name `kept`, or drop it for
 // the one another process put there first. False when neither holds.
 publish :: fn(dir: string, kept: string) -> bool {
-    if rename(dir, kept) == null {
+    if rename(dir, kept) is void {
         return true
     }
     if exists(kept.join_path(BUILT_MARK)) {
@@ -127,7 +127,7 @@ publish :: fn(dir: string, kept: string) -> bool {
     // A folder published has its mark. One without is what a run cut short left
     // when libraries were built in place: nothing holds it.
     discard(kept)
-    return rename(dir, kept) == null
+    return rename(dir, kept) is void
 }
 
 // Remove the folder `dir` and what it holds, if it is there.

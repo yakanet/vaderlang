@@ -74,7 +74,7 @@ export metadata :: fn(
 ///
 /// @param read_only  true to forbid writing, false to allow it.
 /// @error            `IOError` when `path` cannot be probed or changed.
-export set_read_only :: fn(path: string, read_only: bool) -> null | IOError {
+export set_read_only :: fn(path: string, read_only: bool) -> void | IOError {
     if path.has_nul() {
         return NUL_IN_PATH
     }
@@ -184,17 +184,17 @@ reparse_tag_of :: fn(h: Handle, attributes: u32, follow_links: bool) -> u32 {
 }
 
 @target
-system_set_read_only :: fn(path: string, read_only: bool) -> null | IOError
+system_set_read_only :: fn(path: string, read_only: bool) -> void | IOError
 
 @target(.Linux, .Darwin)
-system_set_read_only :: fn(path: string, read_only: bool) -> null | IOError {
+system_set_read_only :: fn(path: string, read_only: bool) -> void | IOError {
     cells :: path.stat_cells(true) else return cells
     mode :: u32(mode_with(cells[3], read_only))
     return failure_unless(sys_chmod(path, mode) == 0, "cannot change permissions")
 }
 
 @target(.Windows)
-system_set_read_only :: fn(path: string, read_only: bool) -> null | IOError {
+system_set_read_only :: fn(path: string, read_only: bool) -> void | IOError {
     wide :: to_wide(path)
     attributes :: get_file_attributes(wide)
     if attributes == INVALID_FILE_ATTRIBUTES {
@@ -230,7 +230,7 @@ attributes_with :: fn(attributes: u32, read_only: bool) -> u32 {
 /// @param to    its new name.
 /// @error       `IOError` when the entry cannot be renamed: `.NotFound` when
 ///              `from` does not exist.
-export rename :: fn(from: string, to: string) -> null | IOError {
+export rename :: fn(from: string, to: string) -> void | IOError {
     if from.has_nul() || to.has_nul() {
         return NUL_IN_PATH
     }
@@ -245,7 +245,7 @@ export rename :: fn(from: string, to: string) -> null | IOError {
 /// @error       `IOError` when the copy fails: `.IsADirectory` for a directory,
 ///              `.InvalidInput` when both name one file, which the copy would
 ///              empty before reading it.
-export copy :: fn(from: string, to: string) -> null | IOError {
+export copy :: fn(from: string, to: string) -> void | IOError {
     if from.has_nul() || to.has_nul() {
         return NUL_IN_PATH
     }
@@ -266,16 +266,15 @@ export copy :: fn(from: string, to: string) -> null | IOError {
 ///              was copied before it stays.
 /// @example
 ///   copy_tree("assets", "build/assets")
-export copy_tree :: fn(from: string, to: string) -> null | IOError {
+export copy_tree :: fn(from: string, to: string) -> void | IOError {
     if !is_dir(from) {
         return from.copy(to)
     }
-    made :: create_dir(to) else is IOError { return made }
+    made :: create_dir(to) else return made
     names :: read_dir(from) else return names
     for name in names {
-        copied :: copy_tree("${from}/${name}", "${to}/${name}") else is IOError { return copied }
+        copied :: copy_tree("${from}/${name}", "${to}/${name}") else return copied
     }
-    return null
 }
 
 // Whether `from` and `to` both exist and name one file.
@@ -286,7 +285,7 @@ is_same_file :: fn(from: string, to: string) -> bool {
 }
 
 @target
-system_rename :: fn(from: string, to: string) -> null | IOError
+system_rename :: fn(from: string, to: string) -> void | IOError
 
 @target(.Linux, .Darwin)
 system_rename :: fn(from: string, to: string) = failure_unless(
@@ -295,31 +294,30 @@ system_rename :: fn(from: string, to: string) = failure_unless(
 )
 
 @target(.Windows)
-system_rename :: fn(from: string, to: string) -> null | IOError {
+system_rename :: fn(from: string, to: string) -> void | IOError {
     moved :: move_file_ex_w(to_wide(from), to_wide(to), MOVEFILE_REPLACE_EXISTING)
     return failure_unless(moved, "cannot rename")
 }
 
 @target
-system_copy :: fn(from: string, to: string) -> null | IOError
+system_copy :: fn(from: string, to: string) -> void | IOError
 
 @target(.Linux, .Darwin)
-system_copy :: fn(from: string, to: string) -> null | IOError {
+system_copy :: fn(from: string, to: string) -> void | IOError {
     cells :: from.stat_cells(true) else return cells
-    copied :: from.copy_content(to) else is IOError { return copied }
+    copied :: from.copy_content(to) else return copied
     return failure_unless(sys_chmod(to, u32(cells[3])) == 0, "cannot copy permissions")
 }
 
 @target(.Windows)
-system_copy :: fn(from: string, to: string) -> null | IOError {
+system_copy :: fn(from: string, to: string) -> void | IOError {
     if !copy_file_w(to_wide(from), to_wide(to), false) {
         return last_io_error("cannot copy").refine_directory_denial(from)
     }
-    return null
 }
 
 // Write what the file `from` holds to a new file `to`, chunk after chunk.
-copy_content :: fn(from: string, to: string) -> null | IOError {
+copy_content :: fn(from: string, to: string) -> void | IOError {
     input :: from.open() else return input
     defer input.close()
     output :: to.create() else return output
@@ -334,14 +332,14 @@ copy_content :: fn(from: string, to: string) -> null | IOError {
 }
 
 // Write what `input` reads to `output`, chunk after chunk, to the end.
-copy_chunks :: fn(input: File, output: File) -> null | IOError {
+copy_chunks :: fn(input: File, output: File) -> void | IOError {
     chunk: u8[]: [0] * READ_CHUNK
     for {
-        n :: input.read(chunk) else is null { return null }
+        n :: input.read(chunk) else is null { return }
         if n is IOError {
             return n
         }
-        written :: output.write(chunk[0..<n]) else is IOError { return written }
+        written :: output.write(chunk[0..<n]) else return written
     }
 }
 
@@ -371,23 +369,23 @@ export RemoveOptions :: struct {
 /// @example
 ///   remove("build/out.c")
 ///   remove("build", RemoveOptions { .recursive = true, .force = true })
-export remove :: fn(path: string, options: RemoveOptions = RemoveOptions {}) -> null | IOError {
+export remove :: fn(path: string, options: RemoveOptions = RemoveOptions {}) -> void | IOError {
     if path.has_nul() {
         return NUL_IN_PATH
     }
     removed :: path.system_remove(options)
     if removed is IOError && removed.kind == .NotFound && options.force {
-        return null
+        return
     }
     return removed
 }
 
 // Remove what `path` names, as `remove` does once `path` holds no NUL.
 @target
-system_remove :: fn(path: string, options: RemoveOptions) -> null | IOError
+system_remove :: fn(path: string, options: RemoveOptions) -> void | IOError
 
 @target(.Linux, .Darwin)
-system_remove :: fn(path: string, options: RemoveOptions) -> null | IOError {
+system_remove :: fn(path: string, options: RemoveOptions) -> void | IOError {
     cells :: path.stat_cells(false) else return cells
     if kind_of(cells[0]) == .Directory {
         return path.remove_directory(options)
@@ -397,7 +395,7 @@ system_remove :: fn(path: string, options: RemoveOptions) -> null | IOError {
 }
 
 @target(.Windows)
-system_remove :: fn(path: string, options: RemoveOptions) -> null | IOError {
+system_remove :: fn(path: string, options: RemoveOptions) -> void | IOError {
     wide :: to_wide(path)
     attributes :: get_file_attributes(wide)
     if attributes == INVALID_FILE_ATTRIBUTES {
@@ -422,18 +420,18 @@ system_remove :: fn(path: string, options: RemoveOptions) -> null | IOError {
 }
 
 // Remove the directory `path`, what it holds first under `recursive`.
-remove_directory :: fn(path: string, options: RemoveOptions) -> null | IOError {
+remove_directory :: fn(path: string, options: RemoveOptions) -> void | IOError {
     if options.recursive {
         names :: read_dir(path) else return names
         for name in names {
-            removed :: remove("${path}/${name}", options) else is IOError { return removed }
+            removed :: remove("${path}/${name}", options) else return removed
         }
     }
     return path.system_remove_directory()
 }
 
 @target
-system_remove_directory :: fn(path: string) -> null | IOError
+system_remove_directory :: fn(path: string) -> void | IOError
 
 @target(.Linux, .Darwin)
 system_remove_directory :: fn(path: string) = failure_unless(

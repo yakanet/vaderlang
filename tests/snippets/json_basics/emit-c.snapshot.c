@@ -5309,7 +5309,7 @@ static vader_box_t json$expect_byte(void* l0, uint32_t l1) {
     t2 = json$peek_byte(l0);
     if (!(t2 != l1)) {
         json$advance(l0);
-        { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+        { vader_box_t __vret = vader_box_obj(1u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
     }
     t1 = json$fail(l0, 39u);
     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }

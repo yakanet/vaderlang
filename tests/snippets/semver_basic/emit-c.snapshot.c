@@ -887,8 +887,9 @@ static vader_box_t semver$parse(vader_string_t l0) {
     }
     l2 = l3.payload.obj;
     l3 = semver$validate_sections(l1);
-    if (!(l3.tag == 0u)) {
-        t1 = l3.payload.obj;
+    l4 = l3;
+    if (l3.tag == 13u) {
+        t1 = l4.payload.obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l5 = ((vader_struct_semver$Version_t*) l2)->f_major;
@@ -1110,16 +1111,16 @@ static vader_box_t semver$parse_core(vader_string_t l0) {
 }
 
 static vader_box_t semver$validate_sections(void* l0) {
-    vader_box_t l1 = vader_box_null();
+    vader_box_t l1 = vader_box_null(), l4 = vader_box_null();
     vader_string_t l2 = 0;
     void* l3 = NULL;
     void* t0 = NULL;
     vader_box_t t1 = vader_box_null();
-    vader_box_t* gc_roots[2] = { &l1, &t1 };
+    vader_box_t* gc_roots[3] = { &l1, &l4, &t1 };
     void** gc_raw_roots[3] = { &l0, &l3, &t0 };
     vader_string_t* gc_atom_roots[1] = { &l2 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+        vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l1 = ((vader_struct_semver$VersionSections_t*) l0)->f_prerelease;
@@ -1127,14 +1128,15 @@ static vader_box_t semver$validate_sections(void* l0) {
         l2 = l1.payload.s;
         l3 = (void*) &vader_fn_static_semver$validate_prerelease_id;
         l1 = semver$validate_identifiers(l2, l3);
-        if (!(l1.tag == 0u)) {
-            t0 = l1.payload.obj;
+        l4 = l1;
+        if (l1.tag == 13u) {
+            t0 = l4.payload.obj;
             { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
     }
     l1 = ((vader_struct_semver$VersionSections_t*) l0)->f_build;
     if (l1.tag == 0u) {
-        { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+        { vader_box_t __vret = vader_box_obj(1u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l2 = l1.payload.s;
     l3 = (void*) &vader_fn_static_semver$validate_build_id;
@@ -1417,15 +1419,15 @@ static vader_box_t semver$parse_numeric_id(vader_string_t l0) {
 static vader_box_t semver$validate_identifiers(vader_string_t l0, void* l1) {
     void* l2 = NULL;
     int64_t l3, l4;
-    vader_box_t l5 = vader_box_null();
+    vader_box_t l5 = vader_box_null(), l6 = vader_box_null();
     vader_box_t t0 = vader_box_null();
     vader_string_t t1 = 0;
     void* t2 = NULL;
-    vader_box_t* gc_roots[2] = { &l5, &t0 };
+    vader_box_t* gc_roots[3] = { &l5, &l6, &t0 };
     void** gc_raw_roots[3] = { &l1, &l2, &t2 };
     vader_string_t* gc_atom_roots[2] = { &l0, &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+        vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l2 = std_string$split(l0, 12u);
@@ -1439,13 +1441,14 @@ static vader_box_t semver$validate_identifiers(vader_string_t l0, void* l1) {
         t1 = t0.payload.s;
         vader_fn_t* _a1_fnobj = (vader_fn_t*) l1;
         l5 = ((vader_fn_erased_sig_1_t) _a1_fnobj->code)(_a1_fnobj->env, vader_box_string(3u, t1));
-        if (!(l5.tag == 0u)) {
-            t2 = l5.payload.obj;
+        l6 = l5;
+        if (l5.tag == 13u) {
+            t2 = l6.payload.obj;
             { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
         }
         l4 = (l4 + INT64_C(1));
     }
-    { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+    { vader_box_t __vret = vader_box_obj(1u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t semver$validate_prerelease_id(vader_string_t l0) {
@@ -1487,11 +1490,11 @@ static vader_box_t semver$validate_prerelease_id(vader_string_t l0) {
                 t1 = (void*) _a2_obj;
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
             }
-            { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+            { vader_box_t __vret = vader_box_obj(1u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
         }
-        { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+        { vader_box_t __vret = vader_box_obj(1u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+    { vader_box_t __vret = vader_box_obj(1u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t semver$validate_build_id(vader_string_t l0) {
@@ -1519,7 +1522,7 @@ static vader_box_t semver$validate_build_id(vader_string_t l0) {
         t1 = (void*) _a1_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+    { vader_box_t __vret = vader_box_obj(1u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static bool semver$is_bare_operator(vader_string_t l0) {
@@ -1880,8 +1883,9 @@ static vader_box_t semver$parse_partial(vader_string_t l0) {
         }
     }
     l5 = semver$validate_sections(l1);
-    if (!(l5.tag == 0u)) {
-        t1 = l5.payload.obj;
+    l6 = l5;
+    if (l5.tag == 13u) {
+        t1 = l6.payload.obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l5 = ((vader_struct_semver$VersionSections_t*) l1)->f_prerelease;

@@ -404,7 +404,7 @@ rebuild_driver :: fn(
     ldflags: string,
 ) -> i32 {
     entry :: driver_entry_path(root)
-    written :: write_file(entry, render_driver_entry(fingerprint)) else is IOError {
+    written :: write_file(entry, render_driver_entry(fingerprint)) else {
         eprintln("vader ${command}: cannot write the build entry at ${entry.to_native()}: "
             + written.msg)
         return 1
@@ -413,7 +413,7 @@ rebuild_driver :: fn(
     // not litter the directory the user works in. `create_dir` makes the path
     // rather than requiring it to exist.
     artefacts :: driver_dir(root)
-    made :: create_dir(artefacts) else is IOError {
+    made :: create_dir(artefacts) else {
         eprintln("vader ${command}: cannot create ${artefacts.to_native()}: ${made.msg}")
         remove_entry(entry)
         return 1

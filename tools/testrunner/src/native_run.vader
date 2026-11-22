@@ -26,18 +26,9 @@ PROGRAM_TIMEOUT_SECONDS: i64: 60
 check_native :: fn(ctx: WorkerContext, case: Case, dir: string) -> StageReport | CaseFailure {
     began :: monotonic()
     file :: Path(entry_path(case))
-    prepared :: program_of(file, BuildRequest { .verify_bounds = true })
-    if prepared is CaseFailure {
-        return prepared
-    }
-    binary :: build_binary(ctx, case, prepared, file, dir)
-    if binary is CaseFailure {
-        return binary
-    }
-    actual :: run_binary(binary)
-    if actual is CaseFailure {
-        return actual
-    }
+    prepared :: program_of(file, BuildRequest { .verify_bounds = true }) else return prepared
+    binary :: build_binary(ctx, case, prepared, file, dir) else return binary
+    actual :: run_binary(binary) else return actual
     report :: report_of(case, NATIVE_STAGE, actual, false, began)
     detail :: report.detail else return report
     return StageReport { ...report, .detail = "${detail}(the binary is kept: ${binary})\n" }

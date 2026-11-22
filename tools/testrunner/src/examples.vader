@@ -107,9 +107,7 @@ native_example_run :: fn(
     binary :: executable_path("${scratch}/${name}")
     argv :: ["build"] + run.flags + ["--out=${binary}", example_input(name)]
     built :: ran_or_failure(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }))
-    if built is CaseFailure {
-        return built
-    }
+        else return built
     if built.exit != 0 {
         return CaseFailure {
             .message = "`vader build` exited with ${built.exit}:\n${built.stderr}",

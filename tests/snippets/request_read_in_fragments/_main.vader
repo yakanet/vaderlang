@@ -79,7 +79,7 @@ bytes_text :: fn(bytes: u8[] | null | IOError) -> string {
     return outcome(bytes)
 }
 
-outcome :: fn(result: null | IOError) -> string {
+outcome :: fn(result: void | null | IOError) -> string {
     if result is IOError {
         return "${result.kind}: ${result.msg}"
     }

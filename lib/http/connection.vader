@@ -172,7 +172,7 @@ read_once :: fn(body: ExchangeBody, into: u8[]) -> i64 | null | IOError {
         if body.exchange.answered {
             return IOError { .msg = "the content of the request was never asked for" }
         }
-        written :: writer.write(CONTINUE_RESPONSE) else is IOError { return written }
+        written :: writer.write(CONTINUE_RESPONSE) else return written
         body.exchange.continue_on = null
     }
     pace :: body.exchange.pace
@@ -373,7 +373,7 @@ test_a_client_that_waits_is_told_to_send_when_its_body_is_read :: fn() -> void {
         assert_eq(out.written.len(), 0)
         assert_eq(text_of(request.body), "hi")
         assert_eq(out.written.bytes_to_string(), "HTTP/1.1 100 Continue\r\n\r\n")
-        assert(write_response(out, Response {}, request) == null, "the response is written")
+        assert(write_response(out, Response {}, request) is void, "the response is written")
         assert_eq(
             out.written.bytes_to_string(),
             "HTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n",
@@ -435,7 +435,7 @@ test_a_request_answered_before_its_body_was_read_ends_the_connection :: fn() -> 
     request :: request_of(whole(EXPECTING))
     request.bind_body(out)
     refused :: new_response(STATUS_FORBIDDEN, "no")
-    assert(write_response(out, refused, request) == null, "the response is written")
+    assert(write_response(out, refused, request) is void, "the response is written")
     wire :: "HTTP/1.1 403 Forbidden\r\nContent-Length: 2\r\nConnection: close\r\n\r\nno"
     assert_eq(out.written.bytes_to_string(), wire)
     assert(!persists(request, refused), "content that may follow or not")
@@ -452,7 +452,7 @@ test_a_body_copied_into_its_response_is_asked_for_before_the_response :: fn() ->
     request.bind_body(out)
     echo :: Response { .body = request.body }
     echo.headers.set("Content-Length", "2")
-    assert(write_response(out, echo, request) == null, "the response is written")
+    assert(write_response(out, echo, request) is void, "the response is written")
     assert_eq(
         out.written.bytes_to_string(),
         "HTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nhi",
@@ -466,7 +466,7 @@ test_a_100_written_by_hand_is_not_written_again :: fn() -> void {
     request :: request_of(whole(EXPECTING))
     request.bind_body(out)
     written :: write_response(out, Response { .status = STATUS_CONTINUE }, request)
-    assert(written == null, "the interim response is written")
+    assert(written is void, "the interim response is written")
     assert_eq(text_of(request.body), "hi")
     assert_eq(out.written.bytes_to_string(), "HTTP/1.1 100 Continue\r\n\r\n")
 }
@@ -475,8 +475,8 @@ test_a_100_written_by_hand_is_not_written_again :: fn() -> void {
 test_a_request_is_answered_once :: fn() -> void {
     out :: BytesWriter {}
     request :: asking()
-    assert(write_response(out, Response { .status = Status(103) }, request) == null, "interim")
-    assert(write_response(out, Response {}, request) == null, "final")
+    assert(write_response(out, Response { .status = Status(103) }, request) is void, "interim")
+    assert(write_response(out, Response {}, request) is void, "final")
     wire :: "HTTP/1.1 103 \r\n\r\nHTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"
     assert_eq(out.written.bytes_to_string(), wire)
     late :: write_response(out, Response { .status = STATUS_CONTINUE }, request)

@@ -3,17 +3,17 @@
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
       path: string = concat_2(std.env.temp_dir(), "/vader_default_naming_a_std_constant")
-      wrote: null = {
-          __fallback_0: IOError | null = std.fs.write_file(path, "0123456789")
-          wrote: IOError | null = __fallback_0
+      wrote: void = {
+          __fallback_0: IOError | void = std.fs.write_file(path, "0123456789")
+          wrote: IOError | void = __fallback_0
           if __fallback_0 is IOError {
               {
                   std.console.println<string>(concat_2("setup failed: ", IOError(wrote).msg))
                   return 1
               }
           } else {
-              null(__fallback_0)
-          } :null
+              void(__fallback_0)
+          }
       }
       @defer_push(@closure(__defer_snippet_0, __defer_env_snippet_1 { .cap_0 = path }))
       bare: IOError | string = std.fs.read_file_string(path, i64(16777216))

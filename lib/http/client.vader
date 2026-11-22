@@ -131,9 +131,7 @@ export send :: fn(connection: ClientConnection, request: Request) -> Response | 
             return connection.opened(request, early)
         }
     } else {
-        written :: write_request(out, request) else is HttpError {
-            return connection.failed(written, out.count > 0)
-        }
+        written :: write_request(out, request) else return connection.failed(written, out.count > 0)
     }
     connection.read_for(.Head)
     response :: read_answer(ends.source, request, connection.limits, false) else is HttpError {
@@ -233,7 +231,8 @@ write_awaiting :: fn(
             return answer
         }
     }
-    return copy_counted(writer, request.body, [0] * COPY_CHUNK, length)
+    sent :: copy_counted(writer, request.body, [0] * COPY_CHUNK, length) else return sent
+    return null
 }
 
 // Whether the server of `connection` starts to answer within `continue_wait`:

@@ -393,9 +393,9 @@ test_an_interim_response_takes_the_place_of_no_final_one :: fn() -> void {
     first :: request_of(reader)
     first.bind_body(out)
     assert_eq(text_of(first.body), "hi")
-    assert(write_response(out, new_response(STATUS_OK, "done"), first) == null, "the first")
+    assert(write_response(out, new_response(STATUS_OK, "done"), first) is void, "the first")
     second :: request_of(reader)
-    assert(write_response(out, new_response(STATUS_OK, "head"), second) == null, "the second")
+    assert(write_response(out, new_response(STATUS_OK, "head"), second) is void, "the second")
     assert_eq(
         out.written.bytes_to_string(),
         "HTTP/1.1 100 Continue\r\n\r\n"

@@ -59,15 +59,15 @@ copy_all :: fn(walk: CopyWalk, v: Value) -> Value | Trap {
 }
 
 // Point the values the copy `copy` holds at their copies.
-copy_inside :: fn(walk: CopyWalk, copy: Value) -> Trap | null = match copy {
+copy_inside :: fn(walk: CopyWalk, copy: Value) -> void | Trap = match copy {
     is StructVal -> walk.copy_each(copy.fields)
     is ArrayVal -> walk.copy_each(copy.elements)
     is ObjVal -> walk.copy_each(copy.slots)
-    is FnVal | I32Val | I64Val | F64Val | StringVal | NullVal | VoidVal | BoolVal | CharVal | TypeVal -> null
+    is FnVal | I32Val | I64Val | F64Val | StringVal | NullVal | VoidVal | BoolVal | CharVal | TypeVal -> {}
 }
 
 // Replace each of `values`, held by a copy, by its copy.
-copy_each :: fn(walk: CopyWalk, values: Value[]) -> Trap | null {
+copy_each :: fn(walk: CopyWalk, values: Value[]) -> void | Trap {
     for i in 0..<values.len() {
         copied :: walk.copy_of(values[i])
         if copied is Trap {
@@ -75,7 +75,6 @@ copy_each :: fn(walk: CopyWalk, values: Value[]) -> Trap | null {
         }
         values[i] = copied
     }
-    return null
 }
 
 // The copy of `v`: the one already made, a new one, or `v` itself when nothing of

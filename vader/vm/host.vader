@@ -878,11 +878,11 @@ float_bits :: fn(value: f64, width: i64) -> u64 {
 /// @param sv      the Vader value to read from.
 /// @param fields  the mirror's fields at this level.
 /// @param depth   guards a malformed self-referential mirror.
-/// @return        `null` on success, a `Trap` naming the field otherwise.
+/// @error         a `Trap` naming the field otherwise.
 serialise_mirror :: fn(
     data: u8[], base: i64, sv: StructVal, fields: bc.BcField[], types: bc.BcType[],
     at_pc: i32, extern_name: string, depth: i32,
-) -> Trap | null {
+) -> void | Trap {
     if depth >= bc.NEST_CAP {
         return Trap { .message = "extern `${extern_name}` at pc=${at_pc}: mirror nests deeper than ${bc.NEST_CAP}" }
     }
@@ -915,7 +915,6 @@ serialise_mirror :: fn(
         if cell is Trap { return cell }
         write_little_endian(data, base + layout.offsets[j], i64(cell), width)
     }
-    return null
 }
 
 /// Write `value` into `buf` at `at`, little-endian, over `width` bytes.

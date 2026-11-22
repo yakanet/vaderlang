@@ -4,17 +4,17 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       name: string = "vader_rd_café_日本.txt"
       path: string = concat_3(std.env.temp_dir(), "/", name)
-      written: null = {
-          __fallback_0: IOError | null = std.fs.write_file(path, [u8(104), u8(105)] :u8[])
-          written: IOError | null = __fallback_0
+      written: void = {
+          __fallback_0: IOError | void = std.fs.write_file(path, [u8(104), u8(105)] :u8[])
+          written: IOError | void = __fallback_0
           if __fallback_0 is Error {
               {
                   std.console.println<string>(concat_2("write failed: ", @vcall(std.core.Error.message, Error(written))))
                   return 1
               }
           } else {
-              null(__fallback_0)
-          } :null
+              void(__fallback_0)
+          }
       }
       entries: string[] = {
           __fallback_1: IOError | string[] = std.fs.read_dir(std.env.temp_dir())

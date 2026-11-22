@@ -118,7 +118,7 @@ main :: fn(argv: string[]) -> i32 {
         println(thumbnail(frame, 48, 14))
         if out_dir != null {
             path :: to_path(out_dir) / "shot_${index + 1}.ppm"
-            written :: write_ppm(frame, path.as_string()) else is IOError {
+            written :: write_ppm(frame, path.as_string()) else {
                 eprintln("cannot write `${path.as_string()}`: ${written.message()}")
                 return 1
             }
@@ -193,7 +193,7 @@ thumbnail :: fn(frame: Frame, columns: i32, rows: i32) -> string {
 }
 
 // Write the frame as a binary PPM file.
-write_ppm :: fn(frame: Frame, path: string) -> null | IOError {
+write_ppm :: fn(frame: Frame, path: string) -> void | IOError {
     raster: u8[]: [] * i64(frame.width * frame.height * 3)
     for pixel in frame.pixels {
         [red, green, blue] :: channels(pixel)

@@ -151,9 +151,9 @@ io_error_of :: fn(code: i32, msg: string) -> IOError =
 /// @example
 ///   # import "system/posix"
 ///   removed :: failure_unless(sys_rmdir("build/empty") == 0, "cannot remove directory")
-export failure_unless :: fn(succeeded: bool, msg: string) -> null | IOError {
+export failure_unless :: fn(succeeded: bool, msg: string) -> void | IOError {
     if succeeded {
-        return null
+        return
     }
     return last_io_error(msg)
 }

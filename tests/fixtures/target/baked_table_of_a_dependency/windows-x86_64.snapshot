@@ -14,11 +14,11 @@ std_console$write_text <- lib/std/console/console.vader:84
 std_env$current_executable_location <- lib/std/env/env.vader:232
 std_env$current_working_directory <- lib/std/env/env.vader:262
 std_env$get_env <- lib/std/env/env.vader:41
-std_env$set_current_working_directory <- lib/std/env/env.vader:289
+std_env$set_current_working_directory <- lib/std/env/env.vader:288
 std_env$system_environ_entry <- lib/std/env/env.vader:94
 std_env$system_set_env <- lib/std/env/env.vader:157
 std_env$system_unset_env <- lib/std/env/env.vader:172
-std_env$temp_dir <- lib/std/env/env.vader:323
+std_env$temp_dir <- lib/std/env/env.vader:321
 std_io$io_error_of <- lib/std/io/io.vader:141
 std_io$last_io_error <- lib/std/io/io.vader:123
 std_time$monotonic_ns <- lib/std/time/time.vader:87

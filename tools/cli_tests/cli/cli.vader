@@ -244,8 +244,8 @@ export driven_project :: fn(name: string, driver: string, entry: string) -> stri
 /// @param from  the folder copied, a fixture.
 /// @param to    where the copy goes, a path that does not exist yet.
 /// @error       `IOError` when a file cannot be copied.
-export copy_sources :: fn(from: string, to: string) -> null | IOError {
-    copied :: copy_tree(from, to) else is IOError { return copied }
+export copy_sources :: fn(from: string, to: string) -> void | IOError {
+    copied :: copy_tree(from, to) else return copied
     return remove("${to}/build", RemoveOptions { .recursive = true, .force = true })
 }
 

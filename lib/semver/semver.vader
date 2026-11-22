@@ -100,10 +100,7 @@ export parse :: fn(s: string) -> Version | ParseError {
     }
     sections :: sections_of(s)
     core :: parse_core(sections.core) else return core
-    sections_error :: validate_sections(sections)
-    if sections_error != null {
-        return sections_error
-    }
+    sections_error :: validate_sections(sections) else return sections_error
     return Version {
         ...core,
         .prerelease = sections.prerelease else "",
@@ -229,7 +226,7 @@ parse_numeric_id :: fn(s: string) -> i32 | ParseError {
 
 // Validate one pre-release identifier: charset `[0-9A-Za-z-]`, non-empty, and
 // no leading zero when all digits.
-validate_prerelease_id :: fn(id: string) -> ParseError | null {
+validate_prerelease_id :: fn(id: string) -> void | ParseError {
     if id.is_empty() {
         return ParseError { .msg = "empty prerelease identifier" }
     }
@@ -239,32 +236,27 @@ validate_prerelease_id :: fn(id: string) -> ParseError | null {
     if id.byte_len() > 1 && id.byte_at(0) == '0' && is_all_digits(id) {
         return ParseError { .msg = "leading zero in numeric prerelease identifier" }
     }
-    return null
 }
 
 // Build identifiers : same charset, but leading zeros are allowed
 // per §10 (build metadata is opaque, not used for ordering).
-validate_build_id :: fn(id: string) -> ParseError | null {
+validate_build_id :: fn(id: string) -> void | ParseError {
     if id.is_empty() {
         return ParseError { .msg = "empty build identifier" }
     }
     if !is_identifier_text(id) {
         return ParseError { .msg = "invalid character in build identifier" }
     }
-    return null
 }
 
 // Validate the pre-release and build sections that are present. A separator
 // with nothing after it fails: the spec wants at least one identifier.
-validate_sections :: fn(sections: VersionSections) -> ParseError | null {
+validate_sections :: fn(sections: VersionSections) -> void | ParseError {
     pre :: sections.prerelease
     if pre != null {
-        pre_error :: validate_identifiers(pre, validate_prerelease_id)
-        if pre_error != null {
-            return pre_error
-        }
+        pre_error :: validate_identifiers(pre, validate_prerelease_id) else return pre_error
     }
-    build :: sections.build else return null
+    build :: sections.build else return
     return validate_identifiers(build, validate_build_id)
 }
 
@@ -272,15 +264,11 @@ validate_sections :: fn(sections: VersionSections) -> ParseError | null {
 // failure.
 validate_identifiers :: fn(
     section: string,
-    check: fn(string) -> ParseError | null,
-) -> ParseError | null {
+    check: fn(string) -> void | ParseError,
+) -> void | ParseError {
     for id in section.split(".") {
-        error :: check(id)
-        if error != null {
-            return error
-        }
+        error :: check(id) else return error
     }
-    return null
 }
 
 // True when every character of `id` is in `[0-9A-Za-z-]`.
@@ -406,10 +394,7 @@ parse_partial :: fn(s: string) -> PartialVersion | ParseError {
         v :: parse_numeric_id(parts[2]) else return ParseError { .msg = "patch: ${v.message()}" }
         result.patch = v
     }
-    sections_error :: validate_sections(sections)
-    if sections_error != null {
-        return sections_error
-    }
+    sections_error :: validate_sections(sections) else return sections_error
     result.prerelease = sections.prerelease else ""
     result.build = sections.build else ""
     return result

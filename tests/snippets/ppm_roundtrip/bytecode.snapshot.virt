@@ -12,7 +12,7 @@ type 9 union 5,0
 type 10 scalar bool
 type 11 union 0,3
 type 12 union 3,7
-type 13 union 14,0
+type 13 union 14,1
 type 14 struct std_io$IOError { msg:3,kind:8,code:2 }
 type 15 union 14,7
 type 16 struct __defer_env_std_fs_1 { cap_0:18 }
@@ -1025,36 +1025,38 @@ fn 19 std_fs$close (ref) -> any
     call 25   ; std_fs$system_close
     return
   end $L0
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 20 std_fs$open (string,ref) -> any
+  local __fallback_0 any
   local refusal any
-  local handle any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 26   ; std_fs$refusal_of
-  local.tee 2   ; refusal
-  type_check 0   ; null
+  local.tee 2   ; __fallback_0
+  local.set 3   ; refusal
+  local.get 2   ; __fallback_0
+  type_check 14   ; std_io$IOError
   if $L0 void
-  else
-    local.get 2   ; refusal
+    local.get 3   ; refusal
     ref.cast 14   ; std_io$IOError
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 27   ; std_fs$system_open
-  local.tee 2   ; refusal
-  local.set 3   ; handle
-  local.get 2   ; refusal
+  local.tee 2   ; __fallback_0
+  local.set 3   ; refusal
+  local.get 2   ; __fallback_0
   type_check 14   ; std_io$IOError
   if $L1 void
-    local.get 3   ; handle
+    local.get 3   ; refusal
     ref.cast 14   ; std_io$IOError
     return
   end $L1
-  local.get 2   ; refusal
+  local.get 2   ; __fallback_0
   bool.const false
   struct.new 18   ; std_fs$File
   return
@@ -1196,7 +1198,8 @@ fn 25 std_fs$system_close (any) -> any
   i32.ne
   if $L0 void
   else
-    return.lit null.const
+    void.const
+    return
   end $L0
   string.const 15   ; "close failed"
   call 44   ; std_io$last_io_error
@@ -1277,9 +1280,11 @@ fn 26 std_fs$refusal_of (string,ref) -> any
       call 30   ; std_fs$invalid_options
       return
     end $L11
-    return.lit null.const
+    void.const
+    return
   end $L10
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 27 std_fs$system_open (string,ref) -> any
@@ -1577,7 +1582,8 @@ fn 34 std_fs$File$std_io$Writer$write (ref,any) -> any
       br $L1
     end $L2
   end $L1
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 35 std_fs$system_write (any,ref) -> any

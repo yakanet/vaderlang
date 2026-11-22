@@ -22,7 +22,7 @@ export Writer :: trait {
     /// @param content  what to write.
     /// @error          `IOError` when the destination cannot take all of it.
     ///                 Part of `content` may be written by then.
-    write :: fn(self, content: u8[] | string) -> null | IOError
+    write :: fn(self, content: u8[] | string) -> void | IOError
 }
 
 /// The bytes `content` writes: a string's UTF-8 bytes, an array as it is.
@@ -57,17 +57,16 @@ export BufferedWriter :: struct {
 }
 
 BufferedWriter implements Writer {
-    write :: fn(self, content: u8[] | string) -> null | IOError {
+    write :: fn(self, content: u8[] | string) -> void | IOError {
         bytes :: content.bytes_of()
         if self.buffer.len() + bytes.len() > self.capacity {
-            flushed :: self.flush() else is IOError { return flushed }
+            flushed :: self.flush() else return flushed
         }
         // The buffer would only add a copy.
         if bytes.len() >= self.capacity {
             return self.sink.write(bytes)
         }
         self.buffer.push_all(bytes)
-        return null
     }
 }
 
@@ -75,9 +74,9 @@ BufferedWriter implements Writer {
 ///
 /// @error  `IOError` when `sink` cannot take it. What was gathered is dropped:
 ///         part of it may be written.
-export flush :: fn(w: BufferedWriter) -> null | IOError {
+export flush :: fn(w: BufferedWriter) -> void | IOError {
     if w.buffer.len() == 0 {
-        return null
+        return
     }
     failed :: w.sink.write(w.buffer)
     w.buffer.clear()
@@ -95,10 +94,9 @@ CountingWriter :: struct {
 }
 
 CountingWriter implements Writer {
-    write :: fn(self, content: u8[] | string) -> null | IOError {
+    write :: fn(self, content: u8[] | string) -> void | IOError {
         self.written.push_all(content.bytes_of())
         self.writes += 1
-        return null
     }
 }
 
@@ -149,7 +147,7 @@ test_buffered_writer_takes_bytes_and_text :: fn() -> void {
 test_flush_of_nothing_writes_nothing :: fn() -> void {
     sink :: CountingWriter {}
     w :: BufferedWriter { .sink = sink }
-    assert(w.flush() == null, "nothing to write is no failure")
+    assert(w.flush() is void, "nothing to write is no failure")
     assert_eq(sink.writes, 0)
 }
 

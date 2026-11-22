@@ -31,14 +31,6 @@
         "decorators": []
       },
       {
-        "kind": "ImportDecl",
-        "path": "std/io",
-        "binding": {
-          "kind": "wildcard"
-        },
-        "decorators": []
-      },
-      {
         "kind": "FnDecl",
         "name": "c_fopen",
         "visibility": "private",
@@ -259,10 +251,7 @@
                 },
                 "clauses": [
                   {
-                    "test": {
-                      "kind": "IdentExpr",
-                      "name": "IOError"
-                    },
+                    "test": null,
                     "body": {
                       "kind": "BlockExpr",
                       "stmts": [

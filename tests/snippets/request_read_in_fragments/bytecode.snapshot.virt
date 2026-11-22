@@ -8,24 +8,26 @@ type 5 scalar string
 type 6 union 4,0,7
 type 7 array 8
 type 8 scalar u8
-type 9 union 4,0
+type 9 union 4,0,1
 type 10 struct std_core$Buffer {  }
 type 11 scalar i64
 type 12 union 11,0
 type 13 scalar bool
-type 14 struct std_io$BufferedReader { source:24,capacity:11,error:9,buffer:7,next:11,filled:11 }
+type 14 struct std_io$BufferedReader { source:25,capacity:11,error:26,buffer:7,next:11,filled:11 }
 type 15 union 4,7
-type 16 struct std_io$BufferedWriter { sink:25,capacity:11,buffer:7 }
-type 17 union 11,4,0
-type 18 struct std_io$BytesReader { content:20,position:11 }
-type 19 struct std_io$BytesWriter { written:7 }
-type 20 union 5,7
-type 21 struct std_io$FragmentedReader { source:24,size:11 }
-type 22 struct std_io$FailingReader { source:24,calls:11,failure:4,seen:11 }
-type 23 struct std_io$FailingWriter { sink:25,calls:11,failure:4,seen:11 }
-type 24 ref std_io$Reader
-type 25 ref std_io$Writer
-type 26 array 4
+type 16 struct std_io$BufferedWriter { sink:27,capacity:11,buffer:7 }
+type 17 union 4,1
+type 18 union 11,4,0
+type 19 struct std_io$BytesReader { content:21,position:11 }
+type 20 struct std_io$BytesWriter { written:7 }
+type 21 union 5,7
+type 22 struct std_io$FragmentedReader { source:25,size:11 }
+type 23 struct std_io$FailingReader { source:25,calls:11,failure:4,seen:11 }
+type 24 struct std_io$FailingWriter { sink:27,calls:11,failure:4,seen:11 }
+type 25 ref std_io$Reader
+type 26 union 4,0
+type 27 ref std_io$Writer
+type 28 array 4
 string 0 "POST /notes HTTP/1.1\r\nContent-Length: 5\r\n\r\nhello and more"
 string 1 "start: "
 string 2 "header: "
@@ -94,21 +96,21 @@ import 2 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_s
 import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=11 param_types=2,7,11 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
-impl 18 std_io$Reader
-impl 19 std_io$Writer
-impl 21 std_io$Reader
+impl 19 std_io$Reader
+impl 20 std_io$Writer
 impl 22 std_io$Reader
-impl 23 std_io$Writer
+impl 23 std_io$Reader
+impl 24 std_io$Writer
 impl 14 std_io$Reader
 impl 16 std_io$Writer
 impl 4 std_core$Error
 impl 10 std_core$ByteAccess
-vtable std_io$Reader.read 18 26
-vtable std_io$Reader.read 21 28
-vtable std_io$Reader.read 22 29
+vtable std_io$Reader.read 19 26
+vtable std_io$Reader.read 22 28
+vtable std_io$Reader.read 23 29
 vtable std_io$Reader.read 14 31
-vtable std_io$Writer.write 19 27
-vtable std_io$Writer.write 23 30
+vtable std_io$Writer.write 20 27
+vtable std_io$Writer.write 24 30
 vtable std_io$Writer.write 16 32
 export main 0
 
@@ -124,9 +126,9 @@ fn 0 snippet$main () -> i32
   string.const 0   ; "POST /notes HTTP/1.1\r\nContent-Length: 5\r\n\r\nhello and more"
   retag 5   ; string
   i64.const 0
-  struct.new 18   ; std_io$BytesReader
+  struct.new 19   ; std_io$BytesReader
   i64.const 3
-  struct.new 21   ; std_io$FragmentedReader
+  struct.new 22   ; std_io$FragmentedReader
   local.set 0   ; $struct_5
   array.new 7 0   ; u8[]
   local.set 1   ; $arr_8
@@ -226,7 +228,7 @@ fn 0 snippet$main () -> i32
   string.const 11   ; "a body past its limit"
   retag 5   ; string
   i64.const 0
-  struct.new 18   ; std_io$BytesReader
+  struct.new 19   ; std_io$BytesReader
   local.set 0   ; $struct_5
   array.new 7 0   ; u8[]
   local.set 1   ; $arr_8
@@ -246,7 +248,7 @@ fn 0 snippet$main () -> i32
   call 4   ; concat_2
   call 14   ; std_console$println__string
   array.new 7 0   ; u8[]
-  struct.new 19   ; std_io$BytesWriter
+  struct.new 20   ; std_io$BytesWriter
   local.set 0   ; $struct_5
   array.new 7 0   ; u8[]
   local.set 1   ; $arr_8
@@ -269,7 +271,7 @@ fn 0 snippet$main () -> i32
   string.const 14   ; "gathered, not written: "
   call 7   ; std_core$write_string_at
   local.set 4   ; __off_1
-  local.field 0 19 0   ; $struct_5 std_io$BytesWriter.written
+  local.field 0 20 0   ; $struct_5 std_io$BytesWriter.written
   array.len
   local.set 5   ; $len_95
   local.get 3   ; __buf_0
@@ -296,7 +298,7 @@ fn 0 snippet$main () -> i32
   string.const 16   ; "a write the buffer cannot hold: "
   call 7   ; std_core$write_string_at
   local.set 4   ; __off_1
-  local.field 0 19 0   ; $struct_5 std_io$BytesWriter.written
+  local.field 0 20 0   ; $struct_5 std_io$BytesWriter.written
   array.len
   local.set 5   ; $len_95
   local.get 3   ; __buf_0
@@ -326,7 +328,7 @@ fn 0 snippet$main () -> i32
   string.const 17   ; "before the flush: "
   call 7   ; std_core$write_string_at
   local.set 4   ; __off_1
-  local.field 0 19 0   ; $struct_5 std_io$BytesWriter.written
+  local.field 0 20 0   ; $struct_5 std_io$BytesWriter.written
   array.len
   local.set 5   ; $len_95
   local.get 3   ; __buf_0
@@ -351,7 +353,7 @@ fn 0 snippet$main () -> i32
   string.const 18   ; "after the flush: "
   call 7   ; std_core$write_string_at
   local.set 4   ; __off_1
-  local.field 0 19 0   ; $struct_5 std_io$BytesWriter.written
+  local.field 0 20 0   ; $struct_5 std_io$BytesWriter.written
   array.len
   local.set 5   ; $len_95
   local.get 1   ; $arr_8
@@ -363,9 +365,9 @@ fn 0 snippet$main () -> i32
   local.get 4   ; __off_1
   call 6   ; std_core$finish_buffer
   call 14   ; std_console$println__string
-  local.field 0 19 0   ; $struct_5 std_io$BytesWriter.written
+  local.field 0 20 0   ; $struct_5 std_io$BytesWriter.written
   i64.const 0
-  struct.new 18   ; std_io$BytesReader
+  struct.new 19   ; std_io$BytesReader
   local.set 0   ; $struct_5
   array.new 7 0   ; u8[]
   local.set 1   ; $arr_8
@@ -413,19 +415,19 @@ fn 0 snippet$main () -> i32
   string.const 20   ; "one\ntwo\n"
   retag 5   ; string
   i64.const 0
-  struct.new 18   ; std_io$BytesReader
+  struct.new 19   ; std_io$BytesReader
   i64.const 4
-  struct.new 21   ; std_io$FragmentedReader
+  struct.new 22   ; std_io$FragmentedReader
   local.set 0   ; $struct_5
-  data.const 0 26   ; pool[0] std_io$IOError[]
+  data.const 0 28   ; pool[0] std_io$IOError[]
   i64.const 0
-  array.get 26 safe   ; std_io$IOError[]
+  array.get 28 safe   ; std_io$IOError[]
   local.set 1   ; $arr_8
   local.get 0   ; $struct_5
   i64.const 1
   local.get 1   ; $arr_8
   i64.const 0
-  struct.new 22   ; std_io$FailingReader
+  struct.new 23   ; std_io$FailingReader
   local.set 0   ; $struct_5
   array.new 7 0   ; u8[]
   local.set 1   ; $arr_8
@@ -455,7 +457,7 @@ fn 0 snippet$main () -> i32
   call 4   ; concat_2
   call 14   ; std_console$println__string
   array.new 7 0   ; u8[]
-  struct.new 19   ; std_io$BytesWriter
+  struct.new 20   ; std_io$BytesWriter
   local.set 0   ; $struct_5
   string.const 23   ; "the peer left"
   i32.const 8
@@ -466,7 +468,7 @@ fn 0 snippet$main () -> i32
   i64.const 0
   local.get 1   ; $arr_8
   i64.const 0
-  struct.new 23   ; std_io$FailingWriter
+  struct.new 24   ; std_io$FailingWriter
   local.set 0   ; $struct_5
   array.new 7 0   ; u8[]
   local.set 1   ; $arr_8
@@ -1439,7 +1441,8 @@ fn 20 std_io$flush (ref) -> any
     local.get 1   ; $field_6
     return
   end $L0
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 21 std_io$take_through (ref,u8,i64) -> any
@@ -1790,12 +1793,12 @@ fn 26 std_io$BytesReader$Reader$read (ref,ref) -> any
     retag 11   ; i64
     return
   end $L0
-  local.field 0 18 0   ; arg 0 std_io$BytesReader.content
+  local.field 0 19 0   ; arg 0 std_io$BytesReader.content
   call 34   ; std_io$bytes_of
   local.tee 2   ; bytes
   array.len
   local.set 3   ; $len_9
-  local.field 0 18 1   ; arg 0 std_io$BytesReader.position
+  local.field 0 19 1   ; arg 0 std_io$BytesReader.position
   ref.cast 11   ; i64
   local.set 4   ; $field_10
   local.get 3   ; $len_9
@@ -1813,7 +1816,7 @@ fn 26 std_io$BytesReader$Reader$read (ref,ref) -> any
     local.get 4   ; $field_10
     call 35   ; std_math$min__i64
     local.set 3   ; $len_9
-    local.field 0 18 1   ; arg 0 std_io$BytesReader.position
+    local.field 0 19 1   ; arg 0 std_io$BytesReader.position
     ref.cast 11   ; i64
     local.set 4   ; $field_10
     local.get 2   ; bytes
@@ -1822,14 +1825,14 @@ fn 26 std_io$BytesReader$Reader$read (ref,ref) -> any
     i64.const 0
     local.get 3   ; $len_9
     array.copy
-    local.field 0 18 1   ; arg 0 std_io$BytesReader.position
+    local.field 0 19 1   ; arg 0 std_io$BytesReader.position
     ref.cast 11   ; i64
     local.get 3   ; $len_9
     i64.checked_add
     local.set 4   ; $field_10
     local.get 0   ; arg 0
     local.get 4   ; $field_10
-    struct.set 18 1   ; std_io$BytesReader.position
+    struct.set 19 1   ; std_io$BytesReader.position
     local.get 3   ; $len_9
     retag 11   ; i64
     return
@@ -1840,7 +1843,7 @@ end
 fn 27 std_io$BytesWriter$Writer$write (ref,any) -> any
   local $field_2 ref
   local $call_3 ref
-  local.field 0 19 0   ; arg 0 std_io$BytesWriter.written
+  local.field 0 20 0   ; arg 0 std_io$BytesWriter.written
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 34   ; std_io$bytes_of
@@ -1848,19 +1851,20 @@ fn 27 std_io$BytesWriter$Writer$write (ref,any) -> any
   local.get 2   ; $field_2
   local.get 3   ; $call_3
   array.push_all
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 28 std_io$FragmentedReader$Reader$read (ref,ref) -> any
   local $field_2 any
   local $len_4 i64
   local $field_5 i64
-  local.field 0 21 0   ; arg 0 std_io$FragmentedReader.source
+  local.field 0 22 0   ; arg 0 std_io$FragmentedReader.source
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   array.len
   local.set 3   ; $len_4
-  local.field 0 21 1   ; arg 0 std_io$FragmentedReader.size
+  local.field 0 22 1   ; arg 0 std_io$FragmentedReader.size
   ref.cast 11   ; i64
   local.set 4   ; $field_5
   local.get 3   ; $len_4
@@ -1884,10 +1888,10 @@ fn 29 std_io$FailingReader$Reader$read (ref,ref) -> any
   local $field_8 u8
   local $field_9 i32
   local $field_14 any
-  local.field 0 22 3   ; arg 0 std_io$FailingReader.seen
+  local.field 0 23 3   ; arg 0 std_io$FailingReader.seen
   ref.cast 11   ; i64
   local.set 2   ; $field_2
-  local.field 0 22 1   ; arg 0 std_io$FailingReader.calls
+  local.field 0 23 1   ; arg 0 std_io$FailingReader.calls
   ref.cast 11   ; i64
   local.set 3   ; $field_3
   local.get 2   ; $field_2
@@ -1895,22 +1899,22 @@ fn 29 std_io$FailingReader$Reader$read (ref,ref) -> any
   i64.ge
   if $L0 void
   else
-    local.field 0 22 3   ; arg 0 std_io$FailingReader.seen
+    local.field 0 23 3   ; arg 0 std_io$FailingReader.seen
     ref.cast 11   ; i64
     i64.const 1
     i64.checked_add
     local.set 2   ; $field_2
     local.get 0   ; arg 0
     local.get 2   ; $field_2
-    struct.set 22 3   ; std_io$FailingReader.seen
-    local.field 0 22 0   ; arg 0 std_io$FailingReader.source
+    struct.set 23 3   ; std_io$FailingReader.seen
+    local.field 0 23 0   ; arg 0 std_io$FailingReader.source
     local.set 8   ; $field_14
     local.get 1   ; arg 1
     local.get 8   ; $field_14
     virtual.call 2 std_io$Reader.read -> any
     return
   end $L0
-  local.field 0 22 2   ; arg 0 std_io$FailingReader.failure
+  local.field 0 23 2   ; arg 0 std_io$FailingReader.failure
   local.set 4   ; __spread_0
   local.field 4 4 0   ; __spread_0 std_io$IOError.msg
   ref.cast 5   ; string
@@ -1935,10 +1939,10 @@ fn 30 std_io$FailingWriter$Writer$write (ref,any) -> any
   local $field_8 u8
   local $field_9 i32
   local $field_14 any
-  local.field 0 23 3   ; arg 0 std_io$FailingWriter.seen
+  local.field 0 24 3   ; arg 0 std_io$FailingWriter.seen
   ref.cast 11   ; i64
   local.set 2   ; $field_2
-  local.field 0 23 1   ; arg 0 std_io$FailingWriter.calls
+  local.field 0 24 1   ; arg 0 std_io$FailingWriter.calls
   ref.cast 11   ; i64
   local.set 3   ; $field_3
   local.get 2   ; $field_2
@@ -1946,22 +1950,22 @@ fn 30 std_io$FailingWriter$Writer$write (ref,any) -> any
   i64.ge
   if $L0 void
   else
-    local.field 0 23 3   ; arg 0 std_io$FailingWriter.seen
+    local.field 0 24 3   ; arg 0 std_io$FailingWriter.seen
     ref.cast 11   ; i64
     i64.const 1
     i64.checked_add
     local.set 2   ; $field_2
     local.get 0   ; arg 0
     local.get 2   ; $field_2
-    struct.set 23 3   ; std_io$FailingWriter.seen
-    local.field 0 23 0   ; arg 0 std_io$FailingWriter.sink
+    struct.set 24 3   ; std_io$FailingWriter.seen
+    local.field 0 24 0   ; arg 0 std_io$FailingWriter.sink
     local.set 8   ; $field_14
     local.get 1   ; arg 1
     local.get 8   ; $field_14
     virtual.call 2 std_io$Writer.write -> any
     return
   end $L0
-  local.field 0 23 2   ; arg 0 std_io$FailingWriter.failure
+  local.field 0 24 2   ; arg 0 std_io$FailingWriter.failure
   local.set 4   ; __spread_0
   local.field 4 4 0   ; __spread_0 std_io$IOError.msg
   ref.cast 5   ; string
@@ -2129,7 +2133,8 @@ fn 32 std_io$BufferedWriter$Writer$write (ref,any) -> any
     local.field 0 16 2   ; arg 0 std_io$BufferedWriter.buffer
     local.get 2   ; bytes
     array.push_all
-    return.lit null.const
+    void.const
+    return
   end $L2
   local.field 0 16 0   ; arg 0 std_io$BufferedWriter.sink
   local.set 5   ; __fallback_0

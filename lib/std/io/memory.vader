@@ -54,9 +54,8 @@ export BytesWriter :: struct {
 }
 
 BytesWriter implements Writer {
-    write :: fn(self, content: u8[] | string) -> null | IOError {
+    write :: fn(self, content: u8[] | string) -> void | IOError {
         self.written.push_all(content.bytes_of())
-        return null
     }
 }
 
@@ -121,7 +120,7 @@ export FailingWriter :: struct {
 }
 
 FailingWriter implements Writer {
-    write :: fn(self, content: u8[] | string) -> null | IOError {
+    write :: fn(self, content: u8[] | string) -> void | IOError {
         if self.seen >= self.calls {
             // A copy: an impl hands back nothing it keeps.
             return IOError { ...self.failure }
@@ -216,7 +215,7 @@ test_failing_writer_reports_the_failure_it_was_given :: fn() -> void {
         .calls = 1,
         .failure = IOError { .msg = "broken pipe", .kind = .BrokenPipe },
     }
-    assert(w.write("ab") == null, "the first write goes through")
+    assert(w.write("ab") is void, "the first write goes through")
     failed :: w.write("cd")
     assert(failed is IOError && failed.kind == .BrokenPipe, "the second write fails as told")
     assert_eq(shown(kept.written), "ab")

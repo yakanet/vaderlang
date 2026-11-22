@@ -34,7 +34,7 @@ declared_body :: fn(
         if lengths.len() > 0 {
             return malformed("a transfer coding and a content length together")
         }
-        refused :: only_chunked(codings, is_request) else is HttpError { return refused }
+        refused :: only_chunked(codings, is_request) else return refused
         return ChunkedBody { .source = reader, .limits = limits }
     }
     if lengths.len() == 0 {

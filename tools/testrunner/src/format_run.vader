@@ -70,10 +70,7 @@ check_format :: fn(case: Case, update: bool) -> StageReport | CaseFailure =
 // which `update` writes when it differs.
 check_fixture :: fn(case: Case, update: bool) -> StageReport | CaseFailure {
     began :: monotonic()
-    formatted :: formatted_file(entry_path(case))
-    if formatted is CaseFailure {
-        return formatted
-    }
+    formatted :: formatted_file(entry_path(case)) else return formatted
     return report_of(case, FORMAT_STAGE, formatted, update, began)
 }
 

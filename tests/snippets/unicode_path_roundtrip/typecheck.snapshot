@@ -5,9 +5,9 @@
   expr 13:13    StringLitExpr  :: string
   expr 13:16    CallExpr       :: string
   expr 13:16    IdentExpr      :: fn() -> string
-  expr 14:16    CallExpr       :: IOError | null
-  expr 14:16    FallbackExpr   :: null
-  expr 14:16    IdentExpr      :: fn(string, string | u8[]) -> IOError | null
+  expr 14:16    CallExpr       :: IOError | void
+  expr 14:16    FallbackExpr   :: void
+  expr 14:16    IdentExpr      :: fn(string, string | u8[]) -> IOError | void
   expr 14:27    IdentExpr      :: string
   expr 14:33    SeqLitExpr     :: u8[]
   expr 14:68    IdentExpr      :: Error
@@ -42,8 +42,8 @@
   expr 23:5     CallExpr       :: void
   expr 23:5     IdentExpr      :: fn(T) -> void
   expr 24:12    IdentExpr      :: string
-  expr 24:5     CallExpr       :: IOError | null
-  expr 24:5     IdentExpr      :: fn(string, RemoveOptions) -> IOError | null
+  expr 24:5     CallExpr       :: IOError | void
+  expr 24:5     IdentExpr      :: fn(string, RemoveOptions) -> IOError | void
   expr 25:13    StringLitExpr  :: string
   expr 25:24    UnaryExpr      :: bool
   expr 25:25    CallExpr       :: bool
@@ -51,4 +51,4 @@
   expr 25:32    IdentExpr      :: string
   expr 25:5     CallExpr       :: void
   expr 25:5     IdentExpr      :: fn(T) -> void
-  expr 374:60   StructLitExpr  :: RemoveOptions
+  expr 372:60   StructLitExpr  :: RemoveOptions

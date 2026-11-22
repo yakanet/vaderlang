@@ -1834,8 +1834,16 @@
               "kind": "BinaryExpr",
               "op": "bitor",
               "left": {
-                "kind": "IdentExpr",
-                "name": "null"
+                "kind": "BinaryExpr",
+                "op": "bitor",
+                "left": {
+                  "kind": "IdentExpr",
+                  "name": "void"
+                },
+                "right": {
+                  "kind": "IdentExpr",
+                  "name": "null"
+                }
               },
               "right": {
                 "kind": "IdentExpr",

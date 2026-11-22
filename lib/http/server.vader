@@ -278,7 +278,7 @@ Wire :: struct {
 }
 
 Wire implements Writer {
-    write :: fn(self, content: u8[] | string) -> null | IOError {
+    write :: fn(self, content: u8[] | string) -> void | IOError {
         failure :: self.failure
         if failure != null {
             return IOError { ...failure }
@@ -309,7 +309,7 @@ CountingWriter :: struct {
 }
 
 CountingWriter implements Writer {
-    write :: fn(self, content: u8[] | string) -> null | IOError {
+    write :: fn(self, content: u8[] | string) -> void | IOError {
         self.count += content.bytes_of().len()
         return self.sink.write(content)
     }
@@ -737,7 +737,7 @@ FlakyWriter :: struct {
 }
 
 FlakyWriter implements Writer {
-    write :: fn(self, content: u8[] | string) -> null | IOError {
+    write :: fn(self, content: u8[] | string) -> void | IOError {
         self.writes += 1
         if self.writes - 1 == self.fails_at {
             return IOError { .msg = "the write failed" }

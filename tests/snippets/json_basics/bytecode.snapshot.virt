@@ -37,7 +37,7 @@ type 34 union 22,24
 type 35 union 23,24
 type 36 union 24,25
 type 37 union 24,26
-type 38 union 24,0
+type 38 union 24,1
 type 39 union 0,2
 type 40 union 3,0
 type 41 array 29
@@ -6243,7 +6243,8 @@ fn 75 json$expect_byte (ref,char) -> any
   else
     local.get 0   ; arg 0
     call 70   ; json$advance
-    return.lit null.const
+    void.const
+    return
   end $L1
   local.get 0   ; arg 0
   string.const 39   ; "unexpected character"

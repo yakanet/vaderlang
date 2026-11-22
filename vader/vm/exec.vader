@@ -338,13 +338,12 @@ project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32)
 /// @param at_pc           pc of the op doing the lookup.
 /// @param op_label        op-name prefix for the diagnostic message
 ///                        (`"call.indirect"`, `"defer.pop_exec"`, ...).
-/// @return                `null` on success, `Trap` if out of range.
+/// @error                 a `Trap` if out of range.
 /// @error                 `function_index < 0` or `>= functions.len()`.
-validate_fn_index :: fn(function_index: i32, functions: bc.BcFunction[], at_pc: i32, op_label: string) -> Trap | null {
+validate_fn_index :: fn(function_index: i32, functions: bc.BcFunction[], at_pc: i32, op_label: string) -> void | Trap {
     if is_fn_index_out_of_range(function_index, functions) {
         return fn_index_trap(function_index, at_pc, op_label)
     }
-    return null
 }
 
 // `VirtualCall` tests with this predicate and builds the trap only on failure: a
@@ -361,7 +360,7 @@ fn_index_trap :: fn(function_index: i32, at_pc: i32, op_label: string) = Trap {
 /// word, but a `null` operand can't be read as an i32. Compare those by
 /// null-identity (`null == null`, `null != anything-non-null`) ; everything
 /// else falls back to the numeric i32 path.
-apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | null {
+apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> void | Trap {
     lt :: frame.tag[frame.sp - 2]
     rt :: frame.tag[frame.sp - 1]
     eq: bool = false
@@ -383,7 +382,6 @@ apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | nul
     frame.tag[frame.sp - 2] = .Bool
     frame.sp = frame.sp - 1
     frame.pc = frame.pc + 1
-    return null
 }
 
 /// Build the argv argument for a `fn(argv: string[]) -> i32` entry point.
@@ -654,9 +652,9 @@ run_entry :: fn(
 ///                 already guarantees consistency).
 /// @param length   initial element count to consume from the stack.
 /// @param frame    current top frame, mutated in place (sp/pc advanced).
-/// @return         `null` on success, or a `Trap` if the stack is too short.
+/// @error          a `Trap` if the stack is too short.
 /// @error          stack underflow when `frame.sp < length`.
-build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
+build_array :: fn(type_id: i32, length: i32, frame: Frame) -> void | Trap {
     if length < 0 {
         return Trap { .message = "array.new length ${length} is negative at pc=${frame.pc}" }
     }
@@ -670,7 +668,6 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
     push_val(frame, arg_base, new_array)
     frame.sp = arg_base + 1
     frame.pc = frame.pc + 1
-    return null
 }
 
 /// Body of the `StructNew` arm: the .virt text format emits two
@@ -682,11 +679,11 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
 /// @param types    the running module's type table.
 /// @param type_id  the struct type's ordinal in `types`.
 /// @param frame    current top frame, mutated in place (sp / pc advanced).
-/// @return         `null` on success, or a `Trap` describing the failure.
+/// @error          a `Trap` describing the failure.
 /// @error          `type_id` out of range ; type-table entry isn't a
 ///                 `BcStruct` ; stack carries fewer than `field_count`
 ///                 values.
-build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | null {
+build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> void | Trap {
     type_decl :: types[type_id]
     if !(type_decl is bc.BcStruct) {
         return Trap { .message = "struct.new type ${type_id} is not a struct at pc=${frame.pc}" }
@@ -705,7 +702,6 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | nul
     push_val(frame, arg_base, new_struct)
     frame.sp = arg_base + 1
     frame.pc = frame.pc + 1
-    return null
 }
 
 // ---- memory opcodes (Target ABI): VM byte-heap helpers -----------------
@@ -723,10 +719,10 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | nul
 /// @param frame        current top frame, mutated in place (size popped, obj
 ///                     pushed in its place: net stack effect 0).
 /// @param handle_cell  1-cell carrier for the monotonic handle counter.
-/// @return             `null` on success, or a `Trap` on stack underflow /
+/// @error              a `Trap` on stack underflow /
 ///                     negative size.
 /// @error              empty stack ; negative size.
-build_buffer :: fn(frame: Frame, handle_cell: i32[]) -> Trap | null {
+build_buffer :: fn(frame: Frame, handle_cell: i32[]) -> void | Trap {
     size_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "buffer.new size")
     if size_unwrap is Trap { return size_unwrap }
     if size_unwrap < 0 {
@@ -743,7 +739,6 @@ build_buffer :: fn(frame: Frame, handle_cell: i32[]) -> Trap | null {
         .handle = handle_cell[0], .type_id = 0, .bytes = bytes, .slots = [],
     })
     frame.pc = frame.pc + 1
-    return null
 }
 
 /// Validate a byte-region access for the typed load/store ops: the offset must
@@ -820,9 +815,9 @@ load_bytes_op :: fn(frame: Frame, width: i64, label: string) -> u64 | Trap {
 /// @param width  byte width to write (1 / 4 / 8).
 /// @param value  the raw bit pattern whose low `width` bytes are stored.
 /// @param label  op label for trap messages.
-/// @return       `null` on success, or a `Trap` on bad obj / OOB offset.
+/// @error        a `Trap` on bad obj / OOB offset.
 /// @error        non-object receiver ; negative or out-of-range offset.
-store_bytes_op :: fn(frame: Frame, width: i64, value: u64, label: string) -> Trap | null {
+store_bytes_op :: fn(frame: Frame, width: i64, value: u64, label: string) -> void | Trap {
     off_unwrap :: stack_i32(frame, frame.sp - 2, label, "offset")
     if off_unwrap is Trap { return off_unwrap }
     obj_unwrap :: stack_obj(frame, frame.sp - 3, label)
@@ -832,7 +827,6 @@ store_bytes_op :: fn(frame: Frame, width: i64, value: u64, label: string) -> Tra
     bc.write_le(obj_unwrap.bytes, off, width, value)
     frame.sp = frame.sp - 3
     frame.pc = frame.pc + 1
-    return null
 }
 
 /// Body of the `memory_copy` arm. Pops `dst, dst_off, src, src_off, n` and
@@ -842,10 +836,10 @@ store_bytes_op :: fn(frame: Frame, width: i64, value: u64, label: string) -> Tra
 /// overlap: the snapshot only hardens the VM reference impl).
 ///
 /// @param frame  current top frame, mutated in place (5 operands dropped).
-/// @return       `null` on success, or a `Trap` on underflow / bad obj / OOB.
+/// @error        a `Trap` on underflow / bad obj / OOB.
 /// @error        fewer than 5 stack slots ; non-object dst/src ; negative
 ///               length/offset ; source or dest range past the byte length.
-do_memory_copy :: fn(frame: Frame) -> Trap | null {
+do_memory_copy :: fn(frame: Frame) -> void | Trap {
     n_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "memory_copy n")
     if n_unwrap is Trap { return n_unwrap }
     src_off_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "memory_copy src_off")
@@ -877,7 +871,6 @@ do_memory_copy :: fn(frame: Frame) -> Trap | null {
     }
     frame.sp = frame.sp - 5
     frame.pc = frame.pc + 1
-    return null
 }
 
 // ---- boxed ops ------------------------------------------------------------
@@ -936,7 +929,7 @@ export is_singleton_comptime_trap_message :: fn(message: string) -> bool =
 ///                     comptime is one.
 apply_boxed :: fn(
     state: VmState, run: RunHost, instr: bc.Op, frame: Frame, fn_name: string, is_comptime: bool,
-) -> Trap | null {
+) -> void | Trap {
     // @partial: the ops the register engine runs itself.
     @partial match instr {
         is bc.FnRef -> {
@@ -1289,5 +1282,4 @@ apply_boxed :: fn(
         }
         _ -> {}
     }
-    return null
 }

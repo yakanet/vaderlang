@@ -3,8 +3,8 @@
 // Each runs one op of `apply_boxed` (`exec.vader`) on the operand stack of its
 // frame, bulky and cold: an O(N) body, or one that already allocates.
 //
-// Contract: return a `Trap` on a stack or range error, `null` on success, and
-// advance `frame.sp` / `frame.pc` before returning `null`: `apply_boxed` does
+// Contract: return a `Trap` on a stack or range error, `void` on success, and
+// advance `frame.sp` / `frame.pc` before returning: `apply_boxed` does
 // neither for these.
 
 module "vader/vm"
@@ -16,7 +16,7 @@ bc :: import "vader/core/bytecode"
 clamp_nonneg :: fn(v: i32) -> i64 = if v < 0 { 0 } else { i64(v) }
 
 /// `array.copy`: overlap-safe window copy between two arrays.
-exec_array_copy :: fn(frame: Frame) -> Trap | null {
+exec_array_copy :: fn(frame: Frame) -> void | Trap {
     len_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.copy len")
     if len_unwrap is Trap { return len_unwrap }
     dst_start_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "array.copy dst_start")
@@ -47,13 +47,12 @@ exec_array_copy :: fn(frame: Frame) -> Trap | null {
     }
     frame.sp = frame.sp - 5
     frame.pc = frame.pc + 1
-    return null
 }
 
 /// `array.slice`: a view over `[lo, hi)` of an array.
 ///
 /// @param instr  the op itself: the view carries its own `type_id`.
-exec_array_slice :: fn(frame: Frame, instr: bc.ArraySlice) -> Trap | null {
+exec_array_slice :: fn(frame: Frame, instr: bc.ArraySlice) -> void | Trap {
     hi_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.slice hi")
     if hi_unwrap is Trap { return hi_unwrap }
     lo_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "array.slice lo")
@@ -69,7 +68,6 @@ exec_array_slice :: fn(frame: Frame, instr: bc.ArraySlice) -> Trap | null {
     push_val(frame, frame.sp - 3, view_of(array_unwrap, instr.type_id, lo_clamped, hi_clamped))
     frame.sp = frame.sp - 2
     frame.pc = frame.pc + 1
-    return null
 }
 
 // The view `[lo, hi)` of `array`, of the array type `type_id`: a slice of its
@@ -89,7 +87,7 @@ view_of :: fn(array: ArrayVal, type_id: i32, lo: i64, hi: i64) -> ArrayVal {
 }
 
 /// `array.push_all`: append every element of one array to another.
-exec_array_push_all :: fn(frame: Frame) -> Trap | null {
+exec_array_push_all :: fn(frame: Frame) -> void | Trap {
     src_unwrap :: peek_array_mut(frame, frame.sp - 1, frame.pc, "array.push_all source")
     if src_unwrap is Trap { return src_unwrap }
     dst_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.push_all receiver")
@@ -104,13 +102,12 @@ exec_array_push_all :: fn(frame: Frame) -> Trap | null {
     }
     frame.sp = frame.sp - 2
     frame.pc = frame.pc + 1
-    return null
 }
 
 /// `array.reserve`: an empty array with room for `n` elements.
 ///
 /// @param instr  the op itself: the array carries its `type_id`.
-exec_array_reserve :: fn(frame: Frame, instr: bc.ArrayReserve) -> Trap | null {
+exec_array_reserve :: fn(frame: Frame, instr: bc.ArrayReserve) -> void | Trap {
     count_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.reserve count")
     if count_unwrap is Trap {
         return count_unwrap
@@ -118,11 +115,10 @@ exec_array_reserve :: fn(frame: Frame, instr: bc.ArrayReserve) -> Trap | null {
     reserved: Value[]: [] * clamp_nonneg(i32(count_unwrap))
     push_val(frame, frame.sp - 1, ArrayVal { .type_id = instr.type_id, .elements = reserved })
     frame.pc = frame.pc + 1
-    return null
 }
 
 /// `array.repeat`: the elements of an array, `n` times over.
-exec_array_repeat :: fn(frame: Frame) -> Trap | null {
+exec_array_repeat :: fn(frame: Frame) -> void | Trap {
     count_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "array.repeat count")
     if count_unwrap is Trap { return count_unwrap }
     array_unwrap :: peek_array_mut(frame, frame.sp - 2, frame.pc, "array.repeat receiver")
@@ -138,11 +134,10 @@ exec_array_repeat :: fn(frame: Frame) -> Trap | null {
     push_val(frame, frame.sp - 2, ArrayVal { .type_id = array_unwrap.type_id, .elements = repeated })
     frame.sp = frame.sp - 1
     frame.pc = frame.pc + 1
-    return null
 }
 
 /// `string.compare`: the three-way byte order of two strings.
-exec_string_compare :: fn(frame: Frame) -> Trap | null {
+exec_string_compare :: fn(frame: Frame) -> void | Trap {
     left  :: read_string(peek_val(frame, frame.sp - 2), frame.pc, "string.compare")
     if left  is Trap { return left  }
     right :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "string.compare")
@@ -151,11 +146,10 @@ exec_string_compare :: fn(frame: Frame) -> Trap | null {
     frame.tag[frame.sp - 2] = .I32
     frame.sp = frame.sp - 1
     frame.pc = frame.pc + 1
-    return null
 }
 
 /// `buffer.write_string`: copy string bytes into a buffer at an offset.
-exec_buffer_write_string :: fn(frame: Frame) -> Trap | null {
+exec_buffer_write_string :: fn(frame: Frame) -> void | Trap {
     // Pop buffer + off + string ; memcpy the string's bytes into the
     // buffer at `off` (the parts-model `to_string` assembly step).
     str_unwrap :: read_string(peek_val(frame, frame.sp - 1), frame.pc, "buffer_write_string source")
@@ -176,5 +170,4 @@ exec_buffer_write_string :: fn(frame: Frame) -> Trap | null {
     }
     frame.sp = frame.sp - 3
     frame.pc = frame.pc + 1
-    return null
 }

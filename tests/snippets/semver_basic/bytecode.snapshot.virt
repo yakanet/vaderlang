@@ -16,7 +16,7 @@ type 13 struct std_string$ParseError { msg:3 }
 type 14 union 13,15
 type 15 struct semver$VersionRange { clauses:29 }
 type 16 struct semver$VersionSections { core:3,prerelease:30,build:30 }
-type 17 union 0,13
+type 17 union 13,1
 type 18 union 13,19
 type 19 struct semver$RangeClause { terms:24 }
 type 20 union 6,0
@@ -914,9 +914,9 @@ fn 11 semver$parse (string) -> any
   local core ref
   local __fallback_0 any
   local core any
-  local $field_19 i32
-  local $field_20 i32
-  local $field_21 i32
+  local $field_22 i32
+  local $field_23 i32
+  local $field_24 i32
   local if_res string
   local if_res string
   local.get 0   ; arg 0
@@ -947,22 +947,23 @@ fn 11 semver$parse (string) -> any
   local.get 1   ; sections
   call 15   ; semver$validate_sections
   local.tee 3   ; __fallback_0
-  type_check 0   ; null
+  local.set 4   ; core
+  local.get 3   ; __fallback_0
+  type_check 13   ; std_string$ParseError
   if $L2 void
-  else
-    local.get 3   ; __fallback_0
+    local.get 4   ; core
     ref.cast 13   ; std_string$ParseError
     return
   end $L2
   local.field 2 4 0   ; core semver$Version.major
   ref.cast 2   ; i32
-  local.set 5   ; $field_19
+  local.set 5   ; $field_22
   local.field 2 4 1   ; core semver$Version.minor
   ref.cast 2   ; i32
-  local.set 6   ; $field_20
+  local.set 6   ; $field_23
   local.field 2 4 2   ; core semver$Version.patch
   ref.cast 2   ; i32
-  local.set 7   ; $field_21
+  local.set 7   ; $field_24
   local.field 1 16 1   ; sections semver$VersionSections.prerelease
   local.tee 3   ; __fallback_0
   type_check 0   ; null
@@ -980,9 +981,9 @@ fn 11 semver$parse (string) -> any
   if $L4 void
     string.const 8   ; ""
     local.set 9   ; if_res
-    local.get 5   ; $field_19
-    local.get 6   ; $field_20
-    local.get 7   ; $field_21
+    local.get 5   ; $field_22
+    local.get 6   ; $field_23
+    local.get 7   ; $field_24
     local.get 8   ; if_res
     local.get 9   ; if_res
     struct.new 4   ; semver$Version
@@ -991,9 +992,9 @@ fn 11 semver$parse (string) -> any
   local.get 3   ; __fallback_0
   ref.cast 3   ; string
   local.set 9   ; if_res
-  local.get 5   ; $field_19
-  local.get 6   ; $field_20
-  local.get 7   ; $field_21
+  local.get 5   ; $field_22
+  local.get 6   ; $field_23
+  local.get 7   ; $field_24
   local.get 8   ; if_res
   local.get 9   ; if_res
   struct.new 4   ; semver$Version
@@ -1233,8 +1234,9 @@ end
 
 fn 15 semver$validate_sections (ref) -> any
   local pre any
-  local $cast_4 string
-  local $fn_ref_5 ref
+  local $cast_5 string
+  local $fn_ref_6 ref
+  local pre_error any
   local.field 0 16 1   ; arg 0 semver$VersionSections.prerelease
   local.tee 1   ; pre
   type_check 0   ; null
@@ -1242,17 +1244,18 @@ fn 15 semver$validate_sections (ref) -> any
   else
     local.get 1   ; pre
     ref.cast 3   ; string
-    local.set 2   ; $cast_4
+    local.set 2   ; $cast_5
     fn.ref 21 22   ; semver$validate_prerelease_id fn
-    local.set 3   ; $fn_ref_5
-    local.get 2   ; $cast_4
-    local.get 3   ; $fn_ref_5
+    local.set 3   ; $fn_ref_6
+    local.get 2   ; $cast_5
+    local.get 3   ; $fn_ref_6
     call 20   ; semver$validate_identifiers
     local.tee 1   ; pre
-    type_check 0   ; null
+    local.set 4   ; pre_error
+    local.get 1   ; pre
+    type_check 13   ; std_string$ParseError
     if $L1 void
-    else
-      local.get 1   ; pre
+      local.get 4   ; pre_error
       ref.cast 13   ; std_string$ParseError
       return
     end $L1
@@ -1261,15 +1264,16 @@ fn 15 semver$validate_sections (ref) -> any
   local.tee 1   ; pre
   type_check 0   ; null
   if $L2 void
-    return.lit null.const
+    void.const
+    return
   end $L2
   local.get 1   ; pre
   ref.cast 3   ; string
-  local.set 2   ; $cast_4
+  local.set 2   ; $cast_5
   fn.ref 22 22   ; semver$validate_build_id fn
-  local.set 3   ; $fn_ref_5
-  local.get 2   ; $cast_4
-  local.get 3   ; $fn_ref_5
+  local.set 3   ; $fn_ref_6
+  local.get 2   ; $cast_5
+  local.get 3   ; $fn_ref_6
   call 20   ; semver$validate_identifiers
   return
 end
@@ -1622,6 +1626,7 @@ fn 20 semver$validate_identifiers (string,ref) -> any
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
+  local __fallback_3 any
   local error any
   local.get 0   ; arg 0
   string.const 12   ; "."
@@ -1643,11 +1648,12 @@ fn 20 semver$validate_identifiers (string,ref) -> any
       retag 3   ; string
       local.get 1   ; arg 1
       call.indirect 22   ; fn
-      local.tee 5   ; error
-      type_check 0   ; null
+      local.tee 5   ; __fallback_3
+      local.set 6   ; error
+      local.get 5   ; __fallback_3
+      type_check 13   ; std_string$ParseError
       if $L2 void
-      else
-        local.get 5   ; error
+        local.get 6   ; error
         ref.cast 13   ; std_string$ParseError
         return
       end $L2
@@ -1658,7 +1664,8 @@ fn 20 semver$validate_identifiers (string,ref) -> any
       br $L0
     end $L1
   end $L0
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 21 semver$validate_prerelease_id (string) -> any
@@ -1695,11 +1702,14 @@ fn 21 semver$validate_prerelease_id (string) -> any
         struct.new 13   ; std_string$ParseError
         return
       end $L4
-      return.lit null.const
+      void.const
+      return
     end $L3
-    return.lit null.const
+    void.const
+    return
   end $L2
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 22 semver$validate_build_id (string) -> any
@@ -1718,7 +1728,8 @@ fn 22 semver$validate_build_id (string) -> any
     struct.new 13   ; std_string$ParseError
     return
   end $L1
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 23 semver$is_bare_operator (string) -> bool
@@ -2211,10 +2222,11 @@ fn 25 semver$parse_partial (string) -> any
   local.get 1   ; sections
   call 15   ; semver$validate_sections
   local.tee 5   ; __fallback_0
-  type_check 0   ; null
+  local.set 6   ; v
+  local.get 5   ; __fallback_0
+  type_check 13   ; std_string$ParseError
   if $L11 void
-  else
-    local.get 5   ; __fallback_0
+    local.get 6   ; v
     ref.cast 13   ; std_string$ParseError
     return
   end $L11

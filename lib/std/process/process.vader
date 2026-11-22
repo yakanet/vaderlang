@@ -1021,7 +1021,7 @@ await_child :: fn(child: ChildProcess) -> void {
 /// @error        `ProcessError` when the child has no stdin pipe (another
 ///               launch, or `close_input`), reads no more input (it closed its
 ///               stdin, or ended), or the write fails.
-export write_input :: fn(child: ChildProcess, data: u8[]) -> null | ProcessError {
+export write_input :: fn(child: ChildProcess, data: u8[]) -> void | ProcessError {
     pipe :: child.in_pipe else return ProcessError {
         .msg = "\"${child.program}\" has no stdin to write",
     }
@@ -1029,7 +1029,7 @@ export write_input :: fn(child: ChildProcess, data: u8[]) -> null | ProcessError
 }
 
 // Write `data` on `pipe`, the stdin of the child `program` names.
-write_all :: fn(program: string, pipe: Descriptor, data: u8[]) -> null | ProcessError {
+write_all :: fn(program: string, pipe: Descriptor, data: u8[]) -> void | ProcessError {
     rest := data
     for rest.len() > 0 {
         n :: write_some(pipe, rest)
@@ -1044,7 +1044,6 @@ write_all :: fn(program: string, pipe: Descriptor, data: u8[]) -> null | Process
         }
         rest = rest[n..<rest.len()]
     }
-    return null
 }
 
 // Write the start of `bytes` on `pipe`, the task parked while the pipe is full:
@@ -1318,7 +1317,7 @@ test_an_interactive_child_reads_its_input_until_it_is_closed :: fn() -> void {
         return
     }
     defer child.kill()
-    assert(child.write_input("b\r\na\r\n".bytes()) == null, "a running child takes its input")
+    assert(child.write_input("b\r\na\r\n".bytes()) is void, "a running child takes its input")
     child.close_input()
     out: u8[]: []
     for {
@@ -1344,7 +1343,7 @@ test_an_interactive_child_answers_one_request_after_another :: fn() -> void {
     if child is ChildProcess {
         defer child.kill()
         for request in ["one\n", "two\n"] {
-            assert(child.write_input(request.bytes()) == null, "a running child takes its input")
+            assert(child.write_input(request.bytes()) is void, "a running child takes its input")
             assert_eq(answer_of(child, request.byte_len()), request)
         }
     }

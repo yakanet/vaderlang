@@ -675,8 +675,9 @@ static vader_box_t std_fs$open(vader_string_t l0, void* l1) {
     };
     vader_gc_top = &gc_frame;
     l2 = std_fs$refusal_of(l0, l1);
-    if (!(l2.tag == 0u)) {
-        t0 = l2.payload.obj;
+    l3 = l2;
+    if (l2.tag == 11u) {
+        t0 = l3.payload.obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l2 = std_fs$system_open(l0, l1);
@@ -706,7 +707,7 @@ static vader_box_t std_fs$close(void* l0) {
         t1 = std_fs$system_close(((vader_struct_std_fs$File_t*) l0)->f_handle);
         { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+    { vader_box_t __vret = vader_box_obj(1u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int64_t std_fs$system_size(vader_box_t l0) {
@@ -853,9 +854,9 @@ static vader_box_t std_fs$refusal_of(vader_string_t l0, void* l1) {
             t1 = std_fs$invalid_options(13u);
             { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
         }
-        { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+        { vader_box_t __vret = vader_box_obj(1u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+    { vader_box_t __vret = vader_box_obj(1u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t std_fs$system_open(vader_string_t l0, void* l1) {
@@ -897,7 +898,7 @@ static vader_box_t std_fs$system_close(vader_box_t l0) {
     t0 = std_fs$fd_of(l0);
     t1 = vader_host_system_posix$sys_close(t0);
     if (!(t1 != INT32_C(0))) {
-        { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+        { vader_box_t __vret = vader_box_obj(1u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
     }
     t2 = std_io$last_io_error(15u);
     { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }

@@ -63,7 +63,7 @@ position :: fn(at: i64 | IOError) -> string {
     return "${at}"
 }
 
-outcome :: fn(failure: IOError | null) -> string {
+outcome :: fn(failure: void | null | IOError) -> string {
     if failure is IOError {
         return failure.msg
     }

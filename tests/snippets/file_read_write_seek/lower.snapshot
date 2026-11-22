@@ -128,7 +128,7 @@
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }
-  snippet.outcome :: fn(failure: IOError | null) -> string {  // snippet$outcome
+  snippet.outcome :: fn(failure: IOError | null | void) -> string {  // snippet$outcome
       if failure is IOError {
           return IOError(failure).msg
       }

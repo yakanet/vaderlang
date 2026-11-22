@@ -13,7 +13,7 @@ type 10 array 7
 type 11 union 5,0
 type 12 union 0,4
 type 13 union 4,10
-type 14 union 15,0
+type 14 union 15,1
 type 15 struct std_io$IOError { msg:4,kind:7,code:2 }
 type 16 struct std_fs$RemoveOptions { recursive:9,force:9 }
 type 17 union 15,4
@@ -1130,7 +1130,8 @@ fn 20 std_fs$remove (string,ref) -> any
       local.field 1 16 1   ; arg 1 std_fs$RemoveOptions.force
       ref.cast 9   ; bool
       if $L3 void
-        return.lit null.const
+        void.const
+        return
       end $L3
       local.get 2   ; removed
       return
@@ -1192,7 +1193,8 @@ fn 23 std_fs$close (ref) -> any
     call 29   ; std_fs$system_close
     return
   end $L0
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 24 std_fs$has_nul (string) -> bool
@@ -1398,32 +1400,33 @@ fn 27 __defer_std_fs_0 (ref) -> void
 end
 
 fn 28 std_fs$open (string,ref) -> any
+  local __fallback_0 any
   local refusal any
-  local handle any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 37   ; std_fs$refusal_of
-  local.tee 2   ; refusal
-  type_check 0   ; null
+  local.tee 2   ; __fallback_0
+  local.set 3   ; refusal
+  local.get 2   ; __fallback_0
+  type_check 15   ; std_io$IOError
   if $L0 void
-  else
-    local.get 2   ; refusal
+    local.get 3   ; refusal
     ref.cast 15   ; std_io$IOError
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 38   ; std_fs$system_open
-  local.tee 2   ; refusal
-  local.set 3   ; handle
-  local.get 2   ; refusal
+  local.tee 2   ; __fallback_0
+  local.set 3   ; refusal
+  local.get 2   ; __fallback_0
   type_check 15   ; std_io$IOError
   if $L1 void
-    local.get 3   ; handle
+    local.get 3   ; refusal
     ref.cast 15   ; std_io$IOError
     return
   end $L1
-  local.get 2   ; refusal
+  local.get 2   ; __fallback_0
   bool.const false
   struct.new 19   ; std_fs$File
   return
@@ -1437,7 +1440,8 @@ fn 29 std_fs$system_close (any) -> any
   i32.ne
   if $L0 void
   else
-    return.lit null.const
+    void.const
+    return
   end $L0
   string.const 12   ; "close failed"
   call 53   ; std_io$last_io_error
@@ -1766,9 +1770,11 @@ fn 37 std_fs$refusal_of (string,ref) -> any
       call 43   ; std_fs$invalid_options
       return
     end $L11
-    return.lit null.const
+    void.const
+    return
   end $L10
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 38 std_fs$system_open (string,ref) -> any
@@ -2250,7 +2256,8 @@ fn 50 std_fs$File$std_io$Writer$write (ref,any) -> any
       br $L1
     end $L2
   end $L1
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 51 std_fs$system_write (any,ref) -> any
@@ -2298,7 +2305,8 @@ fn 52 std_io$failure_unless (bool,string) -> any
     call 53   ; std_io$last_io_error
     return
   end $L0
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 53 std_io$last_io_error (string) -> ref

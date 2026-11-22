@@ -18,7 +18,7 @@ type 15 array 5
 type 16 struct std_core$Stop {  }
 type 17 union 0,5
 type 18 struct std_fs$RemoveOptions { recursive:4,force:4 }
-type 19 union 20,0
+type 19 union 20,1
 type 20 struct std_io$IOError { msg:5,kind:10,code:2 }
 type 21 union 5,9
 type 22 struct std_fs$WalkOptions { descend:41 }
@@ -1558,7 +1558,8 @@ fn 23 std_fs$remove (string,ref) -> any
       local.field 1 18 1   ; arg 1 std_fs$RemoveOptions.force
       ref.cast 4   ; bool
       if $L3 void
-        return.lit null.const
+        void.const
+        return
       end $L3
       local.get 2   ; removed
       return
@@ -1668,7 +1669,8 @@ fn 24 std_fs$create_dir (string) -> any
     struct.new 20   ; std_io$IOError
     return
   end $L7
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 25 std_fs$write_file (string,any) -> any
@@ -2165,7 +2167,8 @@ fn 36 std_fs$close (ref) -> any
     call 44   ; std_fs$system_close
     return
   end $L0
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 37 std_fs$by_name_descending (ref,ref) -> bool
@@ -2344,32 +2347,33 @@ fn 42 std_fs$is_dir (string) -> bool
 end
 
 fn 43 std_fs$open (string,ref) -> any
+  local __fallback_0 any
   local refusal any
-  local handle any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 48   ; std_fs$refusal_of
-  local.tee 2   ; refusal
-  type_check 0   ; null
+  local.tee 2   ; __fallback_0
+  local.set 3   ; refusal
+  local.get 2   ; __fallback_0
+  type_check 20   ; std_io$IOError
   if $L0 void
-  else
-    local.get 2   ; refusal
+    local.get 3   ; refusal
     ref.cast 20   ; std_io$IOError
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 49   ; std_fs$system_open
-  local.tee 2   ; refusal
-  local.set 3   ; handle
-  local.get 2   ; refusal
+  local.tee 2   ; __fallback_0
+  local.set 3   ; refusal
+  local.get 2   ; __fallback_0
   type_check 20   ; std_io$IOError
   if $L1 void
-    local.get 3   ; handle
+    local.get 3   ; refusal
     ref.cast 20   ; std_io$IOError
     return
   end $L1
-  local.get 2   ; refusal
+  local.get 2   ; __fallback_0
   bool.const false
   struct.new 31   ; std_fs$File
   return
@@ -2383,7 +2387,8 @@ fn 44 std_fs$system_close (any) -> any
   i32.ne
   if $L0 void
   else
-    return.lit null.const
+    void.const
+    return
   end $L0
   string.const 31   ; "close failed"
   call 58   ; std_io$last_io_error
@@ -2546,9 +2551,11 @@ fn 48 std_fs$refusal_of (string,ref) -> any
       call 51   ; std_fs$invalid_options
       return
     end $L11
-    return.lit null.const
+    void.const
+    return
   end $L10
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 49 std_fs$system_open (string,ref) -> any
@@ -2836,7 +2843,8 @@ fn 55 std_fs$File$std_io$Writer$write (ref,any) -> any
       br $L1
     end $L2
   end $L1
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 56 std_fs$EntryKind$std_core$Display$to_string (u8) -> string
@@ -2930,7 +2938,8 @@ fn 59 std_io$failure_unless (bool,string) -> any
     call 58   ; std_io$last_io_error
     return
   end $L0
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 60 std_io$io_error_of (i32,string) -> ref

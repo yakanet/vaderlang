@@ -278,7 +278,7 @@ enter_source_folder :: fn(home: string, file: string) -> bool {
     if home == "." || folder == "" {
         return false
     }
-    return set_current_working_directory(folder) == null
+    return set_current_working_directory(folder) is void
 }
 
 // Come back to `home`, where the compiler resolves its own relative paths

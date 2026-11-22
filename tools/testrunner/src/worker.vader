@@ -70,8 +70,7 @@ run_worker :: fn(update: bool, scratch: string) -> i32 {
 
 run_request :: fn(ctx: WorkerContext, case: Case) -> void {
     began :: monotonic()
-    dir :: enter_case(ctx, case)
-    if dir is CaseFailure {
+    dir :: enter_case(ctx, case) else {
         print(error_record(case.name, dir.message))
         print(done_record(case.name, began.since().to_micros()))
         return
@@ -149,13 +148,10 @@ enter_case :: fn(ctx: WorkerContext, case: Case) -> string | CaseFailure {
     dir :: "${ctx.scratch}/${case.name}"
     temp :: "${dir}/tmp"
     remove_tree(dir)
-    made :: create_dir(temp) else is IOError {
-        return CaseFailure { .message = "`${temp}`: ${made.msg}" }
-    }
+    made :: create_dir(temp) else return CaseFailure { .message = "`${temp}`: ${made.msg}" }
     for name in TEMP_VARIABLES {
-        exported :: set_env(name, temp) else is IOError {
-            return CaseFailure { .message = "`${name}`: ${exported.msg}" }
-        }
+        exported :: set_env(name, temp)
+            else return CaseFailure { .message = "`${name}`: ${exported.msg}" }
     }
     return dir
 }
@@ -232,7 +228,7 @@ verdict_of :: fn(
     if expected is string && expected == actual {
         return .Same
     }
-    if update && write_file(path, actual) == null {
+    if update && write_file(path, actual) is void {
         return .Written
     }
     if expected is IOError {

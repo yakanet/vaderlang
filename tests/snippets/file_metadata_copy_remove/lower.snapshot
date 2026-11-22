@@ -35,11 +35,11 @@
               std.core.finish_buffer(__buf_3, __off_4)
           } :string)
       }
-      kept: IOError | null = std.fs.remove(dir, RemoveOptions { .recursive = false, .force = false })
+      kept: IOError | void = std.fs.remove(dir, RemoveOptions { .recursive = false, .force = false })
       if kept is IOError {
           std.console.println<string>(concat_2("not empty: ", std.io.IOErrorKind.to_string(IOError(kept).kind)))
       }
-      gone: IOError | null = std.fs.remove(dir, RemoveOptions { .recursive = true, .force = true })
+      gone: IOError | void = std.fs.remove(dir, RemoveOptions { .recursive = true, .force = true })
       std.console.println<string>({
           __buf_5: Buffer = std_core$Intrinsic$new_byte_buffer(i64(29))
           __off_6: i64 = 0
@@ -49,7 +49,7 @@
           __off_6 = std.core.write_bool(__buf_5, __off_6, std.fs.exists(dir))
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
-      missing: IOError | null = std.fs.remove(dir, RemoveOptions { .recursive = false, .force = false })
+      missing: IOError | void = std.fs.remove(dir, RemoveOptions { .recursive = false, .force = false })
       if missing is IOError {
           std.console.println<string>(concat_2("missing: ", std.io.IOErrorKind.to_string(IOError(missing).kind)))
       }

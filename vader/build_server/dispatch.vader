@@ -22,7 +22,7 @@ import "vader/pipeline"
 /// The driver a build is served to: what `vader` tells it, and what it answers.
 export DriverPeer :: trait {
     /// Hand the driver an event.
-    send :: fn(self, frame: ServerFrame) -> null | ProtocolError
+    send :: fn(self, frame: ServerFrame) -> void | ProtocolError
     /// The driver's next frame, waited for. A driver that hung up stopped.
     receive :: fn(self) -> DriverFrame | ProtocolError
 }
@@ -41,7 +41,7 @@ export ManifestPeer :: struct {
 }
 
 ManifestPeer implements DriverPeer {
-    send :: fn(self, frame: ServerFrame) -> null | ProtocolError = null
+    send :: fn(self, frame: ServerFrame) -> void | ProtocolError {}
 
     receive :: fn(self) -> DriverFrame | ProtocolError {
         if self.configured {
@@ -124,9 +124,7 @@ export serve :: fn(
         if link.failure != null {
             return protocol_failure(link.failure.msg)
         }
-        sent :: peer.send(frame_of(session, event)) else is ProtocolError {
-            return protocol_failure(sent.msg)
-        }
+        sent :: peer.send(frame_of(session, event)) else return protocol_failure(sent.msg)
         answered :: answer(peer, session) else is ProtocolError {
             return protocol_failure(answered.msg)
         }
@@ -161,9 +159,7 @@ answer :: fn(peer: DriverPeer, session: BuildSession) -> NextFrame | StopFrame |
                 }
             }
             is DocQueryFrame                 -> {
-                sent :: peer.send(session.answer_question(frame)) else is ProtocolError {
-                    return sent
-                }
+                sent :: peer.send(session.answer_question(frame)) else return sent
             }
             is NextFrame | StopFrame         -> {
                 return frame
@@ -187,19 +183,18 @@ answer :: fn(peer: DriverPeer, session: BuildSession) -> NextFrame | StopFrame |
 export take_request :: fn(
     session: BuildSession,
     frame: EmitModuleFrame | ReportFrame,
-) -> null | ProtocolError {
+) -> void | ProtocolError {
     if frame is EmitModuleFrame {
         session.queue_module(frame.name, frame.source)
-        return null
+        return
     }
     return take_report(session, frame)
 }
 
 // The report of the driver, under the hook code it names.
-take_report :: fn(session: BuildSession, frame: ReportFrame) -> null | ProtocolError {
+take_report :: fn(session: BuildSession, frame: ReportFrame) -> void | ProtocolError {
     d :: hook_diagnostic(frame) else return d
     session.diagnostics.push(d)
-    return null
 }
 
 /// The frame that tells a driver `event`: of a module, the declarations that
@@ -240,9 +235,8 @@ ScriptedPeer :: struct {
 }
 
 ScriptedPeer implements DriverPeer {
-    send :: fn(self, frame: ServerFrame) -> null | ProtocolError {
+    send :: fn(self, frame: ServerFrame) -> void | ProtocolError {
         self.sent.push(frame)
-        return null
     }
 
     receive :: fn(self) -> DriverFrame | ProtocolError {
@@ -331,7 +325,7 @@ test_a_report_is_taken_under_its_hook_code :: fn() -> void {
         .detail = "a rule of the project",
     }
     session :: test_session(request_for("/tmp/proj"), [])
-    assert(take_report(session, report) == null, "`H6004` is a hook code")
+    assert(take_report(session, report) is void, "`H6004` is a hook code")
     assert_eq(session.diagnostics[0].code.id, "H6004")
     assert_eq(session.diagnostics[0].detail, "a rule of the project")
 }

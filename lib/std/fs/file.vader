@@ -75,10 +75,7 @@ export File :: struct {
 ///       }
 ///   }
 export open :: fn(path: string, options: OpenOptions = OpenOptions {}) -> File | IOError {
-    refusal :: refusal_of(path, options)
-    if refusal != null {
-        return refusal
-    }
+    refusal :: refusal_of(path, options) else return refusal
     handle :: system_open(path, options) else return handle
     return File { .handle = handle }
 }
@@ -95,8 +92,8 @@ export create :: fn(path: string) -> File | IOError = open(path, OpenOptions {
     .truncate = true,
 })
 
-// Why `path` and `options` open no file, null when they do.
-refusal_of :: fn(path: string, options: OpenOptions) -> IOError | null {
+// Why `path` and `options` open no file, if anything stops them.
+refusal_of :: fn(path: string, options: OpenOptions) -> void | IOError {
     if path.has_nul() {
         return NUL_IN_PATH
     }
@@ -113,7 +110,6 @@ refusal_of :: fn(path: string, options: OpenOptions) -> IOError | null {
     if options.truncate && options.append {
         return invalid_options("truncate with append")
     }
-    return null
 }
 
 // Whether `path` holds a NUL byte, which ends it at the C boundary: the call
@@ -146,7 +142,7 @@ File implements Reader {
 }
 
 File implements Writer {
-    write :: fn(self, content: u8[] | string) -> null | IOError {
+    write :: fn(self, content: u8[] | string) -> void | IOError {
         if self.closed {
             return FILE_CLOSED
         }
@@ -161,7 +157,6 @@ File implements Writer {
             }
             done += n
         }
-        return null
     }
 }
 
@@ -200,9 +195,9 @@ export size :: fn(f: File) -> i64 | IOError {
 ///
 /// @error  `IOError` when the system reports a failure on closing, which some
 ///         file systems keep for a write that never reached the disk.
-export close :: fn(f: File) -> null | IOError {
+export close :: fn(f: File) -> void | IOError {
     if f.closed {
-        return null
+        return
     }
     f.closed = true
     return system_close(f.handle)
@@ -419,24 +414,22 @@ method_of :: fn(from: SeekFrom) -> u32 = match from {
 
 // Give the handle back to the system.
 @target
-system_close :: fn(handle: Fd | Handle) -> null | IOError
+system_close :: fn(handle: Fd | Handle) -> void | IOError
 
 @target(.Linux, .Darwin)
-system_close :: fn(handle: Fd | Handle) -> null | IOError {
+system_close :: fn(handle: Fd | Handle) -> void | IOError {
     // Not asked again on `EINTR`: Linux has closed the descriptor by then, and
     // another thread may already have it.
     if sys_close(fd_of(handle)) != 0 {
         return last_io_error("close failed")
     }
-    return null
 }
 
 @target(.Windows)
-system_close :: fn(handle: Fd | Handle) -> null | IOError {
+system_close :: fn(handle: Fd | Handle) -> void | IOError {
     if !close_handle(handle_of(handle)) {
         return last_io_error("close failed")
     }
-    return null
 }
 
 // A `File` holds an `Fd` on POSIX and a `Handle` on Windows: the other member is

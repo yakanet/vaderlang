@@ -1437,12 +1437,20 @@
               "kind": "BinaryExpr",
               "op": "bitor",
               "left": {
-                "kind": "IdentExpr",
-                "name": "IOError"
+                "kind": "BinaryExpr",
+                "op": "bitor",
+                "left": {
+                  "kind": "IdentExpr",
+                  "name": "void"
+                },
+                "right": {
+                  "kind": "IdentExpr",
+                  "name": "null"
+                }
               },
               "right": {
                 "kind": "IdentExpr",
-                "name": "null"
+                "name": "IOError"
               }
             },
             "defaultValue": null,

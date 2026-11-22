@@ -25,7 +25,7 @@ import "std/string"
 // `.Malformed` when it frames no message (chunked twice, chunked with a
 // parameter, a request whose last coding is not chunked), as
 // `.CodingNotImplemented` when a coding this module has not is applied.
-only_chunked :: fn(values: string[], is_request: bool) -> null | HttpError {
+only_chunked :: fn(values: string[], is_request: bool) -> void | HttpError {
     chunked: i64 = 0
     others: i64 = 0
     last_is_chunked := false
@@ -67,7 +67,6 @@ only_chunked :: fn(values: string[], is_request: bool) -> null | HttpError {
             .msg = "only the chunked transfer coding is implemented",
         }
     }
-    return null
 }
 
 // ---- the body -------------------------------------------------------------

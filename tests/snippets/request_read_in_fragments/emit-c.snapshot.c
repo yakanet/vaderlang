@@ -209,7 +209,7 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
         { 4u, 0u, { .obj = (void*) (struct vader_struct_std_io$IOError_t*) &vader_data_0_e0 } },
     },
 };
-static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(26u, 1u, &vader_data_0_buf);
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(28u, 1u, &vader_data_0_buf);
 
 static int32_t snippet$main(void);
 static vader_string_t snippet$line_text(vader_box_t l0);
@@ -252,7 +252,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[27] = {
+const vader_type_info_t vader_type_info_table[29] = {
     [2] = { .slot_size = 4 },
     [3] = { .slot_size = 16 },
     [4] = {
@@ -294,26 +294,27 @@ const vader_type_info_t vader_type_info_table[27] = {
         .ref_count = 1,
     },
     [17] = { .slot_size = 16 },
-    [18] = {
+    [18] = { .slot_size = 16 },
+    [19] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_io$BytesReader_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_std_io$BytesReader_t, f_content) },
         .ptr_count = 1,
     },
-    [19] = {
+    [20] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_io$BytesWriter_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_io$BytesWriter_t, f_written) },
         .ref_count = 1,
     },
-    [20] = { .slot_size = 16 },
-    [21] = {
+    [21] = { .slot_size = 16 },
+    [22] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_io$FragmentedReader_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_std_io$FragmentedReader_t, f_source) },
         .ptr_count = 1,
     },
-    [22] = {
+    [23] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_io$FailingReader_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_std_io$FailingReader_t, f_source) },
@@ -321,7 +322,7 @@ const vader_type_info_t vader_type_info_table[27] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_io$FailingReader_t, f_failure) },
         .ref_count = 1,
     },
-    [23] = {
+    [24] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_io$FailingWriter_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_std_io$FailingWriter_t, f_sink) },
@@ -329,14 +330,15 @@ const vader_type_info_t vader_type_info_table[27] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_io$FailingWriter_t, f_failure) },
         .ref_count = 1,
     },
-    [24] = { .slot_size = 16 },
     [25] = { .slot_size = 16 },
-    [26] = {
+    [26] = { .slot_size = 16 },
+    [27] = { .slot_size = 16 },
+    [28] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 4u,
     },
 };
-const size_t vader_type_info_count = 27;
+const size_t vader_type_info_count = 29;
 
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
@@ -403,12 +405,12 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     vader_struct_std_io$BytesReader_t* _a0_obj = (vader_struct_std_io$BytesReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BytesReader_t));
-    vader_obj_header_init(_a0_obj, 18u);
+    vader_obj_header_init(_a0_obj, 19u);
     _a0_obj->f_content = vader_box_string(5u, 1u);
     _a0_obj->f_position = INT64_C(0);
     t0 = (void*) _a0_obj;
     vader_struct_std_io$FragmentedReader_t* _a1_obj = (vader_struct_std_io$FragmentedReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$FragmentedReader_t));
-    vader_obj_header_init(_a1_obj, 21u);
+    vader_obj_header_init(_a1_obj, 22u);
     _a1_obj->f_source = vader_ref_box(t0);
     _a1_obj->f_size = INT64_C(3);
     l0 = (void*) _a1_obj;
@@ -460,7 +462,7 @@ static int32_t snippet$main(void) {
     t2 = concat_2(11u, l2);
     std_console$println__string(t2);
     vader_struct_std_io$BytesReader_t* _a4_obj = (vader_struct_std_io$BytesReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BytesReader_t));
-    vader_obj_header_init(_a4_obj, 18u);
+    vader_obj_header_init(_a4_obj, 19u);
     _a4_obj->f_content = vader_box_string(5u, 12u);
     _a4_obj->f_position = INT64_C(0);
     l0 = (void*) _a4_obj;
@@ -482,7 +484,7 @@ static int32_t snippet$main(void) {
     vader_array_t* _a7_arr = vader_array_new(7u, 0u, 1u, 8u);
     t0 = (void*) _a7_arr;
     vader_struct_std_io$BytesWriter_t* _a8_obj = (vader_struct_std_io$BytesWriter_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BytesWriter_t));
-    vader_obj_header_init(_a8_obj, 19u);
+    vader_obj_header_init(_a8_obj, 20u);
     _a8_obj->f_written = t0;
     l0 = (void*) _a8_obj;
     vader_array_t* _a9_arr = vader_array_new(7u, 0u, 1u, 8u);
@@ -530,7 +532,7 @@ static int32_t snippet$main(void) {
     t2 = std_core$finish_buffer(l1, l4);
     std_console$println__string(t2);
     vader_struct_std_io$BytesReader_t* _a12_obj = (vader_struct_std_io$BytesReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BytesReader_t));
-    vader_obj_header_init(_a12_obj, 18u);
+    vader_obj_header_init(_a12_obj, 19u);
     _a12_obj->f_content = vader_ref_box(((vader_struct_std_io$BytesWriter_t*) l0)->f_written);
     _a12_obj->f_position = INT64_C(0);
     l0 = (void*) _a12_obj;
@@ -563,12 +565,12 @@ static int32_t snippet$main(void) {
         break;
     }
     vader_struct_std_io$BytesReader_t* _a15_obj = (vader_struct_std_io$BytesReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BytesReader_t));
-    vader_obj_header_init(_a15_obj, 18u);
+    vader_obj_header_init(_a15_obj, 19u);
     _a15_obj->f_content = vader_box_string(5u, 21u);
     _a15_obj->f_position = INT64_C(0);
     t0 = (void*) _a15_obj;
     vader_struct_std_io$FragmentedReader_t* _a16_obj = (vader_struct_std_io$FragmentedReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$FragmentedReader_t));
-    vader_obj_header_init(_a16_obj, 21u);
+    vader_obj_header_init(_a16_obj, 22u);
     _a16_obj->f_source = vader_ref_box(t0);
     _a16_obj->f_size = INT64_C(4);
     l0 = (void*) _a16_obj;
@@ -577,7 +579,7 @@ static int32_t snippet$main(void) {
     VADER_ARRAY_RESOLVE_BUF(_a17_slotarr)
     l1 = vader_array_ref_load_obj(_a17_slotarr->buf, vader_array_offset(_a17_slotarr) + (size_t) INT64_C(0));
     vader_struct_std_io$FailingReader_t* _a18_obj = (vader_struct_std_io$FailingReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$FailingReader_t));
-    vader_obj_header_init(_a18_obj, 22u);
+    vader_obj_header_init(_a18_obj, 23u);
     _a18_obj->f_source = vader_ref_box(l0);
     _a18_obj->f_calls = INT64_C(1);
     _a18_obj->f_failure = l1;
@@ -605,7 +607,7 @@ static int32_t snippet$main(void) {
     vader_array_t* _a21_arr = vader_array_new(7u, 0u, 1u, 8u);
     t0 = (void*) _a21_arr;
     vader_struct_std_io$BytesWriter_t* _a22_obj = (vader_struct_std_io$BytesWriter_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BytesWriter_t));
-    vader_obj_header_init(_a22_obj, 19u);
+    vader_obj_header_init(_a22_obj, 20u);
     _a22_obj->f_written = t0;
     l0 = (void*) _a22_obj;
     vader_struct_std_io$IOError_t* _a23_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
@@ -615,7 +617,7 @@ static int32_t snippet$main(void) {
     _a23_obj->f_code = INT32_C(0);
     l1 = (void*) _a23_obj;
     vader_struct_std_io$FailingWriter_t* _a24_obj = (vader_struct_std_io$FailingWriter_t*) vader_gc_alloc(sizeof(vader_struct_std_io$FailingWriter_t));
-    vader_obj_header_init(_a24_obj, 23u);
+    vader_obj_header_init(_a24_obj, 24u);
     _a24_obj->f_sink = vader_ref_box(l0);
     _a24_obj->f_calls = INT64_C(0);
     _a24_obj->f_failure = l1;
@@ -1223,7 +1225,7 @@ static vader_box_t std_io$flush(void* l0) {
         vader_array_clear((vader_array_t*) ((vader_struct_std_io$BufferedWriter_t*) l0)->f_buffer);
         { vader_box_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+    { vader_box_t __vret = vader_box_obj(1u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t std_io$take_through(void* l0, uint8_t l1, int64_t l2) {
@@ -1458,7 +1460,7 @@ static vader_box_t std_io$BytesWriter$Writer$write(void* l0, vader_box_t l1) {
     l2 = ((vader_struct_std_io$BytesWriter_t*) l0)->f_written;
     l3 = std_io$bytes_of(l1);
     vader_array_push_all((vader_array_t*) l2, (vader_array_t*) l3);
-    { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+    { vader_box_t __vret = vader_box_obj(1u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t std_io$FragmentedReader$Reader$read(void* l0, void* l1) {
@@ -1636,7 +1638,7 @@ static vader_box_t std_io$BufferedWriter$Writer$write(void* l0, vader_box_t l1) 
     l4 = ((vader_struct_std_io$BufferedWriter_t*) l0)->f_capacity;
     if (!((l3 >= l4))) {
         vader_array_push_all((vader_array_t*) ((vader_struct_std_io$BufferedWriter_t*) l0)->f_buffer, (vader_array_t*) l2);
-        { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+        { vader_box_t __vret = vader_box_obj(1u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l5 = ((vader_struct_std_io$BufferedWriter_t*) l0)->f_sink;
     t1 = std_io$Writer$write$$dispatch(l5, vader_ref_box(l2));
@@ -1725,9 +1727,9 @@ static int64_t std_math$min__i64(int64_t l0, int64_t l1) {
 /* vtable dispatchers */
 static vader_box_t std_io$Reader$read$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 18u: return std_io$BytesReader$Reader$read(recv.payload.obj, a0.payload.obj);
-        case 21u: return std_io$FragmentedReader$Reader$read(recv.payload.obj, a0.payload.obj);
-        case 22u: return std_io$FailingReader$Reader$read(recv.payload.obj, a0.payload.obj);
+        case 19u: return std_io$BytesReader$Reader$read(recv.payload.obj, a0.payload.obj);
+        case 22u: return std_io$FragmentedReader$Reader$read(recv.payload.obj, a0.payload.obj);
+        case 23u: return std_io$FailingReader$Reader$read(recv.payload.obj, a0.payload.obj);
         case 14u: return std_io$BufferedReader$Reader$read(recv.payload.obj, a0.payload.obj);
         default: vader_unreachable("vtable miss in std_io$Reader.read");
     }
@@ -1736,8 +1738,8 @@ static vader_box_t std_io$Reader$read$$dispatch(vader_box_t recv, vader_box_t a0
 
 static vader_box_t std_io$Writer$write$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 19u: return std_io$BytesWriter$Writer$write(recv.payload.obj, a0);
-        case 23u: return std_io$FailingWriter$Writer$write(recv.payload.obj, a0);
+        case 20u: return std_io$BytesWriter$Writer$write(recv.payload.obj, a0);
+        case 24u: return std_io$FailingWriter$Writer$write(recv.payload.obj, a0);
         case 16u: return std_io$BufferedWriter$Writer$write(recv.payload.obj, a0);
         default: vader_unreachable("vtable miss in std_io$Writer.write");
     }

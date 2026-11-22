@@ -791,7 +791,7 @@ static vader_box_t std_io$failure_unless(bool l0, vader_string_t l1) {
         t0 = std_io$last_io_error(l1);
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+    { vader_box_t __vret = vader_box_obj(1u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void* std_io$last_io_error(vader_string_t l0) {

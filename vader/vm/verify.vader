@@ -32,6 +32,8 @@ export VerifyError :: struct {
     message:  string
 }
 
+VerifyError implements Error -> self.message
+
 /// Render a `VerifyError` the way a VM trap reads.
 ///
 /// @param e  the error.
@@ -94,20 +96,14 @@ verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> i64 | Veri
         }
         if e.flow == .Next || e.flow == .Fork {
             // Falling off the end is a `return` with nothing on top.
-            fall :: flow_to(f, depth, work, pc + 1, after, pc, results)
-            if fall != null {
-                return fall
-            }
+            fall :: flow_to(f, depth, work, pc + 1, after, pc, results) else return fall
         }
         if e.flow == .Jump || e.flow == .Fork {
             target :: if pc < f.jump_table.len() { f.jump_table[pc] } else { -1 }
             if target < 0 || i64(target) > n {
                 return defect(f, pc, "`${op_text(op)}` has no jump target inside the body")
             }
-            jump :: flow_to(f, depth, work, i64(target), after, pc, results)
-            if jump != null {
-                return jump
-            }
+            jump :: flow_to(f, depth, work, i64(target), after, pc, results) else return jump
         }
     }
     return deepest
@@ -117,29 +113,27 @@ verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> i64 | Veri
 // which must then hold its results ; anywhere else the depth is merged.
 flow_to :: fn(
     f: bc.BcFunction, depth: i64[], work: i64[], at: i64, d: i64, from: i64, results: i64,
-) -> VerifyError | null {
+) -> void | VerifyError {
     if at < f.body.len() {
         return merge(f, depth, work, at, d, from)
     }
     if d != results {
         return defect(f, from, "control leaves the body with ${d} value(s) where ${results} are returned")
     }
-    return null
 }
 
 // Record `at`'s depth, or check it against the one already recorded.
 merge :: fn(
     f: bc.BcFunction, depth: i64[], work: i64[], at: i64, d: i64, from: i64,
-) -> VerifyError | null {
+) -> void | VerifyError {
     if depth[at] < 0 {
         depth[at] = d
         work.push(at)
-        return null
+        return
     }
     if depth[at] != d {
         return defect(f, from, "reaches pc=${at} with ${d} value(s) where another path brings ${depth[at]}")
     }
-    return null
 }
 
 defect :: fn(f: bc.BcFunction, pc: i64, message: string) = VerifyError {

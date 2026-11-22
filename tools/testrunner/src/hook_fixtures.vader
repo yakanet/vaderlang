@@ -65,18 +65,14 @@ find_hook_fixtures :: fn(found: Discovery) -> void {
 check_hook :: fn(case: Case, dir: string, update: bool) -> StageReport | CaseFailure {
     began :: monotonic()
     project :: "${dir}/project"
-    staged :: copy_sources(case.dir, project) else is IOError {
-        return hook_failure("`${project}`: ${staged.msg}")
-    }
+    staged :: copy_sources(case.dir, project)
+        else return hook_failure("`${project}`: ${staged.msg}")
     options :: RunOptions {
         .cwd = project,
         .env = toolchain_env(),
         .timeout = HEAVY_TIMEOUT,
     }
-    built :: ran_or_failure(run_vader(["build"], options))
-    if built is CaseFailure {
-        return hook_failure(built.message)
-    }
+    built :: ran_or_failure(run_vader(["build"], options)) else return hook_failure(built.message)
     actual :: normalised(run_text(built.stdout, built.stderr, built.exit), project)
     report :: report_of(case, HOOK_STAGE, actual, update, began)
     for name in BUILD_LEFTOVERS {
@@ -98,27 +94,22 @@ check_hook :: fn(case: Case, dir: string, update: bool) -> StageReport | CaseFai
             shown = compared
         }
     }
-    failed :: tests_failure(case.dir, options)
-    if failed != null {
-        return failed
-    }
+    failed :: tests_failure(case.dir, options) else return failed
     return shown
 }
 
 hook_failure :: fn(message: string) = CaseFailure { .message = "${HOOK_PHASE}: ${message}" }
 
 // Why the `@test` functions of the fixture in `fixture` fail on its built copy,
-// which `options` runs in; null when they pass, or when it declares none.
-tests_failure :: fn(fixture: string, options: RunOptions) -> CaseFailure | null {
+// which `options` runs in; nothing when they pass, or when it declares none.
+tests_failure :: fn(fixture: string, options: RunOptions) -> void | CaseFailure {
     if !declares_tests("${fixture}/src") {
-        return null
+        return
     }
     tested :: ran_or_failure(run_vader(["test", "src"], options))
-    if tested is CaseFailure {
-        return hook_failure(tested.message)
-    }
+        else return hook_failure(tested.message)
     if tested.exit == 0 {
-        return null
+        return
     }
     return hook_failure(
         "`vader test src` failed after the build:\n${tested.stdout}${tested.stderr}",

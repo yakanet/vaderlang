@@ -140,6 +140,8 @@ LevelError :: struct {
 
 LevelError implements Display -> "level ${self.row + 1}:${self.column + 1}: ${self.message}"
 
+LevelError implements Error -> self.message
+
 /// What each character of a level's text stands for.
 export LEGEND :: """
     #  stone        b  brick        r  rusty plates   s  steel
@@ -177,10 +179,7 @@ load_level :: fn(path: string) -> Level {
             rows.push(row)
         }
     }
-    level :: parse_level(rows)
-    if level is LevelError {
-        panic("`${path}`: ${level}")
-    }
+    level :: parse_level(rows) else panic("`${path}`: ${level}")
     switches :: level.cells.filter(cell -> cell == .Exit).count()
     if switches != 1 {
         panic("`${path}`: expected one exit switch, got ${switches}")
@@ -257,10 +256,7 @@ parse_level :: fn(rows: string[]) -> Level | LevelError {
         .start_x = f64(starts[0].0) + 0.5,
         .start_y = f64(starts[0].1) + 0.5,
     }
-    gap :: border_gap(level)
-    if gap != null {
-        return gap
-    }
+    gap :: border_gap(level) else return gap
     return place_doors(level)
 }
 
@@ -296,7 +292,7 @@ thing_of :: fn(c: char) -> ThingKind | null = match c {
 }
 
 // The first border cell that is not a wall: a ray must never leave the map.
-border_gap :: fn(level: Level) -> LevelError | null {
+border_gap :: fn(level: Level) -> void | LevelError {
     for y in 0..<level.height {
         for x in 0..<level.width {
             on_border :: x == 0 || y == 0 || x == level.width - 1 || y == level.height - 1
@@ -309,7 +305,6 @@ border_gap :: fn(level: Level) -> LevelError | null {
             }
         }
     }
-    return null
 }
 
 // Give every door cell its `Door`, its panel running between the two walls

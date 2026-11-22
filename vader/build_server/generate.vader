@@ -186,12 +186,12 @@ flush_generated :: fn(session: BuildSession) -> string[] {
         if exists(path) {
             continue
         }
-        made :: create_dir(dir) else is IOError {
+        made :: create_dir(dir) else {
             detail :: "`${dir.to_native()}` for module `${g.name}`: ${made.msg}"
             session.report_driver(.GeneratedModuleNotWritten, detail)
             continue
         }
-        written :: write_file(path, content) else is IOError {
+        written :: write_file(path, content) else {
             detail :: "`${path.to_native()}`: ${written.msg}"
             session.report_driver(.GeneratedModuleNotWritten, detail)
             continue
@@ -239,7 +239,7 @@ sweep_generated :: fn(dir: string) -> i64 {
         if !content.starts_with(GENERATED_BANNER) {
             continue
         }
-        dropped :: remove(path) else is IOError { continue }
+        remove(path) else continue
         removed += 1
     }
     return removed

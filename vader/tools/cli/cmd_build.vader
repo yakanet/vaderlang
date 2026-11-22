@@ -601,7 +601,7 @@ union_of_string_pools :: fn(mods: CfgBytecode[]) -> string[] {
 /// @return        0, or 1 after reporting why the directory could not be made.
 ensure_target_dir :: fn(out: Path, target: string) -> i32 {
     dir :: "${out.parent()}/${target}"
-    mk :: create_dir(dir) else is IOError {
+    mk :: create_dir(dir) else {
         eprintln("vader build --seed-targets: cannot create `${dir.to_native()}`: ${mk.message()}")
         return 1
     }

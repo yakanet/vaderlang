@@ -39,7 +39,7 @@ export DriverRequest :: struct {
 /// @param project  the project as the driver declared it; its search roots may
 ///                 also sit under `$VADER_HOME`.
 /// @error          the `IOError` of a file that could not be written.
-export write_driver_description :: fn(path: string, project: Manifest) -> null | IOError =
+export write_driver_description :: fn(path: string, project: Manifest) -> void | IOError =
     write_file(path, stringify_manifest(project))
 
 /// The project a driver described.
@@ -62,7 +62,7 @@ test_driver_description_reads_back_as_a_manifest :: fn() -> void {
     path :: join_path(temp_dir(), "vader_driver_description.json")
     project :: Manifest { .entries = [ManifestEntry { .name = "app", .path = "src/main.vader" }] }
     written :: write_driver_description(path, project)
-    assert(written == null, "the project is written")
+    assert(written is void, "the project is written")
     read :: read_driver_description(path)
     remove(path)
     if read is IOError {

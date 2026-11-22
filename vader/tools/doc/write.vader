@@ -27,15 +27,15 @@ DOC_FORMAT_VERSION: f64: 2.0
 /// @param dir      the folder to write in, created when missing.
 /// @param modules  the documented modules.
 /// @error          `IOError` when a folder or a file cannot be written.
-export write_doc_data :: fn(dir: string, modules: DocModule[]) -> null | IOError {
+export write_doc_data :: fn(dir: string, modules: DocModule[]) -> void | IOError {
     remove(join_path(dir, STAMP_FILE))
     remove_previous_modules(dir)
     for m in modules {
         path :: module_file(dir, m.path)
-        made :: create_dir(dir_of(path)) else is IOError { return made }
-        written :: write_json(path, module_json(m)) else is IOError { return written }
+        made :: create_dir(dir_of(path)) else return made
+        written :: write_json(path, module_json(m)) else return written
     }
-    made :: create_dir(dir) else is IOError { return made }
+    made :: create_dir(dir) else return made
     return write_json(join_path(dir, INDEX_FILE), index_json(modules))
 }
 
@@ -46,7 +46,7 @@ INDEX_FILE :: "index.json"
 module_file :: fn(dir: string, path: string) -> string = join_path(dir, "modules/${path}.json")
 
 // `value` indented in the file `path`, a newline at its end.
-write_json :: fn(path: string, value: JsonValue) -> null | IOError =
+write_json :: fn(path: string, value: JsonValue) -> void | IOError =
     write_file(path, stringify(value, 2) + "\n")
 
 // Remove the module files the `index.json` under `dir` lists, those under

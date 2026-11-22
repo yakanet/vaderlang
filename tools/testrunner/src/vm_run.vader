@@ -27,10 +27,7 @@ VM :: import "vader/vm"
 // program to run.
 check_run :: fn(case: Case, update: bool) -> StageReport | CaseFailure {
     began :: monotonic()
-    bytecode :: program_bytecode(case)
-    if bytecode is CaseFailure {
-        return bytecode
-    }
+    bytecode :: program_bytecode(case) else return bytecode
     actual :: run_program(case, bytecode)
     return report_of(case, VM_STAGE, actual, update, began)
 }
@@ -57,10 +54,7 @@ program_bytecode :: fn(case: Case) -> string | CaseFailure {
 // The image `vader build --emit=bytecode-text` links for `file`, or why it does
 // not build.
 linked_image :: fn(file: Path) -> string | CaseFailure {
-    prepared :: program_of(file, BuildRequest { .emit = "bytecode-text" })
-    if prepared is CaseFailure {
-        return prepared
-    }
+    prepared :: program_of(file, BuildRequest { .emit = "bytecode-text" }) else return prepared
     return dump_bytecode(prepared.module, prepared.entry)
 }
 

@@ -277,7 +277,7 @@ write_description :: fn(session: BuildSession, entries: ManifestEntry[]) -> i32 
         .entries = entries,
         .assets = session.assets,
     }
-    written :: write_driver_description(path, project) else is IOError {
+    written :: write_driver_description(path, project) else {
         eprintln("vader: cannot write `${path.to_native()}`: ${written.message()}")
         return 1
     }

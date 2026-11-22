@@ -16,7 +16,7 @@ type 13 struct __defer_env_std_fs_1 { cap_0:16 }
 type 14 struct std_fs$OpenOptions { read:9,write:9,append:9,create:9,truncate:9,create_new:9 }
 type 15 union 16,11
 type 16 struct std_fs$File { handle:18,closed:9 }
-type 17 union 11,0
+type 17 union 11,1
 type 18 union 3,19
 type 19 scalar pointer
 type 20 union 7,11
@@ -571,32 +571,33 @@ fn 12 __defer_std_fs_0 (ref) -> void
 end
 
 fn 13 std_fs$open (string,ref) -> any
+  local __fallback_0 any
   local refusal any
-  local handle any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 19   ; std_fs$refusal_of
-  local.tee 2   ; refusal
-  type_check 0   ; null
+  local.tee 2   ; __fallback_0
+  local.set 3   ; refusal
+  local.get 2   ; __fallback_0
+  type_check 11   ; std_io$IOError
   if $L0 void
-  else
-    local.get 2   ; refusal
+    local.get 3   ; refusal
     ref.cast 11   ; std_io$IOError
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 20   ; std_fs$system_open
-  local.tee 2   ; refusal
-  local.set 3   ; handle
-  local.get 2   ; refusal
+  local.tee 2   ; __fallback_0
+  local.set 3   ; refusal
+  local.get 2   ; __fallback_0
   type_check 11   ; std_io$IOError
   if $L1 void
-    local.get 3   ; handle
+    local.get 3   ; refusal
     ref.cast 11   ; std_io$IOError
     return
   end $L1
-  local.get 2   ; refusal
+  local.get 2   ; __fallback_0
   bool.const false
   struct.new 16   ; std_fs$File
   return
@@ -614,7 +615,8 @@ fn 14 std_fs$close (ref) -> any
     call 21   ; std_fs$system_close
     return
   end $L0
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 15 std_fs$system_size (any) -> i64
@@ -819,9 +821,11 @@ fn 19 std_fs$refusal_of (string,ref) -> any
       call 24   ; std_fs$invalid_options
       return
     end $L11
-    return.lit null.const
+    void.const
+    return
   end $L10
-  return.lit null.const
+  void.const
+  return
 end
 
 fn 20 std_fs$system_open (string,ref) -> any
@@ -875,7 +879,8 @@ fn 21 std_fs$system_close (any) -> any
   i32.ne
   if $L0 void
   else
-    return.lit null.const
+    void.const
+    return
   end $L0
   string.const 14   ; "close failed"
   call 28   ; std_io$last_io_error

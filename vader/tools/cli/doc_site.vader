@@ -81,9 +81,8 @@ build_doc_site :: fn(data_dir: string, out_dir: string | null, open: bool) -> i3
     env :: site_env(absolute_path(data_dir), grammar, out)
         else return missing("a folder holds a `'`, which the build's variables cannot carry")
     env_file :: join_path(copy, SITE_ENV_FILE)
-    written :: write_file(env_file, env) else is IOError {
-        return missing("cannot write `${env_file.to_native()}`: ${written.message()}")
-    }
+    written :: write_file(env_file, env)
+        else return missing("cannot write `${env_file.to_native()}`: ${written.message()}")
     stamp_file :: join_path(copy, SITE_STAMP_FILE)
     data :: Doc.doc_data_key(data_dir) else tree_digest(data_dir)
     digests :: [
@@ -374,11 +373,11 @@ copy_file :: fn(from: string, to: string) -> bool {
         eprintln("vader doc: cannot read `${from.to_native()}`: ${bytes.message()}")
         return false
     }
-    made :: create_dir(dir_of(to)) else is IOError {
+    made :: create_dir(dir_of(to)) else {
         eprintln("vader doc: cannot create `${dir_of(to).to_native()}`: ${made.message()}")
         return false
     }
-    written :: write_file(to, bytes) else is IOError {
+    written :: write_file(to, bytes) else {
         eprintln("vader doc: cannot write `${to.to_native()}`: ${written.message()}")
         return false
     }
@@ -403,9 +402,8 @@ site_env :: fn(data: string, grammar: string, out: string) -> string | null {
 // the working directory.
 run_in :: fn(dir: string, argv: string[]) -> i32 | ProcessError {
     home :: current_working_directory()
-    moved :: set_current_working_directory(dir) else is IOError {
-        return ProcessError { .msg = "cannot enter `${dir.to_native()}`: ${moved.message()}" }
-    }
+    moved :: set_current_working_directory(dir)
+        else return ProcessError { .msg = "cannot enter `${dir.to_native()}`: ${moved.message()}" }
     ran :: run_attached(argv)
     set_current_working_directory(home)
     return ran

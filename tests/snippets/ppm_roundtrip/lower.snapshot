@@ -21,17 +21,17 @@
               u8[](__fallback_0)
           } :u8[]
       }
-      wr: null = {
-          __fallback_1: IOError | null = std.fs.write_file(path, enc)
-          wr: IOError | null = __fallback_1
+      wr: void = {
+          __fallback_1: IOError | void = std.fs.write_file(path, enc)
+          wr: IOError | void = __fallback_1
           if __fallback_1 is Error {
               {
                   std.console.println<string>(concat_5("write failed: ", @vcall(std.core.Error.message, Error(wr)), " path=[", path, "]"))
                   return 1
               }
           } else {
-              null(__fallback_1)
-          } :null
+              void(__fallback_1)
+          }
       }
       raw: u8[] = {
           __fallback_2: IOError | u8[] = std.fs.read_file_bytes(path, i64(16777216))

@@ -122,10 +122,7 @@
                 },
                 "clauses": [
                   {
-                    "test": {
-                      "kind": "IdentExpr",
-                      "name": "IOError"
-                    },
+                    "test": null,
                     "body": {
                       "kind": "BlockExpr",
                       "stmts": [

@@ -126,9 +126,7 @@ program_end :: fn(slot: Slot, case: Case, reports: Reports, died: string) -> Sta
 // the worker, or until `CASE_TIMEOUT_SECONDS` runs out, which kills it.
 run_on :: fn(worker: Worker, case: Case) -> Reports {
     reports :: Reports {}
-    if worker.child.write_input(request_record(case).bytes()) != null {
-        return reports
-    }
+    worker.child.write_input(request_record(case).bytes()) else return reports
     // Bound before the test: the task analysis sees `timeout` join its task
     // only then.
     read :: launch(() -> read_case(worker, reports)).timeout(CASE_TIMEOUT_SECONDS.seconds())

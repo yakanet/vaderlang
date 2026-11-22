@@ -43,7 +43,7 @@ import "std/string_builder"
 // not once, one that expects `100-continue` and carries nothing), `.Incomplete`
 // for a body shorter than the length declared, `.Transport` when the body
 // cannot be read or `writer` fails.
-write_request :: fn(writer: Writer, request: Request) -> null | HttpError {
+write_request :: fn(writer: Writer, request: Request) -> void | HttpError {
     head :: request_head(request) else return head
     return write_framed(
         writer,
@@ -69,7 +69,7 @@ request_head :: fn(request: Request) -> StringBuilder | HttpError {
     }
     head :: StringBuilder {}
     head.append("${request.method} ${request.target} ${request.version}\r\n")
-    fields :: append_fields(head, request.headers, false) else is HttpError { return fields }
+    fields :: append_fields(head, request.headers, false) else return fields
     return head
 }
 
@@ -101,7 +101,7 @@ write_response :: fn(
     writer: Writer,
     response: Response,
     request: Request | null,
-) -> null | HttpError {
+) -> void | HttpError {
     code :: u16(response.status)
     if code < 100 || code > 599 {
         return malformed("a status code is 100 to 599")
@@ -166,7 +166,7 @@ send_head :: fn(
     head: StringBuilder,
     answer: Answer | null,
     content: u8[] = [],
-) -> null | HttpError {
+) -> void | HttpError {
     if answer != null {
         settle(head, answer)
     }
@@ -217,7 +217,7 @@ connection_line :: fn(request: Request | null, response: Response) -> string {
 
 // The field lines of `headers` after what `head` holds, each checked; without
 // the `Content-Length` lines when `without_length`.
-append_fields :: fn(head: StringBuilder, headers: Headers, without_length: bool) -> null | HttpError {
+append_fields :: fn(head: StringBuilder, headers: Headers, without_length: bool) -> void | HttpError {
     if headers.get(TRANSFER_ENCODING) != null {
         return HttpError {
             .kind = .CodingNotImplemented,
@@ -236,7 +236,6 @@ append_fields :: fn(head: StringBuilder, headers: Headers, without_length: bool)
         }
         head.append("${line.name}: ${line.value}\r\n")
     }
-    return null
 }
 
 // How the body of a message is written.
@@ -259,7 +258,7 @@ write_framed :: fn(
     headers: Headers,
     body: Reader,
     framing: Framing,
-) -> null | HttpError {
+) -> void | HttpError {
     lengths :: headers.get_all(CONTENT_LENGTH)
     if lengths.len() > 1 {
         return malformed("a message declares its length once")
@@ -312,7 +311,7 @@ write_to_the_end :: fn(
     chunk: u8[],
     first: i64,
     answer: Answer,
-) -> null | HttpError {
+) -> void | HttpError {
     answer.response.ends_with_connection = true
     started :: send_head(writer, head, answer, chunk[0..<first]) else is HttpError {
         return started
@@ -320,9 +319,9 @@ write_to_the_end :: fn(
     for {
         got :: read_some(body, chunk) else is HttpError { return got }
         if got == null {
-            return null
+            return
         }
-        written :: sent(writer.write(chunk[0..<got])) else is HttpError { return written }
+        written :: sent(writer.write(chunk[0..<got])) else return written
     }
 }
 
@@ -332,13 +331,13 @@ nothing_to_wait_for :: fn() -> HttpError =
 // Write what is left of `body` as chunks, each read of it one chunk, then the
 // chunk of size zero and the empty line that end a chunked body. `chunk` is
 // the room the body is read into. A chunk goes out in one write.
-write_chunks :: fn(writer: Writer, body: Reader, chunk: u8[]) -> null | HttpError {
+write_chunks :: fn(writer: Writer, body: Reader, chunk: u8[]) -> void | HttpError {
     for {
         got :: read_some(body, chunk) else is HttpError { return got }
         if got == null {
             return sent(writer.write("0\r\n\r\n"))
         }
-        written :: sent(writer.write(chunk_of(chunk[0..<got]))) else is HttpError { return written }
+        written :: sent(writer.write(chunk_of(chunk[0..<got]))) else return written
     }
 }
 
@@ -357,7 +356,7 @@ write_counted :: fn(
     body: Reader,
     length: i64,
     answer: Answer | null,
-) -> null | HttpError {
+) -> void | HttpError {
     if length == 0 {
         return send_head(writer, head, answer)
     }
@@ -370,14 +369,13 @@ write_counted :: fn(
 }
 
 // Write the next `left` bytes of `body` as they are read into `chunk`.
-copy_counted :: fn(writer: Writer, body: Reader, chunk: u8[], left: i64) -> null | HttpError {
+copy_counted :: fn(writer: Writer, body: Reader, chunk: u8[], left: i64) -> void | HttpError {
     rest: i64 = left
     for rest > 0 {
         got :: read_counted(body, chunk, rest) else return got
-        written :: sent(writer.write(chunk[0..<got])) else is HttpError { return written }
+        written :: sent(writer.write(chunk[0..<got])) else return written
         rest -= got
     }
-    return null
 }
 
 // How many bytes a read of `body` into `chunk` gave, `left` of them still owed:
@@ -405,11 +403,10 @@ read_some :: fn(body: Reader, into: u8[]) -> i64 | null | HttpError {
 }
 
 // What a write of the connection came to.
-sent :: fn(written: null | IOError) -> null | HttpError {
+sent :: fn(written: void | IOError) -> void | HttpError {
     if written is IOError {
         return transport(written)
     }
-    return null
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -420,7 +417,7 @@ import "std/testing"
 // What writing `request` puts on the wire, or the kind of its failure.
 request_wire :: fn(request: Request) -> string | HttpErrorKind {
     out :: BytesWriter {}
-    written :: write_request(out, request) else is HttpError { return written.kind }
+    written :: write_request(out, request) else return written.kind
     return out.written.bytes_to_string()
 }
 
@@ -523,18 +520,15 @@ WriteLog :: struct {
 }
 
 WriteLog implements Writer {
-    write :: fn(self, content: u8[] | string) -> null | IOError {
+    write :: fn(self, content: u8[] | string) -> void | IOError {
         self.writes.push(content.bytes_of().bytes_to_string())
-        return null
     }
 }
 
 // The writes `response` is made of, in answer to `request`, a bar between two.
 response_writes :: fn(response: Response, request: Request) -> string {
     log :: WriteLog {}
-    if write_response(log, response, request) != null {
-        return "not written"
-    }
+    write_response(log, response, request) else return "not written"
     return log.writes.join(" | ").shown()
 }
 
@@ -559,7 +553,7 @@ test_a_head_goes_out_with_the_first_bytes_of_its_body :: fn() -> void {
     posted :: new_request(.Post, "/", "hello")
     posted.headers.set("Host", "example.org")
     log :: WriteLog {}
-    assert(write_request(log, posted) == null, "the request is written")
+    assert(write_request(log, posted) is void, "the request is written")
     assert_eq(log.writes.len(), 1)
 }
 
@@ -589,7 +583,7 @@ test_chunks_written_read_back_as_the_body :: fn() -> void {
         .size = 5,
     }
     out :: BytesWriter {}
-    assert(write_request(out, request) == null, "the request is written")
+    assert(write_request(out, request) is void, "the request is written")
     for size in CUTS {
         back :: read_request(cut(out.written.bytes_to_string(), size))
         if back !is Request {
@@ -714,7 +708,7 @@ test_what_is_written_reads_back_the_same :: fn() -> void {
     request.headers.set("Host", "example.org")
     request.headers.add("Accept", "application/json")
     out :: BytesWriter {}
-    assert(write_request(out, request) == null, "the request is written")
+    assert(write_request(out, request) is void, "the request is written")
     for size in CUTS {
         back :: read_request(cut(out.written.bytes_to_string(), size))
         if back !is Request {
@@ -728,7 +722,7 @@ test_what_is_written_reads_back_the_same :: fn() -> void {
     response :: new_response(STATUS_CREATED, "done")
     response.headers.add("Location", "/orders/7")
     answered :: BytesWriter {}
-    assert(write_response(answered, response, request) == null, "the response is written")
+    assert(write_response(answered, response, request) is void, "the response is written")
     read :: read_response(whole(answered.written.bytes_to_string()), request)
     if read !is Response {
         return assert(false, "the response does not read back")
