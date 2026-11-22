@@ -101,7 +101,10 @@ cmd_new :: fn(args: string[]) -> i32 {
     written :: scaffold(target, setup) else return refuse(asking, written.msg)
     complaint := ""
     if wants_git {
-        complaint = init_git(target.dir) else ""
+        initialised :: init_git(target.dir)
+        if initialised is ScaffoldError {
+            complaint = initialised.msg
+        }
     }
     git_initialised :: wants_git && complaint == ""
     if asking {
@@ -381,15 +384,16 @@ render_gitignore :: fn() -> string = "build/\n"
 
 // `--git`, and it WARNS rather than fails: the scaffold is already on disk by the
 // time this runs, so refusing after the fact would leave a project plus an error.
-init_git :: fn(dir: string) -> string | null {
+init_git :: fn(dir: string) -> void | ScaffoldError {
     res :: spawn(["git", "init", dir]) else {
         hint :: "the project is written, initialise it yourself"
-        return "vader new: `git init` could not run (${res.msg}): ${hint}"
+        return ScaffoldError { .msg = "vader new: `git init` could not run (${res.msg}): ${hint}" }
     }
     if res.exit != 0 {
-        return "vader new: `git init` exited ${res.exit}: ${res.stderr.trim()}"
+        return ScaffoldError {
+            .msg = "vader new: `git init` exited ${res.exit}: ${res.stderr.trim()}",
+        }
     }
-    return null
 }
 
 // ---- reporting ------------------------------------------------------------

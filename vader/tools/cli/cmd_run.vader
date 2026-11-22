@@ -103,9 +103,8 @@ run_source :: fn(
         eprintln("vader run: ${display_verify_error(state)}")
         return 1
     }
-    problem :: attach_ffi_adapters(state, project_root, file)
-    if problem != null {
-        eprintln("vader run: ${problem}")
+    attached :: attach_ffi_adapters(state, project_root, file) else {
+        eprintln("vader run: ${attached.message}")
         return 1
     }
     // Run the `main` declared in the NAMED file, not the VM's default first

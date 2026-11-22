@@ -100,27 +100,36 @@ export adapted_imports :: fn(module: bc.BytecodeModule) -> i64[] {
     return candidates.filter((i) -> called[i]).collect()
 }
 
+/// Why the adapters cannot serve a program on the interpreter.
+export AdapterError :: struct {
+    /// Worded to follow "vader <command>:", lowercase, no trailing period.
+    message: string
+}
+
+AdapterError implements Error -> self.message
+
 /// Bind each adapted import of `state` to its adapter in the library at `path`.
 ///
 /// @param state    the prepared program.
 /// @param path     a library holding `adapter_symbol` of each adapted import.
 /// @param adapted  the adapted imports (`adapted_imports`).
-/// @return         null, or why the library does not serve them all.
-export attach_adapters :: fn(state: VmState, path: string, adapted: i64[]) -> string | null {
+/// @error          `AdapterError` when the library does not open or does not serve
+///                 them all.
+export attach_adapters :: fn(state: VmState, path: string, adapted: i64[]) -> void | AdapterError {
     library :: ffi_open_path(path)
     if library == 0 {
-        return "cannot open `${path}`"
+        return AdapterError { .message = "cannot open `${path}`" }
     }
     adapters :: state.bc.imports.len().filled(() -> i64(0))
     for i in adapted {
-        adapter :: ffi_symbol(library, bc.adapter_symbol(state.bc.imports[i]))
+        imp :: state.bc.imports[i]
+        adapter :: ffi_symbol(library, bc.adapter_symbol(imp))
         if adapter == 0 {
-            return "`${path}` holds no adapter for `${state.bc.imports[i].extern_name}`"
+            return AdapterError { .message = "`${path}` holds no adapter for `${imp.extern_name}`" }
         }
         adapters[i] = adapter
     }
     state.adapters = adapters
-    return null
 }
 
 // The adapter bound to import `index` of `state`, 0 for none.

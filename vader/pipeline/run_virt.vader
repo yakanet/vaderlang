@@ -37,9 +37,8 @@ export run_virt_text :: fn(
         write_run_failure(io, "vader run: ${VM.display_verify_error(state)}")
         return 1
     }
-    problem :: attach_ffi_adapters(state, null, path)
-    if problem != null {
-        write_run_failure(io, "vader run: ${problem}")
+    attached :: attach_ffi_adapters(state, null, path) else {
+        write_run_failure(io, "vader run: ${attached.message}")
         return 1
     }
     state.io = io

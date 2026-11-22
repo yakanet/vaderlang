@@ -71,9 +71,8 @@ compile_for_dap :: fn(program: string) -> DapProgram {
     state :: prepare_debug(module) else is VerifyError {
         return DapProgram { .state = null, .entry_index = -1, .error = display_verify_error(state) }
     }
-    problem :: attach_ffi_adapters(state, project_root, path)
-    if problem != null {
-        return DapProgram { .state = null, .entry_index = -1, .error = problem }
+    attached :: attach_ffi_adapters(state, project_root, path) else {
+        return DapProgram { .state = null, .entry_index = -1, .error = attached.message }
     }
     entry :: entry_index_for_file(module, le.lowered, path, state.main_index)
     return DapProgram { .state = state, .entry_index = entry, .error = "" }
