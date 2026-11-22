@@ -1,0 +1,21 @@
+// A function whose whole body calls a member of `Intrinsic` on its parameters
+// forwards to it only when it also returns what the member returns. `pop` drops
+// the element `array_remove_last` hands back, so a call to it stays a call: run
+// in a loop, it leaves nothing behind on the way round.
+
+module "snippet"
+
+import "std/console"
+
+pop :: fn(xs: i32[]) -> void {
+    Intrinsic.array_remove_last(xs)
+}
+
+main :: fn() -> i32 {
+    xs :: [1, 2, 3, 4, 5]
+    for xs.len() > 2 {
+        pop(xs)
+    }
+    println("${xs.len()} left, the last is ${xs[xs.len() - 1]}")
+    return 0
+}

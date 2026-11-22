@@ -1,0 +1,43 @@
+# Lower
+
+## snippet
+  snippet.pop :: fn(xs: i32[]) -> void {  // snippet$pop
+      @array.remove_last(xs)
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      xs: i32[] = [1, 2, 3, 4, 5] :i32[]
+      for @array.len(xs) > i64(2) {
+          snippet.pop(xs)
+      }
+      std.console.println<string>({
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(59))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_int(__buf_0, __off_1, @array.len(xs))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " left, the last is ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, xs[@array.len(xs) - i64(1)])
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer

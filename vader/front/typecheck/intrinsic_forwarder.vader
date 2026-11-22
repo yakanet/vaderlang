@@ -13,6 +13,7 @@
 module "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
+import "std/collections"
 import "vader/core/symbol"
 import "vader/core/types"
 
@@ -137,19 +138,29 @@ passes_parameters :: fn(call: AST.CallExpr, decl: AST.FnDecl) -> bool {
 // Whether `decl` takes the parameters `member` of the trait `intrinsic` does and
 // returns what it returns, so a call lowered against the member's signature is
 // the call to `decl`. A generic member is bound at each call, against types its
-// declaration cannot spell.
+// declaration cannot spell, so only its result is compared, bound by the types of
+// `decl`'s parameters: the call is typed by `decl`, and the operation hands back
+// what the member returns.
 same_signature :: fn(
     decl: AST.FnDecl,
     member: AST.FnDecl,
     intrinsic: Symbol,
     typed: TypedProgram,
 ) -> bool {
-    if !member.type_params.is_empty() {
-        return true
-    }
     own :: declared_fn_type(typed, decl)
     if own !is FnType {
         return false
     }
-    return equals_type(own, trait_member_type(intrinsic.id, member, typed))
+    declared :: trait_member_type(intrinsic.id, member, typed)
+    if member.type_params.is_empty() {
+        return equals_type(own, declared)
+    }
+    if own.params.len() != declared.params.len() {
+        return false
+    }
+    bindings :: Map<i32, Type> {}
+    for i in 0..<own.params.len() {
+        unify_type_param(declared.params[i], own.params[i], bindings)
+    }
+    return equals_type(own.return_type, substitute_map(declared.return_type, bindings))
 }

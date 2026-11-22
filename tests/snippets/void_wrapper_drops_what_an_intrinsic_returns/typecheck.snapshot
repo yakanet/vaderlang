@@ -1,0 +1,27 @@
+# Typecheck
+
+## tests/snippets/void_wrapper_drops_what_an_intrinsic_returns
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         pop                  :: fn(i32[]) -> void
+  expr 11:33    IdentExpr      :: i32[]
+  expr 11:5     CallExpr       :: i32 | null
+  expr 15:11    SeqLitExpr     :: i32[]
+  expr 16:9     BinaryExpr     :: bool
+  expr 16:9     CallExpr       :: i64
+  expr 16:9     FieldExpr      :: fn() -> i64
+  expr 16:9     IdentExpr      :: i32[]
+  expr 17:13    IdentExpr      :: i32[]
+  expr 17:9     CallExpr       :: void
+  expr 17:9     IdentExpr      :: fn(i32[]) -> void
+  expr 19:13    StringLitExpr  :: string
+  expr 19:16    CallExpr       :: i64
+  expr 19:16    FieldExpr      :: fn() -> i64
+  expr 19:16    IdentExpr      :: i32[]
+  expr 19:46    IdentExpr      :: i32[]
+  expr 19:46    IndexExpr      :: i32
+  expr 19:49    BinaryExpr     :: i64
+  expr 19:49    CallExpr       :: i64
+  expr 19:49    FieldExpr      :: fn() -> i64
+  expr 19:49    IdentExpr      :: i32[]
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void
