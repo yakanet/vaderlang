@@ -105,7 +105,11 @@ serve_paced :: fn(
     pace: Pace | null,
 ) -> ConnectionEnd {
     source :: BufferedReader { .source = reader }
-    wire :: Wire { .sink = writer, .pace = pace }
+    wire :: Wire { .sink = writer }
+    if pace != null {
+        wire.deadlines = pace.deadlines
+        wire.timeout = pace.timeouts.write
+    }
     began :: monotonic()
     taken: i64 = 0
     for {
@@ -264,12 +268,13 @@ failure_of :: fn(error: HttpError) -> EndReason {
 
 // The connection as the loop writes it. Once a write failed, none is tried
 // again: what a failed write left on the connection is not known, and nothing
-// may follow it. Each write is given its time, when the connection has a
-// limit of time.
+// may follow it. Each write is given `timeout`, when the connection has
+// deadlines.
 Wire :: struct {
     sink: Writer
     failure: IOError | null = null
-    pace: Pace | null = null
+    deadlines: Deadlines | null = null
+    timeout: Duration | null = null
 }
 
 Wire implements Writer {
@@ -278,9 +283,9 @@ Wire implements Writer {
         if failure != null {
             return IOError { ...failure }
         }
-        pace :: self.pace
-        if pace != null {
-            pace.deadlines.write_within(pace.timeouts.write)
+        deadlines :: self.deadlines
+        if deadlines != null {
+            deadlines.write_within(self.timeout)
         }
         written :: self.sink.write(content)
         if written is IOError {

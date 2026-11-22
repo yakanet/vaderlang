@@ -15,6 +15,7 @@
 module "http"
 
 import "std/io"
+import "std/time"
 
 // ---- the connection -------------------------------------------------------
 
@@ -39,14 +40,40 @@ export ClientConnection :: struct {
     /// How much of a response is read before it is refused, and how much of a
     /// body left unread is read past.
     limits: Limits = Limits {}
+    // How the connection is held to time; null for no limit of time.
+    @internal
+    pace: ClientPace | null = null
     @internal
     state: ClientState = ClientState {}
 }
 
+/// How long a server may take at each step of a request, null for no limit at
+/// that step.
+export ClientTimeouts :: struct {
+    /// To accept a connection, each address of its host tried in turn.
+    connect: Duration | null = 10.seconds()
+    /// To take more of a request, each time some is written.
+    write: Duration | null = 30.seconds()
+    /// To answer `100 Continue` to a request that waits for it: past this, the
+    /// content is sent all the same (RFC 9110, section 10.1.1).
+    continue_wait: Duration = 1.seconds()
+    /// To send the head of its response, from the end of the request.
+    head: Duration | null = 30.seconds()
+    /// To send more of the body of a response, each time some is waited for.
+    body: Duration | null = 30.seconds()
+}
+
+// How a connection is held to its timeouts: what applies them, and the
+// timeouts.
+ClientPace :: struct {
+    deadlines: Deadlines
+    timeouts: ClientTimeouts
+}
+
 // What a connection has come to between two of its requests.
 ClientState :: struct {
-    // Where the responses are read, once the first request went out.
-    source: BufferedReader | null = null
+    // Where the connection is read and written, once the first request went out.
+    ends: ClientEnds | null = null
     // The body of the last response, while it is not settled.
     open: ClientBody | null = null
     // Why the connection carries no further request; null while it does.
@@ -70,7 +97,7 @@ INTERIM_RESPONSES_READ: i64: 64
 /// first spares the content, and is returned.
 ///
 /// No step is given a limit of time: a `Reader` waits for as long as its
-/// source does.
+/// source does, and a request that waits for `100 Continue` waits for it.
 ///
 /// @param connection  what carries the request.
 /// @param request     what is asked. Of HTTP/1.1, it names its host once
@@ -93,10 +120,10 @@ export send :: fn(connection: ClientConnection, request: Request) -> Response | 
     if ended != null {
         return HttpError { .kind = .ConnectionEnded, .msg = ended }
     }
-    source :: connection.source_of()
-    out :: CountingWriter { .sink = connection.writer }
+    ends :: connection.ends_of()
+    out :: CountingWriter { .sink = ends.wire }
     if awaits_continue(request) {
-        early :: write_awaiting(out, source, request, connection.limits) else is HttpError {
+        early :: connection.write_awaiting(out, ends.source, request) else is HttpError {
             return connection.failed(early, out.count > 0)
         }
         if early != null {
@@ -108,7 +135,8 @@ export send :: fn(connection: ClientConnection, request: Request) -> Response | 
             return connection.failed(written, out.count > 0)
         }
     }
-    response :: read_answer(source, request, connection.limits, false) else is HttpError {
+    connection.read_for(.Head)
+    response :: read_answer(ends.source, request, connection.limits, false) else is HttpError {
         return connection.failed(response, true)
     }
     return connection.opened(request, response)
@@ -129,16 +157,49 @@ export close :: fn(response: Response) -> void {
     }
 }
 
-// The reader of `connection`, buffered once for all its responses.
-source_of :: fn(connection: ClientConnection) -> BufferedReader {
+// Where a connection is read, buffered once for all its responses, and where
+// it is written, each write given its time.
+ClientEnds :: struct {
+    source: BufferedReader
+    wire: Wire
+}
+
+// The ends of `connection`, made at its first request.
+ends_of :: fn(connection: ClientConnection) -> ClientEnds {
     state :: connection.state
-    source :: state.source
-    if source != null {
-        return source
+    ends :: state.ends
+    if ends != null {
+        return ends
     }
-    made :: BufferedReader { .source = connection.reader }
-    state.source = made
+    wire :: Wire { .sink = connection.writer }
+    pace :: connection.pace
+    if pace != null {
+        wire.deadlines = pace.deadlines
+        wire.timeout = pace.timeouts.write
+    }
+    made :: ClientEnds { .source = BufferedReader { .source = connection.reader }, .wire = wire }
+    state.ends = made
     return made
+}
+
+// The steps of an exchange that wait for the server.
+ReadStep :: enum {
+    ContinueWait,
+    Head,
+    Body,
+}
+
+// Have the next reads of `connection` fail once its time for `step` has
+// passed, when it is held to time.
+read_for :: fn(connection: ClientConnection, step: ReadStep) -> void {
+    pace :: connection.pace else return
+    pace.deadlines.read_within(timeout_of(pace.timeouts, step))
+}
+
+timeout_of :: fn(timeouts: ClientTimeouts, step: ReadStep) -> Duration | null = match step {
+    .ContinueWait -> timeouts.continue_wait
+    .Head         -> timeouts.head
+    .Body         -> timeouts.body
 }
 
 // `error`, the connection ended when some of the exchange went out: where the
@@ -150,24 +211,42 @@ failed :: fn(connection: ClientConnection, error: HttpError, began: bool) -> Htt
     return error
 }
 
-// Write `request`, which holds its content back until the server asks for it:
-// its head, then its content once a `100 Continue` comes. A final response
-// that comes first is returned, the content left unsent; null once the content
-// went.
+// Write `request`, which holds its content back until the server asks for it,
+// on `connection` through `writer`, its answers read from `source`: its head,
+// then its content once a `100 Continue` comes, or once `continue_wait` has
+// passed with no answer. A final response that comes first is returned, the
+// content left unsent; null once the content went.
 write_awaiting :: fn(
+    connection: ClientConnection,
     writer: Writer,
     source: BufferedReader,
     request: Request,
-    limits: Limits,
 ) -> Response | null | HttpError {
     head :: request_head(request) else return head
     length :: content_length(request.headers.get_all(CONTENT_LENGTH)) else return length
     sent_head :: send_head(writer, head, null) else is HttpError { return sent_head }
-    answer :: read_answer(source, request, limits, true) else return answer
-    if answer.status != STATUS_CONTINUE {
-        return answer
+    heard :: connection.heard_in_time(source) else is HttpError { return heard }
+    if heard {
+        connection.read_for(.Head)
+        answer :: read_answer(source, request, connection.limits, true) else return answer
+        if answer.status != STATUS_CONTINUE {
+            return answer
+        }
     }
     return copy_counted(writer, request.body, [0] * COPY_CHUNK, length)
+}
+
+// Whether the server of `connection` starts to answer within `continue_wait`:
+// with no limit of time, it is waited for.
+heard_in_time :: fn(connection: ClientConnection, source: BufferedReader) -> bool | HttpError {
+    connection.read_for(.ContinueWait)
+    first :: source.peek(1) else is IOError {
+        if first.kind == .TimedOut {
+            return false
+        }
+        return transport(first)
+    }
+    return true
 }
 
 // `response` to `request` as the caller reads it: its body tied to the
@@ -221,6 +300,7 @@ ClientBody implements Reader {
                 .msg = "the body of a response is read before the next request, not after",
             }
         }
+        self.connection.read_for(.Body)
         got :: self.body.read(into)
         if got is IOError {
             self.connection.state.ended = "the body of the last response failed: ${got.msg}"
@@ -239,6 +319,9 @@ settle :: fn(body: ClientBody) -> void {
     connection :: body.connection
     state :: connection.state
     state.open = null
+    // What is left is read past within the time of one read of it, in all: a
+    // server is not waited for byte after byte.
+    connection.read_for(.Body)
     if state.ended == null && !drain(body.body, connection.limits) {
         state.ended = "the body of the last response was left unread, and was too long to read past or failed"
     }
@@ -428,4 +511,65 @@ test_a_body_that_failed_ends_the_connection :: fn() -> void {
     response :: connection.send(request_for(.Get, "/a")) else panic("the head is read")
     assert(response.body.read([0] * 8) is IOError, "the chunk is refused")
     assert_eq(seen(connection.send(request_for(.Get, "/b"))), "ConnectionEnded")
+}
+
+// Timeouts told apart by their length in seconds.
+TELLING :: ClientTimeouts {
+    .connect = 5.seconds(),
+    .write = 1.seconds(),
+    .continue_wait = 4.seconds(),
+    .head = 2.seconds(),
+    .body = 3.seconds(),
+}
+
+// A connection to a server that answers `source`, held to `TELLING` through
+// `deadlines`.
+paced_by :: fn(source: Reader, deadlines: Deadlines) -> ClientConnection = ClientConnection {
+    .reader = source,
+    .writer = WriteLog {},
+    .pace = ClientPace { .deadlines = deadlines, .timeouts = TELLING },
+}
+
+@test
+test_each_step_of_a_request_is_given_its_time :: fn() -> void {
+    deadlines :: NotedDeadlines {}
+    connection :: paced_by(BytesReader { .content = OK_HELLO }, deadlines)
+    assert_eq(seen(connection.send(request_for(.Get, "/a"))), "200 hello")
+    assert_eq(steps(deadlines), "write 1, read 2, read 3")
+}
+
+@test
+test_a_head_not_sent_in_time_ends_the_connection :: fn() -> void {
+    stalling :: StallingReader { .content = BytesReader { .content = "HTTP/1.1 200 OK\r\nCont" } }
+    connection :: paced_by(stalling, NotedDeadlines {})
+    assert_eq(seen(connection.send(request_for(.Get, "/a"))), "TimedOut")
+    assert_eq(seen(connection.send(request_for(.Get, "/b"))), "ConnectionEnded")
+}
+
+// A source that is silent past its first deadline, then holds `content`.
+SilentFirst :: struct {
+    content: BytesReader
+    silent: bool = true
+}
+
+SilentFirst implements Reader {
+    read :: fn(self, into: u8[]) -> i64 | null | IOError {
+        if self.silent {
+            self.silent = false
+            return IOError { .msg = "timed out", .kind = .TimedOut }
+        }
+        return self.content.read(into)
+    }
+}
+
+@test
+test_a_content_awaited_past_its_time_is_sent_all_the_same :: fn() -> void {
+    deadlines :: NotedDeadlines {}
+    connection :: paced_by(
+        SilentFirst { .content = BytesReader { .content = OK_HELLO } },
+        deadlines,
+    )
+    assert_eq(seen(connection.send(put_expecting("data"))), "200 hello")
+    assert(written_by(connection, "|").ends_with("|data"), "the content goes after the head")
+    assert_eq(steps(deadlines), "write 1, read 4, write 1, read 2, read 3")
 }
