@@ -119,6 +119,7 @@ static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
 static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static void std_core$drop_last__i64(void* l0);
 static vader_box_t std_core$index_of__i64(void* l0, int64_t l1);
 static bool std_core$remove_value__i64(void* l0, int64_t l1);
 static void std_console$write(uint8_t l0, vader_string_t l1);
@@ -675,6 +676,12 @@ static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2) {
     return t0;
 }
 
+static void std_core$drop_last__i64(void* l0) {
+    vader_box_t t0;
+    t0 = vader_array_remove_last((vader_array_t*) l0);
+    return;
+}
+
 static vader_box_t std_core$index_of__i64(void* l0, int64_t l1) {
     int64_t l2, l3;
     int64_t t0;
@@ -697,7 +704,6 @@ static bool std_core$remove_value__i64(void* l0, int64_t l1) {
     int64_t l2, l4, l5;
     vader_box_t l3;
     int64_t t0, t1;
-    vader_box_t t2;
     l3 = std_core$index_of__i64(l0, l1);
     if (l3.tag == 0u) {
         return false;
@@ -708,7 +714,7 @@ static bool std_core$remove_value__i64(void* l0, int64_t l1) {
     t1 = vader_chk_sub(i64, t0, l2);
     l5 = vader_chk_sub(i64, t1, INT64_C(1));
     vader_array_copy((vader_array_t*) l0, (int64_t) l4, (vader_array_t*) l0, (int64_t) l2, (int64_t) l5);
-    t2 = vader_array_remove_last((vader_array_t*) l0);
+    std_core$drop_last__i64(l0);
     return true;
 }
 

@@ -998,6 +998,7 @@ Besides `push(v)`, arrays have:
 | `dst.push_all(src)` | Appends the elements of `src`, which it only reads. |
 | `src.copy_to(src_start, dst, dst_start, len)` | Copies `len` elements from `src_start` in `src` to `dst_start` in `dst`. |
 | `arr.remove_last()` | Removes and returns the last element. |
+| `arr.drop_last()` | Removes the last element and returns nothing, so it takes elements that can be `null`. |
 | `arr.clear()` | Sets the length to 0 and keeps the reserved room. |
 
 ### Tuples
@@ -1854,6 +1855,20 @@ List :: struct<T> {
 ```
 
 A bound follows the parameter after `:` and names traits, or `Int` (§4 *Range types*), joined by `&` and all required. A union is an error as a bound, as in a trait's composition: `null` goes where the parameter is used, `fn<T: Bump>(x: T | null)`, never `fn<T: Bump | null>(x: T)`.
+
+A type parameter written beside `null` in a signature cannot be bound to a type that can hold `null`. There, the `null` says a value is absent, and a `T` holding one would read the same:
+
+```vader
+xs: (i32 | null)[]: [null, 1]
+xs.first()              // error: `first` returns `T | null`, and `T` would be `i32 | null`
+xs.drop_last()          // `drop_last` returns nothing
+m: Map<string, i32 | null>: Map<string, i32 | null> {}
+m["a"] = null           // a nullable value is stored
+m["a"]                  // error: the read is `V | null`
+```
+
+- The error is at the call that binds the parameter, and at a generic function taken as a value at such a type.
+- A type parameter of the calling body passes: its own instance is checked where it gets one.
 
 ```vader
 put :: fn<K: Hash & Equals, V>(self: Map<K, V>, key: K, value: V) {
@@ -4286,7 +4301,7 @@ It also declares:
 - `Peek<T>`, the element a source would hand out next, left in place: `peek :: fn(self) -> T | null`.
 - `Cancelled`, the `Error` that joining a cancelled task gives back (§16 *Cancellation*).
 - `deep_copy`, a copy of a value that shares nothing it can write (§16 *Values shared between tasks*).
-- Functions on arrays: `len`, `push`, `push_all`, `copy_to`, `remove_last` and `clear` (§4 *Mutation methods*), `filled` and `filled_indexed` (§4 *Repeat / preallocate: `[lhs] * n`*), `content_equals`, `is_permutation_of`, `contains_all` and `is_disjoint` (§4 *Equality*).
+- Functions on arrays: `len`, `push`, `push_all`, `copy_to`, `remove_last`, `drop_last` and `clear` (§4 *Mutation methods*), `filled` and `filled_indexed` (§4 *Repeat / preallocate: `[lhs] * n`*), `content_equals`, `is_permutation_of`, `contains_all` and `is_disjoint` (§4 *Equality*).
 - Functions on strings: `len`, `byte_len`, `byte_at`, `byte_slice`, `is_ascii`, `codepoint_at_byte`, `bytes` and `bytes_to_string` (§4 *Strings*).
 
 #### Implementations on primitive types

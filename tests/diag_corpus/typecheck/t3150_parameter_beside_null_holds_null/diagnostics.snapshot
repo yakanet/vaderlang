@@ -1,0 +1,5 @@
+[20:13] error[T3150] a type parameter written beside `null` cannot hold `null`: `T` of `first` is `i32 | null`
+[23:16] error[T3150] a type parameter written beside `null` cannot hold `null`: `V` of `Map` is `i32 | null`
+[24:13] error[T3150] a type parameter written beside `null` cannot hold `null`: `V` of `put_absent` is `i32 | null`
+[25:14] error[T3150] a type parameter written beside `null` cannot hold `null`: `T` of `first` is `i32 | null`
+[26:21] error[T3150] a type parameter written beside `null` cannot hold `null`: `T` of `first` is `i32 | null`

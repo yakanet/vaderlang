@@ -1,0 +1,32 @@
+// A signature that writes `T | null` gives `null` the absence it declares, so its
+// `T` cannot hold `null` itself. Each site where the instance turns concrete is a
+// T3150: a generic call (`first`, `put_absent`), the `Index` of a generic struct
+// (`slots["a"]`), a generic function taken as a value (`first<i32 | null>`) and a
+// method value (`xs.first`). A `T` the call binds without `null` (`or_default`), a
+// type parameter passed on (`last_of`), a function that hands nothing back
+// (`drop_last`) and the writes and tests of a `Map` pass.
+module "snippet"
+
+import "std/collections"
+
+export or_default :: fn<T>(x: T | null, fallback: T) -> T = x else fallback
+
+export last_of :: fn<T>(xs: T[]) -> T | null = xs.last()
+
+export apply :: fn(f: fn() -> i32 | null) -> i32 | null = f()
+
+main :: fn() -> i32 {
+    xs: (i32 | null)[]: [null, 1]
+    head :: xs.first()
+    slots :: Map<string, i32 | null> {}
+    slots["a"] = null
+    missing :: slots["a"]
+    kept :: slots.put_absent("a", 5)
+    taken :: first<i32 | null>
+    picked :: apply(xs.first)
+    n: i32 | null: null
+    fallback :: or_default(n, 7)
+    xs.drop_last()
+    present :: "a" in slots
+    return fallback
+}

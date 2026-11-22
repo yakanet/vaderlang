@@ -1,0 +1,165 @@
+// vader/front/typecheck/null_beside_param: a type parameter written beside `null`
+// whose instance can hold `null`.
+//
+// A signature that writes `T | null` gives `null` one meaning, the absence it
+// declares: `first` returns `null` for an empty array. A `T` that can hold `null`
+// gives it a second one, and the caller can no longer tell them apart. T3150
+// rejects such an instance where it turns concrete: a generic call
+// (call_infer.vader), a generic function taken as a value (fn_value.vader) and
+// the `Index` impl of a generic struct (expr_index.vader). A type parameter
+// passes: its instance is checked where it gets one.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+import "std/iter"
+import "toolchain/diagnostics"
+import "toolchain/span"
+import "vader/core/symbol"
+import "vader/core/types"
+
+// T3150 for each type parameter `template` writes beside `null` that `bindings`,
+// keyed by the parameter's symbol id, binds to a type that can hold `null`. The
+// bindings are read first: almost none holds `null`, and the walk of `template`
+// is then skipped.
+reject_null_beside_params :: fn(
+    template: Type,
+    bindings: Map<i32, Type>,
+    owner: string,
+    span: Span,
+    diags: Diagnostic[],
+) -> void {
+    if !binds_a_nullable(bindings) {
+        return
+    }
+    reject_nullable_instances(params_beside_null(template), bindings, owner, span, diags)
+}
+
+// Whether one of `bindings` can hold `null`.
+binds_a_nullable :: fn(bindings: Map<i32, Type>) -> bool {
+    for [_, bound] in bindings {
+        if holds_null(bound) {
+            return true
+        }
+    }
+    return false
+}
+
+// Note the type parameters `fn_ty` writes beside `null` for the site `id` that
+// takes it as a value: `settle_instances` checks them once they are solved.
+note_params_beside_null :: fn(typed: TypedProgram, id: i64, fn_ty: FnType) -> void {
+    params :: params_beside_null(fn_ty)
+    if params.len() > 0 {
+        typed.call_sites.params_beside_null[id] = params
+    }
+}
+
+// T3150 for each of `params` that `bindings` binds to a type that can hold `null`.
+reject_nullable_instances :: fn(
+    params: Symbol[],
+    bindings: Map<i32, Type>,
+    owner: string,
+    span: Span,
+    diags: Diagnostic[],
+) -> void {
+    for p in params {
+        bound :: bindings[p.id] else continue
+        if holds_null(bound) {
+            diags.push(
+                typecheck_error(
+                    .ParameterBesideNullHoldsNull,
+                    span,
+                    "`${p.name}` of `${owner}` is `${display_type(bound)}`",
+                ),
+            )
+        }
+    }
+}
+
+// T3150 for the `Index` impl of the generic struct `target` when its result writes
+// one of the struct's parameters beside `null` (`Map<K, V>` reads a `V | null`).
+reject_index_beside_null :: fn(
+    target: Type,
+    typed: TypedProgram,
+    span: Span,
+    diags: Diagnostic[],
+) -> void {
+    if target !is StructType || !target.args.any_match(holds_null) {
+        return
+    }
+    template :: impl_side(typed, typed.impl_tables.index_target_types, target, "") else return
+    decl :: typed.struct_decls[target.symbol.id] else return
+    bindings :: type_param_bindings(decl.type_params, target.args, typed)
+    reject_null_beside_params(template, bindings, target.symbol.name, span, diags)
+}
+
+// The type parameters `t` writes beside `null`, each once: as the parameter
+// itself, or as the inference variable an instance put in its place.
+params_beside_null :: fn(t: Type) -> Symbol[] {
+    found: Symbol[]: []
+    for_each_type(
+        t,
+        fn(x: Type) {
+            variants :: union_variants(x) else return
+            if !variants.any_match(is_null_type) {
+                return
+            }
+            for v in variants {
+                p :: written_param(v) else continue
+                if !found.any_match((f: Symbol) -> f.id == p.id) {
+                    found.push(p)
+                }
+            }
+        },
+    )
+    return found
+}
+
+// The declared parameter `t` stands for, null when it stands for none.
+written_param :: fn(t: Type) -> Symbol | null {
+    if t is TypeParamType {
+        return t.symbol
+    }
+    if t is InferVar {
+        return t.origin
+    }
+    return null
+}
+
+// Whether a value of `t` can be `null`: `null` itself, a union with it, a
+// distinct over either.
+holds_null :: fn(t: Type) -> bool {
+    stripped :: strip_distinct(t)
+    return (union_variants(stripped) else [stripped]).any_match(is_null_type)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+param_for_test :: fn(factory: SymbolFactory, name: string) -> Type =
+    mk_type_param(factory.make(.TypeParam, name, CORE_MODULE, CORE_MODULE, .Private, null))
+
+@test
+test_holds_null_through_a_union :: fn() -> void {
+    assert(holds_null(TY_NULL), "null")
+    assert(holds_null(mk_union([TY_I32, TY_NULL])), "i32 | null")
+    assert(!holds_null(TY_I32), "i32")
+}
+
+@test
+test_params_beside_null_finds_a_parameter_in_a_union_with_null :: fn() -> void {
+    factory :: SymbolFactory {}
+    t :: param_for_test(factory, "T")
+    u :: param_for_test(factory, "U")
+    signature :: mk_fn([mk_array(t), u], mk_union([t, TY_NULL]))
+    found :: params_beside_null(signature)
+    assert_eq(found.len(), 1)
+    assert_eq(found[0].name, "T")
+}
+
+@test
+test_params_beside_null_ignores_a_parameter_alone :: fn() -> void {
+    t :: param_for_test(SymbolFactory {}, "T")
+    assert_eq(params_beside_null(mk_fn([t], t)).len(), 0)
+}

@@ -50,6 +50,17 @@ export copy_to :: fn<T>(
 /// @return    the element removed ; `null` when `xs` is empty.
 export remove_last :: fn<T>(xs: T[]) -> T | null = Intrinsic.array_remove_last(xs)
 
+/// Remove the last element of `xs`, if it has one. Unlike `remove_last`, it takes
+/// an array whose elements can be `null`, since nothing is handed back.
+///
+/// @param xs  the array, which shrinks ; an empty one stays as it is.
+/// @example
+///   xs: (i32 | null)[]: [1, null]
+///   xs.drop_last()   // xs is [1]
+export drop_last :: fn<T>(xs: T[]) -> void {
+    xs.remove_last()
+}
+
 /// Drop every element of `xs` (its length becomes 0), keeping its reserved
 /// capacity.
 ///
@@ -222,7 +233,7 @@ export index_of :: fn<T: Equals>(self: T[], value: T) -> i64 | null {
 export remove_value :: fn<T: Equals>(self: T[], value: T) -> bool {
     i :: self.index_of(value) else return false
     self.copy_to(i + 1, self, i, self.len() - i - 1)
-    self.remove_last()
+    self.drop_last()
     return true
 }
 
@@ -243,7 +254,7 @@ export remove_where :: fn<T>(self: T[], drop: fn(T) -> bool) -> i64 {
     }
     removed :: self.len() - kept
     for self.len() > kept {
-        self.remove_last()
+        self.drop_last()
     }
     return removed
 }
@@ -333,6 +344,21 @@ test_is_permutation_of_counts_each_element :: fn() -> void {
 @test
 test_filled_indexed_of_zero_is_empty :: fn() -> void {
     assert_eq(filled_indexed(0, (i) -> i32(i)).len(), 0)
+}
+
+@test
+test_drop_last_takes_a_null_element_out :: fn() -> void {
+    xs: (i32 | null)[]: [1, null]
+    xs.drop_last()
+    assert_eq(xs.len(), 1)
+    assert(xs[0] == 1, "the first element stays")
+}
+
+@test
+test_drop_last_leaves_an_empty_array_alone :: fn() -> void {
+    xs: i32[]: []
+    xs.drop_last()
+    assert(xs.is_empty(), "still empty")
 }
 
 @test

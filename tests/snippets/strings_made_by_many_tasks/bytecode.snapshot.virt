@@ -188,7 +188,7 @@ fn 1 snippet$main () -> i32
     i32.lt
     if $L1 void
       fn.ref 2 15   ; __lambda_snippet_0 fn
-      call 17   ; std_task$launch__string__
+      call 18   ; std_task$launch__string__
       local.set 2   ; $call_8
       local.get 0   ; tasks
       local.get 2   ; $call_8
@@ -215,7 +215,7 @@ fn 1 snippet$main () -> i32
       local.get 0   ; tasks
       local.get 4   ; __for_i_2
       array.get 32   ; std_task$Task__string__[]
-      call 22   ; std_task$join__string__
+      call 23   ; std_task$join__string__
       local.tee 5   ; strings
       type_check 2   ; string[]
       if $L4 void
@@ -395,7 +395,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; tasks
   local.get 3   ; __for_len_1
   call 4   ; std_core$finish_buffer
-  call 12   ; std_console$println__string
+  call 13   ; std_console$println__string
   return.lit i32.const 0
 end
 
@@ -635,12 +635,18 @@ fn 8 std_core$remove_value__i64 (ref,i64) -> bool
   local.get 5   ; $sub_checked_13
   array.copy
   local.get 0   ; arg 0
-  array.remove_last
-  drop
+  call 9   ; std_core$drop_last__i64
   return.lit bool.const true
 end
 
-fn 9 std_console$write (u8,string) -> void
+fn 9 std_core$drop_last__i64 (ref) -> void
+  local.get 0   ; arg 0
+  array.remove_last
+  drop
+  return
+end
+
+fn 10 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -651,7 +657,7 @@ fn 9 std_console$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 10   ; std_console$write_text
+  call 11   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -682,7 +688,7 @@ fn 9 std_console$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 11   ; std_console$write_bytes
+      call 12   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -702,11 +708,11 @@ fn 9 std_console$write (u8,string) -> void
   return
 end
 
-fn 10 std_console$write_text (u8,string) -> bool
+fn 11 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 11 std_console$write_bytes (u8,ref,i64) -> i32
+fn 12 std_console$write_bytes (u8,ref,i64) -> i32
   local fd i32
   local written i64
   local.get 0   ; arg 0
@@ -745,7 +751,7 @@ fn 11 std_console$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 12 std_console$println__string (string) -> void
+fn 13 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 5   ; "\n"
@@ -753,11 +759,11 @@ fn 12 std_console$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 9   ; std_console$write
+  call 10   ; std_console$write
   return
 end
 
-fn 13 std_task$started () -> ref
+fn 14 std_task$started () -> ref
   local gate ref
   local $fn_ref_7 ref
   global.get 0   ; started.state
@@ -767,16 +773,16 @@ fn 13 std_task$started () -> ref
     global.get 1   ; started.instance
     return
   end $L0
-  call 27   ; std_runtime_scheduler$monitor_enter_to_publish
+  call 28   ; std_runtime_scheduler$monitor_enter_to_publish
   global.get 2   ; started.gate
-  call 29   ; std_runtime_scheduler$gate_or_new
+  call 30   ; std_runtime_scheduler$gate_or_new
   local.tee 0   ; gate
   global.set 2   ; started.gate
-  fn.ref 15 12   ; std_task$started$keep fn
+  fn.ref 16 12   ; std_task$started$keep fn
   local.set 1   ; $fn_ref_7
   local.get 0   ; gate
   local.get 1   ; $fn_ref_7
-  call 30   ; std_runtime_scheduler$run_gated
+  call 31   ; std_runtime_scheduler$run_gated
   if $L1 void
   else
     unreachable "singleton `started` called while it initialises"
@@ -785,19 +791,19 @@ fn 13 std_task$started () -> ref
   return
 end
 
-fn 14 std_task$started$singleton () -> ref
+fn 15 std_task$started$singleton () -> ref
   i64.const 0
   struct.new 14   ; std_task$Started
   return
 end
 
-fn 15 std_task$started$keep () -> void
+fn 16 std_task$started$keep () -> void
   global.get 0   ; started.state
   i32.const 2
   i32.eq
   if $L0 void
   else
-    call 14   ; std_task$started$singleton
+    call 15   ; std_task$started$singleton
     global.set 1   ; started.instance
     i32.const 2
     global.set 0   ; started.state
@@ -806,7 +812,7 @@ fn 15 std_task$started$keep () -> void
   return
 end
 
-fn 16 std_task$start_thread (ref) -> i64
+fn 17 std_task$start_thread (ref) -> i64
   local s ref
   local $add_checked_9 i64
   global.get 0   ; started.state
@@ -816,7 +822,7 @@ fn 16 std_task$start_thread (ref) -> i64
     global.get 1   ; started.instance
     local.set 1   ; s
   else
-    call 13   ; std_task$started
+    call 14   ; std_task$started
     local.set 1   ; s
   end $L0
   local.field 1 14 0   ; s std_task$Started.count
@@ -836,11 +842,11 @@ fn 16 std_task$start_thread (ref) -> i64
   return
 end
 
-fn 17 std_task$launch__string__ (ref) -> ref
+fn 18 std_task$launch__string__ (ref) -> ref
   local if_res ref
   local $add_checked_9 i64
   local $arr_13 ref
-  call 27   ; std_runtime_scheduler$monitor_enter_to_publish
+  call 28   ; std_runtime_scheduler$monitor_enter_to_publish
   global.get 0   ; started.state
   i32.const 2
   i32.eq
@@ -848,7 +854,7 @@ fn 17 std_task$launch__string__ (ref) -> ref
     global.get 1   ; started.instance
     local.set 1   ; if_res
   else
-    call 13   ; std_task$started
+    call 14   ; std_task$started
     local.set 1   ; if_res
   end $L0
   local.field 1 14 0   ; if_res std_task$Started.count
@@ -869,8 +875,8 @@ fn 17 std_task$launch__string__ (ref) -> ref
   local.tee 1   ; if_res
   local.get 0   ; arg 0
   struct.new 17   ; __lambda_env_std_task_1
-  make_closure 18 12   ; __lambda_std_task_0 fn
-  call 16   ; std_task$start_thread
+  make_closure 19 12   ; __lambda_std_task_0 fn
+  call 17   ; std_task$start_thread
   local.set 2   ; $add_checked_9
   local.get 1   ; if_res
   local.get 2   ; $add_checked_9
@@ -880,7 +886,7 @@ fn 17 std_task$launch__string__ (ref) -> ref
   return
 end
 
-fn 18 __lambda_std_task_0 (ref) -> void
+fn 19 __lambda_std_task_0 (ref) -> void
   local $field_1 ref
   local $field_2 ref
   local.field 0 17 0   ; arg 0 __lambda_env_std_task_1.cap_0
@@ -889,16 +895,16 @@ fn 18 __lambda_std_task_0 (ref) -> void
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
-  call 19   ; std_task$run__string__
+  call 20   ; std_task$run__string__
   return
 end
 
-fn 19 std_task$run__string__ (ref,ref) -> void
+fn 20 std_task$run__string__ (ref,ref) -> void
   local $field_5 ref
   local $call_ind_6 ref
   local.get 0   ; arg 0
   struct.new 18   ; __defer_env_std_task_7
-  make_closure 20 12   ; __defer_std_task_6 fn
+  make_closure 21 12   ; __defer_std_task_6 fn
   defer.push
   call.import 7   ; std_core$Intrinsic$is_cancelled
   if $L0 void
@@ -918,13 +924,13 @@ fn 19 std_task$run__string__ (ref,ref) -> void
   return
 end
 
-fn 20 __defer_std_task_6 (ref) -> void
+fn 21 __defer_std_task_6 (ref) -> void
   local.field 0 18 0   ; arg 0 __defer_env_std_task_7.cap_0
-  call 21   ; std_task$end__string__
+  call 22   ; std_task$end__string__
   return
 end
 
-fn 21 std_task$end__string__ (ref) -> void
+fn 22 std_task$end__string__ (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
@@ -932,7 +938,7 @@ fn 21 std_task$end__string__ (ref) -> void
   local group any
   local $field_15 ref
   local $field_16 i64
-  call 27   ; std_runtime_scheduler$monitor_enter_to_publish
+  call 28   ; std_runtime_scheduler$monitor_enter_to_publish
   call.import 8   ; std_core$Intrinsic$task_ended
   local.get 0   ; arg 0
   bool.const true
@@ -982,16 +988,16 @@ fn 21 std_task$end__string__ (ref) -> void
   return
 end
 
-fn 22 std_task$join__string__ (ref) -> any
+fn 23 std_task$join__string__ (ref) -> any
   local me i64
   local $field_8 ref
   local $struct_11 ref
   local __result_2 any
-  call 28   ; std_runtime_scheduler$monitor_enter
+  call 29   ; std_runtime_scheduler$monitor_enter
   data.const 0 33   ; pool[0] __defer_env_std_task_3[]
   i64.const 0
   array.get 33 safe   ; __defer_env_std_task_3[]
-  make_closure 23 12   ; __defer_std_task_2 fn
+  make_closure 24 12   ; __defer_std_task_2 fn
   defer.push
   local.field 0 16 2   ; arg 0 std_task$Task__string__.ended
   ref.cast 9   ; bool
@@ -1012,7 +1018,7 @@ fn 22 std_task$join__string__ (ref) -> any
     local.get 0   ; arg 0
     local.get 1   ; me
     struct.new 21   ; __defer_env_std_task_5
-    make_closure 24 12   ; __defer_std_task_4 fn
+    make_closure 25 12   ; __defer_std_task_4 fn
     defer.push
     loop $L1 void
       local.field 0 16 2   ; arg 0 std_task$Task__string__.ended
@@ -1026,19 +1032,19 @@ fn 22 std_task$join__string__ (ref) -> any
     defer.pop_exec 1
   end $L0
   local.get 0   ; arg 0
-  call 25   ; std_task$outcome__string__
+  call 26   ; std_task$outcome__string__
   local.set 4   ; __result_2
   defer.pop_exec 1
   local.get 4   ; __result_2
   return
 end
 
-fn 23 __defer_std_task_2 (ref) -> void
+fn 24 __defer_std_task_2 (ref) -> void
   call.import 10   ; std_core$Intrinsic$monitor_exit
   return
 end
 
-fn 24 __defer_std_task_4 (ref) -> void
+fn 25 __defer_std_task_4 (ref) -> void
   local $field_1 ref
   local $field_2 i64
   local.field 0 21 0   ; arg 0 __defer_env_std_task_5.cap_0
@@ -1048,11 +1054,11 @@ fn 24 __defer_std_task_4 (ref) -> void
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
-  call 26   ; std_task$stop_waiting__string__
+  call 27   ; std_task$stop_waiting__string__
   return
 end
 
-fn 25 std_task$outcome__string__ (ref) -> any
+fn 26 std_task$outcome__string__ (ref) -> any
   local.field 0 16 3   ; arg 0 std_task$Task__string__.result
   array.len
   i64.const 0
@@ -1070,7 +1076,7 @@ fn 25 std_task$outcome__string__ (ref) -> any
   return
 end
 
-fn 26 std_task$stop_waiting__string__ (ref,i64) -> void
+fn 27 std_task$stop_waiting__string__ (ref,i64) -> void
   local waiters ref
   local i i64
   local __for_hi_0 i64
@@ -1124,19 +1130,19 @@ fn 26 std_task$stop_waiting__string__ (ref,i64) -> void
   return
 end
 
-fn 27 std_runtime_scheduler$monitor_enter_to_publish () -> void
+fn 28 std_runtime_scheduler$monitor_enter_to_publish () -> void
   bool.const true
   call.import 9   ; std_core$Intrinsic$monitor_enter
   return
 end
 
-fn 28 std_runtime_scheduler$monitor_enter () -> void
+fn 29 std_runtime_scheduler$monitor_enter () -> void
   bool.const false
   call.import 9   ; std_core$Intrinsic$monitor_enter
   return
 end
 
-fn 29 std_runtime_scheduler$gate_or_new (any) -> ref
+fn 30 std_runtime_scheduler$gate_or_new (any) -> ref
   local __fallback_0 any
   local $arr_6 ref
   local.get 0   ; arg 0
@@ -1156,12 +1162,12 @@ fn 29 std_runtime_scheduler$gate_or_new (any) -> ref
   return
 end
 
-fn 30 std_runtime_scheduler$run_gated (ref,ref) -> bool
+fn 31 std_runtime_scheduler$run_gated (ref,ref) -> bool
   local me i64
   data.const 2 35   ; pool[2] __defer_env_std_runtime_scheduler_1[]
   i64.const 0
   array.get 35 safe   ; __defer_env_std_runtime_scheduler_1[]
-  make_closure 31 12   ; __defer_std_runtime_scheduler_0 fn
+  make_closure 32 12   ; __defer_std_runtime_scheduler_0 fn
   defer.push
   call.import 6   ; std_core$Intrinsic$current_thread
   local.set 2   ; me
@@ -1182,7 +1188,7 @@ fn 30 std_runtime_scheduler$run_gated (ref,ref) -> bool
   if $L2 void
     local.get 0   ; arg 0
     local.get 2   ; me
-    call 33   ; std_runtime_scheduler$await_gate
+    call 34   ; std_runtime_scheduler$await_gate
   end $L2
   local.get 0   ; arg 0
   bool.const true
@@ -1192,7 +1198,7 @@ fn 30 std_runtime_scheduler$run_gated (ref,ref) -> bool
   struct.set 28 1   ; std_runtime_scheduler$InitGate.owner
   local.get 0   ; arg 0
   struct.new 30   ; __defer_env_std_runtime_scheduler_3
-  make_closure 32 12   ; __defer_std_runtime_scheduler_2 fn
+  make_closure 33 12   ; __defer_std_runtime_scheduler_2 fn
   defer.push
   local.get 1   ; arg 1
   call.indirect 12   ; fn
@@ -1200,25 +1206,25 @@ fn 30 std_runtime_scheduler$run_gated (ref,ref) -> bool
   return.lit bool.const true
 end
 
-fn 31 __defer_std_runtime_scheduler_0 (ref) -> void
+fn 32 __defer_std_runtime_scheduler_0 (ref) -> void
   call.import 10   ; std_core$Intrinsic$monitor_exit
   return
 end
 
-fn 32 __defer_std_runtime_scheduler_2 (ref) -> void
+fn 33 __defer_std_runtime_scheduler_2 (ref) -> void
   local.field 0 30 0   ; arg 0 __defer_env_std_runtime_scheduler_3.cap_0
-  call 35   ; std_runtime_scheduler$let_go
+  call 36   ; std_runtime_scheduler$let_go
   return
 end
 
-fn 33 std_runtime_scheduler$await_gate (ref,i64) -> void
+fn 34 std_runtime_scheduler$await_gate (ref,i64) -> void
   local.field 0 28 2   ; arg 0 std_runtime_scheduler$InitGate.waiters
   local.get 1   ; arg 1
   array.push 6   ; i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   struct.new 31   ; __defer_env_std_runtime_scheduler_5
-  make_closure 34 12   ; __defer_std_runtime_scheduler_4 fn
+  make_closure 35 12   ; __defer_std_runtime_scheduler_4 fn
   defer.push
   loop $L0 void
     local.field 0 28 0   ; arg 0 std_runtime_scheduler$InitGate.held
@@ -1232,7 +1238,7 @@ fn 33 std_runtime_scheduler$await_gate (ref,i64) -> void
   return
 end
 
-fn 34 __defer_std_runtime_scheduler_4 (ref) -> void
+fn 35 __defer_std_runtime_scheduler_4 (ref) -> void
   local $field_2 ref
   local $field_3 i64
   local.field 0 31 0   ; arg 0 __defer_env_std_runtime_scheduler_5.cap_0
@@ -1248,7 +1254,7 @@ fn 34 __defer_std_runtime_scheduler_4 (ref) -> void
   return
 end
 
-fn 35 std_runtime_scheduler$let_go (ref) -> void
+fn 36 std_runtime_scheduler$let_go (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64

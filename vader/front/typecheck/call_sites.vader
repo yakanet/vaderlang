@@ -25,6 +25,7 @@ module "vader/front/typecheck"
 import "std/collections"
 import "std/string"
 import "toolchain/span"
+import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/resolver"
 
@@ -141,6 +142,9 @@ export CallSites :: struct {
     displays: Map<i64, Callee> = Map<i64, Callee> {}
     references: Map<i64, Callee> = Map<i64, Callee> {}
     method_values: Map<i64, Callee> = Map<i64, Callee> {}
+    /// The type parameters the generic fn a `references` or `method_values` site
+    /// names writes beside `null`, by the site's node id ; none when it writes none.
+    params_beside_null: Map<i64, Symbol[]> = Map<i64, Symbol[]> {}
     /// The member accesses on an array receiver whose element names a type
     /// parameter, by node id : the member, with what the receiver gives the impl's
     /// parameters (`[self]` binds `T[] implements<T>`'s `T` to `T[]`).

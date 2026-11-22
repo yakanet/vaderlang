@@ -74,6 +74,7 @@
     fn std.core.char.to_string  // std_core$char$Display$to_string
     fn std.core.d2d  // std_core$d2d
     fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.drop_last<i64>  // std_core$drop_last__i64
     fn std.core.f2d  // std_core$f2d
     fn std.core.f32.to_string  // std_core$f32$Display$to_string
     fn std.core.f64.to_string  // std_core$f64$Display$to_string

@@ -90,6 +90,7 @@ instance_in_slot :: fn(
     held :: seed_explicit_infer(type_args, own, typed, typed.infer_solutions, diags)
     instance :: substitute_fn_map(fn_ty, bindings)
     open :: type_args.len() < own.len()
+    note_params_beside_null(typed, site.id, fn_ty)
     return bound_by_slot(
         site, .Reference, decl, instance, bindings, open, held, expected, typed, diags,
     ) else fn_ty
@@ -125,6 +126,7 @@ method_value_instance :: fn(
     unify_argument_infer(full.params[0], actual, typed, solutions, null)
     instance :: FnType { ...mk_fn_drop_self(full), .type_params = [] }
     open :: type_contains_infer_var(zonk(instance, solutions))
+    note_params_beside_null(typed, e.id, fn_ty)
     return bound_by_slot(
         e, .MethodValue, decl, instance, bindings, open, null, expected, typed, diags,
     ) else TY_UNRESOLVED
@@ -254,6 +256,8 @@ settle_instances :: fn(role: CallRole, typed: TypedProgram, diags: Diagnostic[])
         check_typeparam_bounds(span, callee.decl.name, bindings, typed, diags)
         instance :: typed.expr_types[id] else continue
         reject_iterators_of_stop_in(zonk(instance, typed.infer_solutions), span, diags)
+        beside_null :: typed.call_sites.params_beside_null[id] else continue
+        reject_nullable_instances(beside_null, bindings, callee.decl.name, span, diags)
     }
 }
 

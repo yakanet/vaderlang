@@ -193,6 +193,7 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
+    fn std.core.drop_last<i64>  // std_core$drop_last__i64
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.index_of<i64>  // std_core$index_of__i64
     fn std.core.remove_value<i64>  // std_core$remove_value__i64

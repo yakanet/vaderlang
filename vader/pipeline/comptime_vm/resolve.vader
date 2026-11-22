@@ -362,17 +362,22 @@ staged_callee :: fn(cfg: CFGProject, module: BytecodeModule, decl_id: i64) -> st
 export copy_baked_values :: fn(
     from: Ct.EvaluatedProject, into: Ct.EvaluatedProject, diags: Diagnostic[],
 ) -> void {
-    deferred :: Map<u64, Ct.ComptimeValue | null> {}
+    deferred :: Set<u64> {}
+    baked :: Map<u64, Ct.ComptimeValue> {}
     for vr in from.vm_required {
-        deferred[vr.span.hash()] = baked_value(from, vr)
+        key :: vr.span.hash()
+        deferred.add(key)
+        value :: baked_value(from, vr) else continue
+        baked[key] = value
     }
     for vr in into.vm_required {
-        if vr.span.hash() !in deferred {
+        key :: vr.span.hash()
+        if key !in deferred {
             diags.push(comptime_error(.CannotEvaluate, vr.span,
                 "the build machine's `@target` bodies evaluate it another way"))
             continue
         }
-        value :: deferred[vr.span.hash()] else continue
+        value :: baked[key] else continue
         inject(into, vr, retargeted(value, into.typed))
     }
 }

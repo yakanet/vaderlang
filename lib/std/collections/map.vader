@@ -19,8 +19,9 @@ TOMB_SLOT  :: -1   // index slot held an entry that was removed
 /// `index` resolves a key's hash to its entry position. `K`'s `hash()` is
 /// queried on insert / lookup / rehash, `equals()` on probe comparisons.
 ///
-/// `m[k]` is `V | null`, null for an absent key: when `V` admits null itself,
-/// tell the two apart with `k in m`.
+/// `m[k]` is `V | null`, null for an absent key. A `V` that can hold `null` is
+/// stored and iterated, but `m[k]` and `put_absent` refuse it: their `null`
+/// could no longer say the key is absent.
 export Map :: struct<K: Hash & Equals, V> {
     /// Dense entry keys in insertion order. `ekeys[i]` pairs with `evals[i]`.
     /// `[size, ekeys.len())` are spare slots freed by `remove`, reused by `put`.
@@ -223,8 +224,7 @@ export get_or_put :: fn<K: Hash & Equals, V>(self: Map<K, V>, key: K, value: V) 
 }
 
 /// Store `value` for `key` unless `key` is already present, in one probe. A
-/// present key keeps its value. Like `m[key]`, a stored `null` reads as an
-/// absent key when `V` is nullable.
+/// present key keeps its value.
 /// @param self   the map receiver.
 /// @param key    key to look up.
 /// @param value  stored when `key` is absent.

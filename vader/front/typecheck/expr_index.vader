@@ -75,6 +75,7 @@ infer_index :: fn(e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) ->
     }
     reject_unmet_impl_bounds(target, index_trait, .TraitNotSatisfied, e.span, typed, diags)
     reject_index_key(e.index, index, key_ty, diags)
+    reject_index_beside_null(target, typed, e.span, diags)
     return result_ty
 }
 
