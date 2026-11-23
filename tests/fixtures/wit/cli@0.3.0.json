@@ -1,0 +1,4482 @@
+{
+  "worlds": [
+    {
+      "name": "imports",
+      "imports": {
+        "interface-0": {
+          "interface": {
+            "id": 0,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-1": {
+          "interface": {
+            "id": 1,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-2": {
+          "interface": {
+            "id": 2,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        }
+      },
+      "exports": {},
+      "package": 0,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "imports",
+      "imports": {
+        "interface-0": {
+          "interface": {
+            "id": 0,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-2": {
+          "interface": {
+            "id": 2,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-3": {
+          "interface": {
+            "id": 3,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-4": {
+          "interface": {
+            "id": 4,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        }
+      },
+      "exports": {},
+      "package": 1,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "imports",
+      "imports": {
+        "interface-0": {
+          "interface": {
+            "id": 0,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-5": {
+          "interface": {
+            "id": 5,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-6": {
+          "interface": {
+            "id": 6,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        }
+      },
+      "exports": {},
+      "package": 2,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "imports",
+      "imports": {
+        "interface-9": {
+          "interface": {
+            "id": 9,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-8": {
+          "interface": {
+            "id": 8,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-7": {
+          "interface": {
+            "id": 7,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        }
+      },
+      "exports": {},
+      "package": 3,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "imports",
+      "imports": {
+        "interface-10": {
+          "interface": {
+            "id": 10,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-11": {
+          "interface": {
+            "id": 11,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-13": {
+          "interface": {
+            "id": 13,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-14": {
+          "interface": {
+            "id": 14,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-15": {
+          "interface": {
+            "id": 15,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-16": {
+          "interface": {
+            "id": 16,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-17": {
+          "interface": {
+            "id": 17,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-18": {
+          "interface": {
+            "id": 18,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-19": {
+          "interface": {
+            "id": 19,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-20": {
+          "interface": {
+            "id": 20,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-21": {
+          "interface": {
+            "id": 21,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-0": {
+          "interface": {
+            "id": 0
+          }
+        },
+        "interface-1": {
+          "interface": {
+            "id": 1
+          }
+        },
+        "interface-2": {
+          "interface": {
+            "id": 2
+          }
+        },
+        "interface-3": {
+          "interface": {
+            "id": 3
+          }
+        },
+        "interface-4": {
+          "interface": {
+            "id": 4
+          }
+        },
+        "interface-5": {
+          "interface": {
+            "id": 5
+          }
+        },
+        "interface-6": {
+          "interface": {
+            "id": 6
+          }
+        },
+        "interface-9": {
+          "interface": {
+            "id": 9
+          }
+        },
+        "interface-8": {
+          "interface": {
+            "id": 8
+          }
+        },
+        "interface-7": {
+          "interface": {
+            "id": 7
+          }
+        }
+      },
+      "exports": {},
+      "package": 4,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "command",
+      "imports": {
+        "interface-10": {
+          "interface": {
+            "id": 10,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-11": {
+          "interface": {
+            "id": 11,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-13": {
+          "interface": {
+            "id": 13,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-14": {
+          "interface": {
+            "id": 14,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-15": {
+          "interface": {
+            "id": 15,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-16": {
+          "interface": {
+            "id": 16,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-17": {
+          "interface": {
+            "id": 17,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-18": {
+          "interface": {
+            "id": 18,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-19": {
+          "interface": {
+            "id": 19,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-20": {
+          "interface": {
+            "id": 20,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-21": {
+          "interface": {
+            "id": 21,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-0": {
+          "interface": {
+            "id": 0
+          }
+        },
+        "interface-1": {
+          "interface": {
+            "id": 1
+          }
+        },
+        "interface-2": {
+          "interface": {
+            "id": 2
+          }
+        },
+        "interface-3": {
+          "interface": {
+            "id": 3
+          }
+        },
+        "interface-4": {
+          "interface": {
+            "id": 4
+          }
+        },
+        "interface-5": {
+          "interface": {
+            "id": 5
+          }
+        },
+        "interface-6": {
+          "interface": {
+            "id": 6
+          }
+        },
+        "interface-9": {
+          "interface": {
+            "id": 9
+          }
+        },
+        "interface-8": {
+          "interface": {
+            "id": 8
+          }
+        },
+        "interface-7": {
+          "interface": {
+            "id": 7
+          }
+        }
+      },
+      "exports": {
+        "interface-12": {
+          "interface": {
+            "id": 12,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        }
+      },
+      "package": 4,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    }
+  ],
+  "interfaces": [
+    {
+      "name": "types",
+      "types": {
+        "duration": 0
+      },
+      "functions": {},
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 0
+    },
+    {
+      "name": "monotonic-clock",
+      "types": {
+        "duration": 1,
+        "mark": 2
+      },
+      "functions": {
+        "now": {
+          "name": "now",
+          "kind": "freestanding",
+          "params": [],
+          "result": 2,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "get-resolution": {
+          "name": "get-resolution",
+          "kind": "freestanding",
+          "params": [],
+          "result": 1,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "wait-until": {
+          "name": "wait-until",
+          "kind": "async-freestanding",
+          "params": [
+            {
+              "name": "when",
+              "type": 2
+            }
+          ],
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "wait-for": {
+          "name": "wait-for",
+          "kind": "async-freestanding",
+          "params": [
+            {
+              "name": "how-long",
+              "type": 1
+            }
+          ],
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 0
+    },
+    {
+      "name": "system-clock",
+      "types": {
+        "duration": 3,
+        "instant": 4
+      },
+      "functions": {
+        "now": {
+          "name": "now",
+          "kind": "freestanding",
+          "params": [],
+          "result": 4,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "get-resolution": {
+          "name": "get-resolution",
+          "kind": "freestanding",
+          "params": [],
+          "result": 3,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 0
+    },
+    {
+      "name": "types",
+      "types": {
+        "instant": 7,
+        "filesize": 8,
+        "descriptor-type": 10,
+        "descriptor-flags": 11,
+        "path-flags": 12,
+        "open-flags": 13,
+        "link-count": 14,
+        "descriptor-stat": 16,
+        "new-timestamp": 17,
+        "directory-entry": 18,
+        "error-code": 19,
+        "advice": 20,
+        "metadata-hash-value": 21,
+        "descriptor": 22
+      },
+      "functions": {
+        "[method]descriptor.read-via-stream": {
+          "name": "[method]descriptor.read-via-stream",
+          "kind": {
+            "method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "offset",
+              "type": 8
+            }
+          ],
+          "result": 27,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.write-via-stream": {
+          "name": "[method]descriptor.write-via-stream",
+          "kind": {
+            "method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "data",
+              "type": 24
+            },
+            {
+              "name": "offset",
+              "type": 8
+            }
+          ],
+          "result": 26,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.append-via-stream": {
+          "name": "[method]descriptor.append-via-stream",
+          "kind": {
+            "method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "data",
+              "type": 24
+            }
+          ],
+          "result": 26,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.advise": {
+          "name": "[method]descriptor.advise",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "offset",
+              "type": 8
+            },
+            {
+              "name": "length",
+              "type": 8
+            },
+            {
+              "name": "advice",
+              "type": 20
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.sync-data": {
+          "name": "[method]descriptor.sync-data",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.get-flags": {
+          "name": "[method]descriptor.get-flags",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            }
+          ],
+          "result": 28,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.get-type": {
+          "name": "[method]descriptor.get-type",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            }
+          ],
+          "result": 29,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.set-size": {
+          "name": "[method]descriptor.set-size",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "size",
+              "type": 8
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.set-times": {
+          "name": "[method]descriptor.set-times",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "data-access-timestamp",
+              "type": 17
+            },
+            {
+              "name": "data-modification-timestamp",
+              "type": 17
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.read-directory": {
+          "name": "[method]descriptor.read-directory",
+          "kind": {
+            "method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            }
+          ],
+          "result": 31,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.sync": {
+          "name": "[method]descriptor.sync",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.create-directory-at": {
+          "name": "[method]descriptor.create-directory-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path",
+              "type": "string"
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.stat": {
+          "name": "[method]descriptor.stat",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            }
+          ],
+          "result": 32,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.stat-at": {
+          "name": "[method]descriptor.stat-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path-flags",
+              "type": 12
+            },
+            {
+              "name": "path",
+              "type": "string"
+            }
+          ],
+          "result": 32,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.set-times-at": {
+          "name": "[method]descriptor.set-times-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path-flags",
+              "type": 12
+            },
+            {
+              "name": "path",
+              "type": "string"
+            },
+            {
+              "name": "data-access-timestamp",
+              "type": 17
+            },
+            {
+              "name": "data-modification-timestamp",
+              "type": 17
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.link-at": {
+          "name": "[method]descriptor.link-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "old-path-flags",
+              "type": 12
+            },
+            {
+              "name": "old-path",
+              "type": "string"
+            },
+            {
+              "name": "new-descriptor",
+              "type": 23
+            },
+            {
+              "name": "new-path",
+              "type": "string"
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.open-at": {
+          "name": "[method]descriptor.open-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path-flags",
+              "type": 12
+            },
+            {
+              "name": "path",
+              "type": "string"
+            },
+            {
+              "name": "open-flags",
+              "type": 13
+            },
+            {
+              "name": "flags",
+              "type": 11
+            }
+          ],
+          "result": 34,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.readlink-at": {
+          "name": "[method]descriptor.readlink-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path",
+              "type": "string"
+            }
+          ],
+          "result": 35,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.remove-directory-at": {
+          "name": "[method]descriptor.remove-directory-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path",
+              "type": "string"
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.rename-at": {
+          "name": "[method]descriptor.rename-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "old-path",
+              "type": "string"
+            },
+            {
+              "name": "new-descriptor",
+              "type": 23
+            },
+            {
+              "name": "new-path",
+              "type": "string"
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.symlink-at": {
+          "name": "[method]descriptor.symlink-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "old-path",
+              "type": "string"
+            },
+            {
+              "name": "new-path",
+              "type": "string"
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.unlink-file-at": {
+          "name": "[method]descriptor.unlink-file-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path",
+              "type": "string"
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.is-same-object": {
+          "name": "[method]descriptor.is-same-object",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "other",
+              "type": 23
+            }
+          ],
+          "result": "bool",
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.metadata-hash": {
+          "name": "[method]descriptor.metadata-hash",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            }
+          ],
+          "result": 36,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.metadata-hash-at": {
+          "name": "[method]descriptor.metadata-hash-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path-flags",
+              "type": 12
+            },
+            {
+              "name": "path",
+              "type": "string"
+            }
+          ],
+          "result": 36,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 1
+    },
+    {
+      "name": "preopens",
+      "types": {
+        "descriptor": 37
+      },
+      "functions": {
+        "get-directories": {
+          "name": "get-directories",
+          "kind": "freestanding",
+          "params": [],
+          "result": 40,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 1
+    },
+    {
+      "name": "types",
+      "types": {
+        "duration": 41,
+        "error-code": 43,
+        "ip-address-family": 44,
+        "ipv4-address": 45,
+        "ipv6-address": 46,
+        "ip-address": 47,
+        "ipv4-socket-address": 48,
+        "ipv6-socket-address": 49,
+        "ip-socket-address": 50,
+        "tcp-socket": 51,
+        "udp-socket": 52
+      },
+      "functions": {
+        "[static]tcp-socket.create": {
+          "name": "[static]tcp-socket.create",
+          "kind": {
+            "static": 51
+          },
+          "params": [
+            {
+              "name": "address-family",
+              "type": 44
+            }
+          ],
+          "result": 54,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.bind": {
+          "name": "[method]tcp-socket.bind",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            },
+            {
+              "name": "local-address",
+              "type": 50
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.connect": {
+          "name": "[method]tcp-socket.connect",
+          "kind": {
+            "async-method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            },
+            {
+              "name": "remote-address",
+              "type": 50
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.listen": {
+          "name": "[method]tcp-socket.listen",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            }
+          ],
+          "result": 58,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.send": {
+          "name": "[method]tcp-socket.send",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            },
+            {
+              "name": "data",
+              "type": 59
+            }
+          ],
+          "result": 60,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.receive": {
+          "name": "[method]tcp-socket.receive",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            }
+          ],
+          "result": 61,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-local-address": {
+          "name": "[method]tcp-socket.get-local-address",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            }
+          ],
+          "result": 62,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-remote-address": {
+          "name": "[method]tcp-socket.get-remote-address",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            }
+          ],
+          "result": 62,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-is-listening": {
+          "name": "[method]tcp-socket.get-is-listening",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            }
+          ],
+          "result": "bool",
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-address-family": {
+          "name": "[method]tcp-socket.get-address-family",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            }
+          ],
+          "result": 44,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-listen-backlog-size": {
+          "name": "[method]tcp-socket.set-listen-backlog-size",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            },
+            {
+              "name": "value",
+              "type": "u64"
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-keep-alive-enabled": {
+          "name": "[method]tcp-socket.get-keep-alive-enabled",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            }
+          ],
+          "result": 63,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-keep-alive-enabled": {
+          "name": "[method]tcp-socket.set-keep-alive-enabled",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            },
+            {
+              "name": "value",
+              "type": "bool"
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-keep-alive-idle-time": {
+          "name": "[method]tcp-socket.get-keep-alive-idle-time",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            }
+          ],
+          "result": 64,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-keep-alive-idle-time": {
+          "name": "[method]tcp-socket.set-keep-alive-idle-time",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            },
+            {
+              "name": "value",
+              "type": 41
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-keep-alive-interval": {
+          "name": "[method]tcp-socket.get-keep-alive-interval",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            }
+          ],
+          "result": 64,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-keep-alive-interval": {
+          "name": "[method]tcp-socket.set-keep-alive-interval",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            },
+            {
+              "name": "value",
+              "type": 41
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-keep-alive-count": {
+          "name": "[method]tcp-socket.get-keep-alive-count",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            }
+          ],
+          "result": 65,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-keep-alive-count": {
+          "name": "[method]tcp-socket.set-keep-alive-count",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            },
+            {
+              "name": "value",
+              "type": "u32"
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-hop-limit": {
+          "name": "[method]tcp-socket.get-hop-limit",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            }
+          ],
+          "result": 66,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-hop-limit": {
+          "name": "[method]tcp-socket.set-hop-limit",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            },
+            {
+              "name": "value",
+              "type": "u8"
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-receive-buffer-size": {
+          "name": "[method]tcp-socket.get-receive-buffer-size",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            }
+          ],
+          "result": 67,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-receive-buffer-size": {
+          "name": "[method]tcp-socket.set-receive-buffer-size",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            },
+            {
+              "name": "value",
+              "type": "u64"
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-send-buffer-size": {
+          "name": "[method]tcp-socket.get-send-buffer-size",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            }
+          ],
+          "result": 67,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-send-buffer-size": {
+          "name": "[method]tcp-socket.set-send-buffer-size",
+          "kind": {
+            "method": 51
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 55
+            },
+            {
+              "name": "value",
+              "type": "u64"
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[static]udp-socket.create": {
+          "name": "[static]udp-socket.create",
+          "kind": {
+            "static": 52
+          },
+          "params": [
+            {
+              "name": "address-family",
+              "type": 44
+            }
+          ],
+          "result": 69,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.bind": {
+          "name": "[method]udp-socket.bind",
+          "kind": {
+            "method": 52
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 70
+            },
+            {
+              "name": "local-address",
+              "type": 50
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.connect": {
+          "name": "[method]udp-socket.connect",
+          "kind": {
+            "method": 52
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 70
+            },
+            {
+              "name": "remote-address",
+              "type": 50
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.disconnect": {
+          "name": "[method]udp-socket.disconnect",
+          "kind": {
+            "method": 52
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 70
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.send": {
+          "name": "[method]udp-socket.send",
+          "kind": {
+            "async-method": 52
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 70
+            },
+            {
+              "name": "data",
+              "type": 71
+            },
+            {
+              "name": "remote-address",
+              "type": 72
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.receive": {
+          "name": "[method]udp-socket.receive",
+          "kind": {
+            "async-method": 52
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 70
+            }
+          ],
+          "result": 74,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.get-local-address": {
+          "name": "[method]udp-socket.get-local-address",
+          "kind": {
+            "method": 52
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 70
+            }
+          ],
+          "result": 62,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.get-remote-address": {
+          "name": "[method]udp-socket.get-remote-address",
+          "kind": {
+            "method": 52
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 70
+            }
+          ],
+          "result": 62,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.get-address-family": {
+          "name": "[method]udp-socket.get-address-family",
+          "kind": {
+            "method": 52
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 70
+            }
+          ],
+          "result": 44,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.get-unicast-hop-limit": {
+          "name": "[method]udp-socket.get-unicast-hop-limit",
+          "kind": {
+            "method": 52
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 70
+            }
+          ],
+          "result": 66,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.set-unicast-hop-limit": {
+          "name": "[method]udp-socket.set-unicast-hop-limit",
+          "kind": {
+            "method": 52
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 70
+            },
+            {
+              "name": "value",
+              "type": "u8"
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.get-receive-buffer-size": {
+          "name": "[method]udp-socket.get-receive-buffer-size",
+          "kind": {
+            "method": 52
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 70
+            }
+          ],
+          "result": 67,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.set-receive-buffer-size": {
+          "name": "[method]udp-socket.set-receive-buffer-size",
+          "kind": {
+            "method": 52
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 70
+            },
+            {
+              "name": "value",
+              "type": "u64"
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.get-send-buffer-size": {
+          "name": "[method]udp-socket.get-send-buffer-size",
+          "kind": {
+            "method": 52
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 70
+            }
+          ],
+          "result": 67,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.set-send-buffer-size": {
+          "name": "[method]udp-socket.set-send-buffer-size",
+          "kind": {
+            "method": 52
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 70
+            },
+            {
+              "name": "value",
+              "type": "u64"
+            }
+          ],
+          "result": 56,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 2
+    },
+    {
+      "name": "ip-name-lookup",
+      "types": {
+        "ip-address": 75,
+        "error-code": 76
+      },
+      "functions": {
+        "resolve-addresses": {
+          "name": "resolve-addresses",
+          "kind": "async-freestanding",
+          "params": [
+            {
+              "name": "name",
+              "type": "string"
+            }
+          ],
+          "result": 78,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 2
+    },
+    {
+      "name": "insecure-seed",
+      "types": {},
+      "functions": {
+        "get-insecure-seed": {
+          "name": "get-insecure-seed",
+          "kind": "freestanding",
+          "params": [],
+          "result": 79,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 3
+    },
+    {
+      "name": "insecure",
+      "types": {},
+      "functions": {
+        "get-insecure-random-bytes": {
+          "name": "get-insecure-random-bytes",
+          "kind": "freestanding",
+          "params": [
+            {
+              "name": "max-len",
+              "type": "u64"
+            }
+          ],
+          "result": 80,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "get-insecure-random-u64": {
+          "name": "get-insecure-random-u64",
+          "kind": "freestanding",
+          "params": [],
+          "result": "u64",
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 3
+    },
+    {
+      "name": "random",
+      "types": {},
+      "functions": {
+        "get-random-bytes": {
+          "name": "get-random-bytes",
+          "kind": "freestanding",
+          "params": [
+            {
+              "name": "max-len",
+              "type": "u64"
+            }
+          ],
+          "result": 80,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "get-random-u64": {
+          "name": "get-random-u64",
+          "kind": "freestanding",
+          "params": [],
+          "result": "u64",
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 3
+    },
+    {
+      "name": "environment",
+      "types": {},
+      "functions": {
+        "get-environment": {
+          "name": "get-environment",
+          "kind": "freestanding",
+          "params": [],
+          "result": 82,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "get-arguments": {
+          "name": "get-arguments",
+          "kind": "freestanding",
+          "params": [],
+          "result": 83,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "get-initial-cwd": {
+          "name": "get-initial-cwd",
+          "kind": "freestanding",
+          "params": [],
+          "result": 84,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 4
+    },
+    {
+      "name": "exit",
+      "types": {},
+      "functions": {
+        "exit": {
+          "name": "exit",
+          "kind": "freestanding",
+          "params": [
+            {
+              "name": "status",
+              "type": 85
+            }
+          ],
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "exit-with-code": {
+          "name": "exit-with-code",
+          "kind": "freestanding",
+          "params": [
+            {
+              "name": "status-code",
+              "type": "u8"
+            }
+          ],
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 4
+    },
+    {
+      "name": "run",
+      "types": {},
+      "functions": {
+        "run": {
+          "name": "run",
+          "kind": "async-freestanding",
+          "params": [],
+          "result": 85,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 4
+    },
+    {
+      "name": "types",
+      "types": {
+        "error-code": 86
+      },
+      "functions": {},
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 4
+    },
+    {
+      "name": "stdin",
+      "types": {
+        "error-code": 87
+      },
+      "functions": {
+        "read-via-stream": {
+          "name": "read-via-stream",
+          "kind": "freestanding",
+          "params": [],
+          "result": 91,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 4
+    },
+    {
+      "name": "stdout",
+      "types": {
+        "error-code": 92
+      },
+      "functions": {
+        "write-via-stream": {
+          "name": "write-via-stream",
+          "kind": "freestanding",
+          "params": [
+            {
+              "name": "data",
+              "type": 88
+            }
+          ],
+          "result": 94,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 4
+    },
+    {
+      "name": "stderr",
+      "types": {
+        "error-code": 95
+      },
+      "functions": {
+        "write-via-stream": {
+          "name": "write-via-stream",
+          "kind": "freestanding",
+          "params": [
+            {
+              "name": "data",
+              "type": 88
+            }
+          ],
+          "result": 97,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 4
+    },
+    {
+      "name": "terminal-input",
+      "types": {
+        "terminal-input": 98
+      },
+      "functions": {},
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 4
+    },
+    {
+      "name": "terminal-output",
+      "types": {
+        "terminal-output": 99
+      },
+      "functions": {},
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 4
+    },
+    {
+      "name": "terminal-stdin",
+      "types": {
+        "terminal-input": 100
+      },
+      "functions": {
+        "get-terminal-stdin": {
+          "name": "get-terminal-stdin",
+          "kind": "freestanding",
+          "params": [],
+          "result": 102,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 4
+    },
+    {
+      "name": "terminal-stdout",
+      "types": {
+        "terminal-output": 103
+      },
+      "functions": {
+        "get-terminal-stdout": {
+          "name": "get-terminal-stdout",
+          "kind": "freestanding",
+          "params": [],
+          "result": 105,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 4
+    },
+    {
+      "name": "terminal-stderr",
+      "types": {
+        "terminal-output": 106
+      },
+      "functions": {
+        "get-terminal-stderr": {
+          "name": "get-terminal-stderr",
+          "kind": "freestanding",
+          "params": [],
+          "result": 108,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 4
+    }
+  ],
+  "types": [
+    {
+      "name": "duration",
+      "kind": {
+        "type": "u64"
+      },
+      "owner": {
+        "interface": 0
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "duration",
+      "kind": {
+        "type": 0
+      },
+      "owner": {
+        "interface": 1
+      }
+    },
+    {
+      "name": "mark",
+      "kind": {
+        "type": "u64"
+      },
+      "owner": {
+        "interface": 1
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "duration",
+      "kind": {
+        "type": 0
+      },
+      "owner": {
+        "interface": 2
+      }
+    },
+    {
+      "name": "instant",
+      "kind": {
+        "record": {
+          "fields": [
+            {
+              "name": "seconds",
+              "type": "s64"
+            },
+            {
+              "name": "nanoseconds",
+              "type": "u32"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 2
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": "string"
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": "s64"
+      },
+      "owner": null
+    },
+    {
+      "name": "instant",
+      "kind": {
+        "type": 4
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "filesize",
+      "kind": {
+        "type": "u64"
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": "string"
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "descriptor-type",
+      "kind": {
+        "variant": {
+          "cases": [
+            {
+              "name": "block-device",
+              "type": null
+            },
+            {
+              "name": "character-device",
+              "type": null
+            },
+            {
+              "name": "directory",
+              "type": null
+            },
+            {
+              "name": "fifo",
+              "type": null
+            },
+            {
+              "name": "symbolic-link",
+              "type": null
+            },
+            {
+              "name": "regular-file",
+              "type": null
+            },
+            {
+              "name": "socket",
+              "type": null
+            },
+            {
+              "name": "other",
+              "type": 9
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "descriptor-flags",
+      "kind": {
+        "flags": {
+          "flags": [
+            {
+              "name": "read"
+            },
+            {
+              "name": "write"
+            },
+            {
+              "name": "file-integrity-sync"
+            },
+            {
+              "name": "data-integrity-sync"
+            },
+            {
+              "name": "requested-write-sync"
+            },
+            {
+              "name": "mutate-directory"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "path-flags",
+      "kind": {
+        "flags": {
+          "flags": [
+            {
+              "name": "symlink-follow"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "open-flags",
+      "kind": {
+        "flags": {
+          "flags": [
+            {
+              "name": "create"
+            },
+            {
+              "name": "directory"
+            },
+            {
+              "name": "exclusive"
+            },
+            {
+              "name": "truncate"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "link-count",
+      "kind": {
+        "type": "u64"
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": 7
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "descriptor-stat",
+      "kind": {
+        "record": {
+          "fields": [
+            {
+              "name": "type",
+              "type": 10
+            },
+            {
+              "name": "link-count",
+              "type": 14
+            },
+            {
+              "name": "size",
+              "type": 8
+            },
+            {
+              "name": "data-access-timestamp",
+              "type": 15
+            },
+            {
+              "name": "data-modification-timestamp",
+              "type": 15
+            },
+            {
+              "name": "status-change-timestamp",
+              "type": 15
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "new-timestamp",
+      "kind": {
+        "variant": {
+          "cases": [
+            {
+              "name": "no-change",
+              "type": null
+            },
+            {
+              "name": "now",
+              "type": null
+            },
+            {
+              "name": "timestamp",
+              "type": 7
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "directory-entry",
+      "kind": {
+        "record": {
+          "fields": [
+            {
+              "name": "type",
+              "type": 10
+            },
+            {
+              "name": "name",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "error-code",
+      "kind": {
+        "variant": {
+          "cases": [
+            {
+              "name": "access",
+              "type": null
+            },
+            {
+              "name": "already",
+              "type": null
+            },
+            {
+              "name": "bad-descriptor",
+              "type": null
+            },
+            {
+              "name": "busy",
+              "type": null
+            },
+            {
+              "name": "deadlock",
+              "type": null
+            },
+            {
+              "name": "quota",
+              "type": null
+            },
+            {
+              "name": "exist",
+              "type": null
+            },
+            {
+              "name": "file-too-large",
+              "type": null
+            },
+            {
+              "name": "illegal-byte-sequence",
+              "type": null
+            },
+            {
+              "name": "in-progress",
+              "type": null
+            },
+            {
+              "name": "interrupted",
+              "type": null
+            },
+            {
+              "name": "invalid",
+              "type": null
+            },
+            {
+              "name": "io",
+              "type": null
+            },
+            {
+              "name": "is-directory",
+              "type": null
+            },
+            {
+              "name": "loop",
+              "type": null
+            },
+            {
+              "name": "too-many-links",
+              "type": null
+            },
+            {
+              "name": "message-size",
+              "type": null
+            },
+            {
+              "name": "name-too-long",
+              "type": null
+            },
+            {
+              "name": "no-device",
+              "type": null
+            },
+            {
+              "name": "no-entry",
+              "type": null
+            },
+            {
+              "name": "no-lock",
+              "type": null
+            },
+            {
+              "name": "insufficient-memory",
+              "type": null
+            },
+            {
+              "name": "insufficient-space",
+              "type": null
+            },
+            {
+              "name": "not-directory",
+              "type": null
+            },
+            {
+              "name": "not-empty",
+              "type": null
+            },
+            {
+              "name": "not-recoverable",
+              "type": null
+            },
+            {
+              "name": "unsupported",
+              "type": null
+            },
+            {
+              "name": "no-tty",
+              "type": null
+            },
+            {
+              "name": "no-such-device",
+              "type": null
+            },
+            {
+              "name": "overflow",
+              "type": null
+            },
+            {
+              "name": "not-permitted",
+              "type": null
+            },
+            {
+              "name": "pipe",
+              "type": null
+            },
+            {
+              "name": "read-only",
+              "type": null
+            },
+            {
+              "name": "invalid-seek",
+              "type": null
+            },
+            {
+              "name": "text-file-busy",
+              "type": null
+            },
+            {
+              "name": "cross-device",
+              "type": null
+            },
+            {
+              "name": "other",
+              "type": 9
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "advice",
+      "kind": {
+        "enum": {
+          "cases": [
+            {
+              "name": "normal"
+            },
+            {
+              "name": "sequential"
+            },
+            {
+              "name": "random"
+            },
+            {
+              "name": "will-need"
+            },
+            {
+              "name": "dont-need"
+            },
+            {
+              "name": "no-reuse"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "metadata-hash-value",
+      "kind": {
+        "record": {
+          "fields": [
+            {
+              "name": "lower",
+              "type": "u64"
+            },
+            {
+              "name": "upper",
+              "type": "u64"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "descriptor",
+      "kind": "resource",
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "borrow": 22
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "stream": "u8"
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": null,
+          "err": 19
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "future": 25
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "tuple": {
+          "types": [
+            24,
+            26
+          ]
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 11,
+          "err": 19
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 10,
+          "err": 19
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "stream": 18
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "tuple": {
+          "types": [
+            30,
+            26
+          ]
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 16,
+          "err": 19
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "own": 22
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 33,
+          "err": 19
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": "string",
+          "err": 19
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 21,
+          "err": 19
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "descriptor",
+      "kind": {
+        "type": 22
+      },
+      "owner": {
+        "interface": 4
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "own": 37
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "tuple": {
+          "types": [
+            38,
+            "string"
+          ]
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "list": 39
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "duration",
+      "kind": {
+        "type": 0
+      },
+      "owner": {
+        "interface": 5
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": "string"
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "error-code",
+      "kind": {
+        "variant": {
+          "cases": [
+            {
+              "name": "access-denied",
+              "type": null
+            },
+            {
+              "name": "not-supported",
+              "type": null
+            },
+            {
+              "name": "invalid-argument",
+              "type": null
+            },
+            {
+              "name": "out-of-memory",
+              "type": null
+            },
+            {
+              "name": "timeout",
+              "type": null
+            },
+            {
+              "name": "invalid-state",
+              "type": null
+            },
+            {
+              "name": "address-not-bindable",
+              "type": null
+            },
+            {
+              "name": "address-in-use",
+              "type": null
+            },
+            {
+              "name": "remote-unreachable",
+              "type": null
+            },
+            {
+              "name": "connection-refused",
+              "type": null
+            },
+            {
+              "name": "connection-broken",
+              "type": null
+            },
+            {
+              "name": "connection-reset",
+              "type": null
+            },
+            {
+              "name": "connection-aborted",
+              "type": null
+            },
+            {
+              "name": "datagram-too-large",
+              "type": null
+            },
+            {
+              "name": "other",
+              "type": 42
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 5
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ip-address-family",
+      "kind": {
+        "enum": {
+          "cases": [
+            {
+              "name": "ipv4"
+            },
+            {
+              "name": "ipv6"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 5
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ipv4-address",
+      "kind": {
+        "tuple": {
+          "types": [
+            "u8",
+            "u8",
+            "u8",
+            "u8"
+          ]
+        }
+      },
+      "owner": {
+        "interface": 5
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ipv6-address",
+      "kind": {
+        "tuple": {
+          "types": [
+            "u16",
+            "u16",
+            "u16",
+            "u16",
+            "u16",
+            "u16",
+            "u16",
+            "u16"
+          ]
+        }
+      },
+      "owner": {
+        "interface": 5
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ip-address",
+      "kind": {
+        "variant": {
+          "cases": [
+            {
+              "name": "ipv4",
+              "type": 45
+            },
+            {
+              "name": "ipv6",
+              "type": 46
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 5
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ipv4-socket-address",
+      "kind": {
+        "record": {
+          "fields": [
+            {
+              "name": "port",
+              "type": "u16"
+            },
+            {
+              "name": "address",
+              "type": 45
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 5
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ipv6-socket-address",
+      "kind": {
+        "record": {
+          "fields": [
+            {
+              "name": "port",
+              "type": "u16"
+            },
+            {
+              "name": "flow-info",
+              "type": "u32"
+            },
+            {
+              "name": "address",
+              "type": 46
+            },
+            {
+              "name": "scope-id",
+              "type": "u32"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 5
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ip-socket-address",
+      "kind": {
+        "variant": {
+          "cases": [
+            {
+              "name": "ipv4",
+              "type": 48
+            },
+            {
+              "name": "ipv6",
+              "type": 49
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 5
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "tcp-socket",
+      "kind": "resource",
+      "owner": {
+        "interface": 5
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "udp-socket",
+      "kind": "resource",
+      "owner": {
+        "interface": 5
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "own": 51
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 53,
+          "err": 43
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "borrow": 51
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": null,
+          "err": 43
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "stream": 53
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 57,
+          "err": 43
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "stream": "u8"
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "future": 56
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "tuple": {
+          "types": [
+            59,
+            60
+          ]
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 50,
+          "err": 43
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": "bool",
+          "err": 43
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 41,
+          "err": 43
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": "u32",
+          "err": 43
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": "u8",
+          "err": 43
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": "u64",
+          "err": 43
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "own": 52
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 68,
+          "err": 43
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "borrow": 52
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "list": "u8"
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": 50
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "tuple": {
+          "types": [
+            71,
+            50
+          ]
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 73,
+          "err": 43
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ip-address",
+      "kind": {
+        "type": 47
+      },
+      "owner": {
+        "interface": 6
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "error-code",
+      "kind": {
+        "variant": {
+          "cases": [
+            {
+              "name": "access-denied",
+              "type": null
+            },
+            {
+              "name": "invalid-argument",
+              "type": null
+            },
+            {
+              "name": "name-unresolvable",
+              "type": null
+            },
+            {
+              "name": "temporary-resolver-failure",
+              "type": null
+            },
+            {
+              "name": "permanent-resolver-failure",
+              "type": null
+            },
+            {
+              "name": "other",
+              "type": 42
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 6
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "list": 75
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 77,
+          "err": 76
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "tuple": {
+          "types": [
+            "u64",
+            "u64"
+          ]
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "list": "u8"
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "tuple": {
+          "types": [
+            "string",
+            "string"
+          ]
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "list": 81
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "list": "string"
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": "string"
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": null,
+          "err": null
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": "error-code",
+      "kind": {
+        "enum": {
+          "cases": [
+            {
+              "name": "io"
+            },
+            {
+              "name": "illegal-byte-sequence"
+            },
+            {
+              "name": "pipe"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 13
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "error-code",
+      "kind": {
+        "type": 86
+      },
+      "owner": {
+        "interface": 14
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "stream": "u8"
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": null,
+          "err": 87
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "future": 89
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "tuple": {
+          "types": [
+            88,
+            90
+          ]
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": "error-code",
+      "kind": {
+        "type": 86
+      },
+      "owner": {
+        "interface": 15
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": null,
+          "err": 92
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "future": 93
+      },
+      "owner": null
+    },
+    {
+      "name": "error-code",
+      "kind": {
+        "type": 86
+      },
+      "owner": {
+        "interface": 16
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": null,
+          "err": 95
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "future": 96
+      },
+      "owner": null
+    },
+    {
+      "name": "terminal-input",
+      "kind": "resource",
+      "owner": {
+        "interface": 17
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "terminal-output",
+      "kind": "resource",
+      "owner": {
+        "interface": 18
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "terminal-input",
+      "kind": {
+        "type": 98
+      },
+      "owner": {
+        "interface": 19
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "own": 100
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": 101
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "terminal-output",
+      "kind": {
+        "type": 99
+      },
+      "owner": {
+        "interface": 20
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "own": 103
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": 104
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "terminal-output",
+      "kind": {
+        "type": 99
+      },
+      "owner": {
+        "interface": 21
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "own": 106
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": 107
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    }
+  ],
+  "packages": [
+    {
+      "name": "wasi:clocks@0.3.0",
+      "interfaces": {
+        "types": 0,
+        "monotonic-clock": 1,
+        "system-clock": 2
+      },
+      "worlds": {
+        "imports": 0
+      }
+    },
+    {
+      "name": "wasi:filesystem@0.3.0",
+      "interfaces": {
+        "types": 3,
+        "preopens": 4
+      },
+      "worlds": {
+        "imports": 1
+      }
+    },
+    {
+      "name": "wasi:sockets@0.3.0",
+      "interfaces": {
+        "types": 5,
+        "ip-name-lookup": 6
+      },
+      "worlds": {
+        "imports": 2
+      }
+    },
+    {
+      "name": "wasi:random@0.3.0",
+      "interfaces": {
+        "insecure-seed": 7,
+        "insecure": 8,
+        "random": 9
+      },
+      "worlds": {
+        "imports": 3
+      }
+    },
+    {
+      "name": "wasi:cli@0.3.0",
+      "interfaces": {
+        "environment": 10,
+        "exit": 11,
+        "run": 12,
+        "types": 13,
+        "stdin": 14,
+        "stdout": 15,
+        "stderr": 16,
+        "terminal-input": 17,
+        "terminal-output": 18,
+        "terminal-stdin": 19,
+        "terminal-stdout": 20,
+        "terminal-stderr": 21
+      },
+      "worlds": {
+        "imports": 4,
+        "command": 5
+      }
+    }
+  ]
+}

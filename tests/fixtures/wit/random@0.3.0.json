@@ -1,0 +1,183 @@
+{
+  "worlds": [
+    {
+      "name": "imports",
+      "imports": {
+        "interface-2": {
+          "interface": {
+            "id": 2,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-1": {
+          "interface": {
+            "id": 1,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-0": {
+          "interface": {
+            "id": 0,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        }
+      },
+      "exports": {},
+      "package": 0,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    }
+  ],
+  "interfaces": [
+    {
+      "name": "insecure-seed",
+      "types": {},
+      "functions": {
+        "get-insecure-seed": {
+          "name": "get-insecure-seed",
+          "kind": "freestanding",
+          "params": [],
+          "result": 0,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 0
+    },
+    {
+      "name": "insecure",
+      "types": {},
+      "functions": {
+        "get-insecure-random-bytes": {
+          "name": "get-insecure-random-bytes",
+          "kind": "freestanding",
+          "params": [
+            {
+              "name": "max-len",
+              "type": "u64"
+            }
+          ],
+          "result": 1,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "get-insecure-random-u64": {
+          "name": "get-insecure-random-u64",
+          "kind": "freestanding",
+          "params": [],
+          "result": "u64",
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 0
+    },
+    {
+      "name": "random",
+      "types": {},
+      "functions": {
+        "get-random-bytes": {
+          "name": "get-random-bytes",
+          "kind": "freestanding",
+          "params": [
+            {
+              "name": "max-len",
+              "type": "u64"
+            }
+          ],
+          "result": 1,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "get-random-u64": {
+          "name": "get-random-u64",
+          "kind": "freestanding",
+          "params": [],
+          "result": "u64",
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 0
+    }
+  ],
+  "types": [
+    {
+      "name": null,
+      "kind": {
+        "tuple": {
+          "types": [
+            "u64",
+            "u64"
+          ]
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "list": "u8"
+      },
+      "owner": null
+    }
+  ],
+  "packages": [
+    {
+      "name": "wasi:random@0.3.0",
+      "interfaces": {
+        "insecure-seed": 0,
+        "insecure": 1,
+        "random": 2
+      },
+      "worlds": {
+        "imports": 0
+      }
+    }
+  ]
+}

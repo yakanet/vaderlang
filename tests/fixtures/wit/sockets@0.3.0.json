@@ -1,0 +1,1845 @@
+{
+  "worlds": [
+    {
+      "name": "imports",
+      "imports": {
+        "interface-0": {
+          "interface": {
+            "id": 0,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-1": {
+          "interface": {
+            "id": 1,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-2": {
+          "interface": {
+            "id": 2,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        }
+      },
+      "exports": {},
+      "package": 0,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "imports",
+      "imports": {
+        "interface-0": {
+          "interface": {
+            "id": 0,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-3": {
+          "interface": {
+            "id": 3,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-4": {
+          "interface": {
+            "id": 4,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        }
+      },
+      "exports": {},
+      "package": 1,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    }
+  ],
+  "interfaces": [
+    {
+      "name": "types",
+      "types": {
+        "duration": 0
+      },
+      "functions": {},
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 0
+    },
+    {
+      "name": "monotonic-clock",
+      "types": {
+        "duration": 1,
+        "mark": 2
+      },
+      "functions": {
+        "now": {
+          "name": "now",
+          "kind": "freestanding",
+          "params": [],
+          "result": 2,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "get-resolution": {
+          "name": "get-resolution",
+          "kind": "freestanding",
+          "params": [],
+          "result": 1,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "wait-until": {
+          "name": "wait-until",
+          "kind": "async-freestanding",
+          "params": [
+            {
+              "name": "when",
+              "type": 2
+            }
+          ],
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "wait-for": {
+          "name": "wait-for",
+          "kind": "async-freestanding",
+          "params": [
+            {
+              "name": "how-long",
+              "type": 1
+            }
+          ],
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 0
+    },
+    {
+      "name": "system-clock",
+      "types": {
+        "duration": 3,
+        "instant": 4
+      },
+      "functions": {
+        "now": {
+          "name": "now",
+          "kind": "freestanding",
+          "params": [],
+          "result": 4,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "get-resolution": {
+          "name": "get-resolution",
+          "kind": "freestanding",
+          "params": [],
+          "result": 3,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 0
+    },
+    {
+      "name": "types",
+      "types": {
+        "duration": 7,
+        "error-code": 9,
+        "ip-address-family": 10,
+        "ipv4-address": 11,
+        "ipv6-address": 12,
+        "ip-address": 13,
+        "ipv4-socket-address": 14,
+        "ipv6-socket-address": 15,
+        "ip-socket-address": 16,
+        "tcp-socket": 17,
+        "udp-socket": 18
+      },
+      "functions": {
+        "[static]tcp-socket.create": {
+          "name": "[static]tcp-socket.create",
+          "kind": {
+            "static": 17
+          },
+          "params": [
+            {
+              "name": "address-family",
+              "type": 10
+            }
+          ],
+          "result": 20,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.bind": {
+          "name": "[method]tcp-socket.bind",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            },
+            {
+              "name": "local-address",
+              "type": 16
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.connect": {
+          "name": "[method]tcp-socket.connect",
+          "kind": {
+            "async-method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            },
+            {
+              "name": "remote-address",
+              "type": 16
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.listen": {
+          "name": "[method]tcp-socket.listen",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            }
+          ],
+          "result": 24,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.send": {
+          "name": "[method]tcp-socket.send",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            },
+            {
+              "name": "data",
+              "type": 25
+            }
+          ],
+          "result": 26,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.receive": {
+          "name": "[method]tcp-socket.receive",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            }
+          ],
+          "result": 27,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-local-address": {
+          "name": "[method]tcp-socket.get-local-address",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            }
+          ],
+          "result": 28,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-remote-address": {
+          "name": "[method]tcp-socket.get-remote-address",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            }
+          ],
+          "result": 28,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-is-listening": {
+          "name": "[method]tcp-socket.get-is-listening",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            }
+          ],
+          "result": "bool",
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-address-family": {
+          "name": "[method]tcp-socket.get-address-family",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            }
+          ],
+          "result": 10,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-listen-backlog-size": {
+          "name": "[method]tcp-socket.set-listen-backlog-size",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            },
+            {
+              "name": "value",
+              "type": "u64"
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-keep-alive-enabled": {
+          "name": "[method]tcp-socket.get-keep-alive-enabled",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            }
+          ],
+          "result": 29,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-keep-alive-enabled": {
+          "name": "[method]tcp-socket.set-keep-alive-enabled",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            },
+            {
+              "name": "value",
+              "type": "bool"
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-keep-alive-idle-time": {
+          "name": "[method]tcp-socket.get-keep-alive-idle-time",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            }
+          ],
+          "result": 30,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-keep-alive-idle-time": {
+          "name": "[method]tcp-socket.set-keep-alive-idle-time",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            },
+            {
+              "name": "value",
+              "type": 7
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-keep-alive-interval": {
+          "name": "[method]tcp-socket.get-keep-alive-interval",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            }
+          ],
+          "result": 30,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-keep-alive-interval": {
+          "name": "[method]tcp-socket.set-keep-alive-interval",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            },
+            {
+              "name": "value",
+              "type": 7
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-keep-alive-count": {
+          "name": "[method]tcp-socket.get-keep-alive-count",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            }
+          ],
+          "result": 31,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-keep-alive-count": {
+          "name": "[method]tcp-socket.set-keep-alive-count",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            },
+            {
+              "name": "value",
+              "type": "u32"
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-hop-limit": {
+          "name": "[method]tcp-socket.get-hop-limit",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            }
+          ],
+          "result": 32,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-hop-limit": {
+          "name": "[method]tcp-socket.set-hop-limit",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            },
+            {
+              "name": "value",
+              "type": "u8"
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-receive-buffer-size": {
+          "name": "[method]tcp-socket.get-receive-buffer-size",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            }
+          ],
+          "result": 33,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-receive-buffer-size": {
+          "name": "[method]tcp-socket.set-receive-buffer-size",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            },
+            {
+              "name": "value",
+              "type": "u64"
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.get-send-buffer-size": {
+          "name": "[method]tcp-socket.get-send-buffer-size",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            }
+          ],
+          "result": 33,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]tcp-socket.set-send-buffer-size": {
+          "name": "[method]tcp-socket.set-send-buffer-size",
+          "kind": {
+            "method": 17
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 21
+            },
+            {
+              "name": "value",
+              "type": "u64"
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[static]udp-socket.create": {
+          "name": "[static]udp-socket.create",
+          "kind": {
+            "static": 18
+          },
+          "params": [
+            {
+              "name": "address-family",
+              "type": 10
+            }
+          ],
+          "result": 35,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.bind": {
+          "name": "[method]udp-socket.bind",
+          "kind": {
+            "method": 18
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 36
+            },
+            {
+              "name": "local-address",
+              "type": 16
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.connect": {
+          "name": "[method]udp-socket.connect",
+          "kind": {
+            "method": 18
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 36
+            },
+            {
+              "name": "remote-address",
+              "type": 16
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.disconnect": {
+          "name": "[method]udp-socket.disconnect",
+          "kind": {
+            "method": 18
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 36
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.send": {
+          "name": "[method]udp-socket.send",
+          "kind": {
+            "async-method": 18
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 36
+            },
+            {
+              "name": "data",
+              "type": 37
+            },
+            {
+              "name": "remote-address",
+              "type": 38
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.receive": {
+          "name": "[method]udp-socket.receive",
+          "kind": {
+            "async-method": 18
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 36
+            }
+          ],
+          "result": 40,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.get-local-address": {
+          "name": "[method]udp-socket.get-local-address",
+          "kind": {
+            "method": 18
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 36
+            }
+          ],
+          "result": 28,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.get-remote-address": {
+          "name": "[method]udp-socket.get-remote-address",
+          "kind": {
+            "method": 18
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 36
+            }
+          ],
+          "result": 28,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.get-address-family": {
+          "name": "[method]udp-socket.get-address-family",
+          "kind": {
+            "method": 18
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 36
+            }
+          ],
+          "result": 10,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.get-unicast-hop-limit": {
+          "name": "[method]udp-socket.get-unicast-hop-limit",
+          "kind": {
+            "method": 18
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 36
+            }
+          ],
+          "result": 32,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.set-unicast-hop-limit": {
+          "name": "[method]udp-socket.set-unicast-hop-limit",
+          "kind": {
+            "method": 18
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 36
+            },
+            {
+              "name": "value",
+              "type": "u8"
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.get-receive-buffer-size": {
+          "name": "[method]udp-socket.get-receive-buffer-size",
+          "kind": {
+            "method": 18
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 36
+            }
+          ],
+          "result": 33,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.set-receive-buffer-size": {
+          "name": "[method]udp-socket.set-receive-buffer-size",
+          "kind": {
+            "method": 18
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 36
+            },
+            {
+              "name": "value",
+              "type": "u64"
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.get-send-buffer-size": {
+          "name": "[method]udp-socket.get-send-buffer-size",
+          "kind": {
+            "method": 18
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 36
+            }
+          ],
+          "result": 33,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]udp-socket.set-send-buffer-size": {
+          "name": "[method]udp-socket.set-send-buffer-size",
+          "kind": {
+            "method": 18
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 36
+            },
+            {
+              "name": "value",
+              "type": "u64"
+            }
+          ],
+          "result": 22,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 1
+    },
+    {
+      "name": "ip-name-lookup",
+      "types": {
+        "ip-address": 41,
+        "error-code": 42
+      },
+      "functions": {
+        "resolve-addresses": {
+          "name": "resolve-addresses",
+          "kind": "async-freestanding",
+          "params": [
+            {
+              "name": "name",
+              "type": "string"
+            }
+          ],
+          "result": 44,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 1
+    }
+  ],
+  "types": [
+    {
+      "name": "duration",
+      "kind": {
+        "type": "u64"
+      },
+      "owner": {
+        "interface": 0
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "duration",
+      "kind": {
+        "type": 0
+      },
+      "owner": {
+        "interface": 1
+      }
+    },
+    {
+      "name": "mark",
+      "kind": {
+        "type": "u64"
+      },
+      "owner": {
+        "interface": 1
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "duration",
+      "kind": {
+        "type": 0
+      },
+      "owner": {
+        "interface": 2
+      }
+    },
+    {
+      "name": "instant",
+      "kind": {
+        "record": {
+          "fields": [
+            {
+              "name": "seconds",
+              "type": "s64"
+            },
+            {
+              "name": "nanoseconds",
+              "type": "u32"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 2
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": "string"
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": "s64"
+      },
+      "owner": null
+    },
+    {
+      "name": "duration",
+      "kind": {
+        "type": 0
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": "string"
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "error-code",
+      "kind": {
+        "variant": {
+          "cases": [
+            {
+              "name": "access-denied",
+              "type": null
+            },
+            {
+              "name": "not-supported",
+              "type": null
+            },
+            {
+              "name": "invalid-argument",
+              "type": null
+            },
+            {
+              "name": "out-of-memory",
+              "type": null
+            },
+            {
+              "name": "timeout",
+              "type": null
+            },
+            {
+              "name": "invalid-state",
+              "type": null
+            },
+            {
+              "name": "address-not-bindable",
+              "type": null
+            },
+            {
+              "name": "address-in-use",
+              "type": null
+            },
+            {
+              "name": "remote-unreachable",
+              "type": null
+            },
+            {
+              "name": "connection-refused",
+              "type": null
+            },
+            {
+              "name": "connection-broken",
+              "type": null
+            },
+            {
+              "name": "connection-reset",
+              "type": null
+            },
+            {
+              "name": "connection-aborted",
+              "type": null
+            },
+            {
+              "name": "datagram-too-large",
+              "type": null
+            },
+            {
+              "name": "other",
+              "type": 8
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ip-address-family",
+      "kind": {
+        "enum": {
+          "cases": [
+            {
+              "name": "ipv4"
+            },
+            {
+              "name": "ipv6"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ipv4-address",
+      "kind": {
+        "tuple": {
+          "types": [
+            "u8",
+            "u8",
+            "u8",
+            "u8"
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ipv6-address",
+      "kind": {
+        "tuple": {
+          "types": [
+            "u16",
+            "u16",
+            "u16",
+            "u16",
+            "u16",
+            "u16",
+            "u16",
+            "u16"
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ip-address",
+      "kind": {
+        "variant": {
+          "cases": [
+            {
+              "name": "ipv4",
+              "type": 11
+            },
+            {
+              "name": "ipv6",
+              "type": 12
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ipv4-socket-address",
+      "kind": {
+        "record": {
+          "fields": [
+            {
+              "name": "port",
+              "type": "u16"
+            },
+            {
+              "name": "address",
+              "type": 11
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ipv6-socket-address",
+      "kind": {
+        "record": {
+          "fields": [
+            {
+              "name": "port",
+              "type": "u16"
+            },
+            {
+              "name": "flow-info",
+              "type": "u32"
+            },
+            {
+              "name": "address",
+              "type": 12
+            },
+            {
+              "name": "scope-id",
+              "type": "u32"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ip-socket-address",
+      "kind": {
+        "variant": {
+          "cases": [
+            {
+              "name": "ipv4",
+              "type": 14
+            },
+            {
+              "name": "ipv6",
+              "type": 15
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "tcp-socket",
+      "kind": "resource",
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "udp-socket",
+      "kind": "resource",
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "own": 17
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 19,
+          "err": 9
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "borrow": 17
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": null,
+          "err": 9
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "stream": 19
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 23,
+          "err": 9
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "stream": "u8"
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "future": 22
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "tuple": {
+          "types": [
+            25,
+            26
+          ]
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 16,
+          "err": 9
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": "bool",
+          "err": 9
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 7,
+          "err": 9
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": "u32",
+          "err": 9
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": "u8",
+          "err": 9
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": "u64",
+          "err": 9
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "own": 18
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 34,
+          "err": 9
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "borrow": 18
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "list": "u8"
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": 16
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "tuple": {
+          "types": [
+            37,
+            16
+          ]
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 39,
+          "err": 9
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "ip-address",
+      "kind": {
+        "type": 13
+      },
+      "owner": {
+        "interface": 4
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "error-code",
+      "kind": {
+        "variant": {
+          "cases": [
+            {
+              "name": "access-denied",
+              "type": null
+            },
+            {
+              "name": "invalid-argument",
+              "type": null
+            },
+            {
+              "name": "name-unresolvable",
+              "type": null
+            },
+            {
+              "name": "temporary-resolver-failure",
+              "type": null
+            },
+            {
+              "name": "permanent-resolver-failure",
+              "type": null
+            },
+            {
+              "name": "other",
+              "type": 8
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 4
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "list": 41
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 43,
+          "err": 42
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    }
+  ],
+  "packages": [
+    {
+      "name": "wasi:clocks@0.3.0",
+      "interfaces": {
+        "types": 0,
+        "monotonic-clock": 1,
+        "system-clock": 2
+      },
+      "worlds": {
+        "imports": 0
+      }
+    },
+    {
+      "name": "wasi:sockets@0.3.0",
+      "interfaces": {
+        "types": 3,
+        "ip-name-lookup": 4
+      },
+      "worlds": {
+        "imports": 1
+      }
+    }
+  ]
+}

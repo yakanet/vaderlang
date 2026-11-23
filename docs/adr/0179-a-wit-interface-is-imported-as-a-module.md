@@ -55,8 +55,10 @@ written by hand for C.
   `wit/<namespace>/<package>@<version>/*.wit`, so that finding a package reads one
   folder and never walks. An import resolves first among the roots of the importing
   module, so a project's own copy of a WASI package cannot change what `std` binds.
-  The library ships the WIT of the WASI release the target follows, `v0.3.0`, the one
-  wasmtime 51 serves. The WIT reader follows `WIT.md` of the component model;
+  The toolchain ships the WIT of the WASI release the target follows, `v0.3.0`, the one
+  wasmtime 51 serves, in `runtime/wasi/<package>@<version>/` of `$VADER_HOME` with the
+  licence of the WASI repository: an input of the WASM target, as `runtime/c/` is of the
+  native one. That folder stands for the `wit/wasi/` of the library's root. The WIT reader follows `WIT.md` of the component model;
   `wasm-tools component wit --json` is the oracle of its tests, never a dependency.
 
 ### A stage of the compiler writes the module

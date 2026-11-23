@@ -1,0 +1,1749 @@
+{
+  "worlds": [
+    {
+      "name": "imports",
+      "imports": {
+        "interface-0": {
+          "interface": {
+            "id": 0,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-1": {
+          "interface": {
+            "id": 1,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-2": {
+          "interface": {
+            "id": 2,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        }
+      },
+      "exports": {},
+      "package": 0,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "imports",
+      "imports": {
+        "interface-0": {
+          "interface": {
+            "id": 0,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-2": {
+          "interface": {
+            "id": 2,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-3": {
+          "interface": {
+            "id": 3,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-4": {
+          "interface": {
+            "id": 4,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        }
+      },
+      "exports": {},
+      "package": 1,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    }
+  ],
+  "interfaces": [
+    {
+      "name": "types",
+      "types": {
+        "duration": 0
+      },
+      "functions": {},
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 0
+    },
+    {
+      "name": "monotonic-clock",
+      "types": {
+        "duration": 1,
+        "mark": 2
+      },
+      "functions": {
+        "now": {
+          "name": "now",
+          "kind": "freestanding",
+          "params": [],
+          "result": 2,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "get-resolution": {
+          "name": "get-resolution",
+          "kind": "freestanding",
+          "params": [],
+          "result": 1,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "wait-until": {
+          "name": "wait-until",
+          "kind": "async-freestanding",
+          "params": [
+            {
+              "name": "when",
+              "type": 2
+            }
+          ],
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "wait-for": {
+          "name": "wait-for",
+          "kind": "async-freestanding",
+          "params": [
+            {
+              "name": "how-long",
+              "type": 1
+            }
+          ],
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 0
+    },
+    {
+      "name": "system-clock",
+      "types": {
+        "duration": 3,
+        "instant": 4
+      },
+      "functions": {
+        "now": {
+          "name": "now",
+          "kind": "freestanding",
+          "params": [],
+          "result": 4,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "get-resolution": {
+          "name": "get-resolution",
+          "kind": "freestanding",
+          "params": [],
+          "result": 3,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 0
+    },
+    {
+      "name": "types",
+      "types": {
+        "instant": 7,
+        "filesize": 8,
+        "descriptor-type": 10,
+        "descriptor-flags": 11,
+        "path-flags": 12,
+        "open-flags": 13,
+        "link-count": 14,
+        "descriptor-stat": 16,
+        "new-timestamp": 17,
+        "directory-entry": 18,
+        "error-code": 19,
+        "advice": 20,
+        "metadata-hash-value": 21,
+        "descriptor": 22
+      },
+      "functions": {
+        "[method]descriptor.read-via-stream": {
+          "name": "[method]descriptor.read-via-stream",
+          "kind": {
+            "method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "offset",
+              "type": 8
+            }
+          ],
+          "result": 27,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.write-via-stream": {
+          "name": "[method]descriptor.write-via-stream",
+          "kind": {
+            "method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "data",
+              "type": 24
+            },
+            {
+              "name": "offset",
+              "type": 8
+            }
+          ],
+          "result": 26,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.append-via-stream": {
+          "name": "[method]descriptor.append-via-stream",
+          "kind": {
+            "method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "data",
+              "type": 24
+            }
+          ],
+          "result": 26,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.advise": {
+          "name": "[method]descriptor.advise",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "offset",
+              "type": 8
+            },
+            {
+              "name": "length",
+              "type": 8
+            },
+            {
+              "name": "advice",
+              "type": 20
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.sync-data": {
+          "name": "[method]descriptor.sync-data",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.get-flags": {
+          "name": "[method]descriptor.get-flags",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            }
+          ],
+          "result": 28,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.get-type": {
+          "name": "[method]descriptor.get-type",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            }
+          ],
+          "result": 29,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.set-size": {
+          "name": "[method]descriptor.set-size",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "size",
+              "type": 8
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.set-times": {
+          "name": "[method]descriptor.set-times",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "data-access-timestamp",
+              "type": 17
+            },
+            {
+              "name": "data-modification-timestamp",
+              "type": 17
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.read-directory": {
+          "name": "[method]descriptor.read-directory",
+          "kind": {
+            "method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            }
+          ],
+          "result": 31,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.sync": {
+          "name": "[method]descriptor.sync",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.create-directory-at": {
+          "name": "[method]descriptor.create-directory-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path",
+              "type": "string"
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.stat": {
+          "name": "[method]descriptor.stat",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            }
+          ],
+          "result": 32,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.stat-at": {
+          "name": "[method]descriptor.stat-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path-flags",
+              "type": 12
+            },
+            {
+              "name": "path",
+              "type": "string"
+            }
+          ],
+          "result": 32,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.set-times-at": {
+          "name": "[method]descriptor.set-times-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path-flags",
+              "type": 12
+            },
+            {
+              "name": "path",
+              "type": "string"
+            },
+            {
+              "name": "data-access-timestamp",
+              "type": 17
+            },
+            {
+              "name": "data-modification-timestamp",
+              "type": 17
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.link-at": {
+          "name": "[method]descriptor.link-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "old-path-flags",
+              "type": 12
+            },
+            {
+              "name": "old-path",
+              "type": "string"
+            },
+            {
+              "name": "new-descriptor",
+              "type": 23
+            },
+            {
+              "name": "new-path",
+              "type": "string"
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.open-at": {
+          "name": "[method]descriptor.open-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path-flags",
+              "type": 12
+            },
+            {
+              "name": "path",
+              "type": "string"
+            },
+            {
+              "name": "open-flags",
+              "type": 13
+            },
+            {
+              "name": "flags",
+              "type": 11
+            }
+          ],
+          "result": 34,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.readlink-at": {
+          "name": "[method]descriptor.readlink-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path",
+              "type": "string"
+            }
+          ],
+          "result": 35,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.remove-directory-at": {
+          "name": "[method]descriptor.remove-directory-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path",
+              "type": "string"
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.rename-at": {
+          "name": "[method]descriptor.rename-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "old-path",
+              "type": "string"
+            },
+            {
+              "name": "new-descriptor",
+              "type": 23
+            },
+            {
+              "name": "new-path",
+              "type": "string"
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.symlink-at": {
+          "name": "[method]descriptor.symlink-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "old-path",
+              "type": "string"
+            },
+            {
+              "name": "new-path",
+              "type": "string"
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.unlink-file-at": {
+          "name": "[method]descriptor.unlink-file-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path",
+              "type": "string"
+            }
+          ],
+          "result": 25,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.is-same-object": {
+          "name": "[method]descriptor.is-same-object",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "other",
+              "type": 23
+            }
+          ],
+          "result": "bool",
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.metadata-hash": {
+          "name": "[method]descriptor.metadata-hash",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            }
+          ],
+          "result": 36,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "[method]descriptor.metadata-hash-at": {
+          "name": "[method]descriptor.metadata-hash-at",
+          "kind": {
+            "async-method": 22
+          },
+          "params": [
+            {
+              "name": "self",
+              "type": 23
+            },
+            {
+              "name": "path-flags",
+              "type": 12
+            },
+            {
+              "name": "path",
+              "type": "string"
+            }
+          ],
+          "result": 36,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 1
+    },
+    {
+      "name": "preopens",
+      "types": {
+        "descriptor": 37
+      },
+      "functions": {
+        "get-directories": {
+          "name": "get-directories",
+          "kind": "freestanding",
+          "params": [],
+          "result": 40,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 1
+    }
+  ],
+  "types": [
+    {
+      "name": "duration",
+      "kind": {
+        "type": "u64"
+      },
+      "owner": {
+        "interface": 0
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "duration",
+      "kind": {
+        "type": 0
+      },
+      "owner": {
+        "interface": 1
+      }
+    },
+    {
+      "name": "mark",
+      "kind": {
+        "type": "u64"
+      },
+      "owner": {
+        "interface": 1
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "duration",
+      "kind": {
+        "type": 0
+      },
+      "owner": {
+        "interface": 2
+      }
+    },
+    {
+      "name": "instant",
+      "kind": {
+        "record": {
+          "fields": [
+            {
+              "name": "seconds",
+              "type": "s64"
+            },
+            {
+              "name": "nanoseconds",
+              "type": "u32"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 2
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": "string"
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": "s64"
+      },
+      "owner": null
+    },
+    {
+      "name": "instant",
+      "kind": {
+        "type": 4
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "filesize",
+      "kind": {
+        "type": "u64"
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": "string"
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "descriptor-type",
+      "kind": {
+        "variant": {
+          "cases": [
+            {
+              "name": "block-device",
+              "type": null
+            },
+            {
+              "name": "character-device",
+              "type": null
+            },
+            {
+              "name": "directory",
+              "type": null
+            },
+            {
+              "name": "fifo",
+              "type": null
+            },
+            {
+              "name": "symbolic-link",
+              "type": null
+            },
+            {
+              "name": "regular-file",
+              "type": null
+            },
+            {
+              "name": "socket",
+              "type": null
+            },
+            {
+              "name": "other",
+              "type": 9
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "descriptor-flags",
+      "kind": {
+        "flags": {
+          "flags": [
+            {
+              "name": "read"
+            },
+            {
+              "name": "write"
+            },
+            {
+              "name": "file-integrity-sync"
+            },
+            {
+              "name": "data-integrity-sync"
+            },
+            {
+              "name": "requested-write-sync"
+            },
+            {
+              "name": "mutate-directory"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "path-flags",
+      "kind": {
+        "flags": {
+          "flags": [
+            {
+              "name": "symlink-follow"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "open-flags",
+      "kind": {
+        "flags": {
+          "flags": [
+            {
+              "name": "create"
+            },
+            {
+              "name": "directory"
+            },
+            {
+              "name": "exclusive"
+            },
+            {
+              "name": "truncate"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "link-count",
+      "kind": {
+        "type": "u64"
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": 7
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "descriptor-stat",
+      "kind": {
+        "record": {
+          "fields": [
+            {
+              "name": "type",
+              "type": 10
+            },
+            {
+              "name": "link-count",
+              "type": 14
+            },
+            {
+              "name": "size",
+              "type": 8
+            },
+            {
+              "name": "data-access-timestamp",
+              "type": 15
+            },
+            {
+              "name": "data-modification-timestamp",
+              "type": 15
+            },
+            {
+              "name": "status-change-timestamp",
+              "type": 15
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "new-timestamp",
+      "kind": {
+        "variant": {
+          "cases": [
+            {
+              "name": "no-change",
+              "type": null
+            },
+            {
+              "name": "now",
+              "type": null
+            },
+            {
+              "name": "timestamp",
+              "type": 7
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "directory-entry",
+      "kind": {
+        "record": {
+          "fields": [
+            {
+              "name": "type",
+              "type": 10
+            },
+            {
+              "name": "name",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "error-code",
+      "kind": {
+        "variant": {
+          "cases": [
+            {
+              "name": "access",
+              "type": null
+            },
+            {
+              "name": "already",
+              "type": null
+            },
+            {
+              "name": "bad-descriptor",
+              "type": null
+            },
+            {
+              "name": "busy",
+              "type": null
+            },
+            {
+              "name": "deadlock",
+              "type": null
+            },
+            {
+              "name": "quota",
+              "type": null
+            },
+            {
+              "name": "exist",
+              "type": null
+            },
+            {
+              "name": "file-too-large",
+              "type": null
+            },
+            {
+              "name": "illegal-byte-sequence",
+              "type": null
+            },
+            {
+              "name": "in-progress",
+              "type": null
+            },
+            {
+              "name": "interrupted",
+              "type": null
+            },
+            {
+              "name": "invalid",
+              "type": null
+            },
+            {
+              "name": "io",
+              "type": null
+            },
+            {
+              "name": "is-directory",
+              "type": null
+            },
+            {
+              "name": "loop",
+              "type": null
+            },
+            {
+              "name": "too-many-links",
+              "type": null
+            },
+            {
+              "name": "message-size",
+              "type": null
+            },
+            {
+              "name": "name-too-long",
+              "type": null
+            },
+            {
+              "name": "no-device",
+              "type": null
+            },
+            {
+              "name": "no-entry",
+              "type": null
+            },
+            {
+              "name": "no-lock",
+              "type": null
+            },
+            {
+              "name": "insufficient-memory",
+              "type": null
+            },
+            {
+              "name": "insufficient-space",
+              "type": null
+            },
+            {
+              "name": "not-directory",
+              "type": null
+            },
+            {
+              "name": "not-empty",
+              "type": null
+            },
+            {
+              "name": "not-recoverable",
+              "type": null
+            },
+            {
+              "name": "unsupported",
+              "type": null
+            },
+            {
+              "name": "no-tty",
+              "type": null
+            },
+            {
+              "name": "no-such-device",
+              "type": null
+            },
+            {
+              "name": "overflow",
+              "type": null
+            },
+            {
+              "name": "not-permitted",
+              "type": null
+            },
+            {
+              "name": "pipe",
+              "type": null
+            },
+            {
+              "name": "read-only",
+              "type": null
+            },
+            {
+              "name": "invalid-seek",
+              "type": null
+            },
+            {
+              "name": "text-file-busy",
+              "type": null
+            },
+            {
+              "name": "cross-device",
+              "type": null
+            },
+            {
+              "name": "other",
+              "type": 9
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "advice",
+      "kind": {
+        "enum": {
+          "cases": [
+            {
+              "name": "normal"
+            },
+            {
+              "name": "sequential"
+            },
+            {
+              "name": "random"
+            },
+            {
+              "name": "will-need"
+            },
+            {
+              "name": "dont-need"
+            },
+            {
+              "name": "no-reuse"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "metadata-hash-value",
+      "kind": {
+        "record": {
+          "fields": [
+            {
+              "name": "lower",
+              "type": "u64"
+            },
+            {
+              "name": "upper",
+              "type": "u64"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "descriptor",
+      "kind": "resource",
+      "owner": {
+        "interface": 3
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "borrow": 22
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "stream": "u8"
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": null,
+          "err": 19
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "future": 25
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "tuple": {
+          "types": [
+            24,
+            26
+          ]
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 11,
+          "err": 19
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 10,
+          "err": 19
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "stream": 18
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "tuple": {
+          "types": [
+            30,
+            26
+          ]
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 16,
+          "err": 19
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "own": 22
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 33,
+          "err": 19
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": "string",
+          "err": 19
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "result": {
+          "ok": 21,
+          "err": 19
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "descriptor",
+      "kind": {
+        "type": 22
+      },
+      "owner": {
+        "interface": 4
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "handle": {
+          "own": 37
+        }
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "tuple": {
+          "types": [
+            38,
+            "string"
+          ]
+        }
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "list": 39
+      },
+      "owner": null,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    }
+  ],
+  "packages": [
+    {
+      "name": "wasi:clocks@0.3.0",
+      "interfaces": {
+        "types": 0,
+        "monotonic-clock": 1,
+        "system-clock": 2
+      },
+      "worlds": {
+        "imports": 0
+      }
+    },
+    {
+      "name": "wasi:filesystem@0.3.0",
+      "interfaces": {
+        "types": 3,
+        "preopens": 4
+      },
+      "worlds": {
+        "imports": 1
+      }
+    }
+  ]
+}

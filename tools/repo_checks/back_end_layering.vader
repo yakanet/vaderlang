@@ -23,8 +23,8 @@ CHECKED_TREES: string[]: [
     "vader/support",
 ]
 
-// The libraries a checked tree may import, by the start of their path.
-LIBRARIES: string[]: ["std/", "toolchain/"]
+// The libraries a checked tree may import.
+LIBRARIES: string[]: ["std", "toolchain", "json"]
 
 // What an import opens with, after its alias if it has one.
 IMPORT_OPENING :: "import \""
@@ -77,8 +77,12 @@ check_imports :: fn(file: string, text: string, found: string[]) -> void {
 
 // Whether a checked tree may import the module at `path`.
 is_allowed :: fn(path: string) -> bool =
-    LIBRARIES.any_match((l) -> path.starts_with(l))
-        || CHECKED_TREES.any_match((t) -> path == t || path.starts_with("${t}/"))
+    LIBRARIES.any_match((l) -> is_within(path, l)) || CHECKED_TREES.any_match(
+        (t) -> is_within(path, t),
+    )
+
+// Whether `path` is the module `root` or one below it.
+is_within :: fn(path: string, root: string) -> bool = path == root || path.starts_with("${root}/")
 
 // ---- tests ----------------------------------------------------------------
 

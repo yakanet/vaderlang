@@ -135,6 +135,7 @@ load_body :: fn(
     is WitList               -> l.list_body(t, type_id)
     is WitResult             -> l.result_body(t, type_id)
     is WitStream | WitFuture -> l.no_lift(t)
+    is WitNotLowered         -> l.no_lift(t)
     is WitUnsupported        -> WasmUnsupported { .reason = "`${l.function}`: ${t.reason}" }
 }
 

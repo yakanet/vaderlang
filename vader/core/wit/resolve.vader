@@ -1,0 +1,573 @@
+// vader/core/wit/resolve: the names of a WIT package bound to their types.
+//
+// A package is the `.wit` files of one folder, those that declare it agreeing. Each
+// name a type writes resolves in its interface: to a type the interface declares,
+// or to one a `use` brings in from another interface of the package or of
+// another package, which the caller finds. Names resolve on demand, so a type
+// may name one declared below it; a name that comes back to itself is an error.
+//
+// What comes out is what `wasm-tools component wit --json` holds: a `use` and a
+// `type x = y` are each a `WitAlias` of the interface that writes them, a bare
+// resource name is an `own` handle, a method takes `self: borrow<r>` first, and a
+// function of a resource is named `[method]r.f`, `[static]r.f`,
+// `[constructor]r`. An item behind `@unstable` is left out, as `wasm-tools` does
+// without a feature named.
+
+module "vader/core/wit"
+
+import "std/collections"
+import "std/iter"
+import "std/string"
+
+// ---- the package ----------------------------------------------------------
+
+/// A `.wit` file to read: its path, for the messages, and its text.
+export WitSource :: struct {
+    path: string
+    text: string
+}
+
+/// A WIT package, each name its types write bound to the type it designates.
+export WitPackage :: struct {
+    name: WitPackageName
+    interfaces: WitInterface[]
+}
+
+/// An interface of a package.
+export WitInterface :: struct {
+    owner: WitOwner
+    /// Its named types, those its `use`s bring in first, then those it declares,
+    /// in the order written.
+    types: WitNamedType[]
+    /// Its functions, then those of its resources.
+    functions: WitNamedFunction[]
+}
+
+/// A function of an interface, or of one of its resources.
+export WitNamedFunction :: struct {
+    /// Its name as a component imports it: `now`, `[method]descriptor.stat`,
+    /// `[static]tcp-socket.create`, `[constructor]pollable`.
+    name: string
+    kind: WitFunctionKind
+    is_async: bool
+    /// The resource of a method, a static function or a constructor.
+    resource: WitResource | null
+    type: WitFunction
+}
+
+/// Where another package is found: given its name, the package read and
+/// resolved, or why it could not be.
+export WitDependency :: fn(WitPackageName) -> WitPackage | WitError
+
+/// Read the package written in `sources`, the `.wit` files of one folder.
+///
+/// @param sources     the files, in a stable order: the interfaces come out in it.
+/// @param dependency  the packages a `use` names, other than this one.
+/// @return            the package, its `@unstable` items left out.
+/// @error             `WitError` at the place in a file where the text does not
+///                    read, where a name does not resolve, or where two
+///                    declarations take one name; or the error of `dependency`.
+/// @example
+///   # import "std/abort"
+///   source :: WitSource {
+///       .path = "clock.wit",
+///       .text = "package a:b; interface clock { now: func() -> u64; }",
+///   }
+///   read :: read_wit_package([source], (name) -> panic("no other package"))
+export read_wit_package :: fn(sources: WitSource[], dependency: WitDependency) -> WitPackage | WitError {
+    documents: WitDocument[]: []
+    for source in sources {
+        document :: read_wit_document(source.text, source.path) else return document
+        documents.push(document)
+    }
+    name :: package_of(documents, sources) else return name
+    r :: Resolution {
+        .package = name,
+        .package_text = wit_package_text(name),
+        .dependency = dependency,
+    }
+    for document in documents {
+        for decl in document.interfaces.filter((i) -> is_stable(i.gate)) {
+            if r.interfaces[decl.name] != null {
+                return wit_error(decl.span, "interface `${decl.name}` is declared twice")
+            }
+            scope :: open_scope(decl, WitOwner { .package = name, .interface = decl.name })
+                else return scope
+            r.interfaces[decl.name] = scope
+            r.order.push(scope)
+        }
+    }
+    out :: WitPackage { .name = name, .interfaces = [] }
+    for scope in r.order {
+        interface :: r.interface_of(scope) else return interface
+        out.interfaces.push(interface)
+    }
+    return out
+}
+
+// The name the `package` declarations of the folder give: any file may write
+// one, and those that do agree.
+package_of :: fn(documents: WitDocument[], sources: WitSource[]) -> WitPackageName | WitError {
+    found: WitPackageName | null = null
+    for document in documents {
+        declared :: document.package else continue
+        if found != null && wit_package_text(found) != wit_package_text(declared) {
+            return wit_error(
+                WitSpan { .file = document.file },
+                "package `${wit_package_text(declared)}` in a folder of `${wit_package_text(found)}`",
+            )
+        }
+        found = declared
+    }
+    if found == null {
+        path :: if sources.len() > 0 { sources[0].path } else { "" }
+        return wit_error(WitSpan { .file = path }, "no `package` declaration in the folder")
+    }
+    return found
+}
+
+// An item behind `@unstable` is left out.
+is_stable :: fn(gate: WitGate) -> bool = gate.unstable == ""
+
+// ---- scopes ---------------------------------------------------------------
+
+// The package being resolved.
+Resolution :: struct {
+    package: WitPackageName
+    package_text: string
+    dependency: WitDependency
+    interfaces: Map<string, InterfaceScope> = Map<string, InterfaceScope> {}
+    // The interfaces in the order written.
+    order: InterfaceScope[] = []
+    // The packages `dependency` gave, by their text: each is asked for once.
+    dependencies: Map<string, WitPackage> = Map<string, WitPackage> {}
+}
+
+// What the names of one interface designate, and those resolved so far.
+InterfaceScope :: struct {
+    decl: WitInterfaceDecl
+    owner: WitOwner
+    declared: Map<string, WitTypeDecl> = Map<string, WitTypeDecl> {}
+    used: Map<string, UsedName> = Map<string, UsedName> {}
+    // The names in the order written, those of the `use`s first.
+    names: string[] = []
+    resolved: Map<string, WitNamedType> = Map<string, WitNamedType> {}
+    // The names being resolved: one met again refers to itself.
+    pending: Map<string, bool> = Map<string, bool> {}
+}
+
+// A name a `use` brings in.
+UsedName :: struct {
+    path: WitUsePath
+    name: string
+    span: WitSpan
+}
+
+// The names `decl` declares and brings in, each once.
+open_scope :: fn(decl: WitInterfaceDecl, owner: WitOwner) -> InterfaceScope | WitError {
+    scope :: InterfaceScope { .decl = decl, .owner = owner }
+    for used in decl.uses.filter((u) -> is_stable(u.gate)) {
+        for n in used.names {
+            taken :: scope.take_name(n.local, n.span) else return taken
+            scope.used[n.local] = UsedName {
+                .path = used.path,
+                .name = n.name,
+                .span = n.span,
+            }
+        }
+    }
+    for t in decl.types.filter((t) -> is_stable(t.gate)) {
+        taken :: scope.take_name(t.name, t.span) else return taken
+        scope.declared[t.name] = t
+    }
+    return scope
+}
+
+take_name :: fn(scope: InterfaceScope, name: string, span: WitSpan) -> void | WitError {
+    if scope.declared[name] != null || scope.used[name] != null {
+        return wit_error(span, "type `${name}` is declared twice in `${scope.decl.name}`")
+    }
+    scope.names.push(name)
+}
+
+// ---- interfaces -----------------------------------------------------------
+
+interface_of :: fn(r: Resolution, scope: InterfaceScope) -> WitInterface | WitError {
+    out :: WitInterface {
+        .owner = scope.owner,
+        .types = [],
+        .functions = [],
+    }
+    methods: WitNamedFunction[]: []
+    for name in scope.names {
+        t :: r.resolve_name(scope, name, scope.decl.span) else return t
+        out.types.push(t)
+        if t is WitResource {
+            for method in scope.resource_methods(name) {
+                function :: r.function_of(scope, method, t) else return function
+                methods.push(function)
+            }
+        }
+    }
+    for decl in scope.decl.functions.filter((f) -> is_stable(f.gate)) {
+        function :: r.function_of(scope, decl, null) else return function
+        out.functions.push(function)
+    }
+    out.functions.push_all(methods)
+    return out
+}
+
+// The stable methods the resource `name` of `scope` declares.
+resource_methods :: fn(scope: InterfaceScope, name: string) -> WitFunctionDecl[] {
+    decl :: scope.declared[name] else return []
+    definition :: decl.definition
+    if definition !is WitResourceDef {
+        return []
+    }
+    return definition.methods.filter((m: WitFunctionDecl) -> is_stable(m.gate)).collect()
+}
+
+function_of :: fn(
+    r: Resolution,
+    scope: InterfaceScope,
+    decl: WitFunctionDecl,
+    resource: WitResource | null,
+) -> WitNamedFunction | WitError {
+    params: WitParam[]: []
+    if decl.kind == .Method && resource != null {
+        params.push(
+            WitParam {
+                .name = "self",
+                .type = WitHandle { .resource = resource, .is_borrow = true },
+            },
+        )
+    }
+    for p in decl.params {
+        t :: r.type_of(scope, p.type) else return t
+        params.push(WitParam { .name = p.name, .type = t })
+    }
+    result: WitType | null = null
+    written :: decl.result
+    if written != null {
+        t :: r.type_of(scope, written) else return t
+        result = t
+    } else if decl.kind == .Constructor && resource != null {
+        result = WitHandle { .resource = resource }
+    }
+    return WitNamedFunction {
+        .name = function_name(decl, resource),
+        .kind = decl.kind,
+        .is_async = decl.is_async,
+        .resource = resource,
+        .type = WitFunction { .params = params, .result = result },
+    }
+}
+
+function_name :: fn(decl: WitFunctionDecl, resource: WitResource | null) -> string {
+    if resource == null {
+        return decl.name
+    }
+    return match decl.kind {
+        .Method       -> "[method]${resource.name}.${decl.name}"
+        .Static       -> "[static]${resource.name}.${decl.name}"
+        .Constructor  -> "[constructor]${resource.name}"
+        .Freestanding -> decl.name
+    }
+}
+
+// ---- names ----------------------------------------------------------------
+
+// The type `name` designates in `scope`, `span` where it is written.
+resolve_name :: fn(
+    r: Resolution,
+    scope: InterfaceScope,
+    name: string,
+    span: WitSpan,
+) -> WitNamedType | WitError {
+    known :: scope.resolved[name]
+    if known != null {
+        return known
+    }
+    if scope.pending[name] == true {
+        return wit_error(span, "type `${name}` refers to itself")
+    }
+    scope.pending[name] = true
+    t :: r.named_type(scope, name, span) else return t
+    scope.pending[name] = false
+    scope.resolved[name] = t
+    return t
+}
+
+named_type :: fn(
+    r: Resolution,
+    scope: InterfaceScope,
+    name: string,
+    span: WitSpan,
+) -> WitNamedType | WitError {
+    decl :: scope.declared[name]
+    if decl != null {
+        return r.declared_type(scope, decl)
+    }
+    used :: scope.used[name] else return wit_error(
+        span,
+        "no type `${name}` in `${scope.decl.name}`",
+    )
+    target :: r.used_type(used) else return target
+    return WitAlias {
+        .name = name,
+        .owner = scope.owner,
+        .target = target,
+    }
+}
+
+// The type `used` names in the interface it reads from.
+used_type :: fn(r: Resolution, used: UsedName) -> WitNamedType | WitError {
+    package :: used.path.package
+    if package == null || wit_package_text(package) == r.package_text {
+        scope :: r.interfaces[used.path.interface] else return wit_error(
+            used.span,
+            "no interface `${used.path.interface}` in `${r.package_text}`",
+        )
+        return r.resolve_name(scope, used.name, used.span)
+    }
+    other :: r.dependency_named(package) else return other
+    interface :: other.interfaces.find((i) -> i.owner.interface == used.path.interface)
+        else return wit_error(
+            used.span,
+            "no interface `${used.path.interface}` in `${wit_package_text(package)}`",
+        )
+    found :: interface.types.find((t) -> wit_type_name(t) == used.name)
+        else return wit_error(
+            used.span,
+            "no type `${used.name}` in `${wit_owner_text(interface.owner)}`",
+        )
+    return found
+}
+
+// The package `name`, asked of the caller the first time only.
+dependency_named :: fn(r: Resolution, name: WitPackageName) -> WitPackage | WitError {
+    text :: wit_package_text(name)
+    known :: r.dependencies[text]
+    if known != null {
+        return known
+    }
+    found :: r.dependency(name) else return found
+    r.dependencies[text] = found
+    return found
+}
+
+declared_type :: fn(r: Resolution, scope: InterfaceScope, decl: WitTypeDecl) -> WitNamedType | WitError {
+    name :: decl.name
+    owner :: scope.owner
+    return match definition :: decl.definition {
+        is WitAliasDef    -> {
+            target :: r.type_of(scope, definition.target) else return target
+            WitAlias {
+                .name = name,
+                .owner = owner,
+                .target = target,
+            }
+        }
+        is WitRecordDef   -> {
+            fields: WitParam[]: []
+            for field in definition.fields {
+                written :: field.type else return wit_error(field.span, "a field takes a type")
+                t :: r.type_of(scope, written) else return t
+                fields.push(WitParam { .name = field.name, .type = t })
+            }
+            WitRecord {
+                .name = name,
+                .owner = owner,
+                .fields = fields,
+            }
+        }
+        is WitVariantDef  -> {
+            cases: WitCase[]: []
+            for c in definition.cases {
+                t :: r.optional_type_of(scope, c.type) else is WitError { return t }
+                cases.push(WitCase { .name = c.name, .type = t })
+            }
+            WitVariant {
+                .name = name,
+                .owner = owner,
+                .cases = cases,
+            }
+        }
+        is WitEnumDef     -> WitEnum {
+            .name = name,
+            .cases = definition.cases.map((c) -> c.name).collect(),
+            .owner = owner,
+        }
+        is WitFlagsDef    -> WitFlags {
+            .name = name,
+            .owner = owner,
+            .flags = definition.flags.map((f) -> f.name).collect(),
+        }
+        is WitResourceDef -> WitResource { .name = name, .owner = owner }
+    }
+}
+
+// The type `written` designates in `scope`.
+type_of :: fn(r: Resolution, scope: InterfaceScope, written: WitTypeExpr) -> WitType | WitError {
+    return match written {
+        is WitScalar     -> written
+        is WitNameExpr   -> {
+            t :: r.resolve_name(scope, written.name, written.span) else return t
+            if is_resource(t) { WitHandle { .resource = t } } else { t }
+        }
+        is WitBorrowExpr -> {
+            resource :: written.resource
+            t :: r.resolve_name(scope, resource.name, resource.span) else return t
+            if !is_resource(t) {
+                return wit_error(
+                    resource.span,
+                    "`borrow` takes a resource, `${resource.name}` is none",
+                )
+            }
+            WitHandle { .resource = t, .is_borrow = true }
+        }
+        is WitListExpr   -> {
+            element :: r.type_of(scope, written.element) else return element
+            WitList { .element = element }
+        }
+        is WitOptionExpr -> {
+            value :: r.type_of(scope, written.value) else return value
+            WitOption { .value = value }
+        }
+        is WitResultExpr -> {
+            ok :: r.optional_type_of(scope, written.ok) else is WitError { return ok }
+            error :: r.optional_type_of(scope, written.error) else is WitError { return error }
+            WitResult { .ok = ok, .error = error }
+        }
+        is WitTupleExpr  -> {
+            elements: WitType[]: []
+            for e in written.elements {
+                t :: r.type_of(scope, e) else return t
+                elements.push(t)
+            }
+            WitTuple { .elements = elements }
+        }
+        is WitFutureExpr -> {
+            value :: r.optional_type_of(scope, written.value) else is WitError { return value }
+            WitFuture { .value = value }
+        }
+        is WitStreamExpr -> {
+            element :: written.element
+                else return wit_error(written.span, "a `stream` of nothing is not read yet")
+            t :: r.type_of(scope, element) else return t
+            WitStream { .element = t }
+        }
+    }
+}
+
+optional_type_of :: fn(
+    r: Resolution,
+    scope: InterfaceScope,
+    written: WitTypeExpr | null,
+) -> WitType | null | WitError {
+    if written == null {
+        return null
+    }
+    return r.type_of(scope, written)
+}
+
+// Whether `t` is a resource, through the aliases that name it.
+is_resource :: fn(t: WitType) -> bool {
+    at := t
+    for at is WitAlias {
+        at = at.target
+    }
+    return at is WitResource
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/testing"
+
+no_dependency :: fn(name: WitPackageName) -> WitPackage | WitError =
+    wit_error(WitSpan { .file = "" }, "no package `${wit_package_text(name)}`")
+
+read_alone :: fn(text: string) -> WitPackage {
+    source :: WitSource { .path = "test.wit", .text = text }
+    read :: read_wit_package([source], no_dependency) else panic(read.message())
+    return read
+}
+
+failure_of :: fn(text: string) -> string {
+    source :: WitSource { .path = "test.wit", .text = text }
+    read :: read_wit_package([source], no_dependency)
+        else return "${read.span.line}:${read.span.column}: ${read.message}"
+    return "no error"
+}
+
+@test
+test_wit_resolve_names_a_type_declared_below :: fn() -> void {
+    p :: read_alone("""
+        package a:b;
+        interface i {
+            record pair { left: size, right: size }
+            type size = u64;
+        }
+        """)
+    assert_eq(
+        wit_type_text(p.interfaces[0].types[0]),
+        "record:a:b/i.pair{left:type:a:b/i.size=u64,right:type:a:b/i.size=u64}",
+    )
+}
+
+@test
+test_wit_resolve_self_reference :: fn() -> void {
+    assert_eq(failure_of("""
+        package a:b;
+        interface i {
+            type x = list<x>;
+        }
+        """), "3:19: type `x` refers to itself")
+}
+
+@test
+test_wit_resolve_unknown_name :: fn() -> void {
+    assert_eq(failure_of("""
+        package a:b;
+        interface i {
+            f: func() -> missing;
+        }
+        """), "3:18: no type `missing` in `i`")
+}
+
+@test
+test_wit_resolve_resource_functions :: fn() -> void {
+    p :: read_alone("""
+        package a:b;
+        interface i {
+            resource file {
+                constructor(path: string);
+                size: func() -> u64;
+                open: static func(path: string) -> file;
+            }
+        }
+        """)
+    names :: p.interfaces[0].functions.map((f) -> "${f.name} ${wit_function_text(f.type)}").collect()
+    assert_eq(names.join("\n"), """
+        [constructor]file [path:string]->own<resource:a:b/i.file>
+        [method]file.size [self:borrow<resource:a:b/i.file>]->u64
+        [static]file.open [path:string]->own<resource:a:b/i.file>""")
+}
+
+@test
+test_wit_resolve_leaves_unstable_out :: fn() -> void {
+    p :: read_alone("""
+        package a:b;
+        interface i {
+            @unstable(feature = later)
+            f: func();
+            g: func();
+        }
+        @unstable(feature = later)
+        interface j {
+        }
+        """)
+    assert_eq(p.interfaces.len(), 1)
+    assert_eq(p.interfaces[0].functions.len(), 1)
+}

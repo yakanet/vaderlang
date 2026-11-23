@@ -1,0 +1,213 @@
+// vader/core/wit/syntax: the tree of what a `.wit` file writes.
+//
+// `reader.vader` reads a file into it, one production of the grammar of
+// `WIT.md` (component-model, `design/mvp`) per function. Names stay as they are
+// written: `resolve.vader` binds them. The tree keeps where each item starts,
+// which a diagnostic on the generated module points back to.
+
+module "vader/core/wit"
+
+// ---- the tree -------------------------------------------------------------
+
+/// Where something starts in a `.wit` file, lines and columns from 1.
+export WitSpan :: struct {
+    file: string
+    line: i32 = 1
+    column: i32 = 1
+}
+
+/// A `.wit` file that could not be read, or a name that does not resolve.
+export WitError :: struct {
+    message: string
+    span: WitSpan
+}
+
+WitError implements Error {
+    message :: fn(self) -> string = "${self.span.file}:${self.span.line}:${self.span.column}: ${self.message}"
+}
+
+/// The name of a package: `wasi:filesystem@0.3.0`.
+export WitPackageName :: struct {
+    /// `wasi`; nested namespaces are joined with `:`.
+    namespace: string
+    name: string
+    /// Empty when the package names no version.
+    version: string = ""
+}
+
+/// The canonical text of `p`, as an import writes it.
+///
+/// @param p  the package name.
+/// @example
+///   wit_package_text(WitPackageName { .namespace = "wasi", .name = "cli", .version = "0.3.0" })
+///   // "wasi:cli@0.3.0"
+export wit_package_text :: fn(p: WitPackageName) -> string {
+    if p.version == "" {
+        return "${p.namespace}:${p.name}"
+    }
+    return "${p.namespace}:${p.name}@${p.version}"
+}
+
+// The gates in front of an item: `@since(version = 0.3.0)`,
+// `@unstable(feature = name)`, `@deprecated(version = 0.3.0)`.
+WitGate :: struct {
+    since: string = ""
+    unstable: string = ""
+    deprecated: string = ""
+}
+
+// What one file writes.
+WitDocument :: struct {
+    file: string
+    package: WitPackageName | null = null
+    interfaces: WitInterfaceDecl[] = []
+}
+
+WitInterfaceDecl :: struct {
+    name: string
+    doc: string
+    gate: WitGate
+    span: WitSpan
+    uses: WitUseDecl[] = []
+    types: WitTypeDecl[] = []
+    functions: WitFunctionDecl[] = []
+}
+
+// `use path.{a, b as c};`.
+WitUseDecl :: struct {
+    path: WitUsePath
+    names: WitUseName[]
+    gate: WitGate
+    span: WitSpan
+}
+
+// The interface a `use` reads from: one of the same package when `package` is
+// null.
+WitUsePath :: struct {
+    package: WitPackageName | null
+    interface: string
+}
+
+WitUseName :: struct {
+    name: string
+    /// The name it takes here, `name` itself without `as`.
+    local: string
+    span: WitSpan
+}
+
+WitTypeDecl :: struct {
+    name: string
+    doc: string
+    gate: WitGate
+    span: WitSpan
+    definition: WitDefinition
+}
+
+WitDefinition :: WitAliasDef
+               | WitRecordDef
+               | WitVariantDef
+               | WitEnumDef
+               | WitFlagsDef
+               | WitResourceDef
+
+// `type name = ty;`.
+WitAliasDef :: struct {
+    target: WitTypeExpr
+}
+
+WitRecordDef :: struct {
+    fields: WitMemberDecl[]
+}
+
+WitVariantDef :: struct {
+    cases: WitMemberDecl[]
+}
+
+WitEnumDef :: struct {
+    cases: WitMemberDecl[]
+}
+
+WitFlagsDef :: struct {
+    flags: WitMemberDecl[]
+}
+
+WitResourceDef :: struct {
+    methods: WitFunctionDecl[] = []
+}
+
+// A field of a record, a case of a variant or an enum, a flag: `type` null where
+// there is none.
+WitMemberDecl :: struct {
+    name: string
+    type: WitTypeExpr | null = null
+    doc: string
+    span: WitSpan
+}
+
+/// How a function is called: alone, on a resource value (`self` first), on the
+/// resource itself, or to make one.
+export WitFunctionKind :: enum { Freestanding, Method, Static, Constructor }
+
+WitFunctionDecl :: struct {
+    name: string
+    kind: WitFunctionKind
+    is_async: bool = false
+    params: WitParamDecl[]
+    result: WitTypeExpr | null = null
+    doc: string
+    gate: WitGate
+    span: WitSpan
+}
+
+WitParamDecl :: struct {
+    name: string
+    type: WitTypeExpr
+}
+
+// A type as it is written.
+WitTypeExpr :: WitScalar
+             | WitNameExpr
+             | WitListExpr
+             | WitOptionExpr
+             | WitResultExpr
+             | WitTupleExpr
+             | WitFutureExpr
+             | WitStreamExpr
+             | WitBorrowExpr
+
+// A name the interface declares or `use`s.
+WitNameExpr :: struct {
+    name: string
+    span: WitSpan
+}
+
+WitListExpr :: struct {
+    element: WitTypeExpr
+}
+
+WitOptionExpr :: struct {
+    value: WitTypeExpr
+}
+
+WitResultExpr :: struct {
+    ok: WitTypeExpr | null = null
+    error: WitTypeExpr | null = null
+}
+
+WitTupleExpr :: struct {
+    elements: WitTypeExpr[]
+}
+
+WitFutureExpr :: struct {
+    value: WitTypeExpr | null = null
+}
+
+WitStreamExpr :: struct {
+    element: WitTypeExpr | null = null
+    span: WitSpan
+}
+
+// `borrow<resource>`.
+WitBorrowExpr :: struct {
+    resource: WitNameExpr
+}

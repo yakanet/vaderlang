@@ -1,0 +1,517 @@
+// vader/core/wit/reader: a `.wit` file read into the tree of `syntax.vader`.
+//
+// One production of the grammar of `WIT.md` per function. `world`s are read
+// past, since a build imports interfaces, not worlds; `map` and a list of fixed
+// length are refused where they are written.
+
+module "vader/core/wit"
+
+import "std/collections"
+import "std/string"
+
+// Read the `.wit` file `file`, whose text is `text`.
+read_wit_document :: fn(text: string, file: string) -> WitDocument | WitError {
+    p :: WitParser { .text = text, .file = file }
+    out :: WitDocument { .file = file }
+    p.skip_space()
+    if p.at_keyword("package") {
+        package :: p.package_decl() else return package
+        out.package = package
+    }
+    for !p.at_end() {
+        doc :: p.take_doc()
+        gate :: p.gate() else return gate
+        span :: p.span()
+        match p.word() {
+            "interface" -> {
+                interface :: p.interface_body(doc, gate, span) else return interface
+                out.interfaces.push(interface)
+            }
+            "world"     -> {
+                name :: p.identifier() else return name
+                body :: p.skip_braces() else return body
+            }
+            // A top-level `use` names an interface for the worlds of the file.
+            "use"       -> {
+                used :: p.skip_past(';') else return used
+            }
+            _           -> {
+                return wit_error(span, "expected `interface`, `world` or `use`")
+            }
+        }
+    }
+    return out
+}
+
+// The body of `interface name { ... }`, past the keyword.
+interface_body :: fn(
+    p: WitParser,
+    doc: string,
+    gate: WitGate,
+    span: WitSpan,
+) -> WitInterfaceDecl | WitError {
+    name :: p.identifier() else return name
+    out :: WitInterfaceDecl {
+        .name = name,
+        .doc = doc,
+        .gate = gate,
+        .span = span,
+    }
+    opening :: p.expect('{') else return opening
+    for !p.skip('}') {
+        if p.at_end() {
+            return p.fail_here("expected `}`")
+        }
+        item_doc :: p.take_doc()
+        item_gate :: p.gate() else return item_gate
+        item_span :: p.span()
+        if p.at_keyword("use") {
+            p.word()
+            used :: p.use_decl(item_gate, item_span) else return used
+            out.uses.push(used)
+        } else if p.at_type_keyword() {
+            declared :: p.type_decl(item_doc, item_gate, item_span) else return declared
+            out.types.push(declared)
+        } else {
+            function :: p.function_decl(item_doc, item_gate, item_span) else return function
+            out.functions.push(function)
+        }
+    }
+    return out
+}
+
+at_type_keyword :: fn(p: WitParser) -> bool = match p.word_here() {
+    "type" | "record" | "variant" | "enum" | "flags" | "resource" -> true
+    _ -> false
+}
+
+// `use path.{a, b as c};`, past `use`.
+use_decl :: fn(p: WitParser, gate: WitGate, span: WitSpan) -> WitUseDecl | WitError {
+    path :: p.use_path() else return path
+    dot :: p.expect('.') else return dot
+    opening :: p.expect('{') else return opening
+    names: WitUseName[]: []
+    for !p.skip('}') {
+        name_span :: p.span()
+        name :: p.identifier() else return name
+        local: string = name
+        if p.at_keyword("as") {
+            p.word()
+            alias :: p.identifier() else return alias
+            local = alias
+        }
+        names.push(WitUseName { .name = name, .local = local, .span = name_span })
+        if !p.skip(',') {
+            closing :: p.expect('}') else return closing
+            break
+        }
+    }
+    end :: p.expect(';') else return end
+    return WitUseDecl {
+        .path = path,
+        .names = names,
+        .gate = gate,
+        .span = span,
+    }
+}
+
+// An interface of this package, `name`, or of another, `ns:package/name@version`.
+use_path :: fn(p: WitParser) -> WitUsePath | WitError {
+    if p.peek_word_end() != ':' {
+        interface :: p.identifier() else return interface
+        return WitUsePath { .package = null, .interface = interface }
+    }
+    package :: p.namespaced_name() else return package
+    slash :: p.expect('/') else return slash
+    interface :: p.identifier() else return interface
+    if p.skip('@') {
+        version :: p.version() else return version
+        package.version = version
+    }
+    return WitUsePath { .package = package, .interface = interface }
+}
+
+// The byte right after the word at the cursor.
+peek_word_end :: fn(p: WitParser) -> u8 = p.peek_at(p.word_here().byte_len())
+
+// A `type`, `record`, `variant`, `enum`, `flags` or `resource`.
+type_decl :: fn(p: WitParser, doc: string, gate: WitGate, span: WitSpan) -> WitTypeDecl | WitError {
+    keyword :: p.word()
+    name :: p.identifier() else return name
+    definition :: p.definition(keyword) else return definition
+    return WitTypeDecl {
+        .name = name,
+        .doc = doc,
+        .gate = gate,
+        .span = span,
+        .definition = definition,
+    }
+}
+
+definition :: fn(p: WitParser, keyword: string) -> WitDefinition | WitError {
+    if keyword == "type" {
+        equals :: p.expect('=') else return equals
+        target :: p.type_expr() else return target
+        end :: p.expect(';') else return end
+        return WitAliasDef { .target = target }
+    }
+    if keyword == "resource" {
+        return p.resource_body()
+    }
+    members :: p.members(keyword) else return members
+    return match keyword {
+        "record"  -> WitRecordDef { .fields = members }
+        "variant" -> WitVariantDef { .cases = members }
+        "enum"    -> WitEnumDef { .cases = members }
+        _         -> WitFlagsDef { .flags = members }
+    }
+}
+
+// `{ a: ty, ... }` for a record, `{ a, b(ty), ... }` for a variant, `{ a, ... }`
+// for an enum or flags.
+members :: fn(p: WitParser, keyword: string) -> WitMemberDecl[] | WitError {
+    opening :: p.expect('{') else return opening
+    out: WitMemberDecl[]: []
+    for !p.skip('}') {
+        doc :: p.take_doc()
+        span :: p.span()
+        name :: p.identifier() else return name
+        member :: WitMemberDecl { .name = name, .doc = doc, .span = span }
+        if keyword == "record" {
+            colon :: p.expect(':') else return colon
+            field :: p.type_expr() else return field
+            member.type = field
+        } else if keyword == "variant" && p.skip('(') {
+            payload :: p.type_expr() else return payload
+            closing :: p.expect(')') else return closing
+            member.type = payload
+        }
+        out.push(member)
+        if !p.skip(',') {
+            end :: p.expect('}') else return end
+            break
+        }
+    }
+    return out
+}
+
+// `;` or `{ methods }`, past the name of a resource.
+resource_body :: fn(p: WitParser) -> WitResourceDef | WitError {
+    out :: WitResourceDef {}
+    if p.skip(';') {
+        return out
+    }
+    opening :: p.expect('{') else return opening
+    for !p.skip('}') {
+        doc :: p.take_doc()
+        gate :: p.gate() else return gate
+        span :: p.span()
+        if p.at_keyword("constructor") {
+            p.word()
+            params :: p.params() else return params
+            end :: p.expect(';') else return end
+            constructor :: WitFunctionDecl {
+                .name = "constructor",
+                .kind = .Constructor,
+                .params = params,
+                .doc = doc,
+                .gate = gate,
+                .span = span,
+            }
+            out.methods.push(constructor)
+        } else {
+            method :: p.function_decl(doc, gate, span) else return method
+            if method.kind == .Freestanding {
+                method.kind = .Method
+            }
+            out.methods.push(method)
+        }
+    }
+    return out
+}
+
+// `name: static? async? func(params) -> ty;`.
+function_decl :: fn(
+    p: WitParser,
+    doc: string,
+    gate: WitGate,
+    span: WitSpan,
+) -> WitFunctionDecl | WitError {
+    name :: p.identifier() else return name
+    colon :: p.expect(':') else return colon
+    kind: WitFunctionKind = .Freestanding
+    if p.at_keyword("static") {
+        p.word()
+        kind = .Static
+    }
+    is_async :: p.at_keyword("async")
+    if is_async {
+        p.word()
+    }
+    if !p.at_keyword("func") {
+        return p.fail_here("expected `func`")
+    }
+    p.word()
+    params :: p.params() else return params
+    out :: WitFunctionDecl {
+        .name = name,
+        .kind = kind,
+        .is_async = is_async,
+        .params = params,
+        .doc = doc,
+        .gate = gate,
+        .span = span,
+    }
+    if p.skip_arrow() {
+        result :: p.type_expr() else return result
+        out.result = result
+    }
+    end :: p.expect(';') else return end
+    return out
+}
+
+// `(name: ty, ...)`.
+params :: fn(p: WitParser) -> WitParamDecl[] | WitError {
+    opening :: p.expect('(') else return opening
+    out: WitParamDecl[]: []
+    for !p.skip(')') {
+        name :: p.identifier() else return name
+        colon :: p.expect(':') else return colon
+        t :: p.type_expr() else return t
+        out.push(WitParamDecl { .name = name, .type = t })
+        if !p.skip(',') {
+            closing :: p.expect(')') else return closing
+            break
+        }
+    }
+    return out
+}
+
+// A type, as `ty` of the grammar writes it.
+type_expr :: fn(p: WitParser) -> WitTypeExpr | WitError {
+    span :: p.span()
+    written :: p.word_here()
+    if written.starts_with("%") {
+        return p.named_expr(span)
+    }
+    scalar :: wit_scalar_named(written)
+    if scalar != null {
+        p.word()
+        return scalar
+    }
+    return match written {
+        "list"   -> p.list_expr()
+        "option" -> p.option_expr()
+        "result" -> p.result_expr()
+        "tuple"  -> p.tuple_expr()
+        "future" -> p.future_expr()
+        "stream" -> p.stream_expr(span)
+        "borrow" -> p.borrow_expr(span)
+        "own"    -> p.own_expr(span)
+        "map"    -> wit_error(span, "`map` is not read yet")
+        _        -> p.named_expr(span)
+    }
+}
+
+named_expr :: fn(p: WitParser, span: WitSpan) -> WitTypeExpr | WitError {
+    name :: p.identifier() else return name
+    return WitNameExpr { .name = name, .span = span }
+}
+
+// `<ty>` past a type constructor.
+argument :: fn(p: WitParser) -> WitTypeExpr | WitError {
+    out :: p.optional_argument() else is null {
+        return p.fail_here("expected `<`")
+    } else {
+        return out
+    }
+    return out
+}
+
+// `<ty>` past a type constructor, null when none follows.
+optional_argument :: fn(p: WitParser) -> WitTypeExpr | null | WitError {
+    p.word()
+    if !p.skip('<') {
+        return null
+    }
+    out :: p.type_expr() else return out
+    closing :: p.expect('>') else return closing
+    return out
+}
+
+list_expr :: fn(p: WitParser) -> WitTypeExpr | WitError {
+    p.word()
+    opening :: p.expect('<') else return opening
+    element :: p.type_expr() else return element
+    if p.peek() == ',' {
+        return p.fail_here("a list of fixed length is not read yet")
+    }
+    closing :: p.expect('>') else return closing
+    return WitListExpr { .element = element }
+}
+
+option_expr :: fn(p: WitParser) -> WitTypeExpr | WitError {
+    value :: p.argument() else return value
+    return WitOptionExpr { .value = value }
+}
+
+// `result`, `result<ok>`, `result<_, error>` or `result<ok, error>`.
+result_expr :: fn(p: WitParser) -> WitTypeExpr | WitError {
+    p.word()
+    out :: WitResultExpr {}
+    if !p.skip('<') {
+        return out
+    }
+    if p.peek() == '_' {
+        p.advance()
+        p.skip_space()
+    } else {
+        ok :: p.type_expr() else return ok
+        out.ok = ok
+    }
+    if p.skip(',') {
+        error :: p.type_expr() else return error
+        out.error = error
+    }
+    closing :: p.expect('>') else return closing
+    return out
+}
+
+tuple_expr :: fn(p: WitParser) -> WitTypeExpr | WitError {
+    p.word()
+    opening :: p.expect('<') else return opening
+    elements: WitTypeExpr[]: []
+    for !p.skip('>') {
+        element :: p.type_expr() else return element
+        elements.push(element)
+        if !p.skip(',') {
+            closing :: p.expect('>') else return closing
+            break
+        }
+    }
+    return WitTupleExpr { .elements = elements }
+}
+
+future_expr :: fn(p: WitParser) -> WitTypeExpr | WitError {
+    value :: p.optional_argument() else is WitError { return value }
+    return WitFutureExpr { .value = value }
+}
+
+stream_expr :: fn(p: WitParser, span: WitSpan) -> WitTypeExpr | WitError {
+    element :: p.optional_argument() else is WitError { return element }
+    return WitStreamExpr { .element = element, .span = span }
+}
+
+borrow_expr :: fn(p: WitParser, span: WitSpan) -> WitTypeExpr | WitError {
+    resource :: p.resource_argument(span, "borrow") else return resource
+    return WitBorrowExpr { .resource = resource }
+}
+
+// `own<resource>`, which a bare resource name writes as well.
+own_expr :: fn(p: WitParser, span: WitSpan) -> WitTypeExpr | WitError = p.resource_argument(
+    span,
+    "own",
+)
+
+// The resource `keyword<resource>` names.
+resource_argument :: fn(p: WitParser, span: WitSpan, keyword: string) -> WitNameExpr | WitError {
+    resource :: p.argument() else return resource
+    if resource !is WitNameExpr {
+        return wit_error(span, "`${keyword}` takes a resource")
+    }
+    return resource
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/testing"
+
+read_or_panic :: fn(text: string) -> WitDocument {
+    read :: read_wit_document(text, "test.wit") else panic(read.message())
+    return read
+}
+
+@test
+test_wit_package_name_takes_its_version :: fn() -> void {
+    d :: read_or_panic("package wasi:filesystem@0.3.0-rc-2026-01-06;")
+    name :: d.package else panic("a package")
+    assert_eq(wit_package_text(name), "wasi:filesystem@0.3.0-rc-2026-01-06")
+}
+
+@test
+test_wit_interface_items_keep_their_documentation :: fn() -> void {
+    d :: read_or_panic("""
+        package a:b;
+        interface c {
+            /// The size.
+            @since(version = 0.3.0)
+            type size = u64;
+            /// Make one.
+            make: func(%type: size) -> result<size, string>;
+        }
+        """)
+    c :: d.interfaces[0]
+    assert_eq(c.types[0].doc, "The size.")
+    assert_eq(c.types[0].gate.since, "0.3.0")
+    assert_eq(c.functions[0].doc, "Make one.")
+    assert_eq(c.functions[0].params[0].name, "type")
+}
+
+@test
+test_wit_resource_methods_take_their_kind :: fn() -> void {
+    d :: read_or_panic("""
+        package a:b;
+        interface c {
+            resource r {
+                constructor(x: u32);
+                get: func() -> u32;
+                make: static async func() -> r;
+            }
+        }
+        """)
+    r :: d.interfaces[0].types[0].definition
+    if r !is WitResourceDef {
+        panic("a resource")
+    }
+    assert(r.methods[0].kind == .Constructor, "a constructor")
+    assert(r.methods[1].kind == .Method, "a method")
+    assert(r.methods[2].kind == .Static && r.methods[2].is_async, "an async static")
+}
+
+@test
+test_wit_use_reads_another_package :: fn() -> void {
+    d :: read_or_panic("""
+        package a:b;
+        interface c {
+            use wasi:clocks/system-clock@0.3.0.{instant, duration as span};
+        }
+        """)
+    used :: d.interfaces[0].uses[0]
+    package :: used.path.package else panic("another package")
+    assert_eq(wit_package_text(package), "wasi:clocks@0.3.0")
+    assert_eq(used.path.interface, "system-clock")
+    assert_eq(used.names[1].local, "span")
+}
+
+@test
+test_wit_world_is_read_past :: fn() -> void {
+    d :: read_or_panic("""
+        package a:b;
+        world w { import c; export d: interface { f: func(); } }
+        interface c {}
+        """)
+    assert_eq(d.interfaces.len(), 1)
+}
+
+@test
+test_wit_error_points_at_its_line :: fn() -> void {
+    read :: read_wit_document(
+        "package a:b;\ninterface c {\n  f: func(x: map<u8, u8>);\n}\n",
+        "x.wit",
+    )
+    if read !is WitError {
+        panic("`map` refused")
+    }
+    assert_eq(read.span.line, 3)
+}

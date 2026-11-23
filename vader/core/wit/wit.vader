@@ -4,7 +4,9 @@
 // `WasmInterface` (`vader/midir/wit.vader`), where the Vader types are still
 // whole: the bytecode keeps an enum as an integer, without the names of its
 // cases. The WASM emitter writes the component's import from it, and lowers each
-// call through the canonical ABI.
+// call through the canonical ABI. A `.wit` file read by `reader.vader` and
+// resolved by `resolve.vader` gives the same types, and the named ones the
+// emitter does not cross yet.
 //
 // The `.virt` text holds it as one token with neither space nor parenthesis,
 // which delimit the attributes and the signature of an import line, close to how
@@ -19,7 +21,25 @@ import "std/string"
 import "std/string_builder"
 
 /// A WIT value type.
-export WitType :: WitScalar | WitEnum | WitResult | WitList | WitStream | WitFuture | WitUnsupported
+///
+/// A named type (`WitRecord`, `WitVariant`, `WitEnum`, `WitFlags`, `WitResource`,
+/// `WitAlias`) carries the interface that declares it: two of one name in two
+/// interfaces are two types.
+export WitType :: WitScalar
+         | WitEnum
+         | WitResult
+         | WitList
+         | WitStream
+         | WitFuture
+         | WitRecord
+         | WitVariant
+         | WitFlags
+         | WitOption
+         | WitTuple
+         | WitResource
+         | WitHandle
+         | WitAlias
+         | WitUnsupported
 
 /// The WIT primitives.
 export WitScalar :: enum {
@@ -38,11 +58,93 @@ export WitScalar :: enum {
     String,
 }
 
+/// A type an interface declares under a name, or brings in by a `use`.
+export WitNamedType :: WitRecord | WitVariant | WitEnum | WitFlags | WitResource | WitAlias
+
+/// The name `t` is declared under, in kebab case.
+///
+/// @param t  the named type.
+export wit_type_name :: fn(t: WitNamedType) -> string = match t {
+    is WitRecord   -> t.name
+    is WitVariant  -> t.name
+    is WitEnum     -> t.name
+    is WitFlags    -> t.name
+    is WitResource -> t.name
+    is WitAlias    -> t.name
+}
+
+/// The interface a named type is declared in: `wasi:clocks/types@0.3.0`.
+export WitOwner :: struct {
+    package: WitPackageName
+    interface: string
+}
+
 /// A WIT `enum`: a value is the position of its case.
 export WitEnum :: struct {
     /// The name the interface exports the type under, in kebab case.
     name: string
     cases: string[]
+    /// Null when the type comes from a Vader declaration rather than a `.wit` file.
+    owner: WitOwner | null = null
+}
+
+/// A WIT `record`.
+export WitRecord :: struct {
+    name: string
+    owner: WitOwner
+    fields: WitParam[]
+}
+
+/// A WIT `variant`.
+export WitVariant :: struct {
+    name: string
+    owner: WitOwner
+    cases: WitCase[]
+}
+
+/// A case of a `variant`.
+export WitCase :: struct {
+    name: string
+    /// What the case carries, null for nothing.
+    type: WitType | null = null
+}
+
+/// A WIT `flags`: a value is a set of its flags.
+export WitFlags :: struct {
+    name: string
+    owner: WitOwner
+    flags: string[]
+}
+
+/// A WIT `option<value>`.
+export WitOption :: struct {
+    value: WitType
+}
+
+/// A WIT `tuple<elements>`.
+export WitTuple :: struct {
+    elements: WitType[]
+}
+
+/// A WIT `resource`: the type its handles designate, never a value itself.
+export WitResource :: struct {
+    name: string
+    owner: WitOwner
+}
+
+/// A handle to a resource: `own<r>`, which a bare resource name writes as well,
+/// or `borrow<r>`.
+export WitHandle :: struct {
+    /// The resource, or an alias of it.
+    resource: WitType
+    is_borrow: bool = false
+}
+
+/// A name for another type: `type size = u64`, or the name a `use` brings in.
+export WitAlias :: struct {
+    name: string
+    owner: WitOwner
+    target: WitType
 }
 
 /// A WIT `result<ok, error>`, a side null for `_`.
@@ -164,7 +266,7 @@ export wit_type_text :: fn(t: WitType) -> string {
 write_wit :: fn(sb: StringBuilder, t: WitType) -> void {
     match t {
         is WitScalar      -> sb.append(wit_scalar_name(t))
-        is WitEnum        -> sb.append("enum:${t.name}{${t.cases.join(",")}}")
+        is WitEnum        -> sb.append("enum:${enum_name_text(t)}{${t.cases.join(",")}}")
         is WitResult      -> {
             sb.append("result<")
             sb.write_wit_or_none(t.ok)
@@ -187,9 +289,55 @@ write_wit :: fn(sb: StringBuilder, t: WitType) -> void {
             sb.write_wit_or_none(t.value)
             sb.append(">")
         }
+        is WitRecord      -> {
+            fields :: t.fields.map((f) -> "${f.name}:${wit_type_text(f.type)}").collect()
+            sb.append("record:${named_text(t.owner, t.name)}{${fields.join(",")}}")
+        }
+        is WitVariant     -> {
+            cases :: t.cases.map(case_text).collect()
+            sb.append("variant:${named_text(t.owner, t.name)}{${cases.join(",")}}")
+        }
+        is WitFlags       -> sb.append("flags:${named_text(t.owner, t.name)}{${t.flags.join(",")}}")
+        is WitOption      -> sb.append("option<${wit_type_text(t.value)}>")
+        is WitTuple       -> sb.append(
+            "tuple<${t.elements.map(wit_type_text).collect().join(",")}>",
+        )
+        is WitResource    -> sb.append("resource:${named_text(t.owner, t.name)}")
+        is WitHandle      -> sb.append("${handle_keyword(t)}<${wit_type_text(t.resource)}>")
+        is WitAlias       -> sb.append(
+            "type:${named_text(t.owner, t.name)}=${wit_type_text(t.target)}",
+        )
         is WitUnsupported -> sb.append("?")
     }
 }
+
+/// The name of the interface `owner`, as a `use` writes it: `wasi:clocks/types@0.3.0`.
+///
+/// @param owner  the interface.
+export wit_owner_text :: fn(owner: WitOwner) -> string {
+    package :: owner.package
+    path :: "${package.namespace}:${package.name}/${owner.interface}"
+    if package.version == "" {
+        return path
+    }
+    return "${path}@${package.version}"
+}
+
+// The name of `e`, behind its interface when it comes from a `.wit` file.
+enum_name_text :: fn(e: WitEnum) -> string {
+    owner :: e.owner else return e.name
+    return named_text(owner, e.name)
+}
+
+// A named type behind the interface that declares it.
+named_text :: fn(owner: WitOwner, name: string) -> string = "${wit_owner_text(owner)}.${name}"
+
+case_text :: fn(c: WitCase) -> string {
+    payload :: c.type else return c.name
+    return "${c.name}:${wit_type_text(payload)}"
+}
+
+handle_keyword :: fn(h: WitHandle) -> string = if h.is_borrow { "borrow" } else { "own" }
 
 write_wit_or_none :: fn(sb: StringBuilder, t: WitType | null) -> void {
     if t == null {

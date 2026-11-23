@@ -51,7 +51,20 @@ flat_types_of :: fn(t: WitType) -> WasmValType[] | WasmUnsupported = match t {
     is WitList                         -> [.I32, .I32]
     is WitResult                       -> flat_variant_types([t.ok, t.error])
     is WitUnsupported                  -> WasmUnsupported { .reason = t.reason }
+    is WitNotLowered                   -> WasmUnsupported {
+        .reason = "no canonical ABI yet for `${wit_type_text(t)}`",
+    }
 }
+
+// The WIT types read from a `.wit` file that the canonical ABI does not cross yet.
+WitNotLowered :: WitRecord
+               | WitVariant
+               | WitFlags
+               | WitOption
+               | WitTuple
+               | WitResource
+               | WitHandle
+               | WitAlias
 
 flat_scalar_types :: fn(s: WitScalar) -> WasmValType[] = match s {
     .Bool | .S8 | .U8 | .S16 | .U16 | .S32 | .U32 | .Char -> [.I32]
@@ -99,7 +112,8 @@ size_of :: fn(t: WitType) -> i32 = match t {
     is WitStream | WitFuture -> 4
     is WitList               -> 8
     is WitResult             -> variant_size([t.ok, t.error])
-    is WitUnsupported        -> no_layout(t)
+    is WitUnsupported        -> no_layout(t.reason)
+    is WitNotLowered         -> no_layout(wit_type_text(t))
 }
 
 // The alignment of a value of `t` in the memory.
@@ -108,11 +122,14 @@ alignment_of :: fn(t: WitType) -> i32 = match t {
     is WitEnum                         -> case_bytes(t.cases.len())
     is WitStream | WitFuture | WitList -> 4
     is WitResult                       -> variant_alignment([t.ok, t.error])
-    is WitUnsupported                  -> no_layout(t)
+    is WitUnsupported                  -> no_layout(t.reason)
+    is WitNotLowered                   -> no_layout(wit_type_text(t))
 }
 
-no_layout :: fn(t: WitUnsupported) -> i32 =
-    panic("wasm: no layout for a type without WIT form: ${t.reason}")
+// `flat_types_of` turned the type down before any layout is asked of it.
+no_layout :: fn(what: string) -> i32 = panic(
+    "wasm: no layout for a type without canonical form: ${what}",
+)
 
 scalar_size :: fn(s: WitScalar) -> i32 {
     if s == .String {
@@ -171,7 +188,7 @@ holds_room :: fn(t: WitType | null) -> bool {
         is WitScalar -> t == .String
         is WitList -> true
         is WitResult -> holds_room(t.ok) || holds_room(t.error)
-        is WitEnum | WitStream | WitFuture | WitUnsupported -> false
+        is WitEnum | WitStream | WitFuture | WitUnsupported | WitNotLowered -> false
     }
 }
 

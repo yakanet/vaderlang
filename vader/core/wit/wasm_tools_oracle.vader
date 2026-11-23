@@ -1,0 +1,301 @@
+// vader/core/wit/wasm_tools_oracle: the WASI packages read here, against
+// `wasm-tools component wit --json`.
+//
+// `tests/fixtures/wit/` holds the JSON `wasm-tools` writes for each package of
+// `runtime/wasi/`, its documentation taken out. Each side is rendered as one line
+// per named type and per function, a type written in full the way
+// `wit_type_text` writes it; the two sets of lines must be equal. The tests read
+// both folders from the root of the repository.
+
+module "vader/core/wit"
+
+// ---- tests ----------------------------------------------------------------
+
+import "json"
+import "std/abort"
+import "std/collections"
+import "std/fs"
+import "std/iter"
+import "std/sort"
+import "std/string"
+import "std/testing"
+
+WASI_ROOT :: "runtime/wasi"
+
+// The WASI package `name`, read from the folder the toolchain ships it in.
+wasi_package :: fn(name: WitPackageName) -> WitPackage | WitError {
+    folder :: "${WASI_ROOT}/${name.name}@${name.version}"
+    files :: read_dir(folder) else panic("cannot list ${folder}")
+    sources: WitSource[]: []
+    for file in sort(files, compare_ascending) {
+        if !file.ends_with(".wit") {
+            continue
+        }
+        path :: "${folder}/${file}"
+        text :: read_file_string(path) else panic("cannot read ${path}")
+        sources.push(WitSource { .path = path, .text = text })
+    }
+    return read_wit_package(sources, wasi_package)
+}
+
+// One line per named type and per function of each interface of `p`.
+package_lines :: fn(p: WitPackage) -> string[] {
+    out: string[]: []
+    for i in p.interfaces {
+        owner :: wit_owner_text(i.owner)
+        for t in i.types {
+            out.push("${owner}: ${wit_type_text(t)}")
+        }
+        for f in i.functions {
+            out.push("${owner}: ${f.name} ${kind_text(f)} ${wit_function_text(f.type)}")
+        }
+    }
+    return out
+}
+
+kind_text :: fn(f: WitNamedFunction) -> string {
+    kind :: match f.kind {
+        .Freestanding -> "freestanding"
+        .Method       -> "method"
+        .Static       -> "static"
+        .Constructor  -> "constructor"
+    }
+    prefix :: if f.is_async { "async-" } else { "" }
+    resource :: f.resource else return "${prefix}${kind}"
+    return "${prefix}${kind}:${wit_type_text(resource)}"
+}
+
+// The JSON `wasm-tools` writes for a package and the packages it uses.
+JsonPackages :: struct {
+    types: JsonValue[]
+    interfaces: JsonValue[]
+    packages: JsonValue[]
+}
+
+// The same lines, read from the JSON of `wasm-tools` for the package `name`.
+json_lines :: fn(j: JsonPackages, name: string) -> string[] {
+    out: string[]: []
+    for i in j.interfaces {
+        if j.package_name_of(i) != name {
+            continue
+        }
+        owner :: json_owner_text(j, i)
+        types :: member(i, "types") else panic("an interface without types")
+        if types is JsonObject {
+            for index in types.entries.values() {
+                out.push("${owner}: ${json_type_text(j, index)}")
+            }
+        }
+        functions :: member(i, "functions") else panic("an interface without functions")
+        if functions is JsonObject {
+            for f in functions.entries.values() {
+                out.push("${owner}: ${json_function_text(j, f)}")
+            }
+        }
+    }
+    return out
+}
+
+// The name of the package `interface` belongs to: `wasi:clocks@0.3.0`.
+package_name_of :: fn(j: JsonPackages, interface: JsonValue) -> string {
+    package :: number_at(interface, ["package"]) else panic("an interface without package")
+    return string_at(j.packages[i64(package)], ["name"]) else panic("a package without name")
+}
+
+json_owner_text :: fn(j: JsonPackages, interface: JsonValue) -> string {
+    full :: j.package_name_of(interface)
+    name :: string_at(interface, ["name"]) else panic("an interface without name")
+    at :: full.index_of('@') else return "${full}/${name}"
+    return "${full.byte_slice(0, at)}/${name}${full.byte_slice(at, full.byte_len())}"
+}
+
+// A type the JSON refers to: a primitive by its name, any other by its index.
+json_type_text :: fn(j: JsonPackages, reference: JsonValue) -> string {
+    if reference is JsonString {
+        return reference.value
+    }
+    if reference !is JsonNumber {
+        return "_"
+    }
+    t :: j.types[i64(reference.value)]
+    kind :: member(t, "kind") else panic("a type without kind")
+    if kind is JsonString {
+        return "${kind.value}:${json_qualified_name(j, t)}"
+    }
+    entry :: sole_entry(kind)
+    key :: entry.key
+    value :: entry.value
+    if key == "type" {
+        return "type:${json_qualified_name(j, t)}=${json_type_text(j, value)}"
+    }
+    members :: members_key(key)
+    if members != null {
+        return "${key}:${json_qualified_name(j, t)}{${json_members(j, value, members)}}"
+    }
+    structure :: json_structure_text(j, key, value)
+    if string_member(t, "name") == null {
+        return structure
+    }
+    // `type x = tuple<...>` is one named type of kind `tuple` in the JSON, an
+    // alias of a tuple here.
+    return "type:${json_qualified_name(j, t)}=${structure}"
+}
+
+// The one entry of an object the JSON writes as `{"kind": value}`.
+JsonEntry :: struct {
+    key: string
+    value: JsonValue
+}
+
+sole_entry :: fn(object: JsonValue) -> JsonEntry {
+    if object !is JsonObject {
+        panic("expected an object of one entry")
+    }
+    key :: object.entries.keys().collect()[0]
+    value :: object.entries[key] else panic("unreachable")
+    return JsonEntry { .key = key, .value = value }
+}
+
+// Where a named type of kind `key` lists its members, null for a kind without.
+members_key :: fn(key: string) -> string | null = match key {
+    "record"           -> "fields"
+    "variant" | "enum" -> "cases"
+    "flags"            -> "flags"
+    _                  -> null
+}
+
+// An anonymous type of kind `key`.
+json_structure_text :: fn(j: JsonPackages, key: string, value: JsonValue) -> string {
+    return match key {
+        "list"   -> "list<${json_type_text(j, value)}>"
+        "option" -> "option<${json_type_text(j, value)}>"
+        "stream" -> "stream<${json_type_text(j, value)}>"
+        "future" -> "future<${json_type_text(j, value)}>"
+        "result" -> {
+            ok :: member(value, "ok") else JsonNull {}
+            error :: member(value, "err") else JsonNull {}
+            "result<${json_type_text(j, ok)},${json_type_text(j, error)}>"
+        }
+        "tuple"  -> {
+            elements :: items_at(value, ["types"]) else panic("a tuple without types")
+            "tuple<${elements.map((e) -> json_type_text(j, e)).collect().join(",")}>"
+        }
+        "handle" -> {
+            own :: member(value, "own")
+            if own != null {
+                "own<${json_type_text(j, own)}>"
+            } else {
+                "borrow<${json_type_text(j, member(value, "borrow") else JsonNull {})}>"
+            }
+        }
+        _        -> panic("a kind not read: ${key}")
+    }
+}
+
+json_qualified_name :: fn(j: JsonPackages, t: JsonValue) -> string {
+    name :: string_at(t, ["name"]) else panic("a named type without name")
+    interface :: number_at(t, ["owner", "interface"]) else panic("a named type without owner")
+    return "${json_owner_text(j, j.interfaces[i64(interface)])}.${name}"
+}
+
+// The members of a record, variant, enum or flags, `name:type` where they carry
+// one.
+json_members :: fn(j: JsonPackages, value: JsonValue, key: string) -> string {
+    members :: items_at(value, [key]) else panic("no `${key}`")
+    texts: string[]: []
+    for m in members {
+        name :: string_at(m, ["name"]) else panic("a member without name")
+        t :: member(m, "type")
+        if t == null || t is JsonNull {
+            texts.push(name)
+        } else {
+            texts.push("${name}:${json_type_text(j, t)}")
+        }
+    }
+    return texts.join(",")
+}
+
+json_function_text :: fn(j: JsonPackages, f: JsonValue) -> string {
+    name :: string_at(f, ["name"]) else panic("a function without name")
+    kind :: member(f, "kind") else panic("a function without kind")
+    kind_text :: json_kind_text(j, kind)
+    params :: items_at(f, ["params"]) else panic("a function without params")
+    texts :: params.map(
+        (p) -> "${string_member(p, "name") else ""}:${json_type_text(j, member(p, "type") else JsonNull {})}",
+    ).collect()
+    result :: member(f, "result")
+    signature :: "[${texts.join(",")}]"
+    if result == null || result is JsonNull {
+        return "${name} ${kind_text} ${signature}"
+    }
+    return "${name} ${kind_text} ${signature}->${json_type_text(j, result)}"
+}
+
+// `freestanding`, or `method:` and the resource of a method.
+json_kind_text :: fn(j: JsonPackages, kind: JsonValue) -> string {
+    if kind is JsonString {
+        return kind.value
+    }
+    entry :: sole_entry(kind)
+    return "${entry.key}:${json_type_text(j, entry.value)}"
+}
+
+read_json_packages :: fn(path: string) -> JsonPackages {
+    text :: read_file_string(path) else panic("cannot read ${path}")
+    root :: parse(text) else panic("${path} is no JSON")
+    return JsonPackages {
+        .types = items_at(root, ["types"]) else panic("no types"),
+        .interfaces = items_at(root, ["interfaces"]) else panic("no interfaces"),
+        .packages = items_at(root, ["packages"]) else panic("no packages"),
+    }
+}
+
+// The lines of one side missing from the other, sorted.
+lines_missing :: fn(from: string[], within: string[]) -> string {
+    known :: Set<string> {}
+    known.add_all(within)
+    missing :: from.filter((l) -> l !in known).collect()
+    return sort(missing, compare_ascending).join("\n")
+}
+
+agrees_with_wasm_tools :: fn(package: string) -> void {
+    name :: WitPackageName {
+        .namespace = "wasi",
+        .name = package,
+        .version = "0.3.0",
+    }
+    read :: wasi_package(name) else panic(read.message())
+    ours :: package_lines(read)
+    theirs :: json_lines(
+        read_json_packages("tests/fixtures/wit/${package}@0.3.0.json"),
+        wit_package_text(name),
+    )
+    assert(theirs.len() > 0, "the JSON of `${package}` holds no line")
+    assert_eq(lines_missing(theirs, ours), "")
+    assert_eq(lines_missing(ours, theirs), "")
+}
+
+@test
+test_wit_resolve_wasi_clocks :: fn() -> void {
+    agrees_with_wasm_tools("clocks")
+}
+
+@test
+test_wit_resolve_wasi_random :: fn() -> void {
+    agrees_with_wasm_tools("random")
+}
+
+@test
+test_wit_resolve_wasi_filesystem :: fn() -> void {
+    agrees_with_wasm_tools("filesystem")
+}
+
+@test
+test_wit_resolve_wasi_sockets :: fn() -> void {
+    agrees_with_wasm_tools("sockets")
+}
+
+@test
+test_wit_resolve_wasi_cli :: fn() -> void {
+    agrees_with_wasm_tools("cli")
+}

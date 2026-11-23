@@ -339,31 +339,33 @@ type_index :: fn(scope: TypeScope, t: WitType) -> i64 {
     }
     definition: u8[]: []
     match t {
-        is WitEnum                    -> {
+        is WitEnum -> {
             definition.push(ENUM_TYPE)
             definition.push_count(t.cases.len())
             for c in t.cases {
                 definition.push_name(c)
             }
         }
-        is WitResult                  -> {
+        is WitResult -> {
             definition.push(RESULT_TYPE)
             definition.push_optional_type(scope, t.ok)
             definition.push_optional_type(scope, t.error)
         }
-        is WitList                    -> {
+        is WitList -> {
             definition.push(LIST_TYPE)
             definition.push_value_type(scope, t.element)
         }
-        is WitStream                  -> {
+        is WitStream -> {
             definition.push(STREAM_TYPE)
             definition.push_optional_type(scope, t.element)
         }
-        is WitFuture                  -> {
+        is WitFuture -> {
             definition.push(FUTURE_TYPE)
             definition.push_optional_type(scope, t.value)
         }
-        is WitScalar | WitUnsupported -> panic("wasm: no component type to define for `${key}`")
+        is WitScalar | WitUnsupported | WitNotLowered -> {
+            panic("wasm: no component type to define for `${key}`")
+        }
     }
     defined :: scope.define(definition)
     index :: if t is WitEnum && scope.in_instance { scope.export_type(t.name, defined) } else {
@@ -503,20 +505,20 @@ push_enums_of :: fn(out: WitEnum[], t: WitType | null) -> void {
         return
     }
     match t {
-        is WitEnum                    -> {
+        is WitEnum -> {
             key :: wit_type_text(t)
             if !out.any_match((e) -> wit_type_text(e) == key) {
                 out.push(t)
             }
         }
-        is WitResult                  -> {
+        is WitResult -> {
             out.push_enums_of(t.ok)
             out.push_enums_of(t.error)
         }
-        is WitList                    -> out.push_enums_of(t.element)
-        is WitStream                  -> out.push_enums_of(t.element)
-        is WitFuture                  -> out.push_enums_of(t.value)
-        is WitScalar | WitUnsupported -> {}
+        is WitList -> out.push_enums_of(t.element)
+        is WitStream -> out.push_enums_of(t.element)
+        is WitFuture -> out.push_enums_of(t.value)
+        is WitScalar | WitUnsupported | WitNotLowered -> {}
     }
 }
 

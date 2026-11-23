@@ -1,0 +1,265 @@
+{
+  "worlds": [
+    {
+      "name": "imports",
+      "imports": {
+        "interface-0": {
+          "interface": {
+            "id": 0,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-1": {
+          "interface": {
+            "id": 1,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        },
+        "interface-2": {
+          "interface": {
+            "id": 2,
+            "stability": {
+              "stable": {
+                "since": "0.3.0"
+              }
+            }
+          }
+        }
+      },
+      "exports": {},
+      "package": 0,
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    }
+  ],
+  "interfaces": [
+    {
+      "name": "types",
+      "types": {
+        "duration": 0
+      },
+      "functions": {},
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 0
+    },
+    {
+      "name": "monotonic-clock",
+      "types": {
+        "duration": 1,
+        "mark": 2
+      },
+      "functions": {
+        "now": {
+          "name": "now",
+          "kind": "freestanding",
+          "params": [],
+          "result": 2,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "get-resolution": {
+          "name": "get-resolution",
+          "kind": "freestanding",
+          "params": [],
+          "result": 1,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "wait-until": {
+          "name": "wait-until",
+          "kind": "async-freestanding",
+          "params": [
+            {
+              "name": "when",
+              "type": 2
+            }
+          ],
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "wait-for": {
+          "name": "wait-for",
+          "kind": "async-freestanding",
+          "params": [
+            {
+              "name": "how-long",
+              "type": 1
+            }
+          ],
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 0
+    },
+    {
+      "name": "system-clock",
+      "types": {
+        "duration": 3,
+        "instant": 4
+      },
+      "functions": {
+        "now": {
+          "name": "now",
+          "kind": "freestanding",
+          "params": [],
+          "result": 4,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        },
+        "get-resolution": {
+          "name": "get-resolution",
+          "kind": "freestanding",
+          "params": [],
+          "result": 3,
+          "stability": {
+            "stable": {
+              "since": "0.3.0"
+            }
+          }
+        }
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      },
+      "package": 0
+    }
+  ],
+  "types": [
+    {
+      "name": "duration",
+      "kind": {
+        "type": "u64"
+      },
+      "owner": {
+        "interface": 0
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "duration",
+      "kind": {
+        "type": 0
+      },
+      "owner": {
+        "interface": 1
+      }
+    },
+    {
+      "name": "mark",
+      "kind": {
+        "type": "u64"
+      },
+      "owner": {
+        "interface": 1
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": "duration",
+      "kind": {
+        "type": 0
+      },
+      "owner": {
+        "interface": 2
+      }
+    },
+    {
+      "name": "instant",
+      "kind": {
+        "record": {
+          "fields": [
+            {
+              "name": "seconds",
+              "type": "s64"
+            },
+            {
+              "name": "nanoseconds",
+              "type": "u32"
+            }
+          ]
+        }
+      },
+      "owner": {
+        "interface": 2
+      },
+      "stability": {
+        "stable": {
+          "since": "0.3.0"
+        }
+      }
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": "string"
+      },
+      "owner": null
+    },
+    {
+      "name": null,
+      "kind": {
+        "option": "s64"
+      },
+      "owner": null
+    }
+  ],
+  "packages": [
+    {
+      "name": "wasi:clocks@0.3.0",
+      "interfaces": {
+        "types": 0,
+        "monotonic-clock": 1,
+        "system-clock": 2
+      },
+      "worlds": {
+        "imports": 0
+      }
+    }
+  ]
+}
