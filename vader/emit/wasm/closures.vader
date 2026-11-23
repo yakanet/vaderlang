@@ -18,7 +18,7 @@ Bc :: import "vader/core/bytecode"
 import "std/iter"
 
 // The function values ops `push_closure_op` translates.
-ClosureOp :: Bc.FnRef | Bc.MakeClosure | Bc.CallIndirect
+ClosureOp :: Bc.FnRef | Bc.MakeClosure | Bc.CallIndirect | Bc.DeferPush | Bc.DeferPopExec
 
 push_closure_op :: fn(
     ctx: ModuleCtx,
@@ -44,7 +44,106 @@ push_closure_op :: fn(
             index :: ctx.indirect_call(stack, op.type_id, function) else return index
             out.push(Call { .function_index = index })
         }
+        is Bc.DeferPush    -> { out.push(Call { .function_index = ctx.defer_push() }) }
+        is Bc.DeferPopExec -> {
+            out.push_all(
+                [I32Const { .value = op.count }, Call { .function_index = ctx.defer_pop_exec() }],
+            )
+        }
     }
+}
+
+// ---- defers ---------------------------------------------------------------
+
+// The program's one defer stack: an array of the closures `defer.push` appends,
+// held in a global made on the first use. A `panic` runs them all before it
+// traps; a trap of the engine runs none, since WASM cannot catch it.
+defer_stack :: fn(ctx: ModuleCtx) -> i32 = ctx.defers else new_defer_stack(ctx)
+
+new_defer_stack :: fn(ctx: ModuleCtx) -> i32 {
+    global :: i32(ctx.globals.len())
+    ctx.globals.push(.EqRef)
+    ctx.defers = global
+    return global
+}
+
+// The defer stack, made empty on the first read. The array has no type of the
+// bytecode, which nothing tests it against.
+defer_array :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+    global :: defer_stack(ctx)
+    empty: WasmInstr[]: [ArrayNewFixed { .type_index = storage_type(ctx.gc, .EqRef), .length = 0 }]
+    out: WasmInstr[]: [
+        GlobalGet { .index = global },
+        Plain { .op = .RefIsNull },
+        Plain { .op = .If },
+    ]
+    out.push_new_header(ctx.gc, full_header(-1, REFERENCE_ACCESS, 0, empty))
+    out.push_all(
+        [GlobalSet { .index = global }, Plain { .op = .End }, GlobalGet { .index = global }],
+    )
+    return out
+}
+
+// `(closure) -> ()`: append the closure to the defer stack.
+defer_push :: fn(ctx: ModuleCtx) -> i32 {
+    known :: ctx.helpers["defer.push"]
+    if known != null {
+        return known
+    }
+    body :: defer_array(ctx)
+    body.push_all([LocalGet { .index = 0 }, Call { .function_index = ctx.array_push(.EqRef) }])
+    signature :: WasmFuncType { .params = [.EqRef], .results = [] }
+    return ctx.define_helper("defer.push", signature, [], body)
+}
+
+// `(count: i32) -> ()`: run the last `count` closures of the defer stack, the
+// last pushed first, each taking no argument.
+defer_pop_exec :: fn(ctx: ModuleCtx) -> i32 {
+    known :: ctx.helpers["defer.pop_exec"]
+    if known != null {
+        return known
+    }
+    count :: 0
+    done :: 1
+    closure :: 2
+    each :: defer_array(ctx)
+    each.push_all(
+        [Call { .function_index = ctx.array_remove_last() }, LocalSet { .index = closure }],
+    )
+    each.push_entry_call(ctx, closure, 0)
+    each.push(Plain { .op = .Drop })
+    body: WasmInstr[]: []
+    body.push_counted_loop(.I32, done, count, each)
+    signature :: WasmFuncType { .params = [.I32], .results = [] }
+    return ctx.define_helper("defer.pop_exec", signature, [.I32, .EqRef], body)
+}
+
+// How many closures the defer stack holds, the stack made on the first read.
+push_defer_count :: fn(body: WasmInstr[], ctx: ModuleCtx) -> void {
+    body.push_all(defer_array(ctx))
+    body.push_all(
+        [
+            header_of(ctx.gc),
+            StructGet { .type_index = ctx.gc.array_header, .field_index = HEADER_LENGTH },
+        ],
+    )
+}
+
+// Call the function value in the local `value` with the `count` arguments on
+// the stack, through its entry: its environment, then its slot.
+push_entry_call :: fn(body: WasmInstr[], ctx: ModuleCtx, value: i32, count: i64) -> void {
+    closure :: ctx.gc.closure
+    body.push_all(
+        [
+            LocalGet { .index = value },
+            RefCast { .type_index = closure },
+            StructGet { .type_index = closure, .field_index = CLOSURE_ENVIRONMENT },
+            LocalGet { .index = value },
+            RefCast { .type_index = closure },
+            StructGet { .type_index = closure, .field_index = CLOSURE_SLOT },
+            CallIndirect { .type_index = ctx.types.intern(entry_signature(count)) },
+        ],
+    )
 }
 
 // The signature of every entry of `count` arguments: each boxed, then the
@@ -148,19 +247,7 @@ indirect_call :: fn(
         )
             else return boxed
     }
-    closure :: ctx.gc.closure
-    value :: i32(count)
-    body.push_all(
-        [
-            LocalGet { .index = value },
-            RefCast { .type_index = closure },
-            StructGet { .type_index = closure, .field_index = CLOSURE_ENVIRONMENT },
-            LocalGet { .index = value },
-            RefCast { .type_index = closure },
-            StructGet { .type_index = closure, .field_index = CLOSURE_SLOT },
-            CallIndirect { .type_index = ctx.types.intern(entry_signature(count)) },
-        ],
-    )
+    body.push_entry_call(ctx, i32(count), count)
     if signature.results.len() == 0 {
         body.push(Plain { .op = .Drop })
     } else {
@@ -219,6 +306,33 @@ test_a_function_value_calls_its_entry_through_the_table :: fn() -> void {
     entry :: wasm.functions[wasm.table[0]].body
     unboxed :: entry.filter_is<RefCast>().count()
     assert_eq(unboxed, 1)
+    calls :: wasm.functions.filter((f) -> f.body.filter_is<CallIndirect>().count() > 0).count()
+    assert_eq(calls, 1)
+}
+
+// A defer pushes its closure on the program's stack, and an exit runs the last
+// ones through the table.
+@test
+test_a_defer_runs_its_closure_through_the_table :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.FnRef { .function_index = 1, .type_id = 0 },
+        Bc.DeferPush {},
+        Bc.DeferPopExec { .count = 1 },
+        Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } },
+    ]
+    program :: straight(body)
+    program.types = [Bc.BcFn { .params = [], .return_type = 1 }, Bc.BcScalar { .val = .Void }]
+    cleanup :: Bc.BcFunction {
+        ...program.functions[0],
+        .name = "cleanup",
+        .is_main = false,
+        .signature = Bc.BcSignature { ...program.functions[0].signature, .results = [.Void] },
+        .body = [Bc.Return {}],
+        .jump_table = [-1],
+    }
+    program.functions.push(cleanup)
+    wasm :: wasm_module_of(program, "") else panic(wasm.reason)
+    assert_eq(wasm.globals.len(), 1)
     calls :: wasm.functions.filter((f) -> f.body.filter_is<CallIndirect>().count() > 0).count()
     assert_eq(calls, 1)
 }

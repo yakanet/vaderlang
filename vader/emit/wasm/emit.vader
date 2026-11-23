@@ -188,6 +188,8 @@ ModuleCtx :: struct {
     table: i32[] = []
     // The slot of each entry of the table, by what it calls.
     table_slots: Map<string, i32> = Map<string, i32> {}
+    // The global of the defer stack, once a helper reads it (`closures.vader`).
+    defers: i32 | null = null
 }
 
 // `run`, the core export the component lifts: it calls `init` when there is one,
@@ -667,13 +669,26 @@ imported_function :: fn(
     return intrinsic_function(ctx, imp, function)
 }
 
-// `(message: atom) -> ()`: stops the run. The message reaches no stream yet:
+// `(message: atom) -> ()`: runs every pending defer, the last pushed first, as
+// the VM unwinds, then stops the run. The message reaches no stream yet:
 // writing it needs the WASI stderr the library imports, which the emitter does
 // not name.
 panic_function :: fn(ctx: ModuleCtx) -> i32 {
+    known :: ctx.helpers["panic"]
+    if known != null {
+        return known
+    }
+    body: WasmInstr[]: []
+    body.push_defer_count(ctx)
+    body.push_all(
+        [
+            Plain { .op = .I32WrapI64 },
+            Call { .function_index = ctx.defer_pop_exec() },
+            Plain { .op = .Unreachable },
+        ],
+    )
     signature :: WasmFuncType { .params = [.I32], .results = [] }
-    return ctx.helpers["panic"]
-        else ctx.define_helper("panic", signature, [], [Plain { .op = .Unreachable }])
+    return ctx.define_helper("panic", signature, [], body)
 }
 
 // The function a call to the `Intrinsic` member `imp` reaches.
