@@ -446,29 +446,8 @@ push_retag :: fn(
     out.push(StructNew { .type_index = box })
 }
 
-// `type_check`: whether the reference on the stack is of `type_id`. A union
-// tests each variant on a copy kept in a scratch local.
-push_type_check :: fn(
-    ctx: ModuleCtx,
-    scratch: Scratch,
-    out: WasmInstr[],
-    op: Bc.TypeCheck,
-    function: string,
-) -> void | WasmUnsupported {
-    target :: ctx.module.types[op.type_id]
-    if target !is Bc.BcUnion {
-        return push_single_test(ctx, out, op.type_id, function)
-    }
-    copy :: scratch.local_of(.EqRef)
-    out.push_all([LocalSet { .index = copy }, I32Const { .value = 0 }])
-    for variant in target.variants {
-        out.push(LocalGet { .index = copy })
-        tested :: push_single_test(ctx, out, variant, function) else return tested
-        out.push(Plain { .op = .I32Or })
-    }
-}
-
-// Whether the reference on the stack is of `type_id`, which is no union.
+// `type_check`, and every test of a type: whether the value on the stack is of
+// `type_id`.
 push_single_test :: fn(
     ctx: ModuleCtx,
     out: WasmInstr[],
@@ -489,12 +468,75 @@ push_single_test :: fn(
         out.push(Plain { .op = .RefIsNull })
         return
     }
+    if target is Bc.BcUnion | Bc.BcRef {
+        test :: ctx.type_test(type_id, function) else return test
+        out.push(Call { .function_index = test })
+        return
+    }
+    // A function value is of no type a test names, as the VM has it.
+    if target is Bc.BcFn {
+        out.push_all([Plain { .op = .Drop }, I32Const { .value = 0 }])
+        return
+    }
     box :: box_of(ctx.gc, target) else {
         return WasmUnsupported {
             .reason = "`${function}`: no WASM test yet for type ${type_id}",
         }
     }
     out.push(RefTest { .type_index = box })
+}
+
+// `(value: eqref) -> i32`: whether the value is of the union or the trait
+// `type_id`. A union holds a value of one of its variants; a trait one of a type
+// the impl table says implements it; `ref _` any reference that is no box.
+type_test :: fn(ctx: ModuleCtx, type_id: i32, function: string) -> i32 | WasmUnsupported {
+    key :: "is.${type_id}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    body: WasmInstr[]: []
+    target :: ctx.module.types[type_id]
+    if target is Bc.BcRef && target.trait_name == "" {
+        body.push_all([LocalGet { .index = 0 }, Plain { .op = .RefIsNull }])
+        body.push_return_if(0)
+        boxes: i32[]: [ctx.gc.void_box, ctx.gc.type_value]
+        for class in BOXED_CLASSES {
+            box :: ctx.gc.of_box[class] else continue
+            boxes.push(box)
+        }
+        for box in boxes {
+            body.push_all([LocalGet { .index = 0 }, RefTest { .type_index = box }])
+            body.push_return_if(0)
+        }
+        body.push(I32Const { .value = 1 })
+    } else {
+        for member in members_of(ctx.module, target) {
+            body.push(LocalGet { .index = 0 })
+            tested :: push_single_test(ctx, body, member, function) else return tested
+            body.push_return_if(1)
+        }
+        body.push(I32Const { .value = 0 })
+    }
+    signature :: WasmFuncType { .params = [.EqRef], .results = [.I32] }
+    return ctx.define_helper(key, signature, [], body)
+}
+
+// The types a value of `t` may be: a union's variants, or the types that
+// implement a trait.
+members_of :: fn(m: Bc.BytecodeModule, t: Bc.BcType) -> i32[] {
+    if t is Bc.BcUnion {
+        return t.variants
+    }
+    out: i32[]: []
+    if t is Bc.BcRef {
+        for row in m.impl_table {
+            if row.trait_name == t.trait_name {
+                out.push(row.type_index)
+            }
+        }
+    }
+    return out
 }
 
 // ---- equality -------------------------------------------------------------
@@ -624,7 +666,7 @@ test_an_is_on_a_union_tests_each_variant :: fn() -> void {
         Bc.Return {},
     ]
     wasm :: wasm_module_of(program_over_structs(body), "") else panic(wasm.reason)
-    tests :: wasm.functions[0].body.filter_is<RefTest>().collect()
+    tests :: wasm.functions[1].body.filter_is<RefTest>().collect()
     assert(tests.len() == 2, "one test per variant")
     assert(tests[0].type_index == 0 && tests[1].type_index == 1, "`A`, then `B`")
 }
@@ -694,4 +736,21 @@ test_a_union_field_read_tests_each_variant :: fn() -> void {
         "`A`, then `B`",
     )
     assert_eq(helper.filter_is<StructGet>().count(), 2)
+}
+
+// A value is of a trait when the impl table says its type implements it.
+@test
+test_a_trait_test_tests_each_implementer :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.I32Const { .value = 3 },
+        Bc.StructNew { .type_id = 2, .stack = false },
+        Bc.TypeCheck { .type_id = 4 },
+        Bc.Return {},
+    ]
+    program :: program_over_structs(body)
+    program.types.push(Bc.BcRef { .trait_name = "Shape" })
+    program.impl_table = [Bc.ImplEntry { .type_index = 2, .trait_name = "Shape" }]
+    wasm :: wasm_module_of(program, "") else panic(wasm.reason)
+    tests :: wasm.functions[1].body.filter_is<RefTest>().collect()
+    assert(tests.len() == 1 && tests[0].type_index == 1, "only `B` implements `Shape`")
 }

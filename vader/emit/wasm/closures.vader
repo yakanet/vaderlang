@@ -132,6 +132,7 @@ push_defer_count :: fn(body: WasmInstr[], ctx: ModuleCtx) -> void {
 // Call the function value in the local `value` with the `count` arguments on
 // the stack, through its entry: its environment, then its slot.
 push_entry_call :: fn(body: WasmInstr[], ctx: ModuleCtx, value: i32, count: i64) -> void {
+    ctx.table_read = true
     closure :: ctx.gc.closure
     body.push_all(
         [

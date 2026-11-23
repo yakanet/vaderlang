@@ -86,6 +86,8 @@ export WasmModule :: struct {
     data: u8[][] = []
     /// The functions of the one table, in the order of their slots.
     table: i32[] = []
+    /// Whether a `call_indirect` reads the table, which exists then even empty.
+    table_read: bool = false
     /// The module name the linear memory is imported from, null for a module
     /// without one. The canonical ABI passes what is not a scalar through it
     /// (`canonical.vader`).

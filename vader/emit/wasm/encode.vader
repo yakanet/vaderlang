@@ -29,7 +29,7 @@ export encode_module :: fn(m: WasmModule) -> u8[] {
     if m.functions.len() > 0 {
         out.push_section(.Function, function_section(m.functions))
     }
-    if m.table.len() > 0 {
+    if m.table.len() > 0 || m.table_read {
         out.push_section(.Table, table_section(m.table))
     }
     if m.globals.len() > 0 {

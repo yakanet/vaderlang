@@ -126,6 +126,7 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
         .exports = exports,
         .data = ctx.segments,
         .table = ctx.table,
+        .table_read = ctx.table_read,
         .memory_import = memory_import_of(ctx.imports),
     }
     return WasmComponent {
@@ -188,6 +189,8 @@ ModuleCtx :: struct {
     table: i32[] = []
     // The slot of each entry of the table, by what it calls.
     table_slots: Map<string, i32> = Map<string, i32> {}
+    // Whether a `call_indirect` reads the table.
+    table_read: bool = false
     // The global of the defer stack, once a helper reads it (`closures.vader`).
     defers: i32 | null = null
 }
@@ -554,7 +557,7 @@ push_op :: fn(
             out.push(Call { .function_index = index })
         }
         is Bc.Retag -> { return push_retag(ctx, out, op, function) }
-        is Bc.TypeCheck -> { return push_type_check(ctx, scratch, out, op, function) }
+        is Bc.TypeCheck -> { return push_single_test(ctx, out, op.type_id, function) }
         is Bc.ArrayNew | Bc.ArrayReserve | Bc.ArrayLen | Bc.ArrayClear | Bc.ArrayGet | Bc.ArraySet
             | Bc.ArrayPush | Bc.ArrayRemoveLast | Bc.ArraySlice | Bc.ArrayRepeat | Bc.ArrayPushAll
             | Bc.ArrayCopy | Bc.DataConst | Bc.LoadSlotI32 | Bc.LoadSlotI64 | Bc.LoadSlotF64
