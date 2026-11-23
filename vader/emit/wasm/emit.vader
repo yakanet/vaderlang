@@ -439,6 +439,9 @@ push_op :: fn(
             out.push(Call { .function_index = ctx.buffer_write_string() })
         }
         is Bc.BufferToString -> { out.push(Call { .function_index = ctx.buffer_to_string() }) }
+        is Bc.LoadU8 -> { out.push(Call { .function_index = ctx.buffer_load_u8() }) }
+        is Bc.StoreU8 -> { out.push(Call { .function_index = ctx.buffer_store_u8() }) }
+        is Bc.MemoryCopy -> { out.push(Call { .function_index = ctx.buffer_memory_copy() }) }
         // WASM has no negation or complement: times -1, and xor with -1.
         is Bc.I32Neg -> { out.push_all([I32Const { .value = -1 }, Plain { .op = .I32Mul }]) }
         is Bc.I64Neg -> { out.push_all([I64Const { .value = -1 }, Plain { .op = .I64Mul }]) }
@@ -501,6 +504,10 @@ plain_op_of :: fn(op: Bc.Op) -> WasmOp | null = @partial match op {
     is Bc.I32Le       -> .I32LeS
     is Bc.I32Gt       -> .I32GtS
     is Bc.I32Ge       -> .I32GeS
+    is Bc.U32Lt       -> .I32LtU
+    is Bc.U32Le       -> .I32LeU
+    is Bc.U32Gt       -> .I32GtU
+    is Bc.U32Ge       -> .I32GeU
     is Bc.I32BitAnd   -> .I32And
     is Bc.I32BitOr    -> .I32Or
     is Bc.I32BitXor   -> .I32Xor
@@ -520,6 +527,10 @@ plain_op_of :: fn(op: Bc.Op) -> WasmOp | null = @partial match op {
     is Bc.I64Le       -> .I64LeS
     is Bc.I64Gt       -> .I64GtS
     is Bc.I64Ge       -> .I64GeS
+    is Bc.U64Lt       -> .I64LtU
+    is Bc.U64Le       -> .I64LeU
+    is Bc.U64Gt       -> .I64GtU
+    is Bc.U64Ge       -> .I64GeU
     is Bc.I64BitAnd   -> .I64And
     is Bc.I64BitOr    -> .I64Or
     is Bc.I64BitXor   -> .I64Xor
@@ -566,10 +577,14 @@ intrinsic_function :: fn(
 ) -> i32 | WasmUnsupported {
     // @partial: the members with no WASM form yet stop the emission.
     return @partial match imp.intrinsic {
-        .ByteLen    -> ctx.string_byte_len()
-        .Bytes      -> ctx.string_bytes(imp.signature.result_types[0])
-        .StringHash -> ctx.string_hash()
-        _           -> WasmUnsupported {
+        .ByteLen       -> ctx.string_byte_len()
+        .ByteAt        -> ctx.string_byte_at()
+        .ByteSlice     -> ctx.string_byte_slice()
+        .IsAscii       -> ctx.string_is_ascii()
+        .BytesToString -> ctx.bytes_to_string()
+        .Bytes         -> ctx.string_bytes(imp.signature.result_types[0])
+        .StringHash    -> ctx.string_hash()
+        _              -> WasmUnsupported {
             .reason = "`${function}`: no WASM form yet for `${imp.extern_name}`",
         }
     }

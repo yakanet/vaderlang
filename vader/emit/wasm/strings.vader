@@ -26,12 +26,12 @@ Bc :: import "vader/core/bytecode"
 import "std/collections"
 import "std/math"
 
-// The fields of an entry the helpers read; the last, `ascii`, is read by none
-// yet.
+// The fields of an entry.
 ATOM_BYTES: i32: 0
 ATOM_START: i32: 1
 ATOM_LENGTH: i32: 2
 ATOM_HASH: i32: 3
+ATOM_ASCII: i32: 4
 
 // The constants of the hash. `-0x7447_B46C_69D1_5337` is `0x8bb8_4b93_962e_acc9`
 // and `-0x357E_C40B_3854_0F57` is `0xca81_3bf4_c7ab_f0a9`, as `i64`s.
@@ -1068,6 +1068,120 @@ kept_hash_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
     return body
 }
 
+// `(atom, index: i64) -> i32`: the byte at `index`; past the end, the run stops.
+string_byte_at :: fn(ctx: ModuleCtx) -> i32 {
+    signature :: WasmFuncType { .params = [.I32, .I64], .results = [.I32] }
+    return ctx.helpers["string.byte_at"]
+        else ctx.define_helper("string.byte_at", signature, [.EqRef, .EqRef], byte_at_body(ctx))
+}
+
+// The locals past the parameters: the entry, its bytes.
+byte_at_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+    atom :: 0
+    index :: 1
+    entry :: 2
+    bytes :: 3
+    body :: entry_of(ctx, [LocalGet { .index = atom }])
+    body.push(LocalSet { .index = entry })
+    length :: entry_field(ctx, entry, ATOM_LENGTH)
+    length.push(Plain { .op = .I64ExtendI32U })
+    body.push(LocalGet { .index = index })
+    body.push_all(length)
+    body.push(Plain { .op = .I64GeU })
+    body.push_trap_if()
+    body.push_all(entry_field(ctx, entry, ATOM_BYTES))
+    body.push(LocalSet { .index = bytes })
+    at :: entry_field(ctx, entry, ATOM_START)
+    at.push_all([LocalGet { .index = index }, Plain { .op = .I32WrapI64 }, Plain { .op = .I32Add }])
+    body.push_all(byte_at(ctx.gc, bytes, at))
+    return body
+}
+
+// `(atom, from: i64, to: i64) -> atom`: the bytes `from..<to`, the bounds clamped
+// to the string as an array slice clamps them, as a string that shares the
+// bytes.
+string_byte_slice :: fn(ctx: ModuleCtx) -> i32 {
+    signature :: WasmFuncType { .params = [.I32, .I64, .I64], .results = [.I32] }
+    return ctx.helpers["string.byte_slice"]
+        else ctx.define_helper(
+            "string.byte_slice",
+            signature,
+            [.EqRef, .I64],
+            byte_slice_body(ctx),
+        )
+}
+
+// The locals past the parameters: the entry, its length.
+byte_slice_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+    atom :: 0
+    from :: 1
+    to :: 2
+    entry :: 3
+    length :: 4
+    body :: entry_of(ctx, [LocalGet { .index = atom }])
+    body.push(LocalSet { .index = entry })
+    body.push_all(entry_field(ctx, entry, ATOM_LENGTH))
+    body.push_all([Plain { .op = .I64ExtendI32U }, LocalSet { .index = length }])
+    body.push_clamp(from, I64Const { .value = 0 }, .I64LtS)
+    body.push_clamp(to, I64Const { .value = 0 }, .I64LtS)
+    body.push_clamp(from, LocalGet { .index = length }, .I64GtS)
+    body.push_clamp(to, LocalGet { .index = from }, .I64LtS)
+    body.push_clamp(to, LocalGet { .index = length }, .I64GtS)
+    body.push_all(entry_field(ctx, entry, ATOM_BYTES))
+    body.push_all(entry_field(ctx, entry, ATOM_START))
+    body.push_all(
+        [
+            LocalGet { .index = from },
+            Plain { .op = .I32WrapI64 },
+            Plain { .op = .I32Add },
+            LocalGet { .index = to },
+            LocalGet { .index = from },
+            Plain { .op = .I64Sub },
+            Plain { .op = .I32WrapI64 },
+            I32Const { .value = 0 },
+            Call { .function_index = ctx.atom_intern() },
+        ],
+    )
+    return body
+}
+
+// `(atom) -> bool`: whether every byte of the string is below 0x80, which its
+// entry keeps.
+string_is_ascii :: fn(ctx: ModuleCtx) -> i32 {
+    signature :: WasmFuncType { .params = [.I32], .results = [.I32] }
+    return ctx.helpers["string.is_ascii"]
+        else ctx.define_helper("string.is_ascii", signature, [], is_ascii_body(ctx))
+}
+
+is_ascii_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+    body :: entry_of(ctx, [LocalGet { .index = 0 }])
+    body.push(StructGet { .type_index = ctx.gc.atom, .field_index = ATOM_ASCII })
+    return body
+}
+
+// `(array) -> atom`: the string of the elements of a `u8[]`, a copy of them
+// when new: the array may change after.
+bytes_to_string :: fn(ctx: ModuleCtx) -> i32 {
+    signature :: WasmFuncType { .params = [.EqRef], .results = [.I32] }
+    return ctx.helpers["string.bytes_to_string"]
+        else ctx.define_helper("string.bytes_to_string", signature, [], bytes_to_string_body(ctx))
+}
+
+bytes_to_string_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+    body: WasmInstr[]: []
+    body.push_header_field(ctx.gc, 0, HEADER_STORAGE)
+    body.push_header_field(ctx.gc, 0, HEADER_OFFSET)
+    body.push_header_field(ctx.gc, 0, HEADER_LENGTH)
+    body.push_all(
+        [
+            Plain { .op = .I32WrapI64 },
+            I32Const { .value = 1 },
+            Call { .function_index = ctx.atom_intern() },
+        ],
+    )
+    return body
+}
+
 // `(atom) -> array`: the bytes of the string, an array of the type `type_id`
 // over the entry's storage, marked `shared` so that a push copies them first.
 string_bytes :: fn(ctx: ModuleCtx, type_id: i32) -> i32 {
@@ -1148,18 +1262,9 @@ write_string_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
     offset :: 1
     atom :: 2
     entry :: 3
-    body: WasmInstr[]: []
-    body.push_trap_above([LocalGet { .index = offset }], [I64Const { .value = STORAGE_GREATEST }])
+    body :: buffer_at(ctx, buffer, offset)
     body.push_all(entry_of(ctx, [LocalGet { .index = atom }]))
-    body.push_all(
-        [
-            LocalSet { .index = entry },
-            LocalGet { .index = buffer },
-            RefCast { .type_index = i8_storage },
-            LocalGet { .index = offset },
-            Plain { .op = .I32WrapI64 },
-        ],
-    )
+    body.push(LocalSet { .index = entry })
     body.push_all(entry_field(ctx, entry, ATOM_BYTES))
     body.push(RefCast { .type_index = i8_storage })
     body.push_all(entry_field(ctx, entry, ATOM_START))
@@ -1194,6 +1299,75 @@ buffer_to_string :: fn(ctx: ModuleCtx) -> i32 {
     )
     return ctx.helpers["buffer.to_string"]
         else ctx.define_helper("buffer.to_string", signature, [], body)
+}
+
+// `(buffer, offset: i64) -> i32`: the byte at `offset`, unsigned.
+buffer_load_u8 :: fn(ctx: ModuleCtx) -> i32 {
+    signature :: WasmFuncType { .params = [.EqRef, .I64], .results = [.I32] }
+    return ctx.helpers["buffer.load_u8"]
+        else ctx.define_helper("buffer.load_u8", signature, [], load_u8_body(ctx))
+}
+
+load_u8_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+    body :: buffer_at(ctx, 0, 1)
+    body.push(ArrayGet { .type_index = storage_type(ctx.gc, .I8), .extension = .Unsigned })
+    return body
+}
+
+// `(buffer, offset: i64, byte: i32) -> ()`: the byte written at `offset`.
+buffer_store_u8 :: fn(ctx: ModuleCtx) -> i32 {
+    signature :: WasmFuncType { .params = [.EqRef, .I64, .I32], .results = [] }
+    return ctx.helpers["buffer.store_u8"]
+        else ctx.define_helper("buffer.store_u8", signature, [], store_u8_body(ctx))
+}
+
+store_u8_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+    body :: buffer_at(ctx, 0, 1)
+    body.push_all([LocalGet { .index = 2 }, ArraySet { .type_index = storage_type(ctx.gc, .I8) }])
+    return body
+}
+
+// `(destination, at: i64, source, from: i64, count: i64) -> ()`: `count` bytes of
+// `source` from `from` on copied into `destination` from `at` on, the two runs
+// free to overlap.
+buffer_memory_copy :: fn(ctx: ModuleCtx) -> i32 {
+    signature :: WasmFuncType { .params = [.EqRef, .I64, .EqRef, .I64, .I64], .results = [] }
+    return ctx.helpers["buffer.memory_copy"]
+        else ctx.define_helper("buffer.memory_copy", signature, [], memory_copy_body(ctx))
+}
+
+memory_copy_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+    i8_storage :: storage_type(ctx.gc, .I8)
+    count :: 4
+    body :: buffer_at(ctx, 0, 1)
+    body.push_all(buffer_at(ctx, 2, 3))
+    body.push_trap_above([LocalGet { .index = count }], [I64Const { .value = STORAGE_GREATEST }])
+    body.push_all(
+        [
+            LocalGet { .index = count },
+            Plain { .op = .I32WrapI64 },
+            ArrayCopy { .destination = i8_storage, .source = i8_storage },
+        ],
+    )
+    return body
+}
+
+// The buffer in the local `buffer` as an `i8` storage, then the `i64` offset in
+// the local `offset` as its index. An offset past the greatest storage stops
+// the run rather than wrap to 32 bits; one past the end of this one traps in
+// the access.
+buffer_at :: fn(ctx: ModuleCtx, buffer: i32, offset: i32) -> WasmInstr[] {
+    out: WasmInstr[]: []
+    out.push_trap_above([LocalGet { .index = offset }], [I64Const { .value = STORAGE_GREATEST }])
+    out.push_all(
+        [
+            LocalGet { .index = buffer },
+            RefCast { .type_index = storage_type(ctx.gc, .I8) },
+            LocalGet { .index = offset },
+            Plain { .op = .I32WrapI64 },
+        ],
+    )
+    return out
 }
 
 // ---- tests ----------------------------------------------------------------

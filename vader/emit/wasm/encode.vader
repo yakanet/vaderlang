@@ -377,8 +377,11 @@ opcode :: fn(op: WasmOp) -> u8 = match op {
     .I32LtS        -> 0x48
     .I32LtU        -> 0x49
     .I32GtS        -> 0x4A
+    .I32GtU        -> 0x4B
     .I32LeS        -> 0x4C
+    .I32LeU        -> 0x4D
     .I32GeS        -> 0x4E
+    .I32GeU        -> 0x4F
     .I64Eqz        -> 0x50
     .I64Eq         -> 0x51
     .I64Ne         -> 0x52
@@ -387,6 +390,7 @@ opcode :: fn(op: WasmOp) -> u8 = match op {
     .I64GtS        -> 0x55
     .I64GtU        -> 0x56
     .I64LeS        -> 0x57
+    .I64LeU        -> 0x58
     .I64GeS        -> 0x59
     .I64GeU        -> 0x5A
     .I32Add        -> 0x6A
@@ -566,8 +570,11 @@ test_encode_every_instruction :: fn() -> void {
         .I32LtS,
         .I32LtU,
         .I32GtS,
+        .I32GtU,
         .I32LeS,
+        .I32LeU,
         .I32GeS,
+        .I32GeU,
         .I64Eqz,
         .I64Eq,
         .I64Ne,
@@ -576,6 +583,7 @@ test_encode_every_instruction :: fn() -> void {
         .I64GtS,
         .I64GtU,
         .I64LeS,
+        .I64LeU,
         .I64GeS,
         .I64GeU,
         .I32Add,
@@ -630,8 +638,8 @@ test_encode_every_instruction :: fn() -> void {
     )
     f :: WasmFunction { .type_index = 0, .locals = [], .body = body }
     expected: u8[]: [0x00, 0x00, 0x0F, 0x1A]
-    expected.push_all([0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4C, 0x4E])
-    expected.push_all([0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x59, 0x5A])
+    expected.push_all([0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F])
+    expected.push_all([0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A])
     expected.push_all(
         [0x6A, 0x6B, 0x6C, 0x6D, 0x6E, 0x6F, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76],
     )
