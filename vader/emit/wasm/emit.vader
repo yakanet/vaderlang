@@ -125,6 +125,7 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
         .functions = functions,
         .exports = exports,
         .data = ctx.segments,
+        .table = ctx.table,
         .memory_import = memory_import_of(ctx.imports),
     }
     return WasmComponent {
@@ -181,6 +182,10 @@ ModuleCtx :: struct {
     atoms: AtomGlobals | null = null
     // The passive data segments.
     segments: u8[][] = []
+    // The functions of the table, in the order of their slots (`closures.vader`).
+    table: i32[] = []
+    // The slot of each entry of the table, by what it calls.
+    table_slots: Map<string, i32> = Map<string, i32> {}
 }
 
 // `run`, the core export the component lifts: it calls `init` when there is one,
@@ -436,6 +441,7 @@ push_op :: fn(
             out.push(Call { .function_index = index })
         }
         is Bc.VirtualCall -> { return push_virtual_call(ctx, stack, out, op, function) }
+        is ClosureOp -> { return push_closure_op(ctx, stack, out, op, function) }
         is Bc.BufferNew -> { out.push(Call { .function_index = ctx.buffer_new() }) }
         is Bc.BufferWriteString -> {
             out.push(Call { .function_index = ctx.buffer_write_string() })

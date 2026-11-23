@@ -1,0 +1,224 @@
+// vader/emit/wasm/closures: functions held as values, `fn.ref`, `make_closure`
+// and `call.indirect`.
+//
+// A function value is a struct of the closure type: its environment, null for a
+// plain function, and its slot in the module's one table of functions. The slot
+// holds an entry, one per function, that takes every argument boxed, then the
+// environment, and leaves its result boxed: one signature per count of
+// arguments, as the C backend's erased ABI has, since a generic body calls a
+// value of `fn(i32) -> i32` as one of `fn(Any) -> Any`. The entry unboxes each
+// argument to the form the function takes, the environment first for a
+// closure's lifted body. A `call.indirect` calls a helper, one per function
+// type and per shape of call, that boxes each argument, calls the slot through
+// `call_indirect` and unboxes the result to the form the type gives it.
+
+module "vader/emit/wasm"
+
+Bc :: import "vader/core/bytecode"
+import "std/iter"
+
+// The function values ops `push_closure_op` translates.
+ClosureOp :: Bc.FnRef | Bc.MakeClosure | Bc.CallIndirect
+
+push_closure_op :: fn(
+    ctx: ModuleCtx,
+    stack: OperandStack,
+    out: WasmInstr[],
+    op: ClosureOp,
+    function: string,
+) -> void | WasmUnsupported {
+    match op {
+        is Bc.FnRef        -> {
+            slot :: ctx.closure_entry(op.function_index, op.type_id, false, function)
+                else return slot
+            out.push_all(
+                [RefNull {}, I32Const { .value = slot }, StructNew { .type_index = ctx.gc.closure }],
+            )
+        }
+        is Bc.MakeClosure  -> {
+            slot :: ctx.closure_entry(op.function_index, op.env_type_id, true, function)
+                else return slot
+            out.push_all([I32Const { .value = slot }, StructNew { .type_index = ctx.gc.closure }])
+        }
+        is Bc.CallIndirect -> {
+            index :: ctx.indirect_call(stack, op.type_id, function) else return index
+            out.push(Call { .function_index = index })
+        }
+    }
+}
+
+// The signature of every entry of `count` arguments: each boxed, then the
+// environment, the result boxed.
+entry_signature :: fn(count: i64) -> WasmFuncType = WasmFuncType {
+    .params = [.EqRef] * (count + 1),
+    .results = [.EqRef],
+}
+
+// The table slot of the entry that calls `function_index` as a value of the
+// function type `type_id`, `lifted` when it is a closure's body.
+closure_entry :: fn(
+    ctx: ModuleCtx,
+    function_index: i32,
+    type_id: i32,
+    lifted: bool,
+    function: string,
+) -> i32 | WasmUnsupported {
+    key :: "entry ${function_index}"
+    known :: ctx.table_slots[key]
+    if known != null {
+        return known
+    }
+    t :: ctx.function_type(type_id, function) else return t
+    body :: ctx.entry_body(function_index, t.params.len(), lifted, function) else return body
+    index :: ctx.define_helper(key, entry_signature(t.params.len()), [], body)
+    slot :: i32(ctx.table.len())
+    ctx.table.push(index)
+    ctx.table_slots[key] = slot
+    return slot
+}
+
+function_type :: fn(ctx: ModuleCtx, type_id: i32, function: string) -> Bc.BcFn | WasmUnsupported {
+    t :: Bc.fn_at(ctx.module.types, type_id) else {
+        return WasmUnsupported { .reason = "`${function}`: type ${type_id} is no function type" }
+    }
+    return t
+}
+
+entry_body :: fn(
+    ctx: ModuleCtx,
+    function_index: i32,
+    count: i64,
+    lifted: bool,
+    function: string,
+) -> WasmInstr[] | WasmUnsupported {
+    target :: ctx.module.functions[function_index]
+    params :: target.signature.params
+    first: i64: if lifted { 1 } else { 0 }
+    if params.len() != count + first {
+        return WasmUnsupported {
+            .reason = "`${function}`: `${target.name}` takes ${params.len()} values for ${count + first}",
+        }
+    }
+    body: WasmInstr[]: []
+    if lifted {
+        body.push(LocalGet { .index = i32(count) })
+        held :: body.push_class_change(ctx, .Any, params[0], function) else return held
+    }
+    for i in 0..<count {
+        body.push(LocalGet { .index = i32(i) })
+        held :: body.push_class_change(ctx, .Any, params[i + first], function) else return held
+    }
+    body.push(Call { .function_index = ctx.first_function + function_index })
+    produced :: result_values(target.signature.results)
+    if produced.len() == 0 {
+        body.push(RefNull {})
+        return body
+    }
+    held :: body.push_class_change(ctx, produced[0], .Any, function) else return held
+    return body
+}
+
+// The helper a `call.indirect` of the function type `type_id` calls, the
+// arguments then the function value on top of `stack`.
+indirect_call :: fn(
+    ctx: ModuleCtx,
+    stack: OperandStack,
+    type_id: i32,
+    function: string,
+) -> i32 | WasmUnsupported {
+    types :: ctx.module.types
+    t :: ctx.function_type(type_id, function) else return t
+    count :: t.params.len()
+    site :: site_of(stack, count + 1)
+    signature :: WasmFuncType { .params = site, .results = indirect_results(types, type_id) }
+    key :: "call.indirect ${type_id} ${canonical_func_type_key(signature)}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    body: WasmInstr[]: []
+    for i in 0..<count {
+        body.push(LocalGet { .index = i32(i) })
+        boxed :: body.push_adapted(
+            ctx,
+            site[i],
+            class_of_type(types[t.params[i]]),
+            .EqRef,
+            function,
+        )
+            else return boxed
+    }
+    closure :: ctx.gc.closure
+    value :: i32(count)
+    body.push_all(
+        [
+            LocalGet { .index = value },
+            RefCast { .type_index = closure },
+            StructGet { .type_index = closure, .field_index = CLOSURE_ENVIRONMENT },
+            LocalGet { .index = value },
+            RefCast { .type_index = closure },
+            StructGet { .type_index = closure, .field_index = CLOSURE_SLOT },
+            CallIndirect { .type_index = ctx.types.intern(entry_signature(count)) },
+        ],
+    )
+    if signature.results.len() == 0 {
+        body.push(Plain { .op = .Drop })
+    } else {
+        returned :: class_of_type(types[t.return_type])
+        unboxed :: body.push_adapted(ctx, .EqRef, returned, signature.results[0], function)
+            else return unboxed
+    }
+    return ctx.define_helper(key, signature, [], body)
+}
+
+// The fields of the closure type.
+CLOSURE_ENVIRONMENT: i32: 0
+CLOSURE_SLOT: i32: 1
+
+// The class a value of `t` has: its own for a scalar, a reference otherwise.
+class_of_type :: fn(t: Bc.BcType) -> Bc.ValType {
+    if t is Bc.BcScalar {
+        return t.val
+    }
+    return .Ref
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/testing"
+
+// `main` calls `double` through a value of `fn(i32) -> i32`.
+@test
+test_a_function_value_calls_its_entry_through_the_table :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.I32Const { .value = 4 },
+        Bc.Retag { .type_id = 0 },
+        Bc.FnRef { .function_index = 1, .type_id = 1 },
+        Bc.CallIndirect { .type_id = 1 },
+        Bc.Return {},
+    ]
+    program :: straight(body)
+    program.types = [Bc.BcScalar { .val = .I32 }, Bc.BcFn { .params = [0], .return_type = 0 }]
+    double :: Bc.BcFunction {
+        ...program.functions[0],
+        .name = "double",
+        .is_main = false,
+        .signature = Bc.BcSignature {
+            ...program.functions[0].signature,
+            .params = [.I32],
+            .param_types = [0],
+            .param_names = ["x"],
+        },
+        .body = [Bc.LocalGet { .slot = 0 }, Bc.Return {}],
+        .jump_table = [-1, -1],
+    }
+    program.functions.push(double)
+    wasm :: wasm_module_of(program, "") else panic(wasm.reason)
+    assert_eq(wasm.table.len(), 1)
+    entry :: wasm.functions[wasm.table[0]].body
+    unboxed :: entry.filter_is<RefCast>().count()
+    assert_eq(unboxed, 1)
+    calls :: wasm.functions.filter((f) -> f.body.filter_is<CallIndirect>().count() > 0).count()
+    assert_eq(calls, 1)
+}

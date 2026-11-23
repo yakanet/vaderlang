@@ -84,6 +84,8 @@ export WasmModule :: struct {
     exports: WasmExport[]
     /// The passive data segments, which `array.new_data` reads.
     data: u8[][] = []
+    /// The functions of the one table, in the order of their slots.
+    table: i32[] = []
     /// The module name the linear memory is imported from, null for a module
     /// without one. The canonical ABI passes what is not a scalar through it
     /// (`canonical.vader`).
@@ -98,6 +100,7 @@ export WasmInstr :: I32Const
            | LocalSet
            | LocalTee
            | Call
+           | CallIndirect
            | Br
            | BrIf
            | StructNew
@@ -126,6 +129,10 @@ export I64Const :: struct { value: i64 }
 
 /// `f64.const value`.
 export F64Const :: struct { value: f64 }
+
+/// `call_indirect type_index 0`: the slot on top of the stack names the
+/// function of the table to call, whose signature must be `type_index`.
+export CallIndirect :: struct { type_index: i32 }
 
 /// `local.get index`: a parameter, then the declared locals, count from 0.
 export LocalGet :: struct { index: i32 }

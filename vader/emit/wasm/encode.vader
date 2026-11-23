@@ -29,11 +29,17 @@ export encode_module :: fn(m: WasmModule) -> u8[] {
     if m.functions.len() > 0 {
         out.push_section(.Function, function_section(m.functions))
     }
+    if m.table.len() > 0 {
+        out.push_section(.Table, table_section(m.table))
+    }
     if m.globals.len() > 0 {
         out.push_section(.Global, global_section(m.globals))
     }
     if m.exports.len() > 0 {
         out.push_section(.Export, export_section(m.exports))
+    }
+    if m.table.len() > 0 {
+        out.push_section(.Element, element_section(m.table))
     }
     if m.data.len() > 0 {
         count: u8[]: []
@@ -54,9 +60,11 @@ SectionId :: enum(u8) {
     Type      = 1,
     Import    = 2,
     Function  = 3,
+    Table     = 4,
     Memory    = 5,
     Global    = 6,
     Export    = 7,
+    Element   = 9,
     Code      = 10,
     Data      = 11,
     DataCount = 12,
@@ -68,6 +76,8 @@ FUNC_TYPE: u8: 0x60
 STRUCT_TYPE: u8: 0x5F
 ARRAY_TYPE: u8: 0x5E
 REC_GROUP: u8: 0x4E
+// The type of a table that holds functions.
+FUNCTION_REFERENCE: u8: 0x70
 // A subtype others may extend, then one none may: each followed by its
 // supertypes, then its composite type.
 SUBTYPE: u8: 0x50
@@ -89,6 +99,24 @@ END: u8: 0x0B
 push_section :: fn(out: u8[], id: SectionId, content: u8[]) -> void {
     out.push(u8(id))
     out.push_sized(content)
+}
+
+// One table of functions, of exactly as many slots as `table` holds.
+table_section :: fn(table: i32[]) -> u8[] {
+    out: u8[]: [0x01, FUNCTION_REFERENCE, 0x01]
+    out.push_count(table.len())
+    out.push_count(table.len())
+    return out
+}
+
+// One active segment that fills the table from its first slot with `table`.
+element_section :: fn(table: i32[]) -> u8[] {
+    out: u8[]: [0x01, 0x00, 0x41, 0x00, 0x0B]
+    out.push_count(table.len())
+    for function in table {
+        out.push_count(i64(function))
+    }
+    return out
 }
 
 // `content` preceded by its byte size, as a section or a function body is.
@@ -310,6 +338,10 @@ push_instr :: fn(out: u8[], instr: WasmInstr) -> void {
         is GlobalGet       -> { out.push_indexed(0x23, instr.index) }
         is GlobalSet       -> { out.push_indexed(0x24, instr.index) }
         is Call            -> { out.push_indexed(0x10, instr.function_index) }
+        is CallIndirect    -> {
+            out.push_indexed(0x11, instr.type_index)
+            out.push(0x00)
+        }
         is Br              -> { out.push_indexed(0x0C, instr.depth) }
         is BrIf            -> { out.push_indexed(0x0D, instr.depth) }
         is StructNew       -> { out.push_gc(0x00, [instr.type_index]) }
