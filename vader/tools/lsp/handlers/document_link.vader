@@ -4,7 +4,9 @@
 // imported module's source so Ctrl/Cmd-click jumps straight there. A module is
 // found as the loader finds it (`module_named` over `document_roots`, shared with
 // cross-file goto-def in resolver.vader), and the link targets its first file in
-// the loader's order. An import no root holds simply gets no link.
+// the loader's order, or the copy under `build/expanded/` of a module the compiler
+// wrote. An import no root holds, or whose written module has no copy, gets no
+// link.
 //
 // The link range covers the path text *between* the quotes. It is recovered by
 // scanning each `import` decl's source span for the opening quote: `ImportDecl`
@@ -52,10 +54,14 @@ import_link :: fn(
     if module.files.len() == 0 {
         return null
     }
+    file :: module.files[0]
+    if is_generated_file(file) && state.expanded_copies[file] == null {
+        return null
+    }
     range :: path_string_range(imp, source, li) else return null
     obj :: Map<string, JsonValue> {}
     obj["range"]  = range_json(range)
-    obj["target"] = JsonString { .value = module.files[0].to_uri().to_string() }
+    obj["target"] = JsonString { .value = state.uri_of(file) }
     return JsonObject { .entries = obj }
 }
 

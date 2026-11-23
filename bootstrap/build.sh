@@ -224,7 +224,7 @@ if [ "$dist" = 1 ]; then
   esac
   out="dist/vader-${os}-${arch}"
 
-  step "[dist] Bundling $out  (vader + lib/ + runtime/c + third_party/ + doc-template/)"
+  step "[dist] Bundling $out  (vader + lib/ + runtime/c + runtime/wasi + third_party/ + doc-template/)"
   rm -rf "$out"
   mkdir -p "$out/runtime"
   cp build/vader "$out/vader"
@@ -236,6 +236,7 @@ if [ "$dist" = 1 ]; then
   # `std/io/io.vader` marker.
   cp -R lib "$out/lib"
   cp -R runtime/c "$out/runtime/"
+  cp -R runtime/wasi "$out/runtime/"
   cp -R third_party "$out/third_party"
   cp -R tools/doc-site "$out/doc-template"
   rm -rf "$out/doc-template/node_modules" "$out/doc-template/.svelte-kit" "$out/doc-template/build"

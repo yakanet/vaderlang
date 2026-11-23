@@ -132,5 +132,9 @@ test_a_type_of_an_imported_wit_interface_leads_to_its_module :: fn() -> void {
     found :: request(client, "textDocument/definition", on_document(uri, position))
     copy :: "${dir}/build/expanded/wit/wasi_0clocks/system-clock@0.3.0.vader"
     assert_eq(string_member(found, "uri") else "", file_uri(copy))
+    // The path of the import links to the same copy.
+    links :: request(client, "textDocument/documentLink", on_document(uri, ""))
+    targets :: array_at(links, []).map((l) -> string_member(l, "target") else "").collect()
+    assert_eq(targets.join(" "), file_uri(copy))
     close_client(client)
 }
