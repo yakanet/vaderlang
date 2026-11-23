@@ -68,20 +68,18 @@ Literals :: struct {
     starts: i32[] = []
     /// The length of each of them.
     lengths: i32[] = []
+    /// The atom of each literal, by its text.
+    atoms: Map<string, i32> = Map<string, i32> {}
 }
 
 // The literals of `m`: the empty string is atom 0, the others take the next
 // atoms in the order they first appear.
 literals_of :: fn(m: Bc.BytecodeModule) -> Literals {
     out :: Literals {}
-    seen :: Map<string, i32> {}
+    out.atoms[""] = 0
     for s in m.strings {
-        if s.byte_len() == 0 {
-            out.atom_of.push(0)
-            continue
-        }
         next :: i32(out.starts.len() + 1)
-        atom :: seen.get_or_put(s, next)
+        atom :: out.atoms.get_or_put(s, next)
         out.atom_of.push(atom)
         if atom == next {
             out.starts.push(i32(out.bytes.len()))
