@@ -57,15 +57,15 @@ now_unix_ms :: fn() -> i64 {
     return ts[0] * 1_000 + ts[1] / 1_000_000
 }
 
-// The FILETIME epoch (1601-01-01 UTC) to the Unix one, in milliseconds: the
-// 134_774 days between them.
-FILETIME_TO_UNIX_MS: i64: 11_644_473_600_000
-
 @target(.Wasi)
 now_unix_ms :: fn() -> i64 {
     now :: wasi_system_now()
     return now.seconds * 1_000 + i64(now.nanoseconds) / 1_000_000
 }
+
+// The FILETIME epoch (1601-01-01 UTC) to the Unix one, in milliseconds: the
+// 134_774 days between them.
+FILETIME_TO_UNIX_MS: i64: 11_644_473_600_000
 
 @target(.Windows)
 now_unix_ms :: fn() -> i64 {
