@@ -101,11 +101,14 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
             },
         )
     }
-    functions.push_all(ctx.helper_functions)
     exports: WasmExport[]: []
     entry :: Bc.entry_function_index(m, entry_mangled)
+    // The table is built before the entry runs, when a helper reads it.
+    init :: if entry != null && ctx.atoms != null { ctx.atom_init() } else { null }
+    functions.push_all(ctx.helper_functions)
     if entry != null {
-        run :: run_function(ctx, m.functions[entry], ctx.first_function + entry) else return run
+        run :: run_function(ctx, m.functions[entry], ctx.first_function + entry, init)
+            else return run
         exports.push(
             WasmExport {
                 .name = RUN_EXPORT,
@@ -121,6 +124,7 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
         .imports = ctx.imports.functions,
         .functions = functions,
         .exports = exports,
+        .data = ctx.segments,
     }
     return WasmComponent { .core = core, .interfaces = ctx.imports.interfaces }
 }
@@ -138,6 +142,7 @@ module_context_of :: fn(m: Bc.BytecodeModule) -> ModuleCtx | WasmUnsupported {
         .imports = imports,
         .first_function = i32(imports.functions.len()),
         .first_helper = i32(imports.functions.len() + m.functions.len()),
+        .literals = literals_of(m),
     }
 }
 
@@ -157,17 +162,31 @@ ModuleCtx :: struct {
     helper_functions: WasmFunction[] = []
     // The type of each global, in the order of their indices.
     globals: WasmValType[] = []
+    // The literals, as the atom table starts with them (`strings.vader`).
+    literals: Literals
+    // The globals of the atom table, once a helper reads it.
+    atoms: AtomGlobals | null = null
+    // The passive data segments.
+    segments: u8[][] = []
 }
 
-// `run`, the core export the component lifts: it calls the entry, at `entry`,
-// and returns the case of `result` the host reads, `ok` (0) for an entry that
-// returns nothing or 0, `err` (1) for any other code.
+// `run`, the core export the component lifts: it calls `init` when there is one,
+// then the entry, at `entry`, and returns the case of `result` the host reads,
+// `ok` (0) for an entry that returns nothing or 0, `err` (1) for any other code.
 run_function :: fn(
     ctx: ModuleCtx,
     entry: Bc.BcFunction,
     index: i32,
+    init: i32 | null,
 ) -> WasmFunction | WasmUnsupported {
-    body: WasmInstr[]: [Call { .function_index = index }]
+    if entry.signature.params.len() > 0 {
+        return WasmUnsupported { .reason = "`${entry.name}`: no WASM form yet for `argv`" }
+    }
+    body: WasmInstr[]: []
+    if init != null {
+        body.push(Call { .function_index = init })
+    }
+    body.push(Call { .function_index = index })
     results :: result_values(entry.signature)
     if results.len() == 0 {
         body.push(I32Const { .value = 0 })
@@ -267,9 +286,9 @@ value_types_of :: fn(values: Bc.ValType[], function: string) -> WasmValType[] | 
 }
 
 value_type_of :: fn(v: Bc.ValType, function: string) -> WasmValType | WasmUnsupported = match v {
-    .I8 | .I16 | .I32 | .I64 | .U8 | .U16 | .U32 | .U64 | .Bool | .Char | .Ref | .Any
+    .I8 | .I16 | .I32 | .I64 | .U8 | .U16 | .U32 | .U64 | .Bool | .Char | .String | .Ref | .Any
         | .Null -> scalar_field_type(v)
-    .F32 | .F64 | .String | .Void | .Pointer -> WasmUnsupported {
+    .F32 | .F64 | .Void | .Pointer -> WasmUnsupported {
         .reason = "`${function}`: no WASM form yet for a `${Bc.val_type_name(v)}` value",
     }
 }
@@ -383,12 +402,12 @@ push_op :: fn(
         return
     }
     match op {
-        is Bc.I32Const | Bc.I64Const | Bc.BoolConst | Bc.CharConst -> {
-            literal :: constant_of(op, function) else return literal
+        is Bc.I32Const | Bc.I64Const | Bc.BoolConst | Bc.CharConst | Bc.StringConst -> {
+            literal :: constant_of(ctx, op, function) else return literal
             out.push(literal)
         }
         is Bc.ReturnLit -> {
-            literal :: constant_of(op.value, function) else return literal
+            literal :: constant_of(ctx, op.value, function) else return literal
             out.push(literal)
             out.push_plain(.Return)
         }
@@ -399,10 +418,14 @@ push_op :: fn(
             out.push(Call { .function_index = ctx.first_function + op.function_index })
         }
         is Bc.CallImport -> {
-            index :: ctx.imports.by_bytecode_index[op.index]
-                else return unsupported_op(op, function)
+            index :: ctx.imported_function(op, function) else return index
             out.push(Call { .function_index = index })
         }
+        is Bc.BufferNew -> { out.push(Call { .function_index = ctx.buffer_new() }) }
+        is Bc.BufferWriteString -> {
+            out.push(Call { .function_index = ctx.buffer_write_string() })
+        }
+        is Bc.BufferToString -> { out.push(Call { .function_index = ctx.buffer_to_string() }) }
         // WASM has no negation or complement: times -1, and xor with -1.
         is Bc.I32Neg -> { out.push_all([I32Const { .value = -1 }, Plain { .op = .I32Mul }]) }
         is Bc.I64Neg -> { out.push_all([I64Const { .value = -1 }, Plain { .op = .I64Mul }]) }
@@ -485,22 +508,69 @@ plain_op_of :: fn(op: Bc.Op) -> WasmOp | null = @partial match op {
     is Bc.I64Gt       -> .I64GtS
     is Bc.I64Ge       -> .I64GeS
     is Bc.I64BitAnd   -> .I64And
+    is Bc.I64BitOr    -> .I64Or
     is Bc.I64BitXor   -> .I64Xor
+    is Bc.I64Shl      -> .I64Shl
+    is Bc.I64Shr      -> .I64ShrS
+    is Bc.I64ShrU     -> .I64ShrU
     is Bc.BoolEq      -> .I32Eq
     is Bc.BoolNe      -> .I32Ne
     is Bc.BoolAnd     -> .I32And
     is Bc.BoolOr      -> .I32Or
     is Bc.BoolNot     -> .I32Eqz
+    // A string is an atom: two strings with the same bytes are the same atom.
+    is Bc.StringEq    -> .I32Eq
+    is Bc.StringNe    -> .I32Ne
     _                 -> null
 }
 
-constant_of :: fn(c: Bc.ConstOp, function: string) -> WasmInstr | WasmUnsupported = match c {
-    is Bc.I32Const                  -> I32Const { .value = c.value }
-    is Bc.I64Const                  -> I64Const { .value = c.value }
-    is Bc.BoolConst                 -> I32Const { .value = if c.value { 1 } else { 0 } }
-    is Bc.CharConst                 -> I32Const { .value = i32(c.value) }
-    is Bc.NullConst                 -> RefNull {}
-    is Bc.F64Const | Bc.StringConst -> unsupported_op(c, function)
+// The function a call to the import of `op` reaches: the import of a component
+// interface, or the helper behind a member of `Intrinsic`.
+imported_function :: fn(
+    ctx: ModuleCtx,
+    op: Bc.CallImport,
+    function: string,
+) -> i32 | WasmUnsupported {
+    imported :: ctx.imports.by_bytecode_index[op.index]
+    if imported != null {
+        return imported
+    }
+    imp :: ctx.module.imports[op.index]
+    if imp.intrinsic == .NotIntrinsic {
+        return unsupported_op(op, function)
+    }
+    return intrinsic_function(ctx, imp, function)
+}
+
+// The function a call to the `Intrinsic` member `imp` reaches.
+intrinsic_function :: fn(
+    ctx: ModuleCtx,
+    imp: Bc.BcImport,
+    function: string,
+) -> i32 | WasmUnsupported {
+    // @partial: the members with no WASM form yet stop the emission.
+    return @partial match imp.intrinsic {
+        .ByteLen    -> ctx.string_byte_len()
+        .Bytes      -> ctx.string_bytes(imp.signature.result_types[0])
+        .StringHash -> ctx.string_hash()
+        _           -> WasmUnsupported {
+            .reason = "`${function}`: no WASM form yet for `${imp.extern_name}`",
+        }
+    }
+}
+
+constant_of :: fn(
+    ctx: ModuleCtx,
+    c: Bc.ConstOp,
+    function: string,
+) -> WasmInstr | WasmUnsupported = match c {
+    is Bc.I32Const    -> I32Const { .value = c.value }
+    is Bc.I64Const    -> I64Const { .value = c.value }
+    is Bc.BoolConst   -> I32Const { .value = if c.value { 1 } else { 0 } }
+    is Bc.CharConst   -> I32Const { .value = i32(c.value) }
+    is Bc.NullConst   -> RefNull {}
+    is Bc.StringConst -> I32Const { .value = ctx.literals.atom_of[c.index] }
+    is Bc.F64Const    -> unsupported_op(c, function)
 }
 
 // A conversion between storage classes: an integer of 32 bits or less and a
@@ -642,12 +712,20 @@ test_an_interface_import_precedes_the_functions :: fn() -> void {
 }
 
 @test
+test_an_entry_taking_argv_is_refused :: fn() -> void {
+    program :: straight([Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } }])
+    program.functions[0].signature.params = [.Ref]
+    failure :: wasm_module_of(program, "")
+    assert(failure is WasmUnsupported && failure.reason.contains("argv"), "`argv` is refused")
+}
+
+@test
 test_wasm_module_of_names_an_unsupported_op :: fn() -> void {
-    body: Bc.Op[]: [Bc.StringConst { .index = 0 }, Bc.Return {}]
+    body: Bc.Op[]: [Bc.F64Const { .value = 1.5 }, Bc.Return {}]
     failure :: wasm_module_of(straight(body), "")
-    assert(failure is WasmUnsupported, "a string is not translated yet")
+    assert(failure is WasmUnsupported, "a float is not translated yet")
     if failure is WasmUnsupported {
-        assert(failure.reason.contains("string.const"), "the reason names the op")
+        assert(failure.reason.contains("f64.const"), "the reason names the op")
     }
 }
 

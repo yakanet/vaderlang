@@ -33,20 +33,30 @@ export encode_module :: fn(m: WasmModule) -> u8[] {
     if m.exports.len() > 0 {
         out.push_section(.Export, export_section(m.exports))
     }
+    if m.data.len() > 0 {
+        count: u8[]: []
+        count.push_count(m.data.len())
+        out.push_section(.DataCount, count)
+    }
     if m.functions.len() > 0 {
         out.push_section(.Code, code_section(m.functions))
+    }
+    if m.data.len() > 0 {
+        out.push_section(.Data, data_section(m.data))
     }
     return out
 }
 
 // The sections of a module, numbered as the binary format numbers them.
 SectionId :: enum(u8) {
-    Type     = 1,
-    Import   = 2,
-    Function = 3,
-    Global   = 6,
-    Export   = 7,
-    Code     = 10,
+    Type      = 1,
+    Import    = 2,
+    Function  = 3,
+    Global    = 6,
+    Export    = 7,
+    Code      = 10,
+    Data      = 11,
+    DataCount = 12,
 }
 
 // The bytes that open a function type, a struct type, an array type, and a
@@ -131,6 +141,19 @@ import_section :: fn(imports: WasmImport[]) -> u8[] {
         out.push_name(i.name)
         out.push(EXTERNAL_FUNCTION)
         out.push_count(i64(i.type_index))
+    }
+    return out
+}
+
+// Each segment passive (flag 1): `array.new_data` reads it, nothing copies it
+// into a memory.
+data_section :: fn(segments: u8[][]) -> u8[] {
+    out: u8[]: []
+    out.push_count(segments.len())
+    for segment in segments {
+        out.push(1)
+        out.push_count(segment.len())
+        out.push_all(segment)
     }
     return out
 }
@@ -245,6 +268,7 @@ push_instr :: fn(out: u8[], instr: WasmInstr) -> void {
         is RefNull         -> { out.push_all([0xD0, HEAP_EQ]) }
         is ArrayNewFixed   -> { out.push_gc(0x08, [instr.type_index, instr.length]) }
         is ArrayNewDefault -> { out.push_gc(0x07, [instr.type_index]) }
+        is ArrayNewData    -> { out.push_gc(0x09, [instr.type_index, instr.segment]) }
         is ArrayGet        -> { out.push_gc(array_get_code(instr.extension), [instr.type_index]) }
         is ArraySet        -> { out.push_gc(0x0E, [instr.type_index]) }
         is ArrayLen        -> { out.push_gc(0x0F, []) }
@@ -339,7 +363,11 @@ opcode :: fn(op: WasmOp) -> u8 = match op {
     .I64RemS       -> 0x81
     .I64RemU       -> 0x82
     .I64And        -> 0x83
+    .I64Or         -> 0x84
     .I64Xor        -> 0x85
+    .I64Shl        -> 0x86
+    .I64ShrS       -> 0x87
+    .I64ShrU       -> 0x88
     .I32WrapI64    -> 0xA7
     .I64ExtendI32S -> 0xAC
     .I64ExtendI32U -> 0xAD
@@ -524,7 +552,11 @@ test_encode_every_instruction :: fn() -> void {
         .I64RemS,
         .I64RemU,
         .I64And,
+        .I64Or,
         .I64Xor,
+        .I64Shl,
+        .I64ShrS,
+        .I64ShrU,
         .I32WrapI64,
         .I64ExtendI32S,
         .I64ExtendI32U,
@@ -549,7 +581,9 @@ test_encode_every_instruction :: fn() -> void {
     expected.push_all(
         [0x6A, 0x6B, 0x6C, 0x6D, 0x6E, 0x6F, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76],
     )
-    expected.push_all([0x7C, 0x7D, 0x7E, 0x7F, 0x80, 0x81, 0x82, 0x83, 0x85])
+    expected.push_all(
+        [0x7C, 0x7D, 0x7E, 0x7F, 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88],
+    )
     expected.push_all([0xA7, 0xAC, 0xAD])
     expected.push_all([0x02, 0x40, 0x03, 0x40, 0x04, 0x40, 0x05, 0x0B, 0x0B, 0x0B])
     expected.push_all(

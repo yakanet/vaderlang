@@ -32,6 +32,8 @@ export GcTypes :: struct {
     /// The boxed classes some array type of the module has for elements, in the
     /// order of `BOXED_CLASSES`.
     array_classes: Bc.ValType[] = []
+    /// The struct type of an entry of the atom table (`strings.vader`).
+    atom: i32 = -1
 }
 
 // The scalar classes a box exists for.
@@ -72,6 +74,7 @@ export gc_types_of :: fn(m: Bc.BytecodeModule) -> GcTypes {
     }
     out.void_box = out.add([])
     out.add_array_types(m)
+    out.add_string_types()
     return out
 }
 

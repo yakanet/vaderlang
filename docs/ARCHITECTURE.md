@@ -435,8 +435,11 @@ translates a body (`stack.vader`), from the stack effect each op has
 `(ref null eq)` and cast before a struct access (`structs.vader`); a scalar where
 any type may be is boxed, one box type per class. An array is one header over a
 storage per way of storing its elements, a slice a header over the same storage
-(`arrays.vader`, ADR 0177). Checked ops and array accesses are functions the
-emitter writes once and calls (`checked.vader`, `arrays.vader`).
+(`arrays.vader`, ADR 0177). A string is an atom of a table the module keeps in
+globals, hashed as the native runtime hashes it; the literals are one passive
+data segment, and `run` builds the table before the entry (`strings.vader`).
+Checked ops, array accesses and the table are functions the emitter writes once
+and calls (`checked.vader`, `arrays.vader`, `strings.vader`).
 
 ## Self-hosting and bootstrap
 

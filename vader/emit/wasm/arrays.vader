@@ -238,17 +238,21 @@ push_array_op :: fn(
         }
         is Bc.ArrayReserve    -> {
             access :: array_access(ctx, op.type_id, function) else return access
-            out.push_all([
-                I32Const { .value = op.type_id },
-                I32Const { .value = element_code(access) },
-                Call { .function_index = ctx.array_reserve(storage_of_access(access)) },
-            ])
+            out.push_all(
+                [
+                    I32Const { .value = op.type_id },
+                    I32Const { .value = element_code(access) },
+                    Call { .function_index = ctx.array_reserve(storage_of_access(access)) },
+                ],
+            )
         }
         is Bc.ArrayLen        -> {
-            out.push_all([
-                header_of(gc),
-                StructGet { .type_index = gc.array_header, .field_index = HEADER_LENGTH },
-            ])
+            out.push_all(
+                [
+                    header_of(gc),
+                    StructGet { .type_index = gc.array_header, .field_index = HEADER_LENGTH },
+                ],
+            )
         }
         is Bc.ArrayClear      -> { out.push(Call { .function_index = ctx.array_clear() }) }
         is Bc.ArrayGet        -> {
@@ -774,12 +778,14 @@ slice_body :: fn(gc: GcTypes) -> WasmInstr[] {
     body.push_clamp(lo, LocalGet { .index = length }, .I64GtS)
     body.push_clamp(hi, LocalGet { .index = lo }, .I64LtS)
     body.push_clamp(hi, LocalGet { .index = length }, .I64GtS)
-    body.push_all([
-        LocalGet { .index = hi },
-        LocalGet { .index = lo },
-        Plain { .op = .I64Sub },
-        LocalSet { .index = hi },
-    ])
+    body.push_all(
+        [
+            LocalGet { .index = hi },
+            LocalGet { .index = lo },
+            Plain { .op = .I64Sub },
+            LocalSet { .index = hi },
+        ],
+    )
     body.push_set_field(gc, 0, HEADER_SHARED, [I32Const { .value = 1 }])
     offset: WasmInstr[]: []
     offset.push_position(gc, 0, lo)
@@ -818,7 +824,7 @@ push_all_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
         Call { .function_index = ctx.recorded_array_get() },
         Call { .function_index = ctx.recorded_array_push() },
     ]
-    body.push_counted_loop(counter, count, each)
+    body.push_counted_loop(.I64, counter, count, each)
     return body
 }
 
@@ -887,7 +893,7 @@ repeat_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
         LocalGet { .index = 0 },
         Call { .function_index = ctx.array_push_all() },
     ]
-    body.push_counted_loop(counter, count, each)
+    body.push_counted_loop(.I64, counter, count, each)
     body.push(LocalGet { .index = result })
     return body
 }
@@ -1001,7 +1007,7 @@ copy_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
         Call { .function_index = ctx.recorded_array_get() },
         ArraySet { .type_index = references },
     ]
-    body.push_counted_loop(counter, count, gather)
+    body.push_counted_loop(.I64, counter, count, gather)
     scatter: WasmInstr[]: [
         LocalGet { .index = destination },
         LocalGet { .index = destination_start },
@@ -1014,7 +1020,7 @@ copy_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
         ArrayGet { .type_index = references, .extension = .None },
         Call { .function_index = ctx.recorded_array_set() },
     ]
-    body.push_counted_loop(counter, count, scatter)
+    body.push_counted_loop(.I64, counter, count, scatter)
     return body
 }
 
@@ -1219,18 +1225,24 @@ push_clamp :: fn(body: WasmInstr[], value: i32, bound: WasmInstr, past: WasmOp) 
         ],
     )
 
-// `for counter in 0..<limit { each }`, both `i64` locals; `each` leaves nothing
-// and branches nowhere.
-push_counted_loop :: fn(body: WasmInstr[], counter: i32, limit: i32, each: WasmInstr[]) -> void {
+// `for counter in 0..<limit { each }`, both locals of the integer type `t`;
+// `each` leaves nothing and branches nowhere, or returns.
+push_counted_loop :: fn(
+    body: WasmInstr[],
+    t: WasmValType,
+    counter: i32,
+    limit: i32,
+    each: WasmInstr[],
+) -> void {
     body.push_all(
         [
-            I64Const { .value = 0 },
+            integer_of(t, 0),
             LocalSet { .index = counter },
             Plain { .op = .Block },
             Plain { .op = .Loop },
             LocalGet { .index = counter },
             LocalGet { .index = limit },
-            Plain { .op = .I64GeS },
+            Plain { .op = if t == .I64 { .I64GeS } else { .I32GeS } },
             BrIf { .depth = 1 },
         ],
     )
@@ -1238,14 +1250,22 @@ push_counted_loop :: fn(body: WasmInstr[], counter: i32, limit: i32, each: WasmI
     body.push_all(
         [
             LocalGet { .index = counter },
-            I64Const { .value = 1 },
-            Plain { .op = .I64Add },
+            integer_of(t, 1),
+            Plain { .op = if t == .I64 { .I64Add } else { .I32Add } },
             LocalSet { .index = counter },
             Br { .depth = 0 },
             Plain { .op = .End },
             Plain { .op = .End },
         ],
     )
+}
+
+// The constant `value` of the integer type `t`.
+integer_of :: fn(t: WasmValType, value: i32) -> WasmInstr {
+    if t == .I64 {
+        return I64Const { .value = i64(value) }
+    }
+    return I32Const { .value = value }
 }
 
 // ---- tests ----------------------------------------------------------------

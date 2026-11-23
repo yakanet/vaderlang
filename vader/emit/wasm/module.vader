@@ -78,6 +78,8 @@ export WasmModule :: struct {
     imports: WasmImport[] = []
     functions: WasmFunction[]
     exports: WasmExport[]
+    /// The passive data segments, which `array.new_data` reads.
+    data: u8[][] = []
 }
 
 /// A WASM instruction.
@@ -97,6 +99,7 @@ export WasmInstr :: I32Const
            | RefNull
            | ArrayNewFixed
            | ArrayNewDefault
+           | ArrayNewData
            | ArrayGet
            | ArraySet
            | ArrayLen
@@ -171,6 +174,14 @@ export GlobalSet :: struct { index: i32 }
 /// `array.new_default type_index`: an array of the `i32` length on top, each
 /// element zero or null.
 export ArrayNewDefault :: struct { type_index: i32 }
+
+/// `array.new_data type_index segment`: an array of the `i32` length on top,
+/// read from the passive data segment `segment` at the `i32` byte offset under
+/// it.
+export ArrayNewData :: struct {
+    type_index: i32
+    segment: i32
+}
 
 /// `array.get type_index`, its index an `i32`. A packed element reads back
 /// extended to an `i32`, as `extension` says.
@@ -248,7 +259,11 @@ export WasmOp :: enum {
     I64RemS,
     I64RemU,
     I64And,
+    I64Or,
     I64Xor,
+    I64Shl,
+    I64ShrS,
+    I64ShrU,
     I32WrapI64,
     I64ExtendI32S,
     I64ExtendI32U,
