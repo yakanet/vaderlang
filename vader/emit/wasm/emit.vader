@@ -85,7 +85,9 @@ export wasm_module_of :: fn(
 
 // The core module of `wasm_module_of`, with the interfaces its imports come from.
 translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | WasmUnsupported {
-    ctx :: module_context_of(m) else return ctx
+    entry :: Bc.entry_function_index(m, entry_mangled)
+    takes_arguments :: entry != null && m.functions[entry].signature.params.len() > 0
+    ctx :: module_context_of(m, takes_arguments) else return ctx
     functions: WasmFunction[]: []
     for f in m.functions {
         signature :: func_type_of(f) else return signature
@@ -102,12 +104,12 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
         )
     }
     exports: WasmExport[]: []
-    entry :: Bc.entry_function_index(m, entry_mangled)
+    arguments :: ctx.arguments_function()
     // The table is built before the entry runs, when a helper reads it.
     init :: if entry != null && ctx.atoms != null { ctx.atom_init() } else { null }
     functions.push_all(ctx.helper_functions)
     if entry != null {
-        run :: run_function(ctx, m.functions[entry], ctx.first_function + entry, init)
+        run :: run_function(ctx, m.functions[entry], ctx.first_function + entry, init, arguments)
             else return run
         exports.push(
             WasmExport {
@@ -136,9 +138,10 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
     }
 }
 
-// The canonical built-ins read and write the memory the component defines.
+// The canonical built-ins and `get-arguments` read and write the memory the
+// component defines.
 memory_import_of :: fn(imports: ImportedFunctions) -> string | null {
-    if imports.builtins.is_empty() {
+    if imports.builtins.is_empty() && imports.arguments == null {
         return null
     }
     return CANONICAL_MODULE
@@ -147,10 +150,10 @@ memory_import_of :: fn(imports: ImportedFunctions) -> string | null {
 // The context of `m`'s translation, before its first function: its struct types,
 // then the imported functions, which take the first function indices, and its
 // globals, which take the first global indices.
-module_context_of :: fn(m: Bc.BytecodeModule) -> ModuleCtx | WasmUnsupported {
+module_context_of :: fn(m: Bc.BytecodeModule, takes_arguments: bool) -> ModuleCtx | WasmUnsupported {
     gc :: gc_types_of(m)
     types :: TypeTable { .first = i32(gc.types.len()) }
-    imports :: imported_functions(m, types) else return imports
+    imports :: imported_functions(m, types, takes_arguments) else return imports
     return ModuleCtx {
         .module = m,
         .gc = gc,
@@ -196,20 +199,22 @@ ModuleCtx :: struct {
 }
 
 // `run`, the core export the component lifts: it calls `init` when there is one,
-// then the entry, at `entry`, and returns the case of `result` the host reads,
-// `ok` (0) for an entry that returns nothing or 0, `err` (1) for any other code.
+// then the entry, at `entry`, on what `arguments` reads when it takes them, and
+// returns the case of `result` the host reads, `ok` (0) for an entry that returns
+// nothing or 0, `err` (1) for any other code.
 run_function :: fn(
     ctx: ModuleCtx,
     entry: Bc.BcFunction,
     index: i32,
     init: i32 | null,
+    arguments: i32 | null,
 ) -> WasmFunction | WasmUnsupported {
-    if entry.signature.params.len() > 0 {
-        return WasmUnsupported { .reason = "`${entry.name}`: no WASM form yet for `argv`" }
-    }
     body: WasmInstr[]: []
     if init != null {
         body.push(Call { .function_index = init })
+    }
+    if arguments != null {
+        body.push(Call { .function_index = arguments })
     }
     body.push(Call { .function_index = index })
     results :: result_values(entry.signature.results)
@@ -902,11 +907,12 @@ test_an_interface_import_precedes_the_functions :: fn() -> void {
 }
 
 @test
-test_an_entry_taking_argv_is_refused :: fn() -> void {
+test_an_entry_taking_argv_reads_get_arguments :: fn() -> void {
     program :: straight([Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } }])
     program.functions[0].signature.params = [.Ref]
-    failure :: wasm_module_of(program, "")
-    assert(failure is WasmUnsupported && failure.reason.contains("argv"), "`argv` is refused")
+    wasm :: wasm_module_of(program, "") else panic(wasm.reason)
+    assert(wasm.imports[0].name == "get-arguments", "`get-arguments` is imported")
+    assert(wasm.memory_import != null, "the host writes the arguments into the memory")
 }
 
 @test

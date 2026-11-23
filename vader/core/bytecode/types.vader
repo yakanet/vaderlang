@@ -395,6 +395,31 @@ export struct_symbol_type_index :: fn(types: BcType[], symbol_id: i32) -> i32 {
     return -1
 }
 
+/// Index of the `string[]` `BcArray` in `types`: the type an array of strings the
+/// host hands in carries, `argv` say, so that `is string[]` narrows it.
+///
+/// @param types  the module's type table.
+/// @return       the index, 0 when the table holds no `string` or no `string[]`.
+export find_string_array_type_id :: fn(types: BcType[]) -> i32 {
+    string_index: i32 = -1
+    for i in 0..<types.len() {
+        t :: types[i]
+        if t is BcScalar && t.val == .String {
+            string_index = i32(i)
+        }
+    }
+    if string_index < 0 {
+        return 0
+    }
+    for i in 0..<types.len() {
+        t :: types[i]
+        if t is BcArray && t.element == string_index {
+            return i32(i)
+        }
+    }
+    return 0
+}
+
 /// The `BcStruct` at `type_index`, or `null` when the slot holds anything else or
 /// lies outside the table.
 ///

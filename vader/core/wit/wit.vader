@@ -19,7 +19,7 @@ import "std/string"
 import "std/string_builder"
 
 /// A WIT value type.
-export WitType :: WitScalar | WitEnum | WitResult | WitStream | WitFuture | WitUnsupported
+export WitType :: WitScalar | WitEnum | WitResult | WitList | WitStream | WitFuture | WitUnsupported
 
 /// The WIT primitives.
 export WitScalar :: enum {
@@ -49,6 +49,11 @@ export WitEnum :: struct {
 export WitResult :: struct {
     ok: WitType | null = null
     error: WitType | null = null
+}
+
+/// A WIT `list<element>`.
+export WitList :: struct {
+    element: WitType
 }
 
 /// A WIT `stream<element>`.
@@ -165,6 +170,11 @@ write_wit :: fn(sb: StringBuilder, t: WitType) -> void {
             sb.write_wit_or_none(t.ok)
             sb.append(",")
             sb.write_wit_or_none(t.error)
+            sb.append(">")
+        }
+        is WitList        -> {
+            sb.append("list<")
+            sb.write_wit(t.element)
             sb.append(">")
         }
         is WitStream      -> {
@@ -313,6 +323,13 @@ read_wit_type :: fn(r: WitReader) -> WitType | null {
         }
         return WitResult { .ok = ok.type, .error = error.type }
     }
+    if r.wit_skip("list<") {
+        element :: r.read_wit_type() else return null
+        if !r.wit_skip(">") {
+            return null
+        }
+        return WitList { .element = element }
+    }
     if r.wit_skip("stream<") {
         element :: r.read_wit_type() else return null
         if !r.wit_skip(">") {
@@ -377,6 +394,12 @@ test_wit_function_text_reads_back :: fn() -> void {
     text :: wit_function_text(write_via_stream())
     read :: parse_wit_function(text) else panic("the text reads back")
     assert_eq(wit_function_text(read), text)
+}
+
+@test
+test_wit_function_of_a_list_reads_back :: fn() -> void {
+    read :: parse_wit_function("[]->list<string>") else panic("the text reads back")
+    assert_eq(wit_function_text(read), "[]->list<string>")
 }
 
 @test

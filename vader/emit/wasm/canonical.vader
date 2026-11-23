@@ -56,6 +56,10 @@ EVENT_PAYLOAD: i32: 4
 FUTURE_VALUE_ADDRESS: i32: 16
 CHUNK_ADDRESS: i32: 1024
 CHUNK_SIZE: i32: 4096
+// Where `get-arguments` writes the address and the length of its list
+// (`arguments.vader`), and where the allocator starts.
+ARGUMENTS_ADDRESS: i32: 32
+ALLOCATION_ADDRESS: i32: CHUNK_ADDRESS + CHUNK_SIZE
 
 // What a built-in that starts a copy returns when the copy has to wait.
 BLOCKED: i32: -1
@@ -140,8 +144,30 @@ flat_type_of :: fn(f: WitFunction, function: string) -> WasmFuncType | WasmUnsup
         params.push(t)
     }
     result :: f.result else return func_of(params, [])
+    // A list comes back through the memory: the caller passes where the host
+    // writes its address and its length.
+    if result is WitList {
+        params.push(.I32)
+        return func_of(params, [])
+    }
     t :: flat_value_of(result, function) else return t
     return func_of(params, [t])
+}
+
+// Whether the host writes a result of `f` into room it asks the memory's
+// allocator for: one that holds a string or a list.
+allocates :: fn(f: WitFunction) -> bool = holds_room(f.result)
+
+holds_room :: fn(t: WitType | null) -> bool {
+    if t == null {
+        return false
+    }
+    return match t {
+        is WitScalar -> t == .String
+        is WitList -> true
+        is WitResult -> holds_room(t.ok) || holds_room(t.error)
+        is WitEnum | WitStream | WitFuture | WitUnsupported -> false
+    }
 }
 
 flat_value_of :: fn(t: WitType, function: string) -> WasmValType | WasmUnsupported = match t {
@@ -150,6 +176,7 @@ flat_value_of :: fn(t: WitType, function: string) -> WasmValType | WasmUnsupport
     is WitStream      -> if is_byte_stream(t) { .I32 } else { no_lowering(t, function) }
     is WitFuture      -> if is_resolved_value(t.value) { .I32 } else { no_lowering(t, function) }
     is WitResult      -> no_lowering(t, function)
+    is WitList        -> no_lowering(t, function)
     is WitUnsupported -> WasmUnsupported { .reason = "`${function}`: ${t.reason}" }
 }
 

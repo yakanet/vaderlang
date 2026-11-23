@@ -32,12 +32,17 @@ ImportedFunctions :: struct {
     builtins: CanonicalBuiltin[] = []
     // The WASM function index of each built-in, by `builtin_name`.
     by_builtin: Map<string, i32> = Map<string, i32> {}
+    // The WASM function index of `get-arguments`, when the entry takes them
+    // (`arguments.vader`).
+    arguments: i32 | null = null
 }
 
-// The imports of `m`, their core types interned in `types`.
+// The imports of `m`, their core types interned in `types`, and `get-arguments`
+// when the entry `takes_arguments`.
 imported_functions :: fn(
     m: Bc.BytecodeModule,
     types: TypeTable,
+    takes_arguments: bool,
 ) -> ImportedFunctions | WasmUnsupported {
     out :: ImportedFunctions {}
     for [imp, i] in m.imports.indexed() {
@@ -61,6 +66,9 @@ imported_functions :: fn(
             out.adapted.add(i32(i))
             out.add_builtins(builtins_of(wit))
         }
+    }
+    if takes_arguments {
+        out.add_arguments_import(types)
     }
     for b in out.builtins {
         out.by_builtin[builtin_name(b)] = i32(out.functions.len())

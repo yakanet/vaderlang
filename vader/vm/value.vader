@@ -70,31 +70,6 @@ export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal = ArrayVal {
     .raw = StringWindow { .text = s, .length = s.byte_len() },
 }
 
-/// Locate the module's `string[]` `ArrayType` index: the type id a
-/// host-produced string array must carry so `is string[]` narrows.
-/// Returns 0 when no `string` primitive or no `string[]` array entry exists (the caller's
-/// `type_check` then fails loudly rather than masking the miss). Compute
-/// once per run: the scan is linear in the type-table size.
-/// @param types  the running module's type table.
-/// @return       the `string[]` ArrayType index, or 0 when absent.
-export find_string_array_type_id :: fn(types: bc.BcType[]) -> i32 {
-    string_idx: i32 = -1
-    for i in 0..<types.len() {
-        t :: types[i]
-        if t is bc.BcScalar {
-            if t.val == .String { string_idx = i32(i) }
-        }
-    }
-    if string_idx < 0 { return 0 }
-    for j in 0..<types.len() {
-        t :: types[j]
-        if t is bc.BcArray {
-            if t.element == string_idx { return i32(j) }
-        }
-    }
-    return 0
-}
-
 /// Locate the module's `u8[]` `ArrayType` index: the tag a host-produced
 /// `bytes()` array must carry so `is u8[]` narrows. Sibling of
 /// `find_string_array_type_id`. Returns 0 when no `u8` scalar or no

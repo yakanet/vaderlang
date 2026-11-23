@@ -207,15 +207,30 @@ export MEMORY_NAME: string: "memory"
 
 /// A module that only defines a linear memory of one page and exports it, which
 /// a component instantiates before the modules that import it (ADR 0176).
-export encode_memory_module :: fn() -> u8[] {
+export encode_memory_module :: fn(with_allocator: bool) -> u8[] {
     out: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]
+    if with_allocator {
+        out.push_section(.Type, type_section([], [ALLOCATOR_TYPE]))
+        out.push_section(.Function, [1, 0])
+    }
     memories: u8[]: [1]
     memories.push_all(ONE_PAGE_OR_MORE)
     out.push_section(.Memory, memories)
-    exports: u8[]: [1]
+    if with_allocator {
+        out.push_section(.Global, global_section([.I32]))
+    }
+    exports: u8[]: []
+    exports.push_count(if with_allocator { 2 } else { 1 })
     exports.push_name(MEMORY_NAME)
     exports.push_all([EXTERNAL_MEMORY, 0])
+    if with_allocator {
+        exports.push_name(REALLOC_NAME)
+        exports.push_all([EXTERNAL_FUNCTION, 0])
+    }
     out.push_section(.Export, exports)
+    if with_allocator {
+        out.push_section(.Code, code_section([allocator_function()]))
+    }
     return out
 }
 
@@ -370,6 +385,10 @@ push_instr :: fn(out: u8[], instr: WasmInstr) -> void {
             if opens_scope(instr.op) {
                 out.push(EMPTY_BLOCK_TYPE)
             }
+            // The memory it names: the only one.
+            if instr.op == .MemorySize || instr.op == .MemoryGrow {
+                out.push(0x00)
+            }
         }
     }
 }
@@ -507,6 +526,8 @@ opcode :: fn(op: WasmOp) -> u8 = match op {
     .F64ReinterpretI64 -> 0xBF
     // Under the 0xFC prefix (`is_prefixed`).
     .I64TruncSatF64S   -> 0x06
+    .MemorySize        -> 0x3F
+    .MemoryGrow        -> 0x40
     .RefIsNull         -> 0xD1
     .RefEq             -> 0xD3
 }
@@ -744,7 +765,7 @@ test_encode_memory_module_exports_one_page :: fn() -> void {
     expected: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]
     expected.push_all([0x05, 0x03, 0x01, 0x00, 0x01])
     expected.push_all([0x07, 0x0A, 0x01, 0x06, 0x6D, 0x65, 0x6D, 0x6F, 0x72, 0x79, 0x02, 0x00])
-    assert_bytes(encode_memory_module(), expected)
+    assert_bytes(encode_memory_module(false), expected)
 }
 
 @test

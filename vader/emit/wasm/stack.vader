@@ -188,7 +188,7 @@ import "std/testing"
 // The stack after each op of `body`, a function's whole body.
 stack_after :: fn(body: Bc.Op[]) -> OperandStack | WasmUnsupported {
     program :: straight(body)
-    ctx :: module_context_of(program) else return ctx
+    ctx :: module_context_of(program, false) else return ctx
     stack :: OperandStack {}
     for op in body {
         stepped :: step(ctx, program.functions[0], stack, op) else return stepped
@@ -210,7 +210,7 @@ test_a_scope_brings_the_stack_back_to_its_opener :: fn() -> void {
     ]
     program :: straight(body)
     f :: program.functions[0]
-    ctx :: module_context_of(program) else panic(ctx.reason)
+    ctx :: module_context_of(program, false) else panic(ctx.reason)
     stack :: OperandStack {}
     heights: i64[]: []
     for op in body {

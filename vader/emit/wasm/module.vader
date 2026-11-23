@@ -329,4 +329,6 @@ export WasmOp :: enum {
     F32ReinterpretI32,
     F64ReinterpretI64,
     I64TruncSatF64S,
+    MemorySize,
+    MemoryGrow,
 }

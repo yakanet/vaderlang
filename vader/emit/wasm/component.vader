@@ -70,36 +70,37 @@ export encode_component :: fn(c: WasmComponent) -> u8[] {
     out: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x0D, 0x00, 0x01, 0x00]
     interface_count :: i64(c.interfaces.len())
     function_count :: count_functions(c.interfaces)
-    has_memory :: c.builtins.len() > 0
+    has_memory :: c.core.memory_import != null
+    allocating :: c.interfaces.any_match((i) -> i.functions.any_match((f) -> allocates(f.type)))
     scopes :: c.interfaces.map(instance_scope_of).collect()
     if interface_count > 0 {
         out.push_component_section(.Type, instance_types(scopes))
         out.push_component_section(.Import, interface_imports(c.interfaces))
     }
     if has_memory {
-        out.push_component_section(.CoreModule, encode_memory_module())
+        out.push_component_section(.CoreModule, encode_memory_module(allocating))
         out.push_component_section(.CoreInstance, [1, INSTANTIATE, 0, 0])
-        memory_alias: u8[]: [1, CORE_SORT, CORE_MEMORY, ALIAS_CORE_EXPORT, 0]
-        memory_alias.push_name(MEMORY_NAME)
-        out.push_component_section(.Alias, memory_alias)
+        out.push_component_section(.Alias, memory_aliases(allocating))
     }
     out.push_component_section(.CoreModule, encode_module(c.core))
+    // The allocator, when there is one, is the first core function.
+    first_lowered :: allocator_count(allocating)
     if function_count > 0 {
         out.push_component_section(.Alias, function_aliases(c.interfaces, function_count))
-        out.push_component_section(.Canonical, lowered_functions(function_count))
+        out.push_component_section(.Canonical, lowered_functions(c.interfaces))
     }
     types :: TypeScope { .next = interface_count }
-    if has_memory {
+    if c.builtins.len() > 0 {
         out.push_builtin_sections(c.builtins, scopes, types)
     }
     // The memory's instance comes first when there is one.
     first_instance :: core_instance_base(has_memory)
-    out.push_component_section(.CoreInstance, core_instances(c, first_instance, function_count))
+    out.push_component_section(.CoreInstance, core_instances(c, first_instance, first_lowered))
     out.push_run_sections(
         RunIndices {
             .result_type = types.next,
             .main_instance = first_instance + interface_count + core_instance_base(has_memory),
-            .core_run = function_count + i64(c.builtins.len()),
+            .core_run = first_lowered + function_count + i64(c.builtins.len()),
             .lifted_run = function_count,
             .run_instance = interface_count,
         },
@@ -109,6 +110,23 @@ export encode_component :: fn(c: WasmComponent) -> u8[] {
 
 // The core instances before the interfaces' own: the memory's, when there is one.
 core_instance_base :: fn(has_memory: bool) -> i64 = if has_memory { 1 } else { 0 }
+
+// The core functions before the lowered ones: the allocator, when there is one.
+allocator_count :: fn(allocating: bool) -> i64 = if allocating { 1 } else { 0 }
+
+// The memory out of its module's instance, and the allocator when the host
+// writes a result into room it asks for.
+memory_aliases :: fn(allocating: bool) -> u8[] {
+    out: u8[]: []
+    out.push_count(1 + allocator_count(allocating))
+    out.push_all([CORE_SORT, CORE_MEMORY, ALIAS_CORE_EXPORT, 0])
+    out.push_name(MEMORY_NAME)
+    if allocating {
+        out.push_all([CORE_SORT, CORE_FUNC, ALIAS_CORE_EXPORT, 0])
+        out.push_name(REALLOC_NAME)
+    }
+    return out
+}
 
 // Where the sections that export `run` find what they name.
 RunIndices :: struct {
@@ -176,6 +194,7 @@ RESULT_TYPE: u8: 0x6A
 ENUM_TYPE: u8: 0x6D
 STREAM_TYPE: u8: 0x66
 FUTURE_TYPE: u8: 0x65
+LIST_TYPE: u8: 0x70
 
 // An instance-type declaration of a type, and of an export.
 DECLARE_TYPE: u8: 0x01
@@ -204,6 +223,13 @@ NO_OPTIONS: u8: 0x00
 // The options of a built-in that copies through the memory 0 and returns
 // `BLOCKED` rather than wait.
 ASYNC_WITH_MEMORY: u8[]: [0x02, 0x06, 0x03, 0x00]
+// The options of a lowered function: none, or UTF-8 strings, the memory 0 and
+// the allocator, the core function 0, for one that `allocates`.
+lowering_options :: fn(f: WitFunction) -> u8[] = if allocates(f) { ALLOCATING_OPTIONS } else {
+    [NO_OPTIONS]
+}
+
+ALLOCATING_OPTIONS: u8[]: [0x03, 0x00, 0x03, 0x00, 0x04, 0x00]
 // `waitable-set.wait` on the memory 0, which no cancellation interrupts.
 NOT_CANCELLABLE_ON_MEMORY: u8[]: [0x00, 0x00]
 // An import or export name that is a plain name, with no version or URL.
@@ -325,6 +351,10 @@ type_index :: fn(scope: TypeScope, t: WitType) -> i64 {
             definition.push_optional_type(scope, t.ok)
             definition.push_optional_type(scope, t.error)
         }
+        is WitList                    -> {
+            definition.push(LIST_TYPE)
+            definition.push_value_type(scope, t.element)
+        }
         is WitStream                  -> {
             definition.push(STREAM_TYPE)
             definition.push_optional_type(scope, t.element)
@@ -405,14 +435,19 @@ function_aliases :: fn(interfaces: ComponentInterface[], count: i64) -> u8[] {
     return out
 }
 
-// The component function `k` lowered to the core function `k`.
-lowered_functions :: fn(count: i64) -> u8[] {
+// The component function `k` lowered to the core function past the allocator,
+// one that `allocates` through the memory 0 and the allocator, its strings UTF-8.
+lowered_functions :: fn(interfaces: ComponentInterface[]) -> u8[] {
     out: u8[]: []
-    out.push_count(count)
-    for k in 0..<count {
-        out.push_all([CANONICAL_LOWER, CORE_FUNC])
-        out.push_count(k)
-        out.push(NO_OPTIONS)
+    out.push_count(count_functions(interfaces))
+    k: i64 = 0
+    for interface in interfaces {
+        for f in interface.functions {
+            out.push_all([CANONICAL_LOWER, CORE_FUNC])
+            out.push_count(k)
+            out.push_all(lowering_options(f.type))
+            k += 1
+        }
     }
     return out
 }
@@ -478,6 +513,7 @@ push_enums_of :: fn(out: WitEnum[], t: WitType | null) -> void {
             out.push_enums_of(t.ok)
             out.push_enums_of(t.error)
         }
+        is WitList                    -> out.push_enums_of(t.element)
         is WitStream                  -> out.push_enums_of(t.element)
         is WitFuture                  -> out.push_enums_of(t.value)
         is WitScalar | WitUnsupported -> {}
@@ -523,12 +559,13 @@ builtin_options :: fn(k: CanonicalKind) -> u8[] = match k {
 
 // One core instance per interface, exporting its lowered functions, then one of
 // the memory and the built-ins when there are, then the core module instantiated
-// with them. The interfaces' instances start at `first`.
-core_instances :: fn(c: WasmComponent, first: i64, function_count: i64) -> u8[] {
-    has_builtins :: c.builtins.len() > 0
+// with them. The interfaces' instances start at `first`, their functions at the
+// core function `first_lowered`, the built-ins past them.
+core_instances :: fn(c: WasmComponent, first: i64, first_lowered: i64) -> u8[] {
+    has_memory :: c.core.memory_import != null
     out: u8[]: []
-    out.push_count(c.interfaces.len() + 1 + core_instance_base(has_builtins))
-    k: i64 = 0
+    out.push_count(c.interfaces.len() + 1 + core_instance_base(has_memory))
+    k: i64 = first_lowered
     for interface in c.interfaces {
         out.push(INSTANCE_OF_EXPORTS)
         out.push_count(interface.functions.len())
@@ -539,7 +576,7 @@ core_instances :: fn(c: WasmComponent, first: i64, function_count: i64) -> u8[] 
             k += 1
         }
     }
-    if has_builtins {
+    if has_memory {
         out.push(INSTANCE_OF_EXPORTS)
         out.push_count(c.builtins.len() + 1)
         out.push_name(MEMORY_NAME)
@@ -547,19 +584,19 @@ core_instances :: fn(c: WasmComponent, first: i64, function_count: i64) -> u8[] 
         for i in 0..<c.builtins.len() {
             out.push_name(builtin_name(c.builtins[i]))
             out.push(CORE_FUNC)
-            out.push_count(function_count + i)
+            out.push_count(k + i)
         }
     }
     // The core module past the memory's.
     out.push(INSTANTIATE)
     out.push_count(first)
-    out.push_count(c.interfaces.len() + core_instance_base(has_builtins))
+    out.push_count(c.interfaces.len() + core_instance_base(has_memory))
     for i in 0..<c.interfaces.len() {
         out.push_name(c.interfaces[i].name)
         out.push(CORE_SORT_INSTANCE)
         out.push_count(first + i)
     }
-    if has_builtins {
+    if has_memory {
         out.push_name(CANONICAL_MODULE)
         out.push(CORE_SORT_INSTANCE)
         out.push_count(first + c.interfaces.len())
