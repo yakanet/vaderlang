@@ -42,6 +42,8 @@ export GcTypes :: struct {
     atom: i32 = -1
     /// The struct type of a function value (`closures.vader`).
     closure: i32 = -1
+    /// The struct type of a `type` value: the index of the type it names.
+    type_value: i32 = -1
 }
 
 // The scalar classes a box exists for.
@@ -104,6 +106,7 @@ export gc_types_of :: fn(m: Bc.BytecodeModule) -> GcTypes {
     out.add_array_types(m)
     out.add_string_types()
     out.closure = out.add([WasmField { .type = .EqRef }, WasmField { .type = .I32 }])
+    out.type_value = out.add([WasmField { .type = .I32 }])
     return out
 }
 
@@ -364,6 +367,47 @@ union_field :: fn(
         WasmFuncType { .params = [.EqRef, held], .results = [] }
     }
     return ctx.define_helper(key, signature, [], body)
+}
+
+// `() -> type`: the value of the type `type_id`, made once, so that two values
+// of one type are the same reference, as `ref.eq` compares them.
+type_constant :: fn(ctx: ModuleCtx, type_id: i32) -> i32 {
+    key :: "type.${type_id}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    made: WasmInstr[]: [
+        I32Const { .value = type_id },
+        StructNew { .type_index = ctx.gc.type_value },
+    ]
+    return ctx.define_cached(key, made)
+}
+
+// `(type) -> i64`: the size of the type a `type` value names, read in a table
+// of the size of every type of the module, made once.
+size_of_type :: fn(ctx: ModuleCtx) -> i32 {
+    known :: ctx.helpers["size_of.type"]
+    if known != null {
+        return known
+    }
+    sizes: WasmInstr[]: []
+    for t in ctx.module.types {
+        sizes.push(I64Const { .value = Bc.size_of_bc_type(t) })
+    }
+    storage :: storage_type(ctx.gc, .I64)
+    sizes.push(ArrayNewFixed { .type_index = storage, .length = i32(ctx.module.types.len()) })
+    table :: ctx.define_cached("size_of.table", sizes)
+    body: WasmInstr[]: [
+        Call { .function_index = table },
+        RefCast { .type_index = storage },
+        LocalGet { .index = 0 },
+        RefCast { .type_index = ctx.gc.type_value },
+        StructGet { .type_index = ctx.gc.type_value, .field_index = 0 },
+        ArrayGet { .type_index = storage, .extension = .None },
+    ]
+    signature :: WasmFuncType { .params = [.EqRef], .results = [.I64] }
+    return ctx.define_helper("size_of.type", signature, [], body)
 }
 
 // `ref.cast` of the bytecode: a value read out of a slot that holds any type, an

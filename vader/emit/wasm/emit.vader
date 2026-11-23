@@ -291,6 +291,65 @@ func_type_of :: fn(f: Bc.BcFunction) -> WasmFuncType | WasmUnsupported {
     return WasmFuncType { .params = params, .results = results }
 }
 
+// The function a `call` of `function_index` reaches, its arguments on top of
+// `stack`: the function itself when each argument is held as it takes it, else a
+// helper that brings each one to its form first. The bytecode passes a scalar
+// unboxed to the `Any` parameter of a generic instance, which the VM does not
+// tell apart.
+call_target :: fn(
+    ctx: ModuleCtx,
+    stack: OperandStack,
+    function_index: i32,
+    function: string,
+) -> i32 | WasmUnsupported {
+    direct :: ctx.first_function + function_index
+    callee :: ctx.module.functions[function_index]
+    params :: value_types_of(callee.signature.params, callee.name) else return params
+    if held_alike(stack, params) {
+        return direct
+    }
+    site :: site_of(stack, params.len())
+    results :: value_types_of(result_values(callee.signature.results), callee.name)
+        else return results
+    signature :: WasmFuncType { .params = site, .results = results }
+    key :: "call ${function_index} ${canonical_func_type_key(signature)}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    body: WasmInstr[]: []
+    for i in 0..<params.len() {
+        body.push(LocalGet { .index = i32(i) })
+        class :: if params[i] == .EqRef { class_held_as(site[i]) } else {
+            callee.signature.params[i]
+        }
+        adapted :: body.push_adapted(ctx, site[i], class, params[i], function) else return adapted
+    }
+    body.push(Call { .function_index = direct })
+    return ctx.define_helper(key, signature, [], body)
+}
+
+// Whether the `params.len()` values on top of `stack` are held as `params` are.
+held_alike :: fn(stack: OperandStack, params: WasmValType[]) -> bool {
+    base :: stack.types.len() - params.len()
+    for i in 0..<params.len() {
+        if stack.types[base + i] != params[i] {
+            return false
+        }
+    }
+    return true
+}
+
+// The class a value held as `held` is boxed in where nothing names it: the
+// signed class of its form, as the VM's value of that form reads (`I32Val`,
+// `I64Val`, `F64Val`). A reference needs no box.
+class_held_as :: fn(held: WasmValType) -> Bc.ValType = match held {
+    .I32        -> .I32
+    .I64        -> .I64
+    .F32 | .F64 -> .F64
+    .EqRef      -> .Any
+}
+
 // The values a call leaves: none for a `void` one, whose results still carry
 // one `Void` entry.
 result_values :: fn(results: Bc.ValType[]) -> Bc.ValType[] =
@@ -438,7 +497,8 @@ push_op :: fn(
         is Bc.GlobalGet -> { out.push(GlobalGet { .index = op.index }) }
         is Bc.GlobalSet -> { out.push(GlobalSet { .index = op.index }) }
         is Bc.Call -> {
-            out.push(Call { .function_index = ctx.first_function + op.function_index })
+            index :: ctx.call_target(stack, op.function_index, function) else return index
+            out.push(Call { .function_index = index })
         }
         is Bc.CallImport -> {
             index :: ctx.imported_function(op, function) else return index
@@ -460,7 +520,7 @@ push_op :: fn(
         is Bc.I64Neg -> { out.push_all([I64Const { .value = -1 }, Plain { .op = .I64Mul }]) }
         is Bc.I32BitNot -> { out.push_all([I32Const { .value = -1 }, Plain { .op = .I32Xor }]) }
         is Bc.I64BitNot -> { out.push_all([I64Const { .value = -1 }, Plain { .op = .I64Xor }]) }
-        is Bc.Convert -> { return push_convert(out, op, function) }
+        is Bc.Convert -> { return push_convert(ctx, out, op, stack.types.last(), function) }
         is Bc.F32ToBits -> {
             out.push_all([Plain { .op = .F32DemoteF64 }, Plain { .op = .I32ReinterpretF32 }])
         }
@@ -472,6 +532,8 @@ push_op :: fn(
         }
         is Bc.CheckedNeg -> { out.push(Call { .function_index = ctx.checked_neg_helper(op.kind) }) }
         is Bc.NullConst -> { out.push(RefNull {}) }
+        is Bc.TypeConst -> { out.push(Call { .function_index = ctx.type_constant(op.type_id) }) }
+        is Bc.SizeOfType -> { out.push(Call { .function_index = ctx.size_of_type() }) }
         is Bc.VoidConst -> { out.push(StructNew { .type_index = ctx.gc.void_box }) }
         is Bc.StructNew -> {
             t :: struct_type(ctx, op.type_id, function) else return t
@@ -653,10 +715,21 @@ constant_of :: fn(
 // A conversion between storage classes: an integer of 32 bits or less and a
 // `char` share the `i32`, a 64-bit integer the `i64`, a float the `f64`. An
 // unsigned source widens with zeros. A float becomes an integer as the VM makes
-// it one, through an `i64` (`i32(i64(x))`), saturated where it does not fit.
-push_convert :: fn(out: WasmInstr[], op: Bc.Convert, function: string) -> void | WasmUnsupported {
+// it one, through an `i64` (`i32(i64(x))`), saturated where it does not fit. A
+// source still boxed, `source` held as a reference, is unboxed first: the result
+// of a generic call, say.
+push_convert :: fn(
+    ctx: ModuleCtx,
+    out: WasmInstr[],
+    op: Bc.Convert,
+    source: WasmValType | null,
+    function: string,
+) -> void | WasmUnsupported {
     from :: Bc.parse_val_type(op.from_name) else return unsupported_op(op, function)
     from_class :: value_type_of(from, function) else return from_class
+    if source == WasmValType.EqRef && from_class != .EqRef {
+        unboxed :: out.push_adapted(ctx, .EqRef, from, from_class, function) else return unboxed
+    }
     match op.target {
         .I32 | .Char -> {
             if from_class == .F64 {
@@ -843,6 +916,45 @@ test_a_bytecode_global_takes_the_first_global :: fn() -> void {
     assert(wasm.globals.len() == 1 && wasm.globals[0] == .I64, "one `i64` global")
     read :: wasm.functions[0].body[0]
     assert(read is GlobalGet && read.index == 0, "read at index 0")
+}
+
+// A scalar passed unboxed to the `Any` parameter of a generic instance goes
+// through a helper that boxes it.
+@test
+test_a_scalar_passed_to_an_any_parameter_is_boxed :: fn() -> void {
+    body: Bc.Op[]: [Bc.I32Const { .value = 7 }, Bc.Call { .function_index = 1 }, Bc.Return {}]
+    program :: straight(body)
+    twice :: Bc.BcFunction {
+        ...program.functions[0],
+        .name = "twice",
+        .is_main = false,
+        .signature = Bc.BcSignature { ...program.functions[0].signature, .params = [.Any] },
+        .body = [Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } }],
+        .jump_table = [-1],
+    }
+    program.functions.push(twice)
+    wasm :: wasm_module_of(program, "") else panic(wasm.reason)
+    call :: wasm.functions[0].body[1]
+    assert(call is Call && call.function_index == 2, "main calls the helper, not `twice`")
+    i32_box :: gc_types_of(program).of_box[.I32] else -1
+    boxed :: wasm.functions[2].body.filter_is<StructNew>().collect()
+    assert(boxed.len() == 1 && boxed[0].type_index == i32_box, "the helper boxes the `i32`")
+}
+
+// Two values of one type are one reference, made once.
+@test
+test_a_type_value_is_made_once :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.TypeConst { .type_id = 0 },
+        Bc.TypeConst { .type_id = 0 },
+        Bc.RefEq {},
+        Bc.Return {},
+    ]
+    program :: straight(body)
+    program.types = [Bc.BcScalar { .val = .I32 }]
+    wasm :: wasm_module_of(program, "") else panic(wasm.reason)
+    calls :: wasm.functions[0].body.filter_is<Call>().collect()
+    assert(calls[0].function_index == calls[1].function_index, "both read one cached value")
 }
 
 // A float becomes an `i32` through a saturated `i64`, as the VM converts it.
