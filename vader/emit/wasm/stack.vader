@@ -96,10 +96,9 @@ pushed_types :: fn(
             | Bc.I64Add | Bc.I64Sub | Bc.I64Mul | Bc.I64Div | Bc.I64Mod | Bc.I64Neg
             | Bc.I64BitNot | Bc.I64BitAnd | Bc.I64BitOr | Bc.I64BitXor | Bc.I64Shl | Bc.I64Shr
             | Bc.I64ShrU | Bc.U64Div | Bc.U64Mod | Bc.FnAddr -> [.I64]
-        is Bc.F64Const | Bc.LoadF64 | Bc.LoadSlotF64 | Bc.BitsToF64 | Bc.F64Add | Bc.F64Sub
-            | Bc.F64Mul | Bc.F64Div | Bc.F64Neg -> [.F64]
-        is Bc.BitsToF32 -> [.F32]
-        is Bc.NullConst | Bc.VoidConst | Bc.DataConst | Bc.TypeConst | Bc.FnRef
+        is Bc.F64Const | Bc.LoadF64 | Bc.LoadSlotF64 | Bc.BitsToF64 | Bc.BitsToF32 | Bc.F64Add
+            | Bc.F64Sub | Bc.F64Mul | Bc.F64Div | Bc.F64Neg -> [.F64]
+            is Bc.NullConst | Bc.VoidConst | Bc.DataConst | Bc.TypeConst | Bc.FnRef
             | Bc.MakeClosure | Bc.StructNew | Bc.ArrayNew | Bc.ArrayReserve | Bc.ArrayRepeat
             | Bc.ArraySlice | Bc.ArrayRemoveLast | Bc.BufferNew | Bc.Retag -> [.EqRef]
         is Bc.CheckedArith | Bc.CheckedNeg -> [scalar_field_type(op.kind)]

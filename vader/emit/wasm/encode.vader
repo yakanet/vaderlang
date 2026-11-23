@@ -7,6 +7,8 @@
 
 module "vader/emit/wasm"
 
+Bc :: import "vader/core/bytecode"
+
 // ---- encoding -------------------------------------------------------------
 
 /// Write `m` in the WebAssembly binary format.
@@ -282,6 +284,12 @@ push_instr :: fn(out: u8[], instr: WasmInstr) -> void {
             out.push(0x42)
             out.push_signed(instr.value)
         }
+        is F64Const        -> {
+            out.push(0x44)
+            at :: out.len()
+            out.push_all([0] * 8)
+            Bc.write_le(out, at, 8, instr.value.to_bits())
+        }
         is LocalGet        -> { out.push_indexed(0x20, instr.index) }
         is LocalSet        -> { out.push_indexed(0x21, instr.index) }
         is LocalTee        -> { out.push_indexed(0x22, instr.index) }
@@ -309,6 +317,9 @@ push_instr :: fn(out: u8[], instr: WasmInstr) -> void {
             out.push_count(i64(instr.offset))
         }
         is Plain           -> {
+            if is_prefixed(instr.op) {
+                out.push(0xFC)
+            }
             out.push(opcode(instr.op))
             if opens_scope(instr.op) {
                 out.push(EMPTY_BLOCK_TYPE)
@@ -362,70 +373,95 @@ push_indexed :: fn(out: u8[], code: u8, index: i32) -> void {
 
 opens_scope :: fn(op: WasmOp) -> bool = op == .Block || op == .Loop || op == .If
 
+// Whether `op` is one of the 0xFC prefix, its `opcode` the code under it.
+is_prefixed :: fn(op: WasmOp) -> bool = op == .I64TruncSatF64S
+
 opcode :: fn(op: WasmOp) -> u8 = match op {
-    .Unreachable   -> 0x00
-    .Block         -> 0x02
-    .Loop          -> 0x03
-    .If            -> 0x04
-    .Else          -> 0x05
-    .End           -> 0x0B
-    .Return        -> 0x0F
-    .Drop          -> 0x1A
-    .I32Eqz        -> 0x45
-    .I32Eq         -> 0x46
-    .I32Ne         -> 0x47
-    .I32LtS        -> 0x48
-    .I32LtU        -> 0x49
-    .I32GtS        -> 0x4A
-    .I32GtU        -> 0x4B
-    .I32LeS        -> 0x4C
-    .I32LeU        -> 0x4D
-    .I32GeS        -> 0x4E
-    .I32GeU        -> 0x4F
-    .I64Eqz        -> 0x50
-    .I64Eq         -> 0x51
-    .I64Ne         -> 0x52
-    .I64LtS        -> 0x53
-    .I64LtU        -> 0x54
-    .I64GtS        -> 0x55
-    .I64GtU        -> 0x56
-    .I64LeS        -> 0x57
-    .I64LeU        -> 0x58
-    .I64GeS        -> 0x59
-    .I64GeU        -> 0x5A
-    .I32Add        -> 0x6A
-    .I32Sub        -> 0x6B
-    .I32Mul        -> 0x6C
-    .I32DivS       -> 0x6D
-    .I32DivU       -> 0x6E
-    .I32RemS       -> 0x6F
-    .I32RemU       -> 0x70
-    .I32And        -> 0x71
-    .I32Or         -> 0x72
-    .I32Xor        -> 0x73
-    .I32Shl        -> 0x74
-    .I32ShrS       -> 0x75
-    .I32ShrU       -> 0x76
-    .I64Add        -> 0x7C
-    .I64Sub        -> 0x7D
-    .I64Mul        -> 0x7E
-    .I64DivS       -> 0x7F
-    .I64DivU       -> 0x80
-    .I64RemS       -> 0x81
-    .I64RemU       -> 0x82
-    .I64And        -> 0x83
-    .I64Or         -> 0x84
-    .I64Xor        -> 0x85
-    .I64Shl        -> 0x86
-    .I64ShrS       -> 0x87
-    .I64ShrU       -> 0x88
-    .I32WrapI64    -> 0xA7
-    .I64ExtendI32S -> 0xAC
-    .I64ExtendI32U -> 0xAD
-    .F32Eq         -> 0x5B
-    .F64Eq         -> 0x61
-    .RefIsNull     -> 0xD1
-    .RefEq         -> 0xD3
+    .Unreachable       -> 0x00
+    .Block             -> 0x02
+    .Loop              -> 0x03
+    .If                -> 0x04
+    .Else              -> 0x05
+    .End               -> 0x0B
+    .Return            -> 0x0F
+    .Drop              -> 0x1A
+    .I32Eqz            -> 0x45
+    .I32Eq             -> 0x46
+    .I32Ne             -> 0x47
+    .I32LtS            -> 0x48
+    .I32LtU            -> 0x49
+    .I32GtS            -> 0x4A
+    .I32GtU            -> 0x4B
+    .I32LeS            -> 0x4C
+    .I32LeU            -> 0x4D
+    .I32GeS            -> 0x4E
+    .I32GeU            -> 0x4F
+    .I64Eqz            -> 0x50
+    .I64Eq             -> 0x51
+    .I64Ne             -> 0x52
+    .I64LtS            -> 0x53
+    .I64LtU            -> 0x54
+    .I64GtS            -> 0x55
+    .I64GtU            -> 0x56
+    .I64LeS            -> 0x57
+    .I64LeU            -> 0x58
+    .I64GeS            -> 0x59
+    .I64GeU            -> 0x5A
+    .I32Add            -> 0x6A
+    .I32Sub            -> 0x6B
+    .I32Mul            -> 0x6C
+    .I32DivS           -> 0x6D
+    .I32DivU           -> 0x6E
+    .I32RemS           -> 0x6F
+    .I32RemU           -> 0x70
+    .I32And            -> 0x71
+    .I32Or             -> 0x72
+    .I32Xor            -> 0x73
+    .I32Shl            -> 0x74
+    .I32ShrS           -> 0x75
+    .I32ShrU           -> 0x76
+    .I64Add            -> 0x7C
+    .I64Sub            -> 0x7D
+    .I64Mul            -> 0x7E
+    .I64DivS           -> 0x7F
+    .I64DivU           -> 0x80
+    .I64RemS           -> 0x81
+    .I64RemU           -> 0x82
+    .I64And            -> 0x83
+    .I64Or             -> 0x84
+    .I64Xor            -> 0x85
+    .I64Shl            -> 0x86
+    .I64ShrS           -> 0x87
+    .I64ShrU           -> 0x88
+    .I32WrapI64        -> 0xA7
+    .I64ExtendI32S     -> 0xAC
+    .I64ExtendI32U     -> 0xAD
+    .F32Eq             -> 0x5B
+    .F64Eq             -> 0x61
+    .F64Ne             -> 0x62
+    .F64Lt             -> 0x63
+    .F64Gt             -> 0x64
+    .F64Le             -> 0x65
+    .F64Ge             -> 0x66
+    .F64Neg            -> 0x9A
+    .F64Add            -> 0xA0
+    .F64Sub            -> 0xA1
+    .F64Mul            -> 0xA2
+    .F64Div            -> 0xA3
+    .F32DemoteF64      -> 0xB6
+    .F64ConvertI32S    -> 0xB7
+    .F64ConvertI32U    -> 0xB8
+    .F64ConvertI64S    -> 0xB9
+    .F64ConvertI64U    -> 0xBA
+    .F64PromoteF32     -> 0xBB
+    .I32ReinterpretF32 -> 0xBC
+    .I64ReinterpretF64 -> 0xBD
+    .F32ReinterpretI32 -> 0xBE
+    .F64ReinterpretI64 -> 0xBF
+    // Under the 0xFC prefix (`is_prefixed`).
+    .I64TruncSatF64S   -> 0x06
+    .RefIsNull         -> 0xD1
+    .RefEq             -> 0xD3
 }
 
 push_value_types :: fn(out: u8[], types: WasmValType[]) -> void {
@@ -678,4 +714,18 @@ test_encode_module_imports_its_memory_first :: fn() -> void {
     expected.push_all([0x01, 0x61, 0x01, 0x66, 0x00, 0x00])
     bytes :: encode_module(m)
     assert_bytes(bytes[8 + 6..<bytes.len()], expected)
+}
+
+@test
+test_an_f64_constant_is_its_bits_lowest_first :: fn() -> void {
+    out: u8[]: []
+    out.push_instr(F64Const { .value = 1.0 })
+    assert_bytes(out, [0x44, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F])
+}
+
+@test
+test_a_saturating_truncation_takes_the_prefix :: fn() -> void {
+    out: u8[]: []
+    out.push_instr(Plain { .op = .I64TruncSatF64S })
+    assert_bytes(out, [0xFC, 0x06])
 }

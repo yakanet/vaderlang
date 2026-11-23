@@ -299,9 +299,9 @@ value_types_of :: fn(values: Bc.ValType[], function: string) -> WasmValType[] | 
 }
 
 value_type_of :: fn(v: Bc.ValType, function: string) -> WasmValType | WasmUnsupported = match v {
-    .I8 | .I16 | .I32 | .I64 | .U8 | .U16 | .U32 | .U64 | .Bool | .Char | .String | .Ref | .Any
-        | .Null -> scalar_field_type(v)
-    .F32 | .F64 | .Void | .Pointer -> WasmUnsupported {
+    .I8 | .I16 | .I32 | .I64 | .U8 | .U16 | .U32 | .U64 | .F32 | .F64 | .Bool | .Char | .String
+        | .Ref | .Any | .Null -> scalar_field_type(v)
+    .Void | .Pointer -> WasmUnsupported {
         .reason = "`${function}`: no WASM form yet for a `${Bc.val_type_name(v)}` value",
     }
 }
@@ -415,7 +415,8 @@ push_op :: fn(
         return
     }
     match op {
-        is Bc.I32Const | Bc.I64Const | Bc.BoolConst | Bc.CharConst | Bc.StringConst -> {
+        is Bc.I32Const | Bc.I64Const | Bc.F64Const | Bc.BoolConst | Bc.CharConst
+            | Bc.StringConst -> {
             literal :: constant_of(ctx, op, function) else return literal
             out.push(literal)
         }
@@ -449,6 +450,12 @@ push_op :: fn(
         is Bc.I32BitNot -> { out.push_all([I32Const { .value = -1 }, Plain { .op = .I32Xor }]) }
         is Bc.I64BitNot -> { out.push_all([I64Const { .value = -1 }, Plain { .op = .I64Xor }]) }
         is Bc.Convert -> { return push_convert(out, op, function) }
+        is Bc.F32ToBits -> {
+            out.push_all([Plain { .op = .F32DemoteF64 }, Plain { .op = .I32ReinterpretF32 }])
+        }
+        is Bc.BitsToF32 -> {
+            out.push_all([Plain { .op = .F32ReinterpretI32 }, Plain { .op = .F64PromoteF32 }])
+        }
         is Bc.CheckedArith -> {
             out.push(Call { .function_index = ctx.checked_helper(op.kind, op.op) })
         }
@@ -546,6 +553,19 @@ plain_op_of :: fn(op: Bc.Op) -> WasmOp | null = @partial match op {
     // A string is an atom: two strings with the same bytes are the same atom.
     is Bc.StringEq    -> .I32Eq
     is Bc.StringNe    -> .I32Ne
+    is Bc.F64Add      -> .F64Add
+    is Bc.F64Sub      -> .F64Sub
+    is Bc.F64Mul      -> .F64Mul
+    is Bc.F64Div      -> .F64Div
+    is Bc.F64Neg      -> .F64Neg
+    is Bc.F64Eq       -> .F64Eq
+    is Bc.F64Ne       -> .F64Ne
+    is Bc.F64Lt       -> .F64Lt
+    is Bc.F64Le       -> .F64Le
+    is Bc.F64Gt       -> .F64Gt
+    is Bc.F64Ge       -> .F64Ge
+    is Bc.F64ToBits   -> .I64ReinterpretF64
+    is Bc.BitsToF64   -> .F64ReinterpretI64
     _                 -> null
 }
 
@@ -602,18 +622,22 @@ constant_of :: fn(
     is Bc.CharConst   -> I32Const { .value = i32(c.value) }
     is Bc.NullConst   -> RefNull {}
     is Bc.StringConst -> I32Const { .value = ctx.literals.atom_of[c.index] }
-    is Bc.F64Const    -> unsupported_op(c, function)
+    is Bc.F64Const    -> F64Const { .value = c.value }
 }
 
 // A conversion between storage classes: an integer of 32 bits or less and a
-// `char` share the `i32`, a 64-bit integer the `i64`. An unsigned source widens
-// with zeros.
+// `char` share the `i32`, a 64-bit integer the `i64`, a float the `f64`. An
+// unsigned source widens with zeros. A float becomes an integer as the VM makes
+// it one, through an `i64` (`i32(i64(x))`), saturated where it does not fit.
 push_convert :: fn(out: WasmInstr[], op: Bc.Convert, function: string) -> void | WasmUnsupported {
     from :: Bc.parse_val_type(op.from_name) else return unsupported_op(op, function)
     from_class :: value_type_of(from, function) else return from_class
     match op.target {
         .I32 | .Char -> {
-            if from_class == .I64 {
+            if from_class == .F64 {
+                out.push_plain(.I64TruncSatF64S)
+            }
+            if from_class != .I32 {
                 out.push_plain(.I32WrapI64)
             }
         }
@@ -621,9 +645,25 @@ push_convert :: fn(out: WasmInstr[], op: Bc.Convert, function: string) -> void |
             if from_class == .I32 {
                 out.push_plain(widening_of(from))
             }
+            if from_class == .F64 {
+                out.push_plain(.I64TruncSatF64S)
+            }
         }
-        .F64         -> { return unsupported_op(op, function) }
+        .F64         -> {
+            if from_class != .F64 {
+                out.push_plain(float_of(from))
+            }
+        }
     }
+}
+
+// The conversion of an integer of `from` to an `f64`.
+float_of :: fn(from: Bc.ValType) -> WasmOp {
+    unsigned :: Bc.is_unsigned_val(from) || from == .Char
+    if from == .I64 || from == .U64 {
+        return if unsigned { .F64ConvertI64U } else { .F64ConvertI64S }
+    }
+    return if unsigned { .F64ConvertI32U } else { .F64ConvertI32S }
 }
 
 widening_of :: fn(from: Bc.ValType) -> WasmOp =
@@ -755,12 +795,30 @@ test_an_entry_taking_argv_is_refused :: fn() -> void {
 
 @test
 test_wasm_module_of_names_an_unsupported_op :: fn() -> void {
-    body: Bc.Op[]: [Bc.F64Const { .value = 1.5 }, Bc.Return {}]
+    body: Bc.Op[]: [Bc.LoadF64 {}, Bc.Return {}]
     failure :: wasm_module_of(straight(body), "")
-    assert(failure is WasmUnsupported, "a float is not translated yet")
+    assert(failure is WasmUnsupported, "a float read in a buffer is not translated yet")
     if failure is WasmUnsupported {
-        assert(failure.reason.contains("f64.const"), "the reason names the op")
+        assert(failure.reason.contains("load_f64"), "the reason names the op")
     }
+}
+
+// A float becomes an `i32` through a saturated `i64`, as the VM converts it.
+@test
+test_a_float_converts_to_an_i32_through_an_i64 :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.F64Const { .value = 2.5 },
+        Bc.Convert { .from_name = "f64", .target = .I32 },
+        Bc.Return {},
+    ]
+    wasm :: wasm_module_of(straight(body), "") else panic(wasm.reason)
+    instrs :: wasm.functions[0].body
+    constant :: instrs[0]
+    assert(constant is F64Const && constant.value == 2.5, "the constant is an `f64.const`")
+    truncated :: instrs[1]
+    wrapped :: instrs[2]
+    assert(truncated is Plain && truncated.op == .I64TruncSatF64S, "saturated to an `i64`")
+    assert(wrapped is Plain && wrapped.op == .I32WrapI64, "then wrapped")
 }
 
 // `loop { br_if 0 } ; block { br 0 }`: the loop's branch starts it again, the

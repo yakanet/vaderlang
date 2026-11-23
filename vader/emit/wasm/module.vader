@@ -89,6 +89,7 @@ export WasmModule :: struct {
 /// A WASM instruction.
 export WasmInstr :: I32Const
            | I64Const
+           | F64Const
            | LocalGet
            | LocalSet
            | LocalTee
@@ -118,6 +119,9 @@ export I32Const :: struct { value: i32 }
 
 /// `i64.const value`.
 export I64Const :: struct { value: i64 }
+
+/// `f64.const value`.
+export F64Const :: struct { value: f64 }
 
 /// `local.get index`: a parameter, then the declared locals, count from 0.
 export LocalGet :: struct { index: i32 }
@@ -290,4 +294,25 @@ export WasmOp :: enum {
     RefEq,
     F32Eq,
     F64Eq,
+    F64Ne,
+    F64Lt,
+    F64Gt,
+    F64Le,
+    F64Ge,
+    F64Neg,
+    F64Add,
+    F64Sub,
+    F64Mul,
+    F64Div,
+    F32DemoteF64,
+    F64ConvertI32S,
+    F64ConvertI32U,
+    F64ConvertI64S,
+    F64ConvertI64U,
+    F64PromoteF32,
+    I32ReinterpretF32,
+    I64ReinterpretF64,
+    F32ReinterpretI32,
+    F64ReinterpretI64,
+    I64TruncSatF64S,
 }

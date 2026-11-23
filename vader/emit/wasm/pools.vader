@@ -103,12 +103,7 @@ push_value :: fn(
     match value {
         is Bc.BcValPrim   -> {
             class :: class_of_kind(value.kind)
-            constant :: data_constant(storage_of(class), value.bits) else {
-                return WasmUnsupported {
-                    .reason = "`${function}`: no WASM form yet for a pool of floats",
-                }
-            }
-            body.push(constant)
+            body.push(data_constant(class, value.bits))
             return body.push_baked_as(ctx, class, held, function)
         }
         is Bc.BcValStr    -> {
@@ -205,11 +200,20 @@ define_cached :: fn(ctx: ModuleCtx, key: string, build: WasmInstr[]) -> i32 {
     return ctx.define_helper(key, signature, [], body)
 }
 
-// The constant of an element of a pool, its bits at the element's width.
-data_constant :: fn(storage: WasmStorageType, bits: u64) -> WasmInstr | null = match storage {
-    .I8 | .I16 | .I32    -> I32Const { .value = i32(u32(bits & 0xFFFF_FFFF)) }
-    .I64                 -> I64Const { .value = i64(bits) }
-    .F32 | .F64 | .EqRef -> null
+// The constant of a baked scalar of `class`, its bits at the class's width.
+data_constant :: fn(class: Bc.ValType, bits: u64) -> WasmInstr = match scalar_field_type(class) {
+    .I32        -> I32Const { .value = i32(u32(bits & 0xFFFF_FFFF)) }
+    .I64        -> I64Const { .value = i64(bits) }
+    .F32 | .F64 -> F64Const { .value = float_of_bits(class, bits) }
+    .EqRef      -> panic("wasm: a baked scalar of no scalar class")
+}
+
+// The float `bits` hold, those of an `f32` for that class.
+float_of_bits :: fn(class: Bc.ValType, bits: u64) -> f64 {
+    if class == .F32 {
+        return f64(u32(bits).from_bits())
+    }
+    return bits.from_bits()
 }
 
 // ---- tests ----------------------------------------------------------------

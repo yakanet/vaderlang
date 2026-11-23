@@ -107,8 +107,9 @@ field_type_of :: fn(t: Bc.BcType) -> WasmValType = match t {
 scalar_field_type :: fn(v: Bc.ValType) -> WasmValType = match v {
     .I8 | .I16 | .I32 | .U8 | .U16 | .U32 | .Bool | .Char | .String -> .I32
     .I64 | .U64 | .Pointer -> .I64
-    .F32 -> .F32
-    .F64 -> .F64
+    // An `f32` is held at the width of an `f64`, as the VM holds it: it rounds
+    // to 32 bits where its bits are read (`f32.to_bits`) and nowhere else.
+    .F32 | .F64 -> .F64
     .Null | .Void | .Ref | .Any -> .EqRef
 }
 
