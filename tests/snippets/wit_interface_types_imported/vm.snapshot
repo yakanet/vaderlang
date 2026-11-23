@@ -2,5 +2,7 @@
 3.250 1500 true false
 a directory 4096
 other door
+no-entry other
+a directory
 # exit
 0

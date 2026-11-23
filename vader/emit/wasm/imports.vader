@@ -4,7 +4,9 @@
 // import, its module the interface as WIT writes it and its name the function.
 // Its WIT type is the one the front end derived from the Vader declaration
 // (`BcImport.wit`), and its core type is that WIT type flattened by the
-// canonical ABI (`canonical_layout.vader`). A call whose arguments or result
+// canonical ABI (`canonical_layout.vader`). Two declarations of one function (the
+// bindings of `std` and the module of an imported interface) share its import.
+// A call whose arguments or result
 // Vader does not hold as the core function takes them goes through an adapter,
 // whose canonical built-ins come last among the imports (`canonical.vader`). The other
 // imports (a C library) have no WASM form yet: a call to one stops the
@@ -15,6 +17,7 @@ module "vader/emit/wasm"
 Bc :: import "vader/core/bytecode"
 import "std/collections"
 import "std/iter"
+import "vader/core/wit"
 
 // The functions a program imports from component interfaces.
 ImportedFunctions :: struct {
@@ -24,6 +27,8 @@ ImportedFunctions :: struct {
     // The WASM function index of each bytecode import that comes from an
     // interface, by the bytecode import's index.
     by_bytecode_index: Map<i32, i32> = Map<i32, i32> {}
+    // Each function of an interface imported, by `function_key`.
+    by_function: Map<string, ImportedFunction> = Map<string, ImportedFunction> {}
     // The bytecode imports a call reaches through an adapter (`canonical.vader`).
     adapted: Set<i32> = Set<i32> {}
     // The interfaces, each function once, as the component imports them.
@@ -51,24 +56,16 @@ imported_functions :: fn(
         wit :: imp.wit else {
             return WasmUnsupported { .reason = "`${imp.mangled_name}`: no WIT type" }
         }
-        core_type :: flat_type_of(wit, imp.mangled_name) else return core_type
         function :: ComponentFunction { .name = imp.extern_name, .type = wit }
-        out.by_bytecode_index[i32(i)] = i32(out.functions.len())
-        out.functions.push(
-            WasmImport {
-                .module = module,
-                .name = function.name,
-                .type_index = types.intern(core_type),
-            },
-        )
-        out.add_to_interface(module, function)
+        index :: out.import_function(types, module, function, imp.mangled_name) else return index
+        out.by_bytecode_index[i32(i)] = index
         if needs_adapter(wit) {
             out.adapted.add(i32(i))
             out.add_builtins(builtins_of(wit))
         }
     }
     if takes_arguments {
-        out.add_arguments_import(types)
+        added :: out.add_arguments_import(types) else return added
     }
     for b in out.builtins {
         out.by_builtin[builtin_name(b)] = i32(out.functions.len())
@@ -93,8 +90,53 @@ add_builtins :: fn(imports: ImportedFunctions, builtins: CanonicalBuiltin[]) -> 
     }
 }
 
-// Add `function` to the interface `module`, unless another declaration of the
-// program imports it already.
+// A function of an interface the program imports.
+ImportedFunction :: struct {
+    // Its WASM function index.
+    index: i32
+    // Its WIT type, as `wit_function_text` writes it.
+    wit: string
+}
+
+// The WASM function index of `function` of the interface `module`: the import
+// another declaration of it made, or a new one. Two declarations of one function
+// must agree on its WIT type; `declared` names this one.
+import_function :: fn(
+    imports: ImportedFunctions,
+    types: TypeTable,
+    module: string,
+    function: ComponentFunction,
+    declared: string,
+) -> i32 | WasmUnsupported {
+    key :: function_key(module, function.name)
+    wit :: wit_function_text(function.type)
+    known :: imports.by_function[key]
+    if known != null {
+        if known.wit != wit {
+            return WasmUnsupported {
+                .reason = "`${declared}`: `${key}` is imported as `${known.wit}`, not `${wit}`",
+            }
+        }
+        return known.index
+    }
+    core_type :: flat_type_of(function.type, declared) else return core_type
+    index :: i32(imports.functions.len())
+    imports.by_function[key] = ImportedFunction { .index = index, .wit = wit }
+    imports.functions.push(
+        WasmImport {
+            .module = module,
+            .name = function.name,
+            .type_index = types.intern(core_type),
+        },
+    )
+    imports.add_to_interface(module, function)
+    return index
+}
+
+// A function of an interface: `wasi:cli/stdout@0.3.0#write-via-stream`.
+function_key :: fn(module: string, name: string) -> string = "${module}#${name}"
+
+// Add `function` to the interface `module`, which does not hold it yet.
 add_to_interface :: fn(
     imports: ImportedFunctions,
     module: string,
@@ -102,9 +144,7 @@ add_to_interface :: fn(
 ) -> void {
     for interface in imports.interfaces {
         if interface.name == module {
-            if !interface.functions.any_match((f) -> f.name == function.name) {
-                interface.functions.push(function)
-            }
+            interface.functions.push(function)
             return
         }
     }

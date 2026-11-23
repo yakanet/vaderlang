@@ -48,6 +48,9 @@ export WitNamedFunction :: struct {
     /// Its name as a component imports it: `now`, `[method]descriptor.stat`,
     /// `[static]tcp-socket.create`, `[constructor]pollable`.
     name: string
+    /// Its name in its resource, `stat` for `[method]descriptor.stat`; the name
+    /// itself for a function of the interface, "" for a constructor.
+    member: string
     kind: WitFunctionKind
     is_async: bool
     /// The resource of a method, a static function or a constructor.
@@ -256,6 +259,7 @@ function_of :: fn(
     }
     return WitNamedFunction {
         .name = function_name(decl, resource),
+        .member = decl.name,
         .kind = decl.kind,
         .is_async = decl.is_async,
         .resource = resource,

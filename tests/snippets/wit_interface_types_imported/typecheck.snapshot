@@ -3,48 +3,66 @@
 ## tests/snippets/wit_interface_types_imported
   FnDecl         describe             :: fn(DescriptorTypeCase | DescriptorTypeOther) -> string
   FnDecl         main                 :: fn() -> i32
-  expr 12:50    MatchExpr      :: string
-  expr 12:56    IdentExpr      :: DescriptorTypeCase | DescriptorTypeOther
-  expr 13:34    IfExpr         :: string
-  expr 13:37    BinaryExpr     :: bool
-  expr 13:37    IdentExpr      :: DescriptorTypeCase
-  expr 13:42    DotVariantExpr :: DescriptorTypeCase
-  expr 13:55    StringLitExpr  :: string
-  expr 13:78    StringLitExpr  :: string
-  expr 14:34    StringLitExpr  :: string
-  expr 14:43    FallbackExpr   :: string
-  expr 14:43    FieldExpr      :: null | string
-  expr 14:43    IdentExpr      :: DescriptorTypeOther
-  expr 14:56    StringLitExpr  :: string
-  expr 18:11    StructLitExpr  :: Instant
-  expr 20:14    StructLitExpr  :: DescriptorFlags
-  expr 21:13    StructLitExpr  :: DescriptorStat
-  expr 22:17    DotVariantExpr :: DescriptorTypeCase
-  expr 25:34    IdentExpr      :: Instant
-  expr 29:13    StringLitExpr  :: string
-  expr 29:16    FieldExpr      :: i64
-  expr 29:16    IdentExpr      :: Instant
-  expr 29:30    FieldExpr      :: u32
-  expr 29:30    IdentExpr      :: Instant
-  expr 29:48    IdentExpr      :: u64
-  expr 29:5     CallExpr       :: void
-  expr 29:5     IdentExpr      :: fn(T) -> void
-  expr 29:59    FieldExpr      :: bool
-  expr 29:59    IdentExpr      :: DescriptorFlags
-  expr 29:73    FieldExpr      :: bool
-  expr 29:73    IdentExpr      :: DescriptorFlags
-  expr 30:13    StringLitExpr  :: string
-  expr 30:16    CallExpr       :: string
-  expr 30:16    IdentExpr      :: fn(DescriptorTypeCase | DescriptorTypeOther) -> string
-  expr 30:25    FieldExpr      :: DescriptorTypeCase | DescriptorTypeOther
-  expr 30:25    IdentExpr      :: DescriptorStat
-  expr 30:39    FieldExpr      :: u64
-  expr 30:39    IdentExpr      :: DescriptorStat
-  expr 30:5     CallExpr       :: void
-  expr 30:5     IdentExpr      :: fn(T) -> void
-  expr 31:13    CallExpr       :: string
-  expr 31:13    IdentExpr      :: fn(DescriptorTypeCase | DescriptorTypeOther) -> string
-  expr 31:22    StructLitExpr  :: DescriptorTypeOther
+  expr 14:50    MatchExpr      :: string
+  expr 14:56    IdentExpr      :: DescriptorTypeCase | DescriptorTypeOther
+  expr 15:34    IfExpr         :: string
+  expr 15:37    BinaryExpr     :: bool
+  expr 15:37    IdentExpr      :: DescriptorTypeCase
+  expr 15:42    DotVariantExpr :: DescriptorTypeCase
+  expr 15:55    StringLitExpr  :: string
+  expr 15:78    StringLitExpr  :: string
+  expr 16:34    StringLitExpr  :: string
+  expr 16:43    FallbackExpr   :: string
+  expr 16:43    FieldExpr      :: null | string
+  expr 16:43    IdentExpr      :: DescriptorTypeOther
+  expr 16:56    StringLitExpr  :: string
+  expr 20:11    StructLitExpr  :: Instant
+  expr 22:14    StructLitExpr  :: DescriptorFlags
+  expr 23:13    StructLitExpr  :: DescriptorStat
+  expr 24:17    DotVariantExpr :: DescriptorTypeCase
+  expr 27:34    IdentExpr      :: Instant
+  expr 31:13    StringLitExpr  :: string
+  expr 31:16    FieldExpr      :: i64
+  expr 31:16    IdentExpr      :: Instant
+  expr 31:30    FieldExpr      :: u32
+  expr 31:30    IdentExpr      :: Instant
+  expr 31:48    IdentExpr      :: u64
   expr 31:5     CallExpr       :: void
   expr 31:5     IdentExpr      :: fn(T) -> void
-  expr 31:56    StringLitExpr  :: string
+  expr 31:59    FieldExpr      :: bool
+  expr 31:59    IdentExpr      :: DescriptorFlags
+  expr 31:73    FieldExpr      :: bool
+  expr 31:73    IdentExpr      :: DescriptorFlags
+  expr 32:13    StringLitExpr  :: string
+  expr 32:16    CallExpr       :: string
+  expr 32:16    IdentExpr      :: fn(DescriptorTypeCase | DescriptorTypeOther) -> string
+  expr 32:25    FieldExpr      :: DescriptorTypeCase | DescriptorTypeOther
+  expr 32:25    IdentExpr      :: DescriptorStat
+  expr 32:39    FieldExpr      :: u64
+  expr 32:39    IdentExpr      :: DescriptorStat
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 33:13    CallExpr       :: string
+  expr 33:13    IdentExpr      :: fn(DescriptorTypeCase | DescriptorTypeOther) -> string
+  expr 33:22    StructLitExpr  :: DescriptorTypeOther
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void
+  expr 33:56    StringLitExpr  :: string
+  expr 34:17    CallExpr       :: string
+  expr 34:17    FieldExpr      :: ErrorCodeCase
+  expr 34:17    FieldExpr      :: ErrorCodeCase
+  expr 34:17    FieldExpr      :: fn() -> string
+  expr 35:13    StringLitExpr  :: string
+  expr 35:16    IdentExpr      :: string
+  expr 35:28    CallExpr       :: string
+  expr 35:28    FieldExpr      :: fn() -> string
+  expr 35:28    StructLitExpr  :: ErrorCodeOther
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 36:13    CallExpr       :: string
+  expr 36:13    IdentExpr      :: fn(DescriptorTypeCase | DescriptorTypeOther) -> string
+  expr 36:22    FieldExpr      :: DescriptorTypeCase | DescriptorTypeOther
+  expr 36:22    StructLitExpr  :: DescriptorGetTypeOk
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(T) -> void
+  expr 36:56    DotVariantExpr :: DescriptorTypeCase

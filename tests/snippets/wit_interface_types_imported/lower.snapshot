@@ -58,6 +58,9 @@
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       std.console.println<string>(snippet.describe(DescriptorTypeOther { .value = "door" }))
+      no_entry: string = wasi:filesystem.types@0.3.0.ErrorCodeCase.message(ErrorCodeCase(19))
+      std.console.println<string>(concat_3(no_entry, " ", wasi:filesystem.types@0.3.0.ErrorCodeOther.message(ErrorCodeOther { .value = null })))
+      std.console.println<string>(snippet.describe(DescriptorTypeCase(2)))
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
@@ -68,14 +71,28 @@
       std_core$Intrinsic$buffer_write_string(buf, c0, p1)
       std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c2)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_intern_string(buf, c2)
+  }
 
 ## lowered in dependencies
   wasi:clocks/system-clock@0.3.0
     struct wasi:clocks.system-clock@0.3.0.Instant  // wasi_0clocks_system_3clock_10_23_20$Instant
   wasi:filesystem/types@0.3.0
+    fn wasi:filesystem.types@0.3.0.ErrorCodeCase.message  // wasi_0filesystem_types_10_23_20$ErrorCodeCase$std_core$Error$message
+    fn wasi:filesystem.types@0.3.0.ErrorCodeOther.message  // wasi_0filesystem_types_10_23_20$ErrorCodeOther$std_core$Error$message
+    struct wasi:filesystem.types@0.3.0.Descriptor  // wasi_0filesystem_types_10_23_20$Descriptor
     struct wasi:filesystem.types@0.3.0.DescriptorFlags  // wasi_0filesystem_types_10_23_20$DescriptorFlags
     struct wasi:filesystem.types@0.3.0.DescriptorStat  // wasi_0filesystem_types_10_23_20$DescriptorStat
     struct wasi:filesystem.types@0.3.0.DescriptorTypeOther  // wasi_0filesystem_types_10_23_20$DescriptorTypeOther
+    struct wasi:filesystem.types@0.3.0.ErrorCodeOther  // wasi_0filesystem_types_10_23_20$ErrorCodeOther
   std/console
     fn std.console.println<string>  // std_console$println__string
     fn std.console.write  // std_console$write

@@ -962,6 +962,81 @@ test_an_interface_import_precedes_the_functions :: fn() -> void {
     assert(now.type.result is WitScalar, "`now` returns a WIT scalar")
 }
 
+// Two declarations of one function, the bindings of `std` and the module of
+// the interface, share its import.
+@test
+test_two_declarations_of_a_function_share_its_import :: fn() -> void {
+    program :: straight(
+        [
+            Bc.CallImport { .index = 1 },
+            Bc.Drop {},
+            Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } },
+        ],
+    )
+    signature :: Bc.BcSignature {
+        .params = [],
+        .results = [.U64],
+        .param_types = [],
+        .result_types = [0],
+        .param_names = [],
+    }
+    clock :: WasmInterface {
+        .package = "wasi:clocks",
+        .name = "monotonic-clock",
+        .version = "0.3.0",
+    }
+    for mangled in ["std\$now", "generated\$now"] {
+        program.imports.push(
+            Bc.BcImport {
+                .extern_name = "now",
+                .mangled_name = mangled,
+                .signature = signature,
+                .is_extern = true,
+                .wasm_interface = clock,
+                .wit = WitFunction { .params = [], .result = .U64 },
+            },
+        )
+    }
+    component :: wasm_component_of(program, "") else panic(component.reason)
+    assert_eq(component.core.imports.len(), 1)
+    call :: component.core.functions[0].body[0]
+    assert(call is Call && call.function_index == 0, "the second declaration calls the import")
+    assert_eq(component.interfaces[0].functions.len(), 1)
+}
+
+// Two declarations of one function that disagree on its WIT type stop the build.
+@test
+test_two_declarations_of_a_function_agree_on_its_type :: fn() -> void {
+    program :: straight([Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } }])
+    signature :: Bc.BcSignature {
+        .params = [],
+        .results = [.U64],
+        .param_types = [],
+        .result_types = [0],
+        .param_names = [],
+    }
+    clock :: WasmInterface {
+        .package = "wasi:clocks",
+        .name = "monotonic-clock",
+        .version = "0.3.0",
+    }
+    results: WitScalar[]: [.U64, .S64]
+    for result in results {
+        program.imports.push(
+            Bc.BcImport {
+                .extern_name = "now",
+                .mangled_name = "clock\$now",
+                .signature = signature,
+                .is_extern = true,
+                .wasm_interface = clock,
+                .wit = WitFunction { .params = [], .result = result },
+            },
+        )
+    }
+    failure :: wasm_component_of(program, "")
+    assert(failure is WasmUnsupported, "a `u64` and an `s64` are two types")
+}
+
 @test
 test_an_entry_taking_argv_reads_get_arguments :: fn() -> void {
     program :: straight([Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } }])

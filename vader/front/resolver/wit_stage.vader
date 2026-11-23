@@ -28,7 +28,7 @@ export WitStage :: struct {
 }
 
 WitStage implements ModuleStage {
-    describe :: fn(self) = ModuleSpec { .name = "wit", .form = .WitInterface }
+    describe :: fn(self) = ModuleSpec { .name = WIT_STAGE, .form = .WitInterface }
 
     run :: fn(self, request: ModuleRequest) -> ModuleSource | null {
         name :: interface_name_of(request.name)
@@ -49,6 +49,14 @@ WitStage implements ModuleStage {
     }
 }
 
+WIT_STAGE :: "wit"
+
+/// Whether `file` is the source of the module of a WIT interface, which the stage
+/// writes.
+///
+/// @param file  the file a span names.
+export is_wit_module_file :: fn(file: string) -> bool = is_generated_by(file, WIT_STAGE)
+
 // The source of the module of `interface` in the package `folder` holds, null
 // when the package has no such interface.
 module_text :: fn(
@@ -59,7 +67,7 @@ module_text :: fn(
 ) -> string | null | WitError {
     package :: stage.package_in(request, folder) else return package
     found :: package.interfaces.find((i) -> i.owner.interface == interface) else return null
-    return wit_module_source(found)
+    return wit_module_source(package, found)
 }
 
 // A module the stage found and could not write: no text, the reason.

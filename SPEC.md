@@ -3168,7 +3168,7 @@ start :: Clocks.Instant { .seconds = 3, .nanoseconds = 0 }
 
 - The package is looked for in `wit/<namespace>/<package>@<version>/` next to each search root. The toolchain ships the packages of WASI, which come first; a package found in two places is an error.
 - The version may be left out when one version of the package is found.
-- Items marked `@unstable` are left out. The functions of an interface are not imported yet.
+- Items marked `@unstable` are left out.
 
 The module holds the named types of the interface:
 
@@ -3183,6 +3183,14 @@ The module holds the named types of the interface:
 | `type`, `use` | an alias |
 
 A type takes the Pascal case of its WIT name, a case too, and a field its snake case: `descriptor-type` is `DescriptorType`, `link-count` is `link_count`. A field named like a keyword takes a trailing `_`. A type an interface brings in with `use` is the type of the interface that declares it.
+
+The module also holds the functions of the interface, functions without body that a WebAssembly build imports from its host:
+
+- A function takes the snake case of its name. A method of a resource takes the resource first, as `self_`. A static function is named after its resource, `[static]tcp-socket.create` is `tcp_socket_create`, and a constructor is `new_` and its resource.
+- `option<T>` is `T | null`, `result<T, E>` is `T | E`, `result<_, E>` is `void | E`, `list<T>` is `T[]` and `tuple<A, B>` is `[A, B]`. A stream the function takes is a `WasmStream<T>`, a future it returns a `WasmFuture<T>`.
+- When a union could not tell the two sides of a returned `result` or `option` apart, the first is wrapped in a struct named after the function and `Ok`, which holds it as `value`: the method `get-type` of `descriptor` returns `DescriptorGetTypeOk | ErrorCode`.
+- A type a `result` of the package holds as its error implements `Error`, its message the WIT name of its case.
+- A function whose types have no Vader form yet is left out, and a comment in the module says why.
 
 #### Unused imports
 

@@ -21,19 +21,15 @@ ARGUMENTS_FUNCTION :: ComponentFunction {
     .type = WitFunction { .params = [], .result = WitList { .element = .String } },
 }
 
-// Import `get-arguments`, at the next index of `imports`.
-add_arguments_import :: fn(imports: ImportedFunctions, types: TypeTable) -> void {
-    core_type :: flat_type_of(ARGUMENTS_FUNCTION.type, ARGUMENTS_FUNCTION.name)
-        else panic("wasm: `get-arguments` has no core type: ${core_type.reason}")
-    imports.arguments = i32(imports.functions.len())
-    imports.functions.push(
-        WasmImport {
-            .module = ENVIRONMENT_INTERFACE,
-            .name = ARGUMENTS_FUNCTION.name,
-            .type_index = types.intern(core_type),
-        },
-    )
-    imports.add_to_interface(ENVIRONMENT_INTERFACE, ARGUMENTS_FUNCTION)
+// Import `get-arguments`, unless a declaration of the program imports it already.
+add_arguments_import :: fn(imports: ImportedFunctions, types: TypeTable) -> void | WasmUnsupported {
+    index :: imports.import_function(
+        types,
+        ENVIRONMENT_INTERFACE,
+        ARGUMENTS_FUNCTION,
+        ARGUMENTS_FUNCTION.name,
+    ) else return index
+    imports.arguments = index
 }
 
 // `() -> string[]`: the program's arguments, its path first, each string the
@@ -66,7 +62,7 @@ import "std/testing"
 test_arguments_import_takes_the_address_of_its_result :: fn() -> void {
     imports :: ImportedFunctions {}
     types :: TypeTable {}
-    imports.add_arguments_import(types)
+    imports.add_arguments_import(types) else panic("`get-arguments` is imported")
     assert(imports.arguments == 0, "the first import")
     assert_eq(imports.interfaces[0].name, ENVIRONMENT_INTERFACE)
     assert_eq(canonical_func_type_key(types.types[0]), canonical_func_type_key(func_of([.I32], [])))

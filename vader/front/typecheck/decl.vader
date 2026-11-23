@@ -740,7 +740,11 @@ validate_extern_signature :: fn(
     diags: Diagnostic[],
 ) -> void {
     if imports_from_interface(decl, typed) {
-        validate_interface_signature(decl, signature, typed, diags)
+        // The module of a WIT interface takes its types from the `.wit` it is
+        // written from.
+        if !is_wit_module_file(decl.span.start.file) {
+            validate_interface_signature(decl, signature, typed, diags)
+        }
         return
     }
     params :: signature.params

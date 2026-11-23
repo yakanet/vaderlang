@@ -6,8 +6,9 @@
 
 typedef struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorTypeOther_t vader_struct_wasi_0filesystem_types_10_23_20$DescriptorTypeOther_t;
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
-typedef struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t;
+typedef struct vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t;
 typedef struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t;
+typedef struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t;
 typedef struct vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t;
 
 struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorTypeOther_t {
@@ -17,14 +18,9 @@ struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorTypeOther_t {
 struct vader_struct_std_core$Buffer_t {
     vader_obj_header_t header;
 };
-struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t {
+struct vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t {
     vader_obj_header_t header;
-    bool f_read;
-    bool f_write;
-    bool f_file_integrity_sync;
-    bool f_data_integrity_sync;
-    bool f_requested_write_sync;
-    bool f_mutate_directory;
+    vader_box_t f_value;
 };
 struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t {
     vader_obj_header_t header;
@@ -34,6 +30,15 @@ struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t {
     vader_box_t f_data_access_timestamp;
     vader_box_t f_data_modification_timestamp;
     vader_box_t f_status_change_timestamp;
+};
+struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t {
+    vader_obj_header_t header;
+    bool f_read;
+    bool f_write;
+    bool f_file_integrity_sync;
+    bool f_data_integrity_sync;
+    bool f_requested_write_sync;
+    bool f_mutate_directory;
 };
 struct vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t {
     vader_obj_header_t header;
@@ -52,7 +57,44 @@ static const char vader_atom_blob[] =
     "door" "\0"
     "true" "\0"
     "false" "\0"
-    "\n" "\0";
+    "\n" "\0"
+    "access" "\0"
+    "already" "\0"
+    "bad-descriptor" "\0"
+    "busy" "\0"
+    "deadlock" "\0"
+    "quota" "\0"
+    "exist" "\0"
+    "file-too-large" "\0"
+    "illegal-byte-sequence" "\0"
+    "in-progress" "\0"
+    "interrupted" "\0"
+    "invalid" "\0"
+    "io" "\0"
+    "is-directory" "\0"
+    "loop" "\0"
+    "too-many-links" "\0"
+    "message-size" "\0"
+    "name-too-long" "\0"
+    "no-device" "\0"
+    "no-entry" "\0"
+    "no-lock" "\0"
+    "insufficient-memory" "\0"
+    "insufficient-space" "\0"
+    "not-directory" "\0"
+    "not-empty" "\0"
+    "not-recoverable" "\0"
+    "unsupported" "\0"
+    "no-tty" "\0"
+    "no-such-device" "\0"
+    "overflow" "\0"
+    "not-permitted" "\0"
+    "pipe" "\0"
+    "read-only" "\0"
+    "invalid-seek" "\0"
+    "text-file-busy" "\0"
+    "cross-device" "\0"
+    "other" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
@@ -65,13 +107,51 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43] },
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48] },
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[63] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[86] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[91] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[100] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[106] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[112] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[127] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[149] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[161] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[173] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[181] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[184] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[197] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[202] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[217] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[230] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[244] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[254] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[263] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[271] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[291] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[310] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[324] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[334] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[350] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[362] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[369] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[384] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[393] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[407] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[412] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[422] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[435] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[450] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[463] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 10u
+#define VADER_COMPTIME_ATOM_COUNT 47u
 
 static vader_string_t snippet$describe(vader_box_t l0);
 static int32_t snippet$main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
+static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
@@ -81,12 +161,14 @@ static void std_console$write(uint8_t l0, vader_string_t l1);
 static bool std_console$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_console$println__string(vader_string_t l0);
+static vader_string_t wasi_0filesystem_types_10_23_20$ErrorCodeCase$std_core$Error$message(uint8_t l0);
+static vader_string_t wasi_0filesystem_types_10_23_20$ErrorCodeOther$std_core$Error$message(void* l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[19] = {
+const vader_type_info_t vader_type_info_table[20] = {
     [2] = { .slot_size = 16 },
     [3] = { .slot_size = 4 },
     [4] = {
@@ -109,28 +191,35 @@ const vader_type_info_t vader_type_info_table[19] = {
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
     },
     [11] = { .slot_size = 1 },
-    [12] = { .slot_size = 16 },
-    [13] = {
+    [12] = {
         .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t),
+        .size = sizeof(vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t),
         .slot_size = 8,
+        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t, f_value) },
+        .ptr_count = 1,
     },
-    [14] = {
+    [13] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t, f_type), offsetof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t, f_data_access_timestamp), offsetof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t, f_data_modification_timestamp), offsetof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t, f_status_change_timestamp) },
         .ptr_count = 4,
     },
-    [15] = { .slot_size = 16 },
+    [14] = { .slot_size = 16 },
+    [15] = {
+        .kind = VADER_TYPE_KIND_STRUCT,
+        .size = sizeof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t),
+        .slot_size = 8,
+    },
     [16] = { .slot_size = 16 },
-    [17] = {
+    [17] = { .slot_size = 16 },
+    [18] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t), .slot_size = 8,
     },
-    [18] = { .slot_size = 4 },
+    [19] = { .slot_size = 4 },
 };
-const size_t vader_type_info_count = 19;
+const size_t vader_type_info_count = 20;
 
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
@@ -216,6 +305,7 @@ static int32_t snippet$main(void) {
     uint64_t l6;
     bool l7;
     vader_string_t l8 = 0;
+    vader_string_t l9 = 0;
     uint32_t t0;
     int64_t t1;
     vader_string_t t2 = 0;
@@ -223,18 +313,18 @@ static int32_t snippet$main(void) {
     void** gc_raw_roots[5] = { &l0, &l1, &l2, &l3, &t3 };
     vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t _a1_storage = {0};
     void* gc_stack_objs[1] = { (void*) &_a1_storage };
-    vader_string_t* gc_atom_roots[2] = { &l8, &t2 };
+    vader_string_t* gc_atom_roots[3] = { &l8, &l9, &t2 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 1u, gc_stack_objs, 2u, gc_atom_roots,
+        vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 1u, gc_stack_objs, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t* _a0_obj = (vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t*) vader_gc_alloc(sizeof(vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t));
-    vader_obj_header_init(_a0_obj, 17u);
+    vader_obj_header_init(_a0_obj, 18u);
     _a0_obj->f_seconds = INT64_C(3);
     _a0_obj->f_nanoseconds = (uint32_t) 250;
     l0 = (void*) _a0_obj;
     vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t* _a2_obj = &_a1_storage;
-    vader_obj_header_init(_a2_obj, 13u);
+    vader_obj_header_init(_a2_obj, 15u);
     _a2_obj->f_read = true;
     _a2_obj->f_write = false;
     _a2_obj->f_file_integrity_sync = false;
@@ -243,7 +333,7 @@ static int32_t snippet$main(void) {
     _a2_obj->f_mutate_directory = false;
     l1 = (void*) _a2_obj;
     vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t* _a3_obj = (vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t*) vader_gc_alloc(sizeof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t));
-    vader_obj_header_init(_a3_obj, 14u);
+    vader_obj_header_init(_a3_obj, 13u);
     _a3_obj->f_type = vader_box_i32(11u, INT32_C(2));
     _a3_obj->f_link_count = (uint64_t) 1;
     _a3_obj->f_size = (uint64_t) 4096;
@@ -286,6 +376,16 @@ static int32_t snippet$main(void) {
     t3 = (void*) _a4_obj;
     t2 = snippet$describe(vader_ref_box(t3));
     std_console$println__string(t2);
+    l8 = wasi_0filesystem_types_10_23_20$ErrorCodeCase$std_core$Error$message((uint8_t) 19);
+    vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t* _a5_obj = (vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t*) vader_gc_alloc(sizeof(vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t));
+    vader_obj_header_init(_a5_obj, 12u);
+    _a5_obj->f_value = vader_box_obj(0u, NULL);
+    t3 = (void*) _a5_obj;
+    l9 = wasi_0filesystem_types_10_23_20$ErrorCodeOther$std_core$Error$message(t3);
+    t2 = concat_3(l8, 6u, l9);
+    std_console$println__string(t2);
+    t2 = snippet$describe(vader_box_i32(11u, INT32_C(2)));
+    std_console$println__string(t2);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
@@ -306,6 +406,29 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) l2, l1);
     t0 = vader_buffer_intern_string((vader_buffer_t*) l4, (size_t) l3);
+    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2) {
+    int64_t l3, l4, l5;
+    void* l6 = NULL;
+    vader_string_t t0 = 0;
+    void** gc_raw_roots[1] = { &l6 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l1, &l2, &t0 };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
+    };
+    vader_gc_top = &gc_frame;
+    l3 = vader_host_std_core$Intrinsic$byte_len(l0);
+    l4 = vader_host_std_core$Intrinsic$byte_len(l1);
+    l4 = (l3 + l4);
+    l5 = vader_host_std_core$Intrinsic$byte_len(l2);
+    l5 = (l4 + l5);
+    l6 = (void*) vader_buffer_new((size_t) l5);
+    vader_buffer_write_string((vader_buffer_t*) l6, (size_t) INT64_C(0), l0);
+    vader_buffer_write_string((vader_buffer_t*) l6, (size_t) l3, l1);
+    vader_buffer_write_string((vader_buffer_t*) l6, (size_t) l4, l2);
+    t0 = vader_buffer_intern_string((vader_buffer_t*) l6, (size_t) l5);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -494,6 +617,93 @@ static void std_console$println__string(vader_string_t l0) {
     l1 = concat_2(l0, 10u);
     std_console$write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
+}
+
+static vader_string_t wasi_0filesystem_types_10_23_20$ErrorCodeCase$std_core$Error$message(uint8_t l0) {
+    vader_string_t l1;
+    if (l0 == INT32_C(0)) {
+        l1 = 11u;
+        return l1;
+    }
+    if (l0 == INT32_C(1)) {
+        l1 = 12u;
+    } else if (l0 == INT32_C(2)) {
+        l1 = 13u;
+    } else if (l0 == INT32_C(3)) {
+        l1 = 14u;
+    } else if (l0 == INT32_C(4)) {
+        l1 = 15u;
+    } else if (l0 == INT32_C(5)) {
+        l1 = 16u;
+    } else if (l0 == INT32_C(6)) {
+        l1 = 17u;
+    } else if (l0 == INT32_C(7)) {
+        l1 = 18u;
+    } else if (l0 == INT32_C(8)) {
+        l1 = 19u;
+    } else if (l0 == INT32_C(9)) {
+        l1 = 20u;
+    } else if (l0 == INT32_C(10)) {
+        l1 = 21u;
+    } else if (l0 == INT32_C(11)) {
+        l1 = 22u;
+    } else if (l0 == INT32_C(12)) {
+        l1 = 23u;
+    } else if (l0 == INT32_C(13)) {
+        l1 = 24u;
+    } else if (l0 == INT32_C(14)) {
+        l1 = 25u;
+    } else if (l0 == INT32_C(15)) {
+        l1 = 26u;
+    } else if (l0 == INT32_C(16)) {
+        l1 = 27u;
+    } else if (l0 == INT32_C(17)) {
+        l1 = 28u;
+    } else if (l0 == INT32_C(18)) {
+        l1 = 29u;
+    } else if (l0 == INT32_C(19)) {
+        l1 = 30u;
+    } else if (l0 == INT32_C(20)) {
+        l1 = 31u;
+    } else if (l0 == INT32_C(21)) {
+        l1 = 32u;
+    } else if (l0 == INT32_C(22)) {
+        l1 = 33u;
+    } else if (l0 == INT32_C(23)) {
+        l1 = 34u;
+    } else if (l0 == INT32_C(24)) {
+        l1 = 35u;
+    } else if (l0 == INT32_C(25)) {
+        l1 = 36u;
+    } else if (l0 == INT32_C(26)) {
+        l1 = 37u;
+    } else if (l0 == INT32_C(27)) {
+        l1 = 38u;
+    } else if (l0 == INT32_C(28)) {
+        l1 = 39u;
+    } else if (l0 == INT32_C(29)) {
+        l1 = 40u;
+    } else if (l0 == INT32_C(30)) {
+        l1 = 41u;
+    } else if (l0 == INT32_C(31)) {
+        l1 = 42u;
+    } else if (l0 == INT32_C(32)) {
+        l1 = 43u;
+    } else if (l0 == INT32_C(33)) {
+        l1 = 44u;
+    } else if (l0 == INT32_C(34)) {
+        l1 = 45u;
+    } else {
+        if (!(l0 == INT32_C(35))) {
+            vader_unreachable("non-exhaustive match (T3013 should have caught this)");
+        }
+        l1 = 46u;
+    }
+    return l1;
+}
+
+static vader_string_t wasi_0filesystem_types_10_23_20$ErrorCodeOther$std_core$Error$message(void* l0) {
+    return 47u;
 }
 
 int main(int argc, char** argv) {

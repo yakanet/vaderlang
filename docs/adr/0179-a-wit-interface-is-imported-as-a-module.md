@@ -122,6 +122,8 @@ written by hand for C.
   two enums of one width, `option<option<T>>`), the ok side is wrapped in a struct of
   its own, named after the function and `Ok`, so the error side keeps one type
   everywhere. The check is the one the front end applies to every union.
+  Inside a named type, where no function names the struct, such a union has no
+  Vader form yet.
 - **Names.** Kebab case becomes snake case for functions and fields, Pascal case for
   types and cases. A name that is a Vader keyword takes a trailing `_` (`for_`), the
   implicit `self` of a method included. A type whose name the prelude holds is
@@ -129,13 +131,17 @@ written by hand for C.
   Two generated names that meet in one module are an error at the `.wit`. Methods
   follow the rules of the language: `d.stat()` under a wildcard import,
   `Fs.stat(d)` under an alias (T3078).
-- A type a `result` holds as its error implements `Error`, its message the WIT name
-  of the case.
+- A type a `result` of its package holds as its error implements `Error`, in the
+  module that declares it (the orphan rule leaves no other), its message the WIT name
+  of the case. WIT has no type of error of its own: an error is what a `result` holds
+  on its error side.
 - Items marked `@unstable` are left out.
-- What has no Vader form yet is an error at the `.wit` line when a program imports
-  the interface: `future<T>` as a parameter, a stream or a future inside another type,
+- A function with no Vader form yet is left out of the module, a comment there naming
+  it and why, so a call to it is an unknown name: `future<T>` as a parameter, a stream
+  or a future inside another type (`read-via-stream` returns one in a tuple),
   `stream<T>` as a parameter of an `async func` (the blocked caller could not write
-  it), `error-context`.
+  it), `error-context`. A named type with no Vader form yet is an error at the `.wit`
+  line when a program imports the interface.
 
 ### Resources
 

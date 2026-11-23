@@ -1,7 +1,9 @@
 // An interface of WIT imported as a module: its named types are Vader types. A
 // record is a struct, `flags` a struct of `bool`, a `variant` with a payload a
 // union of the enum of its bare cases and a struct per case, a `type` an alias,
-// and a `use` reaches the type of the interface that declares it.
+// and a `use` reaches the type of the interface that declares it. A type a
+// `result` holds as its error implements `Error`, and the ok side of a result
+// whose tag the error shares is wrapped in a struct named after the function.
 
 module "snippet"
 
@@ -29,5 +31,8 @@ main :: fn() -> i32 {
     println("${at.seconds}.${at.nanoseconds} ${timeout} ${flags.read} ${flags.write}")
     println("${describe(stat.type)} ${stat.size}")
     println(describe(Fs.DescriptorTypeOther { .value = "door" }))
+    no_entry :: Fs.ErrorCodeCase.NoEntry.message()
+    println("${no_entry} ${Fs.ErrorCodeOther { .value = null }.message()}")
+    println(describe(Fs.DescriptorGetTypeOk { .value = .Directory }.value))
     return 0
 }

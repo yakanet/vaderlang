@@ -9,7 +9,12 @@
 // declares is reached through an aliased import of that interface's module, so a
 // WIT type has one Vader type wherever it is used.
 //
-// The functions of the interface are not written yet.
+// Each function is an `@extern` of the interface, a method taking its resource
+// first. A stream it takes is a `WasmStream<T>` and a future it returns a
+// `WasmFuture<T>`, the forms the WASM build derives the WIT type from. A function
+// with no Vader form yet is left out, a comment naming it and why. Where the two
+// sides of a returned `result` or `option` would share a run-time tag, the ok side
+// is wrapped in a struct named after the function, `<Function>Ok { value }`.
 
 module "vader/core/wit"
 
@@ -21,18 +26,26 @@ import "toolchain/lexer"
 
 /// The source of the module that holds `interface`, without its `module` line.
 ///
+/// @param package    the package of the interface: a type a `result` of any of its
+///                   interfaces holds as its error implements `Error`.
 /// @param interface  the interface, its names resolved.
 /// @return           the imports of the interfaces its types name, then one
-///                   declaration per named type, in the order the interface holds
-///                   them.
+///                   declaration per named type and one per function, in the order
+///                   the interface holds them.
 /// @error            `WitError` naming the type when one has no Vader form yet: a
 ///                   stream or a future inside a type, a `result` without error.
-export wit_module_source :: fn(interface: WitInterface) -> string | WitError {
-    g :: Generation { .owner = interface.owner }
+export wit_module_source :: fn(package: WitPackage, interface: WitInterface) -> string | WitError {
+    g :: Generation { .owner = interface.owner, .errors = error_types(package) }
     declarations :: StringBuilder {}
     for t in interface.types {
-        written :: g.declaration(t) else return written
-        declarations.append("\n${written}")
+        written :: g.declaration(t) else return g.type_error(written)
+        declarations.append("\n${written}${g.error_impl(t)}")
+    }
+    if interface.functions.len() > 0 {
+        declarations.append("\n${interface_constant(interface.owner)}")
+    }
+    for f in interface.functions {
+        declarations.append("\n${g.function_declaration(f)}")
     }
     out :: StringBuilder {}
     for [alias, path] in g.imports {
@@ -47,11 +60,32 @@ Generation :: struct {
     owner: WitOwner
     // The aliased imports the types need: the alias, then the interface.
     imports: Map<string, string> = Map<string, string> {}
+    // The types that implement `Error`, by `struct_tag`.
+    errors: Set<string> = Set<string> {}
+}
+
+// A WIT type with no Vader form yet, and what kind of type it is.
+NoForm :: struct {
+    type: WitType
+    what: string
+}
+
+NoForm implements Error {
+    message :: fn(self) -> string = "${self.what} has no Vader form yet"
+}
+
+no_form :: fn(t: WitType, what: string) -> NoForm = NoForm { .type = t, .what = what }
+
+// A named type with no form makes the interface fail to import.
+type_error :: fn(g: Generation, missing: NoForm) -> WitError = WitError {
+    .message = "`${wit_type_text(missing.type)}` in `${wit_owner_text(g.owner)}`: "
+        + missing.message(),
+    .span = WitSpan { .file = wit_owner_text(g.owner) },
 }
 
 // ---- declarations -----------------------------------------------------------
 
-declaration :: fn(g: Generation, t: WitNamedType) -> string | WitError {
+declaration :: fn(g: Generation, t: WitNamedType) -> string | NoForm {
     name :: pascal_name(wit_type_name(t))
     return match t {
         is WitRecord   -> g.record_declaration(name, t)
@@ -66,7 +100,7 @@ declaration :: fn(g: Generation, t: WitNamedType) -> string | WitError {
     }
 }
 
-record_declaration :: fn(g: Generation, name: string, r: WitRecord) -> string | WitError {
+record_declaration :: fn(g: Generation, name: string, r: WitRecord) -> string | NoForm {
     fields: string[]: []
     for f in r.fields {
         t :: g.type_text(f.type) else return t
@@ -89,8 +123,8 @@ flags_declaration :: fn(name: string, f: WitFlags) -> string {
 // An enum when no case carries a payload; otherwise the union of an enum of the
 // bare cases, `<Name>Case`, and of one struct per case with a payload,
 // `<Name><Case> { value }`.
-variant_declaration :: fn(g: Generation, name: string, v: WitVariant) -> string | WitError {
-    bare :: v.cases.filter((c) -> c.type == null).map((c) -> c.name).collect()
+variant_declaration :: fn(g: Generation, name: string, v: WitVariant) -> string | NoForm {
+    bare :: bare_cases(v)
     if bare.len() == v.cases.len() {
         return enum_declaration(name, bare)
     }
@@ -103,17 +137,367 @@ variant_declaration :: fn(g: Generation, name: string, v: WitVariant) -> string 
     for c in v.cases {
         payload :: c.type else continue
         t :: g.type_text(payload) else return t
-        struct_name :: "${name}${pascal_name(c.name)}"
+        struct_name :: case_struct_name(name, c)
         members.push(struct_name)
         out.append("\nexport ${struct_name} :: struct {\n    value: ${t}\n}\n")
     }
     return "export ${name} :: ${members.join(" | ")}\n${out.to_string()}"
 }
 
+// The names of the cases of `v` without payload, which its enum holds.
+bare_cases :: fn(v: WitVariant) -> string[] =
+    v.cases.filter((c) -> c.type == null).map((c) -> c.name).collect()
+
+// The cases of `v` with a payload, each a struct of its own.
+payload_cases :: fn(v: WitVariant) -> WitCase[] = v.cases.filter((c) -> c.type != null).collect()
+
+case_struct_name :: fn(variant: string, c: WitCase) -> string = "${variant}${pascal_name(c.name)}"
+
+// ---- errors -----------------------------------------------------------------
+
+// The named types a `result` of `package` holds as its error, by `struct_tag`.
+// Each implements `Error` in the module that declares it, the one place the
+// orphan rule leaves; a type of another package is left as it is.
+error_types :: fn(package: WitPackage) -> Set<string> {
+    out :: Set<string> {}
+    for i in package.interfaces {
+        for t in i.types {
+            push_declared_errors(t, out)
+        }
+        for f in i.functions {
+            for p in f.type.params {
+                push_errors(p.type, out)
+            }
+            push_optional_errors(f.type.result, out)
+        }
+    }
+    return out
+}
+
+push_declared_errors :: fn(t: WitNamedType, out: Set<string>) -> void {
+    match t {
+        is WitRecord  -> {
+            for f in t.fields {
+                push_errors(f.type, out)
+            }
+        }
+        is WitVariant -> {
+            for c in t.cases {
+                push_optional_errors(c.type, out)
+            }
+        }
+        is WitAlias   -> push_errors(t.target, out)
+        _             -> {}
+    }
+}
+
+// The error types of the results `t` writes; a named type is walked where it is
+// declared.
+push_errors :: fn(t: WitType, out: Set<string>) -> void {
+    match t {
+        is WitList   -> push_errors(t.element, out)
+        is WitOption -> push_errors(t.value, out)
+        is WitTuple  -> {
+            for e in t.elements {
+                push_errors(e, out)
+            }
+        }
+        is WitResult -> {
+            push_optional_errors(t.ok, out)
+            error :: t.error else return
+            declared :: declared_tag(error)
+            if declared != null {
+                out.add(declared)
+            }
+            push_errors(error, out)
+        }
+        is WitStream -> push_errors(t.element, out)
+        is WitFuture -> push_optional_errors(t.value, out)
+        _            -> {}
+    }
+}
+
+push_optional_errors :: fn(t: WitType | null, out: Set<string>) -> void {
+    if t != null {
+        push_errors(t, out)
+    }
+}
+
+// The `struct_tag` of the named type `t` designates, through its aliases.
+declared_tag :: fn(t: WitType) -> string | null {
+    return match t {
+        is WitAlias -> declared_tag(t.target)
+        is WitEnum -> {
+            owner :: t.owner else return null
+            struct_tag(owner, t.name)
+        }
+        is WitRecord -> struct_tag(t.owner, t.name)
+        is WitVariant -> struct_tag(t.owner, t.name)
+        is WitFlags -> struct_tag(t.owner, t.name)
+        is WitResource -> struct_tag(t.owner, t.name)
+        is WitScalar | WitHandle | WitList | WitOption | WitTuple | WitResult | WitStream
+            | WitFuture | WitUnsupported -> null
+    }
+}
+
+// The `Error` impl of `t` when a result holds it as its error, "" otherwise: its
+// message is the WIT name of the case, or of the type.
+error_impl :: fn(g: Generation, t: WitNamedType) -> string {
+    wit_name :: wit_type_name(t)
+    // An alias is never in `errors`: `declared_tag` names what it designates.
+    if !(struct_tag(g.owner, wit_name) in g.errors) {
+        return ""
+    }
+    name :: pascal_name(wit_name)
+    if t is WitEnum {
+        return enum_error_impl(name, t.cases)
+    }
+    if t is WitVariant {
+        return variant_error_impl(name, t)
+    }
+    return named_error_impl(name, wit_name)
+}
+
+// An enum of the bare cases, and one struct per case with a payload.
+variant_error_impl :: fn(name: string, v: WitVariant) -> string {
+    bare :: bare_cases(v)
+    if bare.len() == v.cases.len() {
+        return enum_error_impl(name, bare)
+    }
+    out :: StringBuilder {}
+    if bare.len() > 0 {
+        out.append(enum_error_impl("${name}Case", bare))
+    }
+    for c in payload_cases(v) {
+        out.append(named_error_impl(case_struct_name(name, c), c.name))
+    }
+    return out.to_string()
+}
+
+enum_error_impl :: fn(name: string, cases: string[]) -> string {
+    arms :: cases.map((c) -> "        .${pascal_name(c)} -> \"${c}\"\n").collect()
+    return "\n${name} implements Error {\n"
+        + "    message :: fn(self) -> string = match self {\n${arms.join("")}    }\n}\n"
+}
+
+named_error_impl :: fn(name: string, message: string) -> string =
+    "\n${name} implements Error {\n    message :: fn(self) -> string = \"${message}\"\n}\n"
+
+// ---- functions --------------------------------------------------------------
+
+// The constant the `@extern` of each function names.
+interface_constant :: fn(owner: WitOwner) -> string {
+    package :: owner.package
+    return """
+        WIT_INTERFACE :: WasmInterface {
+            .package = "${package.namespace}:${package.name}",
+            .name = "${owner.interface}",
+            .version = "${package.version}",
+        }
+        """
+}
+
+// The `@extern` of `f`, or the comment that says why it is left out.
+function_declaration :: fn(g: Generation, f: WitNamedFunction) -> string {
+    params :: g.parameters_text(f) else return left_out(f, params)
+    returned :: g.returned(f) else return left_out(f, returned)
+    extern :: "${returned.wrapper}@extern(WIT_INTERFACE, \"${f.name}\")\n"
+    opening :: "export ${vader_function_name(f)} :: fn("
+    closing :: ") -> ${returned.text}"
+    inline :: params.join(", ")
+    width :: opening.byte_len() + inline.byte_len() + closing.byte_len()
+    if width <= MAX_LINE || params.len() == 0 {
+        return "${extern}${opening}${inline}${closing}\n"
+    }
+    lines :: params.map((p) -> "    ${p},\n").collect().join("")
+    return "${extern}${opening}\n${lines}${closing}\n"
+}
+
+// The width past which a signature takes one parameter per line, the one
+// `vader fmt` wraps at (`vader/tools/fmt/style.vader`).
+MAX_LINE :: 100
+
+left_out :: fn(f: WitNamedFunction, missing: NoForm) -> string =
+    "// `${f.name}` is left out: ${missing.message()}.\n"
+
+parameters_text :: fn(g: Generation, f: WitNamedFunction) -> string[] | NoForm {
+    params: string[]: []
+    for p in f.type.params {
+        t :: g.parameter_text(f, p.type) else return t
+        params.push("${snake_name(p.name)}: ${t}")
+    }
+    return params
+}
+
+// A stream a call writes whole is a `WasmStream<T>`; an `async func` would block
+// before it reads one, and a future has no form as a parameter.
+parameter_text :: fn(g: Generation, f: WitNamedFunction, t: WitType) -> string | NoForm {
+    if t is WitFuture {
+        return no_form(t, "a future as a parameter")
+    }
+    if t is WitStream {
+        if f.is_async {
+            return no_form(t, "a stream as a parameter of an `async func`")
+        }
+        element :: g.type_text(t.element) else return element
+        return "WasmStream<${element}>"
+    }
+    return g.type_text(t)
+}
+
+// What a function returns as written: its type, and the declaration of the struct
+// that wraps its ok side, "" when none does.
+Returned :: struct {
+    text: string
+    wrapper: string = ""
+}
+
+returned :: fn(g: Generation, f: WitNamedFunction) -> Returned | NoForm {
+    t :: f.type.result else return Returned { .text = "void" }
+    if t is WitFuture {
+        value :: g.future_value_text(t) else return value
+        return Returned { .text = "WasmFuture<${value}>" }
+    }
+    if t is WitStream {
+        return no_form(t, "a stream as a result")
+    }
+    if t is WitResult {
+        return g.returned_result(f, t)
+    }
+    if t is WitOption {
+        return g.returned_union(f, t.value, "null", ["null"])
+    }
+    text :: g.type_text(t) else return text
+    return Returned { .text = text }
+}
+
+future_value_text :: fn(g: Generation, t: WitFuture) -> string | NoForm {
+    value :: t.value else return "void"
+    return g.type_text(value)
+}
+
+returned_result :: fn(g: Generation, f: WitNamedFunction, r: WitResult) -> Returned | NoForm {
+    error :: r.error else return no_form(r, "a `result` without error")
+    error_text :: g.type_text(error) else return error_text
+    ok :: r.ok else return Returned { .text = "void | ${error_text}" }
+    return g.returned_union(f, ok, error_text, tags_of(error))
+}
+
+// `ok | other`, the ok side wrapped in `<Function>Ok` when it shares a tag of
+// `other_tags`.
+returned_union :: fn(
+    g: Generation,
+    f: WitNamedFunction,
+    ok: WitType,
+    other: string,
+    other_tags: string[],
+) -> Returned | NoForm {
+    ok_text :: g.type_text(ok) else return ok_text
+    if !tags_meet(tags_of(ok), other_tags) {
+        return Returned { .text = "${ok_text} | ${other}" }
+    }
+    wrapper :: "${pascal_name(function_words(f))}Ok"
+    return Returned {
+        .text = "${wrapper} | ${other}",
+        .wrapper = "export ${wrapper} :: struct {\n    value: ${ok_text}\n}\n\n",
+    }
+}
+
+// The Vader name of `f`: a method is named as WIT declares it, a static function
+// and a constructor after their resource.
+vader_function_name :: fn(f: WitNamedFunction) -> string {
+    if f.kind == .Method {
+        return snake_name(f.member)
+    }
+    return snake_name(function_words(f))
+}
+
+// The words of a function's name, its resource first: `descriptor-stat`,
+// `tcp-socket-create`, `new-pollable`, `now`.
+function_words :: fn(f: WitNamedFunction) -> string {
+    resource :: f.resource else return f.name
+    return match f.kind {
+        .Method | .Static -> "${resource.name}-${f.member}"
+        .Constructor      -> "new-${resource.name}"
+        .Freestanding     -> f.name
+    }
+}
+
+// ---- tags -------------------------------------------------------------------
+
+// The run-time tags a union tells a value of `t` apart by, as `union_tag_name`
+// gives them: an enum is tagged as its integer, a scalar, a list or a tuple as
+// itself, a named struct as itself. A union contributes the tags of its sides.
+tags_of :: fn(t: WitType) -> string[] {
+    out: string[]: []
+    push_tags(t, out)
+    return out
+}
+
+push_tags :: fn(t: WitType, out: string[]) -> void {
+    match t {
+        is WitScalar      -> out.push(scalar_text(t))
+        is WitEnum        -> out.push("u${enum_case_bits(t.cases.len())}")
+        is WitVariant     -> push_variant_tags(t, out)
+        is WitRecord      -> out.push(struct_tag(t.owner, t.name))
+        is WitFlags       -> out.push(struct_tag(t.owner, t.name))
+        is WitResource    -> out.push(struct_tag(t.owner, t.name))
+        is WitAlias       -> push_tags(t.target, out)
+        is WitHandle      -> push_tags(t.resource, out)
+        is WitList        -> out.push("${tag_text(t.element)}[]")
+        is WitOption      -> {
+            push_tags(t.value, out)
+            out.push("null")
+        }
+        is WitTuple       -> out.push("[${t.elements.map(tag_text).collect().join(", ")}]")
+        is WitResult      -> {
+            ok :: t.ok
+            if ok == null {
+                out.push("void")
+            } else {
+                push_tags(ok, out)
+            }
+            error :: t.error
+            if error != null {
+                push_tags(error, out)
+            }
+        }
+        is WitStream      -> out.push("stream<${tag_text(t.element)}>")
+        is WitFuture      -> out.push("future<${optional_tag_text(t.value)}>")
+        is WitUnsupported -> out.push(t.reason)
+    }
+}
+
+// A variant is an enum of its bare cases and one struct per case with a payload.
+push_variant_tags :: fn(v: WitVariant, out: string[]) -> void {
+    bare :: bare_cases(v)
+    if bare.len() > 0 {
+        out.push("u${enum_case_bits(bare.len())}")
+    }
+    for c in payload_cases(v) {
+        out.push(struct_tag(v.owner, "${v.name}-${c.name}"))
+    }
+}
+
+optional_tag_text :: fn(t: WitType | null) -> string {
+    if t == null {
+        return "void"
+    }
+    return tag_text(t)
+}
+
+tag_text :: fn(t: WitType) -> string = tags_of(t).join(" | ")
+
+struct_tag :: fn(owner: WitOwner, name: string) -> string = "${wit_owner_text(owner)}/${name}"
+
+shares_tag :: fn(a: WitType, b: WitType) -> bool = tags_meet(tags_of(a), tags_of(b))
+
+tags_meet :: fn(a: string[], b: string[]) -> bool = a.any_match((t) -> t in b)
+
 // ---- types ------------------------------------------------------------------
 
 // The Vader type a value of `t` is held as.
-type_text :: fn(g: Generation, t: WitType) -> string | WitError {
+type_text :: fn(g: Generation, t: WitType) -> string | NoForm {
     return match t {
         is WitScalar             -> scalar_text(t)
         is WitRecord             -> g.named_text(t.owner, t.name)
@@ -128,6 +512,9 @@ type_text :: fn(g: Generation, t: WitType) -> string | WitError {
             "${grouped(element)}[]"
         }
         is WitOption             -> {
+            if "null" in tags_of(t.value) {
+                return no_form(t, SHARED_TAG)
+            }
             value :: g.type_text(t.value) else return value
             "${value} | null"
         }
@@ -140,19 +527,24 @@ type_text :: fn(g: Generation, t: WitType) -> string | WitError {
             "[${elements.join(", ")}]"
         }
         is WitResult             -> g.result_text(t)
-        is WitStream | WitFuture -> no_form(g, t, "a stream or a future inside a type")
-        is WitUnsupported        -> no_form(g, t, t.reason)
+        is WitStream | WitFuture -> no_form(t, "a stream or a future inside a type")
+        is WitUnsupported        -> no_form(t, t.reason)
     }
 }
 
 // `T | E`, `void | E` for a result without `ok`.
-result_text :: fn(g: Generation, r: WitResult) -> string | WitError {
-    error :: r.error else return no_form(g, r, "a `result` without error")
+result_text :: fn(g: Generation, r: WitResult) -> string | NoForm {
+    error :: r.error else return no_form(r, "a `result` without error")
     error_text :: g.type_text(error) else return error_text
     ok :: r.ok else return "void | ${error_text}"
+    if shares_tag(ok, error) {
+        return no_form(r, SHARED_TAG)
+    }
     ok_text :: g.type_text(ok) else return ok_text
     return "${ok_text} | ${error_text}"
 }
+
+SHARED_TAG :: "a union whose sides share a run-time tag"
 
 enum_text :: fn(g: Generation, e: WitEnum) -> string {
     owner :: e.owner else return pascal_name(e.name)
@@ -168,12 +560,6 @@ named_text :: fn(g: Generation, owner: WitOwner, name: string) -> string {
     alias :: interface_alias(owner)
     g.imports[alias] = wit_owner_text(owner)
     return "${alias}.${pascal_name(name)}"
-}
-
-no_form :: fn(g: Generation, t: WitType, what: string) -> WitError = WitError {
-    .message = "`${wit_type_text(t)}` in `${wit_owner_text(g.owner)}`: "
-        + "${what} has no Vader form yet",
-    .span = WitSpan { .file = wit_owner_text(g.owner) },
 }
 
 // A union as a list's element, in parentheses.
@@ -239,7 +625,7 @@ generated_for :: fn(text: string, at: i64 = 0) -> string {
             .span = WitSpan { .file = "" },
         },
     ) else panic(read.message())
-    written :: wit_module_source(read.interfaces[at]) else panic(written.message())
+    written :: wit_module_source(read, read.interfaces[at]) else panic(written.message())
     return written
 }
 
@@ -329,4 +715,139 @@ test_wit_generate_imports_the_interface_a_use_names :: fn() -> void {
 test_wit_generate_escapes_a_keyword :: fn() -> void {
     assert_eq(snake_name("for"), "for_")
     assert_eq(snake_name("read-via-stream"), "read_via_stream")
+}
+
+@test
+test_wit_generate_the_functions_of_an_interface_and_its_resource :: fn() -> void {
+    assert_eq(generated_for("""
+        package a:b@1.0.0;
+        interface i {
+            resource door {
+                constructor(width: u32);
+                open: func(force: bool);
+                make: static func() -> door;
+            }
+            now: func() -> u64;
+        }
+        """), """
+
+        export Door :: struct {
+            handle: i32
+        }
+
+        WIT_INTERFACE :: WasmInterface {
+            .package = "a:b",
+            .name = "i",
+            .version = "1.0.0",
+        }
+
+        @extern(WIT_INTERFACE, "now")
+        export now :: fn() -> u64
+
+        @extern(WIT_INTERFACE, "[constructor]door")
+        export new_door :: fn(width: u32) -> Door
+
+        @extern(WIT_INTERFACE, "[method]door.open")
+        export open :: fn(self_: Door, force: bool) -> void
+
+        @extern(WIT_INTERFACE, "[static]door.make")
+        export door_make :: fn() -> Door
+        """)
+}
+
+@test
+test_wit_generate_a_stream_parameter_and_a_future_result :: fn() -> void {
+    assert_eq(
+        generated_for("""
+        package a:b;
+        interface i {
+            write: func(data: stream<u8>) -> future<u32>;
+        }
+        """).split("\n").filter((l) -> l.starts_with("export")).collect().join("\n"),
+        "export write :: fn(data: WasmStream<u8>) -> WasmFuture<u32>",
+    )
+}
+
+@test
+test_wit_generate_leaves_out_a_function_without_form :: fn() -> void {
+    assert_eq(generated_for("""
+        package a:b;
+        interface i {
+            wait: func(f: future<u8>);
+            pour: async func(data: stream<u8>);
+        }
+        """).split("\n").filter((l) -> l.starts_with("//")).collect().join("\n"), """
+        // `wait` is left out: a future as a parameter has no Vader form yet.
+        // `pour` is left out: a stream as a parameter of an `async func` has no Vader form yet.
+        """.trim_suffix("\n"))
+}
+
+@test
+test_wit_generate_wraps_an_ok_side_that_shares_a_tag :: fn() -> void {
+    assert_eq(generated_for("""
+        package a:b;
+        interface i {
+            enum kind { file, directory }
+            variant error-code { access, other(string) }
+            kind-of: func() -> result<kind, error-code>;
+            maybe: func() -> option<option<u8>>;
+            size: func() -> result<u64, error-code>;
+        }
+        """).split("\n").filter((l) -> l.starts_with("export ")).collect().join("\n"), """
+        export Kind :: enum(u8) {
+        export ErrorCode :: ErrorCodeCase | ErrorCodeOther
+        export ErrorCodeCase :: enum(u8) {
+        export ErrorCodeOther :: struct {
+        export KindOfOk :: struct {
+        export kind_of :: fn() -> KindOfOk | ErrorCode
+        export MaybeOk :: struct {
+        export maybe :: fn() -> MaybeOk | null
+        export size :: fn() -> u64 | ErrorCode
+        """.trim_suffix("\n"))
+}
+
+@test
+test_wit_generate_an_error_of_a_result_implements_error :: fn() -> void {
+    text :: generated_for("""
+        package a:b;
+        interface types {
+            enum error-code { access, no-entry }
+            variant failure { busy, other(string) }
+            enum kind { file }
+        }
+        interface api {
+            use types.{error-code, failure};
+            stat: func() -> result<u64, error-code>;
+            record answer { value: result<u8, failure> }
+        }
+        """)
+    assert_eq(text.split("\n").filter((l) -> l.contains("implements")).collect().join("\n"), """
+        ErrorCode implements Error {
+        FailureCase implements Error {
+        FailureOther implements Error {
+        """.trim_suffix("\n"))
+    assert(text.contains(".NoEntry -> \"no-entry\""), "an enum case names itself")
+    assert(
+        text.contains("message :: fn(self) -> string = \"other\""),
+        "a payload case names itself",
+    )
+}
+
+@test
+test_wit_generate_wraps_a_long_signature :: fn() -> void {
+    assert_eq(generated_for("""
+        package a:b;
+        interface i {
+            link-at: func(
+                old-path-flags: u32, old-path: string, new-path-flags: u32, new-path: string,
+            );
+        }
+        """).split("\n@extern(WIT_INTERFACE, \"link-at\")\n")[1].trim(), """
+        export link_at :: fn(
+            old_path_flags: u32,
+            old_path: string,
+            new_path_flags: u32,
+            new_path: string,
+        ) -> void
+        """.trim())
 }
