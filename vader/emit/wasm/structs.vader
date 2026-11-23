@@ -105,7 +105,9 @@ export gc_types_of :: fn(m: Bc.BytecodeModule) -> GcTypes {
     out.void_box = out.add([])
     out.add_array_types(m)
     out.add_string_types()
-    out.closure = out.add([WasmField { .type = .EqRef }, WasmField { .type = .I32 }])
+    out.closure = out.add(
+        [WasmField { .type = .EqRef }, WasmField { .type = .I32 }, WasmField { .type = .I32 }],
+    )
     out.type_value = out.add([WasmField { .type = .I32 }])
     return out
 }
@@ -473,7 +475,8 @@ push_single_test :: fn(
         out.push(Call { .function_index = test })
         return
     }
-    // A function value is of no type a test names, as the VM has it.
+    // A function value is of no type a test names, as the VM has it; a dispatch
+    // still tells its function type (`push_receiver_test`).
     if target is Bc.BcFn {
         out.push_all([Plain { .op = .Drop }, I32Const { .value = 0 }])
         return

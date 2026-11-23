@@ -31,14 +31,14 @@ push_closure_op :: fn(
         is Bc.FnRef        -> {
             slot :: ctx.closure_entry(op.function_index, op.type_id, false, function)
                 else return slot
-            out.push_all(
-                [RefNull {}, I32Const { .value = slot }, StructNew { .type_index = ctx.gc.closure }],
-            )
+            out.push(RefNull {})
+            out.push_all(closure_new(ctx, slot, op.type_id))
         }
         is Bc.MakeClosure  -> {
             slot :: ctx.closure_entry(op.function_index, op.env_type_id, true, function)
                 else return slot
-            out.push_all([I32Const { .value = slot }, StructNew { .type_index = ctx.gc.closure }])
+            // `env_type_id` names the function's type, as the VM's `FnVal` keeps it.
+            out.push_all(closure_new(ctx, slot, op.env_type_id))
         }
         is Bc.CallIndirect -> {
             index :: ctx.indirect_call(stack, op.type_id, function) else return index
@@ -266,6 +266,16 @@ indirect_call :: fn(
 // The fields of the closure type.
 CLOSURE_ENVIRONMENT: i32: 0
 CLOSURE_SLOT: i32: 1
+// The function type the value is of, which a `virtual.call` on it dispatches by.
+CLOSURE_TYPE: i32: 2
+
+// A function value of the table slot `slot` and the type `type_id`, over the
+// environment on the stack.
+closure_new :: fn(ctx: ModuleCtx, slot: i32, type_id: i32) -> WasmInstr[] = [
+    I32Const { .value = slot },
+    I32Const { .value = type_id },
+    StructNew { .type_index = ctx.gc.closure },
+]
 
 // The class a value of `t` has: its own for a scalar, a reference otherwise.
 class_of_type :: fn(t: Bc.BcType) -> Bc.ValType {

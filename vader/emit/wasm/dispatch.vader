@@ -51,21 +51,53 @@ dispatcher :: fn(
     row :: ctx.module.vtables.find((r) -> r.key == op.vtable_key)
     if row != null {
         for entry in row.entries.filter((e) -> answers(ctx, e.fn_index, op)) {
-            body.push(LocalGet { .index = site_slot(0, site.len()) })
-            tested :: push_single_test(ctx, body, entry.receiver_type_index, function)
-                else return tested
-            body.push(Plain { .op = .If })
+            receiver :: site_slot(0, site.len())
+            opened :: body.push_receiver_test(ctx, receiver, entry.receiver_type_index, function)
+                else return opened
             called :: body.push_implementation(ctx, entry.fn_index, site, op, function)
                 else return called
-            body.push_all([Plain { .op = .Return }, Plain { .op = .End }])
+            body.push(Plain { .op = .Return })
+            for _ in 0..<opened {
+                body.push(Plain { .op = .End })
+            }
         }
     }
     body.push(Plain { .op = .Unreachable })
     return ctx.define_helper(key, signature, [], body)
 }
 
-// Call the implementation `fn_index` with the dispatcher's parameters, each in
-// the form it takes, and leave its result in the form the call leaves.
+// Open the scopes the receiver in the local `receiver` enters when it is of
+// `type_id`, and return how many. A function value is of the function type it
+// was made as, which `is` does not test (`push_single_test`) but a dispatch does.
+push_receiver_test :: fn(
+    body: WasmInstr[],
+    ctx: ModuleCtx,
+    receiver: i32,
+    type_id: i32,
+    function: string,
+) -> i32 | WasmUnsupported {
+    closure :: ctx.gc.closure
+    body.push(LocalGet { .index = receiver })
+    if ctx.module.types[type_id] is Bc.BcFn {
+        body.push_all(
+            [
+                RefTest { .type_index = closure },
+                Plain { .op = .If },
+                LocalGet { .index = receiver },
+                RefCast { .type_index = closure },
+                StructGet { .type_index = closure, .field_index = CLOSURE_TYPE },
+                I32Const { .value = type_id },
+                Plain { .op = .I32Eq },
+                Plain { .op = .If },
+            ],
+        )
+        return 2
+    }
+    tested :: push_single_test(ctx, body, type_id, function) else return tested
+    body.push(Plain { .op = .If })
+    return 1
+}
+
 // Whether the impl `fn_index` may answer the site `op`: one of the trait under
 // other arguments leaves a scalar of another form (`string`'s `Index<i64, char>`
 // at an `Index<i64, i64>` site), and a receiver of its type never reaches it.
@@ -85,6 +117,8 @@ answers :: fn(ctx: ModuleCtx, fn_index: i32, op: Bc.VirtualCall) -> bool {
     return true
 }
 
+// Call the implementation `fn_index` with the dispatcher's parameters, each in
+// the form it takes, and leave its result in the form the call leaves.
 push_implementation :: fn(
     body: WasmInstr[],
     ctx: ModuleCtx,
