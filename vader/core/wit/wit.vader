@@ -1,0 +1,372 @@
+// vader/core/wit: the WIT type of a function a WASM build imports.
+//
+// The front end derives it from the Vader declaration of an `@extern` naming a
+// `WasmInterface` (`vader/midir/wit.vader`), where the Vader types are still
+// whole: the bytecode keeps an enum as an integer, without the names of its
+// cases. The WASM emitter writes the component's import from it, and lowers each
+// call through the canonical ABI.
+//
+// The `.virt` text holds it as one token with neither space nor parenthesis,
+// which delimit the attributes and the signature of an import line, close to how
+// WIT writes it otherwise: `[data:stream<u8>]->future<result<_,enum:error-code{io,pipe}>>`.
+// A type with no WIT form is `?`.
+
+module "vader/core/wit"
+
+import "std/ascii"
+import "std/iter"
+import "std/string"
+import "std/string_builder"
+
+/// A WIT value type.
+export WitType :: WitScalar | WitEnum | WitResult | WitStream | WitFuture | WitUnsupported
+
+/// The WIT primitives.
+export WitScalar :: enum {
+    Bool,
+    S8,
+    U8,
+    S16,
+    U16,
+    S32,
+    U32,
+    S64,
+    U64,
+    F32,
+    F64,
+    Char,
+    String,
+}
+
+/// A WIT `enum`: a value is the position of its case.
+export WitEnum :: struct {
+    /// The name the interface exports the type under, in kebab case.
+    name: string
+    cases: string[]
+}
+
+/// A WIT `result<ok, error>`, a side null for `_`.
+export WitResult :: struct {
+    ok: WitType | null = null
+    error: WitType | null = null
+}
+
+/// A WIT `stream<element>`.
+export WitStream :: struct {
+    element: WitType
+}
+
+/// A WIT `future<value>`, null for a future of nothing.
+export WitFuture :: struct {
+    value: WitType | null = null
+}
+
+/// A Vader type with no WIT form yet. A WASM build that imports a function
+/// using one stops there.
+export WitUnsupported :: struct {
+    /// Why, for the message; `.virt` does not keep it.
+    reason: string
+}
+
+/// A parameter of a WIT function.
+export WitParam :: struct {
+    /// Its name, in kebab case.
+    name: string
+    type: WitType
+}
+
+/// The WIT type of an imported function.
+export WitFunction :: struct {
+    params: WitParam[]
+    /// What it returns, null for nothing.
+    result: WitType | null
+}
+
+/// A Vader name in the kebab case of WIT: `how_long` and `HowLong` are both
+/// `how-long`.
+///
+/// @param name  a Vader identifier, in snake or Pascal case.
+/// @example
+///   wit_name("IllegalByteSequence")   // "illegal-byte-sequence"
+export wit_name :: fn(name: string) -> string {
+    sb :: StringBuilder {}
+    for i in 0..<name.byte_len() {
+        b :: name.byte_at(i)
+        if b == '_' {
+            sb.append("-")
+        } else if b >= 'A' && b <= 'Z' {
+            if i > 0 {
+                sb.append("-")
+            }
+            sb.append_char(char(to_lower_byte(b)))
+        } else {
+            sb.append(name.byte_slice(i, i + 1))
+        }
+    }
+    return sb.to_string()
+}
+
+// ---- text -----------------------------------------------------------------
+
+/// The `.virt` text of `f`.
+///
+/// @param f  the function type.
+/// @return   one token with neither space nor parenthesis, which
+///           `parse_wit_function` reads back.
+export wit_function_text :: fn(f: WitFunction) -> string {
+    sb :: StringBuilder {}
+    sb.append("[")
+    for i in 0..<f.params.len() {
+        if i > 0 {
+            sb.append(",")
+        }
+        sb.append("${f.params[i].name}:")
+        sb.write_wit(f.params[i].type)
+    }
+    sb.append("]")
+    result :: f.result else return sb.to_string()
+    sb.append("->")
+    sb.write_wit(result)
+    return sb.to_string()
+}
+
+/// The `.virt` text of `t`, as WIT writes it but for the spaces.
+///
+/// @param t  the type.
+/// @example
+///   wit_type_text(WitStream { .element = .U8 })   // "stream<u8>"
+export wit_type_text :: fn(t: WitType) -> string {
+    sb :: StringBuilder {}
+    sb.write_wit(t)
+    return sb.to_string()
+}
+
+write_wit :: fn(sb: StringBuilder, t: WitType) -> void {
+    match t {
+        is WitScalar      -> sb.append(wit_scalar_name(t))
+        is WitEnum        -> sb.append("enum:${t.name}{${t.cases.join(",")}}")
+        is WitResult      -> {
+            sb.append("result<")
+            sb.write_wit_or_none(t.ok)
+            sb.append(",")
+            sb.write_wit_or_none(t.error)
+            sb.append(">")
+        }
+        is WitStream      -> {
+            sb.append("stream<")
+            sb.write_wit(t.element)
+            sb.append(">")
+        }
+        is WitFuture      -> {
+            sb.append("future<")
+            sb.write_wit_or_none(t.value)
+            sb.append(">")
+        }
+        is WitUnsupported -> sb.append("?")
+    }
+}
+
+write_wit_or_none :: fn(sb: StringBuilder, t: WitType | null) -> void {
+    if t == null {
+        sb.append("_")
+        return
+    }
+    sb.write_wit(t)
+}
+
+wit_scalar_name :: fn(s: WitScalar) -> string = match s {
+    .Bool   -> "bool"
+    .S8     -> "s8"
+    .U8     -> "u8"
+    .S16    -> "s16"
+    .U16    -> "u16"
+    .S32    -> "s32"
+    .U32    -> "u32"
+    .S64    -> "s64"
+    .U64    -> "u64"
+    .F32    -> "f32"
+    .F64    -> "f64"
+    .Char   -> "char"
+    .String -> "string"
+}
+
+// The inverse of `wit_scalar_name`.
+wit_scalar_named :: fn(name: string) -> WitScalar | null = match name {
+    "bool"   -> .Bool
+    "s8"     -> .S8
+    "u8"     -> .U8
+    "s16"    -> .S16
+    "u16"    -> .U16
+    "s32"    -> .S32
+    "u32"    -> .U32
+    "s64"    -> .S64
+    "u64"    -> .U64
+    "f32"    -> .F32
+    "f64"    -> .F64
+    "char"   -> .Char
+    "string" -> .String
+    _        -> null
+}
+
+/// Read the `.virt` text of a WIT function type.
+///
+/// @param text  what `wit_function_text` wrote.
+/// @return      the function type, null when the text is not one.
+export parse_wit_function :: fn(text: string) -> WitFunction | null {
+    reader :: WitReader { .text = text }
+    if !reader.wit_skip("[") {
+        return null
+    }
+    params: WitParam[]: []
+    for !reader.wit_skip("]") {
+        if params.len() > 0 && !reader.wit_skip(",") {
+            return null
+        }
+        name :: reader.wit_word()
+        if !reader.wit_skip(":") {
+            return null
+        }
+        t :: reader.read_wit_type() else return null
+        params.push(WitParam { .name = name, .type = t })
+    }
+    if reader.wit_at_end() {
+        return WitFunction { .params = params, .result = null }
+    }
+    if !reader.wit_skip("->") {
+        return null
+    }
+    result :: reader.read_wit_type() else return null
+    if !reader.wit_at_end() {
+        return null
+    }
+    return WitFunction { .params = params, .result = result }
+}
+
+WitReader :: struct {
+    text: string
+    at: i64 = 0
+}
+
+wit_at_end :: fn(r: WitReader) -> bool = r.at >= r.text.byte_len()
+
+// Step over `s` when the text goes on with it.
+wit_skip :: fn(r: WitReader, s: string) -> bool {
+    if !r.text.byte_slice(r.at, r.text.byte_len()).starts_with(s) {
+        return false
+    }
+    r.at += s.byte_len()
+    return true
+}
+
+// The run of letters, digits and `-` from where the reader is.
+wit_word :: fn(r: WitReader) -> string {
+    from :: r.at
+    for !r.wit_at_end() && is_word_byte(r.text.byte_at(r.at)) {
+        r.at += 1
+    }
+    return r.text.byte_slice(from, r.at)
+}
+
+is_word_byte :: fn(b: u8) -> bool = b in 'a'..='z' || b in 'A'..='Z' || is_digit_byte(b) || b == '-'
+
+read_wit_type :: fn(r: WitReader) -> WitType | null {
+    if r.wit_skip("?") {
+        return WitUnsupported { .reason = "a type with no WIT form" }
+    }
+    if r.wit_skip("enum:") {
+        name :: r.wit_word()
+        if !r.wit_skip("{") {
+            return null
+        }
+        cases: string[]: []
+        for !r.wit_skip("}") {
+            if cases.len() > 0 && !r.wit_skip(",") {
+                return null
+            }
+            cases.push(r.wit_word())
+        }
+        return WitEnum { .name = name, .cases = cases }
+    }
+    if r.wit_skip("result<") {
+        ok :: r.read_wit_or_none() else return null
+        if !r.wit_skip(",") {
+            return null
+        }
+        error :: r.read_wit_or_none() else return null
+        if !r.wit_skip(">") {
+            return null
+        }
+        return WitResult { .ok = ok.type, .error = error.type }
+    }
+    if r.wit_skip("stream<") {
+        element :: r.read_wit_type() else return null
+        if !r.wit_skip(">") {
+            return null
+        }
+        return WitStream { .element = element }
+    }
+    if r.wit_skip("future<") {
+        value :: r.read_wit_or_none() else return null
+        if !r.wit_skip(">") {
+            return null
+        }
+        return WitFuture { .value = value.type }
+    }
+    return wit_scalar_named(r.wit_word())
+}
+
+// A type, or `_` for none: what a side of a `result` or a `future` holds.
+WitNoneOr :: struct {
+    type: WitType | null = null
+}
+
+read_wit_or_none :: fn(r: WitReader) -> WitNoneOr | null {
+    if r.wit_skip("_") {
+        return WitNoneOr {}
+    }
+    t :: r.read_wit_type() else return null
+    return WitNoneOr { .type = t }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/testing"
+
+@test
+test_wit_name_of_snake_and_pascal_case :: fn() -> void {
+    assert_eq(wit_name("how_long"), "how-long")
+    assert_eq(wit_name("IllegalByteSequence"), "illegal-byte-sequence")
+    assert_eq(wit_name("now"), "now")
+}
+
+// `write-via-stream`, as `wasi:cli/stdout` declares it.
+write_via_stream :: fn() -> WitFunction {
+    error :: WitEnum { .name = "error-code", .cases = ["io", "illegal-byte-sequence", "pipe"] }
+    return WitFunction {
+        .params = [WitParam { .name = "data", .type = WitStream { .element = .U8 } }],
+        .result = WitFuture { .value = WitResult { .error = error } },
+    }
+}
+
+@test
+test_wit_function_text_of_write_via_stream :: fn() -> void {
+    assert_eq(
+        wit_function_text(write_via_stream()),
+        "[data:stream<u8>]->future<result<_,enum:error-code{io,illegal-byte-sequence,pipe}>>",
+    )
+}
+
+@test
+test_wit_function_text_reads_back :: fn() -> void {
+    text :: wit_function_text(write_via_stream())
+    read :: parse_wit_function(text) else panic("the text reads back")
+    assert_eq(wit_function_text(read), text)
+}
+
+@test
+test_wit_function_of_no_result_reads_back :: fn() -> void {
+    read :: parse_wit_function("[when:u64,tag:?]") else panic("the text reads back")
+    assert(read.result == null, "no result")
+    assert(read.params[1].type is WitUnsupported, "`?` has no WIT form")
+}

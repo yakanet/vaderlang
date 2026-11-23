@@ -608,6 +608,7 @@ unsupported_op :: fn(op: Bc.Op, function: string) -> WasmUnsupported {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "vader/core/wit"
 
 // A program of one function, the entry, returning an `i32` through `body`.
 program_of :: fn(body: Bc.Op[], jump_table: i32[]) -> Bc.BytecodeModule {
@@ -700,6 +701,7 @@ test_an_interface_import_precedes_the_functions :: fn() -> void {
             .signature = signature,
             .is_extern = true,
             .wasm_interface = clock,
+            .wit = WitFunction { .params = [], .result = .U64 },
         },
     )
     component :: wasm_component_of(program, "") else panic(component.reason)
@@ -708,7 +710,7 @@ test_an_interface_import_precedes_the_functions :: fn() -> void {
     assert(call is Call && call.function_index == 0, "the call names the import")
     assert_eq(component.core.exports[0].function_index, 2)
     now :: component.interfaces[0].functions[0]
-    assert(now.result == WitType.U64, "`now` returns a WIT `u64`")
+    assert(now.type.result is WitScalar, "`now` returns a WIT scalar")
 }
 
 @test

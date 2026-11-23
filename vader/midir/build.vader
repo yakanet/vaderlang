@@ -277,6 +277,8 @@ make_extern_decl :: fn(d: LoweredFnDecl, lp: LoweredProject) -> CFGExternDecl {
             .name = p.name, .symbol = p.symbol, .type = p.type, .local = LocalId(i32(i)),
         })
     }
+    interface :: of_declaration(d, lp.interfaces)
+    wit :: if interface != null { wit_function_of(params, d.return_type) } else { null }
     return CFGExternDecl {
         .mangled     = d.mangled,
         .params      = params,
@@ -287,7 +289,8 @@ make_extern_decl :: fn(d: LoweredFnDecl, lp: LoweredProject) -> CFGExternDecl {
         .c_headers   = headers_of(d, library),
         .c_variadic_fixed = meta.c_variadic_fixed,
         .library     = library,
-        .wasm_interface = of_declaration(d, lp.interfaces),
+        .wasm_interface = interface,
+        .wit         = wit,
         .intrinsic   = d.intrinsic,
     }
 }

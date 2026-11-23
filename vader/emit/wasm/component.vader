@@ -21,36 +21,14 @@
 
 module "vader/emit/wasm"
 
-/// A WIT value type: the scalars, each the counterpart of a Vader scalar of the
-/// same width and signedness.
-export WitType :: enum {
-    Bool,
-    S8,
-    U8,
-    S16,
-    U16,
-    S32,
-    U32,
-    S64,
-    U64,
-    F32,
-    F64,
-    Char,
-}
-
-/// A parameter of an imported function.
-export WitParam :: struct {
-    /// Its name, in the kebab case of WIT.
-    name: string
-    type: WitType
-}
+import "std/abort"
+import "vader/core/wit"
 
 /// A function the component imports from an interface.
 export ComponentFunction :: struct {
     name: string
-    params: WitParam[]
-    /// What it returns, null for nothing.
-    result: WitType | null
+    /// Its WIT type, of scalars only so far (`imports.vader`).
+    type: WitFunction
 }
 
 /// An interface the component imports, with the functions the program calls.
@@ -216,12 +194,12 @@ instance_types :: fn(interfaces: ComponentInterface[]) -> u8[] {
 
 push_func_type :: fn(out: u8[], f: ComponentFunction) -> void {
     out.push(FUNC_TYPE_SYNC)
-    out.push_count(f.params.len())
-    for p in f.params {
+    out.push_count(f.type.params.len())
+    for p in f.type.params {
         out.push_name(p.name)
         out.push(wit_type_byte(p.type))
     }
-    result :: f.result
+    result :: f.type.result
     if result == null {
         out.push_all(NO_RESULT)
     } else {
@@ -298,19 +276,28 @@ core_instances :: fn(interfaces: ComponentInterface[]) -> u8[] {
     return out
 }
 
-wit_type_byte :: fn(t: WitType) -> u8 = match t {
-    .Bool -> 0x7F
-    .S8   -> 0x7E
-    .U8   -> 0x7D
-    .S16  -> 0x7C
-    .U16  -> 0x7B
-    .S32  -> 0x7A
-    .U32  -> 0x79
-    .S64  -> 0x78
-    .U64  -> 0x77
-    .F32  -> 0x76
-    .F64  -> 0x75
-    .Char -> 0x74
+// The byte of a WIT scalar; `imports.vader` admits no other type yet.
+wit_type_byte :: fn(t: WitType) -> u8 {
+    if t !is WitScalar {
+        panic("wasm: a component type of a non-scalar")
+    }
+    return wit_scalar_byte(t)
+}
+
+wit_scalar_byte :: fn(t: WitScalar) -> u8 = match t {
+    .Bool   -> 0x7F
+    .S8     -> 0x7E
+    .U8     -> 0x7D
+    .S16    -> 0x7C
+    .U16    -> 0x7B
+    .S32    -> 0x7A
+    .U32    -> 0x79
+    .S64    -> 0x78
+    .U64    -> 0x77
+    .F32    -> 0x76
+    .F64    -> 0x75
+    .Char   -> 0x74
+    .String -> 0x73
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -335,7 +322,10 @@ test_encode_component_importing_a_clock :: fn() -> void {
         ],
         .exports = [WasmExport { .name = RUN_EXPORT, .function_index = 1 }],
     }
-    now :: ComponentFunction { .name = "now", .params = [], .result = .U64 }
+    now :: ComponentFunction {
+        .name = "now",
+        .type = WitFunction { .params = [], .result = .U64 },
+    }
     component :: WasmComponent {
         .core = core,
         .interfaces = [ComponentInterface { .name = interface, .functions = [now] }],

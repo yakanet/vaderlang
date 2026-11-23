@@ -14,6 +14,7 @@ module "vader/midir"
 
 import "vader/core/mono"
 import "vader/core/types"
+import "vader/core/wit"
 import "vader/core/symbol"
 import "vader/lower/ir"
 import "toolchain/span"
@@ -92,6 +93,8 @@ export CFGExternDecl :: struct {
     /// The `WasmInterface` the declaration is imported from, as evaluated ; null
     /// for none.
     wasm_interface: WasmInterface | null = null
+    /// The WIT type of the function when `wasm_interface` names one (`wit.vader`).
+    wit: WitFunction | null = null
     /// See `LoweredFnDecl.intrinsic`.
     intrinsic: string = ""
 }

@@ -4102,9 +4102,13 @@ The function's signature gives the WIT type of the import. Each parameter and th
 
 - a number, `bool` and `char` are the WIT scalar of the same width and signedness, `string` is `string`;
 - a struct is a `record` of its fields, an array a `list` of its elements;
+- an enum without variant data, whose values are its ranks, is an `enum`;
+- `void | E` is `result<_, E>`;
+- `WasmStream<T>` (`std/core`) is `stream<T>`: the call opens the stream, writes its `items`, then closes it;
+- `WasmFuture<T>` (`std/core`) is `future<T>`: the call waits for it and returns its `value`;
 - a result of `void` means the function returns nothing.
 
-Any other type, or a struct that contains itself, is an error. A parameter's WIT name is its Vader name in kebab case: `how_long` is `how-long`.
+Any other type, or a struct that contains itself, is an error. A WIT name is the Vader name in kebab case: the parameter `how_long` is `how-long`, the enum `ErrorCode` is `error-code` and its variant `IllegalByteSequence` is `illegal-byte-sequence`.
 
 How a function is exposed to the host, beside the entry, is not designed yet.
 

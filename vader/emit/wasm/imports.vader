@@ -2,18 +2,18 @@
 //
 // Each bytecode import whose `@extern` names a `WasmInterface` becomes a core
 // import, its module the interface as WIT writes it and its name the function.
-// Its WIT type is derived from the Vader signature, a scalar being the WIT
-// scalar of its width and signedness, and its core type is that WIT type
-// flattened by the canonical ABI, which for scalars is the value itself. The
-// other imports (a C library, a member of `Intrinsic`) have no WASM form yet: a
-// call to one stops the emission.
+// Its WIT type is the one the front end derived from the Vader declaration
+// (`BcImport.wit`), and its core type is that WIT type flattened by the
+// canonical ABI, which for a scalar is the value itself: only scalars are
+// lowered so far. The other imports (a C library) have no WASM form yet: a call
+// to one stops the emission.
 
 module "vader/emit/wasm"
 
 Bc :: import "vader/core/bytecode"
 import "std/collections"
 import "std/iter"
-import "std/string"
+import "vader/core/wit"
 
 // The functions a program imports from component interfaces.
 ImportedFunctions :: struct {
@@ -69,19 +69,33 @@ add_to_interface :: fn(
     imports.interfaces.push(ComponentInterface { .name = module, .functions = [function] })
 }
 
-// The WIT type of `imp`, a function of a component interface.
+// The WIT type of `imp`, a function of a component interface, when every value
+// it takes and returns is a scalar the core module holds as itself.
 component_function_of :: fn(imp: Bc.BcImport) -> ComponentFunction | WasmUnsupported {
-    params: WitParam[]: []
-    for j in 0..<imp.signature.params.len() {
-        t :: wit_type_of(imp.signature.params[j], imp) else return t
-        params.push(WitParam { .name = wit_name(imp.signature.param_names[j]), .type = t })
+    wit :: imp.wit else {
+        return WasmUnsupported { .reason = "`${imp.mangled_name}`: no WIT type" }
     }
-    results :: result_values(imp.signature)
-    if results.len() == 0 {
-        return ComponentFunction { .name = imp.extern_name, .params = params, .result = null }
+    for p in wit.params {
+        checked :: flat_scalar(p.type, imp) else return checked
     }
-    result :: wit_type_of(results[0], imp) else return result
-    return ComponentFunction { .name = imp.extern_name, .params = params, .result = result }
+    result :: wit.result
+    if result != null {
+        checked :: flat_scalar(result, imp) else return checked
+    }
+    return ComponentFunction { .name = imp.extern_name, .type = wit }
+}
+
+// `t` when it is a scalar a core value holds as itself.
+flat_scalar :: fn(t: WitType, imp: Bc.BcImport) -> WitScalar | WasmUnsupported {
+    if t is WitUnsupported {
+        return WasmUnsupported { .reason = "`${imp.mangled_name}`: ${t.reason}" }
+    }
+    if t !is WitScalar || t == .String {
+        return WasmUnsupported {
+            .reason = "`${imp.mangled_name}`: no lowering yet for `${wit_type_text(t)}`",
+        }
+    }
+    return t
 }
 
 // The core type of `imp`: its scalars as themselves.
@@ -89,35 +103,4 @@ flat_type_of :: fn(imp: Bc.BcImport) -> WasmFuncType | WasmUnsupported {
     params :: value_types_of(imp.signature.params, imp.extern_name) else return params
     results :: value_types_of(result_values(imp.signature), imp.extern_name) else return results
     return WasmFuncType { .params = params, .results = results }
-}
-
-wit_type_of :: fn(v: Bc.ValType, imp: Bc.BcImport) -> WitType | WasmUnsupported = match v {
-    .Bool -> .Bool
-    .I8 -> .S8
-    .U8 -> .U8
-    .I16 -> .S16
-    .U16 -> .U16
-    .I32 -> .S32
-    .U32 -> .U32
-    .I64 -> .S64
-    .U64 -> .U64
-    .F32 -> .F32
-    .F64 -> .F64
-    .Char -> .Char
-    .String | .Null | .Void | .Pointer | .Ref | .Any -> WasmUnsupported {
-        .reason = "`${imp.mangled_name}`: no WIT form yet for a `${Bc.val_type_name(v)}` value",
-    }
-}
-
-// A Vader name in the kebab case of WIT: `how_long` is `how-long`.
-wit_name :: fn(name: string) -> string = name.replace("_", "-")
-
-// ---- tests ----------------------------------------------------------------
-
-import "std/testing"
-
-@test
-test_wit_name_is_kebab_case :: fn() -> void {
-    assert_eq(wit_name("how_long"), "how-long")
-    assert_eq(wit_name("when"), "when")
 }

@@ -21,6 +21,7 @@
 module "vader/emit/virt"
 
 import "vader/core/bytecode"
+import "vader/core/wit"
 import "std/string_builder"
 import "std/numbers"
 import "std/string"
@@ -410,7 +411,14 @@ join_indices :: fn(xs: i32[]) -> string {
 // none.
 interface_attributes :: fn(imp: BcImport) -> string {
     i :: imp.wasm_interface else return ""
-    return "interface_package=${i.package} interface_name=${i.name} interface_version=${i.version} "
+    wit :: wit_attribute(imp)
+    return "interface_package=${i.package} interface_name=${i.name} interface_version=${i.version} ${wit}"
+}
+
+// The `wit=` attribute of an import whose WIT type is known, `""` otherwise.
+wit_attribute :: fn(imp: BcImport) -> string {
+    wit :: imp.wit else return ""
+    return "wit=${wit_function_text(wit)} "
 }
 
 // `<lib>:` before the symbol of an import that names a library, `""` otherwise.

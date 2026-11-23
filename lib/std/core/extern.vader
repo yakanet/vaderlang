@@ -2,7 +2,9 @@
 //
 // A `CLibrary` names a C library once, a `WasmInterface` a component interface;
 // each `@extern` that comes from one names the constant as its `from`
-// (`@extern(RAYLIB, "InitWindow")`, `@extern(MONOTONIC_CLOCK, "now")`). The
+// (`@extern(RAYLIB, "InitWindow")`, `@extern(MONOTONIC_CLOCK, "now")`). A
+// `WasmStream` and a `WasmFuture` stand for the WIT types an interface's
+// functions take and return, which no other Vader type spells. The
 // compiler evaluates the constant when it builds, so its fields may depend on
 // the target through `VADER_OS` and `VADER_ARCH`. Part of `std/core`: no import
 // names it.
@@ -47,4 +49,16 @@ export WasmInterface :: struct {
     package: string
     name: string
     version: string
+}
+
+/// The items a WIT `stream<T>` carries, as an `@extern` of a `WasmInterface`
+/// takes them: the call opens the stream, writes every item, then closes it.
+export WasmStream :: struct<T> {
+    items: T[]
+}
+
+/// What a WIT `future<T>` resolves to, as an `@extern` of a `WasmInterface`
+/// returns it: the call waits for it once its streams are written.
+export WasmFuture :: struct<T> {
+    value: T
 }

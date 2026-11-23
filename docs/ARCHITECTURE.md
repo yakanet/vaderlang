@@ -422,12 +422,14 @@ is never adapted: the VM traps on its `fn.addr` first.
 
 **WASM build.** An `@extern` naming a `WasmInterface` keeps the evaluated
 interface in `BcImport.wasm_interface`. The WASM emitter (`vader/emit/wasm/`)
-imports it into the core module under the interface's WIT name, its WIT type
-derived from the Vader signature (`imports.vader`), and writes the component
-around the module (`component.vader`): the interfaces imported as instances, their
-functions lowered by the canonical ABI, the module instantiated with them, and its
-`run` lifted and exported as `wasi:cli/run`. The other imports have no WASM form
-yet. The decisions are ADR 0175 and 0176.
+imports it into the core module under the interface's WIT name, and writes the
+component around the module (`component.vader`): the interfaces imported as
+instances, their functions lowered by the canonical ABI, the module instantiated
+with them, and its `run` lifted and exported as `wasi:cli/run`. The other imports have no WASM form
+yet. The WIT type of an import is derived where the Vader types are whole, when
+the CFG of the `@extern` is built (`vader/midir/wit.vader`), and travels in
+`BcImport.wit` (`vader/core/wit`); the emitter derives nothing. The decisions are
+ADR 0175, 0176 and 0178.
 
 The emitter follows the WASM type of every value on the operand stack while it
 translates a body (`stack.vader`), from the stack effect each op has
