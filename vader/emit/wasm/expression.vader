@@ -13,7 +13,7 @@
 module "vader/emit/wasm"
 
 // An expression of a helper's body: a value, or an effect.
-WasmExpression :: Apply | Assign | When | Choose | Repeat | Raw
+WasmExpression :: Apply | Assign | Unpack | When | Choose | Repeat | Loop | DoWhile
 
 // `instruction` over the values of `operands`, the first pushed first.
 Apply :: struct {
@@ -24,6 +24,12 @@ Apply :: struct {
 // The local `local` set to `value`.
 Assign :: struct {
     local: i32
+    value: WasmExpression
+}
+
+// The locals `locals` set to the values `value` leaves, the first to the first.
+Unpack :: struct {
+    locals: i32[]
     value: WasmExpression
 }
 
@@ -52,10 +58,18 @@ Repeat :: struct {
     body: WasmExpression[]
 }
 
-// Instructions written out as they are, for a part of a helper not yet built as
-// a tree: nothing checks that they leave what the tree around them expects.
-Raw :: struct {
-    instructions: WasmInstr[]
+// `body` until `exit_when` holds, tested before each turn. `body` leaves nothing
+// and branches nowhere, or returns.
+Loop :: struct {
+    exit_when: WasmExpression
+    body: WasmExpression[]
+}
+
+// `body`, again while `condition` holds, tested after each turn. `body` leaves
+// nothing and branches nowhere, or returns.
+DoWhile :: struct {
+    body: WasmExpression[]
+    condition: WasmExpression
 }
 
 // The parameters and locals of a helper being written.
@@ -84,17 +98,23 @@ push_body :: fn(out: WasmInstr[], frame: HelperFrame, body: WasmExpression[]) ->
 }
 
 push_expression :: fn(out: WasmInstr[], frame: HelperFrame, e: WasmExpression) -> void = match e {
-    is Apply  -> {
+    is Apply   -> {
         for operand in e.operands {
             out.push_expression(frame, operand)
         }
         out.push(e.instruction)
     }
-    is Assign -> {
+    is Assign  -> {
         out.push_expression(frame, e.value)
         out.push(LocalSet { .index = e.local })
     }
-    is When   -> {
+    is Unpack  -> {
+        out.push_expression(frame, e.value)
+        for k in 0..<e.locals.len() {
+            out.push(LocalSet { .index = e.locals[e.locals.len() - 1 - k] })
+        }
+    }
+    is When    -> {
         out.push_expression(frame, e.condition)
         out.push(Plain { .op = .If })
         out.push_body(frame, e.then)
@@ -104,18 +124,35 @@ push_expression :: fn(out: WasmInstr[], frame: HelperFrame, e: WasmExpression) -
         }
         out.push(Plain { .op = .End })
     }
-    is Choose -> {
+    is Choose  -> {
         value :: frame.local(e.type)
-        when :: When {
-            .condition = e.condition,
-            .then = [local_set(value, e.then)],
-            .otherwise = [local_set(value, e.otherwise)],
-        }
-        out.push_expression(frame, when)
+        branches :: when_else(
+            e.condition,
+            [local_set(value, e.then)],
+            [local_set(value, e.otherwise)],
+        )
+        out.push_expression(frame, branches)
         out.push(LocalGet { .index = value })
     }
-    is Repeat -> { out.push_counted_loop(e.type, e.counter, e.limit, flatten(frame, e.body)) }
-    is Raw    -> { out.push_all(e.instructions) }
+    is Repeat  -> {
+        next :: binary(add_of(e.type), local_get(e.counter), integer_const(e.type, 1))
+        step :: local_set(e.counter, next)
+        out.push_expression(frame, local_set(e.counter, integer_const(e.type, 0)))
+        out.push_expression(frame, while_below(e.type, e.counter, e.limit, e.body + [step]))
+    }
+    is Loop    -> {
+        out.push_all([Plain { .op = .Block }, Plain { .op = .Loop }])
+        out.push_expression(frame, e.exit_when)
+        out.push(BrIf { .depth = 1 })
+        out.push_body(frame, e.body)
+        out.push_all([Br { .depth = 0 }, Plain { .op = .End }, Plain { .op = .End }])
+    }
+    is DoWhile -> {
+        out.push(Plain { .op = .Loop })
+        out.push_body(frame, e.body)
+        out.push_expression(frame, e.condition)
+        out.push_all([BrIf { .depth = 0 }, Plain { .op = .End }])
+    }
 }
 
 // The helper `key` of `frame` and `body`, defined once.
@@ -144,9 +181,35 @@ i64_const :: fn(value: i64) -> WasmExpression = Apply { .instruction = I64Const 
 // `local.get index`.
 local_get :: fn(index: i32) -> WasmExpression = Apply { .instruction = LocalGet { .index = index } }
 
+// The constant `value` of the integer type `t`.
+integer_const :: fn(t: WasmValType, value: i32) -> WasmExpression =
+    Apply { .instruction = integer_of(t, value) }
+
+// The `i32` local `local` plus `n`.
+plus :: fn(local: i32, n: i32) -> WasmExpression = i32_add(local_get(local), i32_const(n))
+
+// The `i32` local `local` less `n`.
+less :: fn(local: i32, n: i32) -> WasmExpression = i32_sub(local_get(local), i32_const(n))
+
 // `local.set index`.
 local_set :: fn(index: i32, value: WasmExpression) -> WasmExpression =
     Assign { .local = index, .value = value }
+
+// `local.tee index`: `value` set to the local, and left.
+local_tee :: fn(index: i32, value: WasmExpression) -> WasmExpression =
+    apply(LocalTee { .index = index }, [value])
+
+// The locals `locals` set to the values `value` leaves.
+unpack :: fn(locals: i32[], value: WasmExpression) -> WasmExpression =
+    Unpack { .locals = locals, .value = value }
+
+// `global.get index`.
+global_get :: fn(index: i32) -> WasmExpression =
+    Apply { .instruction = GlobalGet { .index = index } }
+
+// `global.set index`.
+global_set :: fn(index: i32, value: WasmExpression) -> WasmExpression =
+    apply(GlobalSet { .index = index }, [value])
 
 // `op` over two operands.
 binary :: fn(op: WasmOp, left: WasmExpression, right: WasmExpression) -> WasmExpression =
@@ -156,35 +219,81 @@ binary :: fn(op: WasmOp, left: WasmExpression, right: WasmExpression) -> WasmExp
 unary :: fn(op: WasmOp, operand: WasmExpression) -> WasmExpression =
     Apply { .instruction = Plain { .op = op }, .operands = [operand] }
 
-// `i32.add`.
 i32_add :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
     binary(.I32Add, left, right)
 
-// `i32.sub`.
 i32_sub :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
     binary(.I32Sub, left, right)
 
-// `i32.mul`.
 i32_mul :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
     binary(.I32Mul, left, right)
 
-// `i32.and`.
 i32_and :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
     binary(.I32And, left, right)
 
-// `i32.shr_u`.
 i32_shr_u :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
     binary(.I32ShrU, left, right)
 
-// `i32.eq`.
 i32_eq :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
     binary(.I32Eq, left, right)
 
-// `i32.gt_s`.
 i32_gt_s :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
     binary(.I32GtS, left, right)
 
-// `i32.eqz`.
+i32_wrap_i64 :: fn(operand: WasmExpression) -> WasmExpression = unary(.I32WrapI64, operand)
+
+i32_or :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I32Or, left, right)
+
+i32_shl :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I32Shl, left, right)
+
+i32_ne :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I32Ne, left, right)
+
+i32_lt_u :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I32LtU, left, right)
+
+i32_le_s :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I32LeS, left, right)
+
+i32_ge_s :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I32GeS, left, right)
+
+i64_add :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I64Add, left, right)
+
+i64_sub :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I64Sub, left, right)
+
+i64_mul :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I64Mul, left, right)
+
+i64_and :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I64And, left, right)
+
+i64_or :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I64Or, left, right)
+
+i64_xor :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I64Xor, left, right)
+
+i64_shl :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I64Shl, left, right)
+
+i64_shr_u :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I64ShrU, left, right)
+
+i64_eq :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I64Eq, left, right)
+
+i64_ne :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I64Ne, left, right)
+
+i64_eqz :: fn(operand: WasmExpression) -> WasmExpression = unary(.I64Eqz, operand)
+
+i64_extend_i32_u :: fn(operand: WasmExpression) -> WasmExpression = unary(.I64ExtendI32U, operand)
+
 i32_eqz :: fn(operand: WasmExpression) -> WasmExpression = unary(.I32Eqz, operand)
 
 // A load `op` at `address` plus `offset`.
@@ -218,6 +327,40 @@ memory_grow :: fn(pages: WasmExpression) -> WasmExpression = unary(.MemoryGrow, 
 call :: fn(function: i32, arguments: WasmExpression[]) -> WasmExpression =
     Apply { .instruction = Call { .function_index = function }, .operands = arguments }
 
+// `return`, leaving `values`.
+return_ :: fn(values: WasmExpression[] = []) -> WasmExpression =
+    apply(Plain { .op = .Return }, values)
+
+// `drop` of `value`.
+drop :: fn(value: WasmExpression) -> WasmExpression = unary(.Drop, value)
+
+// `select`: `first` when `condition` holds, else `second`, both evaluated.
+select :: fn(
+    first: WasmExpression,
+    second: WasmExpression,
+    condition: WasmExpression,
+) -> WasmExpression =
+    apply(Plain { .op = .Select }, [first, second, condition])
+
+// `ref.null eq`.
+ref_null :: fn() -> WasmExpression = Apply { .instruction = RefNull {} }
+
+// `struct.set type field` of `value` in `reference`, cast to `type` first.
+struct_set :: fn(
+    type: i32,
+    field: i32,
+    reference: WasmExpression,
+    value: WasmExpression,
+) -> WasmExpression =
+    apply(
+        StructSet { .type_index = type, .field_index = field },
+        [ref_cast(type, reference), value],
+    )
+
+// `ref.test type` of `reference`.
+ref_test :: fn(type: i32, reference: WasmExpression) -> WasmExpression =
+    apply(RefTest { .type_index = type }, [reference])
+
 // `unreachable`: stop the run.
 unreachable :: fn() -> WasmExpression = Apply { .instruction = Plain { .op = .Unreachable } }
 
@@ -237,6 +380,55 @@ ref_cast :: fn(type: i32, reference: WasmExpression) -> WasmExpression =
 array_new_default :: fn(type: i32, length: WasmExpression) -> WasmExpression =
     apply(ArrayNewDefault { .type_index = type }, [length])
 
+// `array.len` of `array`, cast to the array type `type` first.
+array_len :: fn(type: i32, array: WasmExpression) -> WasmExpression =
+    apply(ArrayLen {}, [ref_cast(type, array)])
+
+// `array.new_data type segment`: the `length` bytes of the data segment
+// `segment` from `offset` on.
+array_new_data :: fn(
+    type: i32,
+    segment: i32,
+    offset: WasmExpression,
+    length: WasmExpression,
+) -> WasmExpression =
+    apply(ArrayNewData { .type_index = type, .segment = segment }, [offset, length])
+
+// An array and a position in it.
+ArraySpan :: struct {
+    array: WasmExpression
+    at: WasmExpression
+}
+
+// `array.copy` of `length` elements of `source` into `destination`, both of the
+// array type `type`.
+array_copy :: fn(
+    type: i32,
+    destination: ArraySpan,
+    source: ArraySpan,
+    length: WasmExpression,
+) -> WasmExpression =
+    apply(
+        ArrayCopy { .destination = type, .source = type },
+        [
+            ref_cast(type, destination.array),
+            destination.at,
+            ref_cast(type, source.array),
+            source.at,
+            length,
+        ],
+    )
+
+// `array.get type` of `array` at `index`, cast to `type` first, a packed
+// element extended by `extension`.
+array_get :: fn(
+    type: i32,
+    array: WasmExpression,
+    index: WasmExpression,
+    extension: Extension = .None,
+) -> WasmExpression =
+    apply(ArrayGet { .type_index = type, .extension = extension }, [ref_cast(type, array), index])
+
 // `array.set type` of `value` at `index` of `array`, cast to `type` first.
 array_set :: fn(
     type: i32,
@@ -246,9 +438,38 @@ array_set :: fn(
 ) -> WasmExpression =
     apply(ArraySet { .type_index = type }, [ref_cast(type, array), index, value])
 
+// `body` for each value of the local `x` below the local `limit`, both of the
+// integer type `type`: `body` moves `x` on.
+while_below :: fn(type: WasmValType, x: i32, limit: i32, body: WasmExpression[]) -> WasmExpression =
+    Loop { .exit_when = binary(at_least_of(type), local_get(x), local_get(limit)), .body = body }
+
+add_of :: fn(t: WasmValType) -> WasmOp = if t == .I64 { .I64Add } else { .I32Add }
+
+at_least_of :: fn(t: WasmValType) -> WasmOp = if t == .I64 { .I64GeS } else { .I32GeS }
+
 // `then` when `condition` holds.
 when :: fn(condition: WasmExpression, then: WasmExpression[]) -> WasmExpression =
     When { .condition = condition, .then = then }
+
+// `then` when `condition` holds, else `otherwise`.
+when_else :: fn(
+    condition: WasmExpression,
+    then: WasmExpression[],
+    otherwise: WasmExpression[],
+) -> WasmExpression =
+    When {
+        .condition = condition,
+        .then = then,
+        .otherwise = otherwise,
+    }
+
+// `body` until `condition` holds, tested before each turn.
+loop_until :: fn(condition: WasmExpression, body: WasmExpression[]) -> WasmExpression =
+    Loop { .exit_when = condition, .body = body }
+
+// `body`, again while `condition` holds.
+do_while :: fn(body: WasmExpression[], condition: WasmExpression) -> WasmExpression =
+    DoWhile { .body = body, .condition = condition }
 
 // The value of `then` when `condition` holds, else of `otherwise`.
 choose :: fn(
@@ -278,9 +499,6 @@ repeat :: fn(
         .body = body,
     }
 
-// `instructions` as they are.
-raw :: fn(instructions: WasmInstr[]) -> WasmExpression = Raw { .instructions = instructions }
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -307,4 +525,15 @@ test_a_local_is_numbered_past_the_parameters :: fn() -> void {
     frame :: HelperFrame { .signature = func_of([.I32, .I32], []) }
     assert_eq(frame.local(.EqRef), 2)
     assert_eq(frame.local(.I32), 3)
+}
+
+@test
+test_a_loop_tests_its_exit_before_its_body :: fn() -> void {
+    frame :: HelperFrame { .signature = func_of([.I32, .I32], []) }
+    flat :: flatten(frame, [while_below(.I32, 0, 1, [local_set(0, local_get(1))])])
+    exit :: flat[5]
+    assert(exit is BrIf && exit.depth == 1, "the exit leaves the block")
+    turn :: flat[8]
+    assert(turn is Br && turn.depth == 0, "the turn ends on the loop")
+    assert_eq(flat.len(), 11)
 }

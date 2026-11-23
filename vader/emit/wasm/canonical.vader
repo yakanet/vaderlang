@@ -375,7 +375,7 @@ define_wait :: fn(ctx: ModuleCtx) -> i32 {
     body: WasmExpression[]: [
         local_set(set, call(ctx.builtin(.WaitableSetNew, null), [])),
         call(ctx.builtin(.WaitableJoin, null), [local_get(waitable), local_get(set)]),
-        unary(.Drop, wait),
+        drop(wait),
         // Joining the set 0 takes the waitable out of its set.
         call(ctx.builtin(.WaitableJoin, null), [local_get(waitable), i32_const(0)]),
         call(ctx.builtin(.WaitableSetDrop, null), [local_get(set)]),
@@ -388,90 +388,66 @@ define_wait :: fn(ctx: ModuleCtx) -> i32 {
 // is gone.
 canonical_write :: fn(ctx: ModuleCtx, stream: WitType) -> i32 {
     key :: "canonical.write ${wit_type_text(stream)}"
-    signature :: func_of([.I32, .EqRef], [])
-    locals: WasmValType[]: [.I32, .I32, .EqRef, .I32, .I32, .I32, .I32, .I32]
-    return ctx.helpers[key]
-        else ctx.define_helper(key, signature, locals, write_body(ctx, stream))
+    return ctx.helpers[key] else define_write(ctx, key, stream)
 }
 
-// The locals past the parameters: the length, the offset and the storage of the
-// items, how many are sent, the size of the chunk, the counter of its copy, how
-// much of it is written, the result of a write.
-write_body :: fn(ctx: ModuleCtx, stream: WitType) -> WasmInstr[] {
+define_write :: fn(ctx: ModuleCtx, key: string, stream: WitType) -> i32 {
     gc :: ctx.gc
     writable :: 0
-    length :: 2
-    offset :: 3
-    storage :: 4
-    sent :: 5
-    chunk :: 6
-    k :: 7
-    done :: 8
-    status :: 9
-    body: WasmInstr[]: []
-    body.push_header_field(gc, 1, HEADER_LENGTH)
-    body.push_all([Plain { .op = .I32WrapI64 }, LocalSet { .index = length }])
-    body.push_header_field(gc, 1, HEADER_OFFSET)
-    body.push(LocalSet { .index = offset })
-    body.push_header_field(gc, 1, HEADER_STORAGE)
-    body.push(LocalSet { .index = storage })
-    copy: WasmInstr[]: [
-        I32Const { .value = CHUNK_ADDRESS },
-        LocalGet { .index = k },
-        Plain { .op = .I32Add },
+    items :: 1
+    frame :: HelperFrame { .signature = func_of([.I32, .EqRef], []) }
+    length :: frame.local(.I32)
+    offset :: frame.local(.I32)
+    storage :: frame.local(.EqRef)
+    // How many items are sent, how many the chunk holds, how many of those are
+    // written, and how the last write ended.
+    sent :: frame.local(.I32)
+    chunk :: frame.local(.I32)
+    done :: frame.local(.I32)
+    status :: frame.local(.I32)
+    k :: frame.local(.I32)
+    bytes :: storage_type(gc, .I8)
+    at :: i32_add(i32_add(local_get(offset), local_get(sent)), local_get(k))
+    byte :: array_get(bytes, local_get(storage), at, .Unsigned)
+    chunk_byte :: i32_add(i32_const(CHUNK_ADDRESS), local_get(k))
+    unwritten :: i32_add(i32_const(CHUNK_ADDRESS), local_get(done))
+    write :: call(
+        ctx.builtin(.StreamWrite, stream),
+        [local_get(writable), unwritten, i32_sub(local_get(chunk), local_get(done))],
+    )
+    written :: i32_shr_u(local_get(status), i32_const(COPY_COUNT_SHIFT))
+    write_some: WasmExpression[]: [
+        local_set(status, write),
+        when(
+            i32_eq(local_get(status), i32_const(BLOCKED)),
+            [
+                call(ctx.canonical_wait(), [local_get(writable)]),
+                // The result of the copy, the payload of its event.
+                local_set(status, i32_load(i32_const(EVENT_ADDRESS), EVENT_PAYLOAD)),
+            ],
+        ),
+        when(i32_and(local_get(status), i32_const(COPY_STATUS_MASK)), [return_()]),
+        local_set(done, i32_add(local_get(done), written)),
     ]
-    at :: sum_of(offset, sent)
-    at.push_all([LocalGet { .index = k }, Plain { .op = .I32Add }])
-    copy.push_all(byte_at(gc, storage, at))
-    copy.push(MemoryAccess { .op = .I32Store8 })
-    write: WasmInstr[]: [
-        LocalGet { .index = writable },
-        I32Const { .value = CHUNK_ADDRESS },
-        LocalGet { .index = done },
-        Plain { .op = .I32Add },
-        LocalGet { .index = chunk },
-        LocalGet { .index = done },
-        Plain { .op = .I32Sub },
-        Call { .function_index = ctx.builtin(.StreamWrite, stream) },
-        LocalTee { .index = status },
-        I32Const { .value = BLOCKED },
-        Plain { .op = .I32Eq },
-        Plain { .op = .If },
-        LocalGet { .index = writable },
-        Call { .function_index = ctx.canonical_wait() },
-        // The result of the copy, the payload of its event.
-        I32Const { .value = EVENT_ADDRESS },
-        MemoryAccess { .op = .I32Load, .offset = EVENT_PAYLOAD },
-        LocalSet { .index = status },
-        Plain { .op = .End },
-        LocalGet { .index = status },
-        I32Const { .value = COPY_STATUS_MASK },
-        Plain { .op = .I32And },
-        Plain { .op = .If },
-        Plain { .op = .Return },
-        Plain { .op = .End },
-        LocalGet { .index = done },
-        LocalGet { .index = status },
-        I32Const { .value = COPY_COUNT_SHIFT },
-        Plain { .op = .I32ShrU },
-        Plain { .op = .I32Add },
-        LocalSet { .index = done },
+    each_chunk: WasmExpression[]: [
+        local_set(chunk, i32_sub(local_get(length), local_get(sent))),
+        when(
+            i32_gt_s(local_get(chunk), i32_const(CHUNK_SIZE)),
+            [local_set(chunk, i32_const(CHUNK_SIZE))],
+        ),
+        repeat(.I32, k, chunk, [store(.I32Store8, chunk_byte, byte)]),
+        local_set(done, i32_const(0)),
+        while_below(.I32, done, chunk, write_some),
+        local_set(sent, i32_add(local_get(sent), local_get(chunk))),
     ]
-    each_chunk: WasmInstr[]: [
-        LocalGet { .index = length },
-        LocalGet { .index = sent },
-        Plain { .op = .I32Sub },
-        LocalSet { .index = chunk },
+    body: WasmExpression[]: [
+        local_set(length, i32_wrap_i64(header_field(gc, items, HEADER_LENGTH))),
+        local_set(offset, header_field(gc, items, HEADER_OFFSET)),
+        local_set(storage, header_field(gc, items, HEADER_STORAGE)),
+        local_set(sent, i32_const(0)),
+        while_below(.I32, sent, length, each_chunk),
     ]
-    each_chunk.push_clamp(chunk, I32Const { .value = CHUNK_SIZE }, .I32GtS)
-    each_chunk.push_counted_loop(.I32, k, chunk, copy)
-    each_chunk.push_all([I32Const { .value = 0 }, LocalSet { .index = done }])
-    each_chunk.push_while_below(.I32, done, chunk, write)
-    each_chunk.push_all(sum_of(sent, chunk))
-    each_chunk.push(LocalSet { .index = sent })
-    body.push_all([I32Const { .value = 0 }, LocalSet { .index = sent }])
-    body.push_while_below(.I32, sent, length, each_chunk)
-    return body
+    return ctx.define_tree_helper(key, frame, body)
 }
 
 // ---- tests ----------------------------------------------------------------

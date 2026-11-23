@@ -187,18 +187,14 @@ list_body :: fn(l: Lift, t: WitList, type_id: i32 | null) -> WasmExpression[] | 
     element_size :: i32_const(size_of(t.element))
     element_address :: i32_add(local_get(items), i32_mul(local_get(at), element_size))
     element :: call(load_element, [element_address])
-    length: WasmInstr[]: [LocalGet { .index = count }, Plain { .op = .I64ExtendI32U }]
-    header: WasmInstr[]: []
-    header.push_new_header(
-        l.ctx.gc,
-        HeaderParts {
-            .type_id = [I32Const { .value = array_id }],
-            .element = [I32Const { .value = element_code(access) }],
-            .length = length,
-            .capacity = length,
-            .storage = [LocalGet { .index = storage }],
-        },
-    )
+    length :: i64_extend_i32_u(local_get(count))
+    header :: HeaderFields {
+        .type_id = i32_const(array_id),
+        .element = i32_const(element_code(access)),
+        .length = length,
+        .capacity = length,
+        .storage = local_get(storage),
+    }
     return [
         local_set(items, i32_load(local_get(ADDRESS))),
         local_set(count, i32_load(local_get(ADDRESS), 4)),
@@ -209,7 +205,7 @@ list_body :: fn(l: Lift, t: WitList, type_id: i32 | null) -> WasmExpression[] | 
             count,
             [array_set(storage_type_index, local_get(storage), local_get(at), element)],
         ),
-        raw(header),
+        new_header(l.ctx.gc, header),
     ]
 }
 

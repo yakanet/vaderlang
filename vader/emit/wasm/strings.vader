@@ -120,106 +120,75 @@ new_atom_globals :: fn(ctx: ModuleCtx) -> AtomGlobals {
     return table
 }
 
-// The array the global `global` holds, cast to the storage `storage`.
-global_array :: fn(ctx: ModuleCtx, global: i32, storage: WasmStorageType) -> WasmInstr[] = [
-    GlobalGet { .index = global },
-    RefCast { .type_index = storage_type(ctx.gc, storage) },
-]
-
-// The entries, cast.
-entries_array :: fn(ctx: ModuleCtx) -> WasmInstr[] =
-    global_array(ctx, atom_globals(ctx).entries, .EqRef)
-
-// The entry of the atom `atom` leaves, cast.
-entry_of :: fn(ctx: ModuleCtx, atom: WasmInstr[]) -> WasmInstr[] {
-    out :: entries_array(ctx)
-    out.push_all(atom)
-    out.push_all(
-        [
-            ArrayGet { .type_index = storage_type(ctx.gc, .EqRef), .extension = .None },
-            RefCast { .type_index = ctx.gc.atom },
-        ],
-    )
-    return out
+// The entry of the atom `atom`.
+entry_at :: fn(ctx: ModuleCtx, atom: WasmExpression) -> WasmExpression {
+    entries :: global_get(atom_globals(ctx).entries)
+    return ref_cast(ctx.gc.atom, array_get(storage_type(ctx.gc, .EqRef), entries, atom))
 }
 
+// The field `field` of the entry `entry`.
+entry_get :: fn(ctx: ModuleCtx, entry: WasmExpression, field: i32) -> WasmExpression =
+    struct_get(ctx.gc.atom, field, entry)
+
 // The field `field` of the entry in the local `entry`.
-entry_field :: fn(ctx: ModuleCtx, entry: i32, field: i32) -> WasmInstr[] = [
-    LocalGet { .index = entry },
-    RefCast { .type_index = ctx.gc.atom },
-    StructGet { .type_index = ctx.gc.atom, .field_index = field },
-]
+entry_field :: fn(ctx: ModuleCtx, entry: i32, field: i32) -> WasmExpression =
+    entry_get(ctx, local_get(entry), field)
+
+// The byte of the `i8` storage `bytes` at `at`, as an unsigned `i32`.
+byte_in :: fn(gc: GcTypes, bytes: WasmExpression, at: WasmExpression) -> WasmExpression =
+    array_get(storage_type(gc, .I8), bytes, at, .Unsigned)
 
 // `() -> ()`: the table with the empty string and the literals, `ctx.literals`.
 // `run` calls it before the entry.
-atom_init :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [], .results = [] }
-    return ctx.helpers["atom.init"]
-        else ctx.define_helper("atom.init", signature, [.EqRef], init_body(ctx))
-}
+atom_init :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["atom.init"] else define_init(ctx)
 
-// The local: the bytes of the literals.
-init_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+define_init :: fn(ctx: ModuleCtx) -> i32 {
     gc :: ctx.gc
     table :: atom_globals(ctx)
     literals :: ctx.literals
     count :: i64(literals.starts.len()) + 1
-    bytes :: 0
-    i8_storage :: storage_type(gc, .I8)
-    body: WasmInstr[]: [
-        I32Const { .value = i32(max(16, count * 2)) },
-        ArrayNewDefault { .type_index = storage_type(gc, .EqRef) },
-        GlobalSet { .index = table.entries },
-        I32Const { .value = i32(power_of_two_from(max(64, count * 4))) },
-        ArrayNewDefault { .type_index = storage_type(gc, .I64) },
-        GlobalSet { .index = table.slots },
-    ]
-    if literals.bytes.len() > 0 {
-        segment :: i32(ctx.segments.len())
-        ctx.segments.push(literals.bytes)
-        body.push_all(
-            [
-                I32Const { .value = 0 },
-                I32Const { .value = i32(literals.bytes.len()) },
-                ArrayNewData { .type_index = i8_storage, .segment = segment },
-            ],
-        )
-    } else {
-        body.push_all([I32Const { .value = 0 }, ArrayNewDefault { .type_index = i8_storage }])
-    }
-    body.push(LocalSet { .index = bytes })
-    // Atom 0, the empty string, which no slot of the index holds.
-    body.push_all(entries_array(ctx))
-    body.push_all(
+    references :: storage_type(gc, .EqRef)
+    entries :: i32(max(16, count * 2))
+    slots :: i32(power_of_two_from(max(64, count * 4)))
+    frame :: HelperFrame { .signature = func_of([], []) }
+    // The bytes of the literals.
+    bytes :: frame.local(.EqRef)
+    empty :: struct_new(
+        gc.atom,
         [
-            I32Const { .value = 0 },
-            LocalGet { .index = bytes },
-            I32Const { .value = 0 },
-            I32Const { .value = 0 },
-            LocalGet { .index = bytes },
-            I32Const { .value = 0 },
-            I32Const { .value = 0 },
-            Call { .function_index = ctx.atom_hash() },
-            I32Const { .value = 1 },
-            StructNew { .type_index = gc.atom },
-            ArraySet { .type_index = storage_type(gc, .EqRef) },
-            I32Const { .value = 1 },
-            GlobalSet { .index = table.count },
+            local_get(bytes),
+            i32_const(0),
+            i32_const(0),
+            call(ctx.atom_hash(), [local_get(bytes), i32_const(0), i32_const(0)]),
+            i32_const(1),
         ],
     )
+    body: WasmExpression[]: [
+        global_set(table.entries, array_new_default(references, i32_const(entries))),
+        global_set(table.slots, array_new_default(storage_type(gc, .I64), i32_const(slots))),
+        local_set(bytes, ctx.literal_bytes()),
+        // Atom 0, the empty string, which no slot of the index holds.
+        array_set(references, global_get(table.entries), i32_const(0), empty),
+        global_set(table.count, i32_const(1)),
+    ]
     for k in 0..<literals.starts.len() {
-        body.push_all(
-            [
-                LocalGet { .index = bytes },
-                I32Const { .value = literals.starts[k] },
-                I32Const { .value = literals.lengths[k] },
-                I32Const { .value = 0 },
-                Call { .function_index = ctx.atom_intern() },
-                Plain { .op = .Drop },
-            ],
-        )
+        at :: i32_const(literals.starts[k])
+        length :: i32_const(literals.lengths[k])
+        body.push(drop(call(ctx.atom_intern(), [local_get(bytes), at, length, i32_const(0)])))
     }
-    return body
+    return ctx.define_tree_helper("atom.init", frame, body)
+}
+
+// The bytes of every literal, an `i8` storage read from their data segment.
+literal_bytes :: fn(ctx: ModuleCtx) -> WasmExpression {
+    bytes :: ctx.literals.bytes
+    i8_storage :: storage_type(ctx.gc, .I8)
+    if bytes.is_empty() {
+        return array_new_default(i8_storage, i32_const(0))
+    }
+    segment :: i32(ctx.segments.len())
+    ctx.segments.push(bytes)
+    return array_new_data(i8_storage, segment, i32_const(0), i32_const(i32(bytes.len())))
 }
 
 // The least power of two at or above `n`.
@@ -239,1224 +208,755 @@ power_of_two_from :: fn(n: i64) -> i64 {
 // Every string the program makes goes through it: `==` on two strings compares
 // their atoms, which holds only while two strings of the same bytes are one
 // atom.
-atom_intern :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.EqRef, .I32, .I32, .I32], .results = [.I32] }
-    locals: WasmValType[]: [
-        .I64,
-        .I64,
-        .EqRef,
-        .I32,
-        .I32,
-        .I64,
-        .I32,
-        .EqRef,
-        .I32,
-        .EqRef,
-    ]
-    return ctx.helpers["atom.intern"]
-        else ctx.define_helper("atom.intern", signature, locals, intern_body(ctx))
-}
+atom_intern :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["atom.intern"] else define_intern(ctx)
 
-// The locals past the parameters: the hash, its low half, the index, its mask,
-// the slot's position in it, the slot, the atom, the owner of the bytes, where
-// they start in it, an entry. The index cannot move before the new slot is
-// written: it doubles last.
-intern_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+// A slot of the index holds the low half of the hash over the atom. The index
+// cannot move before the new slot is written: it doubles last.
+define_intern :: fn(ctx: ModuleCtx) -> i32 {
     gc :: ctx.gc
     table :: atom_globals(ctx)
     bytes :: 0
     start :: 1
     length :: 2
     copy :: 3
-    hash :: 4
-    low :: 5
-    index :: 6
-    mask :: 7
-    position :: 8
-    slot :: 9
-    atom :: 10
-    owner :: 11
-    owner_start :: 12
-    entry :: 13
+    frame :: HelperFrame { .signature = func_of([.EqRef, .I32, .I32, .I32], [.I32]) }
+    hash :: frame.local(.I64)
+    low :: frame.local(.I64)
+    index :: frame.local(.EqRef)
+    mask :: frame.local(.I32)
+    position :: frame.local(.I32)
+    slot :: frame.local(.I64)
+    atom :: frame.local(.I32)
+    entry :: frame.local(.EqRef)
+    // The owner of the bytes of the new atom, and where they start in it.
+    owner :: frame.local(.EqRef)
+    owner_start :: frame.local(.I32)
     i8_storage :: storage_type(gc, .I8)
     i64_storage :: storage_type(gc, .I64)
-    index_array: WasmInstr[]: [LocalGet { .index = index }, RefCast { .type_index = i64_storage }]
-    body: WasmInstr[]: [
-        LocalGet { .index = length },
-        Plain { .op = .I32Eqz },
-        Plain { .op = .If },
-        I32Const { .value = 0 },
-        Plain { .op = .Return },
-        Plain { .op = .End },
-        LocalGet { .index = bytes },
-        LocalGet { .index = start },
-        LocalGet { .index = length },
-        Call { .function_index = ctx.atom_hash() },
-        LocalTee { .index = hash },
-        I64Const { .value = LOW_HALF },
-        Plain { .op = .I64And },
-        LocalSet { .index = low },
-        GlobalGet { .index = table.slots },
-        LocalTee { .index = index },
-        RefCast { .type_index = i64_storage },
-        ArrayLen {},
-        I32Const { .value = 1 },
-        Plain { .op = .I32Sub },
-        LocalTee { .index = mask },
-        LocalGet { .index = hash },
-        Plain { .op = .I32WrapI64 },
-        Plain { .op = .I32And },
-        LocalSet { .index = position },
-        // Probe until an empty slot: a miss.
-        Plain { .op = .Block },
-        Plain { .op = .Loop },
+    same_bytes :: call(
+        ctx.atom_equal(),
+        [
+            entry_field(ctx, entry, ATOM_BYTES),
+            entry_field(ctx, entry, ATOM_START),
+            local_get(bytes),
+            local_get(start),
+            local_get(length),
+        ],
+    )
+    same_length :: i32_eq(entry_field(ctx, entry, ATOM_LENGTH), local_get(length))
+    found: WasmExpression[]: [
+        local_set(atom, i32_wrap_i64(local_get(slot))),
+        local_set(entry, ctx.entry_at(local_get(atom))),
+        when(same_length, [when(same_bytes, [return_([local_get(atom)])])]),
     ]
-    body.push_all(index_array)
-    body.push_all(
+    slot_read :: local_tee(slot, array_get(i64_storage, local_get(index), local_get(position)))
+    slot_hash :: i64_shr_u(local_get(slot), i64_const(32))
+    copied: WasmExpression[]: [
+        local_set(owner, array_new_default(i8_storage, local_get(length))),
+        array_copy(
+            i8_storage,
+            ArraySpan { .array = local_get(owner), .at = i32_const(0) },
+            ArraySpan { .array = local_get(bytes), .at = local_get(start) },
+            local_get(length),
+        ),
+    ]
+    shared: WasmExpression[]: [
+        local_set(owner, local_get(bytes)),
+        local_set(owner_start, local_get(start)),
+    ]
+    ascii :: call(ctx.atom_ascii(), [local_get(owner), local_get(owner_start), local_get(length)])
+    new_entry :: struct_new(
+        gc.atom,
         [
-            LocalGet { .index = position },
-            ArrayGet { .type_index = i64_storage, .extension = .None },
-            LocalTee { .index = slot },
-            Plain { .op = .I64Eqz },
-            BrIf { .depth = 1 },
-            LocalGet { .index = slot },
-            I64Const { .value = 32 },
-            Plain { .op = .I64ShrU },
-            LocalGet { .index = low },
-            Plain { .op = .I64Eq },
-            Plain { .op = .If },
-            LocalGet { .index = slot },
-            Plain { .op = .I32WrapI64 },
-            LocalSet { .index = atom },
+            local_get(owner),
+            local_get(owner_start),
+            local_get(length),
+            local_get(hash),
+            ascii,
         ],
     )
-    body.push_all(entry_of(ctx, [LocalGet { .index = atom }]))
-    body.push(LocalSet { .index = entry })
-    body.push_all(entry_field(ctx, entry, ATOM_LENGTH))
-    body.push_all([LocalGet { .index = length }, Plain { .op = .I32Eq }, Plain { .op = .If }])
-    body.push_all(entry_field(ctx, entry, ATOM_BYTES))
-    body.push_all(entry_field(ctx, entry, ATOM_START))
-    body.push_all(
-        [
-            LocalGet { .index = bytes },
-            LocalGet { .index = start },
-            LocalGet { .index = length },
-            Call { .function_index = ctx.atom_equal() },
-            Plain { .op = .If },
-            LocalGet { .index = atom },
-            Plain { .op = .Return },
-            Plain { .op = .End },
-            Plain { .op = .End },
-            Plain { .op = .End },
-        ],
-    )
-    body.push_next_slot(position, mask)
-    body.push_all(
-        [
-            Br { .depth = 0 },
-            Plain { .op = .End },
-            Plain { .op = .End },
-            // The owner of the bytes of the new atom.
-            LocalGet { .index = copy },
-            Plain { .op = .If },
-            LocalGet { .index = length },
-            ArrayNewDefault { .type_index = i8_storage },
-            LocalTee { .index = owner },
-            RefCast { .type_index = i8_storage },
-            I32Const { .value = 0 },
-            LocalGet { .index = bytes },
-            RefCast { .type_index = i8_storage },
-            LocalGet { .index = start },
-            LocalGet { .index = length },
-            ArrayCopy { .destination = i8_storage, .source = i8_storage },
-            Plain { .op = .Else },
-            LocalGet { .index = bytes },
-            LocalSet { .index = owner },
-            LocalGet { .index = start },
-            LocalSet { .index = owner_start },
-            Plain { .op = .End },
-            // The new atom, the next one.
-            Call { .function_index = ctx.atom_room() },
-            GlobalGet { .index = table.count },
-            LocalSet { .index = atom },
-        ],
-    )
-    body.push_all(entries_array(ctx))
-    body.push_all(
-        [
-            LocalGet { .index = atom },
-            LocalGet { .index = owner },
-            LocalGet { .index = owner_start },
-            LocalGet { .index = length },
-            LocalGet { .index = hash },
-            LocalGet { .index = owner },
-            LocalGet { .index = owner_start },
-            LocalGet { .index = length },
-            Call { .function_index = ctx.atom_ascii() },
-            StructNew { .type_index = gc.atom },
-            ArraySet { .type_index = storage_type(gc, .EqRef) },
-            LocalGet { .index = atom },
-            I32Const { .value = 1 },
-            Plain { .op = .I32Add },
-            GlobalSet { .index = table.count },
-        ],
-    )
-    // Its slot, the empty one the probe stopped at.
-    body.push_all(index_array)
-    body.push_all(
-        [
-            LocalGet { .index = position },
-            LocalGet { .index = low },
-            I64Const { .value = 32 },
-            Plain { .op = .I64Shl },
-            LocalGet { .index = atom },
-            Plain { .op = .I64ExtendI32U },
-            Plain { .op = .I64Or },
-            ArraySet { .type_index = i64_storage },
-            GlobalGet { .index = table.used },
-            I32Const { .value = 1 },
-            Plain { .op = .I32Add },
-            GlobalSet { .index = table.used },
-            // Past three quarters taken, the index doubles: a probe always
-            // meets an empty slot.
-            GlobalGet { .index = table.used },
-            LocalGet { .index = mask },
-            I32Const { .value = 2 },
-            Plain { .op = .I32ShrU },
-            I32Const { .value = 3 },
-            Plain { .op = .I32Mul },
-            Plain { .op = .I32GtS },
-            Plain { .op = .If },
-            Call { .function_index = ctx.atom_rehash() },
-            Plain { .op = .End },
-            LocalGet { .index = atom },
-        ],
-    )
-    return body
+    new_slot :: i64_or(i64_shl(local_get(low), i64_const(32)), i64_extend_i32_u(local_get(atom)))
+    three_quarters :: i32_mul(i32_shr_u(local_get(mask), i32_const(2)), i32_const(3))
+    body: WasmExpression[]: [
+        when(i32_eqz(local_get(length)), [return_([i32_const(0)])]),
+        local_set(
+            hash,
+            call(ctx.atom_hash(), [local_get(bytes), local_get(start), local_get(length)]),
+        ),
+        local_set(low, i64_and(local_get(hash), i64_const(LOW_HALF))),
+        local_set(index, global_get(table.slots)),
+        local_set(mask, i32_sub(array_len(i64_storage, local_get(index)), i32_const(1))),
+        local_set(position, i32_and(local_get(mask), i32_wrap_i64(local_get(hash)))),
+        // Probe until an empty slot: a miss.
+        loop_until(
+            i64_eqz(slot_read),
+            [when(i64_eq(slot_hash, local_get(low)), found), next_slot(position, mask)],
+        ),
+        when_else(local_get(copy), copied, shared),
+        // The new atom, the next one.
+        call(ctx.atom_room(), []),
+        local_set(atom, global_get(table.count)),
+        array_set(storage_type(gc, .EqRef), global_get(table.entries), local_get(atom), new_entry),
+        global_set(table.count, plus(atom, 1)),
+        // Its slot, the empty one the probe stopped at.
+        array_set(i64_storage, local_get(index), local_get(position), new_slot),
+        global_set(table.used, i32_add(global_get(table.used), i32_const(1))),
+        // Past three quarters taken, the index doubles: a probe always meets an
+        // empty slot.
+        when(i32_gt_s(global_get(table.used), three_quarters), [call(ctx.atom_rehash(), [])]),
+        local_get(atom),
+    ]
+    return ctx.define_tree_helper("atom.intern", frame, body)
 }
 
 // The local `position` moved to the next slot of an index of mask `mask`.
-push_next_slot :: fn(body: WasmInstr[], position: i32, mask: i32) -> void = body.push_all(
-    [
-        LocalGet { .index = position },
-        I32Const { .value = 1 },
-        Plain { .op = .I32Add },
-        LocalGet { .index = mask },
-        Plain { .op = .I32And },
-        LocalSet { .index = position },
-    ],
-)
+next_slot :: fn(position: i32, mask: i32) -> WasmExpression =
+    local_set(position, i32_and(plus(position, 1), local_get(mask)))
 
 // `() -> ()`: room for one more entry, the entries doubled when full.
-atom_room :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [], .results = [] }
-    return ctx.helpers["atom.room"]
-        else ctx.define_helper("atom.room", signature, [.EqRef], room_body(ctx))
-}
+atom_room :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["atom.room"] else define_room(ctx)
 
-// The local: the entries grown.
-room_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+define_room :: fn(ctx: ModuleCtx) -> i32 {
     table :: atom_globals(ctx)
     references :: storage_type(ctx.gc, .EqRef)
-    grown :: 0
-    body: WasmInstr[]: [GlobalGet { .index = table.count }]
-    body.push_all(entries_array(ctx))
-    body.push_all(
-        [
-            ArrayLen {},
-            Plain { .op = .I32Eq },
-            Plain { .op = .If },
-            GlobalGet { .index = table.count },
-            I32Const { .value = 1 },
-            Plain { .op = .I32Shl },
-            ArrayNewDefault { .type_index = references },
-            LocalTee { .index = grown },
-            RefCast { .type_index = references },
-            I32Const { .value = 0 },
-        ],
-    )
-    body.push_all(entries_array(ctx))
-    body.push_all(
-        [
-            I32Const { .value = 0 },
-            GlobalGet { .index = table.count },
-            ArrayCopy { .destination = references, .source = references },
-            LocalGet { .index = grown },
-            GlobalSet { .index = table.entries },
-            Plain { .op = .End },
-        ],
-    )
-    return body
+    frame :: HelperFrame { .signature = func_of([], []) }
+    grown :: frame.local(.EqRef)
+    full :: i32_eq(global_get(table.count), array_len(references, global_get(table.entries)))
+    body: WasmExpression[]: [
+        when(
+            full,
+            [
+                local_set(
+                    grown,
+                    array_new_default(references, i32_shl(global_get(table.count), i32_const(1))),
+                ),
+                array_copy(
+                    references,
+                    ArraySpan { .array = local_get(grown), .at = i32_const(0) },
+                    ArraySpan { .array = global_get(table.entries), .at = i32_const(0) },
+                    global_get(table.count),
+                ),
+                global_set(table.entries, local_get(grown)),
+            ],
+        ),
+    ]
+    return ctx.define_tree_helper("atom.room", frame, body)
 }
 
 // `() -> ()`: the index twice as large, each slot moved where its hash puts it.
-atom_rehash :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [], .results = [] }
-    locals: WasmValType[]: [.EqRef, .EqRef, .I32, .I32, .I64, .I32, .I32]
-    return ctx.helpers["atom.rehash"]
-        else ctx.define_helper("atom.rehash", signature, locals, rehash_body(ctx))
-}
+atom_rehash :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["atom.rehash"] else define_rehash(ctx)
 
-// The locals: the old index, the new one, the old one's length, the counter, a
-// slot, where it goes, the mask of the new index.
-rehash_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+define_rehash :: fn(ctx: ModuleCtx) -> i32 {
     table :: atom_globals(ctx)
     i64_storage :: storage_type(ctx.gc, .I64)
-    old :: 0
-    grown :: 1
-    length :: 2
-    i :: 3
-    slot :: 4
-    at :: 5
-    mask :: 6
-    body: WasmInstr[]: [
-        GlobalGet { .index = table.slots },
-        LocalTee { .index = old },
-        RefCast { .type_index = i64_storage },
-        ArrayLen {},
-        LocalTee { .index = length },
-        I32Const { .value = 1 },
-        Plain { .op = .I32Shl },
-        LocalTee { .index = mask },
-        ArrayNewDefault { .type_index = i64_storage },
-        LocalSet { .index = grown },
-        LocalGet { .index = mask },
-        I32Const { .value = 1 },
-        Plain { .op = .I32Sub },
-        LocalSet { .index = mask },
+    frame :: HelperFrame { .signature = func_of([], []) }
+    old :: frame.local(.EqRef)
+    grown :: frame.local(.EqRef)
+    length :: frame.local(.I32)
+    i :: frame.local(.I32)
+    slot :: frame.local(.I64)
+    at :: frame.local(.I32)
+    mask :: frame.local(.I32)
+    taken :: array_get(i64_storage, local_get(grown), local_get(at))
+    moved: WasmExpression[]: [
+        local_set(
+            at,
+            i32_and(i32_wrap_i64(i64_shr_u(local_get(slot), i64_const(32))), local_get(mask)),
+        ),
+        loop_until(i64_eqz(taken), [next_slot(at, mask)]),
+        array_set(i64_storage, local_get(grown), local_get(at), local_get(slot)),
     ]
-    each: WasmInstr[]: [
-        LocalGet { .index = old },
-        RefCast { .type_index = i64_storage },
-        LocalGet { .index = i },
-        ArrayGet { .type_index = i64_storage, .extension = .None },
-        LocalTee { .index = slot },
-        Plain { .op = .I64Eqz },
-        Plain { .op = .I32Eqz },
-        Plain { .op = .If },
-        LocalGet { .index = slot },
-        I64Const { .value = 32 },
-        Plain { .op = .I64ShrU },
-        Plain { .op = .I32WrapI64 },
-        LocalGet { .index = mask },
-        Plain { .op = .I32And },
-        LocalSet { .index = at },
-        Plain { .op = .Block },
-        Plain { .op = .Loop },
-        LocalGet { .index = grown },
-        RefCast { .type_index = i64_storage },
-        LocalGet { .index = at },
-        ArrayGet { .type_index = i64_storage, .extension = .None },
-        Plain { .op = .I64Eqz },
-        BrIf { .depth = 1 },
+    body: WasmExpression[]: [
+        local_set(old, global_get(table.slots)),
+        local_set(length, array_len(i64_storage, local_get(old))),
+        local_set(mask, i32_shl(local_get(length), i32_const(1))),
+        local_set(grown, array_new_default(i64_storage, local_get(mask))),
+        local_set(mask, less(mask, 1)),
+        repeat(
+            .I32,
+            i,
+            length,
+            [
+                local_set(slot, array_get(i64_storage, local_get(old), local_get(i))),
+                when(i64_ne(local_get(slot), i64_const(0)), moved),
+            ],
+        ),
+        global_set(table.slots, local_get(grown)),
     ]
-    each.push_next_slot(at, mask)
-    each.push_all(
-        [
-            Br { .depth = 0 },
-            Plain { .op = .End },
-            Plain { .op = .End },
-            LocalGet { .index = grown },
-            RefCast { .type_index = i64_storage },
-            LocalGet { .index = at },
-            LocalGet { .index = slot },
-            ArraySet { .type_index = i64_storage },
-            Plain { .op = .End },
-        ],
-    )
-    body.push_counted_loop(.I32, i, length, each)
-    body.push_all([LocalGet { .index = grown }, GlobalSet { .index = table.slots }])
-    return body
+    return ctx.define_tree_helper("atom.rehash", frame, body)
 }
 
 // `(x, x_start: i32, y, y_start: i32, length: i32) -> i32`: whether two runs of
 // `length` bytes of `i8` storages are the same.
-atom_equal :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType {
-        .params = [.EqRef, .I32, .EqRef, .I32, .I32],
-        .results = [.I32],
-    }
-    return ctx.helpers["atom.equal"]
-        else ctx.define_helper("atom.equal", signature, [.I32], equal_body(ctx.gc))
-}
+atom_equal :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["atom.equal"] else define_equal(ctx)
 
-// The local past the parameters: the counter.
-equal_body :: fn(gc: GcTypes) -> WasmInstr[] {
+define_equal :: fn(ctx: ModuleCtx) -> i32 {
+    gc :: ctx.gc
+    x :: 0
+    x_start :: 1
+    y :: 2
+    y_start :: 3
     length :: 4
-    k :: 5
-    each: WasmInstr[]: []
-    each.push_all(byte_at(gc, 0, sum_of(1, k)))
-    each.push_all(byte_at(gc, 2, sum_of(3, k)))
-    each.push_all(
-        [
-            Plain { .op = .I32Ne },
-            Plain { .op = .If },
-            I32Const { .value = 0 },
-            Plain { .op = .Return },
-            Plain { .op = .End },
-        ],
-    )
-    body: WasmInstr[]: []
-    body.push_counted_loop(.I32, k, length, each)
-    body.push(I32Const { .value = 1 })
-    return body
-}
-
-// The byte of the `i8` storage in the local `bytes` at the position `at`
-// leaves, as an unsigned `i32`.
-byte_at :: fn(gc: GcTypes, bytes: i32, at: WasmInstr[]) -> WasmInstr[] {
-    out: WasmInstr[]: [
-        LocalGet { .index = bytes },
-        RefCast { .type_index = storage_type(gc, .I8) },
+    frame :: HelperFrame { .signature = func_of([.EqRef, .I32, .EqRef, .I32, .I32], [.I32]) }
+    k :: frame.local(.I32)
+    x_byte :: byte_in(gc, local_get(x), i32_add(local_get(x_start), local_get(k)))
+    y_byte :: byte_in(gc, local_get(y), i32_add(local_get(y_start), local_get(k)))
+    body: WasmExpression[]: [
+        repeat(.I32, k, length, [when(i32_ne(x_byte, y_byte), [return_([i32_const(0)])])]),
+        i32_const(1),
     ]
-    out.push_all(at)
-    out.push(ArrayGet { .type_index = storage_type(gc, .I8), .extension = .Unsigned })
-    return out
+    return ctx.define_tree_helper("atom.equal", frame, body)
 }
-
-// The sum of the `i32` locals `x` and `y`.
-sum_of :: fn(x: i32, y: i32) -> WasmInstr[] = [
-    LocalGet { .index = x },
-    LocalGet { .index = y },
-    Plain { .op = .I32Add },
-]
 
 // `(bytes, start: i32, length: i32) -> i32`: whether every byte of the run is
 // below 0x80.
-atom_ascii :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.EqRef, .I32, .I32], .results = [.I32] }
-    return ctx.helpers["atom.ascii"]
-        else ctx.define_helper("atom.ascii", signature, [.I32, .I32], ascii_body(ctx.gc))
-}
+atom_ascii :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["atom.ascii"] else define_ascii(ctx)
 
-// The locals past the parameters: the counter, the bits of every byte.
-ascii_body :: fn(gc: GcTypes) -> WasmInstr[] {
+define_ascii :: fn(ctx: ModuleCtx) -> i32 {
+    bytes :: 0
+    start :: 1
     length :: 2
-    k :: 3
-    bits :: 4
-    each: WasmInstr[]: [LocalGet { .index = bits }]
-    each.push_all(byte_at(gc, 0, sum_of(1, k)))
-    each.push_all([Plain { .op = .I32Or }, LocalSet { .index = bits }])
-    body: WasmInstr[]: []
-    body.push_counted_loop(.I32, k, length, each)
-    body.push_all(
-        [
-            LocalGet { .index = bits },
-            I32Const { .value = 0x80 },
-            Plain { .op = .I32LtU },
-        ],
-    )
-    return body
+    frame :: HelperFrame { .signature = func_of([.EqRef, .I32, .I32], [.I32]) }
+    k :: frame.local(.I32)
+    // The bits of every byte.
+    bits :: frame.local(.I32)
+    byte :: byte_in(ctx.gc, local_get(bytes), i32_add(local_get(start), local_get(k)))
+    body: WasmExpression[]: [
+        repeat(.I32, k, length, [local_set(bits, i32_or(local_get(bits), byte))]),
+        i32_lt_u(local_get(bits), i32_const(0x80)),
+    ]
+    return ctx.define_tree_helper("atom.ascii", frame, body)
 }
 
 // ---- the hash -------------------------------------------------------------
 
 // `(bytes, start: i32, length: i32) -> i64`: the hash of a run of an `i8`
 // storage, `vader_atom_hash64`'s.
-atom_hash :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.EqRef, .I32, .I32], .results = [.I64] }
-    locals: WasmValType[]: [.I32, .I32, .I64, .I64, .I64, .I64, .I64, .I32]
-    return ctx.helpers["atom.hash"]
-        else ctx.define_helper("atom.hash", signature, locals, hash_body(ctx))
-}
+atom_hash :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["atom.hash"] else define_hash(ctx)
 
-// The locals past the parameters, named as `vader_atom_hash64` names them: the
-// position read, the bytes left, the seed and the two others of the long runs,
-// the two words mixed last, the offset of the second word of a short run.
-hash_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+// The locals are named as `vader_atom_hash64` names them: the position read, the
+// bytes left, the seed and the two others of the long runs, the two words mixed
+// last, the offset of the second word of a short run.
+define_hash :: fn(ctx: ModuleCtx) -> i32 {
     bytes :: 0
     start :: 1
     length :: 2
-    p :: 3
-    left :: 4
-    seed :: 5
-    seed1 :: 6
-    seed2 :: 7
-    a :: 8
-    b :: 9
-    q :: 10
+    frame :: HelperFrame { .signature = func_of([.EqRef, .I32, .I32], [.I64]) }
+    p :: frame.local(.I32)
+    left :: frame.local(.I32)
+    seed :: frame.local(.I64)
+    seed1 :: frame.local(.I64)
+    seed2 :: frame.local(.I64)
+    a :: frame.local(.I64)
+    b :: frame.local(.I64)
+    q :: frame.local(.I32)
     read8 :: ctx.atom_read(8)
     read4 :: ctx.atom_read(4)
     mix :: ctx.atom_mix()
-    body: WasmInstr[]: []
-    // The word `read` takes at `p` plus what `offset` leaves, if anything.
-    push_word :: fn(read: i32, offset: WasmInstr[]) -> void {
-        body.push_all([LocalGet { .index = bytes }, LocalGet { .index = p }])
-        if offset.len() > 0 {
-            body.push_all(offset)
-            body.push(Plain { .op = .I32Add })
+    // The word `read` takes at `p` plus `offset`, if any.
+    word :: fn(read: i32, offset: WasmExpression | null) -> WasmExpression {
+        if offset == null {
+            return call(read, [local_get(bytes), local_get(p)])
         }
-        body.push(Call { .function_index = read })
+        return call(read, [local_get(bytes), i32_add(local_get(p), offset)])
     }
     // `into = mix(read8(p + at) ^ s, read8(p + at + 8) ^ into)`.
-    push_round :: fn(into: i32, at: i32, s: i64) -> void {
-        push_word(read8, offset_by(at))
-        body.push_all([I64Const { .value = s }, Plain { .op = .I64Xor }])
-        push_word(read8, offset_by(at + 8))
-        body.push_all(
-            [
-                LocalGet { .index = into },
-                Plain { .op = .I64Xor },
-                Call { .function_index = mix },
-                LocalSet { .index = into },
-            ],
-        )
+    round :: fn(into: i32, at: i32, s: i64) -> WasmExpression {
+        first :: i64_xor(word(read8, offset_by(at)), i64_const(s))
+        second :: i64_xor(word(read8, i32_const(at + 8)), local_get(into))
+        return local_set(into, call(mix, [first, second]))
     }
-    // `p += n ; left -= n`.
-    push_advance :: fn(n: i32) -> void = body.push_all(
-        [
-            LocalGet { .index = p },
-            I32Const { .value = n },
-            Plain { .op = .I32Add },
-            LocalSet { .index = p },
-            LocalGet { .index = left },
-            I32Const { .value = n },
-            Plain { .op = .I32Sub },
-            LocalSet { .index = left },
-        ],
-    )
-    // `(high << 32) | low`, the two words `read4` takes at their offsets.
-    push_joined :: fn(high: WasmInstr[], low: WasmInstr[]) -> void {
-        push_word(read4, high)
-        body.push_all([I64Const { .value = 32 }, Plain { .op = .I64Shl }])
-        push_word(read4, low)
-        body.push(Plain { .op = .I64Or })
-    }
-    body.push_all(
-        [
-            LocalGet { .index = start },
-            LocalSet { .index = p },
-            I64Const { .value = HASH_SEED },
-            LocalSet { .index = seed },
-            LocalGet { .index = length },
-            I32Const { .value = 16 },
-            Plain { .op = .I32LeS },
-            Plain { .op = .If },
-            LocalGet { .index = length },
-            I32Const { .value = 4 },
-            Plain { .op = .I32GeS },
-            Plain { .op = .If },
-            // q = (length >> 3) << 2
-            LocalGet { .index = length },
-            I32Const { .value = 3 },
-            Plain { .op = .I32ShrU },
-            I32Const { .value = 2 },
-            Plain { .op = .I32Shl },
-            LocalSet { .index = q },
-        ],
-    )
-    last4 :: back_from(length, 4)
-    before_last4: WasmInstr[]: [
-        LocalGet { .index = length },
-        I32Const { .value = 4 },
-        Plain { .op = .I32Sub },
-        LocalGet { .index = q },
-        Plain { .op = .I32Sub },
+    // Past `n` bytes.
+    advance :: fn(n: i32) -> WasmExpression[] = [
+        local_set(p, plus(p, n)),
+        local_set(left, less(left, n)),
     ]
-    push_joined([], [LocalGet { .index = q }])
-    body.push(LocalSet { .index = a })
-    push_joined(last4, before_last4)
-    body.push_all(
-        [
-            LocalSet { .index = b },
-            Plain { .op = .Else },
-            LocalGet { .index = length },
-            Plain { .op = .If },
-            LocalGet { .index = bytes },
-            LocalGet { .index = p },
-            LocalGet { .index = length },
-            Call { .function_index = ctx.atom_read3() },
-            LocalSet { .index = a },
-            Plain { .op = .End },
-            Plain { .op = .End },
-            Plain { .op = .Else },
-            LocalGet { .index = length },
-            LocalSet { .index = left },
-            LocalGet { .index = left },
-            I32Const { .value = 48 },
-            Plain { .op = .I32GtS },
-            Plain { .op = .If },
-            LocalGet { .index = seed },
-            LocalTee { .index = seed1 },
-            LocalSet { .index = seed2 },
-            Plain { .op = .Loop },
-        ],
+    // `(high << 32) | low`, the two words `read4` takes at their offsets.
+    joined :: fn(high: WasmExpression | null, low: WasmExpression) -> WasmExpression =
+        i64_or(i64_shl(word(read4, high), i64_const(32)), word(read4, low))
+    // Where the last word of a run of 4 to 16 bytes starts.
+    last_word :: less(length, 4)
+    // A run of 4 to 16 bytes: two pairs of words.
+    short: WasmExpression[]: [
+        local_set(q, i32_shl(i32_shr_u(local_get(length), i32_const(3)), i32_const(2))),
+        local_set(a, joined(null, local_get(q))),
+        local_set(b, joined(last_word, i32_sub(last_word, local_get(q)))),
+    ]
+    tiny :: when(
+        local_get(length),
+        [local_set(a, call(ctx.atom_read3(), [local_get(bytes), local_get(p), local_get(length)]))],
     )
-    push_round(seed, 0, HASH_S1)
-    push_round(seed1, 16, HASH_S2)
-    push_round(seed2, 32, HASH_S3)
-    push_advance(48)
-    body.push_all(
-        [
-            LocalGet { .index = left },
-            I32Const { .value = 48 },
-            Plain { .op = .I32GtS },
-            BrIf { .depth = 0 },
-            Plain { .op = .End },
-            LocalGet { .index = seed },
-            LocalGet { .index = seed1 },
-            Plain { .op = .I64Xor },
-            LocalGet { .index = seed2 },
-            Plain { .op = .I64Xor },
-            LocalSet { .index = seed },
-            Plain { .op = .End },
-            Plain { .op = .Block },
-            Plain { .op = .Loop },
-            LocalGet { .index = left },
-            I32Const { .value = 16 },
-            Plain { .op = .I32LeS },
-            BrIf { .depth = 1 },
-        ],
+    blocks_of_48: WasmExpression[]: [
+        round(seed, 0, HASH_S1),
+        round(seed1, 16, HASH_S2),
+        round(seed2, 32, HASH_S3),
+    ]
+    blocks_of_48.push_all(advance(48))
+    block_of_16: WasmExpression[]: [round(seed, 0, HASH_S1)]
+    block_of_16.push_all(advance(16))
+    long: WasmExpression[]: [
+        local_set(left, local_get(length)),
+        when(
+            i32_gt_s(local_get(left), i32_const(48)),
+            [
+                local_set(seed2, local_tee(seed1, local_get(seed))),
+                do_while(blocks_of_48, i32_gt_s(local_get(left), i32_const(48))),
+                local_set(
+                    seed,
+                    i64_xor(i64_xor(local_get(seed), local_get(seed1)), local_get(seed2)),
+                ),
+            ],
+        ),
+        loop_until(i32_le_s(local_get(left), i32_const(16)), block_of_16),
+        // The last 16 bytes, which may overlap the blocks read before.
+        local_set(a, word(read8, less(left, 16))),
+        local_set(b, word(read8, less(left, 8))),
+    ]
+    mum :: call(
+        ctx.atom_mum(),
+        [i64_xor(local_get(a), i64_const(HASH_S1)), i64_xor(local_get(b), local_get(seed))],
     )
-    push_round(seed, 0, HASH_S1)
-    push_advance(16)
-    body.push_all([Br { .depth = 0 }, Plain { .op = .End }, Plain { .op = .End }])
-    // The last 16 bytes, which may overlap the blocks read before.
-    push_word(read8, back_from(left, 16))
-    body.push(LocalSet { .index = a })
-    push_word(read8, back_from(left, 8))
-    body.push_all(
-        [
-            LocalSet { .index = b },
-            Plain { .op = .End },
-            // (a, b) = mum(a ^ s1, b ^ seed)
-            LocalGet { .index = a },
-            I64Const { .value = HASH_S1 },
-            Plain { .op = .I64Xor },
-            LocalGet { .index = b },
-            LocalGet { .index = seed },
-            Plain { .op = .I64Xor },
-            Call { .function_index = ctx.atom_mum() },
-            LocalSet { .index = b },
-            LocalSet { .index = a },
-            // mix(a ^ s0 ^ length, b ^ s1)
-            LocalGet { .index = a },
-            I64Const { .value = HASH_S0 },
-            Plain { .op = .I64Xor },
-            LocalGet { .index = length },
-            Plain { .op = .I64ExtendI32U },
-            Plain { .op = .I64Xor },
-            LocalGet { .index = b },
-            I64Const { .value = HASH_S1 },
-            Plain { .op = .I64Xor },
-            Call { .function_index = mix },
-        ],
-    )
-    return body
+    first :: i64_xor(i64_xor(local_get(a), i64_const(HASH_S0)), i64_extend_i32_u(local_get(length)))
+    body: WasmExpression[]: [
+        local_set(p, local_get(start)),
+        local_set(seed, i64_const(HASH_SEED)),
+        when_else(
+            i32_le_s(local_get(length), i32_const(16)),
+            [when_else(i32_ge_s(local_get(length), i32_const(4)), short, [tiny])],
+            long,
+        ),
+        unpack([a, b], mum),
+        call(mix, [first, i64_xor(local_get(b), i64_const(HASH_S1))]),
+    ]
+    return ctx.define_tree_helper("atom.hash", frame, body)
 }
 
-// The `i32` local `x` less `n`.
-back_from :: fn(x: i32, n: i32) -> WasmInstr[] = [
-    LocalGet { .index = x },
-    I32Const { .value = n },
-    Plain { .op = .I32Sub },
-]
-
-// The instructions that leave the `i32` `n`, none for 0.
-offset_by :: fn(n: i32) -> WasmInstr[] {
+// The constant `n`, null for 0.
+offset_by :: fn(n: i32) -> WasmExpression | null {
     if n == 0 {
-        return []
+        return null
     }
-    return [I32Const { .value = n }]
+    return i32_const(n)
 }
 
 // `(bytes, at: i32) -> i64`: the `width` bytes from `at` on, little-endian.
 atom_read :: fn(ctx: ModuleCtx, width: i32) -> i32 {
     key :: "atom.read${width}"
-    signature :: WasmFuncType { .params = [.EqRef, .I32], .results = [.I64] }
-    return ctx.helpers[key] else ctx.define_helper(key, signature, [], read_body(ctx.gc, width))
+    return ctx.helpers[key] else define_read(ctx, key, width)
 }
 
-read_body :: fn(gc: GcTypes, width: i32) -> WasmInstr[] {
+define_read :: fn(ctx: ModuleCtx, key: string, width: i32) -> i32 {
     bytes :: 0
     at :: 1
-    body: WasmInstr[]: []
-    for k in 0..<width {
-        position: WasmInstr[]: [LocalGet { .index = at }]
-        if k > 0 {
-            position.push_all([I32Const { .value = k }, Plain { .op = .I32Add }])
-        }
-        body.push_all(byte_at(gc, bytes, position))
-        body.push(Plain { .op = .I64ExtendI32U })
-        if k > 0 {
-            body.push_all(
-                [
-                    I64Const { .value = i64(8 * k) },
-                    Plain { .op = .I64Shl },
-                    Plain { .op = .I64Or },
-                ],
-            )
-        }
+    frame :: HelperFrame { .signature = func_of([.EqRef, .I32], [.I64]) }
+    value := i64_extend_i32_u(byte_in(ctx.gc, local_get(bytes), local_get(at)))
+    for k in 1..<width {
+        byte :: i64_extend_i32_u(byte_in(ctx.gc, local_get(bytes), plus(at, k)))
+        value = i64_or(value, i64_shl(byte, i64_const(i64(8 * k))))
     }
-    return body
+    return ctx.define_tree_helper(key, frame, [value])
 }
 
 // `(bytes, at: i32, length: i32) -> i64`: a run of 1 to 3 bytes as wyhash
 // folds it, `p[0] << 16 | p[length >> 1] << 8 | p[length - 1]`.
-atom_read3 :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.EqRef, .I32, .I32], .results = [.I64] }
-    return ctx.helpers["atom.read3"]
-        else ctx.define_helper("atom.read3", signature, [], read3_body(ctx.gc))
-}
+atom_read3 :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["atom.read3"] else define_read3(ctx)
 
-read3_body :: fn(gc: GcTypes) -> WasmInstr[] {
+define_read3 :: fn(ctx: ModuleCtx) -> i32 {
     bytes :: 0
     at :: 1
     length :: 2
-    middle: WasmInstr[]: [
-        LocalGet { .index = at },
-        LocalGet { .index = length },
-        I32Const { .value = 1 },
-        Plain { .op = .I32ShrU },
-        Plain { .op = .I32Add },
-    ]
-    last: WasmInstr[]: [
-        LocalGet { .index = at },
-        LocalGet { .index = length },
-        Plain { .op = .I32Add },
-        I32Const { .value = 1 },
-        Plain { .op = .I32Sub },
-    ]
-    body: WasmInstr[]: []
-    body.push_all(byte_at(gc, bytes, [LocalGet { .index = at }]))
-    body.push_all(
-        [
-            Plain { .op = .I64ExtendI32U },
-            I64Const { .value = 16 },
-            Plain { .op = .I64Shl },
-        ],
+    frame :: HelperFrame { .signature = func_of([.EqRef, .I32, .I32], [.I64]) }
+    byte :: fn(position: WasmExpression) -> WasmExpression =
+        i64_extend_i32_u(byte_in(ctx.gc, local_get(bytes), position))
+    middle :: i32_add(local_get(at), i32_shr_u(local_get(length), i32_const(1)))
+    last :: i32_sub(i32_add(local_get(at), local_get(length)), i32_const(1))
+    first_two :: i64_or(
+        i64_shl(byte(local_get(at)), i64_const(16)),
+        i64_shl(byte(middle), i64_const(8)),
     )
-    body.push_all(byte_at(gc, bytes, middle))
-    body.push_all(
-        [
-            Plain { .op = .I64ExtendI32U },
-            I64Const { .value = 8 },
-            Plain { .op = .I64Shl },
-            Plain { .op = .I64Or },
-        ],
-    )
-    body.push_all(byte_at(gc, bytes, last))
-    body.push_all([Plain { .op = .I64ExtendI32U }, Plain { .op = .I64Or }])
-    return body
+    return ctx.define_tree_helper("atom.read3", frame, [i64_or(first_two, byte(last))])
 }
 
 // `(a: i64, b: i64) -> (low: i64, high: i64)`: the 128-bit product, from the
 // products of their 32-bit halves.
-atom_mum :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.I64, .I64], .results = [.I64, .I64] }
-    locals: WasmValType[]: [.I64, .I64, .I64, .I64, .I64, .I64, .I64, .I64]
-    return ctx.helpers["atom.mum"]
-        else ctx.define_helper("atom.mum", signature, locals, mum_body())
-}
+atom_mum :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["atom.mum"] else define_mum(ctx)
 
-// The locals past the parameters: the halves of `a` and `b`, three of their
-// products, the middle sum.
-mum_body :: fn() -> WasmInstr[] {
+define_mum :: fn(ctx: ModuleCtx) -> i32 {
     a :: 0
     b :: 1
-    a_low :: 2
-    a_high :: 3
-    b_low :: 4
-    b_high :: 5
-    low_low :: 6
-    low_high :: 7
-    high_low :: 8
-    middle :: 9
-    body: WasmInstr[]: []
-    for split in [[a, a_low, a_high], [b, b_low, b_high]] {
-        body.push_all(half_low(split[0]))
-        body.push(LocalSet { .index = split[1] })
-        body.push_all(half_high(split[0]))
-        body.push(LocalSet { .index = split[2] })
-    }
-    for product in [[a_low, b_low, low_low], [a_low, b_high, low_high], [a_high, b_low, high_low]] {
-        body.push_all(
-            [
-                LocalGet { .index = product[0] },
-                LocalGet { .index = product[1] },
-                Plain { .op = .I64Mul },
-                LocalSet { .index = product[2] },
-            ],
-        )
-    }
-    // middle = (low_low >> 32) + low(low_high) + low(high_low)
-    body.push_all(half_high(low_low))
-    body.push_all(half_low(low_high))
-    body.push(Plain { .op = .I64Add })
-    body.push_all(half_low(high_low))
-    body.push_all([Plain { .op = .I64Add }, LocalSet { .index = middle }])
-    // low = low(low_low) | middle << 32
-    body.push_all(half_low(low_low))
-    body.push_all(
-        [
-            LocalGet { .index = middle },
-            I64Const { .value = 32 },
-            Plain { .op = .I64Shl },
-            Plain { .op = .I64Or },
-            // high = a_high * b_high + (low_high >> 32) + (high_low >> 32)
-            //      + (middle >> 32)
-            LocalGet { .index = a_high },
-            LocalGet { .index = b_high },
-            Plain { .op = .I64Mul },
-        ],
-    )
-    for x in [low_high, high_low, middle] {
-        body.push_all(half_high(x))
-        body.push(Plain { .op = .I64Add })
-    }
-    return body
+    frame :: HelperFrame { .signature = func_of([.I64, .I64], [.I64, .I64]) }
+    a_low :: frame.local(.I64)
+    a_high :: frame.local(.I64)
+    b_low :: frame.local(.I64)
+    b_high :: frame.local(.I64)
+    low_low :: frame.local(.I64)
+    low_high :: frame.local(.I64)
+    high_low :: frame.local(.I64)
+    middle :: frame.local(.I64)
+    product :: fn(x: i32, y: i32) -> WasmExpression = i64_mul(local_get(x), local_get(y))
+    body: WasmExpression[]: [
+        local_set(a_low, half_low(a)),
+        local_set(a_high, half_high(a)),
+        local_set(b_low, half_low(b)),
+        local_set(b_high, half_high(b)),
+        local_set(low_low, product(a_low, b_low)),
+        local_set(low_high, product(a_low, b_high)),
+        local_set(high_low, product(a_high, b_low)),
+        // middle = (low_low >> 32) + low(low_high) + low(high_low)
+        local_set(
+            middle,
+            i64_add(i64_add(half_high(low_low), half_low(low_high)), half_low(high_low)),
+        ),
+        // low = low(low_low) | middle << 32
+        i64_or(half_low(low_low), i64_shl(local_get(middle), i64_const(32))),
+        // high = a_high * b_high + (low_high >> 32) + (high_low >> 32) + (middle >> 32)
+        i64_add(
+            i64_add(i64_add(product(a_high, b_high), half_high(low_high)), half_high(high_low)),
+            half_high(middle),
+        ),
+    ]
+    return ctx.define_tree_helper("atom.mum", frame, body)
 }
 
 // The low 32 bits of the `i64` local `x`.
-half_low :: fn(x: i32) -> WasmInstr[] = [
-    LocalGet { .index = x },
-    I64Const { .value = LOW_HALF },
-    Plain { .op = .I64And },
-]
+half_low :: fn(x: i32) -> WasmExpression = i64_and(local_get(x), i64_const(LOW_HALF))
 
 // The high 32 bits of the `i64` local `x`, shifted down.
-half_high :: fn(x: i32) -> WasmInstr[] = [
-    LocalGet { .index = x },
-    I64Const { .value = 32 },
-    Plain { .op = .I64ShrU },
-]
+half_high :: fn(x: i32) -> WasmExpression = i64_shr_u(local_get(x), i64_const(32))
 
 // `(a: i64, b: i64) -> i64`: the two halves of their 128-bit product, xored.
-atom_mix :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.I64, .I64], .results = [.I64] }
-    body: WasmInstr[]: [
-        LocalGet { .index = 0 },
-        LocalGet { .index = 1 },
-        Call { .function_index = ctx.atom_mum() },
-        Plain { .op = .I64Xor },
-    ]
-    return ctx.helpers["atom.mix"] else ctx.define_helper("atom.mix", signature, [], body)
+atom_mix :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["atom.mix"] else define_mix(ctx)
+
+define_mix :: fn(ctx: ModuleCtx) -> i32 {
+    frame :: HelperFrame { .signature = func_of([.I64, .I64], [.I64]) }
+    // The xor takes both halves the product leaves.
+    halves :: call(ctx.atom_mum(), [local_get(0), local_get(1)])
+    return ctx.define_tree_helper("atom.mix", frame, [apply(Plain { .op = .I64Xor }, [halves])])
 }
 
 // ---- string ops -----------------------------------------------------------
 
 // `(atom) -> i64`: the length in bytes.
-string_byte_len :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.I32], .results = [.I64] }
-    return ctx.helpers["string.byte_len"]
-        else ctx.define_helper("string.byte_len", signature, [], byte_len_body(ctx))
-}
-
-byte_len_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
-    body :: entry_of(ctx, [LocalGet { .index = 0 }])
-    body.push_all(
-        [
-            StructGet { .type_index = ctx.gc.atom, .field_index = ATOM_LENGTH },
-            Plain { .op = .I64ExtendI32U },
-        ],
+string_byte_len :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["string.byte_len"]
+    else ctx.define_entry_read(
+        "string.byte_len",
+        .I64,
+        (e) -> i64_extend_i32_u(entry_get(ctx, e, ATOM_LENGTH)),
     )
-    return body
-}
 
 // `(atom) -> i64`: the hash the entry keeps.
-string_hash :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.I32], .results = [.I64] }
-    return ctx.helpers["string.hash"]
-        else ctx.define_helper("string.hash", signature, [], kept_hash_body(ctx))
-}
+string_hash :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["string.hash"]
+    else ctx.define_entry_read("string.hash", .I64, (e) -> entry_get(ctx, e, ATOM_HASH))
 
-kept_hash_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
-    body :: entry_of(ctx, [LocalGet { .index = 0 }])
-    body.push(StructGet { .type_index = ctx.gc.atom, .field_index = ATOM_HASH })
-    return body
+// `(atom) -> bool`: whether every byte of the string is below 0x80, which its
+// entry keeps.
+string_is_ascii :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["string.is_ascii"]
+    else ctx.define_entry_read("string.is_ascii", .I32, (e) -> entry_get(ctx, e, ATOM_ASCII))
+
+// `(atom) -> result`: what `read` takes from the atom's entry.
+define_entry_read :: fn(
+    ctx: ModuleCtx,
+    key: string,
+    result: WasmValType,
+    read: fn(WasmExpression) -> WasmExpression,
+) -> i32 {
+    frame :: HelperFrame { .signature = func_of([.I32], [result]) }
+    return ctx.define_tree_helper(key, frame, [read(ctx.entry_at(local_get(0)))])
 }
 
 // `(atom, index: i64) -> i32`: the byte at `index`; past the end, the run stops.
-string_byte_at :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.I32, .I64], .results = [.I32] }
-    return ctx.helpers["string.byte_at"]
-        else ctx.define_helper("string.byte_at", signature, [.EqRef, .EqRef], byte_at_body(ctx))
-}
+string_byte_at :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["string.byte_at"] else define_byte_at(ctx)
 
-// The locals past the parameters: the entry, its bytes.
-byte_at_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+define_byte_at :: fn(ctx: ModuleCtx) -> i32 {
     atom :: 0
     index :: 1
-    entry :: 2
-    bytes :: 3
-    body :: entry_of(ctx, [LocalGet { .index = atom }])
-    body.push(LocalSet { .index = entry })
-    length :: entry_field(ctx, entry, ATOM_LENGTH)
-    length.push(Plain { .op = .I64ExtendI32U })
-    body.push(LocalGet { .index = index })
-    body.push_all(length)
-    body.push(Plain { .op = .I64GeU })
-    body.push_trap_if(ctx)
-    body.push_all(entry_field(ctx, entry, ATOM_BYTES))
-    body.push(LocalSet { .index = bytes })
-    at :: entry_field(ctx, entry, ATOM_START)
-    at.push_all([LocalGet { .index = index }, Plain { .op = .I32WrapI64 }, Plain { .op = .I32Add }])
-    body.push_all(byte_at(ctx.gc, bytes, at))
-    return body
+    frame :: HelperFrame { .signature = func_of([.I32, .I64], [.I32]) }
+    entry :: frame.local(.EqRef)
+    length :: i64_extend_i32_u(entry_field(ctx, entry, ATOM_LENGTH))
+    at :: i32_add(entry_field(ctx, entry, ATOM_START), i32_wrap_i64(local_get(index)))
+    body: WasmExpression[]: [
+        local_set(entry, ctx.entry_at(local_get(atom))),
+        trap_if(ctx, binary(.I64GeU, local_get(index), length)),
+        byte_in(ctx.gc, entry_field(ctx, entry, ATOM_BYTES), at),
+    ]
+    return ctx.define_tree_helper("string.byte_at", frame, body)
 }
 
 // `(a: atom, b: atom) -> i32`: -1, 0 or 1 as `a` orders before, with or after
 // `b`, byte by byte, a proper prefix first, as `string.compare` orders.
-string_compare :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.I32, .I32], .results = [.I32] }
-    return ctx.helpers["string.compare"]
-        else ctx.define_helper(
-            "string.compare",
-            signature,
-            [.EqRef, .EqRef, .EqRef, .EqRef, .I32, .I32, .I32, .I32, .I32, .I32, .I32],
-            compare_body(ctx),
-        )
-}
+string_compare :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["string.compare"] else define_compare(ctx)
 
-// The locals past the parameters: the two entries, their bytes, their starts,
-// their lengths, the position, the shorter length and a difference.
-compare_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+define_compare :: fn(ctx: ModuleCtx) -> i32 {
     a :: 0
     b :: 1
-    bytes_a :: 4
-    bytes_b :: 5
-    start_a :: 6
-    start_b :: 7
-    length_a :: 8
-    length_b :: 9
-    at :: 10
-    shorter :: 11
-    difference :: 12
-    body: WasmInstr[]: [LocalGet { .index = a }, LocalGet { .index = b }, Plain { .op = .I32Eq }]
-    body.push_return_if(0)
-    // Each side's entry in 2 or 3, then its bytes, start and length, `b`'s one
-    // past `a`'s.
-    for side in [a, b] {
-        entry :: 2 + side
-        body.push_all(entry_of(ctx, [LocalGet { .index = side }]))
-        body.push(LocalSet { .index = entry })
-        body.push_all(entry_field(ctx, entry, ATOM_BYTES))
-        body.push(LocalSet { .index = bytes_a + side })
-        body.push_all(entry_field(ctx, entry, ATOM_START))
-        body.push(LocalSet { .index = start_a + side })
-        body.push_all(entry_field(ctx, entry, ATOM_LENGTH))
-        body.push(LocalSet { .index = length_a + side })
-    }
+    frame :: HelperFrame { .signature = func_of([.I32, .I32], [.I32]) }
+    side_a :: frame.side_of(ctx, a)
+    side_b :: frame.side_of(ctx, b)
+    at :: frame.local(.I32)
+    shorter :: frame.local(.I32)
+    difference :: frame.local(.I32)
+    byte_a :: byte_in(
+        ctx.gc,
+        local_get(side_a.bytes),
+        i32_add(local_get(side_a.start), local_get(at)),
+    )
+    byte_b :: byte_in(
+        ctx.gc,
+        local_get(side_b.bytes),
+        i32_add(local_get(side_b.start), local_get(at)),
+    )
+    length_a :: local_get(side_a.length)
+    length_b :: local_get(side_b.length)
+    differs :: local_tee(difference, i32_sub(byte_a, byte_b))
+    body: WasmExpression[]: [when(i32_eq(local_get(a), local_get(b)), [return_([i32_const(0)])])]
+    body.push_all(side_a.reads)
+    body.push_all(side_b.reads)
     body.push_all(
         [
-            LocalGet { .index = length_a },
-            LocalGet { .index = length_b },
-            LocalGet { .index = length_a },
-            LocalGet { .index = length_b },
-            Plain { .op = .I32LtU },
-            Plain { .op = .Select },
-            LocalSet { .index = shorter },
+            local_set(shorter, select(length_a, length_b, i32_lt_u(length_a, length_b))),
+            repeat(.I32, at, shorter, [when(differs, [return_([sign_of(difference)])])]),
+            local_set(difference, i32_sub(length_a, length_b)),
+            sign_of(difference),
         ],
     )
-    each: WasmInstr[]: []
-    each.push_all(byte_at(ctx.gc, bytes_a, sum_of(start_a, at)))
-    each.push_all(byte_at(ctx.gc, bytes_b, sum_of(start_b, at)))
-    each.push_all([Plain { .op = .I32Sub }, LocalTee { .index = difference }, Plain { .op = .If }])
-    each.push_all(sign_of(difference))
-    each.push_all([Plain { .op = .Return }, Plain { .op = .End }])
-    body.push_counted_loop(.I32, at, shorter, each)
-    body.push_all(
-        [LocalGet { .index = length_a }, LocalGet { .index = length_b }, Plain { .op = .I32Sub }],
-    )
-    body.push(LocalSet { .index = difference })
-    body.push_all(sign_of(difference))
-    return body
+    return ctx.define_tree_helper("string.compare", frame, body)
+}
+
+// The bytes, start and length of one side of a comparison, in locals, and what
+// reads them from the entry of the atom in its parameter.
+CompareSide :: struct {
+    bytes: i32
+    start: i32
+    length: i32
+    reads: WasmExpression[]
+}
+
+side_of :: fn(frame: HelperFrame, ctx: ModuleCtx, atom: i32) -> CompareSide {
+    entry :: frame.local(.EqRef)
+    bytes :: frame.local(.EqRef)
+    start :: frame.local(.I32)
+    length :: frame.local(.I32)
+    return CompareSide {
+        .bytes = bytes,
+        .start = start,
+        .length = length,
+        .reads = [
+            local_set(entry, ctx.entry_at(local_get(atom))),
+            local_set(bytes, entry_field(ctx, entry, ATOM_BYTES)),
+            local_set(start, entry_field(ctx, entry, ATOM_START)),
+            local_set(length, entry_field(ctx, entry, ATOM_LENGTH)),
+        ],
+    }
 }
 
 // -1, 0 or 1 as the `i32` local `x` is negative, zero or positive.
-sign_of :: fn(x: i32) -> WasmInstr[] = [
-    LocalGet { .index = x },
-    I32Const { .value = 0 },
-    Plain { .op = .I32GtS },
-    LocalGet { .index = x },
-    I32Const { .value = 0 },
-    Plain { .op = .I32LtS },
-    Plain { .op = .I32Sub },
-]
+sign_of :: fn(x: i32) -> WasmExpression =
+    i32_sub(i32_gt_s(local_get(x), i32_const(0)), binary(.I32LtS, local_get(x), i32_const(0)))
 
 // `(atom, from: i64, to: i64) -> atom`: the bytes `from..<to`, the bounds clamped
 // to the string as an array slice clamps them, as a string that shares the
 // bytes.
-string_byte_slice :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.I32, .I64, .I64], .results = [.I32] }
-    return ctx.helpers["string.byte_slice"]
-        else ctx.define_helper(
-            "string.byte_slice",
-            signature,
-            [.EqRef, .I64],
-            byte_slice_body(ctx),
-        )
-}
+string_byte_slice :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["string.byte_slice"] else define_byte_slice(ctx)
 
-// The locals past the parameters: the entry, its length.
-byte_slice_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+define_byte_slice :: fn(ctx: ModuleCtx) -> i32 {
     atom :: 0
     from :: 1
     to :: 2
-    entry :: 3
-    length :: 4
-    body :: entry_of(ctx, [LocalGet { .index = atom }])
-    body.push(LocalSet { .index = entry })
-    body.push_all(entry_field(ctx, entry, ATOM_LENGTH))
-    body.push_all([Plain { .op = .I64ExtendI32U }, LocalSet { .index = length }])
-    body.push_clamp(from, I64Const { .value = 0 }, .I64LtS)
-    body.push_clamp(to, I64Const { .value = 0 }, .I64LtS)
-    body.push_clamp(from, LocalGet { .index = length }, .I64GtS)
-    body.push_clamp(to, LocalGet { .index = from }, .I64LtS)
-    body.push_clamp(to, LocalGet { .index = length }, .I64GtS)
-    body.push_all(entry_field(ctx, entry, ATOM_BYTES))
-    body.push_all(entry_field(ctx, entry, ATOM_START))
-    body.push_all(
-        [
-            LocalGet { .index = from },
-            Plain { .op = .I32WrapI64 },
-            Plain { .op = .I32Add },
-            LocalGet { .index = to },
-            LocalGet { .index = from },
-            Plain { .op = .I64Sub },
-            Plain { .op = .I32WrapI64 },
-            I32Const { .value = 0 },
-            Call { .function_index = ctx.atom_intern() },
-        ],
-    )
-    return body
-}
-
-// `(atom) -> bool`: whether every byte of the string is below 0x80, which its
-// entry keeps.
-string_is_ascii :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.I32], .results = [.I32] }
-    return ctx.helpers["string.is_ascii"]
-        else ctx.define_helper("string.is_ascii", signature, [], is_ascii_body(ctx))
-}
-
-is_ascii_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
-    body :: entry_of(ctx, [LocalGet { .index = 0 }])
-    body.push(StructGet { .type_index = ctx.gc.atom, .field_index = ATOM_ASCII })
-    return body
+    frame :: HelperFrame { .signature = func_of([.I32, .I64, .I64], [.I32]) }
+    entry :: frame.local(.EqRef)
+    length :: frame.local(.I64)
+    start :: i32_add(entry_field(ctx, entry, ATOM_START), i32_wrap_i64(local_get(from)))
+    count :: i32_wrap_i64(binary(.I64Sub, local_get(to), local_get(from)))
+    body: WasmExpression[]: [
+        local_set(entry, ctx.entry_at(local_get(atom))),
+        local_set(length, i64_extend_i32_u(entry_field(ctx, entry, ATOM_LENGTH))),
+        clamp(from, i64_const(0), .I64LtS),
+        clamp(to, i64_const(0), .I64LtS),
+        clamp(from, local_get(length), .I64GtS),
+        clamp(to, local_get(from), .I64LtS),
+        clamp(to, local_get(length), .I64GtS),
+        call(ctx.atom_intern(), [entry_field(ctx, entry, ATOM_BYTES), start, count, i32_const(0)]),
+    ]
+    return ctx.define_tree_helper("string.byte_slice", frame, body)
 }
 
 // `(array) -> atom`: the string of the elements of a `u8[]`, a copy of them
 // when new: the array may change after.
-bytes_to_string :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.EqRef], .results = [.I32] }
-    return ctx.helpers["string.bytes_to_string"]
-        else ctx.define_helper("string.bytes_to_string", signature, [], bytes_to_string_body(ctx))
-}
+bytes_to_string :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["string.bytes_to_string"] else define_bytes_to_string(ctx)
 
-bytes_to_string_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
-    body: WasmInstr[]: []
-    body.push_header_field(ctx.gc, 0, HEADER_STORAGE)
-    body.push_header_field(ctx.gc, 0, HEADER_OFFSET)
-    body.push_header_field(ctx.gc, 0, HEADER_LENGTH)
-    body.push_all(
-        [
-            Plain { .op = .I32WrapI64 },
-            I32Const { .value = 1 },
-            Call { .function_index = ctx.atom_intern() },
-        ],
+define_bytes_to_string :: fn(ctx: ModuleCtx) -> i32 {
+    frame :: HelperFrame { .signature = func_of([.EqRef], [.I32]) }
+    arguments: WasmExpression[]: [
+        header_field(ctx.gc, 0, HEADER_STORAGE),
+        header_field(ctx.gc, 0, HEADER_OFFSET),
+        i32_wrap_i64(header_field(ctx.gc, 0, HEADER_LENGTH)),
+        i32_const(1),
+    ]
+    return ctx.define_tree_helper(
+        "string.bytes_to_string",
+        frame,
+        [call(ctx.atom_intern(), arguments)],
     )
-    return body
 }
 
 // `(atom) -> array`: the bytes of the string, an array of the type `type_id`
 // over the entry's storage, marked `shared` so that a push copies them first.
 string_bytes :: fn(ctx: ModuleCtx, type_id: i32) -> i32 {
     key :: "string.bytes.${type_id}"
-    signature :: WasmFuncType { .params = [.I32], .results = [.EqRef] }
-    return ctx.helpers[key]
-        else ctx.define_helper(key, signature, [.EqRef], bytes_body(ctx, type_id))
+    return ctx.helpers[key] else define_string_bytes(ctx, key, type_id)
 }
 
-// The local past the parameter: the entry.
-bytes_body :: fn(ctx: ModuleCtx, type_id: i32) -> WasmInstr[] {
+define_string_bytes :: fn(ctx: ModuleCtx, key: string, type_id: i32) -> i32 {
     atom :: 0
-    entry :: 1
-    length :: entry_field(ctx, entry, ATOM_LENGTH)
-    length.push(Plain { .op = .I64ExtendI32U })
-    header :: HeaderParts {
-        .type_id = [I32Const { .value = type_id }],
-        .element = [I32Const { .value = class_code(.U8) }],
+    frame :: HelperFrame { .signature = func_of([.I32], [.EqRef]) }
+    entry :: frame.local(.EqRef)
+    length :: i64_extend_i32_u(entry_field(ctx, entry, ATOM_LENGTH))
+    header :: HeaderFields {
+        .type_id = i32_const(type_id),
+        .element = i32_const(class_code(.U8)),
         .length = length,
         .capacity = length,
         .offset = entry_field(ctx, entry, ATOM_START),
         .storage = entry_field(ctx, entry, ATOM_BYTES),
-        .shared = [I32Const { .value = 1 }],
+        .shared = i32_const(1),
     }
-    body :: entry_of(ctx, [LocalGet { .index = atom }])
-    body.push(LocalSet { .index = entry })
-    body.push_new_header(ctx.gc, header)
-    return body
+    body: WasmExpression[]: [
+        local_set(entry, ctx.entry_at(local_get(atom))),
+        new_header(ctx.gc, header),
+    ]
+    return ctx.define_tree_helper(key, frame, body)
 }
 
 // ---- buffers --------------------------------------------------------------
 //
 // A `Buffer` is an `i8` storage itself, with no header: the bytecode reaches it
-// only through the buffer ops.
+// only through the buffer ops. An offset past the greatest storage stops the run
+// rather than wrap to 32 bits; one past the end of the buffer traps in the
+// access.
 
-// Stop the run when the `i64` `value` leaves is, unsigned, above what `limit`
-// leaves: a negative value is above any.
-push_trap_above :: fn(body: WasmInstr[], ctx: ModuleCtx, value: WasmInstr[], limit: WasmInstr[]) -> void {
-    body.push_all(value)
-    body.push_all(limit)
-    body.push(Plain { .op = .I64GtU })
-    body.push_trap_if(ctx)
-}
+// Stop the run when the `i64` local `offset` is, unsigned, past the greatest
+// storage: a negative offset is past any.
+offset_check :: fn(ctx: ModuleCtx, offset: i32) -> WasmExpression =
+    trap_above(ctx, local_get(offset), i64_const(STORAGE_GREATEST))
+
+// Stop the run when the `i64` `value` is, unsigned, above `limit`.
+trap_above :: fn(ctx: ModuleCtx, value: WasmExpression, limit: WasmExpression) -> WasmExpression =
+    trap_if(ctx, binary(.I64GtU, value, limit))
 
 // `(size: i64) -> buffer`: `size` zero bytes, an `i8` storage.
-buffer_new :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.I64], .results = [.EqRef] }
+buffer_new :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["buffer.new"] else define_buffer_new(ctx)
+
+define_buffer_new :: fn(ctx: ModuleCtx) -> i32 {
     size :: 0
-    body: WasmInstr[]: []
-    body.push_trap_above(
-        ctx,
-        [LocalGet { .index = size }],
-        [I64Const { .value = STORAGE_GREATEST }],
-    )
-    body.push_all(
-        [
-            LocalGet { .index = size },
-            Plain { .op = .I32WrapI64 },
-            ArrayNewDefault { .type_index = storage_type(ctx.gc, .I8) },
-        ],
-    )
-    return ctx.helpers["buffer.new"] else ctx.define_helper("buffer.new", signature, [], body)
+    frame :: HelperFrame { .signature = func_of([.I64], [.EqRef]) }
+    body: WasmExpression[]: [
+        offset_check(ctx, size),
+        array_new_default(storage_type(ctx.gc, .I8), i32_wrap_i64(local_get(size))),
+    ]
+    return ctx.define_tree_helper("buffer.new", frame, body)
 }
 
 // `(buffer, offset: i64, atom) -> ()`: the bytes of the string written into the
 // buffer from `offset` on; past its end, the run stops.
-buffer_write_string :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.EqRef, .I64, .I32], .results = [] }
-    return ctx.helpers["buffer.write_string"]
-        else ctx.define_helper(
-            "buffer.write_string",
-            signature,
-            [.EqRef],
-            write_string_body(ctx),
-        )
-}
+buffer_write_string :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["buffer.write_string"] else define_write_string(ctx)
 
-// The local past the parameters: the entry.
-write_string_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
-    i8_storage :: storage_type(ctx.gc, .I8)
+define_write_string :: fn(ctx: ModuleCtx) -> i32 {
     buffer :: 0
     offset :: 1
     atom :: 2
-    entry :: 3
-    body :: buffer_at(ctx, buffer, offset)
-    body.push_all(entry_of(ctx, [LocalGet { .index = atom }]))
-    body.push(LocalSet { .index = entry })
-    body.push_all(entry_field(ctx, entry, ATOM_BYTES))
-    body.push(RefCast { .type_index = i8_storage })
-    body.push_all(entry_field(ctx, entry, ATOM_START))
-    body.push_all(entry_field(ctx, entry, ATOM_LENGTH))
-    body.push(ArrayCopy { .destination = i8_storage, .source = i8_storage })
-    return body
+    frame :: HelperFrame { .signature = func_of([.EqRef, .I64, .I32], []) }
+    entry :: frame.local(.EqRef)
+    body: WasmExpression[]: [
+        offset_check(ctx, offset),
+        local_set(entry, ctx.entry_at(local_get(atom))),
+        array_copy(
+            storage_type(ctx.gc, .I8),
+            ArraySpan { .array = local_get(buffer), .at = i32_wrap_i64(local_get(offset)) },
+            ArraySpan {
+                .array = entry_field(ctx, entry, ATOM_BYTES),
+                .at = entry_field(ctx, entry, ATOM_START),
+            },
+            entry_field(ctx, entry, ATOM_LENGTH),
+        ),
+    ]
+    return ctx.define_tree_helper("buffer.write_string", frame, body)
 }
 
 // `(buffer, length: i64) -> atom`: the string of the first `length` bytes of the
 // buffer, copied when new; past its end, the run stops.
-buffer_to_string :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.EqRef, .I64], .results = [.I32] }
+buffer_to_string :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["buffer.to_string"] else define_buffer_to_string(ctx)
+
+define_buffer_to_string :: fn(ctx: ModuleCtx) -> i32 {
     buffer :: 0
     length :: 1
-    size: WasmInstr[]: [
-        LocalGet { .index = buffer },
-        RefCast { .type_index = storage_type(ctx.gc, .I8) },
-        ArrayLen {},
-        Plain { .op = .I64ExtendI32U },
-    ]
-    body: WasmInstr[]: []
-    body.push_trap_above(ctx, [LocalGet { .index = length }], size)
-    body.push_all(
-        [
-            LocalGet { .index = buffer },
-            I32Const { .value = 0 },
-            LocalGet { .index = length },
-            Plain { .op = .I32WrapI64 },
-            I32Const { .value = 1 },
-            Call { .function_index = ctx.atom_intern() },
-        ],
+    frame :: HelperFrame { .signature = func_of([.EqRef, .I64], [.I32]) }
+    size :: i64_extend_i32_u(array_len(storage_type(ctx.gc, .I8), local_get(buffer)))
+    string :: call(
+        ctx.atom_intern(),
+        [local_get(buffer), i32_const(0), i32_wrap_i64(local_get(length)), i32_const(1)],
     )
-    return ctx.helpers["buffer.to_string"]
-        else ctx.define_helper("buffer.to_string", signature, [], body)
+    body: WasmExpression[]: [trap_above(ctx, local_get(length), size), string]
+    return ctx.define_tree_helper("buffer.to_string", frame, body)
 }
 
 // `(buffer, offset: i64) -> i32`: the byte at `offset`, unsigned.
-buffer_load_u8 :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.EqRef, .I64], .results = [.I32] }
-    return ctx.helpers["buffer.load_u8"]
-        else ctx.define_helper("buffer.load_u8", signature, [], load_u8_body(ctx))
-}
+buffer_load_u8 :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["buffer.load_u8"] else define_load_u8(ctx)
 
-load_u8_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
-    body :: buffer_at(ctx, 0, 1)
-    body.push(ArrayGet { .type_index = storage_type(ctx.gc, .I8), .extension = .Unsigned })
-    return body
+define_load_u8 :: fn(ctx: ModuleCtx) -> i32 {
+    buffer :: 0
+    offset :: 1
+    frame :: HelperFrame { .signature = func_of([.EqRef, .I64], [.I32]) }
+    byte :: byte_in(ctx.gc, local_get(buffer), i32_wrap_i64(local_get(offset)))
+    return ctx.define_tree_helper("buffer.load_u8", frame, [offset_check(ctx, offset), byte])
 }
 
 // `(buffer, offset: i64, byte: i32) -> ()`: the byte written at `offset`.
-buffer_store_u8 :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.EqRef, .I64, .I32], .results = [] }
-    return ctx.helpers["buffer.store_u8"]
-        else ctx.define_helper("buffer.store_u8", signature, [], store_u8_body(ctx))
-}
+buffer_store_u8 :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["buffer.store_u8"] else define_store_u8(ctx)
 
-store_u8_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
-    body :: buffer_at(ctx, 0, 1)
-    body.push_all([LocalGet { .index = 2 }, ArraySet { .type_index = storage_type(ctx.gc, .I8) }])
-    return body
+define_store_u8 :: fn(ctx: ModuleCtx) -> i32 {
+    buffer :: 0
+    offset :: 1
+    byte :: 2
+    frame :: HelperFrame { .signature = func_of([.EqRef, .I64, .I32], []) }
+    at :: i32_wrap_i64(local_get(offset))
+    store :: array_set(storage_type(ctx.gc, .I8), local_get(buffer), at, local_get(byte))
+    return ctx.define_tree_helper("buffer.store_u8", frame, [offset_check(ctx, offset), store])
 }
 
 // `(destination, at: i64, source, from: i64, count: i64) -> ()`: `count` bytes of
 // `source` from `from` on copied into `destination` from `at` on, the two runs
 // free to overlap.
-buffer_memory_copy :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.EqRef, .I64, .EqRef, .I64, .I64], .results = [] }
-    return ctx.helpers["buffer.memory_copy"]
-        else ctx.define_helper("buffer.memory_copy", signature, [], memory_copy_body(ctx))
-}
+buffer_memory_copy :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["buffer.memory_copy"] else define_memory_copy(ctx)
 
-memory_copy_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
-    i8_storage :: storage_type(ctx.gc, .I8)
+define_memory_copy :: fn(ctx: ModuleCtx) -> i32 {
+    destination :: 0
+    at :: 1
+    source :: 2
+    from :: 3
     count :: 4
-    body :: buffer_at(ctx, 0, 1)
-    body.push_all(buffer_at(ctx, 2, 3))
-    body.push_trap_above(
-        ctx,
-        [LocalGet { .index = count }],
-        [I64Const { .value = STORAGE_GREATEST }],
+    frame :: HelperFrame { .signature = func_of([.EqRef, .I64, .EqRef, .I64, .I64], []) }
+    copy :: array_copy(
+        storage_type(ctx.gc, .I8),
+        ArraySpan { .array = local_get(destination), .at = i32_wrap_i64(local_get(at)) },
+        ArraySpan { .array = local_get(source), .at = i32_wrap_i64(local_get(from)) },
+        i32_wrap_i64(local_get(count)),
     )
-    body.push_all(
-        [
-            LocalGet { .index = count },
-            Plain { .op = .I32WrapI64 },
-            ArrayCopy { .destination = i8_storage, .source = i8_storage },
-        ],
-    )
-    return body
-}
-
-// The buffer in the local `buffer` as an `i8` storage, then the `i64` offset in
-// the local `offset` as its index. An offset past the greatest storage stops
-// the run rather than wrap to 32 bits; one past the end of this one traps in
-// the access.
-buffer_at :: fn(ctx: ModuleCtx, buffer: i32, offset: i32) -> WasmInstr[] {
-    out: WasmInstr[]: []
-    out.push_trap_above(
-        ctx,
-        [LocalGet { .index = offset }],
-        [I64Const { .value = STORAGE_GREATEST }],
-    )
-    out.push_all(
-        [
-            LocalGet { .index = buffer },
-            RefCast { .type_index = storage_type(ctx.gc, .I8) },
-            LocalGet { .index = offset },
-            Plain { .op = .I32WrapI64 },
-        ],
-    )
-    return out
+    body: WasmExpression[]: [
+        offset_check(ctx, at),
+        offset_check(ctx, from),
+        offset_check(ctx, count),
+        copy,
+    ]
+    return ctx.define_tree_helper("buffer.memory_copy", frame, body)
 }
 
 // ---- tests ----------------------------------------------------------------

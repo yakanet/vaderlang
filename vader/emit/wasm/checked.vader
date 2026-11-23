@@ -220,18 +220,25 @@ push_mul_overflow :: fn(body: WasmInstr[], ctx: ModuleCtx, unsigned: bool) -> vo
     body.push_plain(.End)
 }
 
-// Stop the run when the popped `i32` is not zero: through `panic` when the
-// program pushes defers, which runs those still pending as the VM runs them
-// when it traps.
+// Stop the run when `condition` holds.
+trap_if :: fn(ctx: ModuleCtx, condition: WasmExpression) -> WasmExpression =
+    when(condition, [stop_run(ctx)])
+
+// Stop the run when the popped `i32` is not zero.
 push_trap_if :: fn(body: WasmInstr[], ctx: ModuleCtx) -> void {
     body.push_plain(.If)
+    body.push_body(HelperFrame { .signature = func_of([], []) }, [stop_run(ctx)])
+    body.push_plain(.End)
+}
+
+// Stop the run: through `panic` when the program pushes defers, which runs those
+// still pending as the VM runs them when it traps.
+stop_run :: fn(ctx: ModuleCtx) -> WasmExpression {
     if ctx.has_defers {
         // The message `panic` takes: it writes none yet.
-        body.push_all([I32Const { .value = 0 }, Call { .function_index = ctx.panic_function() }])
-    } else {
-        body.push_plain(.Unreachable)
+        return call(ctx.panic_function(), [i32_const(0)])
     }
-    body.push_plain(.End)
+    return unreachable()
 }
 
 // x ^ y of two locals: negative when they differ in sign.
