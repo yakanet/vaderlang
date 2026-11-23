@@ -125,8 +125,21 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
         .functions = functions,
         .exports = exports,
         .data = ctx.segments,
+        .memory_import = memory_import_of(ctx.imports),
     }
-    return WasmComponent { .core = core, .interfaces = ctx.imports.interfaces }
+    return WasmComponent {
+        .core = core,
+        .interfaces = ctx.imports.interfaces,
+        .builtins = ctx.imports.builtins,
+    }
+}
+
+// The canonical built-ins read and write the memory the component defines.
+memory_import_of :: fn(imports: ImportedFunctions) -> string | null {
+    if imports.builtins.is_empty() {
+        return null
+    }
+    return CANONICAL_MODULE
 }
 
 // The context of `m`'s translation, before its first function: its struct types,
@@ -531,6 +544,9 @@ imported_function :: fn(
     op: Bc.CallImport,
     function: string,
 ) -> i32 | WasmUnsupported {
+    if op.index in ctx.imports.adapted {
+        return ctx.canonical_adapter(op.index, function)
+    }
     imported :: ctx.imports.by_bytecode_index[op.index]
     if imported != null {
         return imported

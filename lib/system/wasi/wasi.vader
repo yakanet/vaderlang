@@ -3,8 +3,9 @@
 // One `WasmInterface` per interface of the WASI release the bindings follow,
 // and the functions of each, declared with the types WIT gives them: a WASM
 // build derives the component type of each import from the signature, a `u64`
-// being a WIT `u64` and a struct a `record`. Only the bodies chosen for `.Wasi`
-// call them.
+// being a WIT `u64`, a struct a `record` and a `WasmStream<u8>` a `stream<u8>`.
+// A type keeps the name WIT gives it, in Pascal case: `error-code` is
+// `ErrorCode`. Only the bodies chosen for `.Wasi` call them.
 
 module "system/wasi"
 
@@ -22,6 +23,39 @@ SYSTEM_CLOCK :: WasmInterface {
     .name = "system-clock",
     .version = WASI_VERSION,
 }
+
+STDOUT :: WasmInterface {
+    .package = "wasi:cli",
+    .name = "stdout",
+    .version = WASI_VERSION,
+}
+
+STDERR :: WasmInterface {
+    .package = "wasi:cli",
+    .name = "stderr",
+    .version = WASI_VERSION,
+}
+
+/// `wasi:cli`'s `error-code`: why a write to a standard stream failed.
+export ErrorCode :: enum {
+    Io,
+    IllegalByteSequence,
+    Pipe,
+}
+
+/// `stdout.write-via-stream`: write the bytes of `data` to the standard output.
+///
+/// @param data  the bytes to write.
+/// @return      `void` once they are all written, or why the write stopped.
+@extern(STDOUT, "write-via-stream")
+export wasi_write_stdout :: fn(data: WasmStream<u8>) -> WasmFuture<void | ErrorCode>
+
+/// `stderr.write-via-stream`: write the bytes of `data` to the standard error.
+///
+/// @param data  the bytes to write.
+/// @return      `void` once they are all written, or why the write stopped.
+@extern(STDERR, "write-via-stream")
+export wasi_write_stderr :: fn(data: WasmStream<u8>) -> WasmFuture<void | ErrorCode>
 
 /// `monotonic-clock.now`: nanoseconds on a clock that never goes back, from an
 /// arbitrary start.

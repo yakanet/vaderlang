@@ -425,11 +425,17 @@ interface in `BcImport.wasm_interface`. The WASM emitter (`vader/emit/wasm/`)
 imports it into the core module under the interface's WIT name, and writes the
 component around the module (`component.vader`): the interfaces imported as
 instances, their functions lowered by the canonical ABI, the module instantiated
-with them, and its `run` lifted and exported as `wasi:cli/run`. The other imports have no WASM form
-yet. The WIT type of an import is derived where the Vader types are whole, when
-the CFG of the `@extern` is built (`vader/midir/wit.vader`), and travels in
-`BcImport.wit` (`vader/core/wit`); the emitter derives nothing. The decisions are
-ADR 0175, 0176 and 0178.
+with them, and its `run` lifted and exported as `wasi:cli/run`. The other imports
+have no WASM form yet. The WIT type of an import is derived where the Vader types
+are whole, when the CFG of the `@extern` is built (`vader/midir/wit.vader`), and
+travels in `BcImport.wit` (`vader/core/wit`); the emitter derives nothing. A call
+to a function that takes a `stream` or returns a `future` goes through an adapter
+(`canonical.vader`): it opens the streams, calls the import, copies the items
+into the linear memory one chunk at a time and writes them, then waits for the
+future on a waitable set and builds the `WasmFuture`, so the call is synchronous
+on the Vader side. The canonical built-ins it calls and the memory are imports of
+the core module; the component defines the memory in a module of its own,
+instantiated first. The decisions are ADR 0175, 0176 and 0178.
 
 The emitter follows the WASM type of every value on the operand stack while it
 translates a body (`stack.vader`), from the stack effect each op has

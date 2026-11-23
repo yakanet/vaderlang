@@ -80,6 +80,10 @@ export WasmModule :: struct {
     exports: WasmExport[]
     /// The passive data segments, which `array.new_data` reads.
     data: u8[][] = []
+    /// The module name the linear memory is imported from, null for a module
+    /// without one. The canonical ABI passes what is not a scalar through it
+    /// (`canonical.vader`).
+    memory_import: string | null = null
 }
 
 /// A WASM instruction.
@@ -106,6 +110,7 @@ export WasmInstr :: I32Const
            | ArrayCopy
            | GlobalGet
            | GlobalSet
+           | MemoryAccess
            | Plain
 
 /// `i32.const value`.
@@ -205,6 +210,16 @@ export ArrayCopy :: struct {
     destination: i32
     source: i32
 }
+
+/// A load or a store of the linear memory, at the `i32` address on the stack
+/// plus `offset`; a store takes the value above the address.
+export MemoryAccess :: struct {
+    op: MemoryOp
+    offset: i32 = 0
+}
+
+/// The accesses of the linear memory the module makes.
+export MemoryOp :: enum { I32Load, I32Load8U, I32Store8 }
 
 /// An instruction without an immediate.
 export Plain :: struct { op: WasmOp }

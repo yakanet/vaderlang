@@ -4,26 +4,34 @@
 // import, its module the interface as WIT writes it and its name the function.
 // Its WIT type is the one the front end derived from the Vader declaration
 // (`BcImport.wit`), and its core type is that WIT type flattened by the
-// canonical ABI, which for a scalar is the value itself: only scalars are
-// lowered so far. The other imports (a C library) have no WASM form yet: a call
-// to one stops the emission.
+// canonical ABI: a scalar is itself, a stream or a future its handle. A call
+// that opens a stream or waits for a future goes through an adapter, whose
+// canonical built-ins come last among the imports (`canonical.vader`). The other
+// imports (a C library) have no WASM form yet: a call to one stops the
+// emission.
 
 module "vader/emit/wasm"
 
 Bc :: import "vader/core/bytecode"
 import "std/collections"
 import "std/iter"
-import "vader/core/wit"
 
 // The functions a program imports from component interfaces.
 ImportedFunctions :: struct {
-    // The core module's imports, which come first among its functions.
+    // The core module's imports, which come first among its functions: the
+    // interfaces' functions, then the canonical built-ins.
     functions: WasmImport[] = []
     // The WASM function index of each bytecode import that comes from an
     // interface, by the bytecode import's index.
     by_bytecode_index: Map<i32, i32> = Map<i32, i32> {}
+    // The bytecode imports a call reaches through an adapter (`canonical.vader`).
+    adapted: Set<i32> = Set<i32> {}
     // The interfaces, each function once, as the component imports them.
     interfaces: ComponentInterface[] = []
+    // The canonical built-ins the adapters call, each once.
+    builtins: CanonicalBuiltin[] = []
+    // The WASM function index of each built-in, by `builtin_name`.
+    by_builtin: Map<string, i32> = Map<string, i32> {}
 }
 
 // The imports of `m`, their core types interned in `types`.
@@ -32,12 +40,14 @@ imported_functions :: fn(
     types: TypeTable,
 ) -> ImportedFunctions | WasmUnsupported {
     out :: ImportedFunctions {}
-    for i in 0..<m.imports.len() {
-        imp :: m.imports[i]
+    for [imp, i] in m.imports.indexed() {
         interface :: imp.wasm_interface else continue
         module :: Bc.qualified_interface_name(interface)
-        function :: component_function_of(imp) else return function
-        core_type :: flat_type_of(imp) else return core_type
+        wit :: imp.wit else {
+            return WasmUnsupported { .reason = "`${imp.mangled_name}`: no WIT type" }
+        }
+        core_type :: flat_type_of(wit, imp.mangled_name) else return core_type
+        function :: ComponentFunction { .name = imp.extern_name, .type = wit }
         out.by_bytecode_index[i32(i)] = i32(out.functions.len())
         out.functions.push(
             WasmImport {
@@ -47,8 +57,32 @@ imported_functions :: fn(
             },
         )
         out.add_to_interface(module, function)
+        if is_adapted(wit) {
+            out.adapted.add(i32(i))
+            out.add_builtins(builtins_of(wit))
+        }
+    }
+    for b in out.builtins {
+        out.by_builtin[builtin_name(b)] = i32(out.functions.len())
+        out.functions.push(
+            WasmImport {
+                .module = CANONICAL_MODULE,
+                .name = builtin_name(b),
+                .type_index = types.intern(builtin_type(b.kind)),
+            },
+        )
     }
     return out
+}
+
+// Add the built-ins of `builtins` not imported yet.
+add_builtins :: fn(imports: ImportedFunctions, builtins: CanonicalBuiltin[]) -> void {
+    for b in builtins {
+        name :: builtin_name(b)
+        if !imports.builtins.any_match((known) -> builtin_name(known) == name) {
+            imports.builtins.push(b)
+        }
+    }
 }
 
 // Add `function` to the interface `module`, unless another declaration of the
@@ -67,40 +101,4 @@ add_to_interface :: fn(
         }
     }
     imports.interfaces.push(ComponentInterface { .name = module, .functions = [function] })
-}
-
-// The WIT type of `imp`, a function of a component interface, when every value
-// it takes and returns is a scalar the core module holds as itself.
-component_function_of :: fn(imp: Bc.BcImport) -> ComponentFunction | WasmUnsupported {
-    wit :: imp.wit else {
-        return WasmUnsupported { .reason = "`${imp.mangled_name}`: no WIT type" }
-    }
-    for p in wit.params {
-        checked :: flat_scalar(p.type, imp) else return checked
-    }
-    result :: wit.result
-    if result != null {
-        checked :: flat_scalar(result, imp) else return checked
-    }
-    return ComponentFunction { .name = imp.extern_name, .type = wit }
-}
-
-// `t` when it is a scalar a core value holds as itself.
-flat_scalar :: fn(t: WitType, imp: Bc.BcImport) -> WitScalar | WasmUnsupported {
-    if t is WitUnsupported {
-        return WasmUnsupported { .reason = "`${imp.mangled_name}`: ${t.reason}" }
-    }
-    if t !is WitScalar || t == .String {
-        return WasmUnsupported {
-            .reason = "`${imp.mangled_name}`: no lowering yet for `${wit_type_text(t)}`",
-        }
-    }
-    return t
-}
-
-// The core type of `imp`: its scalars as themselves.
-flat_type_of :: fn(imp: Bc.BcImport) -> WasmFuncType | WasmUnsupported {
-    params :: value_types_of(imp.signature.params, imp.extern_name) else return params
-    results :: value_types_of(result_values(imp.signature), imp.extern_name) else return results
-    return WasmFuncType { .params = params, .results = results }
 }

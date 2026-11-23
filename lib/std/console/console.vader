@@ -11,6 +11,7 @@ module "std/console"
 import "std/io"
 import "std/time"
 import "system/posix"
+import "system/wasi"
 import "system/windows"
 
 /// A standard output stream. Used by the `print` / `println` / `eprint` /
@@ -34,13 +35,27 @@ export Stream :: enum {
 /// @param buf    the bytes to lend, for the duration of the call.
 /// @param count  how many of them.
 /// @return       the count written, or `-1` on failure.
-/// The general body covers the WASM targets, which have no descriptor-based
-/// write: WASI would go through `fd_write` and its iovec array, a browser has no
-/// descriptors at all, and neither has a backend that could run this yet.
-/// Reporting failure is what the caller already handles.
+/// The general body covers a browser, which has no standard streams: reporting
+/// failure is what the caller already handles.
 @target
 write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
     return -1
+}
+
+// WASI writes a stream, the whole of it before the call returns. A struct keeps
+// what it holds, and `buf` may be a view of a string's bytes: the stream takes a
+// copy.
+@target(.Wasi)
+write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
+    data :: WasmStream<u8> { .items = buf[0..<count].clone() }
+    written :: match out {
+        .Stdout -> wasi_write_stdout(data)
+        .Stderr -> wasi_write_stderr(data)
+    }
+    if written.value is ErrorCode {
+        return -1
+    }
+    return i32(count)
 }
 
 @target(.Linux, .Darwin)

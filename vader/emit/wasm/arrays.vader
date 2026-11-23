@@ -1234,30 +1234,37 @@ push_counted_loop :: fn(
     limit: i32,
     each: WasmInstr[],
 ) -> void {
+    body.push_all([integer_of(t, 0), LocalSet { .index = counter }])
+    step: WasmInstr[]: [
+        LocalGet { .index = counter },
+        integer_of(t, 1),
+        Plain { .op = if t == .I64 { .I64Add } else { .I32Add } },
+        LocalSet { .index = counter },
+    ]
+    body.push_while_below(t, counter, limit, each + step)
+}
+
+// `for x < limit { each }`, both locals of the integer type `t`: `each` moves
+// `x` on, leaves nothing and branches nowhere, or returns.
+push_while_below :: fn(
+    body: WasmInstr[],
+    t: WasmValType,
+    x: i32,
+    limit: i32,
+    each: WasmInstr[],
+) -> void {
     body.push_all(
         [
-            integer_of(t, 0),
-            LocalSet { .index = counter },
             Plain { .op = .Block },
             Plain { .op = .Loop },
-            LocalGet { .index = counter },
+            LocalGet { .index = x },
             LocalGet { .index = limit },
             Plain { .op = if t == .I64 { .I64GeS } else { .I32GeS } },
             BrIf { .depth = 1 },
         ],
     )
     body.push_all(each)
-    body.push_all(
-        [
-            LocalGet { .index = counter },
-            integer_of(t, 1),
-            Plain { .op = if t == .I64 { .I64Add } else { .I32Add } },
-            LocalSet { .index = counter },
-            Br { .depth = 0 },
-            Plain { .op = .End },
-            Plain { .op = .End },
-        ],
-    )
+    body.push_all([Br { .depth = 0 }, Plain { .op = .End }, Plain { .op = .End }])
 }
 
 // The constant `value` of the integer type `t`.

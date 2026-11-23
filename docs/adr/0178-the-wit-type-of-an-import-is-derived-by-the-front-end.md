@@ -30,7 +30,11 @@ write-via-stream: func(data: stream<u8>) -> future<result<_, error-code>>
   waits for the future: it is synchronous on the Vader side.
 - **A type is named in WIT as in Vader, in kebab case**: `ErrorCode` is
   `error-code`, its variant `IllegalByteSequence` is `illegal-byte-sequence`. An
-  enum maps when it has no variant data and its values are its ranks; `void | E`
+  enum maps when it has no variant data, its values are its ranks and it is
+  stored in the unsigned integer the canonical ABI stores a case in, the
+  narrowest that holds them: the bytecode keeps an enum as that integer and
+  erases `void | E` to a reference, so the emitter boxes a case it reads back by
+  that width alone; `void | E`
   is `result<_, E>`.
 - **A type with no WIT form is kept as unsupported**, with its reason. The native
   build ignores it; a WASM build stops on it, naming the reason.

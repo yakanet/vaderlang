@@ -6,12 +6,17 @@
 // in one fixed shape:
 //
 // - one imported instance per interface, typed by the functions the program
-//   calls;
+//   calls and the types they name, an enum exported under its name;
+// - when the core module calls an async function (`canonical.vader`), a module that
+//   only defines a linear memory, instantiated first;
 // - the core module;
 // - each imported function aliased out of its instance and lowered to a core
-//   function, the lowered ones gathered into one core instance per interface;
-// - the core module instantiated with those instances, under the interface
-//   names its imports use;
+//   function;
+// - the canonical built-ins the core module calls, on types of their own, an
+//   enum aliased out of the instance that exports it;
+// - the lowered functions gathered into one core instance per interface, the
+//   memory and the built-ins into one more, and the core module instantiated
+//   with them under the names its imports use;
 // - its `run` export lifted, put in an instance, and exported as
 //   `wasi:cli/run`.
 //
@@ -22,12 +27,13 @@
 module "vader/emit/wasm"
 
 import "std/abort"
+import "std/collections"
+import "std/iter"
 import "vader/core/wit"
 
 /// A function the component imports from an interface.
 export ComponentFunction :: struct {
     name: string
-    /// Its WIT type, of scalars only so far (`imports.vader`).
     type: WitFunction
 }
 
@@ -41,9 +47,13 @@ export ComponentInterface :: struct {
 /// A program as a component.
 export WasmComponent :: struct {
     /// The core module. Its imports name an interface of `interfaces` as their
-    /// module and one of its functions as their name, and it exports `run`.
+    /// module and one of its functions as their name, then `CANONICAL_MODULE` and a
+    /// built-in of `builtins`, and it exports `run`.
     core: WasmModule
     interfaces: ComponentInterface[]
+    /// The canonical built-ins the core module imports, in the order of its
+    /// imports. The memory comes with them.
+    builtins: CanonicalBuiltin[] = []
 }
 
 /// The interface a program exports, whose `run` the host calls.
@@ -60,49 +70,84 @@ export encode_component :: fn(c: WasmComponent) -> u8[] {
     out: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x0D, 0x00, 0x01, 0x00]
     interface_count :: i64(c.interfaces.len())
     function_count :: count_functions(c.interfaces)
+    has_memory :: c.builtins.len() > 0
+    scopes :: c.interfaces.map(instance_scope_of).collect()
     if interface_count > 0 {
-        out.push_component_section(.Type, instance_types(c.interfaces))
+        out.push_component_section(.Type, instance_types(scopes))
         out.push_component_section(.Import, interface_imports(c.interfaces))
+    }
+    if has_memory {
+        out.push_component_section(.CoreModule, encode_memory_module())
+        out.push_component_section(.CoreInstance, [1, INSTANTIATE, 0, 0])
+        memory_alias: u8[]: [1, CORE_SORT, CORE_MEMORY, ALIAS_CORE_EXPORT, 0]
+        memory_alias.push_name(MEMORY_NAME)
+        out.push_component_section(.Alias, memory_alias)
     }
     out.push_component_section(.CoreModule, encode_module(c.core))
     if function_count > 0 {
         out.push_component_section(.Alias, function_aliases(c.interfaces, function_count))
-        out.push_component_section(.Canon, lowered_functions(function_count))
+        out.push_component_section(.Canonical, lowered_functions(function_count))
     }
-    out.push_component_section(.CoreInstance, core_instances(c.interfaces))
-    out.push_run_sections(interface_count, function_count)
+    types :: TypeScope { .next = interface_count }
+    if has_memory {
+        out.push_builtin_sections(c.builtins, scopes, types)
+    }
+    // The memory's instance comes first when there is one.
+    first_instance :: core_instance_base(has_memory)
+    out.push_component_section(.CoreInstance, core_instances(c, first_instance, function_count))
+    out.push_run_sections(
+        RunIndices {
+            .result_type = types.next,
+            .main_instance = first_instance + interface_count + core_instance_base(has_memory),
+            .core_run = function_count + i64(c.builtins.len()),
+            .lifted_run = function_count,
+            .run_instance = interface_count,
+        },
+    )
     return out
 }
 
-// The sections that export `run`. The types past the instance types are
-// `result`, then the type of `run`; the core function past the lowered ones is
-// the core `run`, and the component function past the aliased ones the lifted
-// `run`; the instance past the imported ones holds it.
-push_run_sections :: fn(out: u8[], interface_count: i64, function_count: i64) -> void {
-    result_type :: interface_count
-    run_types: u8[]: [2, RESULT_TYPE, NO_CASE_TYPE, NO_CASE_TYPE]
+// The core instances before the interfaces' own: the memory's, when there is one.
+core_instance_base :: fn(has_memory: bool) -> i64 = if has_memory { 1 } else { 0 }
+
+// Where the sections that export `run` find what they name.
+RunIndices :: struct {
+    // The `result` `run` returns; the type of `run` follows it.
+    result_type: i64
+    // The core module's instance, which exports the core `run`.
+    main_instance: i64
+    // The core `run`, past the lowered functions and the built-ins.
+    core_run: i64
+    // The lifted `run`, past the functions aliased out of the interfaces.
+    lifted_run: i64
+    // The instance that holds it, past the imported ones.
+    run_instance: i64
+}
+
+push_run_sections :: fn(out: u8[], at: RunIndices) -> void {
+    run_types: u8[]: [2, RESULT_TYPE, NO_TYPE, NO_TYPE]
     // `run` takes no parameter and returns the `result`.
     run_types.push_all([ASYNC_FUNC_TYPE, 0, ONE_RESULT])
-    run_types.push_count(result_type)
+    run_types.push_count(at.result_type)
     out.push_component_section(.Type, run_types)
     run_alias: u8[]: [1, CORE_SORT, CORE_FUNC, ALIAS_CORE_EXPORT]
-    run_alias.push_count(interface_count)
+    run_alias.push_count(at.main_instance)
     run_alias.push_name(RUN_EXPORT)
     out.push_component_section(.Alias, run_alias)
-    lift: u8[]: [1, CANON_LIFT, CORE_FUNC]
-    lift.push_count(function_count)
+    lift: u8[]: [1, CANONICAL_LIFT, CORE_FUNC]
+    lift.push_count(at.core_run)
     lift.push(NO_OPTIONS)
-    lift.push_count(result_type + 1)
-    out.push_component_section(.Canon, lift)
+    lift.push_count(at.result_type + 1)
+    out.push_component_section(.Canonical, lift)
     run_instance: u8[]: [1, INSTANCE_OF_EXPORTS, 1, PLAIN_NAME]
     run_instance.push_name(RUN_EXPORT)
     run_instance.push(SORT_FUNC)
-    run_instance.push_count(function_count)
+    run_instance.push_count(at.lifted_run)
     out.push_component_section(.Instance, run_instance)
     export_run: u8[]: [1, PLAIN_NAME]
     export_run.push_name(RUN_INTERFACE)
     export_run.push(SORT_INSTANCE)
-    export_run.push_count(interface_count)
+    export_run.push_count(at.run_instance)
     export_run.push(NO_TYPE_ASCRIPTION)
     out.push_component_section(.Export, export_run)
 }
@@ -114,7 +159,7 @@ ComponentSectionId :: enum(u8) {
     Instance     = 5,
     Alias        = 6,
     Type         = 7,
-    Canon        = 8,
+    Canonical    = 8,
     Import       = 10,
     Export       = 11,
 }
@@ -128,6 +173,9 @@ INSTANCE_TYPE: u8: 0x42
 FUNC_TYPE_SYNC: u8: 0x40
 ASYNC_FUNC_TYPE: u8: 0x43
 RESULT_TYPE: u8: 0x6A
+ENUM_TYPE: u8: 0x6D
+STREAM_TYPE: u8: 0x66
+FUTURE_TYPE: u8: 0x65
 
 // An instance-type declaration of a type, and of an export.
 DECLARE_TYPE: u8: 0x01
@@ -136,17 +184,28 @@ DECLARE_EXPORT: u8: 0x04
 // The sorts, and the prefix that turns a sort byte into a core sort.
 CORE_SORT: u8: 0x00
 CORE_FUNC: u8: 0x00
+CORE_MEMORY: u8: 0x02
 SORT_FUNC: u8: 0x01
+SORT_TYPE: u8: 0x03
 SORT_INSTANCE: u8: 0x05
 CORE_SORT_INSTANCE: u8: 0x12
+
+// A type exported as equal to the type it names.
+TYPE_BOUND_EQ: u8: 0x00
 
 // A function type's results: one unnamed value, or none.
 ONE_RESULT: u8: 0x00
 NO_RESULT: u8[]: [0x01, 0x00]
-// A `result` case that carries nothing.
-NO_CASE_TYPE: u8: 0x00
+// An optional type left out, or given.
+NO_TYPE: u8: 0x00
+SOME_TYPE: u8: 0x01
 // The empty list of canonical options.
 NO_OPTIONS: u8: 0x00
+// The options of a built-in that copies through the memory 0 and returns
+// `BLOCKED` rather than wait.
+ASYNC_WITH_MEMORY: u8[]: [0x02, 0x06, 0x03, 0x00]
+// `waitable-set.wait` on the memory 0, which no cancellation interrupts.
+NOT_CANCELLABLE_ON_MEMORY: u8[]: [0x00, 0x00]
 // An import or export name that is a plain name, with no version or URL.
 PLAIN_NAME: u8: 0x00
 // An export whose type is not ascribed.
@@ -155,8 +214,8 @@ NO_TYPE_ASCRIPTION: u8: 0x00
 ALIAS_EXPORT: u8: 0x00
 ALIAS_CORE_EXPORT: u8: 0x01
 
-CANON_LIFT: u8: 0x00
-CANON_LOWER: u8: 0x01
+CANONICAL_LIFT: u8: 0x00
+CANONICAL_LOWER: u8: 0x01
 
 INSTANTIATE: u8: 0x00
 INSTANCE_OF_EXPORTS: u8: 0x01
@@ -169,44 +228,154 @@ count_functions :: fn(interfaces: ComponentInterface[]) -> i64 {
     return count
 }
 
-// One instance type per interface: each function declares its type, then exports
-// itself under it. Type indices are local to the instance type, so function `j`
-// has the type `j`.
-instance_types :: fn(interfaces: ComponentInterface[]) -> u8[] {
+// ---- types ----------------------------------------------------------------
+
+// The type indices of one scope, an instance type or the component itself, and
+// the definitions written in it. A type is defined once, before the first
+// definition that names it.
+TypeScope :: struct {
+    // In an instance type, each definition is a declaration, and an enum is
+    // exported under its name: an interface's functions name it by it.
+    in_instance: bool = false
+    // The declarations, or the definitions, in order.
+    items: u8[] = []
+    count: i64 = 0
+    // The index the next type takes.
+    next: i64 = 0
+    // The index of each type, by its `wit_type_text`.
+    indices: Map<string, i64> = Map<string, i64> {}
+}
+
+// The instance type of `interface`: each function declares its type, then
+// exports itself under it.
+instance_scope_of :: fn(interface: ComponentInterface) -> TypeScope {
+    scope :: TypeScope { .in_instance = true }
+    for f in interface.functions {
+        func_type :: scope.define(func_type_of(scope, f.type))
+        scope.declare_export(f.name, [SORT_FUNC], func_type)
+    }
+    return scope
+}
+
+instance_types :: fn(scopes: TypeScope[]) -> u8[] {
     out: u8[]: []
-    out.push_count(interfaces.len())
-    for interface in interfaces {
+    out.push_count(scopes.len())
+    for scope in scopes {
         out.push(INSTANCE_TYPE)
-        out.push_count(2 * interface.functions.len())
-        for j in 0..<interface.functions.len() {
-            f :: interface.functions[j]
-            out.push(DECLARE_TYPE)
-            out.push_func_type(f)
-            out.push(DECLARE_EXPORT)
-            out.push(PLAIN_NAME)
-            out.push_name(f.name)
-            out.push(SORT_FUNC)
-            out.push_count(j)
-        }
+        out.push_count(scope.count)
+        out.push_all(scope.items)
     }
     return out
 }
 
-push_func_type :: fn(out: u8[], f: ComponentFunction) -> void {
-    out.push(FUNC_TYPE_SYNC)
-    out.push_count(f.type.params.len())
-    for p in f.type.params {
+func_type_of :: fn(scope: TypeScope, f: WitFunction) -> u8[] {
+    out: u8[]: [FUNC_TYPE_SYNC]
+    out.push_count(f.params.len())
+    for p in f.params {
         out.push_name(p.name)
-        out.push(wit_type_byte(p.type))
+        out.push_value_type(scope, p.type)
     }
-    result :: f.type.result
+    result :: f.result
     if result == null {
         out.push_all(NO_RESULT)
     } else {
         out.push(ONE_RESULT)
-        out.push(wit_type_byte(result))
+        out.push_value_type(scope, result)
+    }
+    return out
+}
+
+// `t` as a value type: a primitive by its byte, any other type by the index of
+// its definition, written into the scope first when it is not there yet.
+push_value_type :: fn(out: u8[], scope: TypeScope, t: WitType) -> void {
+    if t is WitScalar {
+        out.push(wit_scalar_byte(t))
+        return
+    }
+    out.push_signed(scope.type_index(t))
+}
+
+push_optional_type :: fn(out: u8[], scope: TypeScope, t: WitType | null) -> void {
+    if t == null {
+        out.push(NO_TYPE)
+    } else {
+        out.push(SOME_TYPE)
+        out.push_value_type(scope, t)
     }
 }
+
+// The index of the type `t` in `scope`, defined there when it is not yet.
+type_index :: fn(scope: TypeScope, t: WitType) -> i64 {
+    key :: wit_type_text(t)
+    known :: scope.indices[key]
+    if known != null {
+        return known
+    }
+    definition: u8[]: []
+    match t {
+        is WitEnum                    -> {
+            definition.push(ENUM_TYPE)
+            definition.push_count(t.cases.len())
+            for c in t.cases {
+                definition.push_name(c)
+            }
+        }
+        is WitResult                  -> {
+            definition.push(RESULT_TYPE)
+            definition.push_optional_type(scope, t.ok)
+            definition.push_optional_type(scope, t.error)
+        }
+        is WitStream                  -> {
+            definition.push(STREAM_TYPE)
+            definition.push_optional_type(scope, t.element)
+        }
+        is WitFuture                  -> {
+            definition.push(FUTURE_TYPE)
+            definition.push_optional_type(scope, t.value)
+        }
+        is WitScalar | WitUnsupported -> panic("wasm: no component type to define for `${key}`")
+    }
+    defined :: scope.define(definition)
+    index :: if t is WitEnum && scope.in_instance { scope.export_type(t.name, defined) } else {
+        defined
+    }
+    scope.indices[key] = index
+    return index
+}
+
+// Write the definition of a type and return its index.
+define :: fn(scope: TypeScope, definition: u8[]) -> i64 {
+    if scope.in_instance {
+        scope.items.push(DECLARE_TYPE)
+    }
+    scope.items.push_all(definition)
+    scope.count += 1
+    return scope.take_index()
+}
+
+// Export the type `index` of an instance type under `name`, which gives it the
+// index the functions name.
+export_type :: fn(scope: TypeScope, name: string, index: i64) -> i64 {
+    scope.declare_export(name, [SORT_TYPE, TYPE_BOUND_EQ], index)
+    return scope.take_index()
+}
+
+// Declare the export of `index` under `name`, of the sort `sort` opens.
+declare_export :: fn(scope: TypeScope, name: string, sort: u8[], index: i64) -> void {
+    scope.items.push_all([DECLARE_EXPORT, PLAIN_NAME])
+    scope.items.push_name(name)
+    scope.items.push_all(sort)
+    scope.items.push_count(index)
+    scope.count += 1
+}
+
+take_index :: fn(scope: TypeScope) -> i64 {
+    index :: scope.next
+    scope.next += 1
+    return index
+}
+
+// ---- imports --------------------------------------------------------------
 
 // Interface `i` imported as the instance type `i`.
 interface_imports :: fn(interfaces: ComponentInterface[]) -> u8[] {
@@ -241,21 +410,126 @@ lowered_functions :: fn(count: i64) -> u8[] {
     out: u8[]: []
     out.push_count(count)
     for k in 0..<count {
-        out.push_all([CANON_LOWER, CORE_FUNC])
+        out.push_all([CANONICAL_LOWER, CORE_FUNC])
         out.push_count(k)
         out.push(NO_OPTIONS)
     }
     return out
 }
 
-// One core instance per interface, exporting its lowered functions, then the core
-// module instantiated with them: the core instance `i` serves the interface `i`,
-// and the module's instance comes last.
-core_instances :: fn(interfaces: ComponentInterface[]) -> u8[] {
+// ---- built-ins ------------------------------------------------------------
+
+// The types the built-ins work on, then the built-ins, core functions past the
+// lowered ones. An enum is the type the instance that declares it exports: the
+// futures the host hands back are of that type.
+push_builtin_sections :: fn(
+    out: u8[],
+    builtins: CanonicalBuiltin[],
+    scopes: TypeScope[],
+    types: TypeScope,
+) -> void {
+    enums: WitEnum[]: []
+    for b in builtins {
+        enums.push_enums_of(b.type)
+    }
+    if enums.len() > 0 {
+        aliases: u8[]: []
+        aliases.push_count(enums.len())
+        for e in enums {
+            aliases.push_all([SORT_TYPE, ALIAS_EXPORT])
+            aliases.push_count(exporting_instance(scopes, e))
+            aliases.push_name(e.name)
+            types.indices[wit_type_text(e)] = types.take_index()
+        }
+        out.push_component_section(.Alias, aliases)
+    }
+    canonical: u8[]: []
+    canonical.push_count(builtins.len())
+    for b in builtins {
+        canonical.push(canonical_opcode(b.kind))
+        t :: b.type
+        if t != null {
+            canonical.push_count(types.type_index(t))
+        }
+        canonical.push_all(builtin_options(b.kind))
+    }
+    if types.count > 0 {
+        definitions: u8[]: []
+        definitions.push_count(types.count)
+        definitions.push_all(types.items)
+        out.push_component_section(.Type, definitions)
+    }
+    out.push_component_section(.Canonical, canonical)
+}
+
+// Add the enums `t` names that `out` holds not yet.
+push_enums_of :: fn(out: WitEnum[], t: WitType | null) -> void {
+    if t == null {
+        return
+    }
+    match t {
+        is WitEnum                    -> {
+            key :: wit_type_text(t)
+            if !out.any_match((e) -> wit_type_text(e) == key) {
+                out.push(t)
+            }
+        }
+        is WitResult                  -> {
+            out.push_enums_of(t.ok)
+            out.push_enums_of(t.error)
+        }
+        is WitStream                  -> out.push_enums_of(t.element)
+        is WitFuture                  -> out.push_enums_of(t.value)
+        is WitScalar | WitUnsupported -> {}
+    }
+}
+
+// The imported instance whose type exports `e`.
+exporting_instance :: fn(scopes: TypeScope[], e: WitEnum) -> i64 {
+    key :: wit_type_text(e)
+    for i in 0..<scopes.len() {
+        if key in scopes[i].indices {
+            return i
+        }
+    }
+    panic("wasm: no interface exports `${e.name}`")
+}
+
+canonical_opcode :: fn(k: CanonicalKind) -> u8 = match k {
+    .StreamNew          -> 0x0E
+    .StreamWrite        -> 0x10
+    .StreamDropWritable -> 0x14
+    .FutureRead         -> 0x16
+    .FutureDropReadable -> 0x1A
+    .WaitableSetNew     -> 0x1F
+    .WaitableSetWait    -> 0x20
+    .WaitableSetDrop    -> 0x22
+    .WaitableJoin       -> 0x23
+}
+
+builtin_options :: fn(k: CanonicalKind) -> u8[] = match k {
+    .StreamNew          -> []
+    .StreamWrite        -> ASYNC_WITH_MEMORY
+    .StreamDropWritable -> []
+    .FutureRead         -> ASYNC_WITH_MEMORY
+    .FutureDropReadable -> []
+    .WaitableSetNew     -> []
+    .WaitableJoin       -> []
+    .WaitableSetWait    -> NOT_CANCELLABLE_ON_MEMORY
+    .WaitableSetDrop    -> []
+}
+
+// ---- instances ------------------------------------------------------------
+
+// One core instance per interface, exporting its lowered functions, then one of
+// the memory and the built-ins when there are, then the core module instantiated
+// with them. The interfaces' instances start at `first`.
+core_instances :: fn(c: WasmComponent, first: i64, function_count: i64) -> u8[] {
+    has_builtins :: c.builtins.len() > 0
     out: u8[]: []
-    out.push_count(interfaces.len() + 1)
+    out.push_count(c.interfaces.len() + 1 + core_instance_base(has_builtins))
     k: i64 = 0
-    for interface in interfaces {
+    for interface in c.interfaces {
         out.push(INSTANCE_OF_EXPORTS)
         out.push_count(interface.functions.len())
         for f in interface.functions {
@@ -265,23 +539,32 @@ core_instances :: fn(interfaces: ComponentInterface[]) -> u8[] {
             k += 1
         }
     }
-    // The core module `0`, the only one.
-    out.push_all([INSTANTIATE, 0x00])
-    out.push_count(interfaces.len())
-    for i in 0..<interfaces.len() {
-        out.push_name(interfaces[i].name)
+    if has_builtins {
+        out.push(INSTANCE_OF_EXPORTS)
+        out.push_count(c.builtins.len() + 1)
+        out.push_name(MEMORY_NAME)
+        out.push_all([CORE_MEMORY, 0])
+        for i in 0..<c.builtins.len() {
+            out.push_name(builtin_name(c.builtins[i]))
+            out.push(CORE_FUNC)
+            out.push_count(function_count + i)
+        }
+    }
+    // The core module past the memory's.
+    out.push(INSTANTIATE)
+    out.push_count(first)
+    out.push_count(c.interfaces.len() + core_instance_base(has_builtins))
+    for i in 0..<c.interfaces.len() {
+        out.push_name(c.interfaces[i].name)
         out.push(CORE_SORT_INSTANCE)
-        out.push_count(i)
+        out.push_count(first + i)
+    }
+    if has_builtins {
+        out.push_name(CANONICAL_MODULE)
+        out.push(CORE_SORT_INSTANCE)
+        out.push_count(first + c.interfaces.len())
     }
     return out
-}
-
-// The byte of a WIT scalar; `imports.vader` admits no other type yet.
-wit_type_byte :: fn(t: WitType) -> u8 {
-    if t !is WitScalar {
-        panic("wasm: a component type of a non-scalar")
-    }
-    return wit_scalar_byte(t)
 }
 
 wit_scalar_byte :: fn(t: WitScalar) -> u8 = match t {
@@ -353,4 +636,38 @@ test_encode_component_importing_a_clock :: fn() -> void {
     expected.push_all(RUN_INTERFACE.bytes())
     expected.push_all([0x05, 0x01, 0x00])
     assert_bytes(encode_component(component), expected)
+}
+
+// `wasi:cli/stdout@0.3.0` as the program calls it: each type defined before the
+// first that names it, the enum exported under its name, as `wasm-tools` encodes
+// each of them.
+@test
+test_instance_type_exports_the_enum_its_function_names :: fn() -> void {
+    error_code :: WitEnum { .name = "error-code", .cases = ["io", "illegal-byte-sequence", "pipe"] }
+    write :: ComponentFunction {
+        .name = "write-via-stream",
+        .type = WitFunction {
+            .params = [WitParam { .name = "data", .type = WitStream { .element = .U8 } }],
+            .result = WitFuture { .value = WitResult { .error = error_code } },
+        },
+    }
+    stdout :: ComponentInterface { .name = "wasi:cli/stdout@0.3.0", .functions = [write] }
+    expected: u8[]: [0x01, 0x42, 0x07]
+    expected.push_all([0x01, 0x66, 0x01, 0x7D])
+    expected.push_all([0x01, 0x6D, 0x03])
+    for c in error_code.cases {
+        expected.push_name(c)
+    }
+    expected.push_all([0x04, 0x00])
+    expected.push_name("error-code")
+    expected.push_all([0x03, 0x00, 0x01])
+    expected.push_all([0x01, 0x6A, 0x00, 0x01, 0x02])
+    expected.push_all([0x01, 0x65, 0x01, 0x03])
+    expected.push_all([0x01, 0x40, 0x01])
+    expected.push_name("data")
+    expected.push_all([0x00, 0x00, 0x04])
+    expected.push_all([0x04, 0x00])
+    expected.push_name("write-via-stream")
+    expected.push_all([0x01, 0x05])
+    assert_bytes(instance_types([instance_scope_of(stdout)]), expected)
 }
