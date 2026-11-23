@@ -58,7 +58,7 @@ vader_box_t std_iter$__gen_state_std_iter_0$Iterator$next(void* l0) {
                                 } else {
                                     t0 = ((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_state;
                                     if (t0 == INT32_C(9)) {
-                                        if (((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_s3.tag == 1048u) {
+                                        if (((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_s3.tag == 1083u) {
                                             ((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_state = INT32_C(5);
                                         } else {
                                             ((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_state = INT32_C(8);
@@ -73,7 +73,7 @@ vader_box_t std_iter$__gen_state_std_iter_0$Iterator$next(void* l0) {
                                         } else {
                                             t0 = ((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_state;
                                             if (!(t0 == INT32_C(11))) {
-                                                t2 = (void*) &vader_data_72;
+                                                t2 = (void*) &vader_data_73;
                                                 vader_array_t* _a1_slotarr = ((vader_array_t*) t2);
                                                 VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                                                 t2 = vader_array_ref_load_obj(_a1_slotarr->buf, vader_array_offset(_a1_slotarr) + (size_t) INT64_C(0));
@@ -108,7 +108,7 @@ vader_box_t std_iter$map__Any__string__(vader_box_t l0, void* l1) {
     l3 = vader_box_obj(0u, NULL);
     l4 = vader_box_obj(0u, NULL);
     vader_struct_std_iter$__gen_state_std_iter_0_t* _a0_obj = (vader_struct_std_iter$__gen_state_std_iter_0_t*) vader_gc_alloc(sizeof(vader_struct_std_iter$__gen_state_std_iter_0_t));
-    vader_obj_header_init(_a0_obj, 1055u);
+    vader_obj_header_init(_a0_obj, 1090u);
     _a0_obj->f_s0 = l0;
     _a0_obj->f_s1 = l1;
     _a0_obj->f_s2 = l2;

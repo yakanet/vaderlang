@@ -24,7 +24,7 @@ static inline bool vader_host_std_core$Intrinsic$is_ascii(vader_string_t a0) {
 }
 
 static inline void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 31u, 608u);
+    return (void*) vader_string_bytes_view(a0, 31u, 628u);
 }
 
 static inline vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
