@@ -1,25 +1,32 @@
 <idea-plugin>
     <id>dev.vaderlang.vader</id>
     <name>Vader</name>
-    <vendor email="yakanet@gmail.com" url="https://github.com/vaderlang">vaderlang</vendor>
+    <vendor email="yakanet@gmail.com" url="https://vaderlang.broutin.dev">vaderlang</vendor>
 
     <description><![CDATA[
-        Syntax highlighting plus full LSP-driven editor features for the
-        <a href="https://github.com/vaderlang">Vader</a> programming language.<br>
-        TextMate grammar is shared with the official VS Code extension.
-        Semantic features: goto-definition, hover with VaderDoc, semantic
-        tokens, diagnostics: are delivered by the Vader Language Server,
-        spawned via the <code>vader lsp</code> subcommand and wired through
-        <a href="https://plugins.jetbrains.com/plugin/23257-lsp4ij">LSP4IJ</a>.
-        Works on IntelliJ IDEA Community and Ultimate (as well as every
-        other IntelliJ-based IDE that supports LSP4IJ).
+        Support for the <a href="https://vaderlang.broutin.dev">Vader</a>
+        programming language.
+        <ul>
+            <li>Highlighting of <code>.vader</code> files and of the text
+                bytecode (<code>.virt</code>), with the TextMate grammar of the
+                VS Code extension.</li>
+            <li>Go to definition, hover with VaderDoc, semantic tokens,
+                diagnostics, formatting and workspace symbols, from the Vader
+                language server (<code>vader lsp</code>).</li>
+            <li>Run configurations, and the tests of a file or a module in the
+                test console.</li>
+            <li>A debugger, through <code>vader dap</code>.</li>
+            <li>Validation and completion of <code>vader.json</code>.</li>
+        </ul>
+        Requires <a href="https://plugins.jetbrains.com/plugin/23257-lsp4ij">LSP4IJ</a>,
+        the client this plugin drives the language server and the debugger
+        with. Works on every IntelliJ-based IDE from 2025.3 on.
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>org.jetbrains.plugins.textmate</depends>
     <depends>com.redhat.devtools.lsp4ij</depends>
-    <!-- JSON support, for the `vader.json` schema. A platform module up to
-         2024.2, a bundled plugin since: the same id names both. -->
+    <!-- JSON support, for the `vader.json` schema. -->
     <depends optional="true" config-file="vader-json.xml">com.intellij.modules.json</depends>
 
     <extensions defaultExtensionNs="com.intellij">

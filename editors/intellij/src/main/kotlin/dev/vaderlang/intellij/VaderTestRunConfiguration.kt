@@ -189,12 +189,14 @@ private class VaderTestSettingsEditor : SettingsEditor<VaderTestRunConfiguration
 
     init {
         file.addBrowseFolderListener(
-            "Select Vader File", null, null,
-            FileChooserDescriptorFactory.createSingleFileDescriptor("vader"),
+            null,
+            FileChooserDescriptorFactory.createSingleFileDescriptor("vader")
+                .withTitle("Select Vader File"),
         )
         folder.addBrowseFolderListener(
-            "Select Working Directory", null, null,
-            FileChooserDescriptorFactory.createSingleFolderDescriptor(),
+            null,
+            FileChooserDescriptorFactory.createSingleFolderDescriptor()
+                .withTitle("Select Working Directory"),
         )
     }
 

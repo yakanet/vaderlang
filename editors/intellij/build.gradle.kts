@@ -1,34 +1,37 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.intellij.platform")
 }
 
 group = "dev.vaderlang"
-version = "0.1.0"
+version = "0.2.0"
 
 dependencies {
     intellijPlatform {
-        // Community is enough now : we no longer rely on the bundled
-        // `com.intellij.platform.lsp` module (which only ships with
-        // commercial IDEs). LSP integration is delegated to LSP4IJ:
-        // a third-party plugin (EPL-2.0, Red Hat) that works on every
-        // IntelliJ-based IDE, Community included. The user installs
-        // LSP4IJ once from the Marketplace and our plugin layers on
-        // top of it.
-        intellijIdeaCommunity("2024.2")
+        // LSP4IJ, the LSP and DAP client, is not bundled: the user installs it
+        // from the Marketplace.
+        intellijIdea("2025.3")
         bundledPlugin("org.jetbrains.plugins.textmate")
-        plugin("com.redhat.devtools.lsp4ij:0.20.1")
+        bundledPlugin("com.intellij.modules.json")
+        plugin("com.redhat.devtools.lsp4ij:0.30.1")
     }
 }
 
 kotlin {
     jvmToolchain(21)
+    compilerOptions {
+        // The standard library is the one the IDE bundles: the API version is
+        // the one the oldest IDE of `sinceBuild` ships.
+        apiVersion = KotlinVersion.KOTLIN_2_2
+    }
 }
 
 intellijPlatform {
     pluginConfiguration {
         ideaVersion {
-            sinceBuild = "242"
+            sinceBuild = "253"
             untilBuild = provider { null }
         }
     }

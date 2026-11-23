@@ -1,6 +1,6 @@
 # Vader for JetBrains IDEs
 
-IntelliJ Platform plugin providing syntax highlighting **plus full LSP integration** for the [Vader](../../README.md) programming language. Works on every JetBrains IDE that supports [LSP4IJ](https://plugins.jetbrains.com/plugin/23257-lsp4ij): IntelliJ IDEA Community and Ultimate, PyCharm, WebStorm, RustRover, GoLand, CLion, …
+IntelliJ Platform plugin providing syntax highlighting **plus full LSP integration** for the [Vader](../../README.md) programming language. Works on every JetBrains IDE from 2025.3 on that supports [LSP4IJ](https://plugins.jetbrains.com/plugin/23257-lsp4ij): IntelliJ IDEA, PyCharm, WebStorm, RustRover, GoLand, CLion, ...
 
 ## Features
 
@@ -14,7 +14,7 @@ IntelliJ Platform plugin providing syntax highlighting **plus full LSP integrati
 
 ## Prerequisites
 
-This plugin depends on **[LSP4IJ](https://plugins.jetbrains.com/plugin/23257-lsp4ij)** (Red Hat, EPL-2.0). LSP4IJ is the generic LSP client we layer on top of: it handles the JSON-RPC plumbing, server lifecycle, PSI integration, and the Ctrl/Cmd-hover link preview that the IntelliJ Platform's native LSP API doesn't render.
+This plugin depends on **[LSP4IJ](https://plugins.jetbrains.com/plugin/23257-lsp4ij)** (Red Hat, EPL-2.0). LSP4IJ is the generic LSP and DAP client we layer on top of: it handles the JSON-RPC plumbing, server lifecycle, PSI integration, and the Ctrl/Cmd-hover link preview that the IntelliJ Platform's native LSP API doesn't render.
 
 Install LSP4IJ from the JetBrains Marketplace first :
 
@@ -30,7 +30,7 @@ You need a JDK 17+ on `PATH`. The Gradle wrapper is already committed, so no glo
 ./gradlew buildPlugin
 ```
 
-The packaged plugin lands in `build/distributions/vader-intellij-0.1.0.zip`.
+The packaged plugin lands in `build/distributions/vader-intellij-<version>.zip`.
 
 To run the JetBrains Plugin Verifier against several IDE versions (same checks as the Marketplace) :
 

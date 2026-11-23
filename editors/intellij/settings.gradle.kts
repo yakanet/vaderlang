@@ -4,13 +4,13 @@ rootProject.name = "vader-intellij"
 
 pluginManagement {
     plugins {
-        id("org.jetbrains.kotlin.jvm") version "2.1.20"
+        id("org.jetbrains.kotlin.jvm") version "2.4.21"
     }
 }
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-    id("org.jetbrains.intellij.platform.settings") version "2.16.0"
+    id("org.jetbrains.intellij.platform.settings") version "2.20.1"
 }
 
 @Suppress("UnstableApiUsage")

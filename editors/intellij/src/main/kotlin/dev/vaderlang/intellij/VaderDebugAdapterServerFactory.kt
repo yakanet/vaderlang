@@ -25,12 +25,6 @@ import com.redhat.devtools.lsp4ij.dap.descriptors.ServerReadyConfig
 // "Debug Adapter Protocol" run/debug configuration. The user creates one,
 // picks "Vader" as the server, and points it at a `.vader` file: there's no
 // automatic F5 gutter action like the VSCode extension.
-//
-// Compiles + packages against LSP4IJ 0.20.1 (compileKotlin + buildPlugin green
-// here). A live debug session hasn't been driven inside a running IDE: do a
-// `./gradlew runIde` smoke test (set a breakpoint in a `.vader` file, run a
-// "Debug Adapter Protocol" config selecting "Vader Debug Adapter") to confirm
-// end to end.
 internal class VaderDebugAdapterServerFactory : DebugAdapterDescriptorFactory() {
     override fun createDebugAdapterDescriptor(
         options: RunConfigurationOptions,

@@ -22,10 +22,10 @@ internal class VaderConfigurable : Configurable {
     override fun createComponent(): JComponent {
         val field = TextFieldWithBrowseButton()
         field.addBrowseFolderListener(
-            "Select Vader Executable",
-            "Path to the vader CLI binary used to spawn the language server.",
             null,
-            FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor(),
+            FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
+                .withTitle("Select Vader Executable")
+                .withDescription("Path to the vader CLI binary used to spawn the language server."),
         )
         pathField = field
 

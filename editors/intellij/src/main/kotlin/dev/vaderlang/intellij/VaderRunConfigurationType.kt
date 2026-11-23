@@ -27,9 +27,6 @@ import com.redhat.devtools.lsp4ij.templates.ServerMappingSettings
 // preset over LSP4IJ's DAP run configuration: we extend DAPRunConfiguration and
 // pin it to our registered "Vader Debug Adapter" (spawns `vader dap`), so we
 // reuse LSP4IJ's whole tested Run+Debug machinery instead of reimplementing it.
-//
-// Compiles + packages against LSP4IJ 0.20.1 here; the Run/Debug behaviour is a
-// manual in-IDE check (runIde).
 internal class VaderRunConfigurationType : ConfigurationTypeBase(
     "VaderRunConfiguration",
     "Vader",
@@ -50,8 +47,8 @@ internal class VaderConfigurationFactory(type: ConfigurationType) : Configuratio
         // NOTE: LSP4IJ's DAP API is version-sensitive (ServerMappingSettings /
         // DAPRunConfiguration signatures drift across releases), so the plugin
         // MUST be built against the LSP4IJ version actually installed: a mismatch
-        // throws NoSuchMethodError here at RunManager init. See build.gradle.kts
-        // (pinned to LSP4IJ 0.20.1).
+        // throws NoSuchMethodError here at RunManager init. The version built
+        // against is the LSP4IJ `plugin(...)` of build.gradle.kts.
         config.serverId = SERVER_ID
         config.serverName = SERVER_NAME
         config.debugMode = DebugMode.LAUNCH
