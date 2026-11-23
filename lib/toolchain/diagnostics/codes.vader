@@ -173,6 +173,7 @@ export TypecheckCode :: enum(CodeInfo) {
     ExportReturnLeftToInference     { .id = "T3148", .message = "an exported function leaves its return type to inference" },
     ExportConstTypeLeftToInference  { .id = "T3149", .message = "an exported constant leaves its type to inference" },
     ParameterBesideNullHoldsNull    { .id = "T3150", .message = "a type parameter written beside `null` cannot hold `null`" },
+    UnionVariantsShareTag           { .id = "T3151", .message = "two variants of a union carry the same run-time type" },
 }
 
 // Parser-pass codes.

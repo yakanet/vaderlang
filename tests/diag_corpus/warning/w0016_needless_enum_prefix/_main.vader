@@ -5,7 +5,7 @@
 module "snippet"
 
 Color :: enum(u8) { Red, Green }
-Fruit :: enum(u8) { Red, Banana }
+Fruit :: enum(u16) { Red, Banana }
 
 paint :: fn(c: Color) -> i32 = if c == .Red { 1 } else { 2 }
 
@@ -18,8 +18,9 @@ unpinned :: fn() -> Color {
     return c
 }
 
-// Quiet: the slot is a union carrying two enums that share `Red`. The bare
-// form would resolve to `Color`, so the prefix is what picks `Fruit`.
+// Quiet: the slot is a union carrying two enums that share `Red`, of two widths
+// so that the union tells them apart. The bare form would resolve to `Color`, so
+// the prefix is what picks `Fruit`.
 ambiguous :: fn() -> Color | Fruit = Fruit.Red
 
 // Quiet: at an argument of an OVERLOADED call the prefix is what picks the

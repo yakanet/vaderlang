@@ -364,7 +364,31 @@ lower_binary :: fn(
     for v in AST.collect_bitor_variants(e) {
         variants.push(type_from_expr(v, resolved, diags))
     }
-    return union_of(variants)
+    joined :: union_of(variants)
+    if joined is UnionType {
+        check_union_tags(joined, e.span, diags)
+    }
+    return joined
+}
+
+// T3151 when two variants of `u` carry one run-time type: a union value could not
+// tell which it holds.
+check_union_tags :: fn(u: UnionType, span: Span, diags: Diagnostic[]) -> void {
+    if !u.variants.any_match(may_share_tag) {
+        return
+    }
+    for i in 0..<u.variants.len() {
+        tag :: union_tag_name(u.variants[i]) else continue
+        for j in i + 1..<u.variants.len() {
+            if union_tag_name(u.variants[j]) == tag {
+                first :: display_type(u.variants[i])
+                second :: display_type(u.variants[j])
+                detail :: "`${first}` and `${second}` are both carried as `${tag}`"
+                diags.push(typecheck_error(.UnionVariantsShareTag, span, detail))
+                return
+            }
+        }
+    }
 }
 
 // `Int in lo..=hi` : the range over the abstract integer, the only base a range

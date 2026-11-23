@@ -313,6 +313,30 @@ any_contains_range :: fn(types: Type[], refinements: bool) -> bool {
 
 // ---- overlap and subtraction ----------------------------------------------
 
+/// Name the run-time type a union tags a value of `t` with, which no two variants
+/// of one union may share (T3151).
+///
+/// An enum is tagged as its integer, a distinct as its backing, an integer type as
+/// the integer it is held in, a primitive or an array as itself. A struct tags
+/// itself.
+///
+/// @param t  a variant of a union.
+/// @return   the tag's name ; null for a struct and any other type that tags
+///           itself or carries no tag.
+export union_tag_name :: fn(t: Type) -> string | null {
+    held :: strip_distinct(t)
+    if held is EnumType | RangeType | PrimitiveType | ArrayType {
+        return representation_name(held)
+    }
+    return null
+}
+
+/// Whether `t`, a variant of a union, may share its tag with another : only an
+/// enum, an integer type or a distinct is tagged as something else than itself.
+///
+/// @param t  a variant of a union.
+export may_share_tag :: fn(t: Type) -> bool = t is EnumType | RangeType | DistinctType
+
 /// Do `a` and `b` share any concrete runtime value ? Powers T3040
 /// ("test can never match") and the match-arm overlap check.
 /// UnionType on either side recurses into its variants.

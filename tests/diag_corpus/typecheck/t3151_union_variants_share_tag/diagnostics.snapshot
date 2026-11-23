@@ -1,0 +1,4 @@
+[12:27] error[T3151] two variants of a union carry the same run-time type: `Color` and `Fruit` are both carried as `u8`
+[13:34] error[T3151] two variants of a union carry the same run-time type: `Fruit` and `u8` are both carried as `u8`
+[14:38] error[T3151] two variants of a union carry the same run-time type: `Path` and `string` are both carried as `string`
+[15:35] error[T3151] two variants of a union carry the same run-time type: `Hour` and `u8` are both carried as `u8`
