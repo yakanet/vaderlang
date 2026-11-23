@@ -69,31 +69,26 @@ new_defer_stack :: fn(ctx: ModuleCtx) -> i32 {
 
 // The defer stack, made empty on the first read. The array has no type of the
 // bytecode, which nothing tests it against.
-defer_array :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+defer_array :: fn(ctx: ModuleCtx) -> WasmExpression {
     global :: defer_stack(ctx)
-    empty: WasmInstr[]: [ArrayNewFixed { .type_index = storage_type(ctx.gc, .EqRef), .length = 0 }]
-    out: WasmInstr[]: [
-        GlobalGet { .index = global },
-        Plain { .op = .RefIsNull },
-        Plain { .op = .If },
-    ]
-    out.push_new_header(ctx.gc, full_header(-1, REFERENCE_ACCESS, 0, empty))
-    out.push_all(
-        [GlobalSet { .index = global }, Plain { .op = .End }, GlobalGet { .index = global }],
+    empty :: array_new_fixed(storage_type(ctx.gc, .EqRef), [])
+    made :: new_header(ctx.gc, full_fields(-1, REFERENCE_ACCESS, 0, empty))
+    return sequence(
+        [
+            when(unary(.RefIsNull, global_get(global)), [global_set(global, made)]),
+            global_get(global),
+        ],
     )
-    return out
 }
 
 // `(closure) -> ()`: append the closure to the defer stack.
-defer_push :: fn(ctx: ModuleCtx) -> i32 {
-    known :: ctx.helpers["defer.push"]
-    if known != null {
-        return known
-    }
-    body :: defer_array(ctx)
-    body.push_all([LocalGet { .index = 0 }, Call { .function_index = ctx.array_push(.EqRef) }])
-    signature :: WasmFuncType { .params = [.EqRef], .results = [] }
-    return ctx.define_helper("defer.push", signature, [], body)
+defer_push :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["defer.push"] else define_defer_push(ctx)
+
+define_defer_push :: fn(ctx: ModuleCtx) -> i32 {
+    closure :: 0
+    frame :: HelperFrame { .signature = func_of([.EqRef], []) }
+    body: WasmExpression[]: [call(ctx.array_push(.EqRef), [defer_array(ctx), local_get(closure)])]
+    return ctx.define_tree_helper("defer.push", frame, body)
 }
 
 // `(count: i32) -> ()`: run the last `count` closures of the defer stack, the
@@ -105,50 +100,28 @@ defer_pop_exec :: fn(ctx: ModuleCtx) -> i32 {
     }
     // Reserved first: a bounds check of the array helpers it calls panics,
     // which drains the defers through it.
-    signature :: WasmFuncType { .params = [.I32], .results = [] }
-    index :: ctx.reserve_helper("defer.pop_exec", signature)
+    frame :: HelperFrame { .signature = func_of([.I32], []) }
+    index :: ctx.reserve_helper("defer.pop_exec", frame.signature)
     count :: 0
-    done :: 1
-    closure :: 2
-    each :: defer_array(ctx)
-    each.push_all(
-        [Call { .function_index = ctx.array_remove_last() }, LocalSet { .index = closure }],
-    )
-    each.push_entry_call(ctx, closure, 0)
-    each.push(Plain { .op = .Drop })
-    body: WasmInstr[]: []
-    body.push_counted_loop(.I32, done, count, each)
-    ctx.fill_helper(index, [.I32, .EqRef], body)
+    done :: frame.local(.I32)
+    closure :: frame.local(.EqRef)
+    each: WasmExpression[]: [
+        local_set(closure, call(ctx.array_remove_last(), [defer_array(ctx)])),
+        drop(ctx.entry_call(closure, [])),
+    ]
+    ctx.fill_tree_helper(index, frame, [repeat(.I32, done, count, each)])
     return index
 }
 
-// How many closures the defer stack holds, the stack made on the first read.
-push_defer_count :: fn(body: WasmInstr[], ctx: ModuleCtx) -> void {
-    body.push_all(defer_array(ctx))
-    body.push_all(
-        [
-            header_of(ctx.gc),
-            StructGet { .type_index = ctx.gc.array_header, .field_index = HEADER_LENGTH },
-        ],
-    )
-}
-
-// Call the function value in the local `value` with the `count` arguments on
-// the stack, through its entry: its environment, then its slot.
-push_entry_call :: fn(body: WasmInstr[], ctx: ModuleCtx, value: i32, count: i64) -> void {
+// A call of the function value in the local `value` with `arguments`, through
+// its entry: its environment, then its slot.
+entry_call :: fn(ctx: ModuleCtx, value: i32, arguments: WasmExpression[]) -> WasmExpression {
     ctx.table_read = true
     closure :: ctx.gc.closure
-    body.push_all(
-        [
-            LocalGet { .index = value },
-            RefCast { .type_index = closure },
-            StructGet { .type_index = closure, .field_index = CLOSURE_ENVIRONMENT },
-            LocalGet { .index = value },
-            RefCast { .type_index = closure },
-            StructGet { .type_index = closure, .field_index = CLOSURE_SLOT },
-            CallIndirect { .type_index = ctx.types.intern(entry_signature(count)) },
-        ],
-    )
+    environment :: struct_get(closure, CLOSURE_ENVIRONMENT, local_get(value))
+    slot :: struct_get(closure, CLOSURE_SLOT, local_get(value))
+    indirect :: CallIndirect { .type_index = ctx.types.intern(entry_signature(arguments.len())) }
+    return apply(indirect, arguments + [environment, slot])
 }
 
 // The signature of every entry of `count` arguments: each boxed, then the
@@ -174,7 +147,8 @@ closure_entry :: fn(
     }
     t :: ctx.function_type(type_id, function) else return t
     body :: ctx.entry_body(function_index, t.params.len(), lifted, function) else return body
-    index :: ctx.define_helper(key, entry_signature(t.params.len()), [], body)
+    frame :: HelperFrame { .signature = entry_signature(t.params.len()) }
+    index :: ctx.define_tree_helper(key, frame, body)
     slot :: i32(ctx.table.len())
     ctx.table.push(index)
     ctx.table_slots[key] = slot
@@ -194,7 +168,7 @@ entry_body :: fn(
     count: i64,
     lifted: bool,
     function: string,
-) -> WasmInstr[] | WasmUnsupported {
+) -> WasmExpression[] | WasmUnsupported {
     target :: ctx.module.functions[function_index]
     params :: target.signature.params
     first: i64: if lifted { 1 } else { 0 }
@@ -203,23 +177,25 @@ entry_body :: fn(
             .reason = "`${function}`: `${target.name}` takes ${params.len()} values for ${count + first}",
         }
     }
-    body: WasmInstr[]: []
+    // The environment of a lifted body comes past the arguments, and goes first.
+    arguments: WasmExpression[]: []
     if lifted {
-        body.push(LocalGet { .index = i32(count) })
-        held :: body.push_class_change(ctx, .Any, params[0], function) else return held
+        environment :: class_changed(ctx, local_get(i32(count)), .Any, params[0], function)
+            else return environment
+        arguments.push(environment)
     }
     for i in 0..<count {
-        body.push(LocalGet { .index = i32(i) })
-        held :: body.push_class_change(ctx, .Any, params[i + first], function) else return held
+        argument :: class_changed(ctx, local_get(i32(i)), .Any, params[i + first], function)
+            else return argument
+        arguments.push(argument)
     }
-    body.push(Call { .function_index = ctx.first_function + function_index })
+    called :: call(ctx.first_function + function_index, arguments)
     produced :: result_values(target.signature.results)
     if produced.len() == 0 {
-        body.push(RefNull {})
-        return body
+        return [called, ref_null()]
     }
-    held :: body.push_class_change(ctx, produced[0], .Any, function) else return held
-    return body
+    returned :: class_changed(ctx, called, produced[0], .Any, function) else return returned
+    return [returned]
 }
 
 // The helper a `call.indirect` of the function type `type_id` calls, the
@@ -240,27 +216,22 @@ indirect_call :: fn(
     if known != null {
         return known
     }
-    body: WasmInstr[]: []
+    arguments: WasmExpression[]: []
     for i in 0..<count {
-        body.push(LocalGet { .index = i32(i) })
-        boxed :: body.push_adapted(
-            ctx,
-            site[i],
-            class_of_type(types[t.params[i]]),
-            .EqRef,
-            function,
-        )
-            else return boxed
+        class :: class_of_type(types[t.params[i]])
+        boxed :: adapted(ctx, local_get(i32(i)), site[i], class, .EqRef, function) else return boxed
+        arguments.push(boxed)
     }
-    body.push_entry_call(ctx, i32(count), count)
+    // The function value comes past the arguments.
+    called :: ctx.entry_call(i32(count), arguments)
+    frame :: HelperFrame { .signature = signature }
     if signature.results.len() == 0 {
-        body.push(Plain { .op = .Drop })
-    } else {
-        returned :: class_of_type(types[t.return_type])
-        unboxed :: body.push_adapted(ctx, .EqRef, returned, signature.results[0], function)
-            else return unboxed
+        return ctx.define_tree_helper(key, frame, [drop(called)])
     }
-    return ctx.define_helper(key, signature, [], body)
+    returned :: class_of_type(types[t.return_type])
+    unboxed :: adapted(ctx, called, .EqRef, returned, signature.results[0], function)
+        else return unboxed
+    return ctx.define_tree_helper(key, frame, [unboxed])
 }
 
 // The fields of the closure type.

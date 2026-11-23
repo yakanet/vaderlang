@@ -197,7 +197,7 @@ ModuleCtx :: struct {
     table_read: bool = false
     // The global of the defer stack, once a helper reads it (`closures.vader`).
     defers: i32 | null = null
-    // Whether a function pushes a defer, which a trap then runs (`push_trap_if`).
+    // Whether a function pushes a defer, which a trap then runs (`trap_if`).
     has_defers: bool = false
 }
 
@@ -330,16 +330,17 @@ call_target :: fn(
     if known != null {
         return known
     }
-    body: WasmInstr[]: []
+    arguments: WasmExpression[]: []
     for i in 0..<params.len() {
-        body.push(LocalGet { .index = i32(i) })
         class :: if params[i] == .EqRef { class_held_as(site[i]) } else {
             callee.signature.params[i]
         }
-        adapted :: body.push_adapted(ctx, site[i], class, params[i], function) else return adapted
+        argument :: adapted(ctx, local_get(i32(i)), site[i], class, params[i], function)
+            else return argument
+        arguments.push(argument)
     }
-    body.push(Call { .function_index = direct })
-    return ctx.define_helper(key, signature, [], body)
+    frame :: HelperFrame { .signature = signature }
+    return ctx.define_tree_helper(key, frame, [call(direct, arguments)])
 }
 
 // Whether the `params.len()` values on top of `stack` are held as `params` are.
@@ -729,19 +730,13 @@ panic_function :: fn(ctx: ModuleCtx) -> i32 {
         return known
     }
     // Reserved first: the drain checks its bounds through `panic` itself
-    // (`push_trap_if`).
+    // (`trap_if`).
     signature :: WasmFuncType { .params = [.I32], .results = [] }
     index :: ctx.reserve_helper("panic", signature)
-    body: WasmInstr[]: []
-    body.push_defer_count(ctx)
-    body.push_all(
-        [
-            Plain { .op = .I32WrapI64 },
-            Call { .function_index = ctx.defer_pop_exec() },
-            Plain { .op = .Unreachable },
-        ],
-    )
-    ctx.fill_helper(index, [], body)
+    frame :: HelperFrame { .signature = signature }
+    count :: header_get(ctx.gc, defer_array(ctx), HEADER_LENGTH)
+    drain :: call(ctx.defer_pop_exec(), [i32_wrap_i64(count)])
+    ctx.fill_tree_helper(index, frame, [drain, unreachable()])
     return index
 }
 
@@ -751,15 +746,12 @@ OS_WASI: i32: 3
 ARCH_WASM32: i32: 2
 
 // `() -> i32`: `value`, under `key`.
-constant_function :: fn(ctx: ModuleCtx, key: string, value: i32) -> i32 {
-    signature :: WasmFuncType { .params = [], .results = [.I32] }
-    return ctx.helpers[key] else ctx.define_helper(
+constant_function :: fn(ctx: ModuleCtx, key: string, value: i32) -> i32 =
+    ctx.helpers[key] else ctx.define_tree_helper(
         key,
-        signature,
-        [],
-        [I32Const { .value = value }],
+        HelperFrame { .signature = func_of([], [.I32]) },
+        [i32_const(value)],
     )
-}
 
 // The function a call to the `Intrinsic` member `imp` reaches.
 intrinsic_function :: fn(

@@ -3,7 +3,7 @@
 // The module's vtables list, for each `Trait.method`, the type of each receiver
 // that implements it and the function that does. A virtual call calls a
 // dispatcher, one per vtable and per shape of call: it tests the receiver against
-// each type in turn, as `is` does (`push_single_test`), and calls the
+// each type in turn, as `is` does (`single_test`), and calls the
 // implementation of the first that matches, the receiver and the arguments in
 // the forms the implementation takes, its result in the form the call leaves. A
 // receiver no row matches stops the run.
@@ -47,55 +47,45 @@ dispatcher :: fn(
     if known != null {
         return known
     }
-    body: WasmInstr[]: []
+    body: WasmExpression[]: []
     row :: ctx.module.vtables.find((r) -> r.key == op.vtable_key)
     if row != null {
         for entry in row.entries.filter((e) -> answers(ctx, e.fn_index, op)) {
-            receiver :: site_slot(0, site.len())
-            opened :: body.push_receiver_test(ctx, receiver, entry.receiver_type_index, function)
-                else return opened
-            called :: body.push_implementation(ctx, entry.fn_index, site, op, function)
+            called :: ctx.implementation_call(entry.fn_index, site, op, function)
                 else return called
-            body.push(Plain { .op = .Return })
-            for _ in 0..<opened {
-                body.push(Plain { .op = .End })
-            }
+            receiver :: site_slot(0, site.len())
+            tested :: ctx.receiver_test(
+                receiver,
+                entry.receiver_type_index,
+                [return_([called])],
+                function,
+            )
+                else return tested
+            body.push(tested)
         }
     }
-    body.push(Plain { .op = .Unreachable })
-    return ctx.define_helper(key, signature, [], body)
+    body.push(unreachable())
+    return ctx.define_tree_helper(key, HelperFrame { .signature = signature }, body)
 }
 
-// Open the scopes the receiver in the local `receiver` enters when it is of
-// `type_id`, and return how many. A function value is of the function type it
-// was made as, which `is` does not test (`push_single_test`) but a dispatch does.
-push_receiver_test :: fn(
-    body: WasmInstr[],
+// `then` when the receiver in the local `receiver` is of `type_id`. A function
+// value is of the function type it was made as, which `is` does not test
+// (`single_test`) but a dispatch does.
+receiver_test :: fn(
     ctx: ModuleCtx,
     receiver: i32,
     type_id: i32,
+    then: WasmExpression[],
     function: string,
-) -> i32 | WasmUnsupported {
-    closure :: ctx.gc.closure
-    body.push(LocalGet { .index = receiver })
+) -> WasmExpression | WasmUnsupported {
+    value :: local_get(receiver)
     if ctx.module.types[type_id] is Bc.BcFn {
-        body.push_all(
-            [
-                RefTest { .type_index = closure },
-                Plain { .op = .If },
-                LocalGet { .index = receiver },
-                RefCast { .type_index = closure },
-                StructGet { .type_index = closure, .field_index = CLOSURE_TYPE },
-                I32Const { .value = type_id },
-                Plain { .op = .I32Eq },
-                Plain { .op = .If },
-            ],
-        )
-        return 2
+        closure :: ctx.gc.closure
+        made_as :: i32_eq(struct_get(closure, CLOSURE_TYPE, value), i32_const(type_id))
+        return when(ref_test(closure, value), [when(made_as, then)])
     }
-    tested :: push_single_test(ctx, body, type_id, function) else return tested
-    body.push(Plain { .op = .If })
-    return 1
+    tested :: single_test(ctx, value, type_id, function) else return tested
+    return when(tested, then)
 }
 
 // Whether the impl `fn_index` may answer the site `op`: one of the trait under
@@ -117,16 +107,15 @@ answers :: fn(ctx: ModuleCtx, fn_index: i32, op: Bc.VirtualCall) -> bool {
     return true
 }
 
-// Call the implementation `fn_index` with the dispatcher's parameters, each in
-// the form it takes, and leave its result in the form the call leaves.
-push_implementation :: fn(
-    body: WasmInstr[],
+// A call of the implementation `fn_index` with the dispatcher's parameters,
+// each in the form it takes, its result in the form the call leaves.
+implementation_call :: fn(
     ctx: ModuleCtx,
     fn_index: i32,
     site: WasmValType[],
     op: Bc.VirtualCall,
     function: string,
-) -> void | WasmUnsupported {
+) -> WasmExpression | WasmUnsupported {
     implementation :: ctx.module.functions[fn_index]
     params :: implementation.signature.params
     if params.len() != site.len() {
@@ -134,14 +123,15 @@ push_implementation :: fn(
             .reason = "`${function}`: `${implementation.name}` takes ${params.len()} values for ${site.len()}",
         }
     }
+    arguments: WasmExpression[]: []
     for i in 0..<params.len() {
         slot :: site_slot(i, site.len())
-        body.push(LocalGet { .index = slot })
         held :: scalar_field_type(params[i])
-        adapted :: body.push_adapted(ctx, site[slot], params[i], held, function)
-            else return adapted
+        argument :: adapted(ctx, local_get(slot), site[slot], params[i], held, function)
+            else return argument
+        arguments.push(argument)
     }
-    body.push(Call { .function_index = ctx.first_function + fn_index })
+    called :: call(ctx.first_function + fn_index, arguments)
     produced :: result_values(implementation.signature.results)
     wanted :: result_values(op.results)
     if produced.len() != wanted.len() {
@@ -150,8 +140,9 @@ push_implementation :: fn(
         }
     }
     if produced.len() == 1 {
-        return body.push_class_change(ctx, produced[0], wanted[0], function)
+        return class_changed(ctx, called, produced[0], wanted[0], function)
     }
+    return called
 }
 
 // The dispatcher's parameter that holds the implementation's parameter `i`: the

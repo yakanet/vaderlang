@@ -27,11 +27,9 @@ data_function :: fn(ctx: ModuleCtx, op: Bc.DataConst, function: string) -> i32 |
     access :: array_access(ctx, op.type_id, function) else return access
     storage :: ctx.data_storage(op.pool_index, entry, storage_of_access(access), function)
         else return storage
-    elements: WasmInstr[]: [Call { .function_index = storage }]
     count :: values_of(entry).len()
-    header: WasmInstr[]: []
-    header.push_new_header(ctx.gc, full_header(op.type_id, access, count, elements))
-    return ctx.define_cached(key, header)
+    header :: full_fields(op.type_id, access, count, call(storage, []))
+    return ctx.define_cached(key, new_header(ctx.gc, header))
 }
 
 // The values of the pool entry `entry`, each a leaf or an aggregate.
@@ -65,100 +63,95 @@ data_storage :: fn(
     if known != null {
         return known
     }
-    elements: WasmInstr[]: []
-    built :: elements.push_storage_of(ctx, values_of(entry), storage, function) else return built
+    elements :: ctx.storage_of_values(values_of(entry), storage, function) else return elements
     return ctx.define_cached(key, elements)
 }
 
-// Push a storage of `storage` holding `values`.
-push_storage_of :: fn(
-    body: WasmInstr[],
+// A storage of `storage` holding `values`.
+storage_of_values :: fn(
     ctx: ModuleCtx,
     values: Bc.BcDataValue[],
     storage: WasmStorageType,
     function: string,
-) -> void | WasmUnsupported {
+) -> WasmExpression | WasmUnsupported {
     if values.len() > NEW_FIXED_GREATEST {
         return WasmUnsupported {
             .reason = "`${function}`: a pool of over ${NEW_FIXED_GREATEST} elements",
         }
     }
     held :: held_of_storage(storage)
+    elements: WasmExpression[]: []
     for value in values {
-        pushed :: body.push_value(ctx, value, held, function) else return pushed
+        element :: ctx.baked_value(value, held, function) else return element
+        elements.push(element)
     }
-    body.push(
-        ArrayNewFixed { .type_index = storage_type(ctx.gc, storage), .length = i32(values.len()) },
-    )
+    return array_new_fixed(storage_type(ctx.gc, storage), elements)
 }
 
-// Push the baked value `value`, held as `held`.
-push_value :: fn(
-    body: WasmInstr[],
+// The baked value `value`, held as `held`.
+baked_value :: fn(
     ctx: ModuleCtx,
     value: Bc.BcDataValue,
     held: WasmValType,
     function: string,
-) -> void | WasmUnsupported {
-    match value {
-        is Bc.BcValPrim   -> {
-            class :: class_of_kind(value.kind)
-            body.push(data_constant(class, value.bits))
-            return body.push_baked_as(ctx, class, held, function)
-        }
-        is Bc.BcValStr    -> {
-            atom :: ctx.literals.atoms[value.value] else {
-                return WasmUnsupported {
-                    .reason = "`${function}`: a pooled string out of the table",
-                }
-            }
-            body.push(I32Const { .value = atom })
-            return body.push_baked_as(ctx, .String, held, function)
-        }
-        is Bc.BcValStruct -> {
-            types :: ctx.module.types
-            index :: Bc.struct_symbol_type_index(types, value.symbol_id)
-            declared :: Bc.struct_at(types, index) else {
-                return WasmUnsupported {
-                    .reason = "`${function}`: a pooled struct out of the table",
-                }
-            }
-            for i in 0..<value.fields.len() {
-                field_held :: field_type_of(types[declared.fields[i].type_index])
-                pushed :: body.push_value(ctx, value.fields[i], field_held, function)
-                    else return pushed
-            }
-            made :: struct_type(ctx, index, function) else return made
-            body.push(StructNew { .type_index = made })
-        }
-        is Bc.BcValArray  -> {
-            access :: array_access(ctx, value.type_id, function) else return access
-            elements: WasmInstr[]: []
-            built :: elements.push_storage_of(
-                ctx,
-                value.elements,
-                storage_of_access(access),
-                function,
-            )
-                else return built
-            count :: value.elements.len()
-            body.push_new_header(ctx.gc, full_header(value.type_id, access, count, elements))
-        }
+) -> WasmExpression | WasmUnsupported = match value {
+    is Bc.BcValPrim   -> {
+        class :: class_of_kind(value.kind)
+        adapted(
+            ctx,
+            apply(data_constant(class, value.bits), []),
+            scalar_field_type(class),
+            class,
+            held,
+            function,
+        )
     }
+    is Bc.BcValStr    -> ctx.baked_string(value.value, held, function)
+    is Bc.BcValStruct -> ctx.baked_struct(value, function)
+    is Bc.BcValArray  -> ctx.baked_array(value, function)
 }
 
-// Bring a baked scalar of `class`, on the stack as its class holds it, to
-// being held as `held`.
-push_baked_as :: fn(
-    body: WasmInstr[],
+baked_string :: fn(
     ctx: ModuleCtx,
-    class: Bc.ValType,
+    text: string,
     held: WasmValType,
     function: string,
-) -> void | WasmUnsupported {
-    if !body.push_held_as(ctx.gc, scalar_field_type(class), held, class) {
-        return WasmUnsupported { .reason = "`${function}`: a baked value changes class" }
+) -> WasmExpression | WasmUnsupported {
+    atom :: ctx.literals.atoms[text] else {
+        return WasmUnsupported { .reason = "`${function}`: a pooled string out of the table" }
     }
+    return adapted(ctx, i32_const(atom), scalar_field_type(.String), .String, held, function)
+}
+
+baked_struct :: fn(
+    ctx: ModuleCtx,
+    value: Bc.BcValStruct,
+    function: string,
+) -> WasmExpression | WasmUnsupported {
+    types :: ctx.module.types
+    index :: Bc.struct_symbol_type_index(types, value.symbol_id)
+    declared :: Bc.struct_at(types, index) else {
+        return WasmUnsupported { .reason = "`${function}`: a pooled struct out of the table" }
+    }
+    fields: WasmExpression[]: []
+    for i in 0..<value.fields.len() {
+        field_held :: field_type_of(types[declared.fields[i].type_index])
+        field :: ctx.baked_value(value.fields[i], field_held, function) else return field
+        fields.push(field)
+    }
+    made :: struct_type(ctx, index, function) else return made
+    return struct_new(made, fields)
+}
+
+baked_array :: fn(
+    ctx: ModuleCtx,
+    value: Bc.BcValArray,
+    function: string,
+) -> WasmExpression | WasmUnsupported {
+    access :: array_access(ctx, value.type_id, function) else return access
+    elements :: ctx.storage_of_values(value.elements, storage_of_access(access), function)
+        else return elements
+    return new_header(ctx.gc, full_fields(value.type_id, access, value.elements.len(), elements))
 }
 
 // The class of a baked scalar of `kind`.
@@ -178,26 +171,16 @@ class_of_kind :: fn(kind: Bc.ArrayKind) -> Bc.ValType = match kind {
     .Boxed | .Ref -> .Any
 }
 
-// `() -> eqref`: what `build` leaves, built on the first call and kept in a
-// global, which every later call returns.
-define_cached :: fn(ctx: ModuleCtx, key: string, build: WasmInstr[]) -> i32 {
+// `() -> eqref`: `built`, built on the first call and kept in a global, which
+// every later call returns.
+define_cached :: fn(ctx: ModuleCtx, key: string, built: WasmExpression) -> i32 {
     global :: i32(ctx.globals.len())
     ctx.globals.push(.EqRef)
-    body: WasmInstr[]: [
-        GlobalGet { .index = global },
-        Plain { .op = .RefIsNull },
-        Plain { .op = .If },
+    body: WasmExpression[]: [
+        when(unary(.RefIsNull, global_get(global)), [global_set(global, built)]),
+        global_get(global),
     ]
-    body.push_all(build)
-    body.push_all(
-        [
-            GlobalSet { .index = global },
-            Plain { .op = .End },
-            GlobalGet { .index = global },
-        ],
-    )
-    signature :: WasmFuncType { .params = [], .results = [.EqRef] }
-    return ctx.define_helper(key, signature, [], body)
+    return ctx.define_tree_helper(key, HelperFrame { .signature = func_of([], [.EqRef]) }, body)
 }
 
 // The constant of a baked scalar of `class`, its bits at the class's width.

@@ -356,51 +356,7 @@ push_header :: fn(
 ) -> void {
     storage :: scratch.local_of(.EqRef)
     out.push(LocalSet { .index = storage })
-    out.push_new_header(
-        ctx.gc,
-        full_header(type_id, access, length, [LocalGet { .index = storage }]),
-    )
-}
-
-// A header, each field what its instructions leave.
-HeaderParts :: struct {
-    type_id: WasmInstr[]
-    element: WasmInstr[]
-    length: WasmInstr[]
-    capacity: WasmInstr[]
-    offset: WasmInstr[] = [I32Const { .value = 0 }]
-    storage: WasmInstr[]
-    shared: WasmInstr[] = [I32Const { .value = 0 }]
-}
-
-// The header of `length` elements of the array type `type_id`, as many as its
-// storage holds.
-full_header :: fn(
-    type_id: i32,
-    access: ElementAccess,
-    length: i64,
-    storage: WasmInstr[],
-) = HeaderParts {
-    .type_id = [I32Const { .value = type_id }],
-    .element = [I32Const { .value = element_code(access) }],
-    .length = [I64Const { .value = length }],
-    .capacity = [I64Const { .value = length }],
-    .storage = storage,
-}
-
-push_new_header :: fn(body: WasmInstr[], gc: GcTypes, parts: HeaderParts) -> void {
-    for field in [
-        parts.type_id,
-        parts.element,
-        parts.length,
-        parts.capacity,
-        parts.offset,
-        parts.storage,
-        parts.shared,
-    ] {
-        body.push_all(field)
-    }
-    body.push(StructNew { .type_index = gc.array_header })
+    out.push_on_stack(new_header(ctx.gc, full_fields(type_id, access, length, local_get(storage))))
 }
 
 // The function reading an element through `access`.
@@ -930,6 +886,17 @@ HeaderFields :: struct {
     shared: WasmExpression = i32_const(0)
 }
 
+// The fields of the header of `length` elements of the array type `type_id`, as
+// many as `storage` holds.
+full_fields :: fn(type_id: i32, access: ElementAccess, length: i64, storage: WasmExpression) =
+    HeaderFields {
+        .type_id = i32_const(type_id),
+        .element = i32_const(element_code(access)),
+        .length = i64_const(length),
+        .capacity = i64_const(length),
+        .storage = storage,
+    }
+
 // A new header of `fields`.
 new_header :: fn(gc: GcTypes, fields: HeaderFields) -> WasmExpression {
     values: WasmExpression[]: [
@@ -956,56 +923,6 @@ header_get :: fn(gc: GcTypes, array: WasmExpression, field: i32) -> WasmExpressi
 // raises an `i64` to the bound, `.I64GtS` lowers it.
 clamp :: fn(value: i32, bound: WasmExpression, past: WasmOp) -> WasmExpression =
     when(binary(past, local_get(value), bound), [local_set(value, bound)])
-
-// `for counter in 0..<limit { each }`, both locals of the integer type `t`;
-// `each` leaves nothing and branches nowhere, or returns.
-push_counted_loop :: fn(
-    body: WasmInstr[],
-    t: WasmValType,
-    counter: i32,
-    limit: i32,
-    each: WasmInstr[],
-) -> void {
-    body.push_all([integer_of(t, 0), LocalSet { .index = counter }])
-    step: WasmInstr[]: [
-        LocalGet { .index = counter },
-        integer_of(t, 1),
-        Plain { .op = if t == .I64 { .I64Add } else { .I32Add } },
-        LocalSet { .index = counter },
-    ]
-    body.push_while_below(t, counter, limit, each + step)
-}
-
-// `for x < limit { each }`, both locals of the integer type `t`: `each` moves
-// `x` on, leaves nothing and branches nowhere, or returns.
-push_while_below :: fn(
-    body: WasmInstr[],
-    t: WasmValType,
-    x: i32,
-    limit: i32,
-    each: WasmInstr[],
-) -> void {
-    body.push_all(
-        [
-            Plain { .op = .Block },
-            Plain { .op = .Loop },
-            LocalGet { .index = x },
-            LocalGet { .index = limit },
-            Plain { .op = if t == .I64 { .I64GeS } else { .I32GeS } },
-            BrIf { .depth = 1 },
-        ],
-    )
-    body.push_all(each)
-    body.push_all([Br { .depth = 0 }, Plain { .op = .End }, Plain { .op = .End }])
-}
-
-// The constant `value` of the integer type `t`.
-integer_of :: fn(t: WasmValType, value: i32) -> WasmInstr {
-    if t == .I64 {
-        return I64Const { .value = i64(value) }
-    }
-    return I32Const { .value = value }
-}
 
 // ---- tests ----------------------------------------------------------------
 

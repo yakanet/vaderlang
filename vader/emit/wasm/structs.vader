@@ -197,40 +197,62 @@ box_of :: fn(gc: GcTypes, t: Bc.BcType) -> i32 | null {
     return gc.of_box[t.val]
 }
 
-// The scalar a box `box` holds, the box on the stack.
-unboxed :: fn(box: i32) -> WasmInstr[] = [
-    RefCast { .type_index = box },
-    StructGet { .type_index = box, .field_index = 0 },
-]
+// The scalar the box `box` holds.
+unboxed :: fn(box: i32, value: WasmExpression) -> WasmExpression = struct_get(box, 0, value)
 
-// Bring a value of the scalar class `class`, held as `from` on the stack, to
-// being held as `to`: out of its box, into it, or as it is when both hold it
-// alike. False when the two meet at no box.
-push_held_as :: fn(
-    out: WasmInstr[],
+// `value`, a value of the scalar class `class` held as `from`, held as `to`: out
+// of its box, into it, or as it is when both hold it alike. Null when the two
+// meet at no box.
+held_as :: fn(
     gc: GcTypes,
+    value: WasmExpression,
     from: WasmValType,
     to: WasmValType,
     class: Bc.ValType,
-) -> bool {
+) -> WasmExpression | null {
     if from == to {
-        return true
+        return value
     }
-    box :: box_of(gc, Bc.BcScalar { .val = class }) else return false
+    box :: box_of(gc, Bc.BcScalar { .val = class }) else return null
     if from == .EqRef {
-        out.push_all(unboxed(box))
-        return true
+        return unboxed(box, value)
     }
     if to == .EqRef {
-        out.push(StructNew { .type_index = box })
-        return true
+        return struct_new(box, [value])
     }
-    return false
+    return null
 }
 
-// Bring the value on the stack, held as `from`, to being held as `to`, in the box
-// of `class` when one of the two is a reference; refused when they meet at no
-// box.
+// `value`, held as `from`, held as `to`, in the box of `class` when one of the
+// two is a reference; refused when they meet at no box.
+adapted :: fn(
+    ctx: ModuleCtx,
+    value: WasmExpression,
+    from: WasmValType,
+    class: Bc.ValType,
+    to: WasmValType,
+    function: string,
+) -> WasmExpression | WasmUnsupported {
+    held :: held_as(ctx.gc, value, from, to, class)
+        else return WasmUnsupported { .reason = "`${function}`: a value changes class" }
+    return held
+}
+
+// `value`, of the class `from`, in the form of the class `to`: boxed or unboxed
+// when one of the two is held as a reference.
+class_changed :: fn(
+    ctx: ModuleCtx,
+    value: WasmExpression,
+    from: Bc.ValType,
+    to: Bc.ValType,
+    function: string,
+) -> WasmExpression | WasmUnsupported {
+    to_held :: scalar_field_type(to)
+    scalar :: if to_held == .EqRef { from } else { to }
+    return adapted(ctx, value, scalar_field_type(from), scalar, to_held, function)
+}
+
+// The value on the stack, as `adapted` brings it.
 push_adapted :: fn(
     body: WasmInstr[],
     ctx: ModuleCtx,
@@ -239,23 +261,8 @@ push_adapted :: fn(
     to: WasmValType,
     function: string,
 ) -> void | WasmUnsupported {
-    if !body.push_held_as(ctx.gc, from, to, class) {
-        return WasmUnsupported { .reason = "`${function}`: a value changes class" }
-    }
-}
-
-// The value on the stack, of the class `from`, brought to the form of the class
-// `to`: boxed or unboxed when one of the two is held as a reference.
-push_class_change :: fn(
-    body: WasmInstr[],
-    ctx: ModuleCtx,
-    from: Bc.ValType,
-    to: Bc.ValType,
-    function: string,
-) -> void | WasmUnsupported {
-    to_held :: scalar_field_type(to)
-    scalar :: if to_held == .EqRef { from } else { to }
-    return body.push_adapted(ctx, scalar_field_type(from), scalar, to_held, function)
+    held :: adapted(ctx, on_stack(), from, class, to, function) else return held
+    body.push_on_stack(held)
 }
 
 // ---- ops ------------------------------------------------------------------
@@ -342,33 +349,26 @@ union_field :: fn(
         return WasmUnsupported { .reason = "`${function}`: type ${layout} is no struct" }
     }
     held :: field_type_of(types[shape.fields[op.field_index].type_index])
-    body: WasmInstr[]: []
-    for variant in union.variants {
-        cast :: layout_type(ctx, variant, function) else return cast
-        body.push(LocalGet { .index = 0 })
-        tested :: push_single_test(ctx, body, variant, function) else return tested
-        body.push_all(
-            [Plain { .op = .If }, LocalGet { .index = 0 }, RefCast { .type_index = cast }],
-        )
-        if reads {
-            body.push(StructGet { .type_index = cast, .field_index = op.field_index })
-        } else {
-            body.push_all(
-                [
-                    LocalGet { .index = 1 },
-                    StructSet { .type_index = cast, .field_index = op.field_index },
-                ],
-            )
-        }
-        body.push_all([Plain { .op = .Return }, Plain { .op = .End }])
-    }
-    body.push(Plain { .op = .Unreachable })
     signature :: if reads {
         WasmFuncType { .params = [.EqRef], .results = [held] }
     } else {
         WasmFuncType { .params = [.EqRef, held], .results = [] }
     }
-    return ctx.define_helper(key, signature, [], body)
+    value :: 0
+    field :: 1
+    body: WasmExpression[]: []
+    for variant in union.variants {
+        cast :: layout_type(ctx, variant, function) else return cast
+        tested :: single_test(ctx, local_get(value), variant, function) else return tested
+        access :: if reads {
+            struct_get(cast, op.field_index, local_get(value))
+        } else {
+            struct_set(cast, op.field_index, local_get(value), local_get(field))
+        }
+        body.push(when(tested, [return_([access])]))
+    }
+    body.push(unreachable())
+    return ctx.define_tree_helper(key, HelperFrame { .signature = signature }, body)
 }
 
 // `() -> type`: the value of the type `type_id`, made once, so that two values
@@ -379,11 +379,7 @@ type_constant :: fn(ctx: ModuleCtx, type_id: i32) -> i32 {
     if known != null {
         return known
     }
-    made: WasmInstr[]: [
-        I32Const { .value = type_id },
-        StructNew { .type_index = ctx.gc.type_value },
-    ]
-    return ctx.define_cached(key, made)
+    return ctx.define_cached(key, struct_new(ctx.gc.type_value, [i32_const(type_id)]))
 }
 
 // `(type) -> i64`: the size of the type a `type` value names, read in a table
@@ -393,23 +389,17 @@ size_of_type :: fn(ctx: ModuleCtx) -> i32 {
     if known != null {
         return known
     }
-    sizes: WasmInstr[]: []
+    sizes: WasmExpression[]: []
     for t in ctx.module.types {
-        sizes.push(I64Const { .value = Bc.size_of_bc_type(t) })
+        sizes.push(i64_const(Bc.size_of_bc_type(t)))
     }
     storage :: storage_type(ctx.gc, .I64)
-    sizes.push(ArrayNewFixed { .type_index = storage, .length = i32(ctx.module.types.len()) })
-    table :: ctx.define_cached("size_of.table", sizes)
-    body: WasmInstr[]: [
-        Call { .function_index = table },
-        RefCast { .type_index = storage },
-        LocalGet { .index = 0 },
-        RefCast { .type_index = ctx.gc.type_value },
-        StructGet { .type_index = ctx.gc.type_value, .field_index = 0 },
-        ArrayGet { .type_index = storage, .extension = .None },
-    ]
-    signature :: WasmFuncType { .params = [.EqRef], .results = [.I64] }
-    return ctx.define_helper("size_of.type", signature, [], body)
+    table :: ctx.define_cached("size_of.table", array_new_fixed(storage, sizes))
+    named :: 0
+    frame :: HelperFrame { .signature = func_of([.EqRef], [.I64]) }
+    type_id :: struct_get(ctx.gc.type_value, 0, local_get(named))
+    body: WasmExpression[]: [array_get(storage, call(table, []), type_id)]
+    return ctx.define_tree_helper("size_of.type", frame, body)
 }
 
 // `ref.cast` of the bytecode: a value read out of a slot that holds any type, an
@@ -430,8 +420,15 @@ push_pin :: fn(
         }
     }
     to :: field_type_of(target)
-    if source == to || target is Bc.BcScalar && out.push_held_as(ctx.gc, source, to, target.val) {
+    if source == to {
         return
+    }
+    if target is Bc.BcScalar {
+        held :: held_as(ctx.gc, on_stack(), source, to, target.val)
+        if held != null {
+            out.push_on_stack(held)
+            return
+        }
     }
     return unsupported_op(op, function)
 }
@@ -448,46 +445,55 @@ push_retag :: fn(
     out.push(StructNew { .type_index = box })
 }
 
-// `type_check`, and every test of a type: whether the value on the stack is of
-// `type_id`.
-push_single_test :: fn(
+// `type_check`, and every test of a type: whether `value` is of `type_id`.
+single_test :: fn(
     ctx: ModuleCtx,
-    out: WasmInstr[],
+    value: WasmExpression,
     type_id: i32,
     function: string,
-) -> void | WasmUnsupported {
+) -> WasmExpression | WasmUnsupported {
     target :: ctx.module.types[type_id]
     if target is Bc.BcStruct {
         t :: struct_type(ctx, type_id, function) else return t
-        out.push(RefTest { .type_index = t })
-        return
+        return ref_test(t, value)
     }
     if target is Bc.BcArray {
-        out.push_all([I32Const { .value = type_id }, Call { .function_index = ctx.array_is() }])
-        return
+        return call(ctx.array_is(), [value, i32_const(type_id)])
     }
     if target is Bc.BcScalar && target.val == .Null {
-        out.push(Plain { .op = .RefIsNull })
-        return
+        return unary(.RefIsNull, value)
     }
     if target is Bc.BcUnion | Bc.BcRef {
         test :: ctx.type_test(type_id, function) else return test
-        out.push(Call { .function_index = test })
-        return
+        return call(test, [value])
     }
     // A function value is of no type a test names, as the VM has it; a dispatch
-    // still tells its function type (`push_receiver_test`).
+    // still tells its function type (`receiver_test`).
     if target is Bc.BcFn {
-        out.push_all([Plain { .op = .Drop }, I32Const { .value = 0 }])
-        return
+        return sequence([drop(value), i32_const(0)])
     }
     box :: box_of(ctx.gc, target) else {
         return WasmUnsupported {
             .reason = "`${function}`: no WASM test yet for type ${type_id}",
         }
     }
-    out.push(RefTest { .type_index = box })
+    return ref_test(box, value)
 }
+
+// The value on the stack, tested as `single_test` tests it.
+push_single_test :: fn(
+    ctx: ModuleCtx,
+    out: WasmInstr[],
+    type_id: i32,
+    function: string,
+) -> void | WasmUnsupported {
+    test :: single_test(ctx, on_stack(), type_id, function) else return test
+    out.push_on_stack(test)
+}
+
+// Return `answer` when `condition` holds.
+answer_if :: fn(condition: WasmExpression, answer: i32) -> WasmExpression =
+    when(condition, [return_([i32_const(answer)])])
 
 // `(value: eqref) -> i32`: whether the value is of the union or the trait
 // `type_id`. A union holds a value of one of its variants; a trait one of a type
@@ -498,31 +504,29 @@ type_test :: fn(ctx: ModuleCtx, type_id: i32, function: string) -> i32 | WasmUns
     if known != null {
         return known
     }
-    body: WasmInstr[]: []
+    value :: 0
     target :: ctx.module.types[type_id]
+    body: WasmExpression[]: []
     if target is Bc.BcRef && target.trait_name == "" {
-        body.push_all([LocalGet { .index = 0 }, Plain { .op = .RefIsNull }])
-        body.push_return_if(0)
         boxes: i32[]: [ctx.gc.void_box, ctx.gc.type_value]
         for class in BOXED_CLASSES {
             box :: ctx.gc.of_box[class] else continue
             boxes.push(box)
         }
+        body.push(answer_if(unary(.RefIsNull, local_get(value)), 0))
         for box in boxes {
-            body.push_all([LocalGet { .index = 0 }, RefTest { .type_index = box }])
-            body.push_return_if(0)
+            body.push(answer_if(ref_test(box, local_get(value)), 0))
         }
-        body.push(I32Const { .value = 1 })
+        body.push(i32_const(1))
     } else {
         for member in members_of(ctx.module, target) {
-            body.push(LocalGet { .index = 0 })
-            tested :: push_single_test(ctx, body, member, function) else return tested
-            body.push_return_if(1)
+            tested :: single_test(ctx, local_get(value), member, function) else return tested
+            body.push(answer_if(tested, 1))
         }
-        body.push(I32Const { .value = 0 })
+        body.push(i32_const(0))
     }
-    signature :: WasmFuncType { .params = [.EqRef], .results = [.I32] }
-    return ctx.define_helper(key, signature, [], body)
+    frame :: HelperFrame { .signature = func_of([.EqRef], [.I32]) }
+    return ctx.define_tree_helper(key, frame, body)
 }
 
 // The types a value of `t` may be: a union's variants, or the types that
@@ -547,45 +551,22 @@ members_of :: fn(m: Bc.BytecodeModule, t: Bc.BcType) -> i32[] {
 // The index of the helper behind `ref.eq` / `ref.ne`: two references are equal
 // when they are the same, and two boxes when they hold the same value, as the
 // native boxes compare.
-reference_equality :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: WasmFuncType { .params = [.EqRef, .EqRef], .results = [.I32] }
-    return ctx.helpers["ref.eq"]
-        else ctx.define_helper("ref.eq", signature, [], reference_equality_body(ctx.gc))
-}
+reference_equality :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["ref.eq"] else define_reference_equality(ctx)
 
-reference_equality_body :: fn(gc: GcTypes) -> WasmInstr[] {
-    a :: LocalGet { .index = 0 }
-    b :: LocalGet { .index = 1 }
-    body: WasmInstr[]: [a, b, Plain { .op = .RefEq }]
-    body.push_return_if(1)
-    for [class, box] in gc.of_box {
-        body.push_all([a, RefTest { .type_index = box }, b, RefTest { .type_index = box }])
-        body.push_all([Plain { .op = .I32And }, Plain { .op = .If }, a])
-        body.push_all(unboxed(box))
-        body.push(b)
-        body.push_all(unboxed(box))
-        body.push_all(
-            [
-                Plain { .op = payload_equality(class) },
-                Plain { .op = .Return },
-                Plain { .op = .End },
-            ],
-        )
+define_reference_equality :: fn(ctx: ModuleCtx) -> i32 {
+    a :: local_get(0)
+    b :: local_get(1)
+    body: WasmExpression[]: [answer_if(binary(.RefEq, a, b), 1)]
+    for [class, box] in ctx.gc.of_box {
+        both_boxed :: i32_and(ref_test(box, a), ref_test(box, b))
+        same_payload :: binary(payload_equality(class), unboxed(box, a), unboxed(box, b))
+        body.push(when(both_boxed, [return_([same_payload])]))
     }
-    body.push(I32Const { .value = 0 })
-    return body
+    body.push(i32_const(0))
+    frame :: HelperFrame { .signature = func_of([.EqRef, .EqRef], [.I32]) }
+    return ctx.define_tree_helper("ref.eq", frame, body)
 }
-
-// `if <popped> { return value }`.
-push_return_if :: fn(body: WasmInstr[], value: i32) -> void =
-    body.push_all(
-        [
-            Plain { .op = .If },
-            I32Const { .value = value },
-            Plain { .op = .Return },
-            Plain { .op = .End },
-        ],
-    )
 
 payload_equality :: fn(class: Bc.ValType) -> WasmOp = match scalar_field_type(class) {
     .I32   -> .I32Eq

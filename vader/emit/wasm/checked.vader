@@ -14,30 +14,27 @@ module "vader/emit/wasm"
 Bc :: import "vader/core/bytecode"
 import "std/collections"
 
+// The parameters of a helper: its operand, or its two.
+LEFT: i32: 0
+RIGHT: i32: 1
+
 // The index of the function computing `op` on two operands of `kind`.
 checked_helper :: fn(ctx: ModuleCtx, kind: Bc.ValType, op: Bc.CheckedOp) -> i32 {
     key :: "${Bc.val_type_name(kind)}.${Bc.checked_op_name(op)}"
-    return ctx.helpers[key] else ctx.add_helper(key, kind, 2, checked_body(ctx, kind, op))
+    return ctx.helpers[key] else define_checked(ctx, key, kind, op)
 }
 
 // The index of the function negating an operand of `kind`.
 checked_neg_helper :: fn(ctx: ModuleCtx, kind: Bc.ValType) -> i32 {
     key :: "${Bc.val_type_name(kind)}.neg"
-    return ctx.helpers[key] else ctx.add_helper(key, kind, 1, checked_neg_body(ctx, kind))
+    return ctx.helpers[key] else define_checked_neg(ctx, key, kind)
 }
 
-// Add a helper taking `arity` operands of the class `kind` lives in and leaving
-// one, with one `i64` local past them, at index `arity`, for the result.
-add_helper :: fn(
-    ctx: ModuleCtx,
-    key: string,
-    kind: Bc.ValType,
-    arity: i64,
-    body: WasmInstr[],
-) -> i32 {
+// The frame of a helper taking `arity` operands of the class `kind` lives in
+// and leaving one.
+checked_frame :: fn(kind: Bc.ValType, arity: i64) -> HelperFrame {
     value_type :: if Bc.is_64_bit_int_val(kind) { WasmValType.I64 } else { WasmValType.I32 }
-    signature :: WasmFuncType { .params = [value_type] * arity, .results = [value_type] }
-    return ctx.define_helper(key, signature, [.I64], body)
+    return HelperFrame { .signature = func_of([value_type] * arity, [value_type]) }
 }
 
 // Append a helper the module computes `key` with, and return its index.
@@ -71,42 +68,32 @@ fill_helper :: fn(ctx: ModuleCtx, index: i32, locals: WasmValType[], body: WasmI
 }
 
 // (a, b) -> a op b.
-checked_body :: fn(ctx: ModuleCtx, kind: Bc.ValType, op: Bc.CheckedOp) -> WasmInstr[] {
+define_checked :: fn(ctx: ModuleCtx, key: string, kind: Bc.ValType, op: Bc.CheckedOp) -> i32 {
+    frame :: checked_frame(kind, 2)
+    result :: frame.local(.I64)
     if Bc.is_64_bit_int_val(kind) {
-        return wide_body(ctx, kind, op)
+        return ctx.define_tree_helper(key, frame, ctx.wide_body(kind, op, result))
     }
-    body: WasmInstr[]: []
-    body.push_get(0)
-    body.push_widening(kind)
-    body.push_get(1)
-    body.push_widening(kind)
-    body.push_plain(i64_op(op))
-    body.push_bounded(ctx, kind, PAIR_RESULT)
-    return body
+    exact :: binary(i64_op(op), widened(kind, local_get(LEFT)), widened(kind, local_get(RIGHT)))
+    return ctx.define_tree_helper(key, frame, ctx.bounded(kind, exact, result))
 }
 
 // (a) -> -a, which leaves a signed class at its least value and an unsigned
 // one at any value but 0.
-checked_neg_body :: fn(ctx: ModuleCtx, kind: Bc.ValType) -> WasmInstr[] {
-    body: WasmInstr[]: []
-    body.push_i64(0)
-    body.push_get(0)
-    if Bc.is_64_bit_int_val(kind) {
-        body.push_plain(.I64Sub)
-        body.push_get(0)
-        if kind == .U64 {
-            body.push_nonzero()
-        } else {
-            body.push_i64(I64_LEAST)
-            body.push_plain(.I64Eq)
-        }
-        body.push_trap_if(ctx)
-        return body
+define_checked_neg :: fn(ctx: ModuleCtx, key: string, kind: Bc.ValType) -> i32 {
+    frame :: checked_frame(kind, 1)
+    result :: frame.local(.I64)
+    if !Bc.is_64_bit_int_val(kind) {
+        exact :: i64_sub(i64_const(0), widened(kind, local_get(LEFT)))
+        return ctx.define_tree_helper(key, frame, ctx.bounded(kind, exact, result))
     }
-    body.push_widening(kind)
-    body.push_plain(.I64Sub)
-    body.push_bounded(ctx, kind, 1)
-    return body
+    overflows :: if kind == .U64 {
+        i64_ne(local_get(LEFT), i64_const(0))
+    } else {
+        i64_eq(local_get(LEFT), i64_const(I64_LEAST))
+    }
+    body: WasmExpression[]: [trap_if(ctx, overflows), i64_sub(i64_const(0), local_get(LEFT))]
+    return ctx.define_tree_helper(key, frame, body)
 }
 
 i64_op :: fn(op: Bc.CheckedOp) -> WasmOp = match op {
@@ -116,120 +103,98 @@ i64_op :: fn(op: Bc.CheckedOp) -> WasmOp = match op {
 }
 
 // An operand of a class of 32 bits or less, as its exact `i64` value.
-push_widening :: fn(body: WasmInstr[], kind: Bc.ValType) -> void =
-    body.push_plain(if kind == .U32 { .I64ExtendI32U } else { .I64ExtendI32S })
+widened :: fn(kind: Bc.ValType, operand: WasmExpression) -> WasmExpression =
+    unary(if kind == .U32 { .I64ExtendI32U } else { .I64ExtendI32S }, operand)
 
-// The exact `i64` result on top of the stack, stopped when it leaves `kind`,
-// else narrowed back to the `i32` the class lives in. `result` is the local
-// that holds it meanwhile. One unsigned comparison tests both bounds: below the
-// least value, `result - least` wraps past the span.
-push_bounded :: fn(body: WasmInstr[], ctx: ModuleCtx, kind: Bc.ValType, result: i32) -> void {
+// `exact`, an exact `i64` result, stopped when it leaves `kind`, else narrowed
+// back to the `i32` the class lives in, kept in the local `result` meanwhile.
+// One unsigned comparison tests both bounds: below the least value,
+// `result - least` wraps past the span.
+bounded :: fn(
+    ctx: ModuleCtx,
+    kind: Bc.ValType,
+    exact: WasmExpression,
+    result: i32,
+) -> WasmExpression[] {
     bits :: Bc.integer_bits(kind)
     one: i64: 1
     least :: if Bc.is_unsigned_val(kind) { 0 } else { -(one << (bits - 1)) }
-    body.push(LocalTee { .index = result })
-    body.push_i64(least)
-    body.push_plain(.I64Sub)
-    body.push_i64((one << bits) - 1)
-    body.push_plain(.I64GtU)
-    body.push_trap_if(ctx)
-    body.push_get(result)
-    body.push_plain(.I32WrapI64)
+    past_span :: binary(
+        .I64GtU,
+        i64_sub(local_tee(result, exact), i64_const(least)),
+        i64_const((one << bits) - 1),
+    )
+    return [trap_if(ctx, past_span), i32_wrap_i64(local_get(result))]
 }
-
-// The local a two-operand helper keeps its result in: past `a` and `b`.
-PAIR_RESULT: i32: 2
 
 I64_LEAST: i64: -0x7FFF_FFFF_FFFF_FFFF - 1
 
-// a op b on `i64` or `u64`, kept in `PAIR_RESULT`, then the test that the bits
-// overflowed.
-wide_body :: fn(ctx: ModuleCtx, kind: Bc.ValType, op: Bc.CheckedOp) -> WasmInstr[] {
+// Whether both `x` and `y`, each the xor of two `i64`s, have their sign bit set:
+// each pair differs in sign.
+sign_differs_twice :: fn(x: WasmExpression, y: WasmExpression) -> WasmExpression =
+    binary(.I64LtS, i64_and(x, y), i64_const(0))
+
+// a op b on `i64` or `u64`, kept in the local `result`, then the test that the
+// bits overflowed.
+wide_body :: fn(
+    ctx: ModuleCtx,
+    kind: Bc.ValType,
+    op: Bc.CheckedOp,
+    result: i32,
+) -> WasmExpression[] {
     unsigned :: kind == .U64
-    body: WasmInstr[]: []
-    body.push_get(0)
-    body.push_get(1)
-    body.push_plain(i64_op(op))
-    body.push(LocalSet { .index = PAIR_RESULT })
-    match op {
-        .Add -> {
-            // `u64`: the result is below an operand. `i64`: both operands differ
-            // in sign from the result.
-            if unsigned {
-                body.push_get(PAIR_RESULT)
-                body.push_get(0)
-                body.push_plain(.I64LtU)
-            } else {
-                body.push_sign_difference(0, PAIR_RESULT)
-                body.push_sign_difference(1, PAIR_RESULT)
-                body.push_plain(.I64And)
-                body.push_negative()
-            }
-            body.push_trap_if(ctx)
-        }
-        .Sub -> {
-            // `u64`: `a` is below `b`. `i64`: the operands differ in sign, and
-            // the result differs from `a`.
-            if unsigned {
-                body.push_get(0)
-                body.push_get(1)
-                body.push_plain(.I64LtU)
-            } else {
-                body.push_sign_difference(0, 1)
-                body.push_sign_difference(0, PAIR_RESULT)
-                body.push_plain(.I64And)
-                body.push_negative()
-            }
-            body.push_trap_if(ctx)
-        }
-        .Mul -> { body.push_mul_overflow(ctx, unsigned) }
+    a :: local_get(LEFT)
+    b :: local_get(RIGHT)
+    exact :: local_get(result)
+    overflow: WasmExpression[]: match op {
+        // `u64`: the result is below an operand. `i64`: both operands differ in
+        // sign from the result.
+        .Add -> [
+            trap_if(
+                ctx,
+                if unsigned { binary(.I64LtU, exact, a) } else {
+                    sign_differs_twice(i64_xor(a, exact), i64_xor(b, exact))
+                },
+            ),
+        ]
+        // `u64`: `a` is below `b`. `i64`: the operands differ in sign, and the
+        // result differs from `a`.
+        .Sub -> [
+            trap_if(
+                ctx,
+                if unsigned { binary(.I64LtU, a, b) } else {
+                    sign_differs_twice(i64_xor(a, b), i64_xor(a, exact))
+                },
+            ),
+        ]
+        .Mul -> ctx.mul_overflow(unsigned, result)
     }
-    body.push_get(PAIR_RESULT)
+    body: WasmExpression[]: [local_set(result, binary(i64_op(op), a, b))]
+    body.push_all(overflow)
+    body.push(exact)
     return body
 }
 
-// The product checked by dividing it back by `a`, when `a` is not 0. `i64` also
-// overflows on -1 times the least value, which the division would trap on:
-// that case is tested first, and `a` = -1 skips the division.
-push_mul_overflow :: fn(body: WasmInstr[], ctx: ModuleCtx, unsigned: bool) -> void {
-    if !unsigned {
-        body.push_get(0)
-        body.push_i64(-1)
-        body.push_plain(.I64Eq)
-        body.push_get(1)
-        body.push_i64(I64_LEAST)
-        body.push_plain(.I64Eq)
-        body.push_plain(.I32And)
-        body.push_trap_if(ctx)
+// The product in the local `result` checked by dividing it back by `a`, when `a`
+// is not 0. `i64` also overflows on -1 times the least value, which the
+// division would trap on: that case is tested first, and `a` = -1 skips the
+// division.
+mul_overflow :: fn(ctx: ModuleCtx, unsigned: bool, result: i32) -> WasmExpression[] {
+    a :: local_get(LEFT)
+    b :: local_get(RIGHT)
+    divided :: binary(if unsigned { .I64DivU } else { .I64DivS }, local_get(result), a)
+    check_back :: trap_if(ctx, i64_ne(divided, b))
+    if unsigned {
+        return [when(i64_ne(a, i64_const(0)), [check_back])]
     }
-    body.push_get(0)
-    body.push_nonzero()
-    if !unsigned {
-        body.push_get(0)
-        body.push_i64(-1)
-        body.push_plain(.I64Ne)
-        body.push_plain(.I32And)
-    }
-    body.push_plain(.If)
-    body.push_get(PAIR_RESULT)
-    body.push_get(0)
-    body.push_plain(if unsigned { .I64DivU } else { .I64DivS })
-    body.push_get(1)
-    body.push_plain(.I64Ne)
-    body.push_trap_if(ctx)
-    body.push_plain(.End)
+    least_by_minus_one :: i32_and(i64_eq(a, i64_const(-1)), i64_eq(b, i64_const(I64_LEAST)))
+    divisible :: i32_and(i64_ne(a, i64_const(0)), i64_ne(a, i64_const(-1)))
+    return [trap_if(ctx, least_by_minus_one), when(divisible, [check_back])]
 }
 
 // Stop the run when `condition` holds.
 trap_if :: fn(ctx: ModuleCtx, condition: WasmExpression) -> WasmExpression =
     when(condition, [stop_run(ctx)])
-
-// Stop the run when the popped `i32` is not zero.
-push_trap_if :: fn(body: WasmInstr[], ctx: ModuleCtx) -> void {
-    body.push_plain(.If)
-    body.push_body(HelperFrame { .signature = func_of([], []) }, [stop_run(ctx)])
-    body.push_plain(.End)
-}
 
 // Stop the run: through `panic` when the program pushes defers, which runs those
 // still pending as the VM runs them when it traps.
@@ -241,29 +206,6 @@ stop_run :: fn(ctx: ModuleCtx) -> WasmExpression {
     return unreachable()
 }
 
-// x ^ y of two locals: negative when they differ in sign.
-push_sign_difference :: fn(body: WasmInstr[], x: i32, y: i32) -> void {
-    body.push_get(x)
-    body.push_get(y)
-    body.push_plain(.I64Xor)
-}
-
-// Whether the popped `i64` is below zero.
-push_negative :: fn(body: WasmInstr[]) -> void {
-    body.push_i64(0)
-    body.push_plain(.I64LtS)
-}
-
-// Whether the popped `i64` is not zero.
-push_nonzero :: fn(body: WasmInstr[]) -> void {
-    body.push_plain(.I64Eqz)
-    body.push_plain(.I32Eqz)
-}
-
-push_get :: fn(body: WasmInstr[], index: i32) -> void = body.push(LocalGet { .index = index })
-
-push_i64 :: fn(body: WasmInstr[], value: i64) -> void = body.push(I64Const { .value = value })
-
 // The type a division or a remainder works on, null for any other op.
 //
 // @partial: every other op is no division.
@@ -274,17 +216,16 @@ division_type :: fn(op: WasmOp) -> WasmValType | null = @partial match op {
 }
 
 // `(a, b) -> a op b` for the division `op` on `t`: a zero `b` stops the run as
-// `push_trap_if` does. The engine's own trap would run no defer.
+// `trap_if` does. The engine's own trap would run no defer.
 checked_division :: fn(ctx: ModuleCtx, op: WasmOp, t: WasmValType) -> i32 {
     key :: "divide.${opcode(op)}"
     known :: ctx.helpers[key]
     if known != null {
         return known
     }
-    body: WasmInstr[]: [LocalGet { .index = 1 }]
-    body.push_plain(if t == .I64 { .I64Eqz } else { .I32Eqz })
-    body.push_trap_if(ctx)
-    body.push_all([LocalGet { .index = 0 }, LocalGet { .index = 1 }, Plain { .op = op }])
-    signature :: WasmFuncType { .params = [t, t], .results = [t] }
-    return ctx.define_helper(key, signature, [], body)
+    a :: local_get(LEFT)
+    b :: local_get(RIGHT)
+    zero :: unary(if t == .I64 { .I64Eqz } else { .I32Eqz }, b)
+    frame :: HelperFrame { .signature = func_of([t, t], [t]) }
+    return ctx.define_tree_helper(key, frame, [trap_if(ctx, zero), binary(op, a, b)])
 }

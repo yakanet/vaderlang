@@ -12,8 +12,19 @@
 
 module "vader/emit/wasm"
 
+import "std/abort"
+
 // An expression of a helper's body: a value, or an effect.
-WasmExpression :: Apply | Assign | Unpack | When | Choose | Repeat | Loop | DoWhile
+WasmExpression :: Apply
+                | Assign
+                | Unpack
+                | When
+                | Choose
+                | Repeat
+                | Loop
+                | DoWhile
+                | Sequence
+                | OnStack
 
 // `instruction` over the values of `operands`, the first pushed first.
 Apply :: struct {
@@ -72,14 +83,29 @@ DoWhile :: struct {
     condition: WasmExpression
 }
 
+// `body`, in order: the values they leave, left.
+Sequence :: struct {
+    body: WasmExpression[]
+}
+
+// The value already on the stack, where the translation of a bytecode op
+// flattens an expression over what the ops before it pushed.
+OnStack :: struct {}
+
 // The parameters and locals of a helper being written.
 HelperFrame :: struct {
     signature: WasmFuncType
     locals: WasmValType[] = []
+    /// False for an expression flattened over the stack (`push_on_stack`), which
+    /// has no frame of its own to take a local in.
+    takes_locals: bool = true
 }
 
 // A fresh local of type `t`, past the parameters.
 local :: fn(frame: HelperFrame, t: WasmValType) -> i32 {
+    if !frame.takes_locals {
+        panic("wasm: an expression over the stack takes no local")
+    }
     frame.locals.push(t)
     return i32(frame.signature.params.len() + frame.locals.len() - 1)
 }
@@ -98,23 +124,23 @@ push_body :: fn(out: WasmInstr[], frame: HelperFrame, body: WasmExpression[]) ->
 }
 
 push_expression :: fn(out: WasmInstr[], frame: HelperFrame, e: WasmExpression) -> void = match e {
-    is Apply   -> {
+    is Apply    -> {
         for operand in e.operands {
             out.push_expression(frame, operand)
         }
         out.push(e.instruction)
     }
-    is Assign  -> {
+    is Assign   -> {
         out.push_expression(frame, e.value)
         out.push(LocalSet { .index = e.local })
     }
-    is Unpack  -> {
+    is Unpack   -> {
         out.push_expression(frame, e.value)
         for k in 0..<e.locals.len() {
             out.push(LocalSet { .index = e.locals[e.locals.len() - 1 - k] })
         }
     }
-    is When    -> {
+    is When     -> {
         out.push_expression(frame, e.condition)
         out.push(Plain { .op = .If })
         out.push_body(frame, e.then)
@@ -124,7 +150,7 @@ push_expression :: fn(out: WasmInstr[], frame: HelperFrame, e: WasmExpression) -
         }
         out.push(Plain { .op = .End })
     }
-    is Choose  -> {
+    is Choose   -> {
         value :: frame.local(e.type)
         branches :: when_else(
             e.condition,
@@ -134,25 +160,49 @@ push_expression :: fn(out: WasmInstr[], frame: HelperFrame, e: WasmExpression) -
         out.push_expression(frame, branches)
         out.push(LocalGet { .index = value })
     }
-    is Repeat  -> {
+    is Repeat   -> {
         next :: binary(add_of(e.type), local_get(e.counter), integer_const(e.type, 1))
         step :: local_set(e.counter, next)
         out.push_expression(frame, local_set(e.counter, integer_const(e.type, 0)))
         out.push_expression(frame, while_below(e.type, e.counter, e.limit, e.body + [step]))
     }
-    is Loop    -> {
+    is Loop     -> {
         out.push_all([Plain { .op = .Block }, Plain { .op = .Loop }])
         out.push_expression(frame, e.exit_when)
         out.push(BrIf { .depth = 1 })
         out.push_body(frame, e.body)
         out.push_all([Br { .depth = 0 }, Plain { .op = .End }, Plain { .op = .End }])
     }
-    is DoWhile -> {
+    is DoWhile  -> {
         out.push(Plain { .op = .Loop })
         out.push_body(frame, e.body)
         out.push_expression(frame, e.condition)
         out.push_all([BrIf { .depth = 0 }, Plain { .op = .End }])
     }
+    is Sequence -> { out.push_body(frame, e.body) }
+    is OnStack  -> {}
+}
+
+// The body of the helper `index`, reserved by `reserve_helper`, from `frame` and
+// `body`.
+fill_tree_helper :: fn(
+    ctx: ModuleCtx,
+    index: i32,
+    frame: HelperFrame,
+    body: WasmExpression[],
+) -> void {
+    instructions :: flatten(frame, body)
+    ctx.fill_helper(index, frame.locals, instructions)
+}
+
+// The instructions of `e`, an expression over the value on the stack
+// (`on_stack`), which takes no local.
+push_on_stack :: fn(out: WasmInstr[], e: WasmExpression) -> void {
+    if e is OnStack {
+        return
+    }
+    frame :: HelperFrame { .signature = func_of([], []), .takes_locals = false }
+    out.push_expression(frame, e)
 }
 
 // The helper `key` of `frame` and `body`, defined once.
@@ -168,6 +218,12 @@ define_tree_helper :: fn(
 
 // ---- constructors ---------------------------------------------------------
 
+// The value already on the stack.
+on_stack :: fn() -> WasmExpression = OnStack {}
+
+// `body`, in order.
+sequence :: fn(body: WasmExpression[]) -> WasmExpression = Sequence { .body = body }
+
 // `instruction` over `operands`.
 apply :: fn(instruction: WasmInstr, operands: WasmExpression[]) -> WasmExpression =
     Apply { .instruction = instruction, .operands = operands }
@@ -182,8 +238,12 @@ i64_const :: fn(value: i64) -> WasmExpression = Apply { .instruction = I64Const 
 local_get :: fn(index: i32) -> WasmExpression = Apply { .instruction = LocalGet { .index = index } }
 
 // The constant `value` of the integer type `t`.
-integer_const :: fn(t: WasmValType, value: i32) -> WasmExpression =
-    Apply { .instruction = integer_of(t, value) }
+integer_const :: fn(t: WasmValType, value: i32) -> WasmExpression {
+    if t == .I64 {
+        return i64_const(i64(value))
+    }
+    return i32_const(value)
+}
 
 // The `i32` local `local` plus `n`.
 plus :: fn(local: i32, n: i32) -> WasmExpression = i32_add(local_get(local), i32_const(n))
@@ -379,6 +439,10 @@ ref_cast :: fn(type: i32, reference: WasmExpression) -> WasmExpression =
 // `array.new_default type`: `length` elements, each zero or null.
 array_new_default :: fn(type: i32, length: WasmExpression) -> WasmExpression =
     apply(ArrayNewDefault { .type_index = type }, [length])
+
+// `array.new_fixed type` of `elements`, the first pushed first.
+array_new_fixed :: fn(type: i32, elements: WasmExpression[]) -> WasmExpression =
+    apply(ArrayNewFixed { .type_index = type, .length = i32(elements.len()) }, elements)
 
 // `array.len` of `array`, cast to the array type `type` first.
 array_len :: fn(type: i32, array: WasmExpression) -> WasmExpression =
