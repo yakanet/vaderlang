@@ -162,6 +162,7 @@ module_context_of :: fn(m: Bc.BytecodeModule, takes_arguments: bool) -> ModuleCt
         .first_function = i32(imports.functions.len()),
         .first_helper = i32(imports.functions.len() + m.functions.len()),
         .literals = literals_of(m),
+        .has_defers = m.functions.any_match((f) -> f.body.any_match((o) -> o is Bc.DeferPush)),
         .globals = m.globals.map((g) -> field_type_of(m.types[g.type_id])).collect(),
     }
 }
@@ -196,6 +197,8 @@ ModuleCtx :: struct {
     table_read: bool = false
     // The global of the defer stack, once a helper reads it (`closures.vader`).
     defers: i32 | null = null
+    // Whether a function pushes a defer, which a trap then runs (`push_trap_if`).
+    has_defers: bool = false
 }
 
 // `run`, the core export the component lifts: it calls `init` when there is one,
@@ -487,6 +490,11 @@ push_op :: fn(
 ) -> void | WasmUnsupported {
     plain :: plain_op_of(op)
     if plain != null {
+        divided :: division_type(plain)
+        if ctx.has_defers && divided != null {
+            out.push(Call { .function_index = ctx.checked_division(plain, divided) })
+            return
+        }
         out.push_plain(plain)
         return
     }
@@ -686,6 +694,10 @@ panic_function :: fn(ctx: ModuleCtx) -> i32 {
     if known != null {
         return known
     }
+    // Reserved first: the drain checks its bounds through `panic` itself
+    // (`push_trap_if`).
+    signature :: WasmFuncType { .params = [.I32], .results = [] }
+    index :: ctx.reserve_helper("panic", signature)
     body: WasmInstr[]: []
     body.push_defer_count(ctx)
     body.push_all(
@@ -695,8 +707,24 @@ panic_function :: fn(ctx: ModuleCtx) -> i32 {
             Plain { .op = .Unreachable },
         ],
     )
-    signature :: WasmFuncType { .params = [.I32], .results = [] }
-    return ctx.define_helper("panic", signature, [], body)
+    ctx.fill_helper(index, [], body)
+    return index
+}
+
+// The ordinals of `std/target`'s `Os.Wasi` and `Arch.Wasm32`: a component runs
+// under a WASI host, as the C runtime's `vader_current_os` answers on one.
+OS_WASI: i32: 3
+ARCH_WASM32: i32: 2
+
+// `() -> i32`: `value`, under `key`.
+constant_function :: fn(ctx: ModuleCtx, key: string, value: i32) -> i32 {
+    signature :: WasmFuncType { .params = [], .results = [.I32] }
+    return ctx.helpers[key] else ctx.define_helper(
+        key,
+        signature,
+        [],
+        [I32Const { .value = value }],
+    )
 }
 
 // The function a call to the `Intrinsic` member `imp` reaches.
@@ -707,15 +735,17 @@ intrinsic_function :: fn(
 ) -> i32 | WasmUnsupported {
     // @partial: the members with no WASM form yet stop the emission.
     return @partial match imp.intrinsic {
-        .ByteLen       -> ctx.string_byte_len()
-        .ByteAt        -> ctx.string_byte_at()
-        .ByteSlice     -> ctx.string_byte_slice()
-        .IsAscii       -> ctx.string_is_ascii()
-        .BytesToString -> ctx.bytes_to_string()
-        .Bytes         -> ctx.string_bytes(imp.signature.result_types[0])
-        .StringHash    -> ctx.string_hash()
-        .AbortPanic    -> ctx.panic_function()
-        _              -> WasmUnsupported {
+        .ByteLen           -> ctx.string_byte_len()
+        .ByteAt            -> ctx.string_byte_at()
+        .ByteSlice         -> ctx.string_byte_slice()
+        .IsAscii           -> ctx.string_is_ascii()
+        .BytesToString     -> ctx.bytes_to_string()
+        .Bytes             -> ctx.string_bytes(imp.signature.result_types[0])
+        .StringHash        -> ctx.string_hash()
+        .AbortPanic        -> ctx.panic_function()
+        .TargetCurrentOs   -> ctx.constant_function("os", OS_WASI)
+        .TargetCurrentArch -> ctx.constant_function("arch", ARCH_WASM32)
+        _                  -> WasmUnsupported {
             .reason = "`${function}`: no WASM form yet for `${imp.extern_name}`",
         }
     }

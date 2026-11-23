@@ -103,6 +103,10 @@ defer_pop_exec :: fn(ctx: ModuleCtx) -> i32 {
     if known != null {
         return known
     }
+    // Reserved first: a bounds check of the array helpers it calls panics,
+    // which drains the defers through it.
+    signature :: WasmFuncType { .params = [.I32], .results = [] }
+    index :: ctx.reserve_helper("defer.pop_exec", signature)
     count :: 0
     done :: 1
     closure :: 2
@@ -114,8 +118,8 @@ defer_pop_exec :: fn(ctx: ModuleCtx) -> i32 {
     each.push(Plain { .op = .Drop })
     body: WasmInstr[]: []
     body.push_counted_loop(.I32, done, count, each)
-    signature :: WasmFuncType { .params = [.I32], .results = [] }
-    return ctx.define_helper("defer.pop_exec", signature, [.I32, .EqRef], body)
+    ctx.fill_helper(index, [.I32, .EqRef], body)
+    return index
 }
 
 // How many closures the defer stack holds, the stack made on the first read.

@@ -1086,7 +1086,7 @@ byte_at_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
     body.push(LocalGet { .index = index })
     body.push_all(length)
     body.push(Plain { .op = .I64GeU })
-    body.push_trap_if()
+    body.push_trap_if(ctx)
     body.push_all(entry_field(ctx, entry, ATOM_BYTES))
     body.push(LocalSet { .index = bytes })
     at :: entry_field(ctx, entry, ATOM_START)
@@ -1296,11 +1296,11 @@ bytes_body :: fn(ctx: ModuleCtx, type_id: i32) -> WasmInstr[] {
 
 // Stop the run when the `i64` `value` leaves is, unsigned, above what `limit`
 // leaves: a negative value is above any.
-push_trap_above :: fn(body: WasmInstr[], value: WasmInstr[], limit: WasmInstr[]) -> void {
+push_trap_above :: fn(body: WasmInstr[], ctx: ModuleCtx, value: WasmInstr[], limit: WasmInstr[]) -> void {
     body.push_all(value)
     body.push_all(limit)
     body.push(Plain { .op = .I64GtU })
-    body.push_trap_if()
+    body.push_trap_if(ctx)
 }
 
 // `(size: i64) -> buffer`: `size` zero bytes, an `i8` storage.
@@ -1308,7 +1308,11 @@ buffer_new :: fn(ctx: ModuleCtx) -> i32 {
     signature :: WasmFuncType { .params = [.I64], .results = [.EqRef] }
     size :: 0
     body: WasmInstr[]: []
-    body.push_trap_above([LocalGet { .index = size }], [I64Const { .value = STORAGE_GREATEST }])
+    body.push_trap_above(
+        ctx,
+        [LocalGet { .index = size }],
+        [I64Const { .value = STORAGE_GREATEST }],
+    )
     body.push_all(
         [
             LocalGet { .index = size },
@@ -1363,7 +1367,7 @@ buffer_to_string :: fn(ctx: ModuleCtx) -> i32 {
         Plain { .op = .I64ExtendI32U },
     ]
     body: WasmInstr[]: []
-    body.push_trap_above([LocalGet { .index = length }], size)
+    body.push_trap_above(ctx, [LocalGet { .index = length }], size)
     body.push_all(
         [
             LocalGet { .index = buffer },
@@ -1418,7 +1422,11 @@ memory_copy_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
     count :: 4
     body :: buffer_at(ctx, 0, 1)
     body.push_all(buffer_at(ctx, 2, 3))
-    body.push_trap_above([LocalGet { .index = count }], [I64Const { .value = STORAGE_GREATEST }])
+    body.push_trap_above(
+        ctx,
+        [LocalGet { .index = count }],
+        [I64Const { .value = STORAGE_GREATEST }],
+    )
     body.push_all(
         [
             LocalGet { .index = count },
@@ -1435,7 +1443,11 @@ memory_copy_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
 // the access.
 buffer_at :: fn(ctx: ModuleCtx, buffer: i32, offset: i32) -> WasmInstr[] {
     out: WasmInstr[]: []
-    out.push_trap_above([LocalGet { .index = offset }], [I64Const { .value = STORAGE_GREATEST }])
+    out.push_trap_above(
+        ctx,
+        [LocalGet { .index = offset }],
+        [I64Const { .value = STORAGE_GREATEST }],
+    )
     out.push_all(
         [
             LocalGet { .index = buffer },

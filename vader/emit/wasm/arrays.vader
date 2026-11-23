@@ -438,13 +438,14 @@ array_get :: fn(ctx: ModuleCtx, storage: WasmStorageType, extension: Extension) 
     key :: "array.get.${storage_name(storage)}${extension_name(extension)}"
     signature :: WasmFuncType { .params = [.EqRef, .I64], .results = [held_of_storage(storage)] }
     return ctx.helpers[key]
-        else ctx.define_helper(key, signature, [], get_body(ctx.gc, storage, extension))
+        else ctx.define_helper(key, signature, [], get_body(ctx, storage, extension))
 }
 
-get_body :: fn(gc: GcTypes, storage: WasmStorageType, extension: Extension) -> WasmInstr[] {
+get_body :: fn(ctx: ModuleCtx, storage: WasmStorageType, extension: Extension) -> WasmInstr[] {
+    gc :: ctx.gc
     storage_index :: storage_type(gc, storage)
     body: WasmInstr[]: []
-    body.push_bounds_check(gc)
+    body.push_bounds_check(ctx)
     body.push_storage(gc, 0, storage_index)
     body.push_position(gc, 0, 1)
     body.push(ArrayGet { .type_index = storage_index, .extension = extension })
@@ -458,13 +459,14 @@ array_set :: fn(ctx: ModuleCtx, storage: WasmStorageType) -> i32 {
         .params = [.EqRef, .I64, held_of_storage(storage)],
         .results = [],
     }
-    return ctx.helpers[key] else ctx.define_helper(key, signature, [], set_body(ctx.gc, storage))
+    return ctx.helpers[key] else ctx.define_helper(key, signature, [], set_body(ctx, storage))
 }
 
-set_body :: fn(gc: GcTypes, storage: WasmStorageType) -> WasmInstr[] {
+set_body :: fn(ctx: ModuleCtx, storage: WasmStorageType) -> WasmInstr[] {
+    gc :: ctx.gc
     storage_index :: storage_type(gc, storage)
     body: WasmInstr[]: []
-    body.push_bounds_check(gc)
+    body.push_bounds_check(ctx)
     body.push_storage(gc, 0, storage_index)
     body.push_position(gc, 0, 1)
     body.push_all([LocalGet { .index = 2 }, ArraySet { .type_index = storage_index }])
@@ -673,7 +675,7 @@ recorded_body :: fn(
             Plain { .op = .I32Ne },
         ],
     )
-    body.push_trap_if()
+    body.push_trap_if(ctx)
     for parameter in 0..<element {
         body.push(LocalGet { .index = parameter })
     }
@@ -865,7 +867,7 @@ repeat_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
             Plain { .op = .I64GtS },
         ],
     )
-    body.push_trap_if()
+    body.push_trap_if(ctx)
     body.push(LocalGet { .index = count })
     body.push_header_field(gc, 0, HEADER_LENGTH)
     body.push_all(
@@ -876,7 +878,7 @@ repeat_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
             Plain { .op = .I64GtS },
         ],
     )
-    body.push_trap_if()
+    body.push_trap_if(ctx)
     body.push_storage_like(ctx, capacity, storage)
     header :: HeaderParts {
         .type_id = header_field(gc, 0, HEADER_TYPE),
@@ -973,8 +975,8 @@ copy_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
     for local in [count, source_start, destination_start] {
         body.push_clamp(local, I64Const { .value = 0 }, .I64LtS)
     }
-    body.push_range_check(gc, source, source_start, count)
-    body.push_range_check(gc, destination, destination_start, count)
+    body.push_range_check(ctx, source, source_start, count)
+    body.push_range_check(ctx, destination, destination_start, count)
     body.push_header_field(gc, source, HEADER_ELEMENT)
     body.push(LocalTee { .index = element })
     body.push_header_field(gc, destination, HEADER_ELEMENT)
@@ -1024,13 +1026,13 @@ copy_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
 }
 
 // `if start + count > length { unreachable }`, the array in the local `array`.
-push_range_check :: fn(body: WasmInstr[], gc: GcTypes, array: i32, start: i32, count: i32) -> void {
+push_range_check :: fn(body: WasmInstr[], ctx: ModuleCtx, array: i32, start: i32, count: i32) -> void {
     body.push_all(
         [LocalGet { .index = start }, LocalGet { .index = count }, Plain { .op = .I64Add }],
     )
-    body.push_header_field(gc, array, HEADER_LENGTH)
+    body.push_header_field(ctx.gc, array, HEADER_LENGTH)
     body.push(Plain { .op = .I64GtS })
-    body.push_trap_if()
+    body.push_trap_if(ctx)
 }
 
 // The most elements a storage holds: a position in it is an `i32`.
@@ -1061,11 +1063,12 @@ is_body :: fn(header: i32) -> WasmInstr[] = [
 // ---- building blocks ------------------------------------------------------
 
 // `if index >= length { unreachable }`, the array in local 0, the index in 1.
-push_bounds_check :: fn(body: WasmInstr[], gc: GcTypes) -> void {
+push_bounds_check :: fn(body: WasmInstr[], ctx: ModuleCtx) -> void {
+    gc :: ctx.gc
     body.push(LocalGet { .index = 1 })
     body.push_header_field(gc, 0, HEADER_LENGTH)
     body.push(Plain { .op = .I64GeU })
-    body.push_trap_if()
+    body.push_trap_if(ctx)
 }
 
 // The field `field` of the header of the array in the local `array`.
