@@ -250,6 +250,7 @@ export WasmOp :: enum {
     End,
     Return,
     Drop,
+    Select,
     I32Eqz,
     I32Eq,
     I32Ne,

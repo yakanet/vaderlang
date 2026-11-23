@@ -1095,6 +1095,85 @@ byte_at_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
     return body
 }
 
+// `(a: atom, b: atom) -> i32`: -1, 0 or 1 as `a` orders before, with or after
+// `b`, byte by byte, a proper prefix first, as `string.compare` orders.
+string_compare :: fn(ctx: ModuleCtx) -> i32 {
+    signature :: WasmFuncType { .params = [.I32, .I32], .results = [.I32] }
+    return ctx.helpers["string.compare"]
+        else ctx.define_helper(
+            "string.compare",
+            signature,
+            [.EqRef, .EqRef, .EqRef, .EqRef, .I32, .I32, .I32, .I32, .I32, .I32, .I32],
+            compare_body(ctx),
+        )
+}
+
+// The locals past the parameters: the two entries, their bytes, their starts,
+// their lengths, the position, the shorter length and a difference.
+compare_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+    a :: 0
+    b :: 1
+    bytes_a :: 4
+    bytes_b :: 5
+    start_a :: 6
+    start_b :: 7
+    length_a :: 8
+    length_b :: 9
+    at :: 10
+    shorter :: 11
+    difference :: 12
+    body: WasmInstr[]: [LocalGet { .index = a }, LocalGet { .index = b }, Plain { .op = .I32Eq }]
+    body.push_return_if(0)
+    // Each side's entry in 2 or 3, then its bytes, start and length, `b`'s one
+    // past `a`'s.
+    for side in [a, b] {
+        entry :: 2 + side
+        body.push_all(entry_of(ctx, [LocalGet { .index = side }]))
+        body.push(LocalSet { .index = entry })
+        body.push_all(entry_field(ctx, entry, ATOM_BYTES))
+        body.push(LocalSet { .index = bytes_a + side })
+        body.push_all(entry_field(ctx, entry, ATOM_START))
+        body.push(LocalSet { .index = start_a + side })
+        body.push_all(entry_field(ctx, entry, ATOM_LENGTH))
+        body.push(LocalSet { .index = length_a + side })
+    }
+    body.push_all(
+        [
+            LocalGet { .index = length_a },
+            LocalGet { .index = length_b },
+            LocalGet { .index = length_a },
+            LocalGet { .index = length_b },
+            Plain { .op = .I32LtU },
+            Plain { .op = .Select },
+            LocalSet { .index = shorter },
+        ],
+    )
+    each: WasmInstr[]: []
+    each.push_all(byte_at(ctx.gc, bytes_a, sum_of(start_a, at)))
+    each.push_all(byte_at(ctx.gc, bytes_b, sum_of(start_b, at)))
+    each.push_all([Plain { .op = .I32Sub }, LocalTee { .index = difference }, Plain { .op = .If }])
+    each.push_all(sign_of(difference))
+    each.push_all([Plain { .op = .Return }, Plain { .op = .End }])
+    body.push_counted_loop(.I32, at, shorter, each)
+    body.push_all(
+        [LocalGet { .index = length_a }, LocalGet { .index = length_b }, Plain { .op = .I32Sub }],
+    )
+    body.push(LocalSet { .index = difference })
+    body.push_all(sign_of(difference))
+    return body
+}
+
+// -1, 0 or 1 as the `i32` local `x` is negative, zero or positive.
+sign_of :: fn(x: i32) -> WasmInstr[] = [
+    LocalGet { .index = x },
+    I32Const { .value = 0 },
+    Plain { .op = .I32GtS },
+    LocalGet { .index = x },
+    I32Const { .value = 0 },
+    Plain { .op = .I32LtS },
+    Plain { .op = .I32Sub },
+]
+
 // `(atom, from: i64, to: i64) -> atom`: the bytes `from..<to`, the bounds clamped
 // to the string as an array slice clamps them, as a string that shares the
 // bytes.

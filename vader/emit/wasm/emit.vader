@@ -451,6 +451,7 @@ push_op :: fn(
             out.push(Call { .function_index = ctx.buffer_write_string() })
         }
         is Bc.BufferToString -> { out.push(Call { .function_index = ctx.buffer_to_string() }) }
+        is Bc.StringCompare -> { out.push(Call { .function_index = ctx.string_compare() }) }
         is Bc.LoadU8 -> { out.push(Call { .function_index = ctx.buffer_load_u8() }) }
         is Bc.StoreU8 -> { out.push(Call { .function_index = ctx.buffer_store_u8() }) }
         is Bc.MemoryCopy -> { out.push(Call { .function_index = ctx.buffer_memory_copy() }) }
@@ -484,6 +485,10 @@ push_op :: fn(
             return push_field_read(ctx, out, op.type_id, op.field_index, function)
         }
         is Bc.StructSet -> { return push_field_write(ctx, scratch, out, op, function) }
+        is Bc.UnionFieldGet | Bc.UnionFieldSet -> {
+            index :: ctx.union_field(op, function) else return index
+            out.push(Call { .function_index = index })
+        }
         is Bc.Retag -> { return push_retag(ctx, out, op, function) }
         is Bc.TypeCheck -> { return push_type_check(ctx, scratch, out, op, function) }
         is Bc.ArrayNew | Bc.ArrayReserve | Bc.ArrayLen | Bc.ArrayClear | Bc.ArrayGet | Bc.ArraySet
@@ -600,6 +605,15 @@ imported_function :: fn(
     return intrinsic_function(ctx, imp, function)
 }
 
+// `(message: atom) -> ()`: stops the run. The message reaches no stream yet:
+// writing it needs the WASI stderr the library imports, which the emitter does
+// not name.
+panic_function :: fn(ctx: ModuleCtx) -> i32 {
+    signature :: WasmFuncType { .params = [.I32], .results = [] }
+    return ctx.helpers["panic"]
+        else ctx.define_helper("panic", signature, [], [Plain { .op = .Unreachable }])
+}
+
 // The function a call to the `Intrinsic` member `imp` reaches.
 intrinsic_function :: fn(
     ctx: ModuleCtx,
@@ -615,6 +629,7 @@ intrinsic_function :: fn(
         .BytesToString -> ctx.bytes_to_string()
         .Bytes         -> ctx.string_bytes(imp.signature.result_types[0])
         .StringHash    -> ctx.string_hash()
+        .AbortPanic    -> ctx.panic_function()
         _              -> WasmUnsupported {
             .reason = "`${function}`: no WASM form yet for `${imp.extern_name}`",
         }

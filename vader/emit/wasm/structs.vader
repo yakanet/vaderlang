@@ -308,6 +308,64 @@ push_field_write :: fn(
     )
 }
 
+// `(value: eqref) -> field` for a `union.get`, `(value: eqref, field) -> ()` for a
+// `union.set`: the field every variant of the union places at one slot, read or
+// written through the variant the value is, tested in turn.
+union_field :: fn(
+    ctx: ModuleCtx,
+    op: Bc.UnionFieldGet | Bc.UnionFieldSet,
+    function: string,
+) -> i32 | WasmUnsupported {
+    reads :: op is Bc.UnionFieldGet
+    kind :: if reads { "get" } else { "set" }
+    key :: "union.${kind} ${op.type_id} ${op.field_index}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    types :: ctx.module.types
+    union :: types[op.type_id]
+    layout :: Bc.union_layout_struct(types, op.type_id) else {
+        return WasmUnsupported {
+            .reason = "`${function}`: type ${op.type_id} is no union of structs",
+        }
+    }
+    if union !is Bc.BcUnion {
+        return WasmUnsupported { .reason = "`${function}`: type ${op.type_id} is no union" }
+    }
+    shape :: Bc.struct_at(types, layout) else {
+        return WasmUnsupported { .reason = "`${function}`: type ${layout} is no struct" }
+    }
+    held :: field_type_of(types[shape.fields[op.field_index].type_index])
+    body: WasmInstr[]: []
+    for variant in union.variants {
+        cast :: layout_type(ctx, variant, function) else return cast
+        body.push(LocalGet { .index = 0 })
+        tested :: push_single_test(ctx, body, variant, function) else return tested
+        body.push_all(
+            [Plain { .op = .If }, LocalGet { .index = 0 }, RefCast { .type_index = cast }],
+        )
+        if reads {
+            body.push(StructGet { .type_index = cast, .field_index = op.field_index })
+        } else {
+            body.push_all(
+                [
+                    LocalGet { .index = 1 },
+                    StructSet { .type_index = cast, .field_index = op.field_index },
+                ],
+            )
+        }
+        body.push_all([Plain { .op = .Return }, Plain { .op = .End }])
+    }
+    body.push(Plain { .op = .Unreachable })
+    signature :: if reads {
+        WasmFuncType { .params = [.EqRef], .results = [held] }
+    } else {
+        WasmFuncType { .params = [.EqRef, held], .results = [] }
+    }
+    return ctx.define_helper(key, signature, [], body)
+}
+
 // `ref.cast` of the bytecode: a value read out of a slot that holds any type, an
 // erased field say, pinned to the type it has. Out of a reference into a scalar
 // it unboxes; between two of one class it is nothing, every reference being held
@@ -572,4 +630,24 @@ test_layout_siblings_share_the_supertype_a_read_casts_to :: fn() -> void {
     wasm :: wasm_module_of(program, "") else panic(wasm.reason)
     cast :: wasm.functions[0].body.filter_is<RefCast>().collect()[0]
     assert(cast.type_index == layout, "the read casts to the supertype")
+}
+
+// A field every variant places at one slot is read through the variant the
+// value is.
+@test
+test_a_union_field_read_tests_each_variant :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.I32Const { .value = 3 },
+        Bc.StructNew { .type_id = 2, .stack = false },
+        Bc.UnionFieldGet { .type_id = 3, .field_index = 0 },
+        Bc.Return {},
+    ]
+    wasm :: wasm_module_of(program_over_structs(body), "") else panic(wasm.reason)
+    helper :: wasm.functions[1].body
+    tests :: helper.filter_is<RefTest>().collect()
+    assert(
+        tests.len() == 2 && tests[0].type_index == 0 && tests[1].type_index == 1,
+        "`A`, then `B`",
+    )
+    assert_eq(helper.filter_is<StructGet>().count(), 2)
 }

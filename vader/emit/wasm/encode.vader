@@ -431,6 +431,7 @@ opcode :: fn(op: WasmOp) -> u8 = match op {
     .End               -> 0x0B
     .Return            -> 0x0F
     .Drop              -> 0x1A
+    .Select            -> 0x1B
     .I32Eqz            -> 0x45
     .I32Eq             -> 0x46
     .I32Ne             -> 0x47
