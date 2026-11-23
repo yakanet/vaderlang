@@ -14,6 +14,9 @@ module "vader/emit/wasm"
 Bc :: import "vader/core/bytecode"
 import "std/abort"
 import "std/collections"
+import "std/iter"
+import "std/string_builder"
+import "vader/core/mangle"
 
 /// The struct and array types of a module, and where each Vader type finds its
 /// own.
@@ -21,6 +24,9 @@ export GcTypes :: struct {
     types: WasmGcType[] = []
     /// The WASM type of each `BcStruct`, by its index in the bytecode types.
     of_struct: Map<i32, i32> = Map<i32, i32> {}
+    /// The supertype a struct shares with its layout siblings, by its index in
+    /// the bytecode types; a struct with no sibling has none.
+    of_layout: Map<i32, i32> = Map<i32, i32> {}
     /// The box of each scalar class.
     of_box: Map<Bc.ValType, i32> = Map<Bc.ValType, i32> {}
     /// The box of `void`, which holds nothing.
@@ -59,14 +65,34 @@ BOXED_CLASSES: Bc.ValType[]: [
 /// @param m  the program's bytecode.
 export gc_types_of :: fn(m: Bc.BytecodeModule) -> GcTypes {
     out :: GcTypes {}
+    keys :: m.types.map((t) -> layout_key(m, t)).collect()
+    siblings :: Map<string, i32> {}
+    for key in keys {
+        if key != null {
+            siblings[key] = (siblings[key] else 0) + 1
+        }
+    }
+    layouts :: Map<string, i32> {}
     for i in 0..<m.types.len() {
         t :: m.types[i]
         if t is Bc.BcStruct {
-            fields: WasmField[]: []
-            for f in t.fields {
-                fields.push(WasmField { .type = field_type_of(m.types[f.type_index]) })
+            fields :: fields_of(m, t)
+            key :: keys[i]
+            if key == null || siblings[key] else 0 < 2 {
+                out.of_struct[i32(i)] = out.add(fields)
+                continue
             }
-            out.of_struct[i32(i)] = out.add(fields)
+            layout :: layouts.get_or_put_with(
+                key,
+                () -> out.add_type(WasmStructType {
+                    .fields = fields,
+                    .open = true,
+                }),
+            )
+            out.of_layout[i32(i)] = layout
+            out.of_struct[i32(i)] = out.add_type(
+                WasmStructType { .fields = fields, .supertype = layout },
+            )
         }
     }
     for class in BOXED_CLASSES {
@@ -76,6 +102,44 @@ export gc_types_of :: fn(m: Bc.BytecodeModule) -> GcTypes {
     out.add_array_types(m)
     out.add_string_types()
     return out
+}
+
+// How each field of `t` is held.
+fields_of :: fn(m: Bc.BytecodeModule, t: Bc.BcStruct) -> WasmField[] {
+    fields: WasmField[]: []
+    for f in t.fields {
+        fields.push(WasmField { .type = field_type_of(m.types[f.type_index]) })
+    }
+    return fields
+}
+
+// The layout siblings of a struct are the instances of one generic struct, or
+// two anonymous tuples, whose fields are held alike: the bytecode makes a value
+// as one and reads it as another (a generic body erased to `Any` makes the
+// `Box<Any>` its caller reads as a `Box<Point>`). They share a supertype, which
+// the field accesses cast to, while `struct.new` and `is` keep each one's own
+// type. Null for a type that belongs to no group.
+layout_key :: fn(m: Bc.BytecodeModule, t: Bc.BcType) -> string | null {
+    if t !is Bc.BcStruct {
+        return null
+    }
+    group :: layout_group(t) else return null
+    sb :: StringBuilder {}
+    sb.append(group)
+    for f in fields_of(m, t) {
+        sb.append(":${value_type_byte(f.type)}")
+    }
+    return sb.to_string()
+}
+
+layout_group :: fn(t: Bc.BcStruct) -> string | null {
+    if t.symbol_id >= 0 {
+        return "s${t.symbol_id}"
+    }
+    if is_tuple_struct_name(t.name) {
+        return "tuple"
+    }
+    return null
 }
 
 add :: fn(gc: GcTypes, fields: WasmField[]) -> i32 = gc.add_type(
@@ -165,6 +229,16 @@ struct_type :: fn(ctx: ModuleCtx, type_id: i32, function: string) -> i32 | WasmU
     }
 }
 
+// The WASM type a field access of the bytecode struct `type_id` casts to: the
+// supertype it shares with its layout siblings, else its own.
+layout_type :: fn(ctx: ModuleCtx, type_id: i32, function: string) -> i32 | WasmUnsupported {
+    layout :: ctx.gc.of_layout[type_id]
+    if layout != null {
+        return layout
+    }
+    return struct_type(ctx, type_id, function)
+}
+
 // `struct.get` of a bytecode struct, the reference on the stack.
 push_field_read :: fn(
     ctx: ModuleCtx,
@@ -173,7 +247,7 @@ push_field_read :: fn(
     field_index: i32,
     function: string,
 ) -> void | WasmUnsupported {
-    t :: struct_type(ctx, type_id, function) else return t
+    t :: layout_type(ctx, type_id, function) else return t
     out.push_all(
         [RefCast { .type_index = t }, StructGet { .type_index = t, .field_index = field_index }],
     )
@@ -188,7 +262,7 @@ push_field_write :: fn(
     op: Bc.StructSet,
     function: string,
 ) -> void | WasmUnsupported {
-    t :: struct_type(ctx, op.type_id, function) else return t
+    t :: layout_type(ctx, op.type_id, function) else return t
     value_type :: ctx.gc.field_held_as(t, op.field_index)
     held :: scratch.local_of(value_type)
     out.push_all(
@@ -343,7 +417,6 @@ payload_equality :: fn(class: Bc.ValType) -> WasmOp = match scalar_field_type(cl
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/iter"
 import "std/testing"
 
 @test
@@ -440,4 +513,30 @@ test_a_cast_reads_the_value_under_a_drop :: fn() -> void {
     i32_box :: gc_types_of(program).of_box[.I32] else -1
     casts :: wasm.functions[0].body.filter_is<RefCast>().collect()
     assert(casts.len() == 1 && casts[0].type_index == i32_box, "the `any` is unboxed as an `i32`")
+}
+
+// Two instances of one generic struct, held alike, share a supertype that a
+// field read casts to, while each keeps its own type for `is`.
+@test
+test_layout_siblings_share_the_supertype_a_read_casts_to :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.I32Const { .value = 3 },
+        Bc.StructNew { .type_id = 1, .stack = false },
+        Bc.StructGet { .type_id = 2, .field_index = 0 },
+        Bc.Return {},
+    ]
+    program :: program_over_structs(body)
+    for i in [1, 2] {
+        program.types[i] = Bc.BcStruct {
+            ...Bc.struct_at(program.types, i) else panic("A"),
+            .symbol_id = 7,
+        }
+    }
+    gc :: gc_types_of(program)
+    layout :: gc.of_layout[1] else -1
+    assert(layout >= 0 && gc.of_layout[2] == layout, "`A` and `B` share a supertype")
+    assert(gc.of_struct[1] != gc.of_struct[2], "each keeps its own type")
+    wasm :: wasm_module_of(program, "") else panic(wasm.reason)
+    cast :: wasm.functions[0].body.filter_is<RefCast>().collect()[0]
+    assert(cast.type_index == layout, "the read casts to the supertype")
 }

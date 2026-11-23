@@ -18,6 +18,10 @@ export WasmGcType :: WasmStructType | WasmArrayType
 /// A struct type of Wasm GC.
 export WasmStructType :: struct {
     fields: WasmField[]
+    /// The type it is a subtype of, declared before it.
+    supertype: i32 | null = null
+    /// Whether other types may declare it their supertype.
+    open: bool = false
 }
 
 /// An array type of Wasm GC, its elements mutable.

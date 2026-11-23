@@ -68,6 +68,10 @@ FUNC_TYPE: u8: 0x60
 STRUCT_TYPE: u8: 0x5F
 ARRAY_TYPE: u8: 0x5E
 REC_GROUP: u8: 0x4E
+// A subtype others may extend, then one none may: each followed by its
+// supertypes, then its composite type.
+SUBTYPE: u8: 0x50
+FINAL_SUBTYPE: u8: 0x4F
 // A mutable field.
 MUTABLE: u8: 0x01
 // The prefix of the Wasm GC instructions.
@@ -121,6 +125,16 @@ push_gc_type :: fn(out: u8[], t: WasmGcType) -> void {
     if t is WasmArrayType {
         out.push_all([ARRAY_TYPE, storage_type_byte(t.element), MUTABLE])
         return
+    }
+    if t.open || t.supertype != null {
+        out.push(if t.open { SUBTYPE } else { FINAL_SUBTYPE })
+        supertype :: t.supertype
+        if supertype == null {
+            out.push_count(0)
+        } else {
+            out.push_count(1)
+            out.push_count(i64(supertype))
+        }
     }
     out.push(STRUCT_TYPE)
     out.push_count(t.fields.len())
@@ -728,4 +742,11 @@ test_a_saturating_truncation_takes_the_prefix :: fn() -> void {
     out: u8[]: []
     out.push_instr(Plain { .op = .I64TruncSatF64S })
     assert_bytes(out, [0xFC, 0x06])
+}
+
+@test
+test_a_subtype_names_its_supertype_before_its_fields :: fn() -> void {
+    out: u8[]: []
+    out.push_gc_type(WasmStructType { .fields = [], .supertype = 3 })
+    assert_bytes(out, [FINAL_SUBTYPE, 0x01, 0x03, STRUCT_TYPE, 0x00])
 }
