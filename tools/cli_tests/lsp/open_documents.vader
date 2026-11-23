@@ -129,7 +129,7 @@ test_the_server_asks_to_watch_files_only_when_the_client_can_register :: fn() ->
     assert_eq(string_member(registered[0], "method") else "", "workspace/didChangeWatchedFiles")
     watchers :: array_at(registered[0], ["registerOptions", "watchers"])
     patterns :: watchers.map((w) -> string_member(w, "globPattern") else "").collect()
-    assert_eq(patterns.join(" "), "**/*.vader **/vader.json")
+    assert_eq(patterns.join(" "), "**/*.vader **/*.wit **/vader.json")
     // The client's answer is a response, not a request to refuse.
     id :: stringify(member(registration, "id") else JsonNull {})
     watching.send("""{"jsonrpc":"2.0","id":${id},"result":null}""")

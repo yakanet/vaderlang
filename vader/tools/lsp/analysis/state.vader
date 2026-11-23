@@ -182,6 +182,12 @@ export ServerState :: struct {
     /// The name code the compiler wrote is parsed under -> its copy
     /// (`opened_path`).
     expanded_copies:            Map<string, string> = Map<string, string> {}
+    /// The copies of the modules of WIT interfaces the server wrote -> the text it
+    /// wrote, so that an analysis writes one again only when it changes.
+    written_copies:             Map<string, string> = Map<string, string> {}
+    /// The WIT packages navigation read (`module_named`), forgotten when a file
+    /// changes on disk.
+    wit_stage:                  WitStage = WitStage {}
 }
 
 export new_state :: fn(library_root: string) -> ServerState {
@@ -440,6 +446,14 @@ learn_expanded_copies :: fn(self: ServerState, loaded: LoadedProject, entry: str
         copy :: expanded_copy(source.file, root) else continue
         self.expanded_names[copy] = source.file
         self.expanded_copies[source.file] = copy
+        // The module of a WIT interface has no file of its own: the server writes
+        // its copy, once per text, for a definition to land in.
+        if is_wit_module_file(source.file) && self.written_copies[copy] != source.content {
+            self.written_copies[copy] = source.content
+            if !holds(copy, source.content) {
+                write_text(copy, source.content)
+            }
+        }
         open :: self.docs[copy.to_uri().to_string()] else continue
         if open != source.content && !holds(copy, source.content) {
             write_text(copy, source.content)
@@ -639,8 +653,9 @@ send_request :: fn(self: ServerState, method: string, params: JsonValue) -> void
 }
 
 /// Ask the client to report what changes outside the editor in the `.vader`
-/// files and the `vader.json` of the workspace (`workspace/didChangeWatchedFiles`):
-/// a file created by `git checkout`, a sibling rewritten by a generator. LSP
+/// files, the `.wit` files and the `vader.json` of the workspace
+/// (`workspace/didChangeWatchedFiles`): a file created by `git checkout`, a
+/// sibling rewritten by a generator, an interface a module is written from. LSP
 /// offers no static registration for it, so this goes through
 /// `client/registerCapability` once the connection is up. Nothing when the
 /// client cannot register dynamically.
@@ -651,7 +666,7 @@ export register_file_watchers :: fn(self: ServerState) -> void {
         return
     }
     watchers: JsonValue[]: []
-    for pattern in ["**/*.vader", "**/${MANIFEST_FILENAME}"] {
+    for pattern in ["**/*.vader", "**/*.wit", "**/${MANIFEST_FILENAME}"] {
         watcher :: Map<string, JsonValue> {}
         watcher["globPattern"] = JsonString { .value = pattern }
         watchers.push(JsonObject { .entries = watcher })
@@ -701,6 +716,7 @@ export handle_did_change_watched_files :: fn(self: ServerState, params: JsonValu
     }
     forget_analyses(self)
     self.union_cache = null
+    self.wit_stage = WitStage {}
     for [uri, _] in self.docs {
         path :: path_of_uri(uri) else continue
         if !is_virt_uri(uri) && touches_document(changed, path) {

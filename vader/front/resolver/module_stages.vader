@@ -29,7 +29,9 @@ export ModuleServer :: struct {
 /// the `wit/` folder of each root.
 ///
 /// @param bases  the roots of the load (`SearchRoots.paths`).
-export module_server_for :: fn(bases: IncludePath[]) -> ModuleServer {
+/// @param wit    the WIT stage, which keeps the packages it read: a fresh one for
+///               a load, the one a language server keeps between requests.
+export module_server_for :: fn(bases: IncludePath[], wit: WitStage = WitStage {}) -> ModuleServer {
     roots: ModuleRoot[]: [ModuleRoot { .path = toolchain_runtime(), .of_toolchain = true }]
     seen :: Set<string> {}
     for base in bases {
@@ -38,7 +40,7 @@ export module_server_for :: fn(bases: IncludePath[]) -> ModuleServer {
             roots.push(ModuleRoot { .path = path })
         }
     }
-    return ModuleServer { .stages = [WitStage {}], .roots = roots }
+    return ModuleServer { .stages = [wit], .roots = roots }
 }
 
 /// The WIT interfaces the load read, by their qualified name

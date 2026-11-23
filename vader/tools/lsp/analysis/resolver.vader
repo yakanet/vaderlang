@@ -205,7 +205,7 @@ export first_in_files :: fn(
         if src.byte_len() == 0 {
             continue
         }
-        uri :: file.to_uri().to_string()
+        uri :: state.uri_of(file)
         index :: state.index_for(uri) else build_index(uri, src, state.position_encoding)
         found :: query(index) else continue
         return ExternalHit {
@@ -300,7 +300,7 @@ export roots_of :: fn(state: ServerState, path: string) -> SearchRoots {
 /// @param paths  the roots, from `document_roots`.
 export module_named :: fn(state: ServerState, name: string, paths: IncludePath[]) -> DiscoveredModule | null {
     index :: Map<string, DiscoveredModule> {}
-    // The language server does not serve the modules a stage writes yet.
-    return resolve_lazy(name, paths, index, doc_overlay(state), [], ModuleServer {})
+    server :: module_server_for(paths, state.wit_stage)
+    return resolve_lazy(name, paths, index, doc_overlay(state), [], server)
 }
 

@@ -106,3 +106,31 @@ test_the_command_of_a_lens_that_leads_to_a_declaration_asks_the_client_to_show_i
     assert_eq(int_at(shown, ["params", "selection", "start", "line"]), 3)
     close_client(client)
 }
+
+WIT_IMPORT :: """
+    module "main"
+
+    Clocks :: import "wasi:clocks/system-clock@0.3.0"
+
+    main :: fn() -> i32 {
+        at :: Clocks.Instant { .seconds = 1, .nanoseconds = 2 }
+        return at.missing
+    }
+    """
+
+// The module of an interface the toolchain ships is analysed with the program,
+// and a type of it leads to its copy under `build/expanded/`.
+@test
+test_a_type_of_an_imported_wit_interface_leads_to_its_module :: fn() -> void {
+    dir :: project("wit_import", [["main.vader", WIT_IMPORT]])
+    client :: start_client(dir)
+    uri :: file_uri("${dir}/main.vader")
+    client.send(did_open(uri, WIT_IMPORT))
+    assert_eq(error_places(diagnostics_of(client, uri)), "T3009@6")
+    // `Instant` in `Clocks.Instant { ... }`.
+    position :: r""","position":{"line":5,"character":17}"""
+    found :: request(client, "textDocument/definition", on_document(uri, position))
+    copy :: "${dir}/build/expanded/wit/wasi_0clocks/system-clock@0.3.0.vader"
+    assert_eq(string_member(found, "uri") else "", file_uri(copy))
+    close_client(client)
+}

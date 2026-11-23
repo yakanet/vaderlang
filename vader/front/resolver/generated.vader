@@ -93,13 +93,14 @@ export GeneratedCode :: struct {
 
 /// The code the compiler wrote as source for the modules of `loaded` the build
 /// named, and the bodies its body stages gave: the toolchain's are left out, an
-/// error in them being the compiler's.
+/// error in them being the compiler's, except the module of a WIT interface it
+/// ships, which a program reads to know what it calls.
 ///
 /// @param loaded  a loaded project.
 export generated_code :: fn(loaded: LoadedProject) -> GeneratedCode {
     out :: GeneratedCode {}
     for [_, lm] in loaded.modules {
-        if lm.module.origin == .Toolchain {
+        if lm.module.origin == .Toolchain && !is_wit_module_file(lm.module.id) {
             continue
         }
         out.origins.push(lm.module.module_name)

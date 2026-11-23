@@ -131,7 +131,7 @@ tests that build ([ADR 0115](adr/0115-the-ci-builds-each-target-once.md)).
 
 Only when it stops working: since the seed's age never reaches stage2, an old
 seed costs nothing while stage0 compiles the tree and the fixed point holds.
-Three kinds of change break it:
+Four kinds of change break it:
 
 - a change an old stage0 cannot compile: a core type it looks up by name that
   moved, an intrinsic it does not know, a runtime function it calls that was
@@ -143,7 +143,13 @@ Three kinds of change break it:
   pushed;
 - a move of `lib/`: stage0 finds the standard library in its built-in places
   (`$VADER_HOME/lib`, `lib/` beside its binary, then `lib/` in the working
-  directory), and reads no `vader.json`.
+  directory), and reads no `vader.json`;
+- a change to the module stage0 writes for an imported WIT interface
+  (`vader/core/wit/generate.vader`, [ADR 0179](adr/0179-a-wit-interface-is-imported-as-a-module.md)),
+  once `lib/` imports one: stage0 writes that module with its own generator, so
+  a name or a shape `lib/` relies on (a type, a function, the struct wrapping an
+  `ok` side) is frozen until the next seed, and a generator change lands, with a
+  new seed, before `lib/` uses it.
 
 ### Checking
 
