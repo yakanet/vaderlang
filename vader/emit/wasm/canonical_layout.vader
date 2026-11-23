@@ -1,0 +1,244 @@
+// vader/emit/wasm/canonical_layout: how the canonical ABI lays out a WIT value.
+//
+// A value crosses a call either flat, as core values, or through the linear
+// memory, at the size and the alignment its type has there. Each function
+// follows the definition of the same name in the canonical ABI's specification
+// (`CanonicalABI.md`: `flatten_type`, `elem_size`, `alignment`), one arm per
+// constructor of `WitType`. A `result` is the variant of its two cases.
+
+module "vader/emit/wasm"
+
+import "std/abort"
+import "std/iter"
+import "std/math"
+import "vader/core/wit"
+
+// How many flat values a call passes at most as parameters, and returns at most
+// as results: past them, the values cross through the memory.
+MAX_FLAT_PARAMS: i64: 16
+MAX_FLAT_RESULTS: i64: 1
+
+// The core type of `f` lowered by `canon lower`: its parameters flat when they
+// hold `MAX_FLAT_PARAMS` values at most, else the address of a block holding
+// them; its result flat when it holds one value, else the address the host
+// writes it to, passed last.
+flat_type_of :: fn(f: WitFunction, function: string) -> WasmFuncType | WasmUnsupported {
+    params: WasmValType[]: []
+    for p in f.params {
+        flat :: flat_types_of(p.type) else return unsupported_in(flat, function)
+        params.push_all(flat)
+    }
+    if params.len() > MAX_FLAT_PARAMS {
+        params.clear()
+        params.push(.I32)
+    }
+    result :: f.result else return func_of(params, [])
+    results :: flat_types_of(result) else return unsupported_in(results, function)
+    if results.len() > MAX_FLAT_RESULTS {
+        params.push(.I32)
+        return func_of(params, [])
+    }
+    return func_of(params, results)
+}
+
+unsupported_in :: fn(t: WasmUnsupported, function: string) -> WasmUnsupported =
+    WasmUnsupported { .reason = "`${function}`: ${t.reason}" }
+
+// The core values a value of `t` flattens to.
+flat_types_of :: fn(t: WitType) -> WasmValType[] | WasmUnsupported = match t {
+    is WitScalar                       -> flat_scalar_types(t)
+    is WitEnum | WitStream | WitFuture -> [.I32]
+    is WitList                         -> [.I32, .I32]
+    is WitResult                       -> flat_variant_types([t.ok, t.error])
+    is WitUnsupported                  -> WasmUnsupported { .reason = t.reason }
+}
+
+flat_scalar_types :: fn(s: WitScalar) -> WasmValType[] = match s {
+    .Bool | .S8 | .U8 | .S16 | .U16 | .S32 | .U32 | .Char -> [.I32]
+    .S64 | .U64 -> [.I64]
+    .F32 -> [.F32]
+    .F64 -> [.F64]
+    .String -> [.I32, .I32]
+}
+
+// A variant flattens to its case, then the values of its payloads, each position
+// the join of what the cases hold there.
+flat_variant_types :: fn(cases: (WitType | null)[]) -> WasmValType[] | WasmUnsupported {
+    joined: WasmValType[]: []
+    for c in cases {
+        payload :: c else continue
+        flat :: flat_types_of(payload) else return flat
+        for [v, i] in flat.indexed() {
+            if i < joined.len() {
+                joined[i] = join_flat(joined[i], v)
+            } else {
+                joined.push(v)
+            }
+        }
+    }
+    out: WasmValType[]: [.I32]
+    out.push_all(joined)
+    return out
+}
+
+// The core type two payloads share a position as.
+join_flat :: fn(a: WasmValType, b: WasmValType) -> WasmValType {
+    if a == b {
+        return a
+    }
+    if a == .I32 && b == .F32 || a == .F32 && b == .I32 {
+        return .I32
+    }
+    return .I64
+}
+
+// The bytes a value of `t` takes in the memory, padding included.
+size_of :: fn(t: WitType) -> i32 = match t {
+    is WitScalar             -> scalar_size(t)
+    is WitEnum               -> case_bytes(t.cases.len())
+    is WitStream | WitFuture -> 4
+    is WitList               -> 8
+    is WitResult             -> variant_size([t.ok, t.error])
+    is WitUnsupported        -> no_layout(t)
+}
+
+// The alignment of a value of `t` in the memory.
+alignment_of :: fn(t: WitType) -> i32 = match t {
+    is WitScalar                       -> scalar_alignment(t)
+    is WitEnum                         -> case_bytes(t.cases.len())
+    is WitStream | WitFuture | WitList -> 4
+    is WitResult                       -> variant_alignment([t.ok, t.error])
+    is WitUnsupported                  -> no_layout(t)
+}
+
+no_layout :: fn(t: WitUnsupported) -> i32 =
+    panic("wasm: no layout for a type without WIT form: ${t.reason}")
+
+scalar_size :: fn(s: WitScalar) -> i32 {
+    if s == .String {
+        return 8
+    }
+    return scalar_alignment(s)
+}
+
+scalar_alignment :: fn(s: WitScalar) -> i32 = match s {
+    .Bool | .S8 | .U8                    -> 1
+    .S16 | .U16                          -> 2
+    .S32 | .U32 | .F32 | .Char | .String -> 4
+    .S64 | .U64 | .F64                   -> 8
+}
+
+// The bytes the case of a variant of `count` cases is stored in.
+case_bytes :: fn(count: i64) -> i32 = i32(enum_case_bits(count) / 8)
+
+variant_size :: fn(cases: (WitType | null)[]) -> i32 {
+    largest: i32 = 0
+    for c in cases {
+        payload :: c else continue
+        largest = max(largest, size_of(payload))
+    }
+    return align_to(payload_offset(cases) + largest, variant_alignment(cases))
+}
+
+variant_alignment :: fn(cases: (WitType | null)[]) -> i32 =
+    max(case_bytes(cases.len()), max_payload_alignment(cases))
+
+max_payload_alignment :: fn(cases: (WitType | null)[]) -> i32 {
+    out: i32 = 1
+    for c in cases {
+        payload :: c else continue
+        out = max(out, alignment_of(payload))
+    }
+    return out
+}
+
+// Where the payload of a variant of `cases` starts, past its case.
+payload_offset :: fn(cases: (WitType | null)[]) -> i32 =
+    align_to(case_bytes(cases.len()), max_payload_alignment(cases))
+
+// `at` rounded up to a multiple of `alignment`, a power of two.
+align_to :: fn(at: i32, alignment: i32) -> i32 = (at + alignment - 1) & -alignment
+
+// Whether the host writes a result of `f` into room it asks the memory's
+// allocator for: one that holds a string or a list.
+allocates :: fn(f: WitFunction) -> bool = holds_room(f.result)
+
+holds_room :: fn(t: WitType | null) -> bool {
+    if t == null {
+        return false
+    }
+    return match t {
+        is WitScalar -> t == .String
+        is WitList -> true
+        is WitResult -> holds_room(t.ok) || holds_room(t.error)
+        is WitEnum | WitStream | WitFuture | WitUnsupported -> false
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+ERROR_CODE: WitEnum: WitEnum {
+    .name = "error-code",
+    .cases = ["io", "illegal-byte-sequence", "pipe"],
+}
+
+@test
+test_a_string_flattens_to_its_address_and_length :: fn() -> void {
+    flat :: flat_types_of(.String) else panic("a string flattens")
+    assert_eq(flat.len(), 2)
+}
+
+@test
+test_a_result_of_an_enum_flattens_to_its_case_and_the_enum :: fn() -> void {
+    flat :: flat_types_of(WitResult { .error = ERROR_CODE }) else panic("a result flattens")
+    assert_eq(flat.len(), 2)
+}
+
+@test
+test_a_result_joins_an_i32_and_an_i64_as_an_i64 :: fn() -> void {
+    t :: WitResult { .ok = .U32, .error = .U64 }
+    flat :: flat_types_of(t) else panic("a result flattens")
+    assert(flat.len() == 2 && flat[1] == .I64, "the payload position joins to i64")
+}
+
+@test
+test_a_result_of_an_enum_takes_two_bytes :: fn() -> void {
+    t :: WitResult { .error = ERROR_CODE }
+    assert_eq(size_of(t), 2)
+    assert_eq(alignment_of(t), 1)
+    assert_eq(payload_offset([t.ok, t.error]), 1)
+}
+
+@test
+test_a_result_of_a_string_aligns_its_payload_on_four :: fn() -> void {
+    t :: WitResult { .ok = .String, .error = ERROR_CODE }
+    assert_eq(size_of(t), 12)
+    assert_eq(alignment_of(t), 4)
+}
+
+@test
+test_a_list_takes_its_address_and_length :: fn() -> void {
+    t :: WitList { .element = .String }
+    assert_eq(size_of(t), 8)
+    assert_eq(alignment_of(t), 4)
+}
+
+@test
+test_a_list_result_comes_back_through_the_memory :: fn() -> void {
+    f :: WitFunction { .params = [], .result = WitList { .element = .String } }
+    t :: flat_type_of(f, "get-arguments") else panic("the function lowers")
+    assert(t.params.len() == 1 && t.results.len() == 0, "the result's address is the parameter")
+}
+
+@test
+test_a_stream_and_a_future_flatten_to_handles :: fn() -> void {
+    f :: WitFunction {
+        .params = [WitParam { .name = "data", .type = WitStream { .element = .U8 } }],
+        .result = WitFuture { .value = WitResult { .error = ERROR_CODE } },
+    }
+    flat :: flat_type_of(f, "write-via-stream") else panic("a stream write flattens")
+    assert_eq(flat.params.len(), 1)
+    assert(flat.params[0] == .I32 && flat.results[0] == .I32, "two handles")
+}

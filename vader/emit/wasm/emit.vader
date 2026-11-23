@@ -138,10 +138,10 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
     }
 }
 
-// The canonical built-ins and `get-arguments` read and write the memory the
+// The canonical built-ins and the adapters read and write the memory the
 // component defines.
 memory_import_of :: fn(imports: ImportedFunctions) -> string | null {
-    if imports.builtins.is_empty() && imports.arguments == null {
+    if imports.adapted.is_empty() && imports.arguments == null {
         return null
     }
     return CANONICAL_MODULE
@@ -974,6 +974,7 @@ test_an_interface_import_precedes_the_functions :: fn() -> void {
 test_an_entry_taking_argv_reads_get_arguments :: fn() -> void {
     program :: straight([Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } }])
     program.functions[0].signature.params = [.Ref]
+    program.types = [Bc.BcScalar { .val = .String }, Bc.BcArray { .element = 0 }]
     wasm :: wasm_module_of(program, "") else panic(wasm.reason)
     assert(wasm.imports[0].name == "get-arguments", "`get-arguments` is imported")
     assert(wasm.memory_import != null, "the host writes the arguments into the memory")

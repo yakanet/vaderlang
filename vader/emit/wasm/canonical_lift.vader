@@ -1,0 +1,279 @@
+// vader/emit/wasm/canonical_lift: a WIT value read out of the linear memory.
+//
+// What the host writes, a result too large to come back flat or the value of a
+// future, is read into the form Vader holds it in: a scalar as itself, a
+// `string` as its atom, a `list` as an array header over a new storage, a
+// `result` as a union, its payload boxed when it is a scalar. One helper per WIT
+// type and bytecode type, `(address) -> value`, following `load` of the
+// canonical ABI's specification at the layout `canonical_layout.vader` gives;
+// a container calls the helper of its elements.
+//
+// The bytecode type says how Vader holds the value: the front end checked that
+// it holds what the WIT type says (ADR 0179).
+
+module "vader/emit/wasm"
+
+Bc :: import "vader/core/bytecode"
+import "std/iter"
+import "vader/core/wit"
+
+// The helper reading a value of `t` held as the bytecode type `type_id`, null
+// when the bytecode erased the union holding it to a reference: a scalar then
+// takes the class its WIT type stores it as (`erased_class`).
+canonical_load :: fn(
+    ctx: ModuleCtx,
+    t: WitType,
+    type_id: i32 | null,
+    function: string,
+) -> i32 | WasmUnsupported {
+    held_as: string: if type_id == null { "erased" } else { "${type_id}" }
+    key :: "canonical.load ${wit_type_text(t)} ${held_as}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    held :: held_type_of(ctx, t, type_id, function) else return held
+    lift :: Lift {
+        .ctx = ctx,
+        .function = function,
+        .frame = HelperFrame { .signature = func_of([.I32], [held]) },
+    }
+    body :: lift.load_body(t, type_id) else return body
+    return ctx.define_tree_helper(key, lift.frame, body)
+}
+
+// The value type a value of `t` held as `type_id` is held as.
+held_type_of :: fn(
+    ctx: ModuleCtx,
+    t: WitType,
+    type_id: i32 | null,
+    function: string,
+) -> WasmValType | WasmUnsupported {
+    class :: held_class(ctx, t, type_id) else return .EqRef
+    return value_type_of(class, function)
+}
+
+// The class of a scalar of `t` held as `type_id`, null for a reference.
+held_class :: fn(ctx: ModuleCtx, t: WitType, type_id: i32 | null) -> Bc.ValType | null {
+    if type_id == null {
+        return erased_class(t)
+    }
+    held :: ctx.module.types[type_id]
+    if held is Bc.BcScalar {
+        return held.val
+    }
+    return null
+}
+
+// The class Vader holds a scalar or an enum of WIT type `t` in, null for any
+// other type: an enum is the unsigned integer its case is stored in.
+erased_class :: fn(t: WitType) -> Bc.ValType | null = @partial match t {
+    // @partial: every other type is held as a reference.
+    is WitScalar -> scalar_class(t)
+    is WitEnum   -> case_class(t.cases.len())
+    _            -> null
+}
+
+scalar_class :: fn(s: WitScalar) -> Bc.ValType = match s {
+    .Bool   -> .Bool
+    .S8     -> .I8
+    .U8     -> .U8
+    .S16    -> .I16
+    .U16    -> .U16
+    .S32    -> .I32
+    .U32    -> .U32
+    .S64    -> .I64
+    .U64    -> .U64
+    .F32    -> .F32
+    .F64    -> .F64
+    .Char   -> .Char
+    .String -> .String
+}
+
+case_class :: fn(count: i64) -> Bc.ValType = match case_bytes(count) {
+    1 -> .U8
+    2 -> .U16
+    _ -> .U32
+}
+
+// `value`, the core value a scalar of `t` crosses as, as Vader holds it: a Vader
+// `f32` is an `f64`.
+held_from_core :: fn(t: WitType, value: WasmExpression) -> WasmExpression {
+    if is_f32(t) {
+        return unary(.F64PromoteF32, value)
+    }
+    return value
+}
+
+// `value`, a scalar of `t` as Vader holds it, as the core value it crosses as.
+core_from_held :: fn(t: WitType, value: WasmExpression) -> WasmExpression {
+    if is_f32(t) {
+        return unary(.F32DemoteF64, value)
+    }
+    return value
+}
+
+is_f32 :: fn(t: WitType) -> bool = t is WitScalar && t == .F32
+
+// A load helper being written.
+Lift :: struct {
+    ctx: ModuleCtx
+    function: string
+    frame: HelperFrame
+}
+
+// The parameter of a load helper: where the value is.
+ADDRESS: i32: 0
+
+load_body :: fn(
+    l: Lift,
+    t: WitType,
+    type_id: i32 | null,
+) -> WasmExpression[] | WasmUnsupported = match t {
+    is WitScalar             -> [l.scalar_value(t)]
+    is WitEnum               -> [load(case_load(t.cases.len()), local_get(ADDRESS))]
+    is WitList               -> l.list_body(t, type_id)
+    is WitResult             -> l.result_body(t, type_id)
+    is WitStream | WitFuture -> l.no_lift(t)
+    is WitUnsupported        -> WasmUnsupported { .reason = "`${l.function}`: ${t.reason}" }
+}
+
+no_lift :: fn(l: Lift, t: WitType) -> WasmUnsupported =
+    WasmUnsupported { .reason = "`${l.function}`: no lifting yet for `${wit_type_text(t)}`" }
+
+// The load of a case stored in the bytes `case_bytes` gives.
+case_load :: fn(count: i64) -> MemoryOp = match case_bytes(count) {
+    1 -> .I32Load8U
+    2 -> .I32Load16U
+    _ -> .I32Load
+}
+
+scalar_value :: fn(l: Lift, s: WitScalar) -> WasmExpression {
+    at :: local_get(ADDRESS)
+    if s == .String {
+        return call(canonical_string(l.ctx), [i32_load(at), i32_load(at, 4)])
+    }
+    return held_from_core(s, load(scalar_load(s), at))
+}
+
+scalar_load :: fn(s: WitScalar) -> MemoryOp = match s {
+    .Bool | .U8                   -> .I32Load8U
+    .S8                           -> .I32Load8S
+    .U16                          -> .I32Load16U
+    .S16                          -> .I32Load16S
+    .S32 | .U32 | .Char | .String -> .I32Load
+    .S64 | .U64                   -> .I64Load
+    .F32                          -> .F32Load
+    .F64                          -> .F64Load
+}
+
+// A list: its address and its length, each element read at its size into a new
+// storage of the array type `type_id`.
+list_body :: fn(l: Lift, t: WitList, type_id: i32 | null) -> WasmExpression[] | WasmUnsupported {
+    array_id :: type_id else return WasmUnsupported { .reason = "`${l.function}`: an erased list" }
+    types :: l.ctx.module.types
+    array :: types[array_id]
+    if array !is Bc.BcArray {
+        return WasmUnsupported { .reason = "`${l.function}`: a list held as no array" }
+    }
+    access :: element_access(types, types[array.element])
+    load_element :: canonical_load(l.ctx, t.element, array.element, l.function)
+        else return load_element
+    storage_type_index :: storage_type(l.ctx.gc, storage_of_access(access))
+    items :: l.frame.local(.I32)
+    count :: l.frame.local(.I32)
+    storage :: l.frame.local(.EqRef)
+    at :: l.frame.local(.I32)
+    element_size :: i32_const(size_of(t.element))
+    element_address :: i32_add(local_get(items), i32_mul(local_get(at), element_size))
+    element :: call(load_element, [element_address])
+    length: WasmInstr[]: [LocalGet { .index = count }, Plain { .op = .I64ExtendI32U }]
+    header: WasmInstr[]: []
+    header.push_new_header(
+        l.ctx.gc,
+        HeaderParts {
+            .type_id = [I32Const { .value = array_id }],
+            .element = [I32Const { .value = element_code(access) }],
+            .length = length,
+            .capacity = length,
+            .storage = [LocalGet { .index = storage }],
+        },
+    )
+    return [
+        local_set(items, i32_load(local_get(ADDRESS))),
+        local_set(count, i32_load(local_get(ADDRESS), 4)),
+        local_set(storage, array_new_default(storage_type_index, local_get(count))),
+        repeat(
+            .I32,
+            at,
+            count,
+            [array_set(storage_type_index, local_get(storage), local_get(at), element)],
+        ),
+        raw(header),
+    ]
+}
+
+// A result: its case, then the payload of that case past it, as the variant of
+// the union `type_id`. Only `void | E` so far: which variant of a union holds the
+// `ok` of `T | E` takes the correspondence the front end will record.
+result_body :: fn(
+    l: Lift,
+    t: WitResult,
+    type_id: i32 | null,
+) -> WasmExpression[] | WasmUnsupported {
+    if t.ok != null {
+        return l.no_lift(t)
+    }
+    error :: t.error else return l.no_lift(t)
+    error_type :: l.error_type_of(t, type_id) else is WasmUnsupported { return error_type }
+    payload :: l.payload_value(error, error_type, payload_offset([t.ok, t.error]))
+        else return payload
+    is_ok :: i32_eqz(load(.I32Load8U, local_get(ADDRESS)))
+    return [choose(.EqRef, is_ok, struct_new(l.ctx.gc.void_box, []), payload)]
+}
+
+// The variant of the union `type_id` that is not `void`, null when the bytecode
+// erased the union to a reference.
+error_type_of :: fn(l: Lift, t: WitResult, type_id: i32 | null) -> i32 | null | WasmUnsupported {
+    union_id :: type_id else return null
+    types :: l.ctx.module.types
+    union :: types[union_id]
+    if union !is Bc.BcUnion {
+        return null
+    }
+    return union.variants.find((v) -> !Bc.is_void_at(types, v)) else return l.no_lift(t)
+}
+
+// The payload of type `t` at `offset` past the address, boxed when it is a
+// scalar, as a union holds it.
+payload_value :: fn(
+    l: Lift,
+    t: WitType,
+    type_id: i32 | null,
+    offset: i32,
+) -> WasmExpression | WasmUnsupported {
+    load_payload :: canonical_load(l.ctx, t, type_id, l.function) else return load_payload
+    value :: call(load_payload, [i32_add(local_get(ADDRESS), i32_const(offset))])
+    class :: held_class(l.ctx, t, type_id) else return value
+    return struct_new(box_of_class(l.ctx.gc, class), [value])
+}
+
+// `(address, length) -> atom`: the string of the `length` bytes at `address`.
+canonical_string :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["canonical.string"] else define_string(ctx)
+
+define_string :: fn(ctx: ModuleCtx) -> i32 {
+    address :: 0
+    length :: 1
+    frame :: HelperFrame { .signature = func_of([.I32, .I32], [.I32]) }
+    bytes :: frame.local(.EqRef)
+    at :: frame.local(.I32)
+    byte_storage :: storage_type(ctx.gc, .I8)
+    byte :: load(.I32Load8U, i32_add(local_get(address), local_get(at)))
+    body: WasmExpression[]: [
+        local_set(bytes, array_new_default(byte_storage, local_get(length))),
+        repeat(.I32, at, length, [array_set(byte_storage, local_get(bytes), local_get(at), byte)]),
+        call(ctx.atom_intern(), [local_get(bytes), i32_const(0), local_get(length), i32_const(0)]),
+    ]
+    return ctx.define_tree_helper("canonical.string", frame, body)
+}

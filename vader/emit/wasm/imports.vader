@@ -4,9 +4,9 @@
 // import, its module the interface as WIT writes it and its name the function.
 // Its WIT type is the one the front end derived from the Vader declaration
 // (`BcImport.wit`), and its core type is that WIT type flattened by the
-// canonical ABI: a scalar is itself, a stream or a future its handle. A call
-// that opens a stream or waits for a future goes through an adapter, whose
-// canonical built-ins come last among the imports (`canonical.vader`). The other
+// canonical ABI (`canonical_layout.vader`). A call whose arguments or result
+// Vader does not hold as the core function takes them goes through an adapter,
+// whose canonical built-ins come last among the imports (`canonical.vader`). The other
 // imports (a C library) have no WASM form yet: a call to one stops the
 // emission.
 
@@ -62,7 +62,7 @@ imported_functions :: fn(
             },
         )
         out.add_to_interface(module, function)
-        if is_adapted(wit) {
+        if needs_adapter(wit) {
             out.adapted.add(i32(i))
             out.add_builtins(builtins_of(wit))
         }

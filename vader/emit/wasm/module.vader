@@ -235,8 +235,20 @@ export MemoryAccess :: struct {
     offset: i32 = 0
 }
 
-/// The accesses of the linear memory the module makes.
-export MemoryOp :: enum { I32Load, I32Load8U, I32Store8 }
+/// The accesses of the linear memory the module makes. A narrow load widens to
+/// an `i32`, signed (`S`) or not (`U`).
+export MemoryOp :: enum {
+    I32Load,
+    I64Load,
+    F32Load,
+    F64Load,
+    I32Load8S,
+    I32Load8U,
+    I32Load16S,
+    I32Load16U,
+    I32Store,
+    I32Store8,
+}
 
 /// An instruction without an immediate.
 export Plain :: struct { op: WasmOp }

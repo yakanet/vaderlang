@@ -3,12 +3,8 @@
 // The host hands the arguments through `get-arguments` of
 // `wasi:cli/environment`, which `run` calls when the entry takes them, as the
 // native runtime's `main` reads `argv`. Its `list<string>` comes back through
-// the linear memory: the core function takes the address where the host writes
-// the list's address and length, and the list holds an address and a length
-// per string. The host asks for that room through the `realloc` the memory's
-// module exports, a bump allocator over the memory past what the canonical
-// built-ins use (`canonical.vader`). Nothing frees it: the arguments are read
-// once.
+// the linear memory, at an address the core function takes, and is read as any
+// result of a call (`canonical_lift.vader`).
 
 module "vader/emit/wasm"
 
@@ -24,12 +20,6 @@ ARGUMENTS_FUNCTION :: ComponentFunction {
     .name = "get-arguments",
     .type = WitFunction { .params = [], .result = WitList { .element = .String } },
 }
-
-// The core export of the memory's module the host allocates with.
-REALLOC_NAME: string: "realloc"
-
-// The bytes of a page of the memory, as a shift.
-PAGE_SHIFT: i32: 16
 
 // Import `get-arguments`, at the next index of `imports`.
 add_arguments_import :: fn(imports: ImportedFunctions, types: TypeTable) -> void {
@@ -50,150 +40,23 @@ add_arguments_import :: fn(imports: ImportedFunctions, types: TypeTable) -> void
 // atom of its bytes. Null when nothing imports `get-arguments`.
 arguments_function :: fn(ctx: ModuleCtx) -> i32 | null {
     get_arguments :: ctx.imports.arguments else return null
-    count :: 0
-    at :: 1
-    source :: 2
-    length :: 3
-    position :: 4
-    bytes :: 5
-    storage :: 6
-    list :: 7
-    strings :: storage_type(ctx.gc, storage_of(.String))
-    byte_storage :: storage_type(ctx.gc, .I8)
-    each_byte: WasmInstr[]: [
-        LocalGet { .index = bytes },
-        RefCast { .type_index = byte_storage },
-        LocalGet { .index = position },
-        LocalGet { .index = source },
-        LocalGet { .index = position },
-        Plain { .op = .I32Add },
-        MemoryAccess { .op = .I32Load8U },
-        ArraySet { .type_index = byte_storage },
-    ]
-    // The pair of the argument `at`, eight bytes each: its address, its length.
-    pair: WasmInstr[]: [
-        LocalGet { .index = list },
-        LocalGet { .index = at },
-        I32Const { .value = 3 },
-        Plain { .op = .I32Shl },
-        Plain { .op = .I32Add },
-    ]
-    each: WasmInstr[]: []
-    each.push_all(pair)
-    each.push_all([MemoryAccess { .op = .I32Load }, LocalSet { .index = source }])
-    each.push_all(pair)
-    each.push_all(
+    list :: ARGUMENTS_FUNCTION.type.result else panic("wasm: `get-arguments` returns a list")
+    strings :: Bc.find_string_array_type_id(ctx.module.types)
+    load :: canonical_load(ctx, list, strings, "get-arguments")
+        else panic("wasm: the arguments are read as a `string[]`: ${load.reason}")
+    frame :: HelperFrame { .signature = func_of([], [.EqRef]) }
+    address :: frame.local(.I32)
+    value :: frame.local(.EqRef)
+    body :: frame.arena_scope(
         [
-            MemoryAccess { .op = .I32Load, .offset = 4 },
-            LocalTee { .index = length },
-            ArrayNewDefault { .type_index = byte_storage },
-            LocalSet { .index = bytes },
+            local_set(address, ctx.room_for(list)),
+            call(get_arguments, [local_get(address)]),
+            local_set(value, call(load, [local_get(address)])),
         ],
     )
-    each.push_counted_loop(.I32, position, length, each_byte)
-    each.push_all(
-        [
-            LocalGet { .index = storage },
-            RefCast { .type_index = strings },
-            LocalGet { .index = at },
-            LocalGet { .index = bytes },
-            I32Const { .value = 0 },
-            LocalGet { .index = length },
-            I32Const { .value = 0 },
-            Call { .function_index = ctx.atom_intern() },
-            ArraySet { .type_index = strings },
-        ],
-    )
-    body: WasmInstr[]: [
-        I32Const { .value = ARGUMENTS_ADDRESS },
-        Call { .function_index = get_arguments },
-        I32Const { .value = ARGUMENTS_ADDRESS },
-        MemoryAccess { .op = .I32Load },
-        LocalSet { .index = list },
-        I32Const { .value = ARGUMENTS_ADDRESS },
-        MemoryAccess { .op = .I32Load, .offset = 4 },
-        LocalTee { .index = count },
-        ArrayNewDefault { .type_index = strings },
-        LocalSet { .index = storage },
-    ]
-    body.push_counted_loop(.I32, at, count, each)
-    count_as_length: WasmInstr[]: [LocalGet { .index = count }, Plain { .op = .I64ExtendI32U }]
-    header :: HeaderParts {
-        .type_id = [I32Const { .value = Bc.find_string_array_type_id(ctx.module.types) }],
-        .element = [I32Const { .value = class_code(.String) }],
-        .length = count_as_length,
-        .capacity = count_as_length,
-        .storage = [LocalGet { .index = storage }],
-    }
-    body.push_new_header(ctx.gc, header)
-    signature :: WasmFuncType { .params = [], .results = [.EqRef] }
-    locals: WasmValType[]: [.I32, .I32, .I32, .I32, .I32, .EqRef, .EqRef, .I32]
-    return ctx.define_helper("arguments", signature, locals, body)
+    body.push(local_get(value))
+    return ctx.define_tree_helper("arguments", frame, body)
 }
-
-// `(old_address, old_size, alignment, size) -> address`: room for `size` bytes,
-// `realloc` as the canonical ABI calls it. The host only asks for new room when it
-// writes a result, so a call that would move an old block stops the run. The
-// memory grows when the room passes its end.
-allocator_function :: fn() -> WasmFunction {
-    old_size :: 1
-    alignment :: 2
-    size :: 3
-    address :: 4
-    pages :: 5
-    used :: 0
-    body: WasmInstr[]: [
-        LocalGet { .index = old_size },
-        Plain { .op = .If },
-        Plain { .op = .Unreachable },
-        Plain { .op = .End },
-        // The first address past what is used, rounded up to `alignment`.
-        I32Const { .value = ALLOCATION_ADDRESS },
-        GlobalGet { .index = used },
-        Plain { .op = .I32Add },
-        LocalGet { .index = alignment },
-        Plain { .op = .I32Add },
-        I32Const { .value = 1 },
-        Plain { .op = .I32Sub },
-        I32Const { .value = 0 },
-        LocalGet { .index = alignment },
-        Plain { .op = .I32Sub },
-        Plain { .op = .I32And },
-        LocalTee { .index = address },
-        LocalGet { .index = size },
-        Plain { .op = .I32Add },
-        I32Const { .value = ALLOCATION_ADDRESS },
-        Plain { .op = .I32Sub },
-        GlobalSet { .index = used },
-        // The pages the room ends in, past those the memory has.
-        LocalGet { .index = address },
-        LocalGet { .index = size },
-        Plain { .op = .I32Add },
-        I32Const { .value = (1 << PAGE_SHIFT) - 1 },
-        Plain { .op = .I32Add },
-        I32Const { .value = PAGE_SHIFT },
-        Plain { .op = .I32ShrU },
-        Plain { .op = .MemorySize },
-        Plain { .op = .I32Sub },
-        LocalTee { .index = pages },
-        I32Const { .value = 0 },
-        Plain { .op = .I32GtS },
-        Plain { .op = .If },
-        LocalGet { .index = pages },
-        Plain { .op = .MemoryGrow },
-        I32Const { .value = -1 },
-        Plain { .op = .I32Eq },
-        Plain { .op = .If },
-        Plain { .op = .Unreachable },
-        Plain { .op = .End },
-        Plain { .op = .End },
-        LocalGet { .index = address },
-    ]
-    return WasmFunction { .type_index = 0, .locals = [.I32, .I32], .body = body }
-}
-
-// The core type of `allocator_function`.
-ALLOCATOR_TYPE :: WasmFuncType { .params = [.I32, .I32, .I32, .I32], .results = [.I32] }
 
 // ---- tests ----------------------------------------------------------------
 

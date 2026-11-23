@@ -1,0 +1,310 @@
+// vader/emit/wasm/expression: the body of a helper the emitter writes, as a tree.
+//
+// A helper is written as the expressions of its algorithm, each over its operands
+// (`i32_add(local_get(size), i32_const(1))`), as the C emitter builds a C tree
+// (`vader/emit/c/ast`), then flattened into instructions (`flatten`): operands
+// first, then the instruction. The constructors are named after the instructions
+// as WAT writes them.
+//
+// The scopes the emitter writes take the empty block type, so a branch cannot
+// leave a value: `choose` passes its value through a local it takes from the
+// helper's frame.
+
+module "vader/emit/wasm"
+
+// An expression of a helper's body: a value, or an effect.
+WasmExpression :: Apply | Assign | When | Choose | Repeat | Raw
+
+// `instruction` over the values of `operands`, the first pushed first.
+Apply :: struct {
+    instruction: WasmInstr
+    operands: WasmExpression[] = []
+}
+
+// The local `local` set to `value`.
+Assign :: struct {
+    local: i32
+    value: WasmExpression
+}
+
+// `then` when `condition` is not zero, else `otherwise`; leaves nothing.
+When :: struct {
+    condition: WasmExpression
+    then: WasmExpression[]
+    otherwise: WasmExpression[] = []
+}
+
+// The value of `then` when `condition` is not zero, else of `otherwise`, both of
+// type `type`.
+Choose :: struct {
+    type: WasmValType
+    condition: WasmExpression
+    then: WasmExpression
+    otherwise: WasmExpression
+}
+
+// `body` for each value of the local `counter` from 0 below the local `limit`,
+// both of the integer type `type`. `body` leaves nothing.
+Repeat :: struct {
+    type: WasmValType
+    counter: i32
+    limit: i32
+    body: WasmExpression[]
+}
+
+// Instructions written out as they are, for a part of a helper not yet built as
+// a tree: nothing checks that they leave what the tree around them expects.
+Raw :: struct {
+    instructions: WasmInstr[]
+}
+
+// The parameters and locals of a helper being written.
+HelperFrame :: struct {
+    signature: WasmFuncType
+    locals: WasmValType[] = []
+}
+
+// A fresh local of type `t`, past the parameters.
+local :: fn(frame: HelperFrame, t: WasmValType) -> i32 {
+    frame.locals.push(t)
+    return i32(frame.signature.params.len() + frame.locals.len() - 1)
+}
+
+// The instructions of `body`, the locals they take added to `frame`.
+flatten :: fn(frame: HelperFrame, body: WasmExpression[]) -> WasmInstr[] {
+    out: WasmInstr[]: []
+    out.push_body(frame, body)
+    return out
+}
+
+push_body :: fn(out: WasmInstr[], frame: HelperFrame, body: WasmExpression[]) -> void {
+    for e in body {
+        out.push_expression(frame, e)
+    }
+}
+
+push_expression :: fn(out: WasmInstr[], frame: HelperFrame, e: WasmExpression) -> void = match e {
+    is Apply  -> {
+        for operand in e.operands {
+            out.push_expression(frame, operand)
+        }
+        out.push(e.instruction)
+    }
+    is Assign -> {
+        out.push_expression(frame, e.value)
+        out.push(LocalSet { .index = e.local })
+    }
+    is When   -> {
+        out.push_expression(frame, e.condition)
+        out.push(Plain { .op = .If })
+        out.push_body(frame, e.then)
+        if !e.otherwise.is_empty() {
+            out.push(Plain { .op = .Else })
+            out.push_body(frame, e.otherwise)
+        }
+        out.push(Plain { .op = .End })
+    }
+    is Choose -> {
+        value :: frame.local(e.type)
+        when :: When {
+            .condition = e.condition,
+            .then = [local_set(value, e.then)],
+            .otherwise = [local_set(value, e.otherwise)],
+        }
+        out.push_expression(frame, when)
+        out.push(LocalGet { .index = value })
+    }
+    is Repeat -> { out.push_counted_loop(e.type, e.counter, e.limit, flatten(frame, e.body)) }
+    is Raw    -> { out.push_all(e.instructions) }
+}
+
+// The helper `key` of `frame` and `body`, defined once.
+define_tree_helper :: fn(
+    ctx: ModuleCtx,
+    key: string,
+    frame: HelperFrame,
+    body: WasmExpression[],
+) -> i32 {
+    instructions :: flatten(frame, body)
+    return ctx.define_helper(key, frame.signature, frame.locals, instructions)
+}
+
+// ---- constructors ---------------------------------------------------------
+
+// `instruction` over `operands`.
+apply :: fn(instruction: WasmInstr, operands: WasmExpression[]) -> WasmExpression =
+    Apply { .instruction = instruction, .operands = operands }
+
+// `i32.const value`.
+i32_const :: fn(value: i32) -> WasmExpression = Apply { .instruction = I32Const { .value = value } }
+
+// `i64.const value`.
+i64_const :: fn(value: i64) -> WasmExpression = Apply { .instruction = I64Const { .value = value } }
+
+// `local.get index`.
+local_get :: fn(index: i32) -> WasmExpression = Apply { .instruction = LocalGet { .index = index } }
+
+// `local.set index`.
+local_set :: fn(index: i32, value: WasmExpression) -> WasmExpression =
+    Assign { .local = index, .value = value }
+
+// `op` over two operands.
+binary :: fn(op: WasmOp, left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    Apply { .instruction = Plain { .op = op }, .operands = [left, right] }
+
+// `op` over one operand.
+unary :: fn(op: WasmOp, operand: WasmExpression) -> WasmExpression =
+    Apply { .instruction = Plain { .op = op }, .operands = [operand] }
+
+// `i32.add`.
+i32_add :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I32Add, left, right)
+
+// `i32.sub`.
+i32_sub :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I32Sub, left, right)
+
+// `i32.mul`.
+i32_mul :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I32Mul, left, right)
+
+// `i32.and`.
+i32_and :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I32And, left, right)
+
+// `i32.shr_u`.
+i32_shr_u :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I32ShrU, left, right)
+
+// `i32.eq`.
+i32_eq :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I32Eq, left, right)
+
+// `i32.gt_s`.
+i32_gt_s :: fn(left: WasmExpression, right: WasmExpression) -> WasmExpression =
+    binary(.I32GtS, left, right)
+
+// `i32.eqz`.
+i32_eqz :: fn(operand: WasmExpression) -> WasmExpression = unary(.I32Eqz, operand)
+
+// A load `op` at `address` plus `offset`.
+load :: fn(op: MemoryOp, address: WasmExpression, offset: i32 = 0) -> WasmExpression =
+    apply(MemoryAccess { .op = op, .offset = offset }, [address])
+
+// `i32.load` at `address` plus `offset`.
+i32_load :: fn(address: WasmExpression, offset: i32 = 0) -> WasmExpression =
+    load(.I32Load, address, offset)
+
+// A store `op` of `value` at `address` plus `offset`.
+store :: fn(
+    op: MemoryOp,
+    address: WasmExpression,
+    value: WasmExpression,
+    offset: i32 = 0,
+) -> WasmExpression =
+    apply(MemoryAccess { .op = op, .offset = offset }, [address, value])
+
+// `i32.store` of `value` at `address`.
+i32_store :: fn(address: WasmExpression, value: WasmExpression) -> WasmExpression =
+    store(.I32Store, address, value)
+
+// `memory.size`, in pages.
+memory_size :: fn() -> WasmExpression = Apply { .instruction = Plain { .op = .MemorySize } }
+
+// `memory.grow` by `pages`: the old size, or -1.
+memory_grow :: fn(pages: WasmExpression) -> WasmExpression = unary(.MemoryGrow, pages)
+
+// `call function` with `arguments`.
+call :: fn(function: i32, arguments: WasmExpression[]) -> WasmExpression =
+    Apply { .instruction = Call { .function_index = function }, .operands = arguments }
+
+// `unreachable`: stop the run.
+unreachable :: fn() -> WasmExpression = Apply { .instruction = Plain { .op = .Unreachable } }
+
+// `struct.new type` of `fields`, the first pushed first.
+struct_new :: fn(type: i32, fields: WasmExpression[]) -> WasmExpression =
+    apply(StructNew { .type_index = type }, fields)
+
+// `struct.get type field` of `reference`, cast to `type` first.
+struct_get :: fn(type: i32, field: i32, reference: WasmExpression) -> WasmExpression =
+    apply(StructGet { .type_index = type, .field_index = field }, [ref_cast(type, reference)])
+
+// `ref.cast type` of `reference`.
+ref_cast :: fn(type: i32, reference: WasmExpression) -> WasmExpression =
+    apply(RefCast { .type_index = type }, [reference])
+
+// `array.new_default type`: `length` elements, each zero or null.
+array_new_default :: fn(type: i32, length: WasmExpression) -> WasmExpression =
+    apply(ArrayNewDefault { .type_index = type }, [length])
+
+// `array.set type` of `value` at `index` of `array`, cast to `type` first.
+array_set :: fn(
+    type: i32,
+    array: WasmExpression,
+    index: WasmExpression,
+    value: WasmExpression,
+) -> WasmExpression =
+    apply(ArraySet { .type_index = type }, [ref_cast(type, array), index, value])
+
+// `then` when `condition` holds.
+when :: fn(condition: WasmExpression, then: WasmExpression[]) -> WasmExpression =
+    When { .condition = condition, .then = then }
+
+// The value of `then` when `condition` holds, else of `otherwise`.
+choose :: fn(
+    type: WasmValType,
+    condition: WasmExpression,
+    then: WasmExpression,
+    otherwise: WasmExpression,
+) -> WasmExpression =
+    Choose {
+        .type = type,
+        .condition = condition,
+        .then = then,
+        .otherwise = otherwise,
+    }
+
+// `body` for each value of `counter` from 0 below `limit`.
+repeat :: fn(
+    type: WasmValType,
+    counter: i32,
+    limit: i32,
+    body: WasmExpression[],
+) -> WasmExpression =
+    Repeat {
+        .type = type,
+        .counter = counter,
+        .limit = limit,
+        .body = body,
+    }
+
+// `instructions` as they are.
+raw :: fn(instructions: WasmInstr[]) -> WasmExpression = Raw { .instructions = instructions }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_operands_come_before_their_instruction :: fn() -> void {
+    frame :: HelperFrame { .signature = func_of([.I32], [.I32]) }
+    flat :: flatten(frame, [i32_add(local_get(0), i32_const(1))])
+    assert_eq(flat.len(), 3)
+    assert(flat[2] is Plain, "the add comes last")
+}
+
+@test
+test_a_choice_goes_through_a_local_of_its_own :: fn() -> void {
+    frame :: HelperFrame { .signature = func_of([.I32], [.I64]) }
+    flat :: flatten(frame, [choose(.I64, local_get(0), i64_const(1), i64_const(2))])
+    assert(frame.locals.len() == 1 && frame.locals[0] == .I64, "one i64 local taken")
+    last :: flat[flat.len() - 1]
+    assert(last is LocalGet && last.index == 1, "the value read back past the parameter")
+}
+
+@test
+test_a_local_is_numbered_past_the_parameters :: fn() -> void {
+    frame :: HelperFrame { .signature = func_of([.I32, .I32], []) }
+    assert_eq(frame.local(.EqRef), 2)
+    assert_eq(frame.local(.I32), 3)
+}

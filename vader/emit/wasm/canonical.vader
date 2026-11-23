@@ -1,20 +1,23 @@
-// vader/emit/wasm/canonical: the calls to the async functions of an interface.
+// vader/emit/wasm/canonical: the calls to the functions of an interface.
 //
-// A function that takes a `stream<T>` or returns a `future<T>` (`WasmStream`,
-// `WasmFuture` on the Vader side) is called through an adapter, a helper with
-// the Vader signature: it opens each stream, calls the import with the readable
-// ends, writes every item to the writable ends and closes them, then waits for
-// the future and builds the `WasmFuture` its value resolves to. The call is
-// synchronous on the Vader side.
+// A call whose arguments or result are more than scalars Vader holds as the
+// core function takes them goes through an adapter, a helper with the Vader
+// signature (`needs_adapter`). It lowers the arguments: a stream (`WasmStream`)
+// is opened, passed by its readable end, then written whole and closed after the
+// call. It calls the import, then lifts the result (`canonical_lift.vader`): one
+// too large to come back flat is read from the room it was written to, a future
+// (`WasmFuture`) is waited for and its value read. The call is synchronous on
+// the Vader side, and the arena is released before the adapter returns
+// (`arena.vader`).
 //
 // The adapter reaches the host through the canonical built-ins
 // (`stream.new`, `stream.write`, `future.read`, the waitable sets), which the
 // core module imports from `CANONICAL_MODULE` with the linear memory they read and
 // write. The component defines both (`component.vader`).
 //
-// The memory holds, from address 0: the event a wait reports, the value a
-// future resolves to, then the bytes of a stream, copied out of their GC array
-// one chunk at a time.
+// The memory holds, from address 0: the event a wait reports, the top of the
+// arena, the bytes of a stream, copied out of their GC array one chunk at a
+// time, then the arena.
 
 module "vader/emit/wasm"
 
@@ -49,16 +52,12 @@ export CanonicalKind :: enum {
 }
 
 // Where the memory holds what crosses it: the event a wait reports (the
-// waitable, then the payload), the value a future resolves to, the chunk of a
-// stream being written.
+// waitable, then the payload), the top of the arena (`arena.vader`), the chunk
+// of a stream being written, then the arena.
 EVENT_ADDRESS: i32: 0
 EVENT_PAYLOAD: i32: 4
-FUTURE_VALUE_ADDRESS: i32: 16
 CHUNK_ADDRESS: i32: 1024
 CHUNK_SIZE: i32: 4096
-// Where `get-arguments` writes the address and the length of its list
-// (`arguments.vader`), and where the allocator starts.
-ARGUMENTS_ADDRESS: i32: 32
 ALLOCATION_ADDRESS: i32: CHUNK_ADDRESS + CHUNK_SIZE
 
 // What a built-in that starts a copy returns when the copy has to wait.
@@ -103,10 +102,6 @@ builtin_type :: fn(k: CanonicalKind) -> WasmFuncType = match k {
 func_of :: fn(params: WasmValType[], results: WasmValType[]) -> WasmFuncType =
     WasmFuncType { .params = params, .results = results }
 
-// Whether a call to `f` goes through an adapter.
-is_adapted :: fn(f: WitFunction) -> bool =
-    f.result is WitFuture || f.params.any_match((p) -> p.type is WitStream)
-
 // The built-ins the adapter of `f` calls.
 builtins_of :: fn(f: WitFunction) -> CanonicalBuiltin[] {
     out: CanonicalBuiltin[]: []
@@ -119,6 +114,10 @@ builtins_of :: fn(f: WitFunction) -> CanonicalBuiltin[] {
     if result is WitFuture {
         out.push(CanonicalBuiltin { .kind = .FutureRead, .type = result })
         out.push(CanonicalBuiltin { .kind = .FutureDropReadable, .type = result })
+    }
+    // No waitable set without a stream or a future to wait for.
+    if out.is_empty() {
+        return out
     }
     for kind in WAITABLE_SET_BUILTINS {
         out.push(CanonicalBuiltin { .kind = kind })
@@ -133,51 +132,180 @@ WAITABLE_SET_BUILTINS: CanonicalKind[]: [
     .WaitableSetDrop,
 ]
 
-// ---- the core type of an import -------------------------------------------
+// ---- the adapter ----------------------------------------------------------
 
-// The core type of `f`, flattened by the canonical ABI: a scalar or an enum is
-// itself, a stream or a future its handle.
-flat_type_of :: fn(f: WitFunction, function: string) -> WasmFuncType | WasmUnsupported {
-    params: WasmValType[]: []
-    for p in f.params {
-        t :: flat_value_of(p.type, function) else return t
-        params.push(t)
+// Whether a call to `f` goes through an adapter: unless every parameter and the
+// result are scalars a Vader value passes as they are.
+needs_adapter :: fn(f: WitFunction) -> bool {
+    if f.params.any_match((p) -> !passes_as_is(p.type)) {
+        return true
     }
-    result :: f.result else return func_of(params, [])
-    // A list comes back through the memory: the caller passes where the host
-    // writes its address and its length.
-    if result is WitList {
-        params.push(.I32)
-        return func_of(params, [])
-    }
-    t :: flat_value_of(result, function) else return t
-    return func_of(params, [t])
+    result :: f.result else return false
+    return !passes_as_is(result)
 }
 
-// Whether the host writes a result of `f` into room it asks the memory's
-// allocator for: one that holds a string or a list.
-allocates :: fn(f: WitFunction) -> bool = holds_room(f.result)
+// A scalar the core function takes or returns as Vader holds it: neither a
+// string, which crosses as an address and a length, nor an `f32`, which Vader
+// holds as an `f64`.
+passes_as_is :: fn(t: WitType) -> bool = is_flat_scalar(t) && !is_f32(t)
 
-holds_room :: fn(t: WitType | null) -> bool {
-    if t == null {
-        return false
+// A scalar that crosses as one core value: anything but a string.
+is_flat_scalar :: fn(t: WitType) -> bool {
+    if t is WitEnum {
+        return true
     }
-    return match t {
-        is WitScalar -> t == .String
-        is WitList -> true
-        is WitResult -> holds_room(t.ok) || holds_room(t.error)
-        is WitEnum | WitStream | WitFuture | WitUnsupported -> false
-    }
+    return t is WitScalar && t != .String
 }
 
-flat_value_of :: fn(t: WitType, function: string) -> WasmValType | WasmUnsupported = match t {
-    is WitScalar      -> flat_scalar_of(t, function)
-    is WitEnum        -> .I32
-    is WitStream      -> if is_byte_stream(t) { .I32 } else { no_lowering(t, function) }
-    is WitFuture      -> if is_resolved_value(t.value) { .I32 } else { no_lowering(t, function) }
-    is WitResult      -> no_lowering(t, function)
-    is WitList        -> no_lowering(t, function)
-    is WitUnsupported -> WasmUnsupported { .reason = "`${function}`: ${t.reason}" }
+// The adapter of the bytecode import `index`, a function of an interface whose
+// call `needs_adapter`: the Vader signature, the import behind it. It lowers the
+// arguments, calls the import, lifts what it returns, then takes the arena back
+// to where it found it.
+canonical_adapter :: fn(ctx: ModuleCtx, index: i32, function: string) -> i32 | WasmUnsupported {
+    key :: "canonical.adapter ${index}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    imp :: ctx.module.imports[index]
+    wit :: imp.wit else panic("wasm: an adapted import without its WIT type")
+    params :: value_types_of(imp.signature.params, function) else return params
+    results :: value_types_of(result_values(imp.signature.results), function)
+        else return results
+    core_type :: flat_type_of(wit, function) else return core_type
+    a :: Adapter {
+        .ctx = ctx,
+        .imp = imp,
+        .function = function,
+        .frame = HelperFrame { .signature = func_of(params, results) },
+    }
+    value :: a.push_call(wit, index, core_type) else is WasmUnsupported { return value }
+    body: WasmExpression[]: if uses_arena(wit, core_type) {
+        a.frame.arena_scope(a.body)
+    } else {
+        a.body
+    }
+    if value != null {
+        body.push(local_get(value))
+    }
+    return ctx.define_tree_helper(key, a.frame, body)
+}
+
+// An adapter being written.
+Adapter :: struct {
+    ctx: ModuleCtx
+    imp: Bc.BcImport
+    function: string
+    frame: HelperFrame
+    body: WasmExpression[] = []
+}
+
+// Whether a call to `f` of the core type `core_type` takes room in the arena:
+// for a result the host writes to the memory, or for the value of a future.
+uses_arena :: fn(f: WitFunction, core_type: WasmFuncType) -> bool {
+    result :: f.result else return false
+    if result is WitFuture {
+        return result.value != null
+    }
+    return core_type.results.is_empty()
+}
+
+// What an argument takes: what is done before the call, the value passed, what
+// is done after the call.
+Lowered :: struct {
+    before: WasmExpression[] = []
+    argument: WasmExpression
+    after: WasmExpression[] = []
+}
+
+// Lower the arguments, call the import, and lift what it returns into a local,
+// returned; null for nothing. A result too large to come back flat is written
+// to room passed last; a future, or a value that comes back flat, is kept while
+// what the arguments do after the call is done.
+push_call :: fn(
+    a: Adapter,
+    wit: WitFunction,
+    index: i32,
+    core_type: WasmFuncType,
+) -> i32 | null | WasmUnsupported {
+    import_index :: a.ctx.imports.by_bytecode_index[index]
+        else panic("wasm: an adapted import that is not imported")
+    arguments: WasmExpression[]: []
+    after: WasmExpression[]: []
+    for [p, i] in wit.params.indexed() {
+        lowered :: a.lower_param(p.type, i32(i)) else return lowered
+        a.body.push_all(lowered.before)
+        arguments.push(lowered.argument)
+        after.push_all(lowered.after)
+    }
+    result :: wit.result else {
+        a.body.push(call(import_index, arguments))
+        a.body.push_all(after)
+        return null
+    }
+    results :: a.frame.signature.results
+    if results.is_empty() {
+        return WasmUnsupported { .reason = "`${a.function}`: a result the Vader signature drops" }
+    }
+    value :: a.frame.local(results[0])
+    if result is WitFuture {
+        handle :: a.frame.local(.I32)
+        a.body.push(local_set(handle, call(import_index, arguments)))
+        a.body.push_all(after)
+        resolved :: a.push_future_read(result, handle) else return resolved
+        a.body.push(local_set(value, resolved))
+    } else if core_type.results.is_empty() {
+        address :: a.frame.local(.I32)
+        a.body.push(local_set(address, a.ctx.room_for(result)))
+        arguments.push(local_get(address))
+        a.body.push(call(import_index, arguments))
+        a.body.push_all(after)
+        load :: canonical_load(a.ctx, result, a.imp.signature.result_types[0], a.function)
+            else return load
+        a.body.push(local_set(value, call(load, [local_get(address)])))
+    } else {
+        a.body.push(local_set(value, held_from_core(result, call(import_index, arguments))))
+        a.body.push_all(after)
+    }
+    return value
+}
+
+// The parameter `index` of type `t`, lowered: a stream is opened, passed by its
+// readable end, then written and closed after the call; a scalar is passed as
+// itself, an `f32` narrowed.
+lower_param :: fn(a: Adapter, t: WitType, index: i32) -> Lowered | WasmUnsupported {
+    if t is WitStream {
+        return a.lower_stream(t, index)
+    }
+    if is_flat_scalar(t) {
+        return Lowered { .argument = core_from_held(t, local_get(index)) }
+    }
+    return no_lowering(t, a.function)
+}
+
+lower_stream :: fn(a: Adapter, t: WitStream, index: i32) -> Lowered | WasmUnsupported {
+    if !is_byte_stream(t) {
+        return no_lowering(t, a.function)
+    }
+    stream :: a.ctx.gc.of_struct[a.imp.signature.param_types[index]]
+        else return WasmUnsupported { .reason = "`${a.function}`: a stream is no struct" }
+    pair :: a.frame.local(.I64)
+    writable :: a.frame.local(.I32)
+    // `stream.new` returns the readable end in the low half, the writable end in
+    // the high half.
+    writable_end :: unary(.I32WrapI64, binary(.I64ShrU, local_get(pair), i64_const(32)))
+    items :: struct_get(stream, 0, local_get(index))
+    return Lowered {
+        .before = [
+            local_set(pair, call(a.ctx.builtin(.StreamNew, t), [])),
+            local_set(writable, writable_end),
+        ],
+        .argument = unary(.I32WrapI64, local_get(pair)),
+        .after = [
+            call(a.ctx.canonical_write(t), [local_get(writable), items]),
+            call(a.ctx.builtin(.StreamDropWritable, t), [local_get(writable)]),
+        ],
+    }
 }
 
 no_lowering :: fn(t: WitType, function: string) -> WasmUnsupported =
@@ -189,199 +317,41 @@ is_byte_stream :: fn(t: WitStream) -> bool {
     return element is WitScalar && element == .U8
 }
 
-flat_scalar_of :: fn(s: WitScalar, function: string) -> WasmValType | WasmUnsupported = match s {
-    .Bool | .S8 | .U8 | .S16 | .U16 | .S32 | .U32 | .Char -> .I32
-    .S64 | .U64 -> .I64
-    .F32 -> .F32
-    .F64 -> .F64
-    .String -> no_lowering(s, function)
-}
-
-// What an adapter builds from the value a future resolves to: nothing, or a
-// `result` whose only payload is the case of an enum stored in a byte.
-is_resolved_value :: fn(v: WitType | null) -> bool {
-    if v == null {
-        return true
-    }
-    if v !is WitResult || v.ok != null {
-        return false
-    }
-    error :: v.error
-    return error is WitEnum && enum_case_bits(error.cases.len()) == 8
-}
-
-// ---- the adapter ----------------------------------------------------------
-
-// The adapter of the bytecode import `index`, a function of an interface whose
-// call `is_adapted`: the Vader signature, the import behind it.
-canonical_adapter :: fn(ctx: ModuleCtx, index: i32, function: string) -> i32 | WasmUnsupported {
-    key :: "canonical.adapter ${index}"
-    known :: ctx.helpers[key]
-    if known != null {
-        return known
-    }
-    imp :: ctx.module.imports[index]
-    wit :: imp.wit else panic("wasm: an adapted import without its WIT type")
-    params :: value_types_of(imp.signature.params, function) else return params
-    results :: value_types_of(result_values(imp.signature.results), function) else return results
-    import_index :: ctx.imports.by_bytecode_index[index]
-        else panic("wasm: an adapted import that is not imported")
-    adapter :: AdapterBody { .first = i32(params.len()) }
-    called :: adapter.push_call(ctx, imp, wit, import_index, function) else return called
-    future :: wit.result
-    if future is WitFuture {
-        pushed :: adapter.push_resolved(ctx, imp, future, function) else return pushed
-    }
-    return ctx.define_helper(key, func_of(params, results), adapter.locals, adapter.body)
-}
-
-// The body of an adapter, and the locals it declares past the parameters.
-AdapterBody :: struct {
-    first: i32
-    locals: WasmValType[] = []
-    // The local that keeps the future the call returns, -1 for none.
-    future: i32 = -1
-    body: WasmInstr[] = []
-}
-
-// A fresh local of type `t`.
-new_local :: fn(a: AdapterBody, t: WasmValType) -> i32 {
-    a.locals.push(t)
-    return a.first + i32(a.locals.len() - 1)
-}
-
-// Open the streams, call the import with their readable ends, then write them
-// and close them. A future the call returns is kept in `future`.
-push_call :: fn(
-    a: AdapterBody,
-    ctx: ModuleCtx,
-    imp: Bc.BcImport,
-    wit: WitFunction,
-    import_index: i32,
-    function: string,
-) -> void | WasmUnsupported {
-    // The local each parameter reaches the import from: itself, or the readable
-    // end of the stream it opens; and the writable end of that stream.
-    passed: i32[]: (0..<wit.params.len()).map((i) -> i32(i)).collect()
-    writable: i32[]: [-1] * wit.params.len()
-    for i in 0..<wit.params.len() {
-        t :: wit.params[i].type
-        if t is WitStream {
-            pair :: a.new_local(.I64)
-            passed[i] = a.new_local(.I32)
-            writable[i] = a.new_local(.I32)
-            a.body.push_all(
-                [
-                    Call { .function_index = ctx.builtin(.StreamNew, t) },
-                    LocalSet { .index = pair },
-                    LocalGet { .index = pair },
-                    Plain { .op = .I32WrapI64 },
-                    LocalSet { .index = passed[i] },
-                    LocalGet { .index = pair },
-                    I64Const { .value = 32 },
-                    Plain { .op = .I64ShrU },
-                    Plain { .op = .I32WrapI64 },
-                    LocalSet { .index = writable[i] },
-                ],
-            )
-        }
-    }
-    for p in passed {
-        a.body.push(LocalGet { .index = p })
-    }
-    a.body.push(Call { .function_index = import_index })
-    if wit.result is WitFuture {
-        a.future = a.new_local(.I32)
-        a.body.push(LocalSet { .index = a.future })
-    }
-    for i in 0..<wit.params.len() {
-        t :: wit.params[i].type
-        end :: writable[i]
-        if t is WitStream {
-            stream :: ctx.gc.of_struct[imp.signature.param_types[i]]
-                else return WasmUnsupported { .reason = "`${function}`: a stream is no struct" }
-            a.body.push_all(
-                [
-                    LocalGet { .index = end },
-                    LocalGet { .index = i32(i) },
-                    RefCast { .type_index = stream },
-                    StructGet { .type_index = stream, .field_index = 0 },
-                    Call { .function_index = ctx.canonical_write(t) },
-                    LocalGet { .index = end },
-                    Call { .function_index = ctx.builtin(.StreamDropWritable, t) },
-                ],
-            )
-        }
-    }
-}
-
-// Wait for the future in `future`, close it, and build the `WasmFuture`
-// of the value it resolved to.
-push_resolved :: fn(
-    a: AdapterBody,
-    ctx: ModuleCtx,
-    imp: Bc.BcImport,
+// Read the value the future in the local `handle` resolves to, into room in the
+// arena once the host has written it, then close the future: the `WasmFuture`
+// that holds the value.
+push_future_read :: fn(
+    a: Adapter,
     future: WitFuture,
-    function: string,
-) -> void | WasmUnsupported {
-    handle :: a.future
-    struct_type :: ctx.gc.of_struct[imp.signature.result_types[0]]
-        else return WasmUnsupported { .reason = "`${function}`: a future is no struct" }
-    a.body.push_all(
-        [
-            LocalGet { .index = handle },
-            I32Const { .value = FUTURE_VALUE_ADDRESS },
-            Call { .function_index = ctx.builtin(.FutureRead, future) },
-        ],
-    )
-    a.push_wait_if_blocked(ctx, handle)
-    a.body.push_all(
-        [
-            LocalGet { .index = handle },
-            Call { .function_index = ctx.builtin(.FutureDropReadable, future) },
-        ],
-    )
-    if future.value == null {
-        a.body.push(StructNew { .type_index = ctx.gc.void_box })
-    } else {
-        // A Vader enum stored as WIT stores one is a `u8` (`is_resolved_value`).
-        error :: box_of_class(ctx.gc, .U8)
-        value :: a.new_local(.EqRef)
-        a.body.push_all(
-            [
-                I32Const { .value = FUTURE_VALUE_ADDRESS },
-                MemoryAccess { .op = .I32Load8U },
-                Plain { .op = .I32Eqz },
-                Plain { .op = .If },
-                StructNew { .type_index = ctx.gc.void_box },
-                LocalSet { .index = value },
-                Plain { .op = .Else },
-                // The case of the enum, past the discriminant.
-                I32Const { .value = FUTURE_VALUE_ADDRESS },
-                MemoryAccess { .op = .I32Load8U, .offset = 1 },
-                StructNew { .type_index = error },
-                LocalSet { .index = value },
-                Plain { .op = .End },
-                LocalGet { .index = value },
-            ],
-        )
+    handle: i32,
+) -> WasmExpression | WasmUnsupported {
+    result_type :: a.imp.signature.result_types[0]
+    no_struct :: WasmUnsupported { .reason = "`${a.function}`: a future is no struct" }
+    struct_type :: a.ctx.gc.of_struct[result_type] else return no_struct
+    held :: a.ctx.module.types[result_type]
+    if held !is Bc.BcStruct {
+        return no_struct
     }
-    a.body.push(StructNew { .type_index = struct_type })
-}
-
-// Wait for `waitable` when the status on the stack says its copy is blocked,
-// leaving nothing.
-push_wait_if_blocked :: fn(a: AdapterBody, ctx: ModuleCtx, waitable: i32) -> void =
+    room :: a.frame.local(.I32)
+    status :: a.frame.local(.I32)
+    value :: future.value
+    where: WasmExpression: if value == null { i32_const(0) } else { a.ctx.room_for(value) }
+    read :: call(a.ctx.builtin(.FutureRead, future), [local_get(handle), local_get(room)])
+    blocked :: i32_eq(local_get(status), i32_const(BLOCKED))
     a.body.push_all(
         [
-            I32Const { .value = BLOCKED },
-            Plain { .op = .I32Eq },
-            Plain { .op = .If },
-            LocalGet { .index = waitable },
-            Call { .function_index = ctx.canonical_wait() },
-            Plain { .op = .End },
+            local_set(room, where),
+            local_set(status, read),
+            when(blocked, [call(a.ctx.canonical_wait(), [local_get(handle)])]),
+            call(a.ctx.builtin(.FutureDropReadable, future), [local_get(handle)]),
         ],
     )
+    if value == null {
+        return struct_new(struct_type, [struct_new(a.ctx.gc.void_box, [])])
+    }
+    load :: canonical_load(a.ctx, value, held.fields[0].type_index, a.function) else return load
+    return struct_new(struct_type, [call(load, [local_get(room)])])
+}
 
 // The function index of the built-in `kind` on `type`, which
 // `imported_functions` imports for every adapted call.
@@ -395,31 +365,22 @@ builtin :: fn(ctx: ModuleCtx, kind: CanonicalKind, type: WitType | null) -> i32 
 
 // `(waitable) -> void`: wait until `waitable` signals, through a waitable set of
 // its own, which leaves the event at `EVENT_ADDRESS`.
-canonical_wait :: fn(ctx: ModuleCtx) -> i32 {
-    signature :: func_of([.I32], [])
-    return ctx.helpers["canonical.wait"]
-        else ctx.define_helper("canonical.wait", signature, [.I32], wait_body(ctx))
-}
+canonical_wait :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["canonical.wait"] else define_wait(ctx)
 
-wait_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
-    set :: 1
-    return [
-        Call { .function_index = ctx.builtin(.WaitableSetNew, null) },
-        LocalSet { .index = set },
-        LocalGet { .index = 0 },
-        LocalGet { .index = set },
-        Call { .function_index = ctx.builtin(.WaitableJoin, null) },
-        LocalGet { .index = set },
-        I32Const { .value = EVENT_ADDRESS },
-        Call { .function_index = ctx.builtin(.WaitableSetWait, null) },
-        Plain { .op = .Drop },
+define_wait :: fn(ctx: ModuleCtx) -> i32 {
+    waitable :: 0
+    frame :: HelperFrame { .signature = func_of([.I32], []) }
+    set :: frame.local(.I32)
+    wait :: call(ctx.builtin(.WaitableSetWait, null), [local_get(set), i32_const(EVENT_ADDRESS)])
+    body: WasmExpression[]: [
+        local_set(set, call(ctx.builtin(.WaitableSetNew, null), [])),
+        call(ctx.builtin(.WaitableJoin, null), [local_get(waitable), local_get(set)]),
+        unary(.Drop, wait),
         // Joining the set 0 takes the waitable out of its set.
-        LocalGet { .index = 0 },
-        I32Const { .value = 0 },
-        Call { .function_index = ctx.builtin(.WaitableJoin, null) },
-        LocalGet { .index = set },
-        Call { .function_index = ctx.builtin(.WaitableSetDrop, null) },
+        call(ctx.builtin(.WaitableJoin, null), [local_get(waitable), i32_const(0)]),
+        call(ctx.builtin(.WaitableSetDrop, null), [local_get(set)]),
     ]
+    return ctx.define_tree_helper("canonical.wait", frame, body)
 }
 
 // `(writable, items: u8[]) -> void`: write every item to the stream `stream`,
@@ -526,8 +487,17 @@ STDOUT_WRITE: WitFunction: WitFunction {
 
 @test
 test_a_function_taking_a_stream_is_adapted :: fn() -> void {
-    assert(is_adapted(STDOUT_WRITE), "a stream parameter takes an adapter")
-    assert(!is_adapted(WitFunction { .params = [], .result = .U64 }), "a scalar result takes none")
+    assert(needs_adapter(STDOUT_WRITE), "a stream parameter takes an adapter")
+    scalar :: WitFunction { .params = [], .result = .U64 }
+    assert(!needs_adapter(scalar), "a scalar result takes none")
+}
+
+@test
+test_an_f32_is_adapted :: fn() -> void {
+    result :: WitFunction { .params = [], .result = .F32 }
+    assert(needs_adapter(result), "Vader holds an f32 result as an f64")
+    param :: WitFunction { .params = [WitParam { .name = "x", .type = .F32 }], .result = null }
+    assert(needs_adapter(param), "Vader holds an f32 parameter as an f64")
 }
 
 @test
@@ -537,17 +507,4 @@ test_the_builtins_of_a_stream_write :: fn() -> void {
     assert_eq(names[0], "stream.new stream<u8>")
     assert_eq(names[3], "future.read future<result<_,enum:error-code{io,pipe}>>")
     assert_eq(names[8], "waitable-set.drop")
-}
-
-@test
-test_a_stream_and_a_future_flatten_to_handles :: fn() -> void {
-    flat :: flat_type_of(STDOUT_WRITE, "f") else panic("a stream write flattens")
-    assert_eq(flat.params.len(), 1)
-    assert(flat.params[0] == .I32 && flat.results[0] == .I32, "two handles")
-}
-
-@test
-test_a_string_has_no_lowering_yet :: fn() -> void {
-    f :: WitFunction { .params = [WitParam { .name = "s", .type = .String }], .result = null }
-    assert(flat_type_of(f, "f") is WasmUnsupported, "a string is not lowered")
 }

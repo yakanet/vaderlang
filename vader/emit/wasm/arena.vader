@@ -1,0 +1,98 @@
+// vader/emit/wasm/arena: the room a call through the canonical ABI uses in the
+// linear memory.
+//
+// What crosses a call through the memory, a block of parameters, a result the
+// host writes, the strings and lists it points to, is laid out in an arena past
+// what the canonical built-ins use (`canonical.vader`). The host takes room
+// through the `realloc` the memory's module exports, the core module through
+// `canonical_allocate`: both bump the same top, kept in the memory itself at
+// `ARENA_ADDRESS`, so neither module needs the other's globals. Everything read
+// back is copied into the GC heap before the call returns, so the adapter takes
+// the arena back to where it found it (`arena_scope`). The memory grows when the room
+// passes its end.
+
+module "vader/emit/wasm"
+
+import "vader/core/wit"
+
+// Where the memory keeps how many bytes of the arena are handed out.
+ARENA_ADDRESS: i32: 8
+
+// The core export of the memory's module the host allocates with.
+REALLOC_NAME: string: "realloc"
+
+// The bytes of a page of the memory, as a shift.
+PAGE_SHIFT: i32: 16
+
+// `(old_address, old_size, alignment, size) -> address`: `realloc` as the
+// canonical ABI calls it. The host only asks for new room when it writes a
+// result, so a call that would move an old block stops the run.
+allocator_function :: fn() -> WasmFunction {
+    old_size :: 1
+    alignment :: 2
+    size :: 3
+    frame :: HelperFrame { .signature = ALLOCATOR_TYPE }
+    body: WasmExpression[]: [when(local_get(old_size), [unreachable()])]
+    body.push_all(frame.allocation(size, alignment))
+    instructions :: flatten(frame, body)
+    return WasmFunction { .type_index = 0, .locals = frame.locals, .body = instructions }
+}
+
+// The core type of `allocator_function`.
+ALLOCATOR_TYPE :: WasmFuncType { .params = [.I32, .I32, .I32, .I32], .results = [.I32] }
+
+// `(size, alignment) -> address`: room in the arena for the core module.
+canonical_allocate :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["canonical.allocate"] else define_allocate(ctx)
+
+define_allocate :: fn(ctx: ModuleCtx) -> i32 {
+    size :: 0
+    alignment :: 1
+    frame :: HelperFrame { .signature = func_of([.I32, .I32], [.I32]) }
+    return ctx.define_tree_helper("canonical.allocate", frame, frame.allocation(size, alignment))
+}
+
+// Room of the size and alignment of `t` in the arena.
+room_for :: fn(ctx: ModuleCtx, t: WitType) -> WasmExpression =
+    call(canonical_allocate(ctx), [i32_const(size_of(t)), i32_const(alignment_of(t))])
+
+// `body`, then the arena taken back to where it was before it: what `body` takes
+// in the arena is handed back.
+arena_scope :: fn(frame: HelperFrame, body: WasmExpression[]) -> WasmExpression[] {
+    mark :: frame.local(.I32)
+    out: WasmExpression[]: [local_set(mark, arena_top())]
+    out.push_all(body)
+    out.push(i32_store(i32_const(ARENA_ADDRESS), local_get(mark)))
+    return out
+}
+
+// How many bytes of the arena are handed out.
+arena_top :: fn() -> WasmExpression = i32_load(i32_const(ARENA_ADDRESS))
+
+// The room for the local `size` bytes aligned on the local `alignment`, left on
+// the stack.
+allocation :: fn(frame: HelperFrame, size: i32, alignment: i32) -> WasmExpression[] {
+    address :: frame.local(.I32)
+    pages :: frame.local(.I32)
+    end :: i32_add(local_get(address), local_get(size))
+    page_bytes :: 1 << PAGE_SHIFT
+    // The first address past what is handed out, rounded up to `alignment`.
+    first_free :: i32_add(i32_const(ALLOCATION_ADDRESS), arena_top())
+    rounded_up :: i32_and(
+        i32_sub(i32_add(first_free, local_get(alignment)), i32_const(1)),
+        i32_sub(i32_const(0), local_get(alignment)),
+    )
+    // The pages the room ends in.
+    end_in_pages :: i32_shr_u(i32_add(end, i32_const(page_bytes - 1)), i32_const(PAGE_SHIFT))
+    return [
+        local_set(address, rounded_up),
+        i32_store(i32_const(ARENA_ADDRESS), i32_sub(end, i32_const(ALLOCATION_ADDRESS))),
+        // The pages the memory lacks.
+        local_set(pages, i32_sub(end_in_pages, memory_size())),
+        when(
+            i32_gt_s(local_get(pages), i32_const(0)),
+            [when(i32_eq(memory_grow(local_get(pages)), i32_const(-1)), [unreachable()])],
+        ),
+        local_get(address),
+    ]
+}

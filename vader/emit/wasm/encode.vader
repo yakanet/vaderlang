@@ -216,9 +216,6 @@ export encode_memory_module :: fn(with_allocator: bool) -> u8[] {
     memories: u8[]: [1]
     memories.push_all(ONE_PAGE_OR_MORE)
     out.push_section(.Memory, memories)
-    if with_allocator {
-        out.push_section(.Global, global_section([.I32]))
-    }
     exports: u8[]: []
     exports.push_count(if with_allocator { 2 } else { 1 })
     exports.push_name(MEMORY_NAME)
@@ -394,15 +391,24 @@ push_instr :: fn(out: u8[], instr: WasmInstr) -> void {
 }
 
 memory_opcode :: fn(op: MemoryOp) -> u8 = match op {
-    .I32Load   -> 0x28
-    .I32Load8U -> 0x2D
-    .I32Store8 -> 0x3A
+    .I32Load    -> 0x28
+    .I64Load    -> 0x29
+    .F32Load    -> 0x2A
+    .F64Load    -> 0x2B
+    .I32Load8S  -> 0x2C
+    .I32Load8U  -> 0x2D
+    .I32Load16S -> 0x2E
+    .I32Load16U -> 0x2F
+    .I32Store   -> 0x36
+    .I32Store8  -> 0x3A
 }
 
 // The alignment an access declares, as the log2 of its width in bytes.
 natural_alignment :: fn(op: MemoryOp) -> i32 = match op {
-    .I32Load                -> 2
-    .I32Load8U | .I32Store8 -> 0
+    .I64Load | .F64Load                          -> 3
+    .I32Load | .F32Load | .I32Store              -> 2
+    .I32Load16S | .I32Load16U                    -> 1
+    .I32Load8S | .I32Load8U | .I32Store8         -> 0
 }
 
 array_get_code :: fn(extension: Extension) -> u8 = match extension {
