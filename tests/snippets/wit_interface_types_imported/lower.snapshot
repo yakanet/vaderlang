@@ -1,0 +1,90 @@
+# Lower
+
+## snippet
+  snippet.describe :: fn(t: DescriptorTypeCase | DescriptorTypeOther) -> string {  // snippet$describe
+      {
+          if t is DescriptorTypeCase {
+              if DescriptorTypeCase(t) == DescriptorTypeCase(2) { "a directory" } else { "another case" } :string
+          } else if t is DescriptorTypeOther {
+              concat_2("other ", {
+                  __fallback_0: null | string = DescriptorTypeOther(t).value
+                  if __fallback_0 is null { "?" } else { string(__fallback_0) } :string
+              } :string)
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :string
+      } :string
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      at: Instant = Instant { .seconds = i64(3), .nanoseconds = u32(250) }
+      timeout: u64 = 1500
+      flags: DescriptorFlags = DescriptorFlags {
+          .read = true,
+          .write = false,
+          .file_integrity_sync = false,
+          .data_integrity_sync = false,
+          .requested_write_sync = false,
+          .mutate_directory = false,
+      }
+      stat: DescriptorStat = DescriptorStat {
+          .type = DescriptorTypeCase(2),
+          .link_count = u64(1),
+          .size = u64(4096),
+          .data_access_timestamp = at,
+          .data_modification_timestamp = null,
+          .status_change_timestamp = null,
+      }
+      std.console.println<string>({
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(74))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_int(__buf_0, __off_1, at.seconds)
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, ".")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, at.nanoseconds)
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, timeout)
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_bool(__buf_0, __off_1, flags.read)
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_bool(__buf_0, __off_1, flags.write)
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      std.console.println<string>({
+          __p_2: string = snippet.describe(stat.type)
+          __buf_3: Buffer = std_core$Intrinsic$new_byte_buffer(i64(21) +% std_core$Intrinsic$byte_len(__p_2))
+          __off_4: i64 = 0
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_2)
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+          __off_4 = std.core.write_unsigned(__buf_3, __off_4, stat.size)
+          std.core.finish_buffer(__buf_3, __off_4)
+      } :string)
+      std.console.println<string>(snippet.describe(DescriptorTypeOther { .value = "door" }))
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  wasi:clocks/system-clock@0.3.0
+    struct wasi:clocks.system-clock@0.3.0.Instant  // wasi_0clocks_system_3clock_10_23_20$Instant
+  wasi:filesystem/types@0.3.0
+    struct wasi:filesystem.types@0.3.0.DescriptorFlags  // wasi_0filesystem_types_10_23_20$DescriptorFlags
+    struct wasi:filesystem.types@0.3.0.DescriptorStat  // wasi_0filesystem_types_10_23_20$DescriptorStat
+    struct wasi:filesystem.types@0.3.0.DescriptorTypeOther  // wasi_0filesystem_types_10_23_20$DescriptorTypeOther
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer

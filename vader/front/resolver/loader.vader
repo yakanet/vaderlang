@@ -20,6 +20,7 @@ import "std/abort"
 import "std/collections"
 import "std/env"
 import "std/fs"
+import "std/io"
 import "std/iter"
 import "std/path"
 import "std/string"
@@ -231,6 +232,7 @@ export load_project_with_overlay :: fn(
                 .only_reached = only_reached,
                 .source_stages = planned_source_stages(project),
                 .body_stages = planned_body_stages(project),
+                .module_server = module_server_for(roots.paths),
             }
             // Re-resolve the entry through the generic path now that the roots
             // exist. `paths[0]` is the entry's own folder rooted at its declared
@@ -446,6 +448,8 @@ LoadState :: struct {
     /// The body stages that give a body to what they wrote without one
     /// (`planned_body_stages`).
     body_stages: BodyStage[]
+    /// The module stages, which write the module of an import no folder holds.
+    module_server: ModuleServer
     /// The functions they wrote without a body, in the modules the load keeps.
     late_fns: LateFn[] = []
     /// The folder of the prelude, null in a load with no standard library. The
@@ -469,7 +473,7 @@ DeferredModule :: struct {
 
 // The module `name` resolves to from the roots of the load `ctx`.
 resolve_in :: fn(ctx: LoadState, name: string) -> DiscoveredModule | null =
-    resolve_lazy(name, ctx.bases, ctx.index, ctx.overlay, ctx.diags)
+    resolve_lazy(name, ctx.bases, ctx.index, ctx.overlay, ctx.diags, ctx.module_server)
 
 // Generate and ingest the baked-constants module. Requires `std/target`, which
 // declares the enums the constants name; loads it first if the natural BFS did
@@ -506,7 +510,7 @@ drain_load_queue :: fn(ctx: LoadState, queue: DiscoveredModule[]) -> void {
     overlay :: ctx.overlay.deep_copy()
     level := ctx.unloaded(queue)
     for level.len() > 0 {
-        parsed :: parse_level(level, overlay, ctx.keep_docs)
+        parsed :: parse_level(level, with_written_texts(overlay, level), ctx.keep_docs)
         next: DiscoveredModule[]: []
         for i in 0..<level.len() {
             m :: level[i]
@@ -519,6 +523,24 @@ drain_load_queue :: fn(ctx: LoadState, queue: DiscoveredModule[]) -> void {
         }
         level = ctx.unloaded(next)
     }
+}
+
+// `overlay`, and the text of each file a module stage wrote for `level`: a copy
+// when there is one, which the tasks of the level read alone.
+with_written_texts :: fn(
+    overlay: Map<string, string>,
+    level: DiscoveredModule[],
+) -> Map<string, string> {
+    if level.all_match((m) -> m.texts.is_empty()) {
+        return overlay
+    }
+    out :: overlay.deep_copy()
+    for m in level {
+        for [file, text] in m.texts {
+            out[file] = text
+        }
+    }
+    return out
 }
 
 // The modules of `queue` not loaded yet, each once, in the order of their first
@@ -650,7 +672,7 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule, files: ParsedFile[]) ->
     // Pre-resolve this module's imports into the cache so `collect_files`'
     // `diagnose_import_path` finds them instead of firing a spurious R2001:
     // the failure mode that reverted the earlier lazy attempt.
-    preresolve_imports(sources, ctx.bases, ctx.index, ctx.overlay, ctx.diags)
+    preresolve_imports(sources, ctx.bases, ctx.index, ctx.overlay, ctx.diags, ctx.module_server)
     read_module :: DeferredModule {
         .found = m,
         .sources = sources,
@@ -748,7 +770,7 @@ load_stage_imports :: fn(ctx: LoadState, first: i64, end: i64) -> void {
     queue: DiscoveredModule[]: []
     for i in first..<end {
         written :: ctx.deferred[i].sources.filter((s) -> is_generated_file(s.path)).collect()
-        preresolve_imports(written, ctx.bases, ctx.index, ctx.overlay, ctx.diags)
+        preresolve_imports(written, ctx.bases, ctx.index, ctx.overlay, ctx.diags, ctx.module_server)
         for edge in import_paths_of(written) {
             found :: ctx.index[edge.path] else continue
             queue.push(found)
@@ -829,12 +851,16 @@ is_trimmed :: fn(ctx: LoadState, m: DiscoveredModule) -> bool =
 // straight through to `read_file`. Returns "" when neither the overlay nor
 // the disk has the file (the caller skips empty content): same handling the
 // pre-overlay code gave `read_file`'s error case.
-read_with_overlay :: fn(overlay: Map<string, string>, path: string) -> string {
+read_with_overlay :: fn(overlay: Map<string, string>, path: string) -> string =
+    read_buffer_or_disk(overlay, path) else ""
+
+// The text of `path`: what an editor holds of it in `overlay`, else the disk.
+read_buffer_or_disk :: fn(overlay: Map<string, string>, path: string) -> string | IOError {
     buffered :: overlay[path]
-    if buffered != null { return buffered }
-    disk :: read_file_string(path)
-    if disk is string { return disk }
-    return ""
+    if buffered != null {
+        return buffered
+    }
+    return read_file_string(path)
 }
 
 // The sources of `files`, their parse errors reported and their nodes numbered.

@@ -1,0 +1,79 @@
+// toolchain/stage/modules: the stages that write a module the build finds on no
+// disk, as the compiler implements them.
+//
+// The loader asks a module stage for a module while it resolves the imports, when
+// the stage serves the form of the import's path (an interface of WIT,
+// `ns:package/interface`). The stage reads what it needs through the files the
+// request lends, which makes each of them an input of the build, and returns the
+// source of the module.
+
+module "toolchain/stage"
+
+import "std/io"
+import "toolchain/diagnostics"
+import "toolchain/parser"
+
+/// The forms of an import's path a module stage serves.
+export ModuleForm :: enum {
+    /// `ns:package/interface`, `@version` or not: an interface of WIT.
+    WitInterface,
+}
+
+/// Whether a stage that serves `form` serves the import of `path`.
+///
+/// @param form  the form the stage serves.
+/// @param path  the path an import writes.
+export serves_path :: fn(form: ModuleForm, path: string) -> bool = match form {
+    .WitInterface -> is_wit_interface_name(path)
+}
+
+/// What a module stage describes of itself.
+export ModuleSpec :: struct {
+    /// The name of the stage, which also names the kind of the files it writes.
+    name: string
+    /// The paths it serves.
+    form: ModuleForm
+}
+
+// A path is served by one stage of its form: none waits on another.
+ModuleSpec implements Placed {
+    stage_name :: fn(self) -> string = self.name
+}
+
+/// The files of the build a module stage reads, through the engine.
+export BuildFiles :: trait {
+    /// The text of the file `path`, what an editor holds of it first.
+    read_text :: fn(self, path: string) -> string | IOError
+    /// The names of the entries of the folder `path`.
+    list_folder :: fn(self, path: string) -> string[] | IOError
+}
+
+/// A folder a module stage looks in.
+export ModuleRoot :: struct {
+    path: string
+    /// Whether the toolchain ships it.
+    of_toolchain: bool = false
+}
+
+/// A module the loader asks a module stage for.
+export ModuleRequest :: struct {
+    /// The path the import writes, which is the module's name.
+    name: string
+    /// The folders the stage looks in, in order: the toolchain's first.
+    roots: ModuleRoot[]
+    files: BuildFiles
+}
+
+/// What a module stage gives back for a module it found.
+export ModuleSource :: struct {
+    /// Source, without its `module` line ; "" when the stage could not write it.
+    text: string
+    /// Whether it comes from a folder the toolchain ships.
+    of_toolchain: bool = false
+    /// What the stage reports.
+    diagnostics: Diagnostic[] = []
+}
+
+/// A stage that writes a module the build finds on no disk; null when it finds no
+/// module of that name.
+export ModuleStage :: trait = Stage<ModuleRequest, ModuleSource | null, ModuleSpec>

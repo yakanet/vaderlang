@@ -300,6 +300,7 @@ export roots_of :: fn(state: ServerState, path: string) -> SearchRoots {
 /// @param paths  the roots, from `document_roots`.
 export module_named :: fn(state: ServerState, name: string, paths: IncludePath[]) -> DiscoveredModule | null {
     index :: Map<string, DiscoveredModule> {}
-    return resolve_lazy(name, paths, index, doc_overlay(state), [])
+    // The language server does not serve the modules a stage writes yet.
+    return resolve_lazy(name, paths, index, doc_overlay(state), [], ModuleServer {})
 }
 

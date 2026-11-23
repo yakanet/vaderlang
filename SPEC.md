@@ -3128,6 +3128,8 @@ Invalid names: `Std/String` (uppercase), `std/1string` (a segment starts with a 
 
 A `/` is an ordinary character of the name.
 
+The module of an interface of WIT takes the interface's name instead (*Interfaces of WIT*, below).
+
 ### Granularity and location
 
 A module is the set of `.vader` files directly inside one folder, and its name decides where that folder is: `import "a/b/c"` looks for the folder `a/b/c` under each search root in turn (*Include paths*, below).
@@ -3153,6 +3155,34 @@ An import takes one of three forms:
 An alias names a module, not a value: `x :: str` and `f(str)` are errors. A member the module does not export is an error, as the same name would be unqualified; the module's own imports are not members.
 
 There is no implicit binding of the path's last segment, and no `as` after the path.
+
+#### Interfaces of WIT
+
+An import may name an interface of WIT, the interface language of the WebAssembly component model, by its canonical name: `namespace:package/interface@version`. No folder holds that module; the compiler writes it from the `.wit` files of the package.
+
+```vader
+Clocks :: import "wasi:clocks/system-clock@0.3.0"
+
+start :: Clocks.Instant { .seconds = 3, .nanoseconds = 0 }
+```
+
+- The package is looked for in `wit/<namespace>/<package>@<version>/` next to each search root. The toolchain ships the packages of WASI, which come first; a package found in two places is an error.
+- The version may be left out when one version of the package is found.
+- Items marked `@unstable` are left out. The functions of an interface are not imported yet.
+
+The module holds the named types of the interface:
+
+| WIT | Vader |
+|---|---|
+| `record` | a struct |
+| `enum` | an enum, as wide as the canonical ABI stores its case |
+| `flags` | a struct of `bool` fields, each `false` by default |
+| `variant`, no case carrying a value | an enum |
+| `variant` | a union of an enum of the cases without value and of one struct per case holding its value as `value` |
+| `resource` | a struct holding the handle the host gives |
+| `type`, `use` | an alias |
+
+A type takes the Pascal case of its WIT name, a case too, and a field its snake case: `descriptor-type` is `DescriptorType`, `link-count` is `link_count`. A field named like a keyword takes a trailing `_`. A type an interface brings in with `use` is the type of the interface that declares it.
 
 #### Unused imports
 

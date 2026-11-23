@@ -1,0 +1,332 @@
+// vader/core/wit/generate: the Vader module an imported WIT interface becomes.
+//
+// The source holds the named types of the interface, as ADR 0179 maps them: a
+// `record` is a struct, an `enum` an enum whose width is the case bytes of the
+// canonical ABI, `flags` a struct of `bool`, a `variant` an enum when no case
+// carries a payload and otherwise a union of an enum of the bare cases and one
+// struct per case holding its payload as `value`, a `resource` a struct of the
+// handle the host gave, and a `type` or a `use` an alias. A name another interface
+// declares is reached through an aliased import of that interface's module, so a
+// WIT type has one Vader type wherever it is used.
+//
+// The functions of the interface are not written yet.
+
+module "vader/core/wit"
+
+import "std/collections"
+import "std/iter"
+import "std/string"
+import "std/string_builder"
+import "toolchain/lexer"
+
+/// The source of the module that holds `interface`, without its `module` line.
+///
+/// @param interface  the interface, its names resolved.
+/// @return           the imports of the interfaces its types name, then one
+///                   declaration per named type, in the order the interface holds
+///                   them.
+/// @error            `WitError` naming the type when one has no Vader form yet: a
+///                   stream or a future inside a type, a `result` without error.
+export wit_module_source :: fn(interface: WitInterface) -> string | WitError {
+    g :: Generation { .owner = interface.owner }
+    declarations :: StringBuilder {}
+    for t in interface.types {
+        written :: g.declaration(t) else return written
+        declarations.append("\n${written}")
+    }
+    out :: StringBuilder {}
+    for [alias, path] in g.imports {
+        out.append("${alias} :: import \"${path}\"\n")
+    }
+    out.append(declarations.to_string())
+    return out.to_string()
+}
+
+// A module being written.
+Generation :: struct {
+    owner: WitOwner
+    // The aliased imports the types need: the alias, then the interface.
+    imports: Map<string, string> = Map<string, string> {}
+}
+
+// ---- declarations -----------------------------------------------------------
+
+declaration :: fn(g: Generation, t: WitNamedType) -> string | WitError {
+    name :: pascal_name(wit_type_name(t))
+    return match t {
+        is WitRecord   -> g.record_declaration(name, t)
+        is WitVariant  -> g.variant_declaration(name, t)
+        is WitEnum     -> enum_declaration(name, t.cases)
+        is WitFlags    -> flags_declaration(name, t)
+        is WitResource -> "export ${name} :: struct {\n    handle: i32\n}\n"
+        is WitAlias    -> {
+            target :: g.type_text(t.target) else return target
+            "@alias\nexport ${name} :: ${target}\n"
+        }
+    }
+}
+
+record_declaration :: fn(g: Generation, name: string, r: WitRecord) -> string | WitError {
+    fields: string[]: []
+    for f in r.fields {
+        t :: g.type_text(f.type) else return t
+        fields.push("    ${snake_name(f.name)}: ${t}\n")
+    }
+    return "export ${name} :: struct {\n${fields.join("")}}\n"
+}
+
+// An enum of the cases, the width of the canonical ABI's case.
+enum_declaration :: fn(name: string, cases: string[]) -> string {
+    written :: cases.map((c) -> "    ${pascal_name(c)},\n").collect()
+    return "export ${name} :: enum(u${enum_case_bits(cases.len())}) {\n${written.join("")}}\n"
+}
+
+flags_declaration :: fn(name: string, f: WitFlags) -> string {
+    fields :: f.flags.map((flag) -> "    ${snake_name(flag)}: bool = false\n").collect()
+    return "export ${name} :: struct {\n${fields.join("")}}\n"
+}
+
+// An enum when no case carries a payload; otherwise the union of an enum of the
+// bare cases, `<Name>Case`, and of one struct per case with a payload,
+// `<Name><Case> { value }`.
+variant_declaration :: fn(g: Generation, name: string, v: WitVariant) -> string | WitError {
+    bare :: v.cases.filter((c) -> c.type == null).map((c) -> c.name).collect()
+    if bare.len() == v.cases.len() {
+        return enum_declaration(name, bare)
+    }
+    members: string[]: []
+    out :: StringBuilder {}
+    if bare.len() > 0 {
+        members.push("${name}Case")
+        out.append("\n${enum_declaration("${name}Case", bare)}")
+    }
+    for c in v.cases {
+        payload :: c.type else continue
+        t :: g.type_text(payload) else return t
+        struct_name :: "${name}${pascal_name(c.name)}"
+        members.push(struct_name)
+        out.append("\nexport ${struct_name} :: struct {\n    value: ${t}\n}\n")
+    }
+    return "export ${name} :: ${members.join(" | ")}\n${out.to_string()}"
+}
+
+// ---- types ------------------------------------------------------------------
+
+// The Vader type a value of `t` is held as.
+type_text :: fn(g: Generation, t: WitType) -> string | WitError {
+    return match t {
+        is WitScalar             -> scalar_text(t)
+        is WitRecord             -> g.named_text(t.owner, t.name)
+        is WitVariant            -> g.named_text(t.owner, t.name)
+        is WitEnum               -> g.enum_text(t)
+        is WitFlags              -> g.named_text(t.owner, t.name)
+        is WitResource           -> g.named_text(t.owner, t.name)
+        is WitAlias              -> g.named_text(t.owner, t.name)
+        is WitHandle             -> g.type_text(t.resource)
+        is WitList               -> {
+            element :: g.type_text(t.element) else return element
+            "${grouped(element)}[]"
+        }
+        is WitOption             -> {
+            value :: g.type_text(t.value) else return value
+            "${value} | null"
+        }
+        is WitTuple              -> {
+            elements: string[]: []
+            for e in t.elements {
+                written :: g.type_text(e) else return written
+                elements.push(written)
+            }
+            "[${elements.join(", ")}]"
+        }
+        is WitResult             -> g.result_text(t)
+        is WitStream | WitFuture -> no_form(g, t, "a stream or a future inside a type")
+        is WitUnsupported        -> no_form(g, t, t.reason)
+    }
+}
+
+// `T | E`, `void | E` for a result without `ok`.
+result_text :: fn(g: Generation, r: WitResult) -> string | WitError {
+    error :: r.error else return no_form(g, r, "a `result` without error")
+    error_text :: g.type_text(error) else return error_text
+    ok :: r.ok else return "void | ${error_text}"
+    ok_text :: g.type_text(ok) else return ok_text
+    return "${ok_text} | ${error_text}"
+}
+
+enum_text :: fn(g: Generation, e: WitEnum) -> string {
+    owner :: e.owner else return pascal_name(e.name)
+    return g.named_text(owner, e.name)
+}
+
+// A type `owner` declares as `name`: bare in its own module, behind the alias of
+// its interface's module elsewhere.
+named_text :: fn(g: Generation, owner: WitOwner, name: string) -> string {
+    if wit_owner_text(owner) == wit_owner_text(g.owner) {
+        return pascal_name(name)
+    }
+    alias :: interface_alias(owner)
+    g.imports[alias] = wit_owner_text(owner)
+    return "${alias}.${pascal_name(name)}"
+}
+
+no_form :: fn(g: Generation, t: WitType, what: string) -> WitError = WitError {
+    .message = "`${wit_type_text(t)}` in `${wit_owner_text(g.owner)}`: "
+        + "${what} has no Vader form yet",
+    .span = WitSpan { .file = wit_owner_text(g.owner) },
+}
+
+// A union as a list's element, in parentheses.
+grouped :: fn(t: string) -> string = if " | " in t { "(${t})" } else { t }
+
+scalar_text :: fn(s: WitScalar) -> string = match s {
+    .Bool   -> "bool"
+    .S8     -> "i8"
+    .U8     -> "u8"
+    .S16    -> "i16"
+    .U16    -> "u16"
+    .S32    -> "i32"
+    .U32    -> "u32"
+    .S64    -> "i64"
+    .U64    -> "u64"
+    .F32    -> "f32"
+    .F64    -> "f64"
+    .Char   -> "char"
+    .String -> "string"
+}
+
+// ---- names ------------------------------------------------------------------
+
+// The alias the module of the interface `owner` is imported under: its package
+// and its name, `ClocksTypes`.
+interface_alias :: fn(owner: WitOwner) -> string =
+    "${pascal_name(owner.package.name)}${pascal_name(owner.interface)}"
+
+// A WIT name as a Vader type or case: `error-code` is `ErrorCode`.
+pascal_name :: fn(name: string) -> string {
+    sb :: StringBuilder {}
+    for word in name.split("-") {
+        if word.byte_len() == 0 {
+            continue
+        }
+        sb.append(word.byte_slice(0, 1).to_upper())
+        sb.append(word.byte_slice(1, word.byte_len()).to_lower())
+    }
+    return sb.to_string()
+}
+
+// A WIT name as a Vader function or field: `read-via-stream` is
+// `read_via_stream`, and a keyword takes a trailing `_`.
+snake_name :: fn(name: string) -> string {
+    snake :: name.to_lower().replace_all("-", "_")
+    if snake in KEYWORDS {
+        return "${snake}_"
+    }
+    return snake
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/testing"
+
+generated_for :: fn(text: string, at: i64 = 0) -> string {
+    source :: WitSource { .path = "test.wit", .text = text }
+    read :: read_wit_package(
+        [source],
+        (name) -> WitError {
+            .message = "no package",
+            .span = WitSpan { .file = "" },
+        },
+    ) else panic(read.message())
+    written :: wit_module_source(read.interfaces[at]) else panic(written.message())
+    return written
+}
+
+@test
+test_wit_generate_a_record_and_an_enum :: fn() -> void {
+    assert_eq(generated_for("""
+        package a:b;
+        interface i {
+            enum kind { plain-file, directory }
+            record entry { kind: kind, name: string, size: option<u64> }
+        }
+        """), """
+
+        export Kind :: enum(u8) {
+            PlainFile,
+            Directory,
+        }
+
+        export Entry :: struct {
+            kind: Kind
+            name: string
+            size: u64 | null
+        }
+        """)
+}
+
+@test
+test_wit_generate_a_variant_with_payloads :: fn() -> void {
+    assert_eq(generated_for("""
+        package a:b;
+        interface i {
+            variant error-code { access, other(option<string>) }
+        }
+        """), """
+
+        export ErrorCode :: ErrorCodeCase | ErrorCodeOther
+
+        export ErrorCodeCase :: enum(u8) {
+            Access,
+        }
+
+        export ErrorCodeOther :: struct {
+            value: string | null
+        }
+        """)
+}
+
+@test
+test_wit_generate_flags_a_resource_and_an_alias :: fn() -> void {
+    assert_eq(generated_for("""
+        package a:b;
+        interface i {
+            flags open { create, truncate }
+            resource file;
+            type size = u64;
+            type pair = tuple<file, list<option<size>>>;
+        }
+        """), """
+
+        export Open :: struct {
+            create: bool = false
+            truncate: bool = false
+        }
+
+        export File :: struct {
+            handle: i32
+        }
+
+        @alias
+        export Size :: u64
+
+        @alias
+        export Pair :: [File, (Size | null)[]]
+        """)
+}
+
+@test
+test_wit_generate_imports_the_interface_a_use_names :: fn() -> void {
+    assert_eq(generated_for("""
+        package a:b;
+        interface clock { type instant = u64; }
+        interface file { use clock.{instant}; record times { access: instant } }
+        """, 1).split("\n")[0], "BClock :: import \"a:b/clock\"")
+}
+
+@test
+test_wit_generate_escapes_a_keyword :: fn() -> void {
+    assert_eq(snake_name("for"), "for_")
+    assert_eq(snake_name("read-via-stream"), "read_via_stream")
+}

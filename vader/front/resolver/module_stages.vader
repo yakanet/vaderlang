@@ -1,0 +1,96 @@
+// vader/front/resolver/module_stages: the modules a stage writes, found while the
+// imports resolve.
+//
+// `resolve_lazy` hands an import's path to the module stage that serves its form
+// before it looks for a folder: an interface of WIT has none. The module it gets
+// back has a folder no disk holds and carries its text, which the load parses in
+// place of a file (`DiscoveredModule.texts`); the files the stage read come from
+// the documents an editor holds open first, then from the disk.
+
+module "vader/front/resolver"
+
+import "std/collections"
+import "std/fs"
+import "std/io"
+import "std/iter"
+import "std/string"
+import "toolchain/diagnostics"
+import "toolchain/stage"
+
+/// The module stages of a load, and the folders they look in.
+export ModuleServer :: struct {
+    stages: ModuleStage[] = []
+    roots: ModuleRoot[] = []
+}
+
+/// The module stages of the compiler for a load whose modules are searched in
+/// `bases`: the WIT stage, looking in the toolchain's `runtime/` first, then in
+/// the `wit/` folder of each root.
+///
+/// @param bases  the roots of the load (`SearchRoots.paths`).
+export module_server_for :: fn(bases: IncludePath[]) -> ModuleServer {
+    roots: ModuleRoot[]: [ModuleRoot { .path = toolchain_runtime(), .of_toolchain = true }]
+    seen :: Set<string> {}
+    for base in bases {
+        path :: "${base.dir.trim_suffix("/")}/wit"
+        if seen.add(path) {
+            roots.push(ModuleRoot { .path = path })
+        }
+    }
+    return ModuleServer { .stages = [WitStage {}], .roots = roots }
+}
+
+// The toolchain's folder of the runtimes, found once: the file that proves it is
+// the licence of the WIT of WASI it holds.
+@singleton
+toolchain_runtime :: fn() -> string = resolve_sidecar("runtime", "wasi/LICENSE.md")
+
+// The stage of `server` that serves the import of `name`, null for a path a
+// folder holds.
+stage_serving :: fn(server: ModuleServer, name: string) -> ModuleStage | null =
+    server.stages.find((s) -> serves_path(s.describe().form, name))
+
+// The module `stage` writes for `name`, its diagnostics pushed on `diags`; null
+// when the stage finds none.
+written_module :: fn(
+    server: ModuleServer,
+    stage: ModuleStage,
+    name: string,
+    overlay: Map<string, string>,
+    diags: Diagnostic[],
+) -> DiscoveredModule | null {
+    request :: ModuleRequest {
+        .name = name,
+        .roots = server.roots,
+        .files = LoadFiles { .overlay = overlay },
+    }
+    source :: stage.run(request) else return null
+    diags.push_all(source.diagnostics)
+    kind :: stage.describe().name
+    file :: generated_file(kind, name)
+    texts :: Map<string, string> {}
+    if source.text != "" {
+        texts[file] = framed_source(kind, name, name, source.text)
+    }
+    return DiscoveredModule {
+        .name = name,
+        .folder = file,
+        .files = [file],
+        .origin = if source.of_toolchain { .Toolchain } else { .Build },
+        .texts = texts,
+    }
+}
+
+// The files a module stage reads: what an editor holds open, then the disk.
+LoadFiles :: struct {
+    overlay: Map<string, string>
+}
+
+LoadFiles implements BuildFiles {
+    read_text :: fn(self, path: string) -> string | IOError = read_buffer_or_disk(
+        self.overlay,
+        path,
+    )
+
+    list_folder :: fn(self, path: string) -> string[] | IOError = read_dir(path)
+}

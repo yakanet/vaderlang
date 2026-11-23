@@ -1,0 +1,5 @@
+package acme:broken@0.1.0;
+
+interface api {
+    record point { x: u32, y: missing }
+}

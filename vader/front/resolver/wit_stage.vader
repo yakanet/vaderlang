@@ -1,0 +1,207 @@
+// vader/front/resolver/wit_stage: the module stage that writes an imported WIT
+// interface as a Vader module.
+//
+// `import "wasi:clocks/system-clock@0.3.0"` names an interface: the stage finds
+// its package under the roots it is lent, in `<root>/<namespace>/<package>@<version>/`,
+// reads and resolves it (`vader/core/wit`), and writes the module of the interface
+// (`wit_module_source`). The toolchain ships its WASI packages in
+// `runtime/wasi/<package>@<version>/`, whose parent is its root. A name is one
+// module: a package two roots hold is an error naming both folders. An import may
+// leave the version out when one version of the package is found.
+
+module "vader/front/resolver"
+
+import "std/collections"
+import "std/iter"
+import "std/sort"
+import "std/string"
+import "toolchain/diagnostics"
+import "toolchain/span"
+import "toolchain/stage"
+import "vader/core/wit"
+
+/// The stage that writes the module of an imported WIT interface. A load makes
+/// one, which keeps the packages it read.
+export WitStage :: struct {
+    // The packages read so far, by the text of their name.
+    packages: Map<string, WitPackage> = Map<string, WitPackage> {}
+}
+
+WitStage implements ModuleStage {
+    describe :: fn(self) = ModuleSpec { .name = "wit", .form = .WitInterface }
+
+    run :: fn(self, request: ModuleRequest) -> ModuleSource | null {
+        name :: interface_name_of(request.name)
+        found :: package_folders(request, name.package)
+        if found.len() == 0 {
+            return null
+        }
+        folder :: found[0]
+        if found.len() > 1 {
+            return failed(folder, two_folders(request.name, found))
+        }
+        text :: self.module_text(request, folder, name.interface) else is WitError {
+            return failed(folder, wit_diagnostic(text))
+        } else is null {
+            return null
+        }
+        return ModuleSource { .text = text, .of_toolchain = folder.of_toolchain }
+    }
+}
+
+// The source of the module of `interface` in the package `folder` holds, null
+// when the package has no such interface.
+module_text :: fn(
+    stage: WitStage,
+    request: ModuleRequest,
+    folder: PackageFolder,
+    interface: string,
+) -> string | null | WitError {
+    package :: stage.package_in(request, folder) else return package
+    found :: package.interfaces.find((i) -> i.owner.interface == interface) else return null
+    return wit_module_source(found)
+}
+
+// A module the stage found and could not write: no text, the reason.
+failed :: fn(folder: PackageFolder, diagnostic: Diagnostic) -> ModuleSource = ModuleSource {
+    .text = "",
+    .of_toolchain = folder.of_toolchain,
+    .diagnostics = [diagnostic],
+}
+
+// The interface an import names: `wasi:clocks/system-clock@0.3.0`.
+InterfaceName :: struct {
+    package: WitPackageName
+    interface: string
+}
+
+// The interface `path` names: a name the stage serves, which
+// `is_wit_interface_name` checked.
+interface_name_of :: fn(path: string) -> InterfaceName {
+    slash :: path.last_index_of('/') else -1
+    package_part :: path.byte_slice(0, slash)
+    rest :: path.byte_slice(slash + 1, path.byte_len())
+    colon :: package_part.last_index_of(':') else -1
+    at :: rest.index_of('@') else rest.byte_len()
+    interface :: rest.byte_slice(0, at)
+    version :: if at < rest.byte_len() { rest.byte_slice(at + 1, rest.byte_len()) } else { "" }
+    return InterfaceName {
+        .package = WitPackageName {
+            .namespace = package_part.byte_slice(0, colon),
+            .name = package_part.byte_slice(colon + 1, package_part.byte_len()),
+            .version = version,
+        },
+        .interface = interface,
+    }
+}
+
+// A folder that holds a package, and whether the toolchain ships it.
+PackageFolder :: struct {
+    path: string
+    of_toolchain: bool
+}
+
+// The folders of `name` under the roots of `request`: its version, or every
+// version when the name has none and one version alone is found.
+package_folders :: fn(request: ModuleRequest, name: WitPackageName) -> PackageFolder[] {
+    out: PackageFolder[]: []
+    versions :: Set<string> {}
+    for root in request.roots {
+        namespace :: "${root.path}/${name.namespace}"
+        entries :: request.files.list_folder(namespace) else continue
+        for entry in sort(entries, compare_ascending) {
+            version :: version_in(entry, name) else continue
+            versions.add(version)
+            out.push(
+                PackageFolder {
+                    .path = "${namespace}/${entry}",
+                    .of_toolchain = root.of_toolchain,
+                },
+            )
+        }
+    }
+    if name.version == "" && versions.len() > 1 {
+        return []
+    }
+    return out
+}
+
+// The version of `name` the folder `entry` holds, null when it holds another
+// package or another version.
+version_in :: fn(entry: string, name: WitPackageName) -> string | null {
+    prefix :: "${name.name}@"
+    if !entry.starts_with(prefix) {
+        return null
+    }
+    version :: entry.byte_slice(prefix.byte_len(), entry.byte_len())
+    if name.version != "" && version != name.version {
+        return null
+    }
+    return version
+}
+
+// The package `folder` holds, read once per load.
+package_in :: fn(
+    stage: WitStage,
+    request: ModuleRequest,
+    folder: PackageFolder,
+) -> WitPackage | WitError {
+    known :: stage.packages[folder.path]
+    if known != null {
+        return known
+    }
+    entries :: request.files.list_folder(folder.path)
+        else return io_error(folder.path, "cannot list the folder")
+    sources: WitSource[]: []
+    for entry in sort(entries, compare_ascending).filter((e: string) -> e.ends_with(".wit")) {
+        path :: "${folder.path}/${entry}"
+        text :: request.files.read_text(path) else return io_error(path, "cannot read the file")
+        sources.push(WitSource { .path = path, .text = text })
+    }
+    read :: read_wit_package(sources, (dependency) -> stage.dependency_of(request, dependency))
+        else return read
+    stage.packages[folder.path] = read
+    return read
+}
+
+// A package another one `use`s, which names its version.
+dependency_of :: fn(
+    stage: WitStage,
+    request: ModuleRequest,
+    name: WitPackageName,
+) -> WitPackage | WitError {
+    found :: package_folders(request, name)
+    if found.len() != 1 {
+        return WitError {
+            .message = "package `${wit_package_text(name)}` is found in ${found.len()} folders",
+            .span = WitSpan { .file = "" },
+        }
+    }
+    return stage.package_in(request, found[0])
+}
+
+io_error :: fn(path: string, message: string) -> WitError = WitError {
+    .message = message,
+    .span = WitSpan { .file = path },
+}
+
+two_folders :: fn(name: string, found: PackageFolder[]) -> Diagnostic {
+    first :: found[0]
+    second :: found[1].path
+    detail :: if first.of_toolchain {
+        "the toolchain ships `${name}`, and `${second}` holds it too"
+    } else {
+        "`${name}` is in `${first.path}` and in `${second}`"
+    }
+    return resolver_error(.WitPackageInTwoRoots, zero_span(second), detail)
+}
+
+wit_diagnostic :: fn(error: WitError) -> Diagnostic {
+    at :: Position {
+        .file = error.span.file,
+        .offset = 0,
+        .line = error.span.line,
+        .column = error.span.column,
+    }
+    return resolver_error(.WitDoesNotRead, Span { .start = at, .end = at }, error.message)
+}

@@ -107,15 +107,23 @@ rooted_candidate :: fn(ip: IncludePath, name: string) -> string | null {
 /// @param index    the lazy cache, keyed by module name.
 /// @param overlay  path -> text of the documents an editor holds open, read
 ///                 before the disk (`scan_folder`) ; empty outside the LSP.
+/// @param server   the module stages, which write the module of a path they
+///                 serve (`module_stages.vader`).
 /// @return         the resolved module, or null when no include-path hosts it (the
 ///                 caller, `diagnose_import_path`, turns that into R2001).
 export resolve_lazy :: fn(
     name: string, paths: IncludePath[],
     index: Map<string, DiscoveredModule>, overlay: Map<string, string>,
-    diags: Diagnostic[],
+    diags: Diagnostic[], server: ModuleServer,
 ) -> DiscoveredModule | null {
     cached :: index[name]
     if cached is DiscoveredModule { return cached }
+    stage :: stage_serving(server, name)
+    if stage != null {
+        written :: written_module(server, stage, name, overlay, diags) else return null
+        index[name] = written
+        return written
+    }
     // The folder that OWNS the module: the first root to declare it, and the
     // module's identity. Every later contribution is appended to `files`, in root
     // order, so generated files land after the hand-written ones and file order
@@ -235,11 +243,11 @@ export seed_entry :: fn(
 export preresolve_imports :: fn(
     sources: SourceFile[], paths: IncludePath[],
     index: Map<string, DiscoveredModule>, overlay: Map<string, string>,
-    diags: Diagnostic[],
+    diags: Diagnostic[], server: ModuleServer,
 ) -> void {
     for sf in sources {
         for d in sf.program.decls.filter_is<AST.ImportDecl>() {
-            resolve_lazy(d.path, paths, index, overlay, diags)
+            resolve_lazy(d.path, paths, index, overlay, diags, server)
         }
     }
 }

@@ -1,0 +1,8 @@
+// R2047: the interface the program imports names a type its package does not
+// declare; the diagnostic points at the `.wit` line.
+
+module "snippet"
+
+Api :: import "acme:broken/api@0.1.0"
+
+main :: fn() -> i32 = 0

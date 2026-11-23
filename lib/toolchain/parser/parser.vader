@@ -526,7 +526,7 @@ parse_optional_module_decl :: fn(p: Parser, decorators: Decorator[]) -> ModuleDe
     if !p.check_at(.StringBegin, 1) { return null }
     start :: p.advance() // consume `module`
     lit :: p.expect_string_literal("module name")
-    if !is_valid_module_name(lit.text) {
+    if !is_valid_module_name(lit.text) && !is_wit_interface_name(lit.text) {
         p.error(.InvalidModuleName, lit.span, "")
     }
     end_tok :: p.peek_at(-1)
@@ -565,6 +565,52 @@ export is_valid_module_name :: fn(name: string) -> bool {
     }
     return !expect_segment_start
 }
+
+/// True when `name` is the canonical name of a WIT interface,
+/// `namespace:package/interface`, then `@version` or not: the name of the module
+/// the compiler writes for its import.
+///
+/// @param name  the declared module name.
+/// @example
+///   is_wit_interface_name("wasi:clocks/system-clock@0.3.0")   // true
+///   is_wit_interface_name("wasi/clocks")                      // false
+export is_wit_interface_name :: fn(name: string) -> bool {
+    slash :: name.index_of('/') else return false
+    at :: name.index_of('@')
+    path_end :: at else name.byte_len()
+    if path_end < slash {
+        return false
+    }
+    package :: name.byte_slice(0, slash).split(":")
+    interface :: name.byte_slice(slash + 1, path_end)
+    version :: name.byte_slice(path_end, name.byte_len())
+    return package.len() >= 2
+        && package.all_match(is_wit_word)
+        && is_wit_word(interface)
+        && version.chars().all_match(is_version_char)
+}
+
+// A name of WIT: words of lowercase letters and digits, joined by `-`, each
+// starting with a letter.
+is_wit_word :: fn(word: string) -> bool = word.split("-").all_match(is_wit_word_part)
+
+is_wit_word_part :: fn(part: string) -> bool {
+    first := true
+    for c in part {
+        if first && !c.is_module_segment_start() {
+            return false
+        }
+        if !(c in 'a'..='z' || c.is_digit()) {
+            return false
+        }
+        first = false
+    }
+    return !first
+}
+
+// A character of `@version`, the `@` included.
+is_version_char :: fn(c: char) -> bool =
+    c.is_alphanumeric() || c == '@' || c == '.' || c == '+' || c == '-'
 
 is_module_segment_start :: fn(c: char) = c in 'a'..='z'
 
@@ -4380,6 +4426,15 @@ header_arity :: fn(src: string) -> i64 {
     assert(a.data != null && a.data.len() == 2, "`A` should carry two fields")
     assert(a.value is i64 && a.value == 200, "`A` should keep its explicit value")
     assert(e.variants[1].data == null, "`B` should carry no data")
+}
+
+@test
+test_is_wit_interface_name :: fn() -> void {
+    assert(is_wit_interface_name("wasi:clocks/system-clock@0.3.0"), "an interface with its version")
+    assert(is_wit_interface_name("wasi:cli/stdout"), "an interface without version")
+    assert(!is_wit_interface_name("wasi/cli/stdout"), "a module path")
+    assert(!is_wit_interface_name("wasi:cli"), "a package alone")
+    assert(!is_wit_interface_name("Wasi:cli/stdout"), "an uppercase letter")
 }
 
 @test test_is_valid_module_name :: fn() -> void {

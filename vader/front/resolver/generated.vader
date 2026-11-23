@@ -149,7 +149,9 @@ export expanded_name :: fn(file: string, root: string) -> string | null {
 // module.
 origin_name :: fn(origin: string, root: string) -> string {
     if !origin.ends_with(".vader") {
-        return "${origin}.vader"
+        // The name of a WIT interface holds `:`, which Windows refuses in a file
+        // name: it takes the escape of the mangling.
+        return "${origin.replace_all(":", "_0")}.vader"
     }
     file :: normalized_path(origin)
     within :: relative_to(file, normalized_path(root))
@@ -214,6 +216,12 @@ test_expanded_name_follows_the_written_file :: fn() -> void {
 test_expanded_name_follows_the_module :: fn() -> void {
     written :: expanded_name("<generated>:displayable:app/shapes", ".") else ""
     assert_eq(written, "displayable/app/shapes.vader")
+}
+
+@test
+test_expanded_name_of_a_wit_interface_holds_no_colon :: fn() -> void {
+    written :: expanded_name("<generated>:wit:wasi:clocks/types@0.3.0", ".") else ""
+    assert_eq(written, "wit/wasi_0clocks/types@0.3.0.vader")
 }
 
 @test

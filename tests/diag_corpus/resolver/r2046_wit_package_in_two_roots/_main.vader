@@ -1,0 +1,11 @@
+// R2046: the project holds its own copy of `wasi:clocks@0.3.0`, which the
+// toolchain ships: a name is one module, so the import is refused.
+
+module "snippet"
+
+Clocks :: import "wasi:clocks/types@0.3.0"
+
+main :: fn() -> i32 {
+    d: Clocks.Duration: 1
+    return i32(d)
+}

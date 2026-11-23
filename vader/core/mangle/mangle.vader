@@ -23,12 +23,17 @@ import "vader/support/text"
 
 /// The fragment a module contributes to the mangled names of its declarations: a
 /// `_` of the path doubles and `/` becomes `_`, so `a/b` and `a_b` mangle apart
-/// (`a_b`, `a__b`). Any other byte outside `[A-Za-z0-9]` becomes `_` too, which
-/// only a path outside the module grammar can carry.
+/// (`a_b`, `a__b`). The bytes of a WIT interface's name become `_` and a digit
+/// (`:` `_0`, `@` `_1`, `.` `_2`, `-` `_3`): a segment of a module path starts
+/// with a letter, so no module path writes a digit after a lone `_`. Any other
+/// byte outside `[A-Za-z0-9]` becomes `_`, which only a path outside both
+/// grammars can carry.
 ///
 /// @param module_id  the module display path (e.g. `"std/string_builder"`).
 /// @return           the mangled fragment (e.g. `"std_string__builder"`), an
 ///                   identifier that never holds a `$`.
+/// @example
+///   mangle_module_id("wasi:cli/stdout@0.3.0")   // "wasi_0cli_stdout_10_23_20"
 export mangle_module_id :: fn(module_id: string) -> string {
     out: u8[]: [] * module_id.byte_len()
     for i in 0..<module_id.byte_len() {
@@ -40,9 +45,23 @@ export mangle_module_id :: fn(module_id: string) -> string {
             out.push(b)
         } else {
             out.push('_')
+            escape :: wit_name_escape(b)
+            if escape != null {
+                out.push(escape)
+            }
         }
     }
     return out.bytes_to_string()
+}
+
+// The digit that follows the `_` of a byte a WIT interface's name holds, null for
+// any other byte.
+wit_name_escape :: fn(b: u8) -> u8 | null = match b {
+    ':' -> '0'
+    '@' -> '1'
+    '.' -> '2'
+    '-' -> '3'
+    _   -> null
 }
 
 /// The mangled name of the declaration `name` of the module `module_id`:
@@ -357,6 +376,23 @@ test_mangle_module_id_doubles_underscores :: fn() -> void {
 @test
 test_mangle_module_id_keeps_slash_and_underscore_apart :: fn() -> void {
     assert(mangle_module_id("a/b") != mangle_module_id("a_b"), "`a/b` and `a_b` mangle apart")
+}
+
+@test
+test_mangle_module_id_escapes_the_name_of_a_wit_interface :: fn() -> void {
+    assert_eq(mangle_module_id("wasi:cli/stdout@0.3.0"), "wasi_0cli_stdout_10_23_20")
+}
+
+@test
+test_mangle_module_id_keeps_a_wit_interface_apart_from_a_module_path :: fn() -> void {
+    assert(
+        mangle_module_id("wasi:cli/stdout") != mangle_module_id("wasi/cli/stdout"),
+        "`:` and `/` mangle apart",
+    )
+    assert(
+        mangle_module_id("a:b-c") != mangle_module_id("a:b_c"),
+        "`-` and `_` mangle apart",
+    )
 }
 
 @test

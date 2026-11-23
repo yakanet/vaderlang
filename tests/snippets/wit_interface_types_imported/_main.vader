@@ -1,0 +1,33 @@
+// An interface of WIT imported as a module: its named types are Vader types. A
+// record is a struct, `flags` a struct of `bool`, a `variant` with a payload a
+// union of the enum of its bare cases and a struct per case, a `type` an alias,
+// and a `use` reaches the type of the interface that declares it.
+
+module "snippet"
+
+import "std/console"
+Clocks :: import "wasi:clocks/types@0.3.0"
+Fs :: import "wasi:filesystem/types@0.3.0"
+
+describe :: fn(t: Fs.DescriptorType) -> string = match t {
+    is Fs.DescriptorTypeCase  -> if t == .Directory { "a directory" } else { "another case" }
+    is Fs.DescriptorTypeOther -> "other ${t.value else "?"}"
+}
+
+main :: fn() -> i32 {
+    at :: Fs.Instant { .seconds = 3, .nanoseconds = 250 }
+    timeout: Clocks.Duration: 1500
+    flags :: Fs.DescriptorFlags { .read = true }
+    stat :: Fs.DescriptorStat {
+        .type = .Directory,
+        .link_count = 1,
+        .size = 4096,
+        .data_access_timestamp = at,
+        .data_modification_timestamp = null,
+        .status_change_timestamp = null,
+    }
+    println("${at.seconds}.${at.nanoseconds} ${timeout} ${flags.read} ${flags.write}")
+    println("${describe(stat.type)} ${stat.size}")
+    println(describe(Fs.DescriptorTypeOther { .value = "door" }))
+    return 0
+}
