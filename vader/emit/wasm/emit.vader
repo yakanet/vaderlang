@@ -144,7 +144,8 @@ memory_import_of :: fn(imports: ImportedFunctions) -> string | null {
 }
 
 // The context of `m`'s translation, before its first function: its struct types,
-// then the imported functions, which take the first function indices.
+// then the imported functions, which take the first function indices, and its
+// globals, which take the first global indices.
 module_context_of :: fn(m: Bc.BytecodeModule) -> ModuleCtx | WasmUnsupported {
     gc :: gc_types_of(m)
     types :: TypeTable { .first = i32(gc.types.len()) }
@@ -157,6 +158,7 @@ module_context_of :: fn(m: Bc.BytecodeModule) -> ModuleCtx | WasmUnsupported {
         .first_function = i32(imports.functions.len()),
         .first_helper = i32(imports.functions.len() + m.functions.len()),
         .literals = literals_of(m),
+        .globals = m.globals.map((g) -> field_type_of(m.types[g.type_id])).collect(),
     }
 }
 
@@ -433,6 +435,8 @@ push_op :: fn(
         is Bc.LocalGet -> { out.push(LocalGet { .index = op.slot }) }
         is Bc.LocalSet -> { out.push(LocalSet { .index = op.slot }) }
         is Bc.LocalTee -> { out.push(LocalTee { .index = op.slot }) }
+        is Bc.GlobalGet -> { out.push(GlobalGet { .index = op.index }) }
+        is Bc.GlobalSet -> { out.push(GlobalSet { .index = op.index }) }
         is Bc.Call -> {
             out.push(Call { .function_index = ctx.first_function + op.function_index })
         }
@@ -807,6 +811,23 @@ test_wasm_module_of_names_an_unsupported_op :: fn() -> void {
     if failure is WasmUnsupported {
         assert(failure.reason.contains("load_f64"), "the reason names the op")
     }
+}
+
+// A bytecode global takes the first global index, held as its type is.
+@test
+test_a_bytecode_global_takes_the_first_global :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.GlobalGet { .index = 0 },
+        Bc.Drop {},
+        Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } },
+    ]
+    program :: straight(body)
+    program.types = [Bc.BcScalar { .val = .I64 }]
+    program.globals = [Bc.BcGlobal { .name = "count", .type_id = 0 }]
+    wasm :: wasm_module_of(program, "") else panic(wasm.reason)
+    assert(wasm.globals.len() == 1 && wasm.globals[0] == .I64, "one `i64` global")
+    read :: wasm.functions[0].body[0]
+    assert(read is GlobalGet && read.index == 0, "read at index 0")
 }
 
 // A float becomes an `i32` through a saturated `i64`, as the VM converts it.
