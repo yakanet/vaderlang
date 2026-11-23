@@ -11,6 +11,7 @@ import "std/collections"
 import "std/iter"
 import "std/sort"
 import "std/string_builder"
+import "vader/core/wit"
 import "vader/support/integer"
 
 // ---- ranges ---------------------------------------------------------------
@@ -191,6 +192,26 @@ export integer_bound :: fn(values: Interval, greatest: bool) -> i64 {
         return i64(upper_past_i64(values))
     }
     return values.hi
+}
+
+/// Whether `e` is stored as a WIT `enum` is: each variant as its rank, from 0
+/// to the count less one, in the unsigned integer the canonical ABI stores a
+/// case in (`enum_case_bits`). An enum without variant data whose width is left
+/// unwritten is, when its written values, if any, are its ranks.
+///
+/// @param e  an enum type.
+export is_wit_enum :: fn(e: EnumType) -> bool {
+    if e.data != null || e.repr.is_signed || e.repr.bits != enum_case_bits(e.indices.len()) {
+        return false
+    }
+    seen: bool[]: [false] * e.indices.len()
+    for [_, value] in e.indices {
+        if value < 0 || value >= seen.len() || seen[value] {
+            return false
+        }
+        seen[value] = true
+    }
+    return true
 }
 
 /// The values of the enum `e`, in runs of consecutive values, the least first :

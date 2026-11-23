@@ -80,20 +80,14 @@ wit_scalar_of :: fn(name: string) -> WitScalar | null = match name {
     _        -> null
 }
 
-// An enum whose values are its ranks, as a WIT `enum` numbers its cases.
+// An enum stored as a WIT `enum` is (`is_wit_enum`).
 wit_enum_of :: fn(t: EnumType) -> WitEnum | null {
-    if t.data != null {
+    if !is_wit_enum(t) {
         return null
     }
     cases: string[]: [""] * t.indices.len()
     for [name, value] in t.indices {
-        if value < 0 || value >= cases.len() {
-            return null
-        }
         cases[value] = wit_name(name)
-    }
-    if cases.any_match((c) -> c == "") {
-        return null
     }
     return WitEnum { .name = wit_name(t.symbol.name), .cases = cases }
 }

@@ -106,6 +106,21 @@ export wit_name :: fn(name: string) -> string {
     return sb.to_string()
 }
 
+/// The width of the unsigned integer the canonical ABI stores a case of an
+/// `enum` in: the narrowest that holds every case.
+///
+/// @param case_count  how many cases the enum has.
+/// @return            8, 16 or 32.
+export enum_case_bits :: fn(case_count: i64) -> i64 {
+    if case_count <= 0x100 {
+        return 8
+    }
+    if case_count <= 0x1_0000 {
+        return 16
+    }
+    return 32
+}
+
 // ---- text -----------------------------------------------------------------
 
 /// The `.virt` text of `f`.

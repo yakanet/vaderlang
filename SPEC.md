@@ -4102,7 +4102,7 @@ The function's signature gives the WIT type of the import. Each parameter and th
 
 - a number, `bool` and `char` are the WIT scalar of the same width and signedness, `string` is `string`;
 - a struct is a `record` of its fields, an array a `list` of its elements;
-- an enum without variant data, whose values are its ranks, is an `enum`;
+- an enum without variant data, whose values are its ranks and whose width is left unwritten, or written as the narrowest unsigned integer that holds them, is an `enum`;
 - `void | E` is `result<_, E>`;
 - `WasmStream<T>` (`std/core`) is `stream<T>`: the call opens the stream, writes its `items`, then closes it;
 - `WasmFuture<T>` (`std/core`) is `future<T>`: the call waits for it and returns its `value`;

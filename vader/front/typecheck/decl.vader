@@ -884,7 +884,9 @@ validate_interface_signature :: fn(
 }
 
 // Whether `t` has a WIT type: a number, `bool`, `char` and `string` are
-// themselves, a struct is a `record` of its fields, an array a `list`. A struct
+// themselves, a struct is a `record` of its fields, an array a `list`, an enum
+// stored as WIT stores one (`is_wit_enum`) an `enum`, `void | E` a `result<_, E>`,
+// `WasmStream<T>` and `WasmFuture<T>` a `stream<T>` and a `future<T>`. A struct
 // met again inside itself has none: a WIT type cannot contain itself.
 // `enclosing` holds the structs being walked.
 has_wit_type :: fn(t: Type, typed: TypedProgram, enclosing: Set<i32>) -> bool {
@@ -895,7 +897,20 @@ has_wit_type :: fn(t: Type, typed: TypedProgram, enclosing: Set<i32>) -> bool {
         is PrimitiveType  -> { return t.name != TY_VOID.name && t.name != TY_NULL.name }
         is RangeType -> { return is_machine_range(t) }
         is ArrayType -> { return has_wit_type(t.element, typed, enclosing) }
+        is EnumType -> { return is_wit_enum(t) }
+        is UnionType -> {
+            if t.variants.len() != 2 || !t.variants.any_match(is_void) {
+                return false
+            }
+            return t.variants.all_match((v) -> is_void(v) || has_wit_type(v, typed, enclosing))
+        }
         is StructType -> {
+            if t.args.len() == 1 && is_core_struct(t, STRUCT_WASM_STREAM) {
+                return has_wit_type(t.args[0], typed, enclosing)
+            }
+            if t.args.len() == 1 && is_core_struct(t, STRUCT_WASM_FUTURE) {
+                return is_void(t.args[0]) || has_wit_type(t.args[0], typed, enclosing)
+            }
             fields :: typed.struct_fields[t.symbol.id] else return false
             if !enclosing.add(t.symbol.id) {
                 return false
