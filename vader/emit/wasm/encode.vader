@@ -18,8 +18,8 @@ module "vader/emit/wasm"
 ///   bytes.len()   // 8: the magic and the version alone
 export encode_module :: fn(m: WasmModule) -> u8[] {
     out: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]
-    if m.struct_types.len() + m.types.len() > 0 {
-        out.push_section(SECTION_TYPE, type_section(m.struct_types, m.types))
+    if m.gc_types.len() + m.types.len() > 0 {
+        out.push_section(SECTION_TYPE, type_section(m.gc_types, m.types))
     }
     if m.imports.len() > 0 {
         out.push_section(SECTION_IMPORT, import_section(m.imports))
@@ -42,9 +42,11 @@ SECTION_FUNCTION: u8: 3
 SECTION_EXPORT: u8: 7
 SECTION_CODE: u8: 10
 
-// The bytes that open a function type, a struct type, and a recursion group.
+// The bytes that open a function type, a struct type, an array type, and a
+// recursion group.
 FUNC_TYPE: u8: 0x60
 STRUCT_TYPE: u8: 0x5F
+ARRAY_TYPE: u8: 0x5E
 REC_GROUP: u8: 0x4E
 // A mutable field.
 MUTABLE: u8: 0x01
@@ -71,21 +73,17 @@ push_sized :: fn(out: u8[], content: u8[]) -> void {
 // The length of a vector, or any other count.
 push_count :: fn(out: u8[], count: i64) -> void = out.push_unsigned(u64(count))
 
-// The struct types as one recursion group, then each function type alone.
-type_section :: fn(struct_types: WasmStructType[], types: WasmFuncType[]) -> u8[] {
+// The struct and array types as one recursion group, then each function type
+// alone.
+type_section :: fn(gc_types: WasmGcType[], types: WasmFuncType[]) -> u8[] {
     out: u8[]: []
-    group_count: i64: if struct_types.len() > 0 { 1 } else { 0 }
+    group_count: i64: if gc_types.len() > 0 { 1 } else { 0 }
     out.push_count(group_count + types.len())
-    if struct_types.len() > 0 {
+    if gc_types.len() > 0 {
         out.push(REC_GROUP)
-        out.push_count(struct_types.len())
-        for s in struct_types {
-            out.push(STRUCT_TYPE)
-            out.push_count(s.fields.len())
-            for field in s.fields {
-                out.push(value_type_byte(field.type))
-                out.push(MUTABLE)
-            }
+        out.push_count(gc_types.len())
+        for t in gc_types {
+            out.push_gc_type(t)
         }
     }
     for t in types {
@@ -94,6 +92,28 @@ type_section :: fn(struct_types: WasmStructType[], types: WasmFuncType[]) -> u8[
         out.push_value_types(t.results)
     }
     return out
+}
+
+push_gc_type :: fn(out: u8[], t: WasmGcType) -> void {
+    if t is WasmArrayType {
+        out.push_all([ARRAY_TYPE, storage_type_byte(t.element), MUTABLE])
+        return
+    }
+    out.push(STRUCT_TYPE)
+    out.push_count(t.fields.len())
+    for field in t.fields {
+        out.push_all([value_type_byte(field.type), MUTABLE])
+    }
+}
+
+storage_type_byte :: fn(t: WasmStorageType) -> u8 = match t {
+    .I8    -> 0x78
+    .I16   -> 0x77
+    .I32   -> value_type_byte(.I32)
+    .I64   -> value_type_byte(.I64)
+    .F32   -> value_type_byte(.F32)
+    .F64   -> value_type_byte(.F64)
+    .EqRef -> value_type_byte(.EqRef)
 }
 
 import_section :: fn(imports: WasmImport[]) -> u8[] {
@@ -174,33 +194,45 @@ local_runs :: fn(locals: WasmValType[]) -> LocalRun[] {
 
 push_instr :: fn(out: u8[], instr: WasmInstr) -> void {
     match instr {
-        is I32Const  -> {
+        is I32Const        -> {
             out.push(0x41)
             out.push_signed(i64(instr.value))
         }
-        is I64Const  -> {
+        is I64Const        -> {
             out.push(0x42)
             out.push_signed(instr.value)
         }
-        is LocalGet  -> { out.push_indexed(0x20, instr.index) }
-        is LocalSet  -> { out.push_indexed(0x21, instr.index) }
-        is LocalTee  -> { out.push_indexed(0x22, instr.index) }
-        is Call      -> { out.push_indexed(0x10, instr.function_index) }
-        is Br        -> { out.push_indexed(0x0C, instr.depth) }
-        is BrIf      -> { out.push_indexed(0x0D, instr.depth) }
-        is StructNew -> { out.push_gc(0x00, [instr.type_index]) }
-        is StructGet -> { out.push_gc(0x02, [instr.type_index, instr.field_index]) }
-        is StructSet -> { out.push_gc(0x05, [instr.type_index, instr.field_index]) }
-        is RefCast   -> { out.push_heap_typed(0x16, instr.type_index) }
-        is RefTest   -> { out.push_heap_typed(0x14, instr.type_index) }
-        is RefNull   -> { out.push_all([0xD0, HEAP_EQ]) }
-        is Plain     -> {
+        is LocalGet        -> { out.push_indexed(0x20, instr.index) }
+        is LocalSet        -> { out.push_indexed(0x21, instr.index) }
+        is LocalTee        -> { out.push_indexed(0x22, instr.index) }
+        is Call            -> { out.push_indexed(0x10, instr.function_index) }
+        is Br              -> { out.push_indexed(0x0C, instr.depth) }
+        is BrIf            -> { out.push_indexed(0x0D, instr.depth) }
+        is StructNew       -> { out.push_gc(0x00, [instr.type_index]) }
+        is StructGet       -> { out.push_gc(0x02, [instr.type_index, instr.field_index]) }
+        is StructSet       -> { out.push_gc(0x05, [instr.type_index, instr.field_index]) }
+        is RefCast         -> { out.push_heap_typed(0x16, instr.type_index) }
+        is RefTest         -> { out.push_heap_typed(0x14, instr.type_index) }
+        is RefNull         -> { out.push_all([0xD0, HEAP_EQ]) }
+        is ArrayNewFixed   -> { out.push_gc(0x08, [instr.type_index, instr.length]) }
+        is ArrayNewDefault -> { out.push_gc(0x07, [instr.type_index]) }
+        is ArrayGet        -> { out.push_gc(array_get_code(instr.extension), [instr.type_index]) }
+        is ArraySet        -> { out.push_gc(0x0E, [instr.type_index]) }
+        is ArrayLen        -> { out.push_gc(0x0F, []) }
+        is ArrayCopy       -> { out.push_gc(0x11, [instr.destination, instr.source]) }
+        is Plain           -> {
             out.push(opcode(instr.op))
             if opens_scope(instr.op) {
                 out.push(EMPTY_BLOCK_TYPE)
             }
         }
     }
+}
+
+array_get_code :: fn(extension: Extension) -> u8 = match extension {
+    .None     -> 0x0B
+    .Signed   -> 0x0C
+    .Unsigned -> 0x0D
 }
 
 // A Wasm GC instruction and its index immediates.
@@ -243,6 +275,7 @@ opcode :: fn(op: WasmOp) -> u8 = match op {
     .I32Eq         -> 0x46
     .I32Ne         -> 0x47
     .I32LtS        -> 0x48
+    .I32LtU        -> 0x49
     .I32GtS        -> 0x4A
     .I32LeS        -> 0x4C
     .I32GeS        -> 0x4E
@@ -255,6 +288,7 @@ opcode :: fn(op: WasmOp) -> u8 = match op {
     .I64GtU        -> 0x56
     .I64LeS        -> 0x57
     .I64GeS        -> 0x59
+    .I64GeU        -> 0x5A
     .I32Add        -> 0x6A
     .I32Sub        -> 0x6B
     .I32Mul        -> 0x6C
@@ -426,6 +460,7 @@ test_encode_every_instruction :: fn() -> void {
         .I32Eq,
         .I32Ne,
         .I32LtS,
+        .I32LtU,
         .I32GtS,
         .I32LeS,
         .I32GeS,
@@ -438,6 +473,7 @@ test_encode_every_instruction :: fn() -> void {
         .I64GtU,
         .I64LeS,
         .I64GeS,
+        .I64GeU,
         .I32Add,
         .I32Sub,
         .I32Mul,
@@ -479,8 +515,8 @@ test_encode_every_instruction :: fn() -> void {
     body.push_all([Call { .function_index = 3 }, Br { .depth = 4 }, BrIf { .depth = 5 }])
     f :: WasmFunction { .type_index = 0, .locals = [], .body = body }
     expected: u8[]: [0x00, 0x00, 0x0F, 0x1A]
-    expected.push_all([0x45, 0x46, 0x47, 0x48, 0x4A, 0x4C, 0x4E])
-    expected.push_all([0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x59])
+    expected.push_all([0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4C, 0x4E])
+    expected.push_all([0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x59, 0x5A])
     expected.push_all(
         [0x6A, 0x6B, 0x6C, 0x6D, 0x6E, 0x6F, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76],
     )

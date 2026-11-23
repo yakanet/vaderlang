@@ -12,10 +12,20 @@ module "vader/emit/wasm"
 /// is held as: a struct, an array, a box, or null.
 export WasmValType :: enum { I32, I64, F32, F64, EqRef }
 
+/// A composite type of Wasm GC, in the recursion group.
+export WasmGcType :: WasmStructType | WasmArrayType
+
 /// A struct type of Wasm GC.
 export WasmStructType :: struct {
     fields: WasmField[]
 }
+
+/// An array type of Wasm GC, its elements mutable.
+export WasmArrayType :: struct { element: WasmStorageType }
+
+/// How an array stores its elements: as a value type, or packed in 8 or 16 bits
+/// that read back as an `i32`.
+export WasmStorageType :: enum { I8, I16, I32, I64, F32, F64, EqRef }
 
 /// A field of a struct type, every one mutable.
 export WasmField :: struct {
@@ -57,11 +67,11 @@ export WasmExport :: struct {
     function_index: i32
 }
 
-/// A core WASM module. The type index space holds the struct types first, all
-/// in one recursion group so that two of one shape stay distinct, then the
-/// function types: a type index past the struct types names `types`.
+/// A core WASM module. The type index space holds the struct and array types
+/// first, all in one recursion group so that two of one shape stay distinct,
+/// then the function types: a type index past the group names `types`.
 export WasmModule :: struct {
-    struct_types: WasmStructType[] = []
+    gc_types: WasmGcType[] = []
     types: WasmFuncType[]
     imports: WasmImport[] = []
     functions: WasmFunction[]
@@ -83,6 +93,12 @@ export WasmInstr :: I32Const
            | RefCast
            | RefTest
            | RefNull
+           | ArrayNewFixed
+           | ArrayNewDefault
+           | ArrayGet
+           | ArraySet
+           | ArrayLen
+           | ArrayCopy
            | Plain
 
 /// `i32.const value`.
@@ -135,6 +151,40 @@ export RefTest :: struct { type_index: i32 }
 /// `ref.null eq`.
 export RefNull :: struct {}
 
+/// `array.new_fixed type_index length`: an array of the `length` values on top,
+/// the first pushed first.
+export ArrayNewFixed :: struct {
+    type_index: i32
+    length: i32
+}
+
+/// `array.new_default type_index`: an array of the `i32` length on top, each
+/// element zero or null.
+export ArrayNewDefault :: struct { type_index: i32 }
+
+/// `array.get type_index`, its index an `i32`. A packed element reads back
+/// extended to an `i32`, as `extension` says.
+export ArrayGet :: struct {
+    type_index: i32
+    extension: Extension
+}
+
+/// How a packed element widens: `None` for an element stored whole.
+export Extension :: enum { None, Signed, Unsigned }
+
+/// `array.set type_index`: the array, the `i32` index, then the value.
+export ArraySet :: struct { type_index: i32 }
+
+/// `array.len`: the length of any array, an `i32`.
+export ArrayLen :: struct {}
+
+/// `array.copy destination source`: the destination and its offset, the source
+/// and its offset, then the count, each an `i32`.
+export ArrayCopy :: struct {
+    destination: i32
+    source: i32
+}
+
 /// An instruction without an immediate.
 export Plain :: struct { op: WasmOp }
 
@@ -153,6 +203,7 @@ export WasmOp :: enum {
     I32Eq,
     I32Ne,
     I32LtS,
+    I32LtU,
     I32GtS,
     I32LeS,
     I32GeS,
@@ -165,6 +216,7 @@ export WasmOp :: enum {
     I64GtU,
     I64LeS,
     I64GeS,
+    I64GeU,
     I32Add,
     I32Sub,
     I32Mul,

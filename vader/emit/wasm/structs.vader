@@ -12,17 +12,26 @@
 module "vader/emit/wasm"
 
 Bc :: import "vader/core/bytecode"
+import "std/abort"
 import "std/collections"
 
-/// The struct types of a module, and where each Vader type finds its own.
+/// The struct and array types of a module, and where each Vader type finds its
+/// own.
 export GcTypes :: struct {
-    structs: WasmStructType[] = []
+    types: WasmGcType[] = []
     /// The WASM type of each `BcStruct`, by its index in the bytecode types.
     of_struct: Map<i32, i32> = Map<i32, i32> {}
     /// The box of each scalar class.
     of_box: Map<Bc.ValType, i32> = Map<Bc.ValType, i32> {}
     /// The box of `void`, which holds nothing.
     void_box: i32 = -1
+    /// The array type of each way of storing elements (`arrays.vader`).
+    storages: Map<WasmStorageType, i32> = Map<WasmStorageType, i32> {}
+    /// The one struct type every array is (`arrays.vader`).
+    array_header: i32 = -1
+    /// The boxed classes some array type of the module has for elements, in the
+    /// order of `BOXED_CLASSES`.
+    array_classes: Bc.ValType[] = []
 }
 
 // The scalar classes a box exists for.
@@ -42,8 +51,8 @@ BOXED_CLASSES: Bc.ValType[]: [
     .String,
 ]
 
-/// The struct types of `m`: its structs in the order of its types, then the
-/// boxes, then the box of `void`.
+/// The struct and array types of `m`: its structs in the order of its types,
+/// then the boxes, the box of `void`, and the types every array is made of.
 ///
 /// @param m  the program's bytecode.
 export gc_types_of :: fn(m: Bc.BytecodeModule) -> GcTypes {
@@ -62,12 +71,26 @@ export gc_types_of :: fn(m: Bc.BytecodeModule) -> GcTypes {
         out.of_box[class] = out.add([WasmField { .type = scalar_field_type(class) }])
     }
     out.void_box = out.add([])
+    out.add_array_types(m)
     return out
 }
 
-add :: fn(gc: GcTypes, fields: WasmField[]) -> i32 {
-    gc.structs.push(WasmStructType { .fields = fields })
-    return i32(gc.structs.len() - 1)
+add :: fn(gc: GcTypes, fields: WasmField[]) -> i32 = gc.add_type(
+    WasmStructType { .fields = fields },
+)
+
+add_type :: fn(gc: GcTypes, t: WasmGcType) -> i32 {
+    gc.types.push(t)
+    return i32(gc.types.len() - 1)
+}
+
+// The type of the field `field_index` of the struct type `t`.
+field_held_as :: fn(gc: GcTypes, t: i32, field_index: i32) -> WasmValType {
+    s :: gc.types[t]
+    if s is WasmStructType {
+        return s.fields[field_index].type
+    }
+    panic("wasm: type ${t} is no struct type")
 }
 
 // How a value of `t` is held: a scalar as itself, anything else as a reference.
@@ -137,7 +160,7 @@ push_field_write :: fn(
     function: string,
 ) -> void | WasmUnsupported {
     t :: struct_type(ctx, op.type_id, function) else return t
-    value_type :: ctx.gc.structs[t].fields[op.field_index].type
+    value_type :: ctx.gc.field_held_as(t, op.field_index)
     held :: scratch.local_of(value_type)
     out.push_all(
         [
@@ -224,6 +247,10 @@ push_single_test :: fn(
         out.push(RefTest { .type_index = t })
         return
     }
+    if target is Bc.BcArray {
+        out.push_all([I32Const { .value = type_id }, Call { .function_index = ctx.array_is() }])
+        return
+    }
     if target is Bc.BcScalar && target.val == .Null {
         out.push(Plain { .op = .RefIsNull })
         return
@@ -291,7 +318,6 @@ payload_equality :: fn(class: Bc.ValType) -> WasmOp = match scalar_field_type(cl
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/abort"
 import "std/iter"
 import "std/testing"
 
@@ -301,7 +327,11 @@ test_each_scalar_class_has_a_box_of_its_own :: fn() -> void {
     u8_box :: gc.of_box[.U8] else -1
     i32_box :: gc.of_box[.I32] else -1
     assert(u8_box >= 0 && i32_box >= 0 && u8_box != i32_box, "`u8` and `i32` box apart")
-    assert(gc.void_box == i32(gc.structs.len() - 1), "the box of void comes last")
+    void_box :: gc.types[gc.void_box]
+    assert(
+        void_box is WasmStructType && void_box.fields.len() == 0,
+        "the box of void holds nothing",
+    )
 }
 
 // A program whose `main` runs `body`, over `types`: an `i32`, then the struct

@@ -115,7 +115,7 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
         functions.push(run)
     }
     core :: WasmModule {
-        .struct_types = ctx.gc.structs,
+        .gc_types = ctx.gc.types,
         .types = ctx.types.types,
         .imports = ctx.imports.functions,
         .functions = functions,
@@ -128,7 +128,7 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
 // then the imported functions, which take the first function indices.
 module_context_of :: fn(m: Bc.BytecodeModule) -> ModuleCtx | WasmUnsupported {
     gc :: gc_types_of(m)
-    types :: TypeTable { .first = i32(gc.structs.len()) }
+    types :: TypeTable { .first = i32(gc.types.len()) }
     imports :: imported_functions(m, types) else return imports
     return ModuleCtx {
         .module = m,
@@ -297,7 +297,7 @@ body_of :: fn(ctx: ModuleCtx, scratch: Scratch, f: Bc.BcFunction) -> WasmInstr[]
                 pinned :: push_pin(ctx, out, op, stack.types.last(), f.name) else return pinned
             }
             _                             -> {
-                pushed :: push_op(ctx, scratch, out, op, f.name) else return pushed
+                pushed :: push_op(ctx, scratch, stack, out, op, f.name) else return pushed
             }
         }
         stepped :: step(ctx, f, stack, op) else return stepped
@@ -352,9 +352,11 @@ branch_depth :: fn(anchors: i64[], target_pc: i32) -> i32 | null {
 push_plain :: fn(out: WasmInstr[], op: WasmOp) -> void = out.push(Plain { .op = op })
 
 // Append the translation of `op`, which is not a scope, a branch or a `ref.cast`.
+// `stack` holds the values under it.
 push_op :: fn(
     ctx: ModuleCtx,
     scratch: Scratch,
+    stack: OperandStack,
     out: WasmInstr[],
     op: Bc.Op,
     function: string,
@@ -411,6 +413,11 @@ push_op :: fn(
         is Bc.StructSet -> { return push_field_write(ctx, scratch, out, op, function) }
         is Bc.Retag -> { return push_retag(ctx, out, op, function) }
         is Bc.TypeCheck -> { return push_type_check(ctx, scratch, out, op, function) }
+        is Bc.ArrayNew | Bc.ArrayReserve | Bc.ArrayLen | Bc.ArrayClear | Bc.ArrayGet | Bc.ArraySet
+            | Bc.ArrayPush | Bc.ArrayRemoveLast | Bc.LoadSlotI32 | Bc.LoadSlotI64 | Bc.LoadSlotF64
+            | Bc.StoreSlotI32 | Bc.StoreSlotI64 | Bc.StoreSlotF64 -> {
+            return push_array_op(ctx, scratch, stack, out, op, function)
+        }
         is Bc.RefEq -> { out.push(Call { .function_index = ctx.reference_equality() }) }
         is Bc.RefNe -> {
             out.push(Call { .function_index = ctx.reference_equality() })

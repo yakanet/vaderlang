@@ -81,7 +81,7 @@ pushed_types :: fn(
 ) -> WasmValType[] | WasmUnsupported {
     types :: ctx.module.types
     return match op {
-        is Bc.I32Const | Bc.BoolConst | Bc.CharConst | Bc.StringConst | Bc.ArrayLen
+        is Bc.I32Const | Bc.BoolConst | Bc.CharConst | Bc.StringConst
             | Bc.LoadU8 | Bc.LoadI32 | Bc.LoadSlotI32 | Bc.F32ToBits | Bc.I32Add | Bc.I32Sub
             | Bc.I32Mul | Bc.I32Div | Bc.I32Mod | Bc.I32Eq | Bc.I32Ne | Bc.I32Lt | Bc.I32Le
             | Bc.I32Gt | Bc.I32Ge | Bc.I32Neg | Bc.I32BitNot | Bc.I32BitAnd | Bc.I32BitOr
@@ -92,7 +92,7 @@ pushed_types :: fn(
             | Bc.BoolNe | Bc.BoolAnd | Bc.BoolOr | Bc.BoolNot | Bc.StringEq | Bc.StringNe
             | Bc.StringCompare | Bc.RefEq | Bc.RefNe | Bc.TypeCheck
             | Bc.BufferToString -> [.I32]
-        is Bc.I64Const | Bc.SizeOfType | Bc.LoadI64 | Bc.LoadSlotI64 | Bc.F64ToBits
+        is Bc.I64Const | Bc.ArrayLen | Bc.SizeOfType | Bc.LoadI64 | Bc.LoadSlotI64 | Bc.F64ToBits
             | Bc.I64Add | Bc.I64Sub | Bc.I64Mul | Bc.I64Div | Bc.I64Mod | Bc.I64Neg
             | Bc.I64BitNot | Bc.I64BitAnd | Bc.I64BitOr | Bc.I64BitXor | Bc.I64Shl | Bc.I64Shr
             | Bc.I64ShrU | Bc.U64Div | Bc.U64Mod | Bc.FnAddr -> [.I64]
