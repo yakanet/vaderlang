@@ -72,6 +72,8 @@ export WasmExport :: struct {
 /// then the function types: a type index past the group names `types`.
 export WasmModule :: struct {
     gc_types: WasmGcType[] = []
+    /// The globals, each mutable and zero or null until first written.
+    globals: WasmValType[] = []
     types: WasmFuncType[]
     imports: WasmImport[] = []
     functions: WasmFunction[]
@@ -99,6 +101,8 @@ export WasmInstr :: I32Const
            | ArraySet
            | ArrayLen
            | ArrayCopy
+           | GlobalGet
+           | GlobalSet
            | Plain
 
 /// `i32.const value`.
@@ -157,6 +161,12 @@ export ArrayNewFixed :: struct {
     type_index: i32
     length: i32
 }
+
+/// `global.get index`.
+export GlobalGet :: struct { index: i32 }
+
+/// `global.set index`.
+export GlobalSet :: struct { index: i32 }
 
 /// `array.new_default type_index`: an array of the `i32` length on top, each
 /// element zero or null.

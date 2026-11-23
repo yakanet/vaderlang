@@ -83,15 +83,15 @@ export encode_component :: fn(c: WasmComponent) -> u8[] {
     interface_count :: i64(c.interfaces.len())
     function_count :: count_functions(c.interfaces)
     if interface_count > 0 {
-        out.push_section(COMPONENT_TYPE, instance_types(c.interfaces))
-        out.push_section(COMPONENT_IMPORT, interface_imports(c.interfaces))
+        out.push_component_section(.Type, instance_types(c.interfaces))
+        out.push_component_section(.Import, interface_imports(c.interfaces))
     }
-    out.push_section(COMPONENT_CORE_MODULE, encode_module(c.core))
+    out.push_component_section(.CoreModule, encode_module(c.core))
     if function_count > 0 {
-        out.push_section(COMPONENT_ALIAS, function_aliases(c.interfaces, function_count))
-        out.push_section(COMPONENT_CANON, lowered_functions(function_count))
+        out.push_component_section(.Alias, function_aliases(c.interfaces, function_count))
+        out.push_component_section(.Canon, lowered_functions(function_count))
     }
-    out.push_section(COMPONENT_CORE_INSTANCE, core_instances(c.interfaces))
+    out.push_component_section(.CoreInstance, core_instances(c.interfaces))
     out.push_run_sections(interface_count, function_count)
     return out
 }
@@ -106,37 +106,45 @@ push_run_sections :: fn(out: u8[], interface_count: i64, function_count: i64) ->
     // `run` takes no parameter and returns the `result`.
     run_types.push_all([ASYNC_FUNC_TYPE, 0, ONE_RESULT])
     run_types.push_count(result_type)
-    out.push_section(COMPONENT_TYPE, run_types)
+    out.push_component_section(.Type, run_types)
     run_alias: u8[]: [1, CORE_SORT, CORE_FUNC, ALIAS_CORE_EXPORT]
     run_alias.push_count(interface_count)
     run_alias.push_name(RUN_EXPORT)
-    out.push_section(COMPONENT_ALIAS, run_alias)
+    out.push_component_section(.Alias, run_alias)
     lift: u8[]: [1, CANON_LIFT, CORE_FUNC]
     lift.push_count(function_count)
     lift.push(NO_OPTIONS)
     lift.push_count(result_type + 1)
-    out.push_section(COMPONENT_CANON, lift)
+    out.push_component_section(.Canon, lift)
     run_instance: u8[]: [1, INSTANCE_OF_EXPORTS, 1, PLAIN_NAME]
     run_instance.push_name(RUN_EXPORT)
     run_instance.push(SORT_FUNC)
     run_instance.push_count(function_count)
-    out.push_section(COMPONENT_INSTANCE, run_instance)
+    out.push_component_section(.Instance, run_instance)
     export_run: u8[]: [1, PLAIN_NAME]
     export_run.push_name(RUN_INTERFACE)
     export_run.push(SORT_INSTANCE)
     export_run.push_count(interface_count)
     export_run.push(NO_TYPE_ASCRIPTION)
-    out.push_section(COMPONENT_EXPORT, export_run)
+    out.push_component_section(.Export, export_run)
 }
 
-COMPONENT_CORE_MODULE: u8: 1
-COMPONENT_CORE_INSTANCE: u8: 2
-COMPONENT_INSTANCE: u8: 5
-COMPONENT_ALIAS: u8: 6
-COMPONENT_TYPE: u8: 7
-COMPONENT_CANON: u8: 8
-COMPONENT_IMPORT: u8: 10
-COMPONENT_EXPORT: u8: 11
+// The sections of a component, numbered as the binary format numbers them.
+ComponentSectionId :: enum(u8) {
+    CoreModule   = 1,
+    CoreInstance = 2,
+    Instance     = 5,
+    Alias        = 6,
+    Type         = 7,
+    Canon        = 8,
+    Import       = 10,
+    Export       = 11,
+}
+
+push_component_section :: fn(out: u8[], id: ComponentSectionId, content: u8[]) -> void {
+    out.push(u8(id))
+    out.push_sized(content)
+}
 
 INSTANCE_TYPE: u8: 0x42
 FUNC_TYPE_SYNC: u8: 0x40

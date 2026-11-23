@@ -1,15 +1,23 @@
 // vader/emit/wasm/arrays: the arrays, as Wasm GC holds them.
 //
 // Every array is one struct type, the header, whatever its element:
-// `{ type_id: i32, element: i32, length: i64, storage: eqref }`. `type_id` is the
-// bytecode type the array was made as, which `is` reads. `storage` is a WASM
-// array that holds the elements, its capacity past `length`: one array type per
-// way of storing (`WasmStorageType`), an `i8` for a `u8`, an `eqref` for a
-// reference. `element` says which: the position of the element's class in
-// `BOXED_CLASSES`, or `REFERENCE_ELEMENT` for elements held by reference, boxed
-// scalars included. An access whose element type the bytecode erased (a `T[]`
-// in a shared generic instance) reads `element` to reach the storage, as the
-// native runtime reads the element kind off the buffer.
+// `{ type_id: i32, element: i32, length: i64, capacity: i64, offset: i32,
+// storage: eqref, shared: i32 }`. `type_id` is the bytecode type the array was
+// made as, which `is` reads. `storage` is a WASM array that holds the elements
+// from `offset` on: one array type per way of storing (`WasmStorageType`), an
+// `i8` for a `u8`, an `eqref` for a reference. `element` says which: the
+// position of the element's class in `BOXED_CLASSES`, or `REFERENCE_ELEMENT` for
+// elements held by reference, boxed scalars included. An access whose element
+// type the bytecode erased (a `T[]` in a shared generic instance) reads `element`
+// to reach the storage, as the native runtime reads the element kind off the
+// buffer.
+//
+// A slice is a view: a header over the storage of the array it slices. The
+// native rule holds (docs/adr/0108, 0122): a header writes in place only the
+// slots `[length, capacity)`, which no other header reads. A view is born with
+// `capacity == length`, and a header marked `shared` that shrinks sets
+// `capacity = length`, so the next push of either copies into a storage of its
+// own. Until then a write through either reaches the other, as natively.
 //
 // The accesses are functions the emitter writes once per way of storing, as
 // `checked.vader` does for the checked ops. They check the index against
@@ -20,12 +28,17 @@ module "vader/emit/wasm"
 Bc :: import "vader/core/bytecode"
 import "std/abort"
 import "std/collections"
+import "std/iter"
+import "std/math"
 
 // The fields of the header.
 HEADER_TYPE: i32: 0
 HEADER_ELEMENT: i32: 1
 HEADER_LENGTH: i32: 2
-HEADER_STORAGE: i32: 3
+HEADER_CAPACITY: i32: 3
+HEADER_OFFSET: i32: 4
+HEADER_STORAGE: i32: 5
+HEADER_SHARED: i32: 6
 
 // The `element` of an array whose elements are held by reference.
 REFERENCE_ELEMENT: i32: -1
@@ -43,7 +56,10 @@ add_array_types :: fn(gc: GcTypes, m: Bc.BytecodeModule) -> void {
         WasmField { .type = .I32 },
         WasmField { .type = .I32 },
         WasmField { .type = .I64 },
+        WasmField { .type = .I64 },
+        WasmField { .type = .I32 },
         WasmField { .type = .EqRef },
+        WasmField { .type = .I32 },
     ]
     gc.array_header = gc.add(header)
     for class in BOXED_CLASSES {
@@ -179,19 +195,40 @@ box_of_class :: fn(gc: GcTypes, class: Bc.ValType) -> i32 =
 
 // ---- ops ------------------------------------------------------------------
 
-// The translation of an array op. `stack` holds the values under it: an index
-// comes as an `i32` or an `i64`.
+// The array ops `push_array_op` translates.
+ArrayOp :: Bc.ArrayNew
+         | Bc.ArrayReserve
+         | Bc.ArrayLen
+         | Bc.ArrayClear
+         | Bc.ArrayGet
+         | Bc.ArraySet
+         | Bc.ArrayPush
+         | Bc.ArrayRemoveLast
+         | Bc.ArraySlice
+         | Bc.ArrayRepeat
+         | Bc.ArrayPushAll
+         | Bc.ArrayCopy
+         | Bc.DataConst
+         | Bc.LoadSlotI32
+         | Bc.LoadSlotI64
+         | Bc.LoadSlotF64
+         | Bc.StoreSlotI32
+         | Bc.StoreSlotI64
+         | Bc.StoreSlotF64
+
+// The translation of an array op. `stack` holds the values under it: an index,
+// a count or a bound comes as an `i32` or an `i64`, and the helpers take `i64`.
 push_array_op :: fn(
     ctx: ModuleCtx,
     scratch: Scratch,
     stack: OperandStack,
     out: WasmInstr[],
-    op: Bc.ArrayNew | Bc.ArrayReserve | Bc.ArrayLen | Bc.ArrayClear | Bc.ArrayGet | Bc.ArraySet
-        | Bc.ArrayPush | Bc.ArrayRemoveLast | Bc.LoadSlotI32 | Bc.LoadSlotI64 | Bc.LoadSlotF64
-        | Bc.StoreSlotI32 | Bc.StoreSlotI64 | Bc.StoreSlotF64,
+    op: ArrayOp,
     function: string,
 ) -> void | WasmUnsupported {
     gc :: ctx.gc
+    widened :: out.push_widened(scratch, stack, integer_depths(op), function)
+        else return widened
     match op {
         is Bc.ArrayNew        -> {
             access :: array_access(ctx, op.type_id, function) else return access
@@ -201,34 +238,26 @@ push_array_op :: fn(
         }
         is Bc.ArrayReserve    -> {
             access :: array_access(ctx, op.type_id, function) else return access
-            storage :: storage_type(gc, storage_of_access(access))
-            out.push_all([Plain { .op = .I32WrapI64 }, ArrayNewDefault { .type_index = storage }])
-            out.push_header(ctx, scratch, op.type_id, access, 0)
+            out.push_all([
+                I32Const { .value = op.type_id },
+                I32Const { .value = element_code(access) },
+                Call { .function_index = ctx.array_reserve(storage_of_access(access)) },
+            ])
         }
         is Bc.ArrayLen        -> {
-            out.push_all(
-                [
-                    header_of(gc),
-                    StructGet { .type_index = gc.array_header, .field_index = HEADER_LENGTH },
-                ],
-            )
+            out.push_all([
+                header_of(gc),
+                StructGet { .type_index = gc.array_header, .field_index = HEADER_LENGTH },
+            ])
         }
-        is Bc.ArrayClear      -> {
-            out.push_all(
-                [
-                    header_of(gc),
-                    I64Const { .value = 0 },
-                    StructSet { .type_index = gc.array_header, .field_index = HEADER_LENGTH },
-                ],
-            )
-        }
+        is Bc.ArrayClear      -> { out.push(Call { .function_index = ctx.array_clear() }) }
         is Bc.ArrayGet        -> {
             access :: array_access(ctx, op.type_id, function) else return access
-            return out.push_access(scratch, stack, 0, ctx.get_function(access), function)
+            out.push(Call { .function_index = ctx.get_function(access) })
         }
         is Bc.ArraySet        -> {
             access :: array_access(ctx, op.type_id, function) else return access
-            return out.push_access(scratch, stack, 1, ctx.set_function(access), function)
+            out.push(Call { .function_index = ctx.set_function(access) })
         }
         is Bc.ArrayPush       -> {
             // `type_id` is the element's type, not the array's.
@@ -236,28 +265,84 @@ push_array_op :: fn(
             out.push(Call { .function_index = ctx.push_function(access) })
         }
         is Bc.ArrayRemoveLast -> { out.push(Call { .function_index = ctx.array_remove_last() }) }
-        is Bc.LoadSlotI32     -> {
-            return out.push_access(scratch, stack, 0, ctx.array_get(.I32, .None), function)
+        is Bc.ArraySlice      -> {
+            out.push_all(
+                [I32Const { .value = op.type_id }, Call { .function_index = ctx.array_slice() }],
+            )
         }
-        is Bc.LoadSlotI64     -> {
-            return out.push_access(scratch, stack, 0, ctx.array_get(.I64, .None), function)
+        is Bc.ArrayRepeat     -> { out.push(Call { .function_index = ctx.array_repeat() }) }
+        is Bc.ArrayPushAll    -> { out.push(Call { .function_index = ctx.array_push_all() }) }
+        is Bc.ArrayCopy       -> { out.push(Call { .function_index = ctx.array_copy() }) }
+        is Bc.DataConst       -> {
+            data :: ctx.data_function(op, function) else return data
+            out.push(Call { .function_index = data })
         }
-        is Bc.LoadSlotF64     -> {
-            return out.push_access(scratch, stack, 0, ctx.array_get(.F64, .None), function)
+        is Bc.LoadSlotI32     -> { out.push(Call { .function_index = ctx.array_get(.I32, .None) }) }
+        is Bc.LoadSlotI64     -> { out.push(Call { .function_index = ctx.array_get(.I64, .None) }) }
+        is Bc.LoadSlotF64     -> { out.push(Call { .function_index = ctx.array_get(.F64, .None) }) }
+        is Bc.StoreSlotI32    -> { out.push(Call { .function_index = ctx.array_set(.I32) }) }
+        is Bc.StoreSlotI64    -> { out.push(Call { .function_index = ctx.array_set(.I64) }) }
+        is Bc.StoreSlotF64    -> { out.push(Call { .function_index = ctx.array_set(.F64) }) }
+    }
+}
+
+// Where the integers `op` reads sit, counted from the top of the stack.
+integer_depths :: fn(op: ArrayOp) -> i64[] = match op {
+    is Bc.ArrayGet | Bc.LoadSlotI32 | Bc.LoadSlotI64 | Bc.LoadSlotF64 | Bc.ArrayReserve
+        | Bc.ArrayRepeat -> [0]
+    is Bc.ArraySet | Bc.StoreSlotI32 | Bc.StoreSlotI64 | Bc.StoreSlotF64 -> [1]
+    is Bc.ArraySlice -> [0, 1]
+    is Bc.ArrayCopy -> [0, 1, 3]
+    is Bc.ArrayNew | Bc.ArrayLen | Bc.ArrayClear | Bc.ArrayPush | Bc.ArrayRemoveLast
+        | Bc.ArrayPushAll | Bc.DataConst -> []
+}
+
+// Widen to `i64` each of the integers `depths` values below the top that the
+// bytecode pushed as an `i32`. The values above the deepest wait in scratch
+// locals meanwhile, each its own.
+push_widened :: fn(
+    out: WasmInstr[],
+    scratch: Scratch,
+    stack: OperandStack,
+    depths: i64[],
+    function: string,
+) -> void | WasmUnsupported {
+    count :: stack.types.len()
+    at :: (depth: i64) -> stack.types[count - 1 - depth]
+    deepest: i64 = -1
+    for depth in depths {
+        if count <= depth {
+            return WasmUnsupported { .reason = "`${function}`: an array op finds no integer" }
         }
-        is Bc.StoreSlotI32    -> {
-            return out.push_access(scratch, stack, 1, ctx.array_set(.I32), function)
+        if at(depth) == .I32 {
+            deepest = max(deepest, depth)
+        } else if at(depth) != .I64 {
+            return WasmUnsupported { .reason = "`${function}`: an array index is no integer" }
         }
-        is Bc.StoreSlotI64    -> {
-            return out.push_access(scratch, stack, 1, ctx.array_set(.I64), function)
-        }
-        is Bc.StoreSlotF64    -> {
-            return out.push_access(scratch, stack, 1, ctx.array_set(.F64), function)
+    }
+    if deepest < 0 {
+        return
+    }
+    // The value at `depth` waits in the local of its type past those of the
+    // values above it.
+    kept: i32[]: []
+    for depth in 0..<deepest {
+        above :: (0..<depth).filter((d) -> at(d) == at(depth)).count()
+        kept.push(scratch.spill_local(at(depth), above))
+        out.push(LocalSet { .index = kept[depth] })
+    }
+    out.push(Plain { .op = .I64ExtendI32S })
+    for back in 0..<deepest {
+        depth :: deepest - 1 - back
+        out.push(LocalGet { .index = kept[depth] })
+        if depth in depths && at(depth) == .I32 {
+            out.push(Plain { .op = .I64ExtendI32S })
         }
     }
 }
 
-// The header of a new array of the type `type_id`, its storage on the stack.
+// The header of a new array of `length` elements, of the type `type_id`, its
+// storage on the stack.
 push_header :: fn(
     out: WasmInstr[],
     ctx: ModuleCtx,
@@ -267,16 +352,52 @@ push_header :: fn(
     length: i64,
 ) -> void {
     storage :: scratch.local_of(.EqRef)
-    out.push_all(
-        [
-            LocalSet { .index = storage },
-            I32Const { .value = type_id },
-            I32Const { .value = element_code(access) },
-            I64Const { .value = length },
-            LocalGet { .index = storage },
-            StructNew { .type_index = ctx.gc.array_header },
-        ],
+    out.push(LocalSet { .index = storage })
+    out.push_new_header(
+        ctx.gc,
+        full_header(type_id, access, length, [LocalGet { .index = storage }]),
     )
+}
+
+// A header, each field what its instructions leave.
+HeaderParts :: struct {
+    type_id: WasmInstr[]
+    element: WasmInstr[]
+    length: WasmInstr[]
+    capacity: WasmInstr[]
+    offset: WasmInstr[] = [I32Const { .value = 0 }]
+    storage: WasmInstr[]
+    shared: WasmInstr[] = [I32Const { .value = 0 }]
+}
+
+// The header of `length` elements of the array type `type_id`, as many as its
+// storage holds.
+full_header :: fn(
+    type_id: i32,
+    access: ElementAccess,
+    length: i64,
+    storage: WasmInstr[],
+) = HeaderParts {
+    .type_id = [I32Const { .value = type_id }],
+    .element = [I32Const { .value = element_code(access) }],
+    .length = [I64Const { .value = length }],
+    .capacity = [I64Const { .value = length }],
+    .storage = storage,
+}
+
+push_new_header :: fn(body: WasmInstr[], gc: GcTypes, parts: HeaderParts) -> void {
+    for field in [
+        parts.type_id,
+        parts.element,
+        parts.length,
+        parts.capacity,
+        parts.offset,
+        parts.storage,
+        parts.shared,
+    ] {
+        body.push_all(field)
+    }
+    body.push(StructNew { .type_index = gc.array_header })
 }
 
 // The function reading an element through `access`.
@@ -304,50 +425,10 @@ push_function :: fn(ctx: ModuleCtx, access: ElementAccess) -> i32 {
     return ctx.array_push(storage_of_access(access))
 }
 
-// A call to the access `function`, which takes an `i64` index: `depth` values
-// above it on the stack.
-push_access :: fn(
-    out: WasmInstr[],
-    scratch: Scratch,
-    stack: OperandStack,
-    depth: i64,
-    function: i32,
-    name: string,
-) -> void | WasmUnsupported {
-    count :: stack.types.len()
-    if count <= depth {
-        return WasmUnsupported { .reason = "`${name}`: an array access finds no index" }
-    }
-    index :: stack.types[count - 1 - depth]
-    if index == .I32 {
-        out.push_widened(scratch, stack, depth)
-    } else if index != .I64 {
-        return WasmUnsupported { .reason = "`${name}`: an array index is no integer" }
-    }
-    out.push(Call { .function_index = function })
-}
-
-// `i64.extend_i32_s` of the `i32` `depth` values below the top: one at most,
-// kept aside meanwhile.
-push_widened :: fn(out: WasmInstr[], scratch: Scratch, stack: OperandStack, depth: i64) -> void {
-    if depth == 0 {
-        out.push(Plain { .op = .I64ExtendI32S })
-        return
-    }
-    above :: scratch.local_of(stack.types[stack.types.len() - 1])
-    out.push_all(
-        [
-            LocalSet { .index = above },
-            Plain { .op = .I64ExtendI32S },
-            LocalGet { .index = above },
-        ],
-    )
-}
-
 // The header of the array on the stack, cast.
 header_of :: fn(gc: GcTypes) -> WasmInstr = RefCast { .type_index = gc.array_header }
 
-// ---- helpers --------------------------------------------------------------
+// ---- typed helpers --------------------------------------------------------
 
 // `(array, index: i64) -> element`, stored as `storage`, read as `extension`.
 array_get :: fn(ctx: ModuleCtx, storage: WasmStorageType, extension: Extension) -> i32 {
@@ -361,14 +442,9 @@ get_body :: fn(gc: GcTypes, storage: WasmStorageType, extension: Extension) -> W
     storage_index :: storage_type(gc, storage)
     body: WasmInstr[]: []
     body.push_bounds_check(gc)
-    body.push_storage(gc, storage_index)
-    body.push_all(
-        [
-            LocalGet { .index = 1 },
-            Plain { .op = .I32WrapI64 },
-            ArrayGet { .type_index = storage_index, .extension = extension },
-        ],
-    )
+    body.push_storage(gc, 0, storage_index)
+    body.push_position(gc, 0, 1)
+    body.push(ArrayGet { .type_index = storage_index, .extension = extension })
     return body
 }
 
@@ -386,15 +462,9 @@ set_body :: fn(gc: GcTypes, storage: WasmStorageType) -> WasmInstr[] {
     storage_index :: storage_type(gc, storage)
     body: WasmInstr[]: []
     body.push_bounds_check(gc)
-    body.push_storage(gc, storage_index)
-    body.push_all(
-        [
-            LocalGet { .index = 1 },
-            Plain { .op = .I32WrapI64 },
-            LocalGet { .index = 2 },
-            ArraySet { .type_index = storage_index },
-        ],
-    )
+    body.push_storage(gc, 0, storage_index)
+    body.push_position(gc, 0, 1)
+    body.push_all([LocalGet { .index = 2 }, ArraySet { .type_index = storage_index }])
     return body
 }
 
@@ -413,37 +483,29 @@ PUSH_GROWN: i32: 4
 
 push_body :: fn(gc: GcTypes, storage: WasmStorageType) -> WasmInstr[] {
     storage_index :: storage_type(gc, storage)
-    header :: gc.array_header
     body: WasmInstr[]: []
-    body.push_header_field(gc, HEADER_LENGTH)
+    body.push_header_field(gc, 0, HEADER_LENGTH)
     body.push(LocalSet { .index = PUSH_LENGTH })
     body.push_grow_if_full(gc, storage_index)
-    body.push_storage(gc, storage_index)
-    body.push_all(
-        [
-            LocalGet { .index = PUSH_LENGTH },
-            Plain { .op = .I32WrapI64 },
-            LocalGet { .index = 1 },
-            ArraySet { .type_index = storage_index },
-            LocalGet { .index = 0 },
-            header_of(gc),
-            LocalGet { .index = PUSH_LENGTH },
-            I64Const { .value = 1 },
-            Plain { .op = .I64Add },
-            StructSet { .type_index = header, .field_index = HEADER_LENGTH },
-        ],
+    body.push_storage(gc, 0, storage_index)
+    body.push_position(gc, 0, PUSH_LENGTH)
+    body.push_all([LocalGet { .index = 1 }, ArraySet { .type_index = storage_index }])
+    body.push_set_field(
+        gc,
+        0,
+        HEADER_LENGTH,
+        [LocalGet { .index = PUSH_LENGTH }, I64Const { .value = 1 }, Plain { .op = .I64Add }],
     )
     return body
 }
 
-// When the length reaches the capacity, a storage twice as large, four elements
-// at least, takes the place of the old one, its elements copied.
+// When the length reaches the capacity, a storage of its own, twice as large and
+// four elements at least, takes the place of the one the header reads, its
+// elements copied.
 push_grow_if_full :: fn(body: WasmInstr[], gc: GcTypes, storage_index: i32) -> void {
-    body.push_storage(gc, storage_index)
+    body.push_header_field(gc, 0, HEADER_CAPACITY)
     body.push_all(
         [
-            ArrayLen {},
-            Plain { .op = .I64ExtendI32U },
             LocalGet { .index = PUSH_LENGTH },
             Plain { .op = .I64Eq },
             Plain { .op = .If },
@@ -467,21 +529,56 @@ push_grow_if_full :: fn(body: WasmInstr[], gc: GcTypes, storage_index: i32) -> v
             I32Const { .value = 0 },
         ],
     )
-    body.push_storage(gc, storage_index)
+    body.push_storage(gc, 0, storage_index)
+    body.push_header_field(gc, 0, HEADER_OFFSET)
     body.push_all(
         [
-            I32Const { .value = 0 },
             LocalGet { .index = PUSH_LENGTH },
             Plain { .op = .I32WrapI64 },
             ArrayCopy { .destination = storage_index, .source = storage_index },
-            LocalGet { .index = 0 },
-            header_of(gc),
-            LocalGet { .index = PUSH_GROWN },
-            StructSet { .type_index = gc.array_header, .field_index = HEADER_STORAGE },
-            Plain { .op = .End },
         ],
     )
+    body.push_set_field(gc, 0, HEADER_STORAGE, [LocalGet { .index = PUSH_GROWN }])
+    body.push_set_field(gc, 0, HEADER_OFFSET, [I32Const { .value = 0 }])
+    body.push_set_field(
+        gc,
+        0,
+        HEADER_CAPACITY,
+        [LocalGet { .index = PUSH_CAPACITY }, Plain { .op = .I64ExtendI32U }],
+    )
+    body.push_set_field(gc, 0, HEADER_SHARED, [I32Const { .value = 0 }])
+    body.push(Plain { .op = .End })
 }
+
+// `(count: i64, type_id: i32, element: i32) -> array`: an empty array with room
+// for `count` elements stored as `storage`; none for a negative count.
+array_reserve :: fn(ctx: ModuleCtx, storage: WasmStorageType) -> i32 {
+    key :: "array.reserve.${storage_name(storage)}"
+    signature :: WasmFuncType { .params = [.I64, .I32, .I32], .results = [.EqRef] }
+    return ctx.helpers[key]
+        else ctx.define_helper(key, signature, [], reserve_body(ctx.gc, storage))
+}
+
+reserve_body :: fn(gc: GcTypes, storage: WasmStorageType) -> WasmInstr[] {
+    count :: 0
+    body: WasmInstr[]: []
+    body.push_clamp(count, I64Const { .value = 0 }, .I64LtS)
+    header :: HeaderParts {
+        .type_id = [LocalGet { .index = 1 }],
+        .element = [LocalGet { .index = 2 }],
+        .length = [I64Const { .value = 0 }],
+        .capacity = [LocalGet { .index = count }],
+        .storage = [
+            LocalGet { .index = count },
+            Plain { .op = .I32WrapI64 },
+            ArrayNewDefault { .type_index = storage_type(gc, storage) },
+        ],
+    }
+    body.push_new_header(gc, header)
+    return body
+}
+
+// ---- recorded helpers -----------------------------------------------------
 
 // `(array, index: i64) -> eqref` through the `element` the array records: a
 // scalar comes out boxed.
@@ -559,7 +656,7 @@ recorded_body :: fn(
     references: i32,
 ) -> WasmInstr[] {
     body: WasmInstr[]: []
-    body.push_header_field(ctx.gc, HEADER_ELEMENT)
+    body.push_header_field(ctx.gc, 0, HEADER_ELEMENT)
     body.push(LocalSet { .index = element })
     for class in ctx.gc.array_classes {
         body.push_if_element(element, class_code(class))
@@ -571,17 +668,17 @@ recorded_body :: fn(
             LocalGet { .index = element },
             I32Const { .value = REFERENCE_ELEMENT },
             Plain { .op = .I32Ne },
-            Plain { .op = .If },
-            Plain { .op = .Unreachable },
-            Plain { .op = .End },
         ],
     )
+    body.push_trap_if()
     for parameter in 0..<element {
         body.push(LocalGet { .index = parameter })
     }
     body.push(Call { .function_index = references })
     return body
 }
+
+// ---- whole-array helpers --------------------------------------------------
 
 // `(array) -> eqref`: the last element, boxed, taken off; null on an empty
 // array.
@@ -603,7 +700,7 @@ remove_last_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
     length :: 1
     last :: 2
     body: WasmInstr[]: []
-    body.push_header_field(gc, HEADER_LENGTH)
+    body.push_header_field(gc, 0, HEADER_LENGTH)
     body.push_all(
         [
             LocalTee { .index = length },
@@ -618,16 +715,412 @@ remove_last_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
             Plain { .op = .I64Sub },
             Call { .function_index = read },
             LocalSet { .index = last },
-            LocalGet { .index = 0 },
-            header_of(gc),
-            LocalGet { .index = length },
-            I64Const { .value = 1 },
-            Plain { .op = .I64Sub },
-            StructSet { .type_index = gc.array_header, .field_index = HEADER_LENGTH },
-            LocalGet { .index = last },
         ],
     )
+    body.push_set_field(
+        gc,
+        0,
+        HEADER_LENGTH,
+        [LocalGet { .index = length }, I64Const { .value = 1 }, Plain { .op = .I64Sub }],
+    )
+    body.push_shrunk(gc)
+    body.push(LocalGet { .index = last })
     return body
+}
+
+// `(array) -> ()`: the length set to zero, the storage kept.
+array_clear :: fn(ctx: ModuleCtx) -> i32 {
+    signature :: WasmFuncType { .params = [.EqRef], .results = [] }
+    return ctx.helpers["array.clear"]
+        else ctx.define_helper("array.clear", signature, [], clear_body(ctx.gc))
+}
+
+clear_body :: fn(gc: GcTypes) -> WasmInstr[] {
+    body: WasmInstr[]: []
+    body.push_set_field(gc, 0, HEADER_LENGTH, [I64Const { .value = 0 }])
+    body.push_shrunk(gc)
+    return body
+}
+
+// A header marked `shared` that shrank keeps no room: its next push copies.
+push_shrunk :: fn(body: WasmInstr[], gc: GcTypes) -> void {
+    body.push_header_field(gc, 0, HEADER_SHARED)
+    body.push(Plain { .op = .If })
+    length: WasmInstr[]: []
+    length.push_header_field(gc, 0, HEADER_LENGTH)
+    body.push_set_field(gc, 0, HEADER_CAPACITY, length)
+    body.push(Plain { .op = .End })
+}
+
+// `(array, lo: i64, hi: i64, type_id: i32) -> array`: a view on the elements
+// `lo..<hi`, the bounds clamped to the array.
+array_slice :: fn(ctx: ModuleCtx) -> i32 {
+    signature :: WasmFuncType { .params = [.EqRef, .I64, .I64, .I32], .results = [.EqRef] }
+    return ctx.helpers["array.slice"]
+        else ctx.define_helper("array.slice", signature, [.I64], slice_body(ctx.gc))
+}
+
+// The local past the parameters: the length of the array sliced. `hi` becomes
+// the length of the view.
+slice_body :: fn(gc: GcTypes) -> WasmInstr[] {
+    lo :: 1
+    hi :: 2
+    type_id :: 3
+    length :: 4
+    body: WasmInstr[]: []
+    body.push_header_field(gc, 0, HEADER_LENGTH)
+    body.push(LocalSet { .index = length })
+    body.push_clamp(lo, I64Const { .value = 0 }, .I64LtS)
+    body.push_clamp(lo, LocalGet { .index = length }, .I64GtS)
+    body.push_clamp(hi, LocalGet { .index = lo }, .I64LtS)
+    body.push_clamp(hi, LocalGet { .index = length }, .I64GtS)
+    body.push_all([
+        LocalGet { .index = hi },
+        LocalGet { .index = lo },
+        Plain { .op = .I64Sub },
+        LocalSet { .index = hi },
+    ])
+    body.push_set_field(gc, 0, HEADER_SHARED, [I32Const { .value = 1 }])
+    offset: WasmInstr[]: []
+    offset.push_position(gc, 0, lo)
+    view :: HeaderParts {
+        .type_id = [LocalGet { .index = type_id }],
+        .element = header_field(gc, 0, HEADER_ELEMENT),
+        .length = [LocalGet { .index = hi }],
+        .capacity = [LocalGet { .index = hi }],
+        .offset = offset,
+        .storage = header_field(gc, 0, HEADER_STORAGE),
+        .shared = [I32Const { .value = 1 }],
+    }
+    body.push_new_header(gc, view)
+    return body
+}
+
+// `(destination, source) -> ()`: each element of `source` pushed onto
+// `destination`, through the elements both record.
+array_push_all :: fn(ctx: ModuleCtx) -> i32 {
+    signature :: WasmFuncType { .params = [.EqRef, .EqRef], .results = [] }
+    return ctx.helpers["array.push_all"]
+        else ctx.define_helper("array.push_all", signature, [.I64, .I64], push_all_body(ctx))
+}
+
+// The locals past the parameters: the length of the source, the counter.
+push_all_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+    count :: 2
+    counter :: 3
+    body: WasmInstr[]: []
+    body.push_header_field(ctx.gc, 1, HEADER_LENGTH)
+    body.push(LocalSet { .index = count })
+    each: WasmInstr[]: [
+        LocalGet { .index = 0 },
+        LocalGet { .index = 1 },
+        LocalGet { .index = counter },
+        Call { .function_index = ctx.recorded_array_get() },
+        Call { .function_index = ctx.recorded_array_push() },
+    ]
+    body.push_counted_loop(counter, count, each)
+    return body
+}
+
+// `(array, count: i64) -> array`: the elements of the array `count` times, in a
+// fresh array of its type; none for a negative count.
+array_repeat :: fn(ctx: ModuleCtx) -> i32 {
+    signature :: WasmFuncType { .params = [.EqRef, .I64], .results = [.EqRef] }
+    return ctx.helpers["array.repeat"]
+        else ctx.define_helper(
+            "array.repeat",
+            signature,
+            [.EqRef, .I64, .I64, .EqRef],
+            repeat_body(ctx),
+        )
+}
+
+// The locals past the parameters: the result, the counter, its capacity, its
+// storage. An empty array repeats to an empty one however large the count; a
+// result past `STORAGE_GREATEST` elements stops the run.
+repeat_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+    gc :: ctx.gc
+    count :: 1
+    result :: 2
+    counter :: 3
+    capacity :: 4
+    storage :: 5
+    body: WasmInstr[]: []
+    body.push_clamp(count, I64Const { .value = 0 }, .I64LtS)
+    body.push_header_field(gc, 0, HEADER_LENGTH)
+    body.push_all(
+        [
+            Plain { .op = .I64Eqz },
+            Plain { .op = .If },
+            I64Const { .value = 0 },
+            LocalSet { .index = count },
+            Plain { .op = .End },
+            LocalGet { .index = count },
+            I64Const { .value = STORAGE_GREATEST },
+            Plain { .op = .I64GtS },
+        ],
+    )
+    body.push_trap_if()
+    body.push(LocalGet { .index = count })
+    body.push_header_field(gc, 0, HEADER_LENGTH)
+    body.push_all(
+        [
+            Plain { .op = .I64Mul },
+            LocalTee { .index = capacity },
+            I64Const { .value = STORAGE_GREATEST },
+            Plain { .op = .I64GtS },
+        ],
+    )
+    body.push_trap_if()
+    body.push_storage_like(ctx, capacity, storage)
+    header :: HeaderParts {
+        .type_id = header_field(gc, 0, HEADER_TYPE),
+        .element = header_field(gc, 0, HEADER_ELEMENT),
+        .length = [I64Const { .value = 0 }],
+        .capacity = [LocalGet { .index = capacity }],
+        .storage = [LocalGet { .index = storage }],
+    }
+    body.push_new_header(gc, header)
+    body.push(LocalSet { .index = result })
+    each: WasmInstr[]: [
+        LocalGet { .index = result },
+        LocalGet { .index = 0 },
+        Call { .function_index = ctx.array_push_all() },
+    ]
+    body.push_counted_loop(counter, count, each)
+    body.push(LocalGet { .index = result })
+    return body
+}
+
+// A storage of as many elements as the `i64` in the local `capacity`, stored as
+// the array in local 0 stores its own, kept in the local `into`.
+push_storage_like :: fn(body: WasmInstr[], ctx: ModuleCtx, capacity: i32, into: i32) -> void {
+    gc :: ctx.gc
+    body.push(Plain { .op = .Block })
+    for class in gc.array_classes {
+        body.push_header_field(gc, 0, HEADER_ELEMENT)
+        body.push_all([I32Const { .value = class_code(class) }, Plain { .op = .I32Eq }])
+        body.push(Plain { .op = .If })
+        body.push_all(new_storage_into(gc, storage_of(class), capacity, into))
+        body.push_all([Br { .depth = 1 }, Plain { .op = .End }])
+    }
+    body.push_all(new_storage_into(gc, .EqRef, capacity, into))
+    body.push(Plain { .op = .End })
+}
+
+new_storage_into :: fn(
+    gc: GcTypes,
+    storage: WasmStorageType,
+    capacity: i32,
+    into: i32,
+) -> WasmInstr[] = [
+    LocalGet { .index = capacity },
+    Plain { .op = .I32WrapI64 },
+    ArrayNewDefault { .type_index = storage_type(gc, storage) },
+    LocalSet { .index = into },
+]
+
+// `(source, source_start: i64, destination, destination_start: i64, count: i64)
+// -> ()`: `count` elements copied in place, the two ranges free to overlap; a
+// range past the end of its array stops the run.
+array_copy :: fn(ctx: ModuleCtx) -> i32 {
+    signature :: WasmFuncType {
+        .params = [.EqRef, .I64, .EqRef, .I64, .I64],
+        .results = [],
+    }
+    return ctx.helpers["array.copy"]
+        else ctx.define_helper("array.copy", signature, [.EqRef, .I64, .I32], copy_body(ctx))
+}
+
+// The locals past the parameters: the elements on their way, the counter, the
+// `element` of the source. Two arrays that store alike copy with one
+// `array.copy`, which allows the overlap; others go through boxes, all gathered
+// before any is written.
+copy_body :: fn(ctx: ModuleCtx) -> WasmInstr[] {
+    gc :: ctx.gc
+    source :: 0
+    source_start :: 1
+    destination :: 2
+    destination_start :: 3
+    count :: 4
+    window :: 5
+    counter :: 6
+    element :: 7
+    references :: storage_type(gc, .EqRef)
+    copy_as :: fn(storage: WasmStorageType) {
+        storage_index :: storage_type(gc, storage)
+        out: WasmInstr[]: []
+        out.push_storage(gc, destination, storage_index)
+        out.push_position(gc, destination, destination_start)
+        out.push_storage(gc, source, storage_index)
+        out.push_position(gc, source, source_start)
+        out.push_all(
+            [
+                LocalGet { .index = count },
+                Plain { .op = .I32WrapI64 },
+                ArrayCopy { .destination = storage_index, .source = storage_index },
+                Plain { .op = .Return },
+            ],
+        )
+        out
+    }
+    body: WasmInstr[]: []
+    for local in [count, source_start, destination_start] {
+        body.push_clamp(local, I64Const { .value = 0 }, .I64LtS)
+    }
+    body.push_range_check(gc, source, source_start, count)
+    body.push_range_check(gc, destination, destination_start, count)
+    body.push_header_field(gc, source, HEADER_ELEMENT)
+    body.push(LocalTee { .index = element })
+    body.push_header_field(gc, destination, HEADER_ELEMENT)
+    body.push_all([Plain { .op = .I32Eq }, Plain { .op = .If }])
+    for class in gc.array_classes {
+        body.push_if_element(element, class_code(class))
+        body.push_all(copy_as(storage_of(class)))
+        body.push(Plain { .op = .End })
+    }
+    body.push_all(copy_as(.EqRef))
+    body.push(Plain { .op = .End })
+    body.push_all(
+        [
+            LocalGet { .index = count },
+            Plain { .op = .I32WrapI64 },
+            ArrayNewDefault { .type_index = references },
+            LocalSet { .index = window },
+        ],
+    )
+    gather: WasmInstr[]: [
+        LocalGet { .index = window },
+        RefCast { .type_index = references },
+        LocalGet { .index = counter },
+        Plain { .op = .I32WrapI64 },
+        LocalGet { .index = source },
+        LocalGet { .index = source_start },
+        LocalGet { .index = counter },
+        Plain { .op = .I64Add },
+        Call { .function_index = ctx.recorded_array_get() },
+        ArraySet { .type_index = references },
+    ]
+    body.push_counted_loop(counter, count, gather)
+    scatter: WasmInstr[]: [
+        LocalGet { .index = destination },
+        LocalGet { .index = destination_start },
+        LocalGet { .index = counter },
+        Plain { .op = .I64Add },
+        LocalGet { .index = window },
+        RefCast { .type_index = references },
+        LocalGet { .index = counter },
+        Plain { .op = .I32WrapI64 },
+        ArrayGet { .type_index = references, .extension = .None },
+        Call { .function_index = ctx.recorded_array_set() },
+    ]
+    body.push_counted_loop(counter, count, scatter)
+    return body
+}
+
+// `if start + count > length { unreachable }`, the array in the local `array`.
+push_range_check :: fn(body: WasmInstr[], gc: GcTypes, array: i32, start: i32, count: i32) -> void {
+    body.push_all(
+        [LocalGet { .index = start }, LocalGet { .index = count }, Plain { .op = .I64Add }],
+    )
+    body.push_header_field(gc, array, HEADER_LENGTH)
+    body.push(Plain { .op = .I64GtS })
+    body.push_trap_if()
+}
+
+// The most elements one `array.new_fixed` makes: engines refuse more.
+NEW_FIXED_GREATEST: i64: 10_000
+
+// The most elements a storage holds: a position in it is an `i32`.
+STORAGE_GREATEST: i64: 0x7FFF_FFFF
+
+// `() -> array`: the pool entry a `data.const` reads, as an array of the site's
+// type. Each type has its header, built on its first read and kept in a global,
+// over the storage the entry builds once for every type that stores alike, as
+// the VM shares the elements.
+data_function :: fn(ctx: ModuleCtx, op: Bc.DataConst, function: string) -> i32 | WasmUnsupported {
+    key :: "data.${op.pool_index}.${op.type_id}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    entry :: ctx.module.data_pool[op.pool_index]
+    if entry !is Bc.BcPrimData {
+        return WasmUnsupported {
+            .reason = "`${function}`: no WASM form yet for a pool of strings or aggregates",
+        }
+    }
+    access :: array_access(ctx, op.type_id, function) else return access
+    storage :: ctx.data_storage(op.pool_index, entry, storage_of_access(access), function)
+        else return storage
+    elements: WasmInstr[]: [Call { .function_index = storage }]
+    header: WasmInstr[]: []
+    header.push_new_header(ctx.gc, full_header(op.type_id, access, entry.items.len(), elements))
+    return ctx.define_cached(key, header)
+}
+
+// `() -> storage`: the elements of the pool entry `entry`, stored as `storage`.
+data_storage :: fn(
+    ctx: ModuleCtx,
+    pool_index: i32,
+    entry: Bc.BcPrimData,
+    storage: WasmStorageType,
+    function: string,
+) -> i32 | WasmUnsupported {
+    key :: "data.${pool_index}.${storage_name(storage)}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    if entry.items.len() > NEW_FIXED_GREATEST {
+        return WasmUnsupported {
+            .reason = "`${function}`: a pool of over ${NEW_FIXED_GREATEST} elements",
+        }
+    }
+    elements: WasmInstr[]: []
+    for bits in entry.items {
+        constant :: data_constant(storage, bits)
+            else return WasmUnsupported {
+                .reason = "`${function}`: no WASM form yet for a pool of floats",
+            }
+        elements.push(constant)
+    }
+    elements.push(
+        ArrayNewFixed {
+            .type_index = storage_type(ctx.gc, storage),
+            .length = i32(entry.items.len()),
+        },
+    )
+    return ctx.define_cached(key, elements)
+}
+
+// `() -> eqref`: what `build` leaves, built on the first call and kept in a
+// global, which every later call returns.
+define_cached :: fn(ctx: ModuleCtx, key: string, build: WasmInstr[]) -> i32 {
+    global :: i32(ctx.globals.len())
+    ctx.globals.push(.EqRef)
+    body: WasmInstr[]: [
+        GlobalGet { .index = global },
+        Plain { .op = .RefIsNull },
+        Plain { .op = .If },
+    ]
+    body.push_all(build)
+    body.push_all(
+        [
+            GlobalSet { .index = global },
+            Plain { .op = .End },
+            GlobalGet { .index = global },
+        ],
+    )
+    signature :: WasmFuncType { .params = [], .results = [.EqRef] }
+    return ctx.define_helper(key, signature, [], body)
+}
+
+// The constant of an element of a pool, its bits at the element's width.
+data_constant :: fn(storage: WasmStorageType, bits: u64) -> WasmInstr | null = match storage {
+    .I8 | .I16 | .I32    -> I32Const { .value = i32(u32(bits & 0xFFFF_FFFF)) }
+    .I64                 -> I64Const { .value = i64(bits) }
+    .F32 | .F64 | .EqRef -> null
 }
 
 // `(value: eqref, type_id: i32) -> i32`: whether the value is an array made as
@@ -652,33 +1145,52 @@ is_body :: fn(header: i32) -> WasmInstr[] = [
     I32Const { .value = 0 },
 ]
 
+// ---- building blocks ------------------------------------------------------
+
 // `if index >= length { unreachable }`, the array in local 0, the index in 1.
 push_bounds_check :: fn(body: WasmInstr[], gc: GcTypes) -> void {
     body.push(LocalGet { .index = 1 })
-    body.push_header_field(gc, HEADER_LENGTH)
-    body.push_all(
-        [
-            Plain { .op = .I64GeU },
-            Plain { .op = .If },
-            Plain { .op = .Unreachable },
-            Plain { .op = .End },
-        ],
-    )
+    body.push_header_field(gc, 0, HEADER_LENGTH)
+    body.push(Plain { .op = .I64GeU })
+    body.push_trap_if()
 }
 
-// The field `field` of the header of the array in local 0.
-push_header_field :: fn(body: WasmInstr[], gc: GcTypes, field: i32) -> void = body.push_all(
-    [
-        LocalGet { .index = 0 },
-        header_of(gc),
-        StructGet { .type_index = gc.array_header, .field_index = field },
-    ],
-)
+// The field `field` of the header of the array in the local `array`.
+header_field :: fn(gc: GcTypes, array: i32, field: i32) -> WasmInstr[] = [
+    LocalGet { .index = array },
+    header_of(gc),
+    StructGet { .type_index = gc.array_header, .field_index = field },
+]
 
-// The storage of the array in local 0, cast to its array type.
-push_storage :: fn(body: WasmInstr[], gc: GcTypes, storage_index: i32) -> void {
-    body.push_header_field(gc, HEADER_STORAGE)
+push_header_field :: fn(body: WasmInstr[], gc: GcTypes, array: i32, field: i32) -> void =
+    body.push_all(header_field(gc, array, field))
+
+// Set the field `field` of the header of the array in the local `array` to what
+// `value` leaves.
+push_set_field :: fn(
+    body: WasmInstr[],
+    gc: GcTypes,
+    array: i32,
+    field: i32,
+    value: WasmInstr[],
+) -> void {
+    body.push_all([LocalGet { .index = array }, header_of(gc)])
+    body.push_all(value)
+    body.push(StructSet { .type_index = gc.array_header, .field_index = field })
+}
+
+// The storage of the array in the local `array`, cast to its array type.
+push_storage :: fn(body: WasmInstr[], gc: GcTypes, array: i32, storage_index: i32) -> void {
+    body.push_header_field(gc, array, HEADER_STORAGE)
     body.push(RefCast { .type_index = storage_index })
+}
+
+// The position in its storage of the element of the array in the local `array`
+// at the `i64` index in the local `index`.
+push_position :: fn(body: WasmInstr[], gc: GcTypes, array: i32, index: i32) -> void {
+    body.push_all([LocalGet { .index = index }, Plain { .op = .I32WrapI64 }])
+    body.push_header_field(gc, array, HEADER_OFFSET)
+    body.push(Plain { .op = .I32Add })
 }
 
 // `if element == code {`, the element in the local `element`.
@@ -691,13 +1203,57 @@ push_if_element :: fn(body: WasmInstr[], element: i32, code: i32) -> void = body
     ],
 )
 
+// The `i64` in the local `value` set to the `i64` `bound` leaves when `past`
+// holds between them: `.I64LtS` raises the value to the bound, `.I64GtS`
+// lowers it.
+push_clamp :: fn(body: WasmInstr[], value: i32, bound: WasmInstr, past: WasmOp) -> void =
+    body.push_all(
+        [
+            LocalGet { .index = value },
+            bound,
+            Plain { .op = past },
+            Plain { .op = .If },
+            bound,
+            LocalSet { .index = value },
+            Plain { .op = .End },
+        ],
+    )
+
+// `for counter in 0..<limit { each }`, both `i64` locals; `each` leaves nothing
+// and branches nowhere.
+push_counted_loop :: fn(body: WasmInstr[], counter: i32, limit: i32, each: WasmInstr[]) -> void {
+    body.push_all(
+        [
+            I64Const { .value = 0 },
+            LocalSet { .index = counter },
+            Plain { .op = .Block },
+            Plain { .op = .Loop },
+            LocalGet { .index = counter },
+            LocalGet { .index = limit },
+            Plain { .op = .I64GeS },
+            BrIf { .depth = 1 },
+        ],
+    )
+    body.push_all(each)
+    body.push_all(
+        [
+            LocalGet { .index = counter },
+            I64Const { .value = 1 },
+            Plain { .op = .I64Add },
+            LocalSet { .index = counter },
+            Br { .depth = 0 },
+            Plain { .op = .End },
+            Plain { .op = .End },
+        ],
+    )
+}
+
 // ---- tests ----------------------------------------------------------------
 
-import "std/iter"
 import "std/testing"
 
-// A program whose `main` runs `body`, over `types`: `i32`, `u8`, `u8[]`, then
-// the struct `A { x: i32 }` and `A[]`.
+// A program whose `main` runs `body`, over `types`: `i32`, `u8`, `u8[]`, the
+// struct `A { x: i32 }`, `A[]`, then a second `u8[]`.
 program_over_arrays :: fn(body: Bc.Op[]) -> Bc.BytecodeModule {
     program :: straight(body)
     a :: Bc.BcStruct {
@@ -712,6 +1268,7 @@ program_over_arrays :: fn(body: Bc.Op[]) -> Bc.BytecodeModule {
         Bc.BcArray { .element = 1 },
         a,
         Bc.BcArray { .element = 3 },
+        Bc.BcArray { .element = 1 },
     ]
     return program
 }
@@ -761,4 +1318,55 @@ test_an_i32_index_widens_before_an_access :: fn() -> void {
     }
     widened :: main[call - 1]
     assert(widened is Plain && widened.op == .I64ExtendI32S, "the index becomes an `i64`")
+}
+
+@test
+test_a_pool_array_is_built_once :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.DataConst { .pool_index = 0, .type_id = 2 },
+        Bc.Drop {},
+        Bc.DataConst { .pool_index = 0, .type_id = 2 },
+        Bc.Drop {},
+        Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } },
+    ]
+    program :: program_over_arrays(body)
+    program.data_pool = [Bc.BcPrimData { .kind = .U8, .items = [1, 2] }]
+    wasm :: wasm_module_of(program, "") else panic(wasm.reason)
+    calls :: wasm.functions[0].body.filter_is<Call>().collect()
+    assert(wasm.globals.len() == 2, "a global keeps the storage, another the header")
+    assert(calls.len() == 2 && calls[0].function_index == calls[1].function_index, "one builder")
+}
+
+@test
+test_a_pool_read_at_two_types_shares_its_storage :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.DataConst { .pool_index = 0, .type_id = 2 },
+        Bc.Drop {},
+        Bc.DataConst { .pool_index = 0, .type_id = 5 },
+        Bc.Drop {},
+        Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } },
+    ]
+    program :: program_over_arrays(body)
+    program.data_pool = [Bc.BcPrimData { .kind = .U8, .items = [1, 2] }]
+    wasm :: wasm_module_of(program, "") else panic(wasm.reason)
+    assert_eq(wasm.globals.len(), 3)
+}
+
+@test
+test_a_copy_widens_each_i32_integer :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.I32Const { .value = 7 },
+        Bc.ArrayNew { .type_id = 2, .length = 1 },
+        Bc.I32Const { .value = 0 },
+        Bc.I32Const { .value = 7 },
+        Bc.ArrayNew { .type_id = 2, .length = 1 },
+        Bc.I32Const { .value = 0 },
+        Bc.I32Const { .value = 1 },
+        Bc.ArrayCopy {},
+        Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } },
+    ]
+    wasm :: wasm_module_of(program_over_arrays(body), "") else panic(wasm.reason)
+    plain :: wasm.functions[0].body.filter_is<Plain>().collect()
+    widened :: plain.filter((p) -> p.op == .I64ExtendI32S).count()
+    assert_eq(widened, 3)
 }

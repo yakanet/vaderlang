@@ -116,6 +116,7 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
     }
     core :: WasmModule {
         .gc_types = ctx.gc.types,
+        .globals = ctx.globals,
         .types = ctx.types.types,
         .imports = ctx.imports.functions,
         .functions = functions,
@@ -154,6 +155,8 @@ ModuleCtx :: struct {
     helpers: Map<string, i32> = Map<string, i32> {}
     // The helpers, in the order of their indices.
     helper_functions: WasmFunction[] = []
+    // The type of each global, in the order of their indices.
+    globals: WasmValType[] = []
 }
 
 // `run`, the core export the component lifts: it calls the entry, at `entry`,
@@ -210,12 +213,25 @@ Scratch :: struct {
 }
 
 // The scratch local of type `t`, added the first time it is asked for.
-local_of :: fn(scratch: Scratch, t: WasmValType) -> i32 {
-    position :: scratch.locals.index_of(t) else {
-        scratch.locals.push(t)
-        return scratch.first + i32(scratch.locals.len() - 1)
+local_of :: fn(scratch: Scratch, t: WasmValType) -> i32 = scratch.spill_local(t, 0)
+
+// The scratch local of type `t` past `before` others of that type: values kept
+// aside together each take their own.
+spill_local :: fn(scratch: Scratch, t: WasmValType, before: i64) -> i32 {
+    seen: i64 = 0
+    for i in 0..<scratch.locals.len() {
+        if scratch.locals[i] == t {
+            if seen == before {
+                return scratch.first + i32(i)
+            }
+            seen += 1
+        }
     }
-    return scratch.first + i32(position)
+    for seen <= before {
+        scratch.locals.push(t)
+        seen += 1
+    }
+    return scratch.first + i32(scratch.locals.len() - 1)
 }
 
 canonical_func_type_key :: fn(t: WasmFuncType) -> string {
@@ -414,7 +430,8 @@ push_op :: fn(
         is Bc.Retag -> { return push_retag(ctx, out, op, function) }
         is Bc.TypeCheck -> { return push_type_check(ctx, scratch, out, op, function) }
         is Bc.ArrayNew | Bc.ArrayReserve | Bc.ArrayLen | Bc.ArrayClear | Bc.ArrayGet | Bc.ArraySet
-            | Bc.ArrayPush | Bc.ArrayRemoveLast | Bc.LoadSlotI32 | Bc.LoadSlotI64 | Bc.LoadSlotF64
+            | Bc.ArrayPush | Bc.ArrayRemoveLast | Bc.ArraySlice | Bc.ArrayRepeat | Bc.ArrayPushAll
+            | Bc.ArrayCopy | Bc.DataConst | Bc.LoadSlotI32 | Bc.LoadSlotI64 | Bc.LoadSlotF64
             | Bc.StoreSlotI32 | Bc.StoreSlotI64 | Bc.StoreSlotF64 -> {
             return push_array_op(ctx, scratch, stack, out, op, function)
         }

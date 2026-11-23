@@ -429,6 +429,15 @@ functions lowered by the canonical ABI, the module instantiated with them, and i
 `run` lifted and exported as `wasi:cli/run`. The other imports have no WASM form
 yet. The decisions are ADR 0175 and 0176.
 
+The emitter follows the WASM type of every value on the operand stack while it
+translates a body (`stack.vader`), from the stack effect each op has
+(`vader/core/bytecode/stack_effect.vader`). Every reference is held as
+`(ref null eq)` and cast before a struct access (`structs.vader`); a scalar where
+any type may be is boxed, one box type per class. An array is one header over a
+storage per way of storing its elements, a slice a header over the same storage
+(`arrays.vader`, ADR 0177). Checked ops and array accesses are functions the
+emitter writes once and calls (`checked.vader`, `arrays.vader`).
+
 ## Self-hosting and bootstrap
 
 The compiler is written in Vader and compiles itself, every stage of the native

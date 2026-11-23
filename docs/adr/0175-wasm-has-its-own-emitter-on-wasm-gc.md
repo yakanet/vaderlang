@@ -4,6 +4,9 @@
 
 Accepted (2026-11-22). Amends 0009 for the `wasi-wasm32` and `browser-wasm32`
 targets: they do not go through C. How a WASM program reaches its host is 0176.
+**Amended by [0177](0177-a-wasm-array-is-one-header-over-a-storage.md)
+(2026-11-23)**: `is` on an array type reads a field of its header, and the slot
+loads and stores are translated.
 
 ## Context
 
