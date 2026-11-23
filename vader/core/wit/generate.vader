@@ -10,11 +10,12 @@
 // WIT type has one Vader type wherever it is used.
 //
 // Each function is an `@extern` of the interface, a method taking its resource
-// first. A stream it takes is a `WasmStream<T>` and a future it returns a
-// `WasmFuture<T>`, the forms the WASM build derives the WIT type from. A function
-// with no Vader form yet is left out, a comment naming it and why. Where the two
-// sides of a returned `result` or `option` would share a run-time tag, the ok side
-// is wrapped in a struct named after the function, `<Function>Ok { value }`.
+// first; a WASM build takes its WIT type from the interface. A stream it takes is
+// a `T[]`, written whole by the call, and a future it returns a `WasmFuture<T>`.
+// A function with no Vader form yet is left out, a comment naming it and why.
+// Where the two sides of a returned `result` or `option` would share a run-time
+// tag, the ok side is wrapped in a struct named after the function,
+// `<Function>Ok { value }`.
 
 module "vader/core/wit"
 
@@ -329,8 +330,8 @@ parameters_text :: fn(g: Generation, f: WitNamedFunction) -> string[] | NoForm {
     return params
 }
 
-// A stream a call writes whole is a `WasmStream<T>`; an `async func` would block
-// before it reads one, and a future has no form as a parameter.
+// A stream a call writes whole is a `T[]`; an `async func` would block before it
+// reads one, and a future has no form as a parameter.
 parameter_text :: fn(g: Generation, f: WitNamedFunction, t: WitType) -> string | NoForm {
     if t is WitFuture {
         return no_form(t, "a future as a parameter")
@@ -340,7 +341,7 @@ parameter_text :: fn(g: Generation, f: WitNamedFunction, t: WitType) -> string |
             return no_form(t, "a stream as a parameter of an `async func`")
         }
         element :: g.type_text(t.element) else return element
-        return "WasmStream<${element}>"
+        return "${grouped(element)}[]"
     }
     return g.type_text(t)
 }
@@ -764,7 +765,7 @@ test_wit_generate_a_stream_parameter_and_a_future_result :: fn() -> void {
             write: func(data: stream<u8>) -> future<u32>;
         }
         """).split("\n").filter((l) -> l.starts_with("export")).collect().join("\n"),
-        "export write :: fn(data: WasmStream<u8>) -> WasmFuture<u32>",
+        "export write :: fn(data: u8[]) -> WasmFuture<u32>",
     )
 }
 

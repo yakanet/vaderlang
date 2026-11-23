@@ -21,6 +21,7 @@ import "vader/support/integer"
 import "vader/lower/ir"
 import "vader/core/symbol"
 import "vader/core/types"
+import "vader/core/wit"
 import "std/abort"
 
 /// Project-level interning context: accumulates strings into a single
@@ -278,7 +279,7 @@ make_extern_decl :: fn(d: LoweredFnDecl, lp: LoweredProject) -> CFGExternDecl {
         })
     }
     interface :: of_declaration(d, lp.interfaces)
-    wit :: if interface != null { wit_function_of(params, d.return_type) } else { null }
+    wit :: if interface != null { interface_function_of(d, lp, params) } else { null }
     return CFGExternDecl {
         .mangled     = d.mangled,
         .params      = params,
@@ -296,6 +297,19 @@ make_extern_decl :: fn(d: LoweredFnDecl, lp: LoweredProject) -> CFGExternDecl {
 }
 
 
+
+// The WIT type of `d`, which names a `WasmInterface`: the function of the
+// interface for a declaration of a WIT interface's module. A declaration written
+// by hand (`system/wasi`) has none, its type derived from its signature.
+interface_function_of :: fn(
+    d: LoweredFnDecl,
+    lp: LoweredProject,
+    params: CFGParam[],
+) -> WitFunction {
+    declared :: of_declaration(d, lp.wit_functions)
+        else return wit_function_of(params, d.return_type)
+    return without_aliases(declared)
+}
 
 // The entry of `by_declaration` for the declaration `d`, keyed by its node id:
 // where the function comes from, a `CLibrary` or a `WasmInterface`. Null for

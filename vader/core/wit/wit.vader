@@ -311,6 +311,49 @@ write_wit :: fn(sb: StringBuilder, t: WitType) -> void {
     }
 }
 
+/// `f` with every alias replaced by the type it names: the canonical ABI crosses
+/// the type, not its name.
+///
+/// @param f  a function as its interface declares it.
+export without_aliases :: fn(f: WitFunction) -> WitFunction = WitFunction {
+    .params = alias_free_params(f.params),
+    .result = optional_alias_free(f.result),
+}
+
+// A transform of every node below `t`: the list is the net, a type constructor
+// added to `WitType` fails here until it is walked.
+alias_free :: fn(t: WitType) -> WitType = match t {
+    is WitAlias -> alias_free(t.target)
+    is WitList -> WitList { .element = alias_free(t.element) }
+    is WitOption -> WitOption { .value = alias_free(t.value) }
+    is WitTuple -> WitTuple { .elements = t.elements.map(alias_free).collect() }
+    is WitResult -> WitResult {
+        .ok = optional_alias_free(t.ok),
+        .error = optional_alias_free(t.error),
+    }
+    is WitStream -> WitStream { .element = alias_free(t.element) }
+    is WitFuture -> WitFuture { .value = optional_alias_free(t.value) }
+    is WitHandle -> WitHandle { ...t, .resource = alias_free(t.resource) }
+    is WitRecord -> WitRecord { ...t, .fields = alias_free_params(t.fields) }
+    is WitVariant -> WitVariant {
+        ...t,
+        .cases = t.cases.map(case_alias_free).collect(),
+    }
+    is WitScalar | WitEnum | WitFlags | WitResource | WitUnsupported -> t
+}
+
+case_alias_free :: fn(c: WitCase) -> WitCase = WitCase { ...c, .type = optional_alias_free(c.type) }
+
+alias_free_params :: fn(params: WitParam[]) -> WitParam[] =
+    params.map((p) -> WitParam { ...p, .type = alias_free(p.type) }).collect()
+
+optional_alias_free :: fn(t: WitType | null) -> WitType | null {
+    if t == null {
+        return null
+    }
+    return alias_free(t)
+}
+
 /// The name of the interface `owner`, as a `use` writes it: `wasi:clocks/types@0.3.0`.
 ///
 /// @param owner  the interface.
@@ -555,4 +598,26 @@ test_wit_function_of_no_result_reads_back :: fn() -> void {
     read :: parse_wit_function("[when:u64,tag:?]") else panic("the text reads back")
     assert(read.result == null, "no result")
     assert(read.params[1].type is WitUnsupported, "`?` has no WIT form")
+}
+
+@test
+test_wit_without_aliases_reaches_inside_a_record :: fn() -> void {
+    owner :: WitOwner {
+        .package = WitPackageName { .namespace = "a", .name = "b" },
+        .interface = "i",
+    }
+    instant :: WitAlias { .name = "instant", .owner = owner, .target = .U64 }
+    times :: WitRecord {
+        .name = "times",
+        .owner = owner,
+        .fields = [WitParam { .name = "access", .type = WitOption { .value = instant } }],
+    }
+    f :: WitFunction {
+        .params = [WitParam { .name = "at", .type = instant }],
+        .result = WitResult { .ok = times, .error = instant },
+    }
+    assert_eq(
+        wit_function_text(without_aliases(f)),
+        "[at:u64]->result<record:a:b/i.times{access:option<u64>},u64>",
+    )
 }

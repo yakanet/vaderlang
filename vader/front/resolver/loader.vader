@@ -30,6 +30,7 @@ import "toolchain/ast"
 import "toolchain/parser"
 import "toolchain/project"
 import "vader/core/symbol"
+import "vader/core/wit"
 import "vader/support/target"
 import "toolchain/span"
 import "toolchain/stage"
@@ -71,6 +72,8 @@ export LoadedProject :: struct {
     body_stages:  BodyStage[] = []
     /// The bodies they gave, as they were parsed once the comptime had run.
     given_bodies: GeneratedSource[] = []
+    /// The WIT interfaces the imports read, by qualified name (`read_interfaces`).
+    wit_interfaces: Map<string, WitInterface> = Map<string, WitInterface> {}
 }
 
 /// Empty placeholder: used by test fixtures that construct downstream
@@ -280,6 +283,7 @@ export load_project_with_overlay :: fn(
                 .diags = loader_diags,
                 .late_fns = ctx.late_fns,
                 .body_stages = ctx.body_stages,
+                .wit_interfaces = read_interfaces(ctx.module_server),
             }
         }
     }

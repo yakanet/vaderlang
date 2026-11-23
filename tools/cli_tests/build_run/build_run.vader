@@ -200,6 +200,28 @@ test_an_executable_for_wasm_is_a_component_that_needs_no_c_compiler :: fn() -> v
     )
 }
 
+// A function of an imported WIT interface takes its type from the interface: a
+// `list<string>` the Vader signature alone would not say.
+@test
+test_a_wasm_build_calls_a_function_of_an_imported_interface :: fn() -> void {
+    dir :: staged(
+        "wasm_interface",
+        """
+        module "main"
+
+        Env :: import "wasi:cli/environment@0.3.0"
+
+        main :: fn() -> i32 {
+            return i32(Env.get_arguments().len())
+        }
+        """,
+    )
+    no_cc: [string, string | null][]: [["CC", ""]]
+    argv :: ["build", "--target=wasi-wasm32", "--out=${dir}/main.wasm", "main.vader"]
+    built :: vader_in(dir, argv, no_cc)
+    assert(built.exit == 0, built.stderr)
+}
+
 @test
 test_run_refuses_a_build_that_makes_no_program_for_this_host :: fn() -> void {
     dir :: staged("nothing_to_run", program("app", 0))

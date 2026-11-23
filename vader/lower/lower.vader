@@ -28,6 +28,7 @@ import "vader/front/resolver"
 import "vader/front/typecheck"
 import "vader/front/comptime"
 import "vader/core/symbol"
+import "vader/core/wit"
 
 /// Lower every module's top-level decls into a `LoweredProject`.
 /// @param loaded     the loaded project (for source decls per module).
@@ -129,6 +130,7 @@ begin_lowering_of :: fn(
     project.entry = loaded.entry
     project.libraries = evaluated.libraries
     project.interfaces = evaluated.interfaces
+    project.wit_functions = wit_functions_of(loaded, typed, evaluated.interfaces)
     for [_, program] in typed.modules {
         for symbol_id in program.identity_compared {
             project.identity_compared.add(symbol_id)
@@ -459,6 +461,34 @@ module_decls :: fn(module_loaded: LoadedModule) -> Decl[] {
     if files.len() == 0 { return [] }
     // Shared concat with the single-file zero-copy fast path.
     return concat_file_decls(files)
+}
+
+// The WIT type of each `@extern` the module of a WIT interface declares: the
+// function of the interface it names. A declaration elsewhere naming a
+// `WasmInterface` has none, its type derived from its signature.
+wit_functions_of :: fn(
+    loaded: LoadedProject,
+    typed: TypedProject,
+    interfaces: Map<i64, WasmInterface>,
+) -> Map<i64, WitFunction> {
+    out :: Map<i64, WitFunction> {}
+    for [_, program] in typed.modules {
+        // A module can name itself like an interface: only the one the WIT stage
+        // wrote takes the interface's types.
+        if !is_wit_module_file(program.resolved.path) {
+            continue
+        }
+        interface :: loaded.wit_interfaces[program.resolved.display_path] else continue
+        for [_, decl] in program.fn_decls {
+            if !(decl.id in interfaces) {
+                continue
+            }
+            symbol :: extern_symbol_of(decl)
+            found :: interface.functions.find((f) -> f.name == symbol) else continue
+            out[decl.id] = found.type
+        }
+    }
+    return out
 }
 
 // ---- tests ----------------------------------------------------------------

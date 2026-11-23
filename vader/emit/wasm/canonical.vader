@@ -287,14 +287,12 @@ lower_stream :: fn(a: Adapter, t: WitStream, index: i32) -> Lowered | WasmUnsupp
     if !is_byte_stream(t) {
         return no_lowering(t, a.function)
     }
-    stream :: a.ctx.gc.of_struct[a.imp.signature.param_types[index]]
-        else return WasmUnsupported { .reason = "`${a.function}`: a stream is no struct" }
+    items :: a.stream_items(index) else return items
     pair :: a.frame.local(.I64)
     writable :: a.frame.local(.I32)
     // `stream.new` returns the readable end in the low half, the writable end in
     // the high half.
     writable_end :: unary(.I32WrapI64, binary(.I64ShrU, local_get(pair), i64_const(32)))
-    items :: struct_get(stream, 0, local_get(index))
     return Lowered {
         .before = [
             local_set(pair, call(a.ctx.builtin(.StreamNew, t), [])),
@@ -306,6 +304,20 @@ lower_stream :: fn(a: Adapter, t: WitStream, index: i32) -> Lowered | WasmUnsupp
             call(a.ctx.builtin(.StreamDropWritable, t), [local_get(writable)]),
         ],
     }
+}
+
+// The array of the items the stream parameter `index` writes: the parameter
+// itself, or the `items` of the `WasmStream` that `system/wasi` passes.
+stream_items :: fn(a: Adapter, index: i32) -> WasmExpression | WasmUnsupported {
+    type_id :: a.imp.signature.param_types[index]
+    if a.ctx.module.types[type_id] is Bc.BcArray {
+        return local_get(index)
+    }
+    stream :: a.ctx.gc.of_struct[type_id]
+        else return WasmUnsupported {
+            .reason = "`${a.function}`: a stream is neither an array nor a `WasmStream`",
+        }
+    return struct_get(stream, 0, local_get(index))
 }
 
 no_lowering :: fn(t: WitType, function: string) -> WasmUnsupported =

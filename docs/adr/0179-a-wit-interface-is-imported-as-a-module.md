@@ -3,7 +3,9 @@
 ## Status
 
 Accepted (2026-11-23). Amends 0178 on where the WIT type of an import comes from,
-and on `WasmStream` / `WasmFuture`. Adds a point to the stages of 0156.
+and on `WasmStream` / `WasmFuture`. Adds a point to the stages of 0156. Amended the
+same day, before it landed: the WIT type of a function is the interface's, which the
+build keeps, and no text on the declaration carries it.
 
 ## Context
 
@@ -85,14 +87,26 @@ written by hand for C.
 
 ### What the module holds
 
-- **One declaration per function**: an `@extern` carrying the function's WIT type
-  (`wit = "..."`, the qualified text of `vader/core/wit`), its parameters and result
-  in the Vader types below. No wrapper: the emitter converts from the declared type.
-- **The front end checks the signature against the text and records the
-  correspondence**: for each WIT node of each import, the bytecode type that holds it
-  (a record's struct, a case's struct, the side of a result). The bytecode carries
-  that table with the import, and the pruning of types keeps what it names. The
-  derivation of 0178 is retired.
+- **One declaration per function**: an `@extern` naming the interface and the
+  function, `@extern(WIT_INTERFACE, "[method]descriptor.stat")`, its parameters and
+  result in the Vader types below. No wrapper: the emitter converts from the declared
+  type. The module stays Vader as a person would write it, which the language server
+  shows and `build/expanded/` holds.
+- **The WIT type of an import is the interface's**: the module stage keeps the
+  interfaces it read, the build hands them to the backend, and an `@extern` of a
+  generated module takes the type of the function it names. Nothing checks the
+  signature against the WIT: the compiler writes both from the same `.wit`, and the
+  generator's tests pin what it writes.
+- **The correspondence is known by construction**: the generator and the emitter
+  name the Vader type of a WIT type, and tell whether an `ok` side is wrapped, with the
+  same functions of `vader/core/wit`. The bytecode carries, per interface, the
+  bytecode type of each named type its module declares; the emitter walks the WIT
+  type and the bytecode type together, as it does for a list or a result, and takes a
+  named type from that table. The same table gives the instance types their named
+  types.
+- **Binding a component goes through its WIT, and only through it.** The derivation
+  of 0178 is retired with `system/wasi`, the last declarations written by hand; an
+  `@extern` of a `WasmInterface` outside a generated module is then an error.
 - **How a WIT type is held in Vader:**
 
   | WIT | Vader |
@@ -207,6 +221,12 @@ written by hand for C.
 - A project or a library binds a component of its own with nothing but its WIT.
 
 ## Set aside
+
+- **A WIT text on each `@extern`, checked by the front end against the signature,
+  with a table per WIT node in the bytecode** (this ADR as first accepted): the
+  compiler writes the text and the signature from the same `.wit`, so the check
+  compares the generator with itself, the qualified text runs past 300 columns on a
+  method of `descriptor`, and the table per node repeats what the names already say.
 
 - **Deriving the WIT type from the Vader signature (0178) with marker types**
   (`WasmFlags`, `WasmBorrow<T>`, an `async` field): each ambiguity resolved by a type

@@ -12,6 +12,7 @@ import "std/collections"
 import "vader/core/mono"
 import "vader/core/symbol"
 import "vader/core/types"
+import "vader/core/wit"
 import "toolchain/span"
 
 // ---- Project / module / decl shells ---------------------------------------
@@ -169,6 +170,9 @@ export LoweredProject :: struct {
     /// The interface each `@extern` naming a `WasmInterface` is imported from
     /// (`EvaluatedProject.interfaces`).
     interfaces:     Map<i64, WasmInterface> = Map<i64, WasmInterface> {}
+    /// The WIT type of each `@extern` of the module of a WIT interface, the
+    /// function its interface declares, keyed by the declaration's node id.
+    wit_functions:  Map<i64, WitFunction> = Map<i64, WitFunction> {}
     /// Const symbol id -> accessor fn, populated by `inline_consts` for
     /// bulky array consts (`fn-wrap` bucket). `build_ident` emits a 0-arg
     /// `call` to the accessor. The accessor carries a fresh synthetic id, so the

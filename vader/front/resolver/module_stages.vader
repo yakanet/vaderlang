@@ -16,6 +16,7 @@ import "std/iter"
 import "std/string"
 import "toolchain/diagnostics"
 import "toolchain/stage"
+import "vader/core/wit"
 
 /// The module stages of a load, and the folders they look in.
 export ModuleServer :: struct {
@@ -38,6 +39,23 @@ export module_server_for :: fn(bases: IncludePath[]) -> ModuleServer {
         }
     }
     return ModuleServer { .stages = [WitStage {}], .roots = roots }
+}
+
+/// The WIT interfaces the load read, by their qualified name
+/// (`wasi:cli/stdout@0.3.0`): a WASM build takes the type of an imported function
+/// from its interface.
+///
+/// @param server  the module server of the load.
+export read_interfaces :: fn(server: ModuleServer) -> Map<string, WitInterface> {
+    out :: Map<string, WitInterface> {}
+    for stage in server.stages.filter_is<WitStage>() {
+        for [_, package] in stage.packages {
+            for i in package.interfaces {
+                out[wit_owner_text(i.owner)] = i
+            }
+        }
+    }
+    return out
 }
 
 // The toolchain's folder of the runtimes, found once: the file that proves it is
