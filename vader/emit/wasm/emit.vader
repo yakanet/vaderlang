@@ -423,6 +423,20 @@ body_of :: fn(ctx: ModuleCtx, scratch: Scratch, f: Bc.BcFunction) -> WasmInstr[]
             is Bc.RefCast                 -> {
                 pinned :: push_pin(ctx, out, op, stack.types.last(), f.name) else return pinned
             }
+            is Bc.LocalSet | Bc.LocalTee  -> {
+                class :: Bc.slot_val_type(f, op.slot)
+                consumed :: out.push_consumed_as(ctx, stack.types.last(), class, f.name)
+                    else return consumed
+                out.push(local_store(op))
+            }
+            is Bc.Return                  -> {
+                if Bc.bc_result_arity(f.signature) == 1 {
+                    class :: f.signature.results[0]
+                    consumed :: out.push_consumed_as(ctx, stack.types.last(), class, f.name)
+                        else return consumed
+                }
+                out.push_plain(.Return)
+            }
             _                             -> {
                 pushed :: push_op(ctx, scratch, stack, out, op, f.name) else return pushed
             }
@@ -433,6 +447,28 @@ body_of :: fn(ctx: ModuleCtx, scratch: Scratch, f: Bc.BcFunction) -> WasmInstr[]
         out.push_plain(.Unreachable)
     }
     return out
+}
+
+// The value on top, held as `top`, brought to the form of `class` where a store
+// or a return consumes it: the bytecode stores and returns the `any` a generic
+// call leaves where a scalar goes, which the VM does not tell apart.
+push_consumed_as :: fn(
+    out: WasmInstr[],
+    ctx: ModuleCtx,
+    top: WasmValType | null,
+    class: Bc.ValType,
+    function: string,
+) -> void | WasmUnsupported {
+    held :: scalar_field_type(class)
+    if top == WasmValType.EqRef && held != .EqRef {
+        return out.push_adapted(ctx, .EqRef, class, held, function)
+    }
+}
+
+local_store :: fn(op: Bc.LocalSet | Bc.LocalTee) -> WasmInstr = if op is Bc.LocalSet {
+    LocalSet { .index = op.slot }
+} else {
+    LocalTee { .index = op.slot }
 }
 
 scope_opener :: fn(op: Bc.Block | Bc.Loop | Bc.If) -> WasmOp = match op {
@@ -510,8 +546,6 @@ push_op :: fn(
             out.push_plain(.Return)
         }
         is Bc.LocalGet -> { out.push(LocalGet { .index = op.slot }) }
-        is Bc.LocalSet -> { out.push(LocalSet { .index = op.slot }) }
-        is Bc.LocalTee -> { out.push(LocalTee { .index = op.slot }) }
         is Bc.GlobalGet -> { out.push(GlobalGet { .index = op.index }) }
         is Bc.GlobalSet -> { out.push(GlobalSet { .index = op.index }) }
         is Bc.Call -> {
@@ -993,6 +1027,33 @@ test_a_scalar_passed_to_an_any_parameter_is_boxed :: fn() -> void {
     i32_box :: gc_types_of(program).of_box[.I32] else -1
     boxed :: wasm.functions[2].body.filter_is<StructNew>().collect()
     assert(boxed.len() == 1 && boxed[0].type_index == i32_box, "the helper boxes the `i32`")
+}
+
+// The `any` a generic call returns, stored to an `i32` local, is unboxed first.
+@test
+test_an_any_stored_to_a_scalar_local_is_unboxed :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.Call { .function_index = 1 },
+        Bc.LocalSet { .slot = 0 },
+        Bc.LocalGet { .slot = 0 },
+        Bc.Return {},
+    ]
+    program :: straight(body)
+    program.functions[0].locals = [Bc.BcLocal { .name = "x", .val = .I32 }]
+    anything :: Bc.BcFunction {
+        ...program.functions[0],
+        .name = "anything",
+        .is_main = false,
+        .signature = Bc.BcSignature { ...program.functions[0].signature, .results = [.Any] },
+        .locals = [],
+        .body = [Bc.NullConst {}, Bc.Return {}],
+        .jump_table = [-1, -1],
+    }
+    program.functions.push(anything)
+    wasm :: wasm_module_of(program, "") else panic(wasm.reason)
+    store :: wasm.functions[0].body
+    assert(store[1] is RefCast && store[2] is StructGet, "the box is read before the store")
+    assert(store[3] is LocalSet, "then the local takes the `i32`")
 }
 
 // Two values of one type are one reference, made once.
