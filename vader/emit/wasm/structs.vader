@@ -130,6 +130,31 @@ unboxed :: fn(box: i32) -> WasmInstr[] = [
     StructGet { .type_index = box, .field_index = 0 },
 ]
 
+// Bring a value of the scalar class `class`, held as `from` on the stack, to
+// being held as `to`: out of its box, into it, or as it is when both hold it
+// alike. False when the two meet at no box.
+push_held_as :: fn(
+    out: WasmInstr[],
+    gc: GcTypes,
+    from: WasmValType,
+    to: WasmValType,
+    class: Bc.ValType,
+) -> bool {
+    if from == to {
+        return true
+    }
+    box :: box_of(gc, Bc.BcScalar { .val = class }) else return false
+    if from == .EqRef {
+        out.push_all(unboxed(box))
+        return true
+    }
+    if to == .EqRef {
+        out.push(StructNew { .type_index = box })
+        return true
+    }
+    return false
+}
+
 // ---- ops ------------------------------------------------------------------
 
 // The WASM struct type of the bytecode struct `type_id`.
@@ -192,12 +217,8 @@ push_pin :: fn(
             .reason = "`${function}`: no class known for what `ref.cast` reads",
         }
     }
-    if source == field_type_of(target) {
-        return
-    }
-    box :: box_of(ctx.gc, target)
-    if source == .EqRef && box != null {
-        out.push_all(unboxed(box))
+    to :: field_type_of(target)
+    if source == to || target is Bc.BcScalar && out.push_held_as(ctx.gc, source, to, target.val) {
         return
     }
     return unsupported_op(op, function)

@@ -196,7 +196,7 @@ canonical_adapter :: fn(ctx: ModuleCtx, index: i32, function: string) -> i32 | W
     imp :: ctx.module.imports[index]
     wit :: imp.wit else panic("wasm: an adapted import without its WIT type")
     params :: value_types_of(imp.signature.params, function) else return params
-    results :: value_types_of(result_values(imp.signature), function) else return results
+    results :: value_types_of(result_values(imp.signature.results), function) else return results
     import_index :: ctx.imports.by_bytecode_index[index]
         else panic("wasm: an adapted import that is not imported")
     adapter :: AdapterBody { .first = i32(params.len()) }

@@ -200,7 +200,7 @@ run_function :: fn(
         body.push(Call { .function_index = init })
     }
     body.push(Call { .function_index = index })
-    results :: result_values(entry.signature)
+    results :: result_values(entry.signature.results)
     if results.len() == 0 {
         body.push(I32Const { .value = 0 })
     } else if results.len() == 1 && results[0] == .I32 {
@@ -280,14 +280,14 @@ canonical_func_type_key :: fn(t: WasmFuncType) -> string {
 
 func_type_of :: fn(f: Bc.BcFunction) -> WasmFuncType | WasmUnsupported {
     params :: value_types_of(f.signature.params, f.name) else return params
-    results :: value_types_of(result_values(f.signature), f.name) else return results
+    results :: value_types_of(result_values(f.signature.results), f.name) else return results
     return WasmFuncType { .params = params, .results = results }
 }
 
-// The values a function leaves: none for a `void` one, whose signature still
-// carries one `Void` entry.
-result_values :: fn(signature: Bc.BcSignature) -> Bc.ValType[] =
-    if Bc.bc_result_arity(signature) == 0 { [] } else { signature.results }
+// The values a call leaves: none for a `void` one, whose results still carry
+// one `Void` entry.
+result_values :: fn(results: Bc.ValType[]) -> Bc.ValType[] =
+    if Bc.bc_results_arity(results) == 0 { [] } else { results }
 
 value_types_of :: fn(values: Bc.ValType[], function: string) -> WasmValType[] | WasmUnsupported {
     out: WasmValType[]: []
@@ -434,6 +434,7 @@ push_op :: fn(
             index :: ctx.imported_function(op, function) else return index
             out.push(Call { .function_index = index })
         }
+        is Bc.VirtualCall -> { return push_virtual_call(ctx, stack, out, op, function) }
         is Bc.BufferNew -> { out.push(Call { .function_index = ctx.buffer_new() }) }
         is Bc.BufferWriteString -> {
             out.push(Call { .function_index = ctx.buffer_write_string() })

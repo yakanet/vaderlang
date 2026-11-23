@@ -1,0 +1,171 @@
+// vader/emit/wasm/dispatch: the calls to a trait's method, `virtual.call`.
+//
+// The module's vtables list, for each `Trait.method`, the type of each receiver
+// that implements it and the function that does. A virtual call calls a
+// dispatcher, one per vtable and per shape of call: it tests the receiver against
+// each type in turn, as `is` does (`push_single_test`), and calls the
+// implementation of the first that matches, the receiver and the arguments in
+// the forms the implementation takes, its result in the form the call leaves. A
+// receiver no row matches stops the run.
+//
+// The call leaves the receiver on top, the arguments under it in source order,
+// so the dispatcher takes them in that order and passes the receiver, its last
+// parameter, first.
+
+module "vader/emit/wasm"
+
+Bc :: import "vader/core/bytecode"
+import "std/iter"
+
+// Call the dispatcher of `op`, the receiver and the arguments on top of `stack`.
+push_virtual_call :: fn(
+    ctx: ModuleCtx,
+    stack: OperandStack,
+    out: WasmInstr[],
+    op: Bc.VirtualCall,
+    function: string,
+) -> void | WasmUnsupported {
+    count :: i64(op.parameter_count)
+    site :: stack.types[stack.types.len() - count..<stack.types.len()]
+    if site[site.len() - 1] != .EqRef {
+        return WasmUnsupported { .reason = "`${function}`: a receiver held as a scalar" }
+    }
+    index :: ctx.dispatcher(op, site, function) else return index
+    out.push(Call { .function_index = index })
+}
+
+// The dispatcher of the vtable `op` names, for arguments held as `site`.
+dispatcher :: fn(
+    ctx: ModuleCtx,
+    op: Bc.VirtualCall,
+    site: WasmValType[],
+    function: string,
+) -> i32 | WasmUnsupported {
+    signature :: WasmFuncType { .params = site, .results = held_types(op.results) }
+    key :: "dispatch ${op.vtable_key} ${canonical_func_type_key(signature)}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    body: WasmInstr[]: []
+    row :: ctx.module.vtables.find((r) -> r.key == op.vtable_key)
+    if row != null {
+        for entry in row.entries {
+            body.push(LocalGet { .index = site_slot(0, site.len()) })
+            tested :: push_single_test(ctx, body, entry.receiver_type_index, function)
+                else return tested
+            body.push(Plain { .op = .If })
+            called :: body.push_implementation(ctx, entry.fn_index, site, op, function)
+                else return called
+            body.push_all([Plain { .op = .Return }, Plain { .op = .End }])
+        }
+    }
+    body.push(Plain { .op = .Unreachable })
+    return ctx.define_helper(key, signature, [], body)
+}
+
+// Call the implementation `fn_index` with the dispatcher's parameters, each in
+// the form it takes, and leave its result in the form the call leaves.
+push_implementation :: fn(
+    body: WasmInstr[],
+    ctx: ModuleCtx,
+    fn_index: i32,
+    site: WasmValType[],
+    op: Bc.VirtualCall,
+    function: string,
+) -> void | WasmUnsupported {
+    implementation :: ctx.module.functions[fn_index]
+    params :: implementation.signature.params
+    if params.len() != site.len() {
+        return WasmUnsupported {
+            .reason = "`${function}`: `${implementation.name}` takes ${params.len()} values for ${site.len()}",
+        }
+    }
+    for i in 0..<params.len() {
+        slot :: site_slot(i, site.len())
+        body.push(LocalGet { .index = slot })
+        adapted :: body.push_adapted(ctx, site[slot], params[i], null, function)
+            else return adapted
+    }
+    body.push(Call { .function_index = ctx.first_function + fn_index })
+    produced :: result_values(implementation.signature.results)
+    wanted :: result_values(op.results)
+    if produced.len() != wanted.len() {
+        return WasmUnsupported {
+            .reason = "`${function}`: `${implementation.name}` leaves ${produced.len()} values for ${wanted.len()}",
+        }
+    }
+    if produced.len() == 1 {
+        from :: value_type_of(produced[0], function) else return from
+        to :: value_type_of(wanted[0], function) else return to
+        scalar :: if to == .EqRef { produced[0] } else { wanted[0] }
+        return body.push_adapted(ctx, from, scalar, to, function)
+    }
+}
+
+// The dispatcher's parameter that holds the implementation's parameter `i`: the
+// receiver is the last, the arguments come before it.
+site_slot :: fn(i: i64, count: i64) -> i32 = if i == 0 { i32(count - 1) } else { i32(i - 1) }
+
+// Bring the value on the stack, held as `from`, to the form of a value of the
+// class `class`, held as `to` or, when null, as `class` is.
+push_adapted :: fn(
+    body: WasmInstr[],
+    ctx: ModuleCtx,
+    from: WasmValType,
+    class: Bc.ValType,
+    to: WasmValType | null,
+    function: string,
+) -> void | WasmUnsupported {
+    held :: if to == null { scalar_field_type(class) } else { to }
+    if !body.push_held_as(ctx.gc, from, held, class) {
+        return WasmUnsupported { .reason = "`${function}`: a dispatched value changes class" }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/testing"
+
+// `main` calls `T.area` on an `A`, with an `i32` argument held boxed, and
+// `A.area` takes the receiver, then the `i32` unboxed.
+@test
+test_a_dispatcher_passes_the_receiver_first_and_unboxes_the_argument :: fn() -> void {
+    body: Bc.Op[]: [
+        Bc.I32Const { .value = 5 },
+        Bc.Retag { .type_id = 0 },
+        Bc.I32Const { .value = 3 },
+        Bc.StructNew { .type_id = 1, .stack = false },
+        Bc.VirtualCall { .parameter_count = 2, .vtable_key = "T.area", .results = [.I32] },
+        Bc.Return {},
+    ]
+    program :: program_over_structs(body)
+    area :: Bc.BcFunction {
+        ...program.functions[0],
+        .name = "A\$T\$area",
+        .is_main = false,
+        .signature = Bc.BcSignature {
+            ...program.functions[0].signature,
+            .params = [.Ref, .I32],
+            .param_types = [1, 0],
+            .param_names = ["self", "x"],
+        },
+        .body = [Bc.LocalGet { .slot = 1 }, Bc.Return {}],
+        .jump_table = [-1, -1],
+    }
+    program.functions.push(area)
+    entry :: Bc.VtableEntry { .receiver_type_index = 1, .fn_index = 1 }
+    program.vtables = [Bc.VtableRow { .key = "T.area", .entries = [entry] }]
+    wasm :: wasm_module_of(program, "") else panic(wasm.reason)
+    dispatcher :: wasm.functions[2].body
+    receiver :: dispatcher[0]
+    assert(receiver is LocalGet && receiver.index == 1, "the receiver is the last parameter")
+    tested :: dispatcher[1]
+    assert(tested is RefTest && tested.type_index == 0, "the receiver is tested as an `A`")
+    i32_box :: gc_types_of(program).of_box[.I32] else -1
+    casts :: dispatcher.filter_is<RefCast>().collect()
+    assert(casts.len() == 1 && casts[0].type_index == i32_box, "the argument is unboxed")
+    calls :: dispatcher.filter_is<Call>().collect()
+    assert(calls.len() == 1 && calls[0].function_index == 1, "the dispatcher calls `A.area`")
+}
