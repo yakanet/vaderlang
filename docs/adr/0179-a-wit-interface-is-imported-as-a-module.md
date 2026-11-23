@@ -53,8 +53,10 @@ written by hand for C.
 - WIT packages live under a `wit/` folder next to each root of modules (the
   library's, the project's, each include path), laid out by path:
   `wit/<namespace>/<package>@<version>/*.wit`, so that finding a package reads one
-  folder and never walks. An import resolves first among the roots of the importing
-  module, so a project's own copy of a WASI package cannot change what `std` binds.
+  folder and never walks. A name is one module, whoever imports it: a package the
+  toolchain ships resolves there first, and another root holding the same name and
+  version is an error naming both folders, so a project's own copy of a WASI package
+  cannot change what `std` binds.
   The toolchain ships the WIT of the WASI release the target follows, `v0.3.0`, the one
   wasmtime 51 serves, in `runtime/wasi/<package>@<version>/` of `$VADER_HOME` with the
   licence of the WASI repository: an input of the WASM target, as `runtime/c/` is of the
@@ -71,7 +73,8 @@ written by hand for C.
   registers its WIT stage as it registers `DisplayableStage`; a stage a driver plugs
   at this point is left for later.
 - The module has a folder of its own that no disk holds, as the baked target does,
-  and a mangling escape for `:` distinct from `/`. Its source is written under
+  and a mangling escape for `:` distinct from `/`: `:`, `@`, `.` and `-` become `_`
+  and a digit, which no module path writes after a separator. Its source is written under
   `build/expanded/`, the library's interfaces included, under a file name every
   operating system accepts. Its spans stay in that file; a diagnostic in it names the
   `.wit` line it comes from as a related location, through a map from the generated
