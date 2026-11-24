@@ -140,6 +140,7 @@ load_body :: fn(
     is WitOption             -> l.option_body(t, type_id)
     is WitTuple              -> l.tuple_body(t, type_id)
     is WitStream | WitFuture -> l.handle_body(type_id)
+    is WitHandle             -> l.handle_body(type_id)
     is WitNotLowered         -> l.no_lift(t)
     is WitUnsupported        -> WasmUnsupported { .reason = "`${l.function}`: ${t.reason}" }
 }

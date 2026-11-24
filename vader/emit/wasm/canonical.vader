@@ -360,11 +360,16 @@ lift_flat :: fn(a: Adapter, t: WitType, value: WasmExpression) -> WasmExpression
 }
 
 // The parameter `index` of type `t`, lowered: a stream is opened, passed by its
-// readable end, then written and closed after the call; a scalar is passed as
-// itself, an `f32` narrowed.
+// readable end, then written and closed after the call; a handle is passed as
+// the one field of its struct; a scalar is passed as itself, an `f32` narrowed.
 lower_param :: fn(a: Adapter, t: WitType, index: i32) -> Lowered | WasmUnsupported {
     if t is WitStream {
         return a.lower_stream(t, index)
+    }
+    if t is WitHandle {
+        held :: struct_type(a.ctx, a.imp.signature.param_types[index], a.function)
+            else return held
+        return Lowered { .argument = struct_get(held, 0, local_get(index)) }
     }
     if is_flat_scalar(t) {
         return Lowered { .argument = core_from_held(t, local_get(index)) }

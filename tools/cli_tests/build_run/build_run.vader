@@ -284,6 +284,37 @@ test_run_runs_a_wasm_build_under_wasmtime :: fn() -> void {
     assert_eq(twice.stdout, "a\n")
 }
 
+// A handle to a resource crosses the canonical ABI: `get-directories` returns the
+// descriptor of each preopened directory, owned by `wasi:filesystem/types`,
+// which the component imports for it although the program calls none of its
+// functions.
+@test
+test_a_wasm_build_lists_its_preopened_directories :: fn() -> void {
+    if !has_wasmtime() {
+        return
+    }
+    dir :: staged(
+        "wasm_preopens",
+        """
+        module "main"
+
+        import "std/console"
+        Preopens :: import "wasi:filesystem/preopens@0.3.0"
+
+        main :: fn() -> i32 {
+            for d in Preopens.get_directories() {
+                println("\${d.1} \${d.0.handle > 0}")
+            }
+            return 0
+        }
+        """,
+    )
+    no_cc: [string, string | null][]: [["CC", ""]]
+    run :: vader_in(dir, ["build", "--target=wasi-wasm32", "--run", "main.vader"], no_cc)
+    assert_eq(run.exit, 0)
+    assert_eq(run.stdout, ". true\n")
+}
+
 @test
 test_run_refuses_a_build_that_makes_no_program_for_this_host :: fn() -> void {
     dir :: staged("nothing_to_run", program("app", 0))

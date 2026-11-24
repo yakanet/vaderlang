@@ -62,6 +62,7 @@ unsupported_in :: fn(t: WasmUnsupported, function: string) -> WasmUnsupported =
 flat_types_of :: fn(t: WitType) -> WasmValType[] | WasmUnsupported = match t {
     is WitScalar                       -> flat_scalar_types(t)
     is WitEnum | WitStream | WitFuture -> [.I32]
+    is WitHandle                       -> [.I32]
     is WitList                         -> [.I32, .I32]
     is WitResult                       -> flat_variant_types([t.ok, t.error])
     is WitOption                       -> flat_variant_types([null, t.value])
@@ -73,7 +74,7 @@ flat_types_of :: fn(t: WitType) -> WasmValType[] | WasmUnsupported = match t {
 }
 
 // The WIT types read from a `.wit` file that the canonical ABI does not cross yet.
-WitNotLowered :: WitRecord | WitVariant | WitFlags | WitResource | WitHandle | WitAlias
+WitNotLowered :: WitRecord | WitVariant | WitFlags | WitResource | WitAlias
 
 flat_scalar_types :: fn(s: WitScalar) -> WasmValType[] = match s {
     .Bool | .S8 | .U8 | .S16 | .U16 | .S32 | .U32 | .Char -> [.I32]
@@ -129,6 +130,7 @@ size_of :: fn(t: WitType) -> i32 = match t {
     is WitScalar             -> scalar_size(t)
     is WitEnum               -> case_bytes(t.cases.len())
     is WitStream | WitFuture -> 4
+    is WitHandle             -> 4
     is WitList               -> 8
     is WitResult             -> variant_size([t.ok, t.error])
     is WitOption             -> variant_size([null, t.value])
@@ -142,6 +144,7 @@ alignment_of :: fn(t: WitType) -> i32 = match t {
     is WitScalar                       -> scalar_alignment(t)
     is WitEnum                         -> case_bytes(t.cases.len())
     is WitStream | WitFuture | WitList -> 4
+    is WitHandle                       -> 4
     is WitResult                       -> variant_alignment([t.ok, t.error])
     is WitOption                       -> variant_alignment([null, t.value])
     is WitTuple                        -> max_alignment(t.elements)
@@ -247,7 +250,7 @@ holds_room :: fn(t: WitType | null) -> bool {
         is WitResult -> holds_room(t.ok) || holds_room(t.error)
         is WitOption -> holds_room(t.value)
         is WitTuple -> t.elements.any_match((e) -> holds_room(e))
-        is WitEnum | WitStream | WitFuture | WitUnsupported | WitNotLowered -> false
+        is WitEnum | WitStream | WitFuture | WitHandle | WitUnsupported | WitNotLowered -> false
     }
 }
 

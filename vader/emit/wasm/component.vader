@@ -6,7 +6,11 @@
 // in one fixed shape:
 //
 // - one imported instance per interface, typed by the functions the program
-//   calls and the types they name, an enum exported under its name;
+//   calls and the types they name, an enum exported under its name. A resource
+//   is exported by the interface that owns it, imported before the others, even
+//   when the program calls none of its functions; the component aliases it out
+//   of that instance, and the instances after name it by that alias. A handle
+//   the program receives is not dropped yet;
 // - when the core module calls an async function (`canonical.vader`), a module that
 //   only defines a linear memory, instantiated first;
 // - the core module;
@@ -66,17 +70,16 @@ export RUN_EXPORT: string: "run"
 ///
 /// @param c  the component.
 /// @return   the bytes of a `.wasm` file holding a component.
-export encode_component :: fn(c: WasmComponent) -> u8[] {
+export encode_component :: fn(component: WasmComponent) -> u8[] {
     out: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x0D, 0x00, 0x01, 0x00]
+    // Every index below follows the order of `c.interfaces`, never `component`'s.
+    c :: WasmComponent { ...component, .interfaces = import_order(component.interfaces) }
     interface_count :: i64(c.interfaces.len())
     function_count :: count_functions(c.interfaces)
     has_memory :: c.core.memory_import != null
     allocating :: c.interfaces.any_match((i) -> i.functions.any_match((f) -> allocates(f.type)))
-    scopes :: c.interfaces.map(instance_scope_of).collect()
-    if interface_count > 0 {
-        out.push_component_section(.Type, instance_types(scopes))
-        out.push_component_section(.Import, interface_imports(c.interfaces))
-    }
+    imported :: out.push_interface_imports(c.interfaces)
+    scopes :: imported.scopes
     if has_memory {
         out.push_component_section(.CoreModule, encode_memory_module(allocating))
         out.push_component_section(.CoreInstance, [1, INSTANTIATE, 0, 0])
@@ -89,7 +92,7 @@ export encode_component :: fn(c: WasmComponent) -> u8[] {
         out.push_component_section(.Alias, function_aliases(c.interfaces, function_count))
         out.push_component_section(.Canonical, lowered_functions(c.interfaces))
     }
-    types :: TypeScope { .next = interface_count }
+    types :: TypeScope { .next = imported.type_count }
     if c.builtins.len() > 0 {
         out.push_builtin_sections(c.builtins, scopes, types)
     }
@@ -191,6 +194,8 @@ INSTANCE_TYPE: u8: 0x42
 FUNC_TYPE_SYNC: u8: 0x40
 ASYNC_FUNC_TYPE: u8: 0x43
 RESULT_TYPE: u8: 0x6A
+OWN_TYPE: u8: 0x69
+BORROW_TYPE: u8: 0x68
 OPTION_TYPE: u8: 0x6B
 ENUM_TYPE: u8: 0x6D
 STREAM_TYPE: u8: 0x66
@@ -198,8 +203,9 @@ FUTURE_TYPE: u8: 0x65
 LIST_TYPE: u8: 0x70
 TUPLE_TYPE: u8: 0x6F
 
-// An instance-type declaration of a type, and of an export.
+// An instance-type declaration of a type, of an alias, and of an export.
 DECLARE_TYPE: u8: 0x01
+DECLARE_ALIAS: u8: 0x02
 DECLARE_EXPORT: u8: 0x04
 
 // The sorts, and the prefix that turns a sort byte into a core sort.
@@ -211,8 +217,9 @@ SORT_TYPE: u8: 0x03
 SORT_INSTANCE: u8: 0x05
 CORE_SORT_INSTANCE: u8: 0x12
 
-// A type exported as equal to the type it names.
+// A type exported as equal to the type it names, or as a resource of its own.
 TYPE_BOUND_EQ: u8: 0x00
+TYPE_BOUND_SUB_RESOURCE: u8: 0x01
 
 // A function type's results: one unnamed value, or none.
 ONE_RESULT: u8: 0x00
@@ -267,6 +274,9 @@ NO_TYPE_ASCRIPTION: u8: 0x00
 
 ALIAS_EXPORT: u8: 0x00
 ALIAS_CORE_EXPORT: u8: 0x01
+// An alias of a type of an enclosing scope: the component, one level up.
+ALIAS_OUTER: u8: 0x02
+ENCLOSING_COMPONENT: u8: 0x01
 
 CANONICAL_LIFT: u8: 0x00
 CANONICAL_LOWER: u8: 0x01
@@ -298,12 +308,25 @@ TypeScope :: struct {
     next: i64 = 0
     // The index of each type, by its `wit_type_text`.
     indices: Map<string, i64> = Map<string, i64> {}
+    // In an instance type: the interface it types, and the component's type of
+    // each resource of another interface, by its `wit_type_text`.
+    interface: string = ""
+    outer: Map<string, i64> = Map<string, i64> {}
 }
 
-// The instance type of `interface`: each function declares its type, then
-// exports itself under it.
-instance_scope_of :: fn(interface: ComponentInterface) -> TypeScope {
-    scope :: TypeScope { .in_instance = true }
+// The instance type of `interface`: the resources of its own that other
+// interfaces name, exported first, then each function declares its type and
+// exports itself under it. A resource of another interface is the component's
+// type `outer` holds for it.
+instance_scope_of :: fn(
+    interface: ComponentInterface,
+    owned: WitResource[],
+    outer: Map<string, i64>,
+) -> TypeScope {
+    scope :: TypeScope { .in_instance = true, .interface = interface.name, .outer = outer }
+    for r in owned {
+        scope.resource_index(r)
+    }
     for f in interface.functions {
         func_type :: scope.define(func_type_of(scope, f.type))
         scope.declare_export(f.name, [SORT_FUNC], func_type)
@@ -379,6 +402,10 @@ type_index :: fn(scope: TypeScope, t: WitType) -> i64 {
             definition.push_optional_type(scope, t.ok)
             definition.push_optional_type(scope, t.error)
         }
+        is WitHandle -> {
+            definition.push(handle_type_byte(t))
+            definition.push_count(scope.resource_index(t.resource))
+        }
         is WitOption -> {
             definition.push(OPTION_TYPE)
             definition.push_value_type(scope, t.value)
@@ -424,6 +451,36 @@ define :: fn(scope: TypeScope, definition: u8[]) -> i64 {
     return scope.take_index()
 }
 
+// The index of the resource `t` in `scope`, an instance type. The interface that
+// owns it exports it under its name as a type of its own, which the host's
+// resource takes when the instance is imported; another interface aliases the
+// component's type of it.
+resource_index :: fn(scope: TypeScope, t: WitType) -> i64 {
+    key :: wit_type_text(t)
+    known :: scope.indices[key]
+    if known != null {
+        return known
+    }
+    if t !is WitResource || !scope.in_instance {
+        panic("wasm: no component type to define for `${key}`")
+    }
+    if wit_owner_text(t.owner) == scope.interface {
+        scope.items.push_all([DECLARE_EXPORT, PLAIN_NAME])
+        scope.items.push_name(t.name)
+        scope.items.push_all([SORT_TYPE, TYPE_BOUND_SUB_RESOURCE])
+    } else {
+        outer :: scope.outer[key] else panic("wasm: `${key}` named before its interface")
+        scope.items.push_all([DECLARE_ALIAS, SORT_TYPE, ALIAS_OUTER, ENCLOSING_COMPONENT])
+        scope.items.push_count(outer)
+    }
+    scope.count += 1
+    index :: scope.take_index()
+    scope.indices[key] = index
+    return index
+}
+
+handle_type_byte :: fn(h: WitHandle) -> u8 = if h.is_borrow { BORROW_TYPE } else { OWN_TYPE }
+
 // Export the type `index` of an instance type under `name`, which gives it the
 // index the functions name.
 export_type :: fn(scope: TypeScope, name: string, index: i64) -> i64 {
@@ -448,15 +505,91 @@ take_index :: fn(scope: TypeScope) -> i64 {
 
 // ---- imports --------------------------------------------------------------
 
-// Interface `i` imported as the instance type `i`.
-interface_imports :: fn(interfaces: ComponentInterface[]) -> u8[] {
-    out: u8[]: []
-    out.push_count(interfaces.len())
-    for i in 0..<interfaces.len() {
-        out.push(PLAIN_NAME)
-        out.push_name(interfaces[i].name)
-        out.push(SORT_INSTANCE)
-        out.push_count(i)
+// The instance types of the interfaces and the component types past them.
+ImportedInterfaces :: struct {
+    scopes: TypeScope[]
+    // The component's types: an instance type per interface, an alias per
+    // resource another interface names.
+    type_count: i64
+}
+
+// Each interface in turn: its instance type, its import as the instance `i`, then
+// the resources of its own that the interfaces after it name, aliased out of it.
+push_interface_imports :: fn(out: u8[], interfaces: ComponentInterface[]) -> ImportedInterfaces {
+    named_elsewhere :: resources_named_elsewhere(interfaces)
+    outer: Map<string, i64>: Map<string, i64> {}
+    scopes: TypeScope[]: []
+    type_count: i64 = 0
+    for [interface, i] in interfaces.indexed() {
+        owned :: named_elsewhere[interface.name] else []
+        scope :: instance_scope_of(interface, owned, outer)
+        scopes.push(scope)
+        out.push_component_section(.Type, instance_types([scope]))
+        imports: u8[]: [1, PLAIN_NAME]
+        imports.push_name(interface.name)
+        imports.push(SORT_INSTANCE)
+        imports.push_count(type_count)
+        out.push_component_section(.Import, imports)
+        type_count += 1
+        if owned.is_empty() {
+            continue
+        }
+        aliases: u8[]: []
+        aliases.push_count(owned.len())
+        for r in owned {
+            aliases.push_all([SORT_TYPE, ALIAS_EXPORT])
+            aliases.push_count(i)
+            aliases.push_name(r.name)
+            outer[wit_type_text(r)] = type_count
+            type_count += 1
+        }
+        out.push_component_section(.Alias, aliases)
+    }
+    return ImportedInterfaces { .scopes = scopes, .type_count = type_count }
+}
+
+// The interfaces in the order the component imports them: each one that owns a
+// resource another names before the others. One the program calls no function
+// of is added with none: the core module is still instantiated with its empty
+// core instance, which keeps the instance of interface `i` at index `i`
+// everywhere.
+import_order :: fn(interfaces: ComponentInterface[]) -> ComponentInterface[] {
+    owners: string[]: resources_named_elsewhere(interfaces).keys().collect()
+    ordered: ComponentInterface[]: []
+    for owner in owners {
+        found :: interfaces.find((i) -> i.name == owner)
+            else ComponentInterface { .name = owner, .functions = [] }
+        ordered.push(found)
+    }
+    for interface in interfaces {
+        if !owners.contains(interface.name) {
+            ordered.push(interface)
+        }
+    }
+    return ordered
+}
+
+// The resources an interface owns that another one of `interfaces` names, by the
+// name of the owner, each once. A handle names its resource itself, the WIT
+// stage having taken its aliases out.
+resources_named_elsewhere :: fn(interfaces: ComponentInterface[]) -> Map<string, WitResource[]> {
+    out :: Map<string, WitResource[]> {}
+    for interface in interfaces {
+        for f in interface.functions {
+            types :: f.type.params.flat_map((p) -> nested_types_of(p.type)).collect()
+            types.push_all(nested_types_of(f.type.result))
+            for r in types.filter_is<WitResource>() {
+                owner :: wit_owner_text(r.owner)
+                if owner == interface.name {
+                    continue
+                }
+                known :: out[owner] else []
+                if !known.any_match((k) -> wit_type_text(k) == wit_type_text(r)) {
+                    known.push(r)
+                }
+                out[owner] = known
+            }
+        }
     }
     return out
 }
@@ -540,30 +673,41 @@ push_builtin_sections :: fn(
 
 // Add the enums `t` names that `out` holds not yet.
 push_enums_of :: fn(out: WitEnum[], t: WitType | null) -> void {
+    for e in nested_types_of(t).filter_is<WitEnum>() {
+        if !out.any_match((known) -> wit_type_text(known) == wit_type_text(e)) {
+            out.push(e)
+        }
+    }
+}
+
+// `t` and every type it holds, the outer first; none for null.
+nested_types_of :: fn(t: WitType | null) -> WitType[] {
+    out: WitType[]: []
+    out.push_nested(t)
+    return out
+}
+
+push_nested :: fn(out: WitType[], t: WitType | null) -> void {
     if t == null {
         return
     }
+    out.push(t)
     match t {
-        is WitEnum -> {
-            key :: wit_type_text(t)
-            if !out.any_match((e) -> wit_type_text(e) == key) {
-                out.push(t)
-            }
-        }
         is WitResult -> {
-            out.push_enums_of(t.ok)
-            out.push_enums_of(t.error)
+            out.push_nested(t.ok)
+            out.push_nested(t.error)
         }
-        is WitList -> out.push_enums_of(t.element)
-        is WitOption -> out.push_enums_of(t.value)
-        is WitStream -> out.push_enums_of(t.element)
-        is WitFuture -> out.push_enums_of(t.value)
+        is WitList -> out.push_nested(t.element)
+        is WitOption -> out.push_nested(t.value)
+        is WitHandle -> out.push_nested(t.resource)
+        is WitStream -> out.push_nested(t.element)
+        is WitFuture -> out.push_nested(t.value)
         is WitTuple -> {
             for e in t.elements {
-                out.push_enums_of(e)
+                out.push_nested(e)
             }
         }
-        is WitScalar | WitUnsupported | WitNotLowered -> {}
+        is WitScalar | WitEnum | WitUnsupported | WitNotLowered -> {}
     }
 }
 
@@ -765,5 +909,5 @@ test_instance_type_exports_the_enum_its_function_names :: fn() -> void {
     expected.push_all([0x04, 0x00])
     expected.push_name("write-via-stream")
     expected.push_all([0x01, 0x05])
-    assert_bytes(instance_types([instance_scope_of(stdout)]), expected)
+    assert_bytes(instance_types([instance_scope_of(stdout, [], Map<string, i64> {})]), expected)
 }
