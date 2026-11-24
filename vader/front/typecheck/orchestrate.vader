@@ -121,26 +121,13 @@ check_project_modules :: fn(
     // Phase A : register every type alias project-wide. Cross-
     // module aliases (`Pet` imported from `./types`) need to land
     // before any fn signature consults them.
-    unsettled :: Map<string, AST.Decl[]> {}
-    unsettled[project.entry] = register_aliases(
-        entry_typed, concat_file_decls(entry_loaded.module.files),
-    )
-    for [id, other] in project.modules {
-        if id == project.entry {
-            continue
-        }
-        other_typed :: per_module[id]
-        if other_typed !is null {
-            decls :: concat_file_decls(other.module.files)
-            unsettled[id] = register_aliases(other_typed, decls)
-        }
-    }
-    settle_project_aliases(per_module, unsettled)
-    // Make every module's enums resolvable cross-module before any fn
-    // signature is lowered, so a `d: parser.Visibility` param resolves to
-    // the `EnumType` (-> `repr` ordinal at bytecode emit) instead of the
-    // struct placeholder.
+    register_project_aliases(project, per_module)
+    // Rebuild the enums now that a header can name an integer alias (`enum(u8)`
+    // fell back to `i32` before), then register the aliases again so that one
+    // over an enum holds the rebuilt `EnumType`: a fn signature lowered below
+    // resolves `d: parser.Visibility` to its `repr` ordinal.
     register_enum_types(per_module, project, alias_types)
+    unsettled :: register_project_aliases(project, per_module)
     // Wire imports + resolver-side imports_to early so cross-module
     // alias lookups (`Pet` from `./types`) follow ImportBinding to
     // the real symbol during fn-signature lowering below.
@@ -315,6 +302,21 @@ check_project_modules :: fn(
         .others = others,
         .all_modules = per_module,
     }
+}
+
+// Register every module's type aliases, in the order of `per_module` (the entry's
+// first), then settle across modules the ones naming another module's types: what
+// stays pending is returned by module.
+register_project_aliases :: fn(
+    project: LoadedProject, per_module: Map<string, TypedProgram>,
+) -> Map<string, AST.Decl[]> {
+    unsettled :: Map<string, AST.Decl[]> {}
+    for [id, typed] in per_module {
+        loaded :: project.modules[id] else continue
+        unsettled[id] = register_aliases(typed, concat_file_decls(loaded.module.files))
+    }
+    settle_project_aliases(per_module, unsettled)
+    return unsettled
 }
 
 // The node ids of the functions a stage gives a body after the comptime, by module.

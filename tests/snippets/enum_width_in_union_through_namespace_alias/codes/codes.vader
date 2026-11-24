@@ -1,0 +1,28 @@
+module "snippet/codes"
+
+/// A failure: a code of one byte, or a message.
+export Failure :: FailureCode | FailureMessage
+
+export FailureCode :: enum(u8) {
+    Access,
+    NoEntry,
+}
+
+export FailureMessage :: struct {
+    text: string
+}
+
+export Found :: struct {
+    id: i32
+}
+
+/// What `k` finds: a value, then a code, then a message.
+export look_up :: fn(k: i32) -> Found | Failure {
+    if k == 0 {
+        return Found { .id = 1 }
+    }
+    if k == 1 {
+        return .NoEntry
+    }
+    return FailureMessage { .text = "gone" }
+}

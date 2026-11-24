@@ -1,0 +1,77 @@
+# Lower
+
+## snippet
+  snippet.main :: fn() -> i32 {  // snippet$main
+      {
+          k: i32 = 0
+          for k < 3 {
+              got: Found = {
+                  __fallback_0: FailureCode | FailureMessage | Found = snippet.codes.look_up(k)
+                  got: FailureCode | FailureMessage | Found = __fallback_0
+                  if __fallback_0 is FailureCode | FailureMessage {
+                      {
+                          if got is FailureMessage {
+                              std.console.println<string>(concat_2("message ", FailureMessage(got).text))
+                          } else {
+                              std.console.println<string>({
+                                  __buf_1: Buffer = std_core$Intrinsic$new_byte_buffer(i64(25))
+                                  __off_2: i64 = 0
+                                  __off_2 = std.core.write_string_at(__buf_1, __off_2, "code ")
+                                  __off_2 = std.core.write_int(__buf_1, __off_2, i32(FailureCode(got)))
+                                  std.core.finish_buffer(__buf_1, __off_2)
+                              } :string)
+                          }
+                          continue
+                      }
+                  } else {
+                      Found(__fallback_0)
+                  } :Found
+              }
+              std.console.println<string>({
+                  __buf_3: Buffer = std_core$Intrinsic$new_byte_buffer(i64(26))
+                  __off_4: i64 = 0
+                  __off_4 = std.core.write_string_at(__buf_3, __off_4, "found ")
+                  __off_4 = std.core.write_int(__buf_3, __off_4, got.id)
+                  std.core.finish_buffer(__buf_3, __off_4)
+              } :string)
+          } @step {
+              k = k +% 1
+          }
+      }
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+
+## snippet/codes
+  snippet.codes.look_up :: fn(k: i32) -> FailureCode | FailureMessage | Found {  // snippet_codes$look_up
+      if k == 0 {
+          return Found { .id = 1 }
+      }
+      if k == 1 {
+          return FailureCode(1)
+      }
+      return FailureMessage { .text = "gone" }
+  }
+  snippet.codes.Found :: struct { id: i32 }  // snippet_codes$Found
+  snippet.codes.FailureMessage :: struct { text: string }  // snippet_codes$FailureMessage
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer

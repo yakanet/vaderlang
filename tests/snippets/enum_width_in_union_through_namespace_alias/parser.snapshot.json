@@ -1,0 +1,274 @@
+{
+  "ast": {
+    "kind": "Program",
+    "module": {
+      "kind": "ModuleDecl",
+      "name": "snippet"
+    },
+    "decls": [
+      {
+        "kind": "ImportDecl",
+        "path": "std/console",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "ImportDecl",
+        "path": "snippet/codes",
+        "binding": {
+          "kind": "named-namespace",
+          "name": "Codes"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "main",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ForStmt",
+              "label": null,
+              "form": {
+                "kind": "in",
+                "binding": "k",
+                "iter": {
+                  "kind": "RangeExpr",
+                  "inclusive": false,
+                  "lower": {
+                    "kind": "IntLitExpr",
+                    "value": "0n"
+                  },
+                  "upper": {
+                    "kind": "IntLitExpr",
+                    "value": "3n"
+                  }
+                }
+              },
+              "body": {
+                "kind": "BlockExpr",
+                "stmts": [
+                  {
+                    "kind": "LetStmt",
+                    "mutable": false,
+                    "binding": {
+                      "kind": "SimpleBinding",
+                      "name": "got"
+                    },
+                    "type": null,
+                    "value": {
+                      "kind": "FallbackExpr",
+                      "left": {
+                        "kind": "CallExpr",
+                        "callee": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "Codes"
+                          },
+                          "field": "look_up"
+                        },
+                        "args": [
+                          {
+                            "name": null,
+                            "value": {
+                              "kind": "IdentExpr",
+                              "name": "k"
+                            },
+                            "spread": false
+                          }
+                        ]
+                      },
+                      "clauses": [
+                        {
+                          "test": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "Codes"
+                            },
+                            "field": "Failure"
+                          },
+                          "body": {
+                            "kind": "BlockExpr",
+                            "stmts": [
+                              {
+                                "kind": "ExprStmt",
+                                "expr": {
+                                  "kind": "IfExpr",
+                                  "cond": {
+                                    "kind": "BinaryExpr",
+                                    "op": "is",
+                                    "left": {
+                                      "kind": "IdentExpr",
+                                      "name": "got"
+                                    },
+                                    "right": {
+                                      "kind": "FieldExpr",
+                                      "target": {
+                                        "kind": "IdentExpr",
+                                        "name": "Codes"
+                                      },
+                                      "field": "FailureMessage"
+                                    }
+                                  },
+                                  "then": {
+                                    "kind": "BlockExpr",
+                                    "stmts": [],
+                                    "trailing": {
+                                      "kind": "CallExpr",
+                                      "callee": {
+                                        "kind": "IdentExpr",
+                                        "name": "println"
+                                      },
+                                      "args": [
+                                        {
+                                          "name": null,
+                                          "value": {
+                                            "kind": "StringLitExpr",
+                                            "parts": [
+                                              {
+                                                "kind": "text",
+                                                "value": "message "
+                                              },
+                                              {
+                                                "kind": "interpolation",
+                                                "expr": {
+                                                  "kind": "FieldExpr",
+                                                  "target": {
+                                                    "kind": "IdentExpr",
+                                                    "name": "got"
+                                                  },
+                                                  "field": "text"
+                                                }
+                                              }
+                                            ]
+                                          },
+                                          "spread": false
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "else": {
+                                    "kind": "BlockExpr",
+                                    "stmts": [],
+                                    "trailing": {
+                                      "kind": "CallExpr",
+                                      "callee": {
+                                        "kind": "IdentExpr",
+                                        "name": "println"
+                                      },
+                                      "args": [
+                                        {
+                                          "name": null,
+                                          "value": {
+                                            "kind": "StringLitExpr",
+                                            "parts": [
+                                              {
+                                                "kind": "text",
+                                                "value": "code "
+                                              },
+                                              {
+                                                "kind": "interpolation",
+                                                "expr": {
+                                                  "kind": "CallExpr",
+                                                  "callee": {
+                                                    "kind": "IdentExpr",
+                                                    "name": "i32"
+                                                  },
+                                                  "args": [
+                                                    {
+                                                      "name": null,
+                                                      "value": {
+                                                        "kind": "IdentExpr",
+                                                        "name": "got"
+                                                      },
+                                                      "spread": false
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            ]
+                                          },
+                                          "spread": false
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "ContinueStmt",
+                                "label": null
+                              }
+                            ],
+                            "trailing": null
+                          }
+                        }
+                      ],
+                      "binding": "got"
+                    }
+                  }
+                ],
+                "trailing": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "println"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "StringLitExpr",
+                        "parts": [
+                          {
+                            "kind": "text",
+                            "value": "found "
+                          },
+                          {
+                            "kind": "interpolation",
+                            "expr": {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "got"
+                              },
+                              "field": "id"
+                            }
+                          }
+                        ]
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "isComptime": false
+            },
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "0n"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

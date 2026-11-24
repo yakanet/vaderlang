@@ -1,0 +1,23 @@
+// An enum of a written width keeps it inside a union alias reached through a
+// namespace import: `else is Codes.Failure` tests the code as the byte it is.
+// Expected: prints "found 1", "code 1" then "message gone", exits 0.
+
+module "snippet"
+
+import "std/console"
+Codes :: import "snippet/codes"
+
+main :: fn() -> i32 {
+    for k in 0..<3 {
+        got :: Codes.look_up(k) else is Codes.Failure {
+            if got is Codes.FailureMessage {
+                println("message ${got.text}")
+            } else {
+                println("code ${i32(got)}")
+            }
+            continue
+        }
+        println("found ${got.id}")
+    }
+    return 0
+}

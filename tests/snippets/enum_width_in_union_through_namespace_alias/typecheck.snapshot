@@ -1,0 +1,45 @@
+# Typecheck
+
+## tests/snippets/enum_width_in_union_through_namespace_alias
+  FnDecl         main                 :: fn() -> i32
+  expr 11:14    RangeExpr      :: Range<i32>
+  expr 12:16    CallExpr       :: FailureCode | FailureMessage | Found
+  expr 12:16    FallbackExpr   :: Found
+  expr 12:16    FieldExpr      :: fn(i32) -> FailureCode | FailureMessage | Found
+  expr 12:30    IdentExpr      :: i32
+  expr 13:13    IfExpr         :: void
+  expr 13:16    BinaryExpr     :: bool
+  expr 13:16    IdentExpr      :: FailureCode | FailureMessage
+  expr 14:17    CallExpr       :: void
+  expr 14:17    IdentExpr      :: fn(T) -> void
+  expr 14:25    StringLitExpr  :: string
+  expr 14:36    FieldExpr      :: string
+  expr 14:36    IdentExpr      :: FailureMessage
+  expr 16:17    CallExpr       :: void
+  expr 16:17    IdentExpr      :: fn(T) -> void
+  expr 16:25    StringLitExpr  :: string
+  expr 16:33    CallExpr       :: i32
+  expr 16:33    IdentExpr      :: type
+  expr 16:37    IdentExpr      :: FailureCode
+  expr 20:17    StringLitExpr  :: string
+  expr 20:26    FieldExpr      :: i32
+  expr 20:26    IdentExpr      :: Found
+  expr 20:9     CallExpr       :: void
+  expr 20:9     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/enum_width_in_union_through_namespace_alias/codes
+  ConstDecl      Failure              :: type
+  EnumDecl       FailureCode          :: FailureCode
+  StructDecl     FailureMessage       :: FailureMessage
+  StructDecl     Found                :: Found
+  FnDecl         look_up              :: fn(i32) -> FailureCode | FailureMessage | Found
+  expr 21:5     IfExpr         :: void
+  expr 21:8     BinaryExpr     :: bool
+  expr 21:8     IdentExpr      :: i32
+  expr 22:16    StructLitExpr  :: Found
+  expr 24:5     IfExpr         :: void
+  expr 24:8     BinaryExpr     :: bool
+  expr 24:8     IdentExpr      :: i32
+  expr 25:16    DotVariantExpr :: FailureCode
+  expr 27:12    StructLitExpr  :: FailureMessage
+  expr 27:37    StringLitExpr  :: string

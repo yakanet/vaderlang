@@ -168,9 +168,9 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[20] = {
+const vader_type_info_t vader_type_info_table[19] = {
     [2] = { .slot_size = 16 },
-    [3] = { .slot_size = 4 },
+    [3] = { .slot_size = 1 },
     [4] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorTypeOther_t),
@@ -179,18 +179,18 @@ const vader_type_info_t vader_type_info_table[20] = {
         .ptr_count = 1,
     },
     [5] = { .slot_size = 4 },
-    [6] = {
+    [6] = { .slot_size = 4 },
+    [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [7] = { .slot_size = 8 },
     [8] = { .slot_size = 8 },
-    [9] = { .slot_size = 1 },
-    [10] = {
+    [9] = { .slot_size = 8 },
+    [10] = { .slot_size = 1 },
+    [11] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
     },
-    [11] = { .slot_size = 1 },
     [12] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t),
@@ -212,14 +212,13 @@ const vader_type_info_t vader_type_info_table[20] = {
         .ptr_count = 4,
     },
     [16] = { .slot_size = 16 },
-    [17] = { .slot_size = 16 },
-    [18] = {
+    [17] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t), .slot_size = 8,
     },
-    [19] = { .slot_size = 4 },
+    [18] = { .slot_size = 4 },
 };
-const size_t vader_type_info_count = 20;
+const size_t vader_type_info_count = 19;
 
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
@@ -233,7 +232,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 10u, 11u);
+    return (void*) vader_string_bytes_view(a0, 11u, 3u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -273,7 +272,7 @@ static vader_string_t snippet$describe(vader_box_t l0) {
         vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (l0.tag == 11u) {
+    if (l0.tag == 3u) {
         t0 = ((uint8_t) l0.payload.i);
         if (t0 == INT32_C(2)) {
             l1 = 1u;
@@ -319,7 +318,7 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t* _a0_obj = (vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t*) vader_gc_alloc(sizeof(vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t));
-    vader_obj_header_init(_a0_obj, 18u);
+    vader_obj_header_init(_a0_obj, 17u);
     _a0_obj->f_seconds = INT64_C(3);
     _a0_obj->f_nanoseconds = (uint32_t) 250;
     l0 = (void*) _a0_obj;
@@ -334,7 +333,7 @@ static int32_t snippet$main(void) {
     l1 = (void*) _a2_obj;
     vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t* _a3_obj = (vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t*) vader_gc_alloc(sizeof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t));
     vader_obj_header_init(_a3_obj, 15u);
-    _a3_obj->f_type = vader_box_i32(11u, INT32_C(2));
+    _a3_obj->f_type = vader_box_i32(3u, INT32_C(2));
     _a3_obj->f_link_count = (uint64_t) 1;
     _a3_obj->f_size = (uint64_t) 4096;
     _a3_obj->f_data_access_timestamp = vader_ref_box(l0);
@@ -384,7 +383,7 @@ static int32_t snippet$main(void) {
     l9 = wasi_0filesystem_types_10_23_20$ErrorCodeOther$std_core$Error$message(t3);
     t2 = concat_3(l8, 6u, l9);
     std_console$println__string(t2);
-    t2 = snippet$describe(vader_box_i32(11u, INT32_C(2)));
+    t2 = snippet$describe(vader_box_i32(3u, INT32_C(2)));
     std_console$println__string(t2);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
