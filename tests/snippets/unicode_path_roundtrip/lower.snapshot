@@ -73,6 +73,9 @@
 ## lowered in dependencies
   std/target/baked
     const VADER_OS: Os  inline
+  wasi:filesystem/types@0.3.0
+    struct wasi:filesystem.types@0.3.0.Descriptor  // wasi_0filesystem_types_10_23_20$Descriptor
+    struct wasi:filesystem.types@0.3.0.ErrorCodeOther  // wasi_0filesystem_types_10_23_20$ErrorCodeOther
   std/console
     fn std.console.println<string>  // std_console$println__string
     fn std.console.write  // std_console$write
@@ -86,6 +89,8 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
+    struct std.core.WasmFuture<ErrorCodeCase | ErrorCodeOther | void>  // std_core$WasmFuture__wasi_0filesystem_types_10_23_20_ErrorCodeCase___wasi_0filesystem_types_10_23_20_ErrorCodeOther___void
+    struct std.core.WasmReadable<u8>  // std_core$WasmReadable__u8
   std/env
     fn std.env.get_env  // std_env$get_env
     fn std.env.temp_dir  // std_env$temp_dir
@@ -132,6 +137,8 @@
     struct std.fs.ListedEntry  // std_fs$ListedEntry
     struct std.fs.OpenOptions  // std_fs$OpenOptions
     struct std.fs.RemoveOptions  // std_fs$RemoveOptions
+    struct std.fs.WasiFile  // std_fs$WasiFile
+    struct std.fs.WasiRead  // std_fs$WasiRead
   std/io
     fn std.io.IOError.message  // std_io$IOError$std_core$Error$message
     fn std.io.bytes_of  // std_io$bytes_of

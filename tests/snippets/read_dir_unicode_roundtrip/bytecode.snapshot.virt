@@ -9,32 +9,38 @@ type 6 scalar bool
 type 7 array 8
 type 8 scalar u8
 type 9 union 5,0
-type 10 union 0,3
-type 11 union 3,7
-type 12 union 13,1
-type 13 struct std_io$IOError { msg:3,kind:8,code:2 }
-type 14 union 13,15
-type 15 array 3
-type 16 union 13,7
-type 17 struct __defer_env_std_fs_1 { cap_0:20 }
-type 18 struct std_fs$RemoveOptions { recursive:6,force:6 }
-type 19 union 20,13
-type 20 struct std_fs$File { handle:26,closed:6 }
-type 21 union 13,22
-type 22 array 23
-type 23 struct std_fs$ListedEntry { name:3,kind:8 }
-type 24 struct __defer_env_std_fs_3 { cap_0:27 }
-type 25 struct std_fs$OpenOptions { read:6,write:6,append:6,create:6,truncate:6,create_new:6 }
-type 26 union 2,27
-type 27 scalar pointer
-type 28 union 5,13
-type 29 union 2,27,13
-type 30 union 31,13
-type 31 array 5
-type 32 union 27,0
-type 33 ref std_core$Error
-type 34 array 13
-type 35 fn () -> 1
+type 10 struct std_core$WasmReadable__u8 { handle:2 }
+type 11 struct std_core$WasmFuture__wasi_0filesystem_types_10_23_20_ErrorCodeCase___wasi_0filesystem_types_10_23_20_ErrorCodeOther___void { handle:2 }
+type 12 union 0,3
+type 13 union 3,7
+type 14 union 15,1
+type 15 struct std_io$IOError { msg:3,kind:8,code:2 }
+type 16 union 15,17
+type 17 array 3
+type 18 union 15,7
+type 19 struct __defer_env_std_fs_1 { cap_0:22 }
+type 20 struct std_fs$RemoveOptions { recursive:6,force:6 }
+type 21 union 22,15
+type 22 struct std_fs$File { handle:28,closed:6 }
+type 23 union 15,24
+type 24 array 25
+type 25 struct std_fs$ListedEntry { name:3,kind:8 }
+type 26 struct __defer_env_std_fs_3 { cap_0:29 }
+type 27 struct std_fs$OpenOptions { read:6,write:6,append:6,create:6,truncate:6,create_new:6 }
+type 28 union 2,29,30
+type 29 scalar pointer
+type 30 struct std_fs$WasiFile { descriptor:35,read:36,ended:6 }
+type 31 union 5,15
+type 32 union 2,29,15,30
+type 33 union 34,15
+type 34 array 5
+type 35 struct wasi_0filesystem_types_10_23_20$Descriptor { handle:2 }
+type 36 union 0,37
+type 37 struct std_fs$WasiRead { bytes:10,done:11 }
+type 38 union 29,0
+type 39 ref std_core$Error
+type 40 array 15
+type 41 fn () -> 1
 string 0 "vader_rd_café_日本.txt"
 string 1 "/"
 string 2 "write failed: "
@@ -86,22 +92,22 @@ string 47 "timed out"
 string 48 "too many open files"
 string 49 "path contains a NUL byte"
 string 50 "file is closed"
-data 0 structs 13 3 1 strref 49 u8 0a i32 00000000
-data 1 structs 13 3 1 strref 50 u8 0c i32 00000000
+data 0 structs 15 3 1 strref 49 u8 0a i32 00000000
+data 1 structs 15 3 1 strref 50 u8 0c i32 00000000
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=3 param_c_out= param_by_address= (string) -> i64
 import 1 byte_at std_core$Intrinsic$byte_at intrinsic=byte_at result_type=8 param_types=3,5 param_c_out= param_by_address= (string,i64) -> u8
 import 2 byte_slice std_core$Intrinsic$byte_slice intrinsic=byte_slice result_type=3 param_types=3,5,5 param_c_out= param_by_address= (string,i64,i64) -> string
 import 3 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=7 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 4 current_os std_core$Intrinsic$current_os intrinsic=current_os result_type=8 () -> u8
 import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,7,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 6 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=32 param_types=3 param_c_out= param_by_address= (string) -> any
-import 7 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=27 param_c_out= param_by_address= (pointer) -> i32
+import 6 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=38 param_types=3 param_c_out= param_by_address= (string) -> any
+import 7 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=29 param_c_out= param_by_address= (pointer) -> i32
 import 8 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 9 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
-import 10 extern :vader_path_stat system_posix$sys_path_stat headers=vader.h result_type=2 param_types=3,2,31 param_c_out=0,0,1 param_by_address= (string,i32,ref) -> i32
-import 11 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=32 param_types=27 param_c_out= param_by_address= (pointer) -> any
-import 12 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=3 param_types=27 param_c_out= param_by_address= (pointer) -> string
-import 13 extern :vader_dirent_kind system_posix$dirent_kind headers=vader.h result_type=2 param_types=27 param_c_out= param_by_address= (pointer) -> i32
+import 10 extern :vader_path_stat system_posix$sys_path_stat headers=vader.h result_type=2 param_types=3,2,34 param_c_out=0,0,1 param_by_address= (string,i32,ref) -> i32
+import 11 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=38 param_types=29 param_c_out= param_by_address= (pointer) -> any
+import 12 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=3 param_types=29 param_c_out= param_by_address= (pointer) -> string
+import 13 extern :vader_dirent_kind system_posix$dirent_kind headers=vader.h result_type=2 param_types=29 param_c_out= param_by_address= (pointer) -> i32
 import 14 extern :read system_posix$sys_read headers=<unistd.h> result_type=5 param_types=2,7,5 param_c_out=0,1,0 param_by_address= (i32,ref,i64) -> i64
 import 15 extern :close system_posix$sys_close headers=<unistd.h> result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
 import 16 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=2 param_types=3 param_c_out= param_by_address= (string) -> i32
@@ -109,12 +115,12 @@ import 17 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=2 
 import 18 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=3,2,2 param_c_out= param_by_address= (string,i32,i32) -> i32
 import 19 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
 import 20 extern :vader_fd_size system_posix$sys_fd_size headers=vader.h result_type=5 param_types=2 param_c_out= param_by_address= (i32) -> i64
-import 21 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=10 param_types=3 param_c_out= param_by_address= (string) -> any
-impl 20 std_io$Writer
-impl 13 std_core$Error
+import 21 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=12 param_types=3 param_c_out= param_by_address= (string) -> any
+impl 22 std_io$Writer
+impl 15 std_core$Error
 impl 4 std_core$ByteAccess
-impl 20 std_io$Reader
-vtable std_core$Error.message 13 52
+impl 22 std_io$Reader
+vtable std_core$Error.message 15 52
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -145,7 +151,7 @@ fn 0 snippet$main () -> i32
   local.tee 3   ; __fallback_0
   local.set 4   ; written
   local.get 3   ; __fallback_0
-  type_check 33   ; ref std_core$Error
+  type_check 39   ; ref std_core$Error
   if $L0 void
     local.get 4   ; written
     virtual.call 1 std_core$Error.message -> string
@@ -161,11 +167,11 @@ fn 0 snippet$main () -> i32
   local.tee 3   ; __fallback_0
   local.set 4   ; written
   local.get 3   ; __fallback_0
-  type_check 13   ; std_io$IOError
+  type_check 15   ; std_io$IOError
   if $L1 void
     local.get 4   ; written
-    ref.cast 13   ; std_io$IOError
-    struct.get 13 0   ; std_io$IOError.msg
+    ref.cast 15   ; std_io$IOError
+    struct.get 15 0   ; std_io$IOError.msg
     ref.cast 3   ; string
     local.set 5   ; $vcall_16
     string.const 3   ; "read_dir failed: "
@@ -175,7 +181,7 @@ fn 0 snippet$main () -> i32
     return.lit i32.const 1
   end $L1
   local.get 3   ; __fallback_0
-  ref.cast 15   ; string[]
+  ref.cast 17   ; string[]
   local.set 2   ; $arr_9
   bool.const false
   local.set 6   ; listed
@@ -193,7 +199,7 @@ fn 0 snippet$main () -> i32
     if $L3 void
       local.get 2   ; $arr_9
       local.get 9   ; __for_i_4
-      array.get 15   ; string[]
+      array.get 17   ; string[]
       ref.cast 3   ; string
       local.tee 5   ; $vcall_16
       local.get 0   ; name
@@ -213,7 +219,7 @@ fn 0 snippet$main () -> i32
       call 1   ; concat_3
       i64.const 16777216
       call 16   ; std_fs$read_file_bytes
-      type_check 13   ; std_io$IOError
+      type_check 15   ; std_io$IOError
       bool.not
       local.set 7   ; reopened
       local.get 9   ; __for_i_4
@@ -263,7 +269,7 @@ fn 0 snippet$main () -> i32
   call 10   ; std_console$println__string
   bool.const false
   bool.const false
-  struct.new 18   ; std_fs$RemoveOptions
+  struct.new 20   ; std_fs$RemoveOptions
   local.set 2   ; $arr_9
   local.get 1   ; path
   local.get 2   ; $arr_9
@@ -581,14 +587,14 @@ fn 14 std_fs$write_file (string,any) -> any
   local.tee 3   ; __fallback_0
   local.set 4   ; f
   local.get 3   ; __fallback_0
-  type_check 13   ; std_io$IOError
+  type_check 15   ; std_io$IOError
   if $L0 void
     local.get 4   ; f
-    ref.cast 13   ; std_io$IOError
+    ref.cast 15   ; std_io$IOError
     return
   end $L0
   local.get 3   ; __fallback_0
-  ref.cast 20   ; std_fs$File
+  ref.cast 22   ; std_fs$File
   local.tee 2   ; f
   local.get 1   ; arg 1
   call 44   ; std_fs$File$std_io$Writer$write
@@ -597,14 +603,14 @@ fn 14 std_fs$write_file (string,any) -> any
   call 20   ; std_fs$close
   local.set 4   ; f
   local.get 3   ; __fallback_0
-  type_check 13   ; std_io$IOError
+  type_check 15   ; std_io$IOError
   if $L1 void
   else
     local.get 4   ; f
     return
   end $L1
   local.get 3   ; __fallback_0
-  ref.cast 13   ; std_io$IOError
+  ref.cast 15   ; std_io$IOError
   return
 end
 
@@ -619,9 +625,9 @@ fn 15 std_fs$read_dir (string) -> any
   local.get 0   ; arg 0
   call 21   ; std_fs$has_nul
   if $L0 void
-    data.const 0 34   ; pool[0] std_io$IOError[]
+    data.const 0 40   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 34 safe   ; std_io$IOError[]
+    array.get 40 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -629,17 +635,17 @@ fn 15 std_fs$read_dir (string) -> any
   local.tee 2   ; __fallback_0
   local.set 3   ; listed
   local.get 2   ; __fallback_0
-  type_check 13   ; std_io$IOError
+  type_check 15   ; std_io$IOError
   if $L1 void
     local.get 3   ; listed
-    ref.cast 13   ; std_io$IOError
+    ref.cast 15   ; std_io$IOError
     return
   end $L1
   local.get 2   ; __fallback_0
-  ref.cast 22   ; std_fs$ListedEntry[]
+  ref.cast 24   ; std_fs$ListedEntry[]
   local.tee 1   ; listed
   array.len
-  array.reserve 15   ; string[]
+  array.reserve 17   ; string[]
   local.set 4   ; names
   local.get 1   ; listed
   array.len
@@ -653,8 +659,8 @@ fn 15 std_fs$read_dir (string) -> any
     if $L3 void
       local.get 1   ; listed
       local.get 6   ; __for_i_3
-      array.get 22   ; std_fs$ListedEntry[]
-      struct.get 23 0   ; std_fs$ListedEntry.name
+      array.get 24   ; std_fs$ListedEntry[]
+      struct.get 25 0   ; std_fs$ListedEntry.name
       ref.cast 3   ; string
       local.set 7   ; $field_23
       local.get 4   ; names
@@ -687,7 +693,7 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
   bool.const false
   bool.const false
   bool.const false
-  struct.new 25   ; std_fs$OpenOptions
+  struct.new 27   ; std_fs$OpenOptions
   local.set 2   ; f
   local.get 0   ; arg 0
   local.get 2   ; f
@@ -695,21 +701,21 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
   local.tee 3   ; __fallback_0
   local.set 4   ; f
   local.get 3   ; __fallback_0
-  type_check 13   ; std_io$IOError
+  type_check 15   ; std_io$IOError
   if $L0 void
     local.get 4   ; f
-    ref.cast 13   ; std_io$IOError
+    ref.cast 15   ; std_io$IOError
     return
   end $L0
   local.get 3   ; __fallback_0
-  ref.cast 20   ; std_fs$File
+  ref.cast 22   ; std_fs$File
   local.tee 2   ; f
-  struct.new 17   ; __defer_env_std_fs_1
-  make_closure 17 35   ; __defer_std_fs_0 fn
+  struct.new 19   ; __defer_env_std_fs_1
+  make_closure 17 41   ; __defer_std_fs_0 fn
   defer.push
   array.new 7 0   ; u8[]
   local.set 5   ; out
-  local.field 2 20 0   ; f std_fs$File.handle
+  local.field 2 22 0   ; f std_fs$File.handle
   call 25   ; std_fs$system_size
   local.tee 6   ; length
   local.get 1   ; arg 1
@@ -726,16 +732,16 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
     local.get 8   ; $add_checked_27
     array.repeat
     local.set 7   ; $arr_25
-    local.field 2 20 0   ; f std_fs$File.handle
+    local.field 2 22 0   ; f std_fs$File.handle
     local.get 7   ; $arr_25
     call 27   ; std_fs$read_into
     local.tee 3   ; __fallback_0
     local.set 4   ; f
     local.get 3   ; __fallback_0
-    type_check 13   ; std_io$IOError
+    type_check 15   ; std_io$IOError
     if $L2 void
       local.get 4   ; f
-      ref.cast 13   ; std_io$IOError
+      ref.cast 15   ; std_io$IOError
       local.set 9   ; __result_3
       defer.pop_exec 1
       local.get 9   ; __result_3
@@ -771,17 +777,17 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
     i64.gt
     if $L5 void
     else
-      local.field 2 20 0   ; f std_fs$File.handle
+      local.field 2 22 0   ; f std_fs$File.handle
       local.get 7   ; $arr_25
       i64.const 65536
       call 28   ; std_fs$system_read
       local.tee 3   ; __fallback_0
       local.set 4   ; f
       local.get 3   ; __fallback_0
-      type_check 13   ; std_io$IOError
+      type_check 15   ; std_io$IOError
       if $L6 void
         local.get 4   ; f
-        ref.cast 13   ; std_io$IOError
+        ref.cast 15   ; std_io$IOError
         local.set 9   ; __result_3
         defer.pop_exec 1
         local.get 9   ; __result_3
@@ -811,7 +817,7 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
   string.const 12   ; "file too large"
   i32.const 0
   i32.const 0
-  struct.new 13   ; std_io$IOError
+  struct.new 15   ; std_io$IOError
   local.set 2   ; f
   defer.pop_exec 1
   local.get 2   ; f
@@ -819,7 +825,7 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
 end
 
 fn 17 __defer_std_fs_0 (ref) -> void
-  local.field 0 17 0   ; arg 0 __defer_env_std_fs_1.cap_0
+  local.field 0 19 0   ; arg 0 __defer_env_std_fs_1.cap_0
   call 20   ; std_fs$close
   drop
   return
@@ -830,24 +836,24 @@ fn 18 std_fs$remove (string,ref) -> any
   local.get 0   ; arg 0
   call 21   ; std_fs$has_nul
   if $L0 void
-    data.const 0 34   ; pool[0] std_io$IOError[]
+    data.const 0 40   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 34 safe   ; std_io$IOError[]
+    array.get 40 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 29   ; std_fs$system_remove
   local.tee 2   ; removed
-  type_check 13   ; std_io$IOError
+  type_check 15   ; std_io$IOError
   if $L1 void
     local.get 2   ; removed
-    ref.cast 13   ; std_io$IOError
-    struct.get 13 1   ; std_io$IOError.kind
+    ref.cast 15   ; std_io$IOError
+    struct.get 15 1   ; std_io$IOError.kind
     i32.const 1
     i32.eq
     if $L2 void
-      local.field 1 18 1   ; arg 1 std_fs$RemoveOptions.force
+      local.field 1 20 1   ; arg 1 std_fs$RemoveOptions.force
       ref.cast 6   ; bool
       if $L3 void
         void.const
@@ -871,7 +877,7 @@ fn 19 std_fs$create (string) -> any
   bool.const true
   bool.const true
   bool.const false
-  struct.new 25   ; std_fs$OpenOptions
+  struct.new 27   ; std_fs$OpenOptions
   local.set 1   ; $struct_7
   local.get 0   ; arg 0
   local.get 1   ; $struct_7
@@ -880,14 +886,14 @@ fn 19 std_fs$create (string) -> any
 end
 
 fn 20 std_fs$close (ref) -> any
-  local.field 0 20 1   ; arg 0 std_fs$File.closed
+  local.field 0 22 1   ; arg 0 std_fs$File.closed
   ref.cast 6   ; bool
   if $L0 void
   else
     local.get 0   ; arg 0
     bool.const true
-    struct.set 20 1   ; std_fs$File.closed
-    local.field 0 20 0   ; arg 0 std_fs$File.handle
+    struct.set 22 1   ; std_fs$File.closed
+    local.field 0 22 0   ; arg 0 std_fs$File.handle
     call 30   ; std_fs$system_close
     return
   end $L0
@@ -924,12 +930,12 @@ fn 22 std_fs$list_dir (string) -> any
     return
   end $L0
   local.get 2   ; __fallback_0
-  ref.cast 27   ; pointer
+  ref.cast 29   ; pointer
   local.tee 1   ; d
-  struct.new 24   ; __defer_env_std_fs_3
-  make_closure 23 35   ; __defer_std_fs_2 fn
+  struct.new 26   ; __defer_env_std_fs_3
+  make_closure 23 41   ; __defer_std_fs_2 fn
   defer.push
-  array.new 22 0   ; std_fs$ListedEntry[]
+  array.new 24 0   ; std_fs$ListedEntry[]
   local.set 3   ; out
   loop $L1 void
     local.get 1   ; d
@@ -939,7 +945,7 @@ fn 22 std_fs$list_dir (string) -> any
     if $L2 void
     else
       local.get 2   ; __fallback_0
-      ref.cast 27   ; pointer
+      ref.cast 29   ; pointer
       local.tee 4   ; p
       call.import 12   ; system_posix$dirent_name
       local.tee 5   ; name
@@ -966,11 +972,11 @@ fn 22 std_fs$list_dir (string) -> any
       local.set 7   ; kind
       local.get 5   ; name
       local.get 7   ; kind
-      struct.new 23   ; std_fs$ListedEntry
+      struct.new 25   ; std_fs$ListedEntry
       local.set 8   ; $struct_26
       local.get 3   ; out
       local.get 8   ; $struct_26
-      array.push 23   ; std_fs$ListedEntry
+      array.push 25   ; std_fs$ListedEntry
       br $L1
     end $L2
   end $L1
@@ -980,8 +986,8 @@ fn 22 std_fs$list_dir (string) -> any
 end
 
 fn 23 __defer_std_fs_2 (ref) -> void
-  local.field 0 24 0   ; arg 0 __defer_env_std_fs_3.cap_0
-  ref.cast 27   ; pointer
+  local.field 0 26 0   ; arg 0 __defer_env_std_fs_3.cap_0
+  ref.cast 29   ; pointer
   call.import 7   ; system_posix$sys_closedir
   drop
   return
@@ -996,10 +1002,10 @@ fn 24 std_fs$open (string,ref) -> any
   local.tee 2   ; __fallback_0
   local.set 3   ; refusal
   local.get 2   ; __fallback_0
-  type_check 13   ; std_io$IOError
+  type_check 15   ; std_io$IOError
   if $L0 void
     local.get 3   ; refusal
-    ref.cast 13   ; std_io$IOError
+    ref.cast 15   ; std_io$IOError
     return
   end $L0
   local.get 0   ; arg 0
@@ -1008,15 +1014,15 @@ fn 24 std_fs$open (string,ref) -> any
   local.tee 2   ; __fallback_0
   local.set 3   ; refusal
   local.get 2   ; __fallback_0
-  type_check 13   ; std_io$IOError
+  type_check 15   ; std_io$IOError
   if $L1 void
     local.get 3   ; refusal
-    ref.cast 13   ; std_io$IOError
+    ref.cast 15   ; std_io$IOError
     return
   end $L1
   local.get 2   ; __fallback_0
   bool.const false
-  struct.new 20   ; std_fs$File
+  struct.new 22   ; std_fs$File
   return
 end
 
@@ -1090,10 +1096,10 @@ fn 27 std_fs$read_into (any,ref) -> any
       local.tee 8   ; __fallback_0
       local.set 9   ; n
       local.get 8   ; __fallback_0
-      type_check 13   ; std_io$IOError
+      type_check 15   ; std_io$IOError
       if $L2 void
         local.get 9   ; n
-        ref.cast 13   ; std_io$IOError
+        ref.cast 15   ; std_io$IOError
         return
       end $L2
       local.get 8   ; __fallback_0
@@ -1157,14 +1163,14 @@ fn 29 std_fs$system_remove (string,ref) -> any
   local.tee 2   ; __fallback_0
   local.set 3   ; cells
   local.get 2   ; __fallback_0
-  type_check 13   ; std_io$IOError
+  type_check 15   ; std_io$IOError
   if $L0 void
     local.get 3   ; cells
-    ref.cast 13   ; std_io$IOError
+    ref.cast 15   ; std_io$IOError
     return
   end $L0
   local.get 2   ; __fallback_0
-  ref.cast 31   ; i64[]
+  ref.cast 34   ; i64[]
   i32.const 0
   load_slot_i64
   call 36   ; std_fs$kind_of
@@ -1220,12 +1226,12 @@ fn 31 std_fs$kind_of_dirent (string,string,i32) -> u8
   bool.const false
   call 35   ; std_fs$stat_cells
   local.tee 3   ; __fallback_0
-  type_check 13   ; std_io$IOError
+  type_check 15   ; std_io$IOError
   if $L1 void
     return.lit i32.const 3
   end $L1
   local.get 3   ; __fallback_0
-  ref.cast 31   ; i64[]
+  ref.cast 34   ; i64[]
   i32.const 0
   load_slot_i64
   call 36   ; std_fs$kind_of
@@ -1237,22 +1243,22 @@ fn 32 std_fs$refusal_of (string,ref) -> any
   local.get 0   ; arg 0
   call 21   ; std_fs$has_nul
   if $L0 void
-    data.const 0 34   ; pool[0] std_io$IOError[]
+    data.const 0 40   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 34 safe   ; std_io$IOError[]
+    array.get 40 safe   ; std_io$IOError[]
     return
   end $L0
-  local.field 1 25 1   ; arg 1 std_fs$OpenOptions.write
+  local.field 1 27 1   ; arg 1 std_fs$OpenOptions.write
   ref.cast 6   ; bool
   if $L1 void
     bool.const true
     local.set 2   ; writes
   else
-    local.field 1 25 2   ; arg 1 std_fs$OpenOptions.append
+    local.field 1 27 2   ; arg 1 std_fs$OpenOptions.append
     ref.cast 6   ; bool
     local.set 2   ; writes
   end $L1
-  local.field 1 25 0   ; arg 1 std_fs$OpenOptions.read
+  local.field 1 27 0   ; arg 1 std_fs$OpenOptions.read
   ref.cast 6   ; bool
   if $L2 void
   else
@@ -1265,11 +1271,11 @@ fn 32 std_fs$refusal_of (string,ref) -> any
     end $L3
   end $L2
   block $L4 void
-    local.field 1 25 3   ; arg 1 std_fs$OpenOptions.create
+    local.field 1 27 3   ; arg 1 std_fs$OpenOptions.create
     ref.cast 6   ; bool
     if $L5 void
     else
-      local.field 1 25 5   ; arg 1 std_fs$OpenOptions.create_new
+      local.field 1 27 5   ; arg 1 std_fs$OpenOptions.create_new
       ref.cast 6   ; bool
       if $L6 void
       else
@@ -1284,10 +1290,10 @@ fn 32 std_fs$refusal_of (string,ref) -> any
       return
     end $L7
   end $L4
-  local.field 1 25 4   ; arg 1 std_fs$OpenOptions.truncate
+  local.field 1 27 4   ; arg 1 std_fs$OpenOptions.truncate
   ref.cast 6   ; bool
   if $L8 void
-    local.field 1 25 1   ; arg 1 std_fs$OpenOptions.write
+    local.field 1 27 1   ; arg 1 std_fs$OpenOptions.write
     ref.cast 6   ; bool
     if $L9 void
     else
@@ -1296,10 +1302,10 @@ fn 32 std_fs$refusal_of (string,ref) -> any
       return
     end $L9
   end $L8
-  local.field 1 25 4   ; arg 1 std_fs$OpenOptions.truncate
+  local.field 1 27 4   ; arg 1 std_fs$OpenOptions.truncate
   ref.cast 6   ; bool
   if $L10 void
-    local.field 1 25 2   ; arg 1 std_fs$OpenOptions.append
+    local.field 1 27 2   ; arg 1 std_fs$OpenOptions.append
     ref.cast 6   ; bool
     if $L11 void
       string.const 22   ; "truncate with append"
@@ -1375,7 +1381,7 @@ fn 35 std_fs$stat_cells (string,bool) -> any
   i64.const 0
   i64.const 0
   i64.const 0
-  array.new 31 4   ; i64[]
+  array.new 34 4   ; i64[]
   local.set 2   ; cells
   local.get 1   ; arg 1
   call 42   ; std_fs$link_flag
@@ -1429,7 +1435,7 @@ fn 37 std_fs$remove_directory (string,ref) -> any
   local __for_len_2 i64
   local __for_i_3 i64
   local name string
-  local.field 1 18 0   ; arg 1 std_fs$RemoveOptions.recursive
+  local.field 1 20 0   ; arg 1 std_fs$RemoveOptions.recursive
   ref.cast 6   ; bool
   if $L0 void
     local.get 0   ; arg 0
@@ -1437,14 +1443,14 @@ fn 37 std_fs$remove_directory (string,ref) -> any
     local.tee 2   ; __fallback_0
     local.set 3   ; names
     local.get 2   ; __fallback_0
-    type_check 13   ; std_io$IOError
+    type_check 15   ; std_io$IOError
     if $L1 void
       local.get 3   ; names
-      ref.cast 13   ; std_io$IOError
+      ref.cast 15   ; std_io$IOError
       return
     end $L1
     local.get 2   ; __fallback_0
-    ref.cast 15   ; string[]
+    ref.cast 17   ; string[]
     local.tee 4   ; __for_arr_1
     array.len
     local.set 5   ; __for_len_2
@@ -1457,7 +1463,7 @@ fn 37 std_fs$remove_directory (string,ref) -> any
       if $L3 void
         local.get 4   ; __for_arr_1
         local.get 6   ; __for_i_3
-        array.get 15   ; string[]
+        array.get 17   ; string[]
         ref.cast 3   ; string
         local.set 7   ; name
         local.get 0   ; arg 0
@@ -1469,10 +1475,10 @@ fn 37 std_fs$remove_directory (string,ref) -> any
         local.tee 2   ; __fallback_0
         local.set 3   ; names
         local.get 2   ; __fallback_0
-        type_check 13   ; std_io$IOError
+        type_check 15   ; std_io$IOError
         if $L4 void
           local.get 3   ; names
-          ref.cast 13   ; std_io$IOError
+          ref.cast 15   ; std_io$IOError
           return
         end $L4
         local.get 6   ; __for_i_3
@@ -1494,7 +1500,7 @@ fn 38 std_fs$invalid_options (string) -> ref
   call 2   ; concat_2
   i32.const 10
   i32.const 0
-  struct.new 13   ; std_io$IOError
+  struct.new 15   ; std_io$IOError
   return
 end
 
@@ -1519,7 +1525,7 @@ fn 39 std_fs$open_flags (ref) -> i32
   local.get 2   ; $call_7
   i32.bitor
   local.set 1   ; if_res
-  local.field 0 25 2   ; arg 0 std_fs$OpenOptions.append
+  local.field 0 27 2   ; arg 0 std_fs$OpenOptions.append
   ref.cast 6   ; bool
   if $L1 void
     i32.const 1
@@ -1537,7 +1543,7 @@ fn 39 std_fs$open_flags (ref) -> i32
     i32.bitor
     local.set 1   ; if_res
   end $L1
-  local.field 0 25 3   ; arg 0 std_fs$OpenOptions.create
+  local.field 0 27 3   ; arg 0 std_fs$OpenOptions.create
   ref.cast 6   ; bool
   if $L3 void
     i32.const 1
@@ -1555,7 +1561,7 @@ fn 39 std_fs$open_flags (ref) -> i32
     i32.bitor
     local.set 1   ; if_res
   end $L3
-  local.field 0 25 4   ; arg 0 std_fs$OpenOptions.truncate
+  local.field 0 27 4   ; arg 0 std_fs$OpenOptions.truncate
   ref.cast 6   ; bool
   if $L5 void
     i32.const 1
@@ -1573,7 +1579,7 @@ fn 39 std_fs$open_flags (ref) -> i32
     i32.bitor
     local.set 1   ; if_res
   end $L5
-  local.field 0 25 5   ; arg 0 std_fs$OpenOptions.create_new
+  local.field 0 27 5   ; arg 0 std_fs$OpenOptions.create_new
   ref.cast 6   ; bool
   if $L7 void
     i32.const 1
@@ -1612,17 +1618,17 @@ end
 
 fn 40 std_fs$access_mode (ref) -> i32
   local writes bool
-  local.field 0 25 1   ; arg 0 std_fs$OpenOptions.write
+  local.field 0 27 1   ; arg 0 std_fs$OpenOptions.write
   ref.cast 6   ; bool
   if $L0 void
     bool.const true
     local.set 1   ; writes
   else
-    local.field 0 25 2   ; arg 0 std_fs$OpenOptions.append
+    local.field 0 27 2   ; arg 0 std_fs$OpenOptions.append
     ref.cast 6   ; bool
     local.set 1   ; writes
   end $L0
-  local.field 0 25 0   ; arg 0 std_fs$OpenOptions.read
+  local.field 0 27 0   ; arg 0 std_fs$OpenOptions.read
   ref.cast 6   ; bool
   if $L1 void
     local.get 1   ; writes
@@ -1642,7 +1648,7 @@ fn 41 std_fs$is_a_directory (i32) -> ref
   string.const 26   ; "is a directory"
   i32.const 6
   local.get 0   ; arg 0
-  struct.new 13   ; std_io$IOError
+  struct.new 15   ; std_io$IOError
   return
 end
 
@@ -1675,12 +1681,12 @@ fn 44 std_fs$File$std_io$Writer$write (ref,any) -> any
   local $slice_15 ref
   local __fallback_0 any
   local n any
-  local.field 0 20 1   ; arg 0 std_fs$File.closed
+  local.field 0 22 1   ; arg 0 std_fs$File.closed
   ref.cast 6   ; bool
   if $L0 void
-    data.const 1 34   ; pool[1] std_io$IOError[]
+    data.const 1 40   ; pool[1] std_io$IOError[]
     i64.const 0
-    array.get 34 safe   ; std_io$IOError[]
+    array.get 40 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 1   ; arg 1
@@ -1696,7 +1702,7 @@ fn 44 std_fs$File$std_io$Writer$write (ref,any) -> any
     local.get 4   ; $len_10
     i64.lt
     if $L2 void
-      local.field 0 20 0   ; arg 0 std_fs$File.handle
+      local.field 0 22 0   ; arg 0 std_fs$File.handle
       local.set 6   ; $field_13
       local.get 2   ; bytes
       array.len
@@ -1712,10 +1718,10 @@ fn 44 std_fs$File$std_io$Writer$write (ref,any) -> any
       local.tee 9   ; __fallback_0
       local.set 10   ; n
       local.get 9   ; __fallback_0
-      type_check 13   ; std_io$IOError
+      type_check 15   ; std_io$IOError
       if $L3 void
         local.get 10   ; n
-        ref.cast 13   ; std_io$IOError
+        ref.cast 15   ; std_io$IOError
         return
       end $L3
       local.get 9   ; __fallback_0
@@ -1727,7 +1733,7 @@ fn 44 std_fs$File$std_io$Writer$write (ref,any) -> any
         string.const 28   ; "write failed: nothing written"
         i32.const 0
         i32.const 0
-        struct.new 13   ; std_io$IOError
+        struct.new 15   ; std_io$IOError
         return
       end $L4
       local.get 3   ; done
@@ -1815,7 +1821,7 @@ fn 49 std_io$classified_error (string,u8,i32) -> ref
   call 51   ; std_io$describe_io_error_kind
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  struct.new 13   ; std_io$IOError
+  struct.new 15   ; std_io$IOError
   return
 end
 
@@ -2223,7 +2229,7 @@ fn 51 std_io$describe_io_error_kind (u8,string) -> string
 end
 
 fn 52 std_io$IOError$std_core$Error$message (ref) -> string
-  local.field 0 13 0   ; arg 0 std_io$IOError.msg
+  local.field 0 15 0   ; arg 0 std_io$IOError.msg
   ref.cast 3   ; string
   return
 end

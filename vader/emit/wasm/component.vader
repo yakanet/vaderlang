@@ -78,6 +78,7 @@ export encode_component :: fn(component: WasmComponent) -> u8[] {
     function_count :: count_functions(c.interfaces)
     has_memory :: c.core.memory_import != null
     allocating :: c.interfaces.any_match((i) -> i.functions.any_match((f) -> allocates(f.type)))
+        || c.builtins.any_match((b) -> builtin_allocates(b))
     imported :: out.push_interface_imports(c.interfaces)
     scopes :: imported.scopes
     if has_memory {
@@ -702,7 +703,7 @@ push_builtin_sections :: fn(
         if t != null {
             canonical.push_count(types.type_index(t))
         }
-        canonical.push_all(builtin_options(b.kind))
+        canonical.push_all(builtin_options(b))
     }
     if types.count > 0 {
         definitions: u8[]: []
@@ -792,7 +793,36 @@ canonical_opcode :: fn(k: CanonicalKind) -> u8 = match k {
     .WaitableJoin       -> 0x23
 }
 
-builtin_options :: fn(k: CanonicalKind) -> u8[] = match k {
+// The options of the built-in `b`: a read that the host writes a string or a list
+// into takes the allocator, its strings UTF-8.
+builtin_options :: fn(b: CanonicalBuiltin) -> u8[] {
+    if builtin_allocates(b) {
+        return ASYNC_WITH_ALLOCATOR
+    }
+    return kind_options(b.kind)
+}
+
+// Whether the host writes into room it asks the allocator for when `b` runs: a
+// read of a stream or a future whose values hold a string or a list.
+builtin_allocates :: fn(b: CanonicalBuiltin) -> bool {
+    if b.kind != .StreamRead && b.kind != .FutureRead {
+        return false
+    }
+    t :: b.type else return false
+    if t is WitStream {
+        return holds_room(t.element)
+    }
+    if t is WitFuture {
+        return holds_room(t.value)
+    }
+    return false
+}
+
+// The options of a read that copies through the memory 0, its strings UTF-8 in
+// room the allocator gives, and returns `BLOCKED` rather than wait.
+ASYNC_WITH_ALLOCATOR: u8[]: [0x04, 0x06, 0x00, 0x03, 0x00, 0x04, 0x00]
+
+kind_options :: fn(k: CanonicalKind) -> u8[] = match k {
     .StreamNew          -> []
     .StreamRead         -> ASYNC_WITH_MEMORY
     .StreamWrite        -> ASYNC_WITH_MEMORY

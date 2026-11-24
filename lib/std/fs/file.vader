@@ -51,7 +51,7 @@ export SeekFrom :: enum {
 /// system handle until the process ends.
 export File :: struct {
     @internal
-    handle: Fd | Handle
+    handle: FileHandle
     @internal
     closed: bool = false
 }
@@ -215,10 +215,10 @@ NO_FILESYSTEM: IOError: IOError { .msg = "no filesystem on this target" }
 // Open `path` as `options` say, which `refusal_of` has checked: a
 // descriptor on POSIX, a handle on Windows.
 @target
-system_open :: fn(path: string, options: OpenOptions) -> Fd | Handle | IOError = NO_FILESYSTEM
+system_open :: fn(path: string, options: OpenOptions) -> FileHandle | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
-system_open :: fn(path: string, options: OpenOptions) -> Fd | Handle | IOError {
+system_open :: fn(path: string, options: OpenOptions) -> FileHandle | IOError {
     fd :: sys_open(path, open_flags(options), 0o666)
     if fd < 0 {
         return last_io_error("cannot open file")
@@ -233,7 +233,7 @@ system_open :: fn(path: string, options: OpenOptions) -> Fd | Handle | IOError {
 }
 
 @target(.Windows)
-system_open :: fn(path: string, options: OpenOptions) -> Fd | Handle | IOError {
+system_open :: fn(path: string, options: OpenOptions) -> FileHandle | IOError {
     // Every share mode, so that a file open here can be read, written, renamed
     // or deleted elsewhere, as POSIX lets it be.
     h :: create_file_w(to_wide(path), desired_access(options),
@@ -305,10 +305,10 @@ disposition :: fn(options: OpenOptions) -> u32 {
 
 // Read at most `count` bytes into `into`: how many, 0 at the end of the file.
 @target
-system_read :: fn(handle: Fd | Handle, into: u8[], count: i64) -> i64 | IOError = NO_FILESYSTEM
+system_read :: fn(handle: FileHandle, into: u8[], count: i64) -> i64 | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
-system_read :: fn(handle: Fd | Handle, into: u8[], count: i64) -> i64 | IOError {
+system_read :: fn(handle: FileHandle, into: u8[], count: i64) -> i64 | IOError {
     for {
         n :: sys_read(fd_of(handle), into, count)
         if n >= 0 {
@@ -322,7 +322,7 @@ system_read :: fn(handle: Fd | Handle, into: u8[], count: i64) -> i64 | IOError 
 }
 
 @target(.Windows)
-system_read :: fn(handle: Fd | Handle, into: u8[], count: i64) -> i64 | IOError {
+system_read :: fn(handle: FileHandle, into: u8[], count: i64) -> i64 | IOError {
     got: u32[]: [0]
     if !read_file(handle_of(handle), into, u32(min(count, WHOLE_READ_MAX)), got, null) {
         // A pipe whose writer has closed ends this way, not with a read of 0.
@@ -337,13 +337,13 @@ system_read :: fn(handle: Fd | Handle, into: u8[], count: i64) -> i64 | IOError 
 // The size of the regular file `handle` is open on, -1 for anything else: a
 // pipe or a device, whose size says nothing of what a read finds.
 @target
-system_size :: fn(handle: Fd | Handle) -> i64 = -1
+system_size :: fn(handle: FileHandle) -> i64 = -1
 
 @target(.Linux, .Darwin)
-system_size :: fn(handle: Fd | Handle) -> i64 = sys_fd_size(fd_of(handle))
+system_size :: fn(handle: FileHandle) -> i64 = sys_fd_size(fd_of(handle))
 
 @target(.Windows)
-system_size :: fn(handle: Fd | Handle) -> i64 {
+system_size :: fn(handle: FileHandle) -> i64 {
     h :: handle_of(handle)
     size: i64[]: [-1]
     if get_file_type(h) != FILE_TYPE_DISK || !get_file_size_ex(h, size) {
@@ -354,10 +354,10 @@ system_size :: fn(handle: Fd | Handle) -> i64 {
 
 // Write what one system call takes of `bytes`: how many.
 @target
-system_write :: fn(handle: Fd | Handle, bytes: u8[]) -> i64 | IOError = NO_FILESYSTEM
+system_write :: fn(handle: FileHandle, bytes: u8[]) -> i64 | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
-system_write :: fn(handle: Fd | Handle, bytes: u8[]) -> i64 | IOError {
+system_write :: fn(handle: FileHandle, bytes: u8[]) -> i64 | IOError {
     for {
         n :: sys_write(fd_of(handle), bytes, bytes.len())
         if n >= 0 {
@@ -371,7 +371,7 @@ system_write :: fn(handle: Fd | Handle, bytes: u8[]) -> i64 | IOError {
 }
 
 @target(.Windows)
-system_write :: fn(handle: Fd | Handle, bytes: u8[]) -> i64 | IOError {
+system_write :: fn(handle: FileHandle, bytes: u8[]) -> i64 | IOError {
     written: u32[]: [0]
     count :: u32(min(bytes.len(), WHOLE_READ_MAX))
     if !write_file(handle_of(handle), bytes, count, written, null) {
@@ -382,11 +382,11 @@ system_write :: fn(handle: Fd | Handle, bytes: u8[]) -> i64 | IOError {
 
 // Move the position `offset` bytes from `from`: the new one, from the start.
 @target
-system_seek :: fn(handle: Fd | Handle, offset: i64, from: SeekFrom) -> i64 | IOError =
+system_seek :: fn(handle: FileHandle, offset: i64, from: SeekFrom) -> i64 | IOError =
     NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
-system_seek :: fn(handle: Fd | Handle, offset: i64, from: SeekFrom) -> i64 | IOError {
+system_seek :: fn(handle: FileHandle, offset: i64, from: SeekFrom) -> i64 | IOError {
     position :: sys_lseek(fd_of(handle), offset, whence_of(from))
     if position < 0 {
         return last_io_error("seek failed")
@@ -395,7 +395,7 @@ system_seek :: fn(handle: Fd | Handle, offset: i64, from: SeekFrom) -> i64 | IOE
 }
 
 @target(.Windows)
-system_seek :: fn(handle: Fd | Handle, offset: i64, from: SeekFrom) -> i64 | IOError {
+system_seek :: fn(handle: FileHandle, offset: i64, from: SeekFrom) -> i64 | IOError {
     // The distance goes in two halves, and the high one comes back in place.
     high: i32[]: [i32(offset >> 32)]
     low :: set_file_pointer(handle_of(handle), i32(offset), high, method_of(from))
@@ -419,10 +419,10 @@ method_of :: fn(from: SeekFrom) -> u32 = match from {
 
 // Give the handle back to the system.
 @target
-system_close :: fn(handle: Fd | Handle) -> void | IOError = NO_FILESYSTEM
+system_close :: fn(handle: FileHandle) -> void | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
-system_close :: fn(handle: Fd | Handle) -> void | IOError {
+system_close :: fn(handle: FileHandle) -> void | IOError {
     // Not asked again on `EINTR`: Linux has closed the descriptor by then, and
     // another thread may already have it.
     if sys_close(fd_of(handle)) != 0 {
@@ -431,21 +431,28 @@ system_close :: fn(handle: Fd | Handle) -> void | IOError {
 }
 
 @target(.Windows)
-system_close :: fn(handle: Fd | Handle) -> void | IOError {
+system_close :: fn(handle: FileHandle) -> void | IOError {
     if !close_handle(handle_of(handle)) {
         return last_io_error("close failed")
     }
 }
 
-// A `File` holds an `Fd` on POSIX and a `Handle` on Windows: the other member is
-// a bug of this module, and stops the program.
+// What an open file is to its system: a descriptor on POSIX, a handle on
+// Windows, a descriptor of `wasi:filesystem` and the read under way under WASI.
+// A `File` holds the one of its system: another is a bug of this module, and
+// stops the program.
+FileHandle :: Fd | Handle | WasiFile
 
-fd_of :: fn(handle: Fd | Handle) -> i32 = @unreachable match handle {
+fd_of :: fn(handle: FileHandle) -> i32 = @unreachable match handle {
     is Fd -> i32(handle)
 }
 
-handle_of :: fn(handle: Fd | Handle) -> Handle = @unreachable match handle {
+handle_of :: fn(handle: FileHandle) -> Handle = @unreachable match handle {
     is Handle -> handle
+}
+
+wasi_file_of :: fn(handle: FileHandle) -> WasiFile = @unreachable match handle {
+    is WasiFile -> handle
 }
 
 // ---- tests ----------------------------------------------------------------

@@ -16,72 +16,78 @@ type 13 array 14
 type 14 struct std_fs$ListedEntry { name:5,kind:10 }
 type 15 array 5
 type 16 struct std_core$Stop {  }
-type 17 union 0,5
-type 18 struct std_fs$RemoveOptions { recursive:4,force:4 }
-type 19 union 20,1
-type 20 struct std_io$IOError { msg:5,kind:10,code:2 }
-type 21 union 5,9
-type 22 struct std_fs$WalkOptions { descend:41 }
-type 23 union 20,24
-type 24 struct std_fs$Walker { errors:40,root:5,options:22,listed:13 }
-type 25 array 3
-type 26 union 20,13
-type 27 struct __defer_env_std_fs_1 { cap_0:36 }
-type 28 union 29,20,15
-type 29 struct std_glob$GlobError { msg:5,offset:7 }
-type 30 union 31,20
-type 31 struct std_fs$File { handle:35,closed:4 }
-type 32 union 33,20
-type 33 array 7
-type 34 struct std_fs$OpenOptions { read:4,write:4,append:4,create:4,truncate:4,create_new:4 }
-type 35 union 2,36
-type 36 scalar pointer
-type 37 union 20,15
-type 38 union 2,36,20
-type 39 union 7,20
-type 40 array 20
-type 41 fn (3) -> 4
-type 42 union 43,1
-type 43 ref std_core$Error
-type 44 union 36,0
-type 45 fn (14,14) -> 4
-type 46 fn (5,5) -> 4
-type 47 array 48
-type 48 ref _
-type 49 fn (48,48) -> 4
-type 50 struct std_string$StringChars { s:5,cursor:7 }
-type 51 union 8,16
-type 52 struct std_glob$GlobOptions { pathname:4,globstar:4,explicit_period:4 }
-type 53 union 54,29
-type 54 struct std_glob$Glob { options:52,tokens:73 }
-type 55 array 8
-type 56 union 57,29
-type 57 struct __Tuple_2_ca1b4b98917b36a8 { _0:58,_1:7 }
-type 58 union 59,60,61,62,63,64
-type 59 struct std_glob$GlobAnyChar {  }
-type 60 struct std_glob$GlobBracket { ranges:74,classes:9,negated:4 }
-type 61 struct std_glob$GlobDeepStar {  }
-type 62 struct std_glob$GlobDirectories {  }
-type 63 struct std_glob$GlobLiteral { ch:8 }
-type 64 struct std_glob$GlobStar {  }
-type 65 array 4
-type 66 union 67,29,0
-type 67 struct __Tuple_u8_i64_485b013f { _0:10,_1:7 }
-type 68 union 69,29,0
-type 69 struct __Tuple_char_i64_d35e0494 { _0:8,_1:7 }
-type 70 union 71,0
-type 71 struct __Tuple_i64_i64_f049c617 { _0:7,_1:7 }
-type 72 union 0,10
-type 73 array 58
-type 74 array 75
-type 75 struct std_glob$GlobRange { low:8,high:8 }
-type 76 struct std_string__builder$StringBuilder { parts:15 }
-type 77 fn () -> 1
-type 78 array 16
-type 79 array 59
-type 80 array 64
-type 81 array 61
-type 82 array 62
+type 17 struct std_core$WasmReadable__u8 { handle:2 }
+type 18 struct std_core$WasmFuture__wasi_0filesystem_types_10_23_20_ErrorCodeCase___wasi_0filesystem_types_10_23_20_ErrorCodeOther___void { handle:2 }
+type 19 union 0,5
+type 20 struct std_fs$RemoveOptions { recursive:4,force:4 }
+type 21 union 22,1
+type 22 struct std_io$IOError { msg:5,kind:10,code:2 }
+type 23 union 5,9
+type 24 struct std_fs$WalkOptions { descend:44 }
+type 25 union 22,26
+type 26 struct std_fs$Walker { errors:43,root:5,options:24,listed:13 }
+type 27 array 3
+type 28 union 22,13
+type 29 struct __defer_env_std_fs_1 { cap_0:38 }
+type 30 union 31,22,15
+type 31 struct std_glob$GlobError { msg:5,offset:7 }
+type 32 union 33,22
+type 33 struct std_fs$File { handle:37,closed:4 }
+type 34 union 35,22
+type 35 array 7
+type 36 struct std_fs$OpenOptions { read:4,write:4,append:4,create:4,truncate:4,create_new:4 }
+type 37 union 2,38,39
+type 38 scalar pointer
+type 39 struct std_fs$WasiFile { descriptor:45,read:46,ended:4 }
+type 40 union 22,15
+type 41 union 2,38,22,39
+type 42 union 7,22
+type 43 array 22
+type 44 fn (3) -> 4
+type 45 struct wasi_0filesystem_types_10_23_20$Descriptor { handle:2 }
+type 46 union 0,47
+type 47 struct std_fs$WasiRead { bytes:17,done:18 }
+type 48 union 49,1
+type 49 ref std_core$Error
+type 50 union 38,0
+type 51 fn (14,14) -> 4
+type 52 fn (5,5) -> 4
+type 53 array 54
+type 54 ref _
+type 55 fn (54,54) -> 4
+type 56 struct std_string$StringChars { s:5,cursor:7 }
+type 57 union 8,16
+type 58 struct std_glob$GlobOptions { pathname:4,globstar:4,explicit_period:4 }
+type 59 union 60,31
+type 60 struct std_glob$Glob { options:58,tokens:79 }
+type 61 array 8
+type 62 union 63,31
+type 63 struct __Tuple_2_ca1b4b98917b36a8 { _0:64,_1:7 }
+type 64 union 65,66,67,68,69,70
+type 65 struct std_glob$GlobAnyChar {  }
+type 66 struct std_glob$GlobBracket { ranges:80,classes:9,negated:4 }
+type 67 struct std_glob$GlobDeepStar {  }
+type 68 struct std_glob$GlobDirectories {  }
+type 69 struct std_glob$GlobLiteral { ch:8 }
+type 70 struct std_glob$GlobStar {  }
+type 71 array 4
+type 72 union 73,31,0
+type 73 struct __Tuple_u8_i64_485b013f { _0:10,_1:7 }
+type 74 union 75,31,0
+type 75 struct __Tuple_char_i64_d35e0494 { _0:8,_1:7 }
+type 76 union 77,0
+type 77 struct __Tuple_i64_i64_f049c617 { _0:7,_1:7 }
+type 78 union 0,10
+type 79 array 64
+type 80 array 81
+type 81 struct std_glob$GlobRange { low:8,high:8 }
+type 82 struct std_string__builder$StringBuilder { parts:15 }
+type 83 fn () -> 1
+type 84 array 16
+type 85 array 65
+type 86 array 70
+type 87 array 67
+type 88 array 68
 string 0 "/vader_snippet_walk"
 string 1 "/src/front"
 string 2 "/node_modules/x"
@@ -192,13 +198,13 @@ string 106 "upper"
 string 107 "xdigit"
 string 108 "path contains a NUL byte"
 string 109 "file is closed"
-data 0 structs 20 3 1 strref 108 u8 0a i32 00000000
-data 1 structs 20 3 1 strref 109 u8 0c i32 00000000
+data 0 structs 22 3 1 strref 108 u8 0a i32 00000000
+data 1 structs 22 3 1 strref 109 u8 0c i32 00000000
 data 2 structs 16 0 1
-data 3 structs 59 0 1
-data 4 structs 64 0 1
-data 5 structs 61 0 1
-data 6 structs 62 0 1
+data 3 structs 65 0 1
+data 4 structs 70 0 1
+data 5 structs 67 0 1
+data 6 structs 68 0 1
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=5 param_c_out= param_by_address= (string) -> i64
 import 1 byte_at std_core$Intrinsic$byte_at intrinsic=byte_at result_type=10 param_types=5,7 param_c_out= param_by_address= (string,i64) -> u8
 import 2 byte_slice std_core$Intrinsic$byte_slice intrinsic=byte_slice result_type=5 param_types=5,7,7 param_c_out= param_by_address= (string,i64,i64) -> string
@@ -207,32 +213,32 @@ import 4 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_s
 import 5 panic std_core$Intrinsic$panic intrinsic=panic result_type=1 param_types=5 param_c_out= param_by_address= (string) -> void
 import 6 current_os std_core$Intrinsic$current_os intrinsic=current_os result_type=10 () -> u8
 import 7 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 8 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=44 param_types=5 param_c_out= param_by_address= (string) -> any
-import 9 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=36 param_c_out= param_by_address= (pointer) -> i32
+import 8 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=50 param_types=5 param_c_out= param_by_address= (string) -> any
+import 9 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=38 param_c_out= param_by_address= (pointer) -> i32
 import 10 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 11 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 import 12 extern :vader_path_kind system_posix$sys_path_kind headers=vader.h result_type=2 param_types=5 param_c_out= param_by_address= (string) -> i32
-import 13 extern :vader_path_stat system_posix$sys_path_stat headers=vader.h result_type=2 param_types=5,2,33 param_c_out=0,0,1 param_by_address= (string,i32,ref) -> i32
-import 14 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=44 param_types=36 param_c_out= param_by_address= (pointer) -> any
-import 15 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=5 param_types=36 param_c_out= param_by_address= (pointer) -> string
-import 16 extern :vader_dirent_kind system_posix$dirent_kind headers=vader.h result_type=2 param_types=36 param_c_out= param_by_address= (pointer) -> i32
+import 13 extern :vader_path_stat system_posix$sys_path_stat headers=vader.h result_type=2 param_types=5,2,35 param_c_out=0,0,1 param_by_address= (string,i32,ref) -> i32
+import 14 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=50 param_types=38 param_c_out= param_by_address= (pointer) -> any
+import 15 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=5 param_types=38 param_c_out= param_by_address= (pointer) -> string
+import 16 extern :vader_dirent_kind system_posix$dirent_kind headers=vader.h result_type=2 param_types=38 param_c_out= param_by_address= (pointer) -> i32
 import 17 extern :close system_posix$sys_close headers=<unistd.h> result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
 import 18 extern :mkdir system_posix$sys_mkdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=5,11 param_c_out= param_by_address= (string,u32) -> i32
 import 19 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=2 param_types=5 param_c_out= param_by_address= (string) -> i32
 import 20 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=2 param_types=5 param_c_out= param_by_address= (string) -> i32
 import 21 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=5,2,2 param_c_out= param_by_address= (string,i32,i32) -> i32
 import 22 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
-import 23 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=17 param_types=5 param_c_out= param_by_address= (string) -> any
-impl 31 std_io$Writer
-impl 20 std_core$Error
-impl 50 std_core$Iterator
-impl 29 std_core$Error
-impl 76 std_core$Display
+import 23 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=19 param_types=5 param_c_out= param_by_address= (string) -> any
+impl 33 std_io$Writer
+impl 22 std_core$Error
+impl 56 std_core$Iterator
+impl 31 std_core$Error
+impl 82 std_core$Display
 impl 6 std_core$ByteAccess
-impl 24 std_core$Into
-impl 31 std_io$Reader
-vtable std_core$Error.message 20 64
-vtable std_core$Error.message 29 107
+impl 26 std_core$Into
+impl 33 std_io$Reader
+vtable std_core$Error.message 22 64
+vtable std_core$Error.message 31 107
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -266,7 +272,7 @@ fn 0 snippet$main () -> i32
   local.set 0   ; root
   bool.const true
   bool.const true
-  struct.new 18   ; std_fs$RemoveOptions
+  struct.new 20   ; std_fs$RemoveOptions
   local.set 1   ; $struct_6
   local.get 0   ; root
   local.get 1   ; $struct_6
@@ -310,25 +316,25 @@ fn 0 snippet$main () -> i32
   retag 5   ; string
   call 25   ; std_fs$write_file
   call 67   ; std_testing$assert_succeeds
-  fn.ref 1 41   ; __lambda_snippet_0 fn
-  struct.new 22   ; std_fs$WalkOptions
+  fn.ref 1 44   ; __lambda_snippet_0 fn
+  struct.new 24   ; std_fs$WalkOptions
   local.set 1   ; $struct_6
   local.get 0   ; root
   local.get 1   ; $struct_6
   call 26   ; std_fs$walk
   local.tee 2   ; w
-  type_check 24   ; std_fs$Walker
+  type_check 26   ; std_fs$Walker
   if $L0 void
     local.get 2   ; w
-    ref.cast 24   ; std_fs$Walker
+    ref.cast 26   ; std_fs$Walker
     local.set 1   ; $struct_6
-    local.field 1 24 0   ; $struct_6 std_fs$Walker.errors
+    local.field 1 26 0   ; $struct_6 std_fs$Walker.errors
     array.clear
-    array.new 25 0   ; std_fs$WalkEntry[]
+    array.new 27 0   ; std_fs$WalkEntry[]
     local.set 3   ; pending
-    local.field 1 24 3   ; $struct_6 std_fs$Walker.listed
+    local.field 1 26 3   ; $struct_6 std_fs$Walker.listed
     local.set 4   ; $field_41
-    local.field 1 24 1   ; $struct_6 std_fs$Walker.root
+    local.field 1 26 1   ; $struct_6 std_fs$Walker.root
     ref.cast 5   ; string
     local.set 5   ; $field_42
     local.get 3   ; pending
@@ -410,12 +416,12 @@ fn 0 snippet$main () -> i32
         else
           br $L1
         end $L3
-        local.field 1 24 2   ; $struct_6 std_fs$Walker.options
-        struct.get 22 0   ; std_fs$WalkOptions.descend
+        local.field 1 26 2   ; $struct_6 std_fs$Walker.options
+        struct.get 24 0   ; std_fs$WalkOptions.descend
         local.set 15   ; $field_79
         local.get 4   ; $field_41
         local.get 15   ; $field_79
-        call.indirect 41   ; fn
+        call.indirect 44   ; fn
         if $L4 void
         else
           br $L1
@@ -426,16 +432,16 @@ fn 0 snippet$main () -> i32
         local.tee 17   ; __fallback_1
         local.set 18   ; listed
         local.get 17   ; __fallback_1
-        type_check 20   ; std_io$IOError
+        type_check 22   ; std_io$IOError
         if $L5 void
-          local.field 1 24 0   ; $struct_6 std_fs$Walker.errors
+          local.field 1 26 0   ; $struct_6 std_fs$Walker.errors
           local.set 19   ; $field_87
           local.get 18   ; listed
-          ref.cast 20   ; std_io$IOError
+          ref.cast 22   ; std_io$IOError
           local.set 20   ; $cast_88
           local.get 19   ; $field_87
           local.get 20   ; $cast_88
-          array.push 20   ; std_io$IOError
+          array.push 22   ; std_io$IOError
           br $L1
         end $L5
         local.get 17   ; __fallback_1
@@ -472,8 +478,8 @@ fn 0 snippet$main () -> i32
     call 6   ; std_core$write_string_at
     local.set 8   ; __p_0
     local.get 2   ; w
-    ref.cast 24   ; std_fs$Walker
-    struct.get 24 0   ; std_fs$Walker.errors
+    ref.cast 26   ; std_fs$Walker
+    struct.get 26 0   ; std_fs$Walker.errors
     array.len
     local.set 10   ; $call_59
     local.get 1   ; $struct_6
@@ -538,18 +544,18 @@ fn 0 snippet$main () -> i32
   string.const 3   ; "/README.md"
   call 2   ; concat_2
   local.set 5   ; $field_42
-  fn.ref 31 41   ; std_fs$every_directory fn
-  struct.new 22   ; std_fs$WalkOptions
+  fn.ref 31 44   ; std_fs$every_directory fn
+  struct.new 24   ; std_fs$WalkOptions
   local.set 1   ; $struct_6
   local.get 5   ; $field_42
   local.get 1   ; $struct_6
   call 26   ; std_fs$walk
   local.tee 2   ; w
-  type_check 20   ; std_io$IOError
+  type_check 22   ; std_io$IOError
   if $L9 void
     local.get 2   ; w
-    ref.cast 20   ; std_io$IOError
-    struct.get 20 1   ; std_io$IOError.kind
+    ref.cast 22   ; std_io$IOError
+    struct.get 22 1   ; std_io$IOError.kind
     call 65   ; std_io$IOErrorKind$std_core$Display$to_string
     local.set 5   ; $field_42
     string.const 16   ; "file root: "
@@ -559,7 +565,7 @@ fn 0 snippet$main () -> i32
   end $L9
   bool.const true
   bool.const false
-  struct.new 18   ; std_fs$RemoveOptions
+  struct.new 20   ; std_fs$RemoveOptions
   local.set 1   ; $struct_6
   local.get 0   ; root
   local.get 1   ; $struct_6
@@ -1544,24 +1550,24 @@ fn 23 std_fs$remove (string,ref) -> any
   local.get 0   ; arg 0
   call 32   ; std_fs$has_nul
   if $L0 void
-    data.const 0 40   ; pool[0] std_io$IOError[]
+    data.const 0 43   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 40 safe   ; std_io$IOError[]
+    array.get 43 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 33   ; std_fs$system_remove
   local.tee 2   ; removed
-  type_check 20   ; std_io$IOError
+  type_check 22   ; std_io$IOError
   if $L1 void
     local.get 2   ; removed
-    ref.cast 20   ; std_io$IOError
-    struct.get 20 1   ; std_io$IOError.kind
+    ref.cast 22   ; std_io$IOError
+    struct.get 22 1   ; std_io$IOError.kind
     i32.const 1
     i32.eq
     if $L2 void
-      local.field 1 18 1   ; arg 1 std_fs$RemoveOptions.force
+      local.field 1 20 1   ; arg 1 std_fs$RemoveOptions.force
       ref.cast 4   ; bool
       if $L3 void
         void.const
@@ -1589,7 +1595,7 @@ fn 24 std_fs$create_dir (string) -> any
     string.const 21   ; "empty path"
     i32.const 0
     i32.const 0
-    struct.new 20   ; std_io$IOError
+    struct.new 22   ; std_io$IOError
     return
   end $L0
   local.get 0   ; arg 0
@@ -1600,7 +1606,7 @@ fn 24 std_fs$create_dir (string) -> any
     string.const 22   ; "path too long"
     i32.const 0
     i32.const 0
-    struct.new 20   ; std_io$IOError
+    struct.new 22   ; std_io$IOError
     return
   end $L1
   local.get 0   ; arg 0
@@ -1655,7 +1661,7 @@ fn 24 std_fs$create_dir (string) -> any
         string.const 23   ; "cannot create parent"
         i32.const 0
         i32.const 0
-        struct.new 20   ; std_io$IOError
+        struct.new 22   ; std_io$IOError
         return
       end $L6
       local.get 1   ; i
@@ -1672,7 +1678,7 @@ fn 24 std_fs$create_dir (string) -> any
     string.const 24   ; "cannot create directory"
     i32.const 0
     i32.const 0
-    struct.new 20   ; std_io$IOError
+    struct.new 22   ; std_io$IOError
     return
   end $L7
   void.const
@@ -1688,14 +1694,14 @@ fn 25 std_fs$write_file (string,any) -> any
   local.tee 3   ; __fallback_0
   local.set 4   ; f
   local.get 3   ; __fallback_0
-  type_check 20   ; std_io$IOError
+  type_check 22   ; std_io$IOError
   if $L0 void
     local.get 4   ; f
-    ref.cast 20   ; std_io$IOError
+    ref.cast 22   ; std_io$IOError
     return
   end $L0
   local.get 3   ; __fallback_0
-  ref.cast 31   ; std_fs$File
+  ref.cast 33   ; std_fs$File
   local.tee 2   ; f
   local.get 1   ; arg 1
   call 55   ; std_fs$File$std_io$Writer$write
@@ -1704,14 +1710,14 @@ fn 25 std_fs$write_file (string,any) -> any
   call 36   ; std_fs$close
   local.set 4   ; f
   local.get 3   ; __fallback_0
-  type_check 20   ; std_io$IOError
+  type_check 22   ; std_io$IOError
   if $L1 void
   else
     local.get 4   ; f
     return
   end $L1
   local.get 3   ; __fallback_0
-  ref.cast 20   ; std_io$IOError
+  ref.cast 22   ; std_io$IOError
   return
 end
 
@@ -1722,9 +1728,9 @@ fn 26 std_fs$walk (string,ref) -> any
   local.get 0   ; arg 0
   call 32   ; std_fs$has_nul
   if $L0 void
-    data.const 0 40   ; pool[0] std_io$IOError[]
+    data.const 0 43   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 40 safe   ; std_io$IOError[]
+    array.get 43 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -1732,20 +1738,20 @@ fn 26 std_fs$walk (string,ref) -> any
   local.tee 3   ; __fallback_0
   local.set 4   ; listed
   local.get 3   ; __fallback_0
-  type_check 20   ; std_io$IOError
+  type_check 22   ; std_io$IOError
   if $L1 void
     local.get 4   ; listed
-    ref.cast 20   ; std_io$IOError
+    ref.cast 22   ; std_io$IOError
     return
   end $L1
   local.get 3   ; __fallback_0
   ref.cast 13   ; std_fs$ListedEntry[]
   local.set 2   ; listed
-  array.new 40 0   ; std_io$IOError[]
+  array.new 43 0   ; std_io$IOError[]
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; listed
-  struct.new 24   ; std_fs$Walker
+  struct.new 26   ; std_fs$Walker
   return
 end
 
@@ -1763,7 +1769,7 @@ fn 27 std_fs$push_entries (ref,ref,string,string,i64) -> void
   local $field_23 string
   local $field_24 u8
   local $struct_25 ref
-  fn.ref 37 45   ; std_fs$by_name_descending fn
+  fn.ref 37 51   ; std_fs$by_name_descending fn
   local.set 5   ; $fn_ref_5
   local.get 1   ; arg 1
   local.get 5   ; $fn_ref_5
@@ -1846,10 +1852,10 @@ fn 28 std_fs$list_dir (string) -> any
     return
   end $L0
   local.get 2   ; __fallback_0
-  ref.cast 36   ; pointer
+  ref.cast 38   ; pointer
   local.tee 1   ; d
-  struct.new 27   ; __defer_env_std_fs_1
-  make_closure 29 77   ; __defer_std_fs_0 fn
+  struct.new 29   ; __defer_env_std_fs_1
+  make_closure 29 83   ; __defer_std_fs_0 fn
   defer.push
   array.new 13 0   ; std_fs$ListedEntry[]
   local.set 3   ; out
@@ -1861,7 +1867,7 @@ fn 28 std_fs$list_dir (string) -> any
     if $L2 void
     else
       local.get 2   ; __fallback_0
-      ref.cast 36   ; pointer
+      ref.cast 38   ; pointer
       local.tee 4   ; p
       call.import 15   ; system_posix$dirent_name
       local.tee 5   ; name
@@ -1902,8 +1908,8 @@ fn 28 std_fs$list_dir (string) -> any
 end
 
 fn 29 __defer_std_fs_0 (ref) -> void
-  local.field 0 27 0   ; arg 0 __defer_env_std_fs_1.cap_0
-  ref.cast 36   ; pointer
+  local.field 0 29 0   ; arg 0 __defer_env_std_fs_1.cap_0
+  ref.cast 38   ; pointer
   call.import 9   ; system_posix$sys_closedir
   drop
   return
@@ -1931,7 +1937,7 @@ fn 30 std_fs$glob_files (string,string) -> any
   bool.const true
   bool.const true
   bool.const false
-  struct.new 52   ; std_glob$GlobOptions
+  struct.new 58   ; std_glob$GlobOptions
   local.set 2   ; glob
   local.get 1   ; arg 1
   local.get 2   ; glob
@@ -1939,17 +1945,17 @@ fn 30 std_fs$glob_files (string,string) -> any
   local.tee 3   ; __fallback_0
   local.set 4   ; glob
   local.get 3   ; __fallback_0
-  type_check 29   ; std_glob$GlobError
+  type_check 31   ; std_glob$GlobError
   if $L0 void
     local.get 4   ; glob
-    ref.cast 29   ; std_glob$GlobError
+    ref.cast 31   ; std_glob$GlobError
     return
   end $L0
   local.get 3   ; __fallback_0
-  ref.cast 54   ; std_glob$Glob
+  ref.cast 60   ; std_glob$Glob
   local.set 2   ; glob
-  fn.ref 31 41   ; std_fs$every_directory fn
-  struct.new 22   ; std_fs$WalkOptions
+  fn.ref 31 44   ; std_fs$every_directory fn
+  struct.new 24   ; std_fs$WalkOptions
   local.set 5   ; w
   local.get 0   ; arg 0
   local.get 5   ; w
@@ -1957,24 +1963,24 @@ fn 30 std_fs$glob_files (string,string) -> any
   local.tee 3   ; __fallback_0
   local.set 4   ; glob
   local.get 3   ; __fallback_0
-  type_check 20   ; std_io$IOError
+  type_check 22   ; std_io$IOError
   if $L1 void
     local.get 4   ; glob
-    ref.cast 20   ; std_io$IOError
+    ref.cast 22   ; std_io$IOError
     return
   end $L1
   local.get 3   ; __fallback_0
-  ref.cast 24   ; std_fs$Walker
+  ref.cast 26   ; std_fs$Walker
   local.set 5   ; w
   array.new 15 0   ; string[]
   local.set 6   ; found
-  local.field 5 24 0   ; w std_fs$Walker.errors
+  local.field 5 26 0   ; w std_fs$Walker.errors
   array.clear
-  array.new 25 0   ; std_fs$WalkEntry[]
+  array.new 27 0   ; std_fs$WalkEntry[]
   local.set 7   ; pending
-  local.field 5 24 3   ; w std_fs$Walker.listed
+  local.field 5 26 3   ; w std_fs$Walker.listed
   local.set 8   ; $field_28
-  local.field 5 24 1   ; w std_fs$Walker.root
+  local.field 5 26 1   ; w std_fs$Walker.root
   ref.cast 5   ; string
   local.set 9   ; $field_29
   local.get 7   ; pending
@@ -2020,12 +2026,12 @@ fn 30 std_fs$glob_files (string,string) -> any
       else
         br $L2
       end $L6
-      local.field 5 24 2   ; w std_fs$Walker.options
-      struct.get 22 0   ; std_fs$WalkOptions.descend
+      local.field 5 26 2   ; w std_fs$Walker.options
+      struct.get 24 0   ; std_fs$WalkOptions.descend
       local.set 12   ; $field_48
       local.get 8   ; $field_28
       local.get 12   ; $field_48
-      call.indirect 41   ; fn
+      call.indirect 44   ; fn
       if $L7 void
       else
         br $L2
@@ -2036,16 +2042,16 @@ fn 30 std_fs$glob_files (string,string) -> any
       local.tee 4   ; glob
       local.set 14   ; listed
       local.get 4   ; glob
-      type_check 20   ; std_io$IOError
+      type_check 22   ; std_io$IOError
       if $L8 void
-        local.field 5 24 0   ; w std_fs$Walker.errors
+        local.field 5 26 0   ; w std_fs$Walker.errors
         local.set 15   ; $field_56
         local.get 14   ; listed
-        ref.cast 20   ; std_io$IOError
+        ref.cast 22   ; std_io$IOError
         local.set 16   ; $cast_57
         local.get 15   ; $field_56
         local.get 16   ; $cast_57
-        array.push 20   ; std_io$IOError
+        array.push 22   ; std_io$IOError
         br $L2
       end $L8
       local.get 4   ; glob
@@ -2071,7 +2077,7 @@ fn 30 std_fs$glob_files (string,string) -> any
       br $L2
     end $L3
   end $L2
-  fn.ref 86 46   ; std_string$compare_ascending fn
+  fn.ref 86 52   ; std_string$compare_ascending fn
   local.set 2   ; glob
   local.get 6   ; found
   local.get 2   ; glob
@@ -2102,14 +2108,14 @@ fn 33 std_fs$system_remove (string,ref) -> any
   local.tee 2   ; __fallback_0
   local.set 3   ; cells
   local.get 2   ; __fallback_0
-  type_check 20   ; std_io$IOError
+  type_check 22   ; std_io$IOError
   if $L0 void
     local.get 3   ; cells
-    ref.cast 20   ; std_io$IOError
+    ref.cast 22   ; std_io$IOError
     return
   end $L0
   local.get 2   ; __fallback_0
-  ref.cast 33   ; i64[]
+  ref.cast 35   ; i64[]
   i32.const 0
   load_slot_i64
   call 40   ; std_fs$kind_of
@@ -2153,7 +2159,7 @@ fn 35 std_fs$create (string) -> any
   bool.const true
   bool.const true
   bool.const false
-  struct.new 34   ; std_fs$OpenOptions
+  struct.new 36   ; std_fs$OpenOptions
   local.set 1   ; $struct_7
   local.get 0   ; arg 0
   local.get 1   ; $struct_7
@@ -2162,14 +2168,14 @@ fn 35 std_fs$create (string) -> any
 end
 
 fn 36 std_fs$close (ref) -> any
-  local.field 0 31 1   ; arg 0 std_fs$File.closed
+  local.field 0 33 1   ; arg 0 std_fs$File.closed
   ref.cast 4   ; bool
   if $L0 void
   else
     local.get 0   ; arg 0
     bool.const true
-    struct.set 31 1   ; std_fs$File.closed
-    local.field 0 31 0   ; arg 0 std_fs$File.handle
+    struct.set 33 1   ; std_fs$File.closed
+    local.field 0 33 0   ; arg 0 std_fs$File.handle
     call 44   ; std_fs$system_close
     return
   end $L0
@@ -2212,12 +2218,12 @@ fn 38 std_fs$kind_of_dirent (string,string,i32) -> u8
   bool.const false
   call 39   ; std_fs$stat_cells
   local.tee 3   ; __fallback_0
-  type_check 20   ; std_io$IOError
+  type_check 22   ; std_io$IOError
   if $L1 void
     return.lit i32.const 3
   end $L1
   local.get 3   ; __fallback_0
-  ref.cast 33   ; i64[]
+  ref.cast 35   ; i64[]
   i32.const 0
   load_slot_i64
   call 40   ; std_fs$kind_of
@@ -2231,7 +2237,7 @@ fn 39 std_fs$stat_cells (string,bool) -> any
   i64.const 0
   i64.const 0
   i64.const 0
-  array.new 33 4   ; i64[]
+  array.new 35 4   ; i64[]
   local.set 2   ; cells
   local.get 1   ; arg 1
   call 45   ; std_fs$link_flag
@@ -2285,7 +2291,7 @@ fn 41 std_fs$remove_directory (string,ref) -> any
   local __for_len_2 i64
   local __for_i_3 i64
   local name string
-  local.field 1 18 0   ; arg 1 std_fs$RemoveOptions.recursive
+  local.field 1 20 0   ; arg 1 std_fs$RemoveOptions.recursive
   ref.cast 4   ; bool
   if $L0 void
     local.get 0   ; arg 0
@@ -2293,10 +2299,10 @@ fn 41 std_fs$remove_directory (string,ref) -> any
     local.tee 2   ; __fallback_0
     local.set 3   ; names
     local.get 2   ; __fallback_0
-    type_check 20   ; std_io$IOError
+    type_check 22   ; std_io$IOError
     if $L1 void
       local.get 3   ; names
-      ref.cast 20   ; std_io$IOError
+      ref.cast 22   ; std_io$IOError
       return
     end $L1
     local.get 2   ; __fallback_0
@@ -2325,10 +2331,10 @@ fn 41 std_fs$remove_directory (string,ref) -> any
         local.tee 2   ; __fallback_0
         local.set 3   ; names
         local.get 2   ; __fallback_0
-        type_check 20   ; std_io$IOError
+        type_check 22   ; std_io$IOError
         if $L4 void
           local.get 3   ; names
-          ref.cast 20   ; std_io$IOError
+          ref.cast 22   ; std_io$IOError
           return
         end $L4
         local.get 6   ; __for_i_3
@@ -2361,10 +2367,10 @@ fn 43 std_fs$open (string,ref) -> any
   local.tee 2   ; __fallback_0
   local.set 3   ; refusal
   local.get 2   ; __fallback_0
-  type_check 20   ; std_io$IOError
+  type_check 22   ; std_io$IOError
   if $L0 void
     local.get 3   ; refusal
-    ref.cast 20   ; std_io$IOError
+    ref.cast 22   ; std_io$IOError
     return
   end $L0
   local.get 0   ; arg 0
@@ -2373,15 +2379,15 @@ fn 43 std_fs$open (string,ref) -> any
   local.tee 2   ; __fallback_0
   local.set 3   ; refusal
   local.get 2   ; __fallback_0
-  type_check 20   ; std_io$IOError
+  type_check 22   ; std_io$IOError
   if $L1 void
     local.get 3   ; refusal
-    ref.cast 20   ; std_io$IOError
+    ref.cast 22   ; std_io$IOError
     return
   end $L1
   local.get 2   ; __fallback_0
   bool.const false
-  struct.new 31   ; std_fs$File
+  struct.new 33   ; std_fs$File
   return
 end
 
@@ -2421,9 +2427,9 @@ fn 46 std_fs$read_dir (string) -> any
   local.get 0   ; arg 0
   call 32   ; std_fs$has_nul
   if $L0 void
-    data.const 0 40   ; pool[0] std_io$IOError[]
+    data.const 0 43   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 40 safe   ; std_io$IOError[]
+    array.get 43 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -2431,10 +2437,10 @@ fn 46 std_fs$read_dir (string) -> any
   local.tee 2   ; __fallback_0
   local.set 3   ; listed
   local.get 2   ; __fallback_0
-  type_check 20   ; std_io$IOError
+  type_check 22   ; std_io$IOError
   if $L1 void
     local.get 3   ; listed
-    ref.cast 20   ; std_io$IOError
+    ref.cast 22   ; std_io$IOError
     return
   end $L1
   local.get 2   ; __fallback_0
@@ -2488,22 +2494,22 @@ fn 48 std_fs$refusal_of (string,ref) -> any
   local.get 0   ; arg 0
   call 32   ; std_fs$has_nul
   if $L0 void
-    data.const 0 40   ; pool[0] std_io$IOError[]
+    data.const 0 43   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 40 safe   ; std_io$IOError[]
+    array.get 43 safe   ; std_io$IOError[]
     return
   end $L0
-  local.field 1 34 1   ; arg 1 std_fs$OpenOptions.write
+  local.field 1 36 1   ; arg 1 std_fs$OpenOptions.write
   ref.cast 4   ; bool
   if $L1 void
     bool.const true
     local.set 2   ; writes
   else
-    local.field 1 34 2   ; arg 1 std_fs$OpenOptions.append
+    local.field 1 36 2   ; arg 1 std_fs$OpenOptions.append
     ref.cast 4   ; bool
     local.set 2   ; writes
   end $L1
-  local.field 1 34 0   ; arg 1 std_fs$OpenOptions.read
+  local.field 1 36 0   ; arg 1 std_fs$OpenOptions.read
   ref.cast 4   ; bool
   if $L2 void
   else
@@ -2516,11 +2522,11 @@ fn 48 std_fs$refusal_of (string,ref) -> any
     end $L3
   end $L2
   block $L4 void
-    local.field 1 34 3   ; arg 1 std_fs$OpenOptions.create
+    local.field 1 36 3   ; arg 1 std_fs$OpenOptions.create
     ref.cast 4   ; bool
     if $L5 void
     else
-      local.field 1 34 5   ; arg 1 std_fs$OpenOptions.create_new
+      local.field 1 36 5   ; arg 1 std_fs$OpenOptions.create_new
       ref.cast 4   ; bool
       if $L6 void
       else
@@ -2535,10 +2541,10 @@ fn 48 std_fs$refusal_of (string,ref) -> any
       return
     end $L7
   end $L4
-  local.field 1 34 4   ; arg 1 std_fs$OpenOptions.truncate
+  local.field 1 36 4   ; arg 1 std_fs$OpenOptions.truncate
   ref.cast 4   ; bool
   if $L8 void
-    local.field 1 34 1   ; arg 1 std_fs$OpenOptions.write
+    local.field 1 36 1   ; arg 1 std_fs$OpenOptions.write
     ref.cast 4   ; bool
     if $L9 void
     else
@@ -2547,10 +2553,10 @@ fn 48 std_fs$refusal_of (string,ref) -> any
       return
     end $L9
   end $L8
-  local.field 1 34 4   ; arg 1 std_fs$OpenOptions.truncate
+  local.field 1 36 4   ; arg 1 std_fs$OpenOptions.truncate
   ref.cast 4   ; bool
   if $L10 void
-    local.field 1 34 2   ; arg 1 std_fs$OpenOptions.append
+    local.field 1 36 2   ; arg 1 std_fs$OpenOptions.append
     ref.cast 4   ; bool
     if $L11 void
       string.const 36   ; "truncate with append"
@@ -2625,7 +2631,7 @@ fn 51 std_fs$invalid_options (string) -> ref
   call 2   ; concat_2
   i32.const 10
   i32.const 0
-  struct.new 20   ; std_io$IOError
+  struct.new 22   ; std_io$IOError
   return
 end
 
@@ -2650,7 +2656,7 @@ fn 52 std_fs$open_flags (ref) -> i32
   local.get 2   ; $call_7
   i32.bitor
   local.set 1   ; if_res
-  local.field 0 34 2   ; arg 0 std_fs$OpenOptions.append
+  local.field 0 36 2   ; arg 0 std_fs$OpenOptions.append
   ref.cast 4   ; bool
   if $L1 void
     i32.const 1
@@ -2668,7 +2674,7 @@ fn 52 std_fs$open_flags (ref) -> i32
     i32.bitor
     local.set 1   ; if_res
   end $L1
-  local.field 0 34 3   ; arg 0 std_fs$OpenOptions.create
+  local.field 0 36 3   ; arg 0 std_fs$OpenOptions.create
   ref.cast 4   ; bool
   if $L3 void
     i32.const 1
@@ -2686,7 +2692,7 @@ fn 52 std_fs$open_flags (ref) -> i32
     i32.bitor
     local.set 1   ; if_res
   end $L3
-  local.field 0 34 4   ; arg 0 std_fs$OpenOptions.truncate
+  local.field 0 36 4   ; arg 0 std_fs$OpenOptions.truncate
   ref.cast 4   ; bool
   if $L5 void
     i32.const 1
@@ -2704,7 +2710,7 @@ fn 52 std_fs$open_flags (ref) -> i32
     i32.bitor
     local.set 1   ; if_res
   end $L5
-  local.field 0 34 5   ; arg 0 std_fs$OpenOptions.create_new
+  local.field 0 36 5   ; arg 0 std_fs$OpenOptions.create_new
   ref.cast 4   ; bool
   if $L7 void
     i32.const 1
@@ -2743,17 +2749,17 @@ end
 
 fn 53 std_fs$access_mode (ref) -> i32
   local writes bool
-  local.field 0 34 1   ; arg 0 std_fs$OpenOptions.write
+  local.field 0 36 1   ; arg 0 std_fs$OpenOptions.write
   ref.cast 4   ; bool
   if $L0 void
     bool.const true
     local.set 1   ; writes
   else
-    local.field 0 34 2   ; arg 0 std_fs$OpenOptions.append
+    local.field 0 36 2   ; arg 0 std_fs$OpenOptions.append
     ref.cast 4   ; bool
     local.set 1   ; writes
   end $L0
-  local.field 0 34 0   ; arg 0 std_fs$OpenOptions.read
+  local.field 0 36 0   ; arg 0 std_fs$OpenOptions.read
   ref.cast 4   ; bool
   if $L1 void
     local.get 1   ; writes
@@ -2773,7 +2779,7 @@ fn 54 std_fs$is_a_directory (i32) -> ref
   string.const 39   ; "is a directory"
   i32.const 6
   local.get 0   ; arg 0
-  struct.new 20   ; std_io$IOError
+  struct.new 22   ; std_io$IOError
   return
 end
 
@@ -2787,12 +2793,12 @@ fn 55 std_fs$File$std_io$Writer$write (ref,any) -> any
   local $slice_15 ref
   local __fallback_0 any
   local n any
-  local.field 0 31 1   ; arg 0 std_fs$File.closed
+  local.field 0 33 1   ; arg 0 std_fs$File.closed
   ref.cast 4   ; bool
   if $L0 void
-    data.const 1 40   ; pool[1] std_io$IOError[]
+    data.const 1 43   ; pool[1] std_io$IOError[]
     i64.const 0
-    array.get 40 safe   ; std_io$IOError[]
+    array.get 43 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 1   ; arg 1
@@ -2808,7 +2814,7 @@ fn 55 std_fs$File$std_io$Writer$write (ref,any) -> any
     local.get 4   ; $len_10
     i64.lt
     if $L2 void
-      local.field 0 31 0   ; arg 0 std_fs$File.handle
+      local.field 0 33 0   ; arg 0 std_fs$File.handle
       local.set 6   ; $field_13
       local.get 2   ; bytes
       array.len
@@ -2824,10 +2830,10 @@ fn 55 std_fs$File$std_io$Writer$write (ref,any) -> any
       local.tee 9   ; __fallback_0
       local.set 10   ; n
       local.get 9   ; __fallback_0
-      type_check 20   ; std_io$IOError
+      type_check 22   ; std_io$IOError
       if $L3 void
         local.get 10   ; n
-        ref.cast 20   ; std_io$IOError
+        ref.cast 22   ; std_io$IOError
         return
       end $L3
       local.get 9   ; __fallback_0
@@ -2839,7 +2845,7 @@ fn 55 std_fs$File$std_io$Writer$write (ref,any) -> any
         string.const 40   ; "write failed: nothing written"
         i32.const 0
         i32.const 0
-        struct.new 20   ; std_io$IOError
+        struct.new 22   ; std_io$IOError
         return
       end $L4
       local.get 3   ; done
@@ -2966,7 +2972,7 @@ fn 61 std_io$classified_error (string,u8,i32) -> ref
   call 63   ; std_io$describe_io_error_kind
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  struct.new 20   ; std_io$IOError
+  struct.new 22   ; std_io$IOError
   return
 end
 
@@ -3374,7 +3380,7 @@ fn 63 std_io$describe_io_error_kind (u8,string) -> string
 end
 
 fn 64 std_io$IOError$std_core$Error$message (ref) -> string
-  local.field 0 20 0   ; arg 0 std_io$IOError.msg
+  local.field 0 22 0   ; arg 0 std_io$IOError.msg
   ref.cast 5   ; string
   return
 end
@@ -3571,7 +3577,7 @@ end
 fn 67 std_testing$assert_succeeds (any) -> void
   local $vcall_4 string
   local.get 0   ; arg 0
-  type_check 43   ; ref std_core$Error
+  type_check 49   ; ref std_core$Error
   if $L0 void
   else
     return
@@ -4171,12 +4177,12 @@ fn 82 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
     if $L3 void
       local.get 0   ; arg 0
       local.get 6   ; i
-      array.get 47   ; ref[]
+      array.get 53   ; ref[]
       local.set 7   ; $idx_17
       local.get 1   ; arg 1
       local.get 6   ; i
       local.get 7   ; $idx_17
-      array.set 47   ; ref[]
+      array.set 53   ; ref[]
       local.get 6   ; i
       i64.const 1
       i64.add
@@ -4201,12 +4207,12 @@ fn 82 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
       if $L6 void
         local.get 1   ; arg 1
         local.get 8   ; b
-        array.get 47   ; ref[]
+        array.get 53   ; ref[]
         local.set 7   ; $idx_17
         local.get 0   ; arg 0
         local.get 9   ; k
         local.get 7   ; $idx_17
-        array.set 47   ; ref[]
+        array.set 53   ; ref[]
         local.get 8   ; b
         i64.const 1
         i64.checked_add
@@ -4218,12 +4224,12 @@ fn 82 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
         if $L7 void
           local.get 1   ; arg 1
           local.get 6   ; i
-          array.get 47   ; ref[]
+          array.get 53   ; ref[]
           local.set 10   ; $idx_29
           local.get 0   ; arg 0
           local.get 9   ; k
           local.get 10   ; $idx_29
-          array.set 47   ; ref[]
+          array.set 53   ; ref[]
           local.get 6   ; i
           i64.const 1
           i64.checked_add
@@ -4231,25 +4237,25 @@ fn 82 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
         else
           local.get 1   ; arg 1
           local.get 8   ; b
-          array.get 47   ; ref[]
+          array.get 53   ; ref[]
           local.set 11   ; $idx_32
           local.get 1   ; arg 1
           local.get 6   ; i
-          array.get 47   ; ref[]
+          array.get 53   ; ref[]
           local.set 12   ; $idx_33
           local.get 11   ; $idx_32
           local.get 12   ; $idx_33
           local.get 4   ; arg 4
-          call.indirect 49   ; fn
+          call.indirect 55   ; fn
           if $L8 void
             local.get 1   ; arg 1
             local.get 8   ; b
-            array.get 47   ; ref[]
+            array.get 53   ; ref[]
             local.set 13   ; $idx_35
             local.get 0   ; arg 0
             local.get 9   ; k
             local.get 13   ; $idx_35
-            array.set 47   ; ref[]
+            array.set 53   ; ref[]
             local.get 8   ; b
             i64.const 1
             i64.checked_add
@@ -4257,12 +4263,12 @@ fn 82 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
           else
             local.get 1   ; arg 1
             local.get 6   ; i
-            array.get 47   ; ref[]
+            array.get 53   ; ref[]
             local.set 14   ; $idx_38
             local.get 0   ; arg 0
             local.get 9   ; k
             local.get 14   ; $idx_38
-            array.set 47   ; ref[]
+            array.set 53   ; ref[]
             local.get 6   ; i
             i64.const 1
             i64.checked_add
@@ -4416,7 +4422,7 @@ fn 83 std_sort$merge_sort_range__string (ref,ref,i64,i64,ref) -> void
           local.get 12   ; $idx_33
           retag 5   ; string
           local.get 4   ; arg 4
-          call.indirect 46   ; fn
+          call.indirect 52   ; fn
           if $L8 void
             local.get 1   ; arg 1
             local.get 8   ; b
@@ -4477,7 +4483,7 @@ fn 84 std_sort$insertion_sort_range__Any (ref,i64,i64,ref) -> void
     if $L1 void
       local.get 0   ; arg 0
       local.get 4   ; i
-      array.get 47   ; ref[]
+      array.get 53   ; ref[]
       local.set 5   ; x
       local.get 4   ; i
       local.set 6   ; j
@@ -4493,12 +4499,12 @@ fn 84 std_sort$insertion_sort_range__Any (ref,i64,i64,ref) -> void
             local.set 7   ; $sub_checked_13
             local.get 0   ; arg 0
             local.get 7   ; $sub_checked_13
-            array.get 47   ; ref[]
+            array.get 53   ; ref[]
             local.set 8   ; $idx_14
             local.get 5   ; x
             local.get 8   ; $idx_14
             local.get 3   ; arg 3
-            call.indirect 49   ; fn
+            call.indirect 55   ; fn
             if $L5 void
             else
               br $L2
@@ -4509,12 +4515,12 @@ fn 84 std_sort$insertion_sort_range__Any (ref,i64,i64,ref) -> void
             local.set 9   ; $sub_checked_17
             local.get 0   ; arg 0
             local.get 9   ; $sub_checked_17
-            array.get 47   ; ref[]
+            array.get 53   ; ref[]
             local.set 10   ; $idx_18
             local.get 0   ; arg 0
             local.get 6   ; j
             local.get 10   ; $idx_18
-            array.set 47   ; ref[]
+            array.set 53   ; ref[]
             local.get 6   ; j
             i64.const 1
             i64.checked_sub
@@ -4526,7 +4532,7 @@ fn 84 std_sort$insertion_sort_range__Any (ref,i64,i64,ref) -> void
       local.get 0   ; arg 0
       local.get 6   ; j
       local.get 5   ; x
-      array.set 47   ; ref[]
+      array.set 53   ; ref[]
       local.get 4   ; i
       i64.const 1
       i64.add
@@ -4581,7 +4587,7 @@ fn 85 std_sort$insertion_sort_range__string (ref,i64,i64,ref) -> void
             local.get 8   ; $idx_14
             retag 5   ; string
             local.get 3   ; arg 3
-            call.indirect 46   ; fn
+            call.indirect 52   ; fn
             if $L5 void
             else
               br $L2
@@ -4666,7 +4672,7 @@ end
 fn 88 std_string$chars (string) -> ref
   local.get 0   ; arg 0
   i64.const 0
-  struct.new 50   ; std_string$StringChars
+  struct.new 56   ; std_string$StringChars
   return
 end
 
@@ -4749,10 +4755,10 @@ fn 91 std_string$StringChars$std_core$Iterator$next (ref) -> any
   local code u32
   local or_res bool
   local $call_elem_35 i64
-  local.field 0 50 1   ; arg 0 std_string$StringChars.cursor
+  local.field 0 56 1   ; arg 0 std_string$StringChars.cursor
   ref.cast 7   ; i64
   local.set 1   ; i
-  local.field 0 50 0   ; arg 0 std_string$StringChars.s
+  local.field 0 56 0   ; arg 0 std_string$StringChars.s
   ref.cast 5   ; string
   call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; $call_4
@@ -4760,12 +4766,12 @@ fn 91 std_string$StringChars$std_core$Iterator$next (ref) -> any
   local.get 2   ; $call_4
   i64.ge
   if $L0 void
-    data.const 2 78   ; pool[2] std_core$Stop[]
+    data.const 2 84   ; pool[2] std_core$Stop[]
     i64.const 0
-    array.get 78 safe   ; std_core$Stop[]
+    array.get 84 safe   ; std_core$Stop[]
     return
   end $L0
-  local.field 0 50 0   ; arg 0 std_string$StringChars.s
+  local.field 0 56 0   ; arg 0 std_string$StringChars.s
   ref.cast 5   ; string
   local.get 1   ; i
   call.import 1   ; std_core$Intrinsic$byte_at
@@ -4779,13 +4785,13 @@ fn 91 std_string$StringChars$std_core$Iterator$next (ref) -> any
     local.set 2   ; $call_4
     local.get 0   ; arg 0
     local.get 2   ; $call_4
-    struct.set 50 1   ; std_string$StringChars.cursor
+    struct.set 56 1   ; std_string$StringChars.cursor
     local.get 3   ; b
     u8.to_char
     retag 8   ; char
     return
   end $L1
-  local.field 0 50 0   ; arg 0 std_string$StringChars.s
+  local.field 0 56 0   ; arg 0 std_string$StringChars.s
   ref.cast 5   ; string
   local.get 3   ; b
   local.get 1   ; i
@@ -4800,7 +4806,7 @@ fn 91 std_string$StringChars$std_core$Iterator$next (ref) -> any
   local.set 1   ; i
   local.get 0   ; arg 0
   local.get 1   ; i
-  struct.set 50 1   ; std_string$StringChars.cursor
+  struct.set 56 1   ; std_string$StringChars.cursor
   local.get 4   ; code
   i32.const 55295
   u32.gt
@@ -4847,7 +4853,7 @@ fn 92 std_glob$parse_glob (string,ref) -> any
   local.get 0   ; arg 0
   call 88   ; std_string$chars
   local.set 2   ; chars
-  array.new 55 0   ; char[]
+  array.new 61 0   ; char[]
   local.set 3   ; out
   loop $L0 void
     local.get 2   ; chars
@@ -4867,7 +4873,7 @@ fn 92 std_glob$parse_glob (string,ref) -> any
   end $L0
   local.get 3   ; out
   local.set 2   ; chars
-  array.new 73 0   ; union[]
+  array.new 79 0   ; union[]
   local.set 3   ; out
   i64.const 0
   local.set 6   ; i
@@ -4886,29 +4892,29 @@ fn 92 std_glob$parse_glob (string,ref) -> any
       local.tee 4   ; __fuse_step_0
       local.set 8   ; next
       local.get 4   ; __fuse_step_0
-      type_check 29   ; std_glob$GlobError
+      type_check 31   ; std_glob$GlobError
       if $L4 void
         local.get 8   ; next
-        ref.cast 29   ; std_glob$GlobError
+        ref.cast 31   ; std_glob$GlobError
         return
       end $L4
       local.get 4   ; __fuse_step_0
-      ref.cast 57   ; __Tuple_2_ca1b4b98917b36a8
+      ref.cast 63   ; __Tuple_2_ca1b4b98917b36a8
       local.set 9   ; __tup_3
-      local.field 9 57 0   ; __tup_3 __Tuple_2_ca1b4b98917b36a8._0
+      local.field 9 63 0   ; __tup_3 __Tuple_2_ca1b4b98917b36a8._0
       local.set 10   ; token
-      local.field 9 57 1   ; __tup_3 __Tuple_2_ca1b4b98917b36a8._1
+      local.field 9 63 1   ; __tup_3 __Tuple_2_ca1b4b98917b36a8._1
       ref.cast 7   ; i64
       local.set 6   ; i
       local.get 3   ; out
       local.get 10   ; token
-      array.push 58   ; union
+      array.push 64   ; union
       br $L2
     end $L3
   end $L2
   local.get 1   ; arg 1
   local.get 3   ; out
-  struct.new 54   ; std_glob$Glob
+  struct.new 60   ; std_glob$Glob
   return
 end
 
@@ -4924,7 +4930,7 @@ fn 93 std_glob$matches (ref,string) -> bool
   local.get 1   ; arg 1
   call 88   ; std_string$chars
   local.set 2   ; chars
-  array.new 55 0   ; char[]
+  array.new 61 0   ; char[]
   local.set 3   ; out
   loop $L0 void
     local.get 2   ; chars
@@ -4945,7 +4951,7 @@ fn 93 std_glob$matches (ref,string) -> bool
   local.get 3   ; out
   local.set 2   ; chars
   bool.const false
-  array.new 65 1   ; bool[]
+  array.new 71 1   ; bool[]
   local.set 3   ; out
   local.get 2   ; chars
   array.len
@@ -4957,7 +4963,7 @@ fn 93 std_glob$matches (ref,string) -> bool
   array.repeat
   local.set 3   ; out
   bool.const false
-  array.new 65 1   ; bool[]
+  array.new 71 1   ; bool[]
   local.set 7   ; $arr_20
   local.get 2   ; chars
   array.len
@@ -4974,8 +4980,8 @@ fn 93 std_glob$matches (ref,string) -> bool
   local.get 3   ; out
   local.get 6   ; $add_checked_16
   bool.const true
-  array.set 65   ; bool[]
-  local.field 0 54 1   ; arg 0 std_glob$Glob.tokens
+  array.set 71   ; bool[]
+  local.field 0 60 1   ; arg 0 std_glob$Glob.tokens
   array.len
   i64.const 1
   i64.checked_sub
@@ -4985,11 +4991,11 @@ fn 93 std_glob$matches (ref,string) -> bool
     i64.const 0
     i64.ge
     if $L3 void
-      local.field 0 54 1   ; arg 0 std_glob$Glob.tokens
+      local.field 0 60 1   ; arg 0 std_glob$Glob.tokens
       local.get 6   ; $add_checked_16
-      array.get 73   ; union[]
+      array.get 79   ; union[]
       local.set 4   ; __fuse_step_0
-      local.field 0 54 0   ; arg 0 std_glob$Glob.options
+      local.field 0 60 0   ; arg 0 std_glob$Glob.options
       local.set 8   ; $field_37
       local.get 4   ; __fuse_step_0
       local.get 2   ; chars
@@ -5012,7 +5018,7 @@ fn 93 std_glob$matches (ref,string) -> bool
   end $L2
   local.get 3   ; out
   i32.const 0
-  array.get 65   ; bool[]
+  array.get 71   ; bool[]
   ref.cast 4   ; bool
   return
 end
@@ -5044,7 +5050,7 @@ fn 94 std_glob$token_at (ref,i64,ref) -> any
     if $L1 void
       string.const 86   ; "a trailing `\\` quotes nothing"
       local.get 1   ; arg 1
-      struct.new 29   ; std_glob$GlobError
+      struct.new 31   ; std_glob$GlobError
       return
     end $L1
   end $L0
@@ -5059,7 +5065,7 @@ fn 94 std_glob$token_at (ref,i64,ref) -> any
     local.get 0   ; arg 0
     local.get 4   ; $add_checked_8
     load_slot_i32
-    struct.new 63   ; std_glob$GlobLiteral
+    struct.new 69   ; std_glob$GlobLiteral
     local.set 7   ; $struct_19
     local.get 1   ; arg 1
     i64.const 2
@@ -5067,7 +5073,7 @@ fn 94 std_glob$token_at (ref,i64,ref) -> any
     local.set 4   ; $add_checked_8
     local.get 7   ; $struct_19
     local.get 4   ; $add_checked_8
-    struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
+    struct.new 63   ; __Tuple_2_ca1b4b98917b36a8
     local.tee 6   ; if_res
     return
   end $L2
@@ -5075,9 +5081,9 @@ fn 94 std_glob$token_at (ref,i64,ref) -> any
   char.const 63
   i32.eq
   if $L3 void
-    data.const 3 79   ; pool[3] std_glob$GlobAnyChar[]
+    data.const 3 85   ; pool[3] std_glob$GlobAnyChar[]
     i64.const 0
-    array.get 79 safe   ; std_glob$GlobAnyChar[]
+    array.get 85 safe   ; std_glob$GlobAnyChar[]
     local.set 7   ; $struct_19
     local.get 1   ; arg 1
     i64.const 1
@@ -5085,17 +5091,17 @@ fn 94 std_glob$token_at (ref,i64,ref) -> any
     local.set 4   ; $add_checked_8
     local.get 7   ; $struct_19
     local.get 4   ; $add_checked_8
-    struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
+    struct.new 63   ; __Tuple_2_ca1b4b98917b36a8
     local.set 6   ; if_res
   else
     local.get 3   ; c
     char.const 42
     i32.eq
     if $L4 void
-      local.field 2 52 1   ; arg 2 std_glob$GlobOptions.globstar
+      local.field 2 58 1   ; arg 2 std_glob$GlobOptions.globstar
       ref.cast 4   ; bool
       if $L5 void
-        local.field 2 52 0   ; arg 2 std_glob$GlobOptions.pathname
+        local.field 2 58 0   ; arg 2 std_glob$GlobOptions.pathname
         ref.cast 4   ; bool
         local.set 8   ; and_res
       else
@@ -5112,7 +5118,7 @@ fn 94 std_glob$token_at (ref,i64,ref) -> any
       char.const 91
       i32.eq
       if $L6 void
-        local.field 2 52 0   ; arg 2 std_glob$GlobOptions.pathname
+        local.field 2 58 0   ; arg 2 std_glob$GlobOptions.pathname
         ref.cast 4   ; bool
         local.set 8   ; and_res
         local.get 0   ; arg 0
@@ -5122,7 +5128,7 @@ fn 94 std_glob$token_at (ref,i64,ref) -> any
         local.set 6   ; if_res
       else
         local.get 3   ; c
-        struct.new 63   ; std_glob$GlobLiteral
+        struct.new 69   ; std_glob$GlobLiteral
         local.set 7   ; $struct_19
         local.get 1   ; arg 1
         i64.const 1
@@ -5130,7 +5136,7 @@ fn 94 std_glob$token_at (ref,i64,ref) -> any
         local.set 4   ; $add_checked_8
         local.get 7   ; $struct_19
         local.get 4   ; $add_checked_8
-        struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
+        struct.new 63   ; __Tuple_2_ca1b4b98917b36a8
         local.set 6   ; if_res
       end $L6
     end $L4
@@ -5182,7 +5188,7 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
     i64.const 0
     i64.ge
     if $L1 void
-      local.field 4 52 2   ; arg 4 std_glob$GlobOptions.explicit_period
+      local.field 4 58 2   ; arg 4 std_glob$GlobOptions.explicit_period
       ref.cast 4   ; bool
       if $L2 void
         local.get 7   ; c
@@ -5214,7 +5220,7 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
           bool.const true
           local.set 11   ; or_res
         else
-          local.field 4 52 0   ; arg 4 std_glob$GlobOptions.pathname
+          local.field 4 58 0   ; arg 4 std_glob$GlobOptions.pathname
           ref.cast 4   ; bool
           if $L6 void
             local.get 7   ; c
@@ -5253,7 +5259,7 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
       end $L7
       local.get 14   ; takes
       if $L8 void
-        local.field 4 52 0   ; arg 4 std_glob$GlobOptions.pathname
+        local.field 4 58 0   ; arg 4 std_glob$GlobOptions.pathname
         ref.cast 4   ; bool
         bool.not
         if $L9 void
@@ -5287,7 +5293,7 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
           local.set 19   ; $add_checked_54
           local.get 2   ; arg 2
           local.get 19   ; $add_checked_54
-          array.get 65   ; bool[]
+          array.get 71   ; bool[]
           ref.cast 4   ; bool
           local.set 18   ; and_res
         else
@@ -5311,7 +5317,7 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
       local.get 17   ; and_res
       local.set 6   ; closes_directories
       local.get 0   ; arg 0
-      type_check 63   ; std_glob$GlobLiteral
+      type_check 69   ; std_glob$GlobLiteral
       if $L13 void
         local.get 7   ; c
         local.get 5   ; n
@@ -5322,8 +5328,8 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
           load_slot_i32
           local.set 23   ; $idx_64
           local.get 0   ; arg 0
-          ref.cast 63   ; std_glob$GlobLiteral
-          struct.get 63 0   ; std_glob$GlobLiteral.ch
+          ref.cast 69   ; std_glob$GlobLiteral
+          struct.get 69 0   ; std_glob$GlobLiteral.ch
           ref.cast 8   ; char
           local.set 24   ; $field_66
           local.get 23   ; $idx_64
@@ -5342,7 +5348,7 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
           local.set 25   ; $add_checked_70
           local.get 2   ; arg 2
           local.get 25   ; $add_checked_70
-          array.get 65   ; bool[]
+          array.get 71   ; bool[]
           ref.cast 4   ; bool
           local.set 21   ; if_res
         else
@@ -5351,7 +5357,7 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
         end $L15
       else
         local.get 0   ; arg 0
-        type_check 59   ; std_glob$GlobAnyChar
+        type_check 65   ; std_glob$GlobAnyChar
         if $L16 void
           local.get 15   ; single
           if $L17 void
@@ -5361,7 +5367,7 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
             local.set 26   ; $add_checked_75
             local.get 2   ; arg 2
             local.get 26   ; $add_checked_75
-            array.get 65   ; bool[]
+            array.get 71   ; bool[]
             ref.cast 4   ; bool
             local.set 21   ; if_res
           else
@@ -5370,12 +5376,12 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
           end $L17
         else
           local.get 0   ; arg 0
-          type_check 60   ; std_glob$GlobBracket
+          type_check 66   ; std_glob$GlobBracket
           if $L18 void
             local.get 15   ; single
             if $L19 void
               local.get 0   ; arg 0
-              ref.cast 60   ; std_glob$GlobBracket
+              ref.cast 66   ; std_glob$GlobBracket
               local.set 28   ; $cast_80
               local.get 1   ; arg 1
               local.get 7   ; c
@@ -5397,7 +5403,7 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
               local.set 30   ; $add_checked_85
               local.get 2   ; arg 2
               local.get 30   ; $add_checked_85
-              array.get 65   ; bool[]
+              array.get 71   ; bool[]
               ref.cast 4   ; bool
               local.set 21   ; if_res
             else
@@ -5406,11 +5412,11 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
             end $L20
           else
             local.get 0   ; arg 0
-            type_check 64   ; std_glob$GlobStar
+            type_check 70   ; std_glob$GlobStar
             if $L21 void
               local.get 2   ; arg 2
               local.get 7   ; c
-              array.get 65   ; bool[]
+              array.get 71   ; bool[]
               ref.cast 4   ; bool
               if $L22 void
                 bool.const true
@@ -5424,7 +5430,7 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
                   local.set 32   ; $add_checked_93
                   local.get 3   ; arg 3
                   local.get 32   ; $add_checked_93
-                  array.get 65   ; bool[]
+                  array.get 71   ; bool[]
                   ref.cast 4   ; bool
                   local.set 31   ; and_res
                 else
@@ -5436,11 +5442,11 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
               end $L22
             else
               local.get 0   ; arg 0
-              type_check 61   ; std_glob$GlobDeepStar
+              type_check 67   ; std_glob$GlobDeepStar
               if $L24 void
                 local.get 2   ; arg 2
                 local.get 7   ; c
-                array.get 65   ; bool[]
+                array.get 71   ; bool[]
                 ref.cast 4   ; bool
                 if $L25 void
                   bool.const true
@@ -5454,7 +5460,7 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
                     local.set 34   ; $add_checked_101
                     local.get 3   ; arg 3
                     local.get 34   ; $add_checked_101
-                    array.get 65   ; bool[]
+                    array.get 71   ; bool[]
                     ref.cast 4   ; bool
                     local.set 33   ; and_res
                   else
@@ -5466,14 +5472,14 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
                 end $L25
               else
                 local.get 0   ; arg 0
-                type_check 62   ; std_glob$GlobDirectories
+                type_check 68   ; std_glob$GlobDirectories
                 if $L27 void
                 else
                   unreachable "non-exhaustive match (T3013 should have caught this)"
                 end $L27
                 local.get 2   ; arg 2
                 local.get 7   ; c
-                array.get 65   ; bool[]
+                array.get 71   ; bool[]
                 ref.cast 4   ; bool
                 if $L28 void
                   bool.const true
@@ -5490,7 +5496,7 @@ fn 95 std_glob$fill_row (any,ref,ref,ref,ref) -> void
       local.get 3   ; arg 3
       local.get 7   ; c
       local.get 21   ; if_res
-      array.set 65   ; bool[]
+      array.set 71   ; bool[]
       local.get 7   ; c
       i64.const 1
       i64.checked_sub
@@ -5535,7 +5541,7 @@ fn 96 std_glob$bracket_token (ref,i64,bool) -> any
   local $call_96 string
   local $struct_100 ref
   char.const 91
-  struct.new 63   ; std_glob$GlobLiteral
+  struct.new 69   ; std_glob$GlobLiteral
   local.set 3   ; $struct_4
   local.get 1   ; arg 1
   i64.const 1
@@ -5543,7 +5549,7 @@ fn 96 std_glob$bracket_token (ref,i64,bool) -> any
   local.set 4   ; $add_checked_6
   local.get 3   ; $struct_4
   local.get 4   ; $add_checked_6
-  struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
+  struct.new 63   ; __Tuple_2_ca1b4b98917b36a8
   local.set 3   ; $struct_4
   local.get 1   ; arg 1
   i64.const 1
@@ -5583,7 +5589,7 @@ fn 96 std_glob$bracket_token (ref,i64,bool) -> any
     i64.checked_add
     local.set 4   ; $add_checked_6
   end $L2
-  array.new 74 0   ; std_glob$GlobRange[]
+  array.new 80 0   ; std_glob$GlobRange[]
   local.set 7   ; ranges
   array.new 9 0   ; u8[]
   local.set 8   ; classes
@@ -5621,7 +5627,7 @@ fn 96 std_glob$bracket_token (ref,i64,bool) -> any
           local.get 7   ; ranges
           local.get 8   ; classes
           local.get 5   ; negated
-          struct.new 60   ; std_glob$GlobBracket
+          struct.new 66   ; std_glob$GlobBracket
           local.set 11   ; bracket
           local.get 4   ; $add_checked_6
           i64.const 1
@@ -5629,7 +5635,7 @@ fn 96 std_glob$bracket_token (ref,i64,bool) -> any
           local.set 12   ; $add_checked_43
           local.get 11   ; bracket
           local.get 12   ; $add_checked_43
-          struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
+          struct.new 63   ; __Tuple_2_ca1b4b98917b36a8
           return
         end $L8
       end $L7
@@ -5639,10 +5645,10 @@ fn 96 std_glob$bracket_token (ref,i64,bool) -> any
       local.tee 14   ; __fallback_0
       local.set 15   ; class
       local.get 14   ; __fallback_0
-      type_check 29   ; std_glob$GlobError
+      type_check 31   ; std_glob$GlobError
       if $L9 void
         local.get 15   ; class
-        ref.cast 29   ; std_glob$GlobError
+        ref.cast 31   ; std_glob$GlobError
         return
       end $L9
       local.get 14   ; __fallback_0
@@ -5655,10 +5661,10 @@ fn 96 std_glob$bracket_token (ref,i64,bool) -> any
         local.tee 20   ; __fallback_2
         local.set 21   ; low
         local.get 20   ; __fallback_2
-        type_check 29   ; std_glob$GlobError
+        type_check 31   ; std_glob$GlobError
         if $L11 void
           local.get 21   ; low
-          ref.cast 29   ; std_glob$GlobError
+          ref.cast 31   ; std_glob$GlobError
           return
         end $L11
         local.get 20   ; __fallback_2
@@ -5669,12 +5675,12 @@ fn 96 std_glob$bracket_token (ref,i64,bool) -> any
           return
         end $L12
         local.get 19   ; low
-        ref.cast 69   ; __Tuple_char_i64_d35e0494
+        ref.cast 75   ; __Tuple_char_i64_d35e0494
         local.set 22   ; __tup_3
-        local.field 22 69 0   ; __tup_3 __Tuple_char_i64_d35e0494._0
+        local.field 22 75 0   ; __tup_3 __Tuple_char_i64_d35e0494._0
         ref.cast 8   ; char
         local.set 23   ; low_char
-        local.field 22 69 1   ; __tup_3 __Tuple_char_i64_d35e0494._1
+        local.field 22 75 1   ; __tup_3 __Tuple_char_i64_d35e0494._1
         ref.cast 7   ; i64
         local.set 24   ; after_low
         local.get 0   ; arg 0
@@ -5683,10 +5689,10 @@ fn 96 std_glob$bracket_token (ref,i64,bool) -> any
         local.tee 26   ; __fallback_4
         local.set 27   ; high
         local.get 26   ; __fallback_4
-        type_check 29   ; std_glob$GlobError
+        type_check 31   ; std_glob$GlobError
         if $L13 void
           local.get 27   ; high
-          ref.cast 29   ; std_glob$GlobError
+          ref.cast 31   ; std_glob$GlobError
           return
         end $L13
         local.get 26   ; __fallback_4
@@ -5695,22 +5701,22 @@ fn 96 std_glob$bracket_token (ref,i64,bool) -> any
         if $L14 void
           local.get 23   ; low_char
           local.get 23   ; low_char
-          struct.new 75   ; std_glob$GlobRange
+          struct.new 81   ; std_glob$GlobRange
           local.set 28   ; $struct_85
           local.get 7   ; ranges
           local.get 28   ; $struct_85
-          array.push 75   ; std_glob$GlobRange
+          array.push 81   ; std_glob$GlobRange
           local.get 24   ; after_low
           local.set 4   ; $add_checked_6
           br $L3
         end $L14
         local.get 25   ; high
-        ref.cast 69   ; __Tuple_char_i64_d35e0494
+        ref.cast 75   ; __Tuple_char_i64_d35e0494
         local.set 29   ; __tup_5
-        local.field 29 69 0   ; __tup_5 __Tuple_char_i64_d35e0494._0
+        local.field 29 75 0   ; __tup_5 __Tuple_char_i64_d35e0494._0
         ref.cast 8   ; char
         local.set 30   ; high_char
-        local.field 29 69 1   ; __tup_5 __Tuple_char_i64_d35e0494._1
+        local.field 29 75 1   ; __tup_5 __Tuple_char_i64_d35e0494._1
         ref.cast 7   ; i64
         local.set 31   ; after_high
         local.get 30   ; high_char
@@ -5730,26 +5736,26 @@ fn 96 std_glob$bracket_token (ref,i64,bool) -> any
           string.const 90   ; "` is reversed"
           call 4   ; concat_5
           local.get 4   ; $add_checked_6
-          struct.new 29   ; std_glob$GlobError
+          struct.new 31   ; std_glob$GlobError
           return
         end $L15
         local.get 23   ; low_char
         local.get 30   ; high_char
-        struct.new 75   ; std_glob$GlobRange
+        struct.new 81   ; std_glob$GlobRange
         local.set 34   ; $struct_100
         local.get 7   ; ranges
         local.get 34   ; $struct_100
-        array.push 75   ; std_glob$GlobRange
+        array.push 81   ; std_glob$GlobRange
         local.get 31   ; after_high
         local.set 4   ; $add_checked_6
         br $L3
       end $L10
       local.get 13   ; class
-      ref.cast 67   ; __Tuple_u8_i64_485b013f
+      ref.cast 73   ; __Tuple_u8_i64_485b013f
       local.set 16   ; __tup_1
-      local.field 16 67 0   ; __tup_1 __Tuple_u8_i64_485b013f._0
+      local.field 16 73 0   ; __tup_1 __Tuple_u8_i64_485b013f._0
       local.set 17   ; named
-      local.field 16 67 1   ; __tup_1 __Tuple_u8_i64_485b013f._1
+      local.field 16 73 1   ; __tup_1 __Tuple_u8_i64_485b013f._1
       ref.cast 7   ; i64
       local.set 18   ; after_class
       local.get 0   ; arg 0
@@ -5760,7 +5766,7 @@ fn 96 std_glob$bracket_token (ref,i64,bool) -> any
       else
         string.const 87   ; "a class cannot start a range"
         local.get 18   ; after_class
-        struct.new 29   ; std_glob$GlobError
+        struct.new 31   ; std_glob$GlobError
         return
       end $L16
       local.get 8   ; classes
@@ -5850,11 +5856,11 @@ fn 97 std_glob$star_token (ref,i64,bool) -> ref
   end $L5
   local.get 5   ; or_res
   if $L7 void
-    data.const 4 80   ; pool[4] std_glob$GlobStar[]
+    data.const 4 86   ; pool[4] std_glob$GlobStar[]
     i64.const 0
-    array.get 80 safe   ; std_glob$GlobStar[]
+    array.get 86 safe   ; std_glob$GlobStar[]
     local.get 3   ; end
-    struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
+    struct.new 63   ; __Tuple_2_ca1b4b98917b36a8
     return
   end $L7
   local.get 0   ; arg 0
@@ -5864,11 +5870,11 @@ fn 97 std_glob$star_token (ref,i64,bool) -> ref
   local.get 4   ; $len_4
   i64.eq
   if $L8 void
-    data.const 5 81   ; pool[5] std_glob$GlobDeepStar[]
+    data.const 5 87   ; pool[5] std_glob$GlobDeepStar[]
     i64.const 0
-    array.get 81 safe   ; std_glob$GlobDeepStar[]
+    array.get 87 safe   ; std_glob$GlobDeepStar[]
     local.get 3   ; end
-    struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
+    struct.new 63   ; __Tuple_2_ca1b4b98917b36a8
     return
   end $L8
   local.get 0   ; arg 0
@@ -5878,16 +5884,16 @@ fn 97 std_glob$star_token (ref,i64,bool) -> ref
   i32.eq
   if $L9 void
   else
-    data.const 4 80   ; pool[4] std_glob$GlobStar[]
+    data.const 4 86   ; pool[4] std_glob$GlobStar[]
     i64.const 0
-    array.get 80 safe   ; std_glob$GlobStar[]
+    array.get 86 safe   ; std_glob$GlobStar[]
     local.get 3   ; end
-    struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
+    struct.new 63   ; __Tuple_2_ca1b4b98917b36a8
     return
   end $L9
-  data.const 6 82   ; pool[6] std_glob$GlobDirectories[]
+  data.const 6 88   ; pool[6] std_glob$GlobDirectories[]
   i64.const 0
-  array.get 82 safe   ; std_glob$GlobDirectories[]
+  array.get 88 safe   ; std_glob$GlobDirectories[]
   local.set 7   ; $idx_43
   local.get 3   ; end
   i64.const 1
@@ -5895,7 +5901,7 @@ fn 97 std_glob$star_token (ref,i64,bool) -> ref
   local.set 3   ; end
   local.get 7   ; $idx_43
   local.get 3   ; end
-  struct.new 57   ; __Tuple_2_ca1b4b98917b36a8
+  struct.new 63   ; __Tuple_2_ca1b4b98917b36a8
   return
 end
 
@@ -5906,7 +5912,7 @@ fn 98 std_glob$admits (ref,char) -> bool
   local.get 1   ; arg 1
   call 102   ; std_glob$lists
   local.set 2   ; $call_2
-  local.field 0 60 2   ; arg 0 std_glob$GlobBracket.negated
+  local.field 0 66 2   ; arg 0 std_glob$GlobBracket.negated
   ref.cast 4   ; bool
   local.set 3   ; $field_3
   local.get 2   ; $call_2
@@ -5932,12 +5938,12 @@ fn 99 std_glob$class_at (ref,i64) -> any
     return.lit null.const
   end $L0
   local.get 2   ; __fallback_0
-  ref.cast 71   ; __Tuple_i64_i64_f049c617
+  ref.cast 77   ; __Tuple_i64_i64_f049c617
   local.set 3   ; __tup_1
-  local.field 3 71 0   ; __tup_1 __Tuple_i64_i64_f049c617._0
+  local.field 3 77 0   ; __tup_1 __Tuple_i64_i64_f049c617._0
   ref.cast 7   ; i64
   local.set 4   ; start
-  local.field 3 71 1   ; __tup_1 __Tuple_i64_i64_f049c617._1
+  local.field 3 77 1   ; __tup_1 __Tuple_i64_i64_f049c617._1
   ref.cast 7   ; i64
   local.set 5   ; close
   local.get 0   ; arg 0
@@ -5954,7 +5960,7 @@ fn 99 std_glob$class_at (ref,i64) -> any
     string.const 92   ; ":]`"
     call 3   ; concat_3
     local.get 1   ; arg 1
-    struct.new 29   ; std_glob$GlobError
+    struct.new 31   ; std_glob$GlobError
     return
   end $L1
   local.get 2   ; __fallback_0
@@ -5966,7 +5972,7 @@ fn 99 std_glob$class_at (ref,i64) -> any
   local.set 4   ; start
   local.get 7   ; class
   local.get 4   ; start
-  struct.new 67   ; __Tuple_u8_i64_485b013f
+  struct.new 73   ; __Tuple_u8_i64_485b013f
   return
 end
 
@@ -6023,7 +6029,7 @@ fn 100 std_glob$range_end_at (ref,i64) -> any
     local.set 2   ; $add_checked_3
     string.const 93   ; "a class cannot end a range"
     local.get 2   ; $add_checked_3
-    struct.new 29   ; std_glob$GlobError
+    struct.new 31   ; std_glob$GlobError
     return
   end $L3
   local.get 1   ; arg 1
@@ -6083,14 +6089,14 @@ fn 101 std_glob$endpoint_at (ref,i64) -> any
       local.set 2   ; $add_checked_6
       local.get 4   ; $idx_12
       local.get 2   ; $add_checked_6
-      struct.new 69   ; __Tuple_char_i64_d35e0494
+      struct.new 75   ; __Tuple_char_i64_d35e0494
       return
     end $L1
     return.lit null.const
   end $L0
   char.const 61
   char.const 46
-  array.new 55 2   ; char[]
+  array.new 61 2   ; char[]
   local.tee 5   ; __for_arr_0
   array.len
   local.set 2   ; $add_checked_6
@@ -6119,12 +6125,12 @@ fn 101 std_glob$endpoint_at (ref,i64) -> any
         br $L2
       end $L4
       local.get 6   ; __fallback_3
-      ref.cast 71   ; __Tuple_i64_i64_f049c617
+      ref.cast 77   ; __Tuple_i64_i64_f049c617
       local.set 7   ; __tup_4
-      local.field 7 71 0   ; __tup_4 __Tuple_i64_i64_f049c617._0
+      local.field 7 77 0   ; __tup_4 __Tuple_i64_i64_f049c617._0
       ref.cast 7   ; i64
       local.set 8   ; start
-      local.field 7 71 1   ; __tup_4 __Tuple_i64_i64_f049c617._1
+      local.field 7 77 1   ; __tup_4 __Tuple_i64_i64_f049c617._1
       ref.cast 7   ; i64
       local.set 9   ; close
       local.get 8   ; start
@@ -6146,7 +6152,7 @@ fn 101 std_glob$endpoint_at (ref,i64) -> any
         local.set 15   ; $add_checked_52
         local.get 14   ; $idx_50
         local.get 15   ; $add_checked_52
-        struct.new 69   ; __Tuple_char_i64_d35e0494
+        struct.new 75   ; __Tuple_char_i64_d35e0494
         return
       end $L5
       local.get 0   ; arg 0
@@ -6167,7 +6173,7 @@ fn 101 std_glob$endpoint_at (ref,i64) -> any
       string.const 95   ; "]`"
       call 4   ; concat_5
       local.get 1   ; arg 1
-      struct.new 29   ; std_glob$GlobError
+      struct.new 31   ; std_glob$GlobError
       return
     end $L3
   end $L2
@@ -6181,7 +6187,7 @@ fn 101 std_glob$endpoint_at (ref,i64) -> any
   local.set 2   ; $add_checked_6
   local.get 4   ; $idx_12
   local.get 2   ; $add_checked_6
-  struct.new 69   ; __Tuple_char_i64_d35e0494
+  struct.new 75   ; __Tuple_char_i64_d35e0494
   return
 end
 
@@ -6192,7 +6198,7 @@ fn 102 std_glob$lists (ref,char) -> bool
   local range ref
   local $field_11 char
   local $field_13 char
-  local.field 0 60 0   ; arg 0 std_glob$GlobBracket.ranges
+  local.field 0 66 0   ; arg 0 std_glob$GlobBracket.ranges
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -6205,16 +6211,16 @@ fn 102 std_glob$lists (ref,char) -> bool
     if $L1 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 74   ; std_glob$GlobRange[]
+      array.get 80   ; std_glob$GlobRange[]
       local.set 5   ; range
-      local.field 5 75 0   ; range std_glob$GlobRange.low
+      local.field 5 81 0   ; range std_glob$GlobRange.low
       ref.cast 8   ; char
       local.set 6   ; $field_11
       local.get 1   ; arg 1
       local.get 6   ; $field_11
       i32.ge
       if $L2 void
-        local.field 5 75 1   ; range std_glob$GlobRange.high
+        local.field 5 81 1   ; range std_glob$GlobRange.high
         ref.cast 8   ; char
         local.set 7   ; $field_13
         local.get 1   ; arg 1
@@ -6231,7 +6237,7 @@ fn 102 std_glob$lists (ref,char) -> bool
       br $L0
     end $L1
   end $L0
-  local.field 0 60 1   ; arg 0 std_glob$GlobBracket.classes
+  local.field 0 66 1   ; arg 0 std_glob$GlobBracket.classes
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -6334,7 +6340,7 @@ fn 103 std_glob$delimited_at (ref,i64,char) -> any
           i64.const 2
           i64.checked_add
           local.get 3   ; $add_checked_4
-          struct.new 71   ; __Tuple_i64_i64_f049c617
+          struct.new 77   ; __Tuple_i64_i64_f049c617
           return
         end $L6
       end $L5
@@ -6353,7 +6359,7 @@ fn 104 std_glob$chars_between (ref,i64,i64) -> string
   local k i64
   local $idx_8 char
   array.new 15 0   ; string[]
-  struct.new 76   ; std_string__builder$StringBuilder
+  struct.new 82   ; std_string__builder$StringBuilder
   local.set 3   ; sb
   local.get 1   ; arg 1
   local.set 4   ; k
@@ -6751,7 +6757,7 @@ fn 106 std_glob$holds (u8,char) -> bool
 end
 
 fn 107 std_glob$GlobError$std_core$Error$message (ref) -> string
-  local.field 0 29 0   ; arg 0 std_glob$GlobError.msg
+  local.field 0 31 0   ; arg 0 std_glob$GlobError.msg
   ref.cast 5   ; string
   return
 end
@@ -6759,7 +6765,7 @@ end
 fn 108 std_string__builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 76 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 82 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 9   ; std_core$utf8_encode
@@ -6780,7 +6786,7 @@ fn 109 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> str
   local __for_i_2 i64
   local p string
   local $call_27 i64
-  local.field 0 76 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 82 0   ; arg 0 std_string__builder$StringBuilder.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -6792,7 +6798,7 @@ fn 109 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> str
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 76 0   ; arg 0 std_string__builder$StringBuilder.parts
+    local.field 0 82 0   ; arg 0 std_string__builder$StringBuilder.parts
     i32.const 0
     array.get 15   ; string[]
     ref.cast 5   ; string
@@ -6805,7 +6811,7 @@ fn 109 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> str
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; off
-  local.field 0 76 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 82 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 4   ; __for_arr_0
   array.len
   local.set 5   ; __for_len_1
@@ -6853,7 +6859,7 @@ fn 110 std_string__builder$byte_len (ref) -> i64
   local $call_12 i64
   i64.const 0
   local.set 1   ; total
-  local.field 0 76 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 82 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1

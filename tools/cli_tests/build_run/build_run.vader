@@ -373,6 +373,45 @@ test_a_wasm_build_reads_the_status_of_a_file :: fn() -> void {
     assert_eq(run.stdout, "type 5 true true\ntype 2 true true\nerror 19\nerror 23\n")
 }
 
+// `std/fs` reads under WASI: a path resolves under the preopened directory, a
+// read takes the stream of the file, and a failure of `wasi:filesystem` is an
+// `IOError` of its kind.
+@test
+test_a_wasm_build_reads_files_through_std_fs :: fn() -> void {
+    if !has_wasmtime() {
+        return
+    }
+    dir :: staged(
+        "wasm_std_fs",
+        """
+        module "main"
+
+        import "std/console"
+        import "std/fs"
+        import "std/io"
+
+        read :: fn(path: string, kind: IOErrorKind) -> string {
+            text :: read_file_string(path) else return "\${text.kind == kind}"
+            return "read \${text.byte_len() > 0}"
+        }
+
+        main :: fn() -> i32 {
+            println(read("main.vader", .Other))
+            println(read("missing", .NotFound))
+            println(read(".", .IsADirectory))
+            println("\${exists("main.vader")} \${is_dir(".")} \${is_dir("main.vader")}")
+            names :: read_dir(".") else return 1
+            println("\${"main.vader" in names}")
+            return 0
+        }
+        """,
+    )
+    no_cc: [string, string | null][]: [["CC", ""]]
+    run :: vader_in(dir, ["build", "--target=wasi-wasm32", "--run", "main.vader"], no_cc)
+    assert_eq(run.exit, 0)
+    assert_eq(run.stdout, "read true\ntrue\ntrue\ntrue true false\ntrue\n")
+}
+
 @test
 test_run_refuses_a_build_that_makes_no_program_for_this_host :: fn() -> void {
     dir :: staged("nothing_to_run", program("app", 0))

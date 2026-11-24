@@ -64,7 +64,7 @@ reads_whole :: fn(size: i64, max_bytes: i64) =
 
 // Fill `into` from `handle`, read after read: how many bytes came, fewer than
 // `into.len()` once the file has ended.
-read_into :: fn(handle: Fd | Handle, into: u8[]) -> i64 | IOError {
+read_into :: fn(handle: FileHandle, into: u8[]) -> i64 | IOError {
     got: i64 = 0
     for got < into.len() {
         n :: system_read(handle, into[got..<into.len()], into.len() - got) else return n

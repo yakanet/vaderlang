@@ -1,0 +1,184 @@
+// std/fs/fs_wasi: the files of a WASI program, through `wasi:filesystem`.
+//
+// A WASI program reaches only the directories the host preopens. A path is
+// resolved as wasi-libc resolves it: under the preopened directory whose name
+// prefixes it by whole components, the longest and at a tie the latest, a
+// relative path under `.`.
+// A file is the descriptor `open-at` returns, held by its `File` with the read
+// under way: the stream `read-via-stream` opens on the first read, kept until it
+// ends.
+//
+// Reads only so far: a write, a seek and the directory operations answer that
+// this target has no filesystem yet, and a descriptor is never dropped.
+
+module "std/fs"
+
+import "std/io"
+import "std/iter"
+import "std/path"
+import "std/string"
+import "system/wasi"
+WasiFs :: import "wasi:filesystem/types@0.3.0"
+WasiPreopens :: import "wasi:filesystem/preopens@0.3.0"
+
+// A file open under WASI: its descriptor, and the read under way.
+WasiFile :: struct {
+    descriptor: WasiFs.Descriptor
+    /// Null before the first read, and once the stream has ended.
+    read: WasiRead | null = null
+    /// Whether the stream has ended: a read past it reads nothing.
+    ended: bool = false
+}
+
+// A read under way: the stream of the file's bytes, and how it ends.
+WasiRead :: struct {
+    bytes: WasmReadable<u8>
+    done: WasmFuture<void | WasiFs.ErrorCode>
+}
+
+// The preopened directory `path` is under, and the path under it. The host is
+// asked for the preopened directories at each path, not once: kept in a
+// singleton, the list would be one value for every task, which the task check
+// refuses where the compiler reads files from several tasks (T3128).
+resolve :: fn(path: string) -> [WasiFs.Descriptor, string] | IOError {
+    preopens :: WasiPreopens.get_directories()
+    best: i64 = -1
+    best_length: i64 = -1
+    for [entry, i] in preopens.indexed() {
+        prefix :: preopen_prefix(entry.1)
+        if covers(prefix, path) && prefix.byte_len() >= best_length {
+            best = i
+            best_length = prefix.byte_len()
+        }
+    }
+    if best < 0 {
+        return IOError { .msg = "no preopened directory holds `${path}`", .kind = .NotFound }
+    }
+    rest :: path.byte_slice(best_length, path.byte_len()).trim_prefix("/")
+    under: string: if rest == "" { "." } else { rest }
+    return [preopens[best].0, under]
+}
+
+// The name of a preopened directory as a prefix: `.` and a leading `./` drop.
+preopen_prefix :: fn(name: string) -> string = if name == "." { "" } else { name.trim_prefix("./") }
+
+// Whether `prefix` covers `path` by whole components: an empty one covers any
+// relative path.
+covers :: fn(prefix: string, path: string) -> bool {
+    if prefix == "" {
+        return !path.starts_with("/")
+    }
+    return to_path(path).starts_with(to_path(prefix))
+}
+
+// A failure of `wasi:filesystem` as an `IOError`.
+wasi_io_error :: fn(failure: WasiFs.ErrorCode, path: string) -> IOError {
+    if failure is WasiFs.ErrorCodeOther {
+        return IOError { .msg = "`${path}`: ${failure.value else "error"}" }
+    }
+    code :: i32(failure)
+    return io_error_of(code, "`${path}`: error ${code}")
+}
+
+// The descriptor `open-at` opens for reading at `path`, with `flags`.
+open_under :: fn(path: string, flags: WasiFs.OpenFlags) -> WasiFs.Descriptor | IOError {
+    found :: resolve(path) else return found
+    read :: WasiFs.DescriptorFlags { .read = true }
+    opened :: WasiFs.open_at(found.0, WasiFs.PathFlags {}, found.1, flags, read)
+        else is WasiFs.ErrorCode { return wasi_io_error(opened, path) }
+    return opened
+}
+
+@target(.Wasi)
+system_open :: fn(path: string, options: OpenOptions) -> FileHandle | IOError {
+    if options.write || options.append || options.create || options.create_new {
+        return NO_FILESYSTEM
+    }
+    opened :: open_under(path, WasiFs.OpenFlags {}) else return opened
+    return WasiFile { .descriptor = opened }
+}
+
+@target(.Wasi)
+system_read :: fn(handle: FileHandle, into: u8[], count: i64) -> i64 | IOError {
+    file :: wasi_file_of(handle)
+    if file.ended {
+        return 0
+    }
+    read :: file.read else {
+        [bytes, done] :: WasiFs.read_via_stream(file.descriptor, 0)
+        started :: WasiRead { .bytes = bytes, .done = done }
+        file.read = started
+        started
+    }
+    chunk :: read.bytes.read(count, -1) else {
+        file.read = null
+        file.ended = true
+        outcome :: read.done.wait() else is WasiFs.ErrorCode {
+            return wasi_io_error(outcome, "a read")
+        }
+        return 0
+    }
+    for [b, i] in chunk.indexed() {
+        into[i] = b
+    }
+    return chunk.len()
+}
+
+@target(.Wasi)
+system_size :: fn(handle: FileHandle) -> i64 = -1
+
+@target(.Wasi)
+system_close :: fn(handle: FileHandle) -> void | IOError {
+    wasi_file_of(handle).read = null
+}
+
+// What `path` names, its links followed, null when it cannot be reached.
+stat_of :: fn(path: string) -> WasiFs.DescriptorStat | null {
+    found :: resolve(path) else return null
+    stat :: WasiFs.stat_at(found.0, WasiFs.PathFlags { .symlink_follow = true }, found.1)
+    if stat is WasiFs.DescriptorStat {
+        return stat
+    }
+    return null
+}
+
+@target(.Wasi)
+exists :: fn(path: string) -> bool = stat_of(path) != null
+
+@target(.Wasi)
+is_dir :: fn(path: string) -> bool {
+    stat :: stat_of(path) else return false
+    return entry_kind_of(stat.type) == .Directory
+}
+
+// The entries of the directory `path`, read from the stream `read-directory`
+// opens, each with its kind; a link is reported as one.
+@target(.Wasi)
+list_dir :: fn(path: string) -> ListedEntry[] | IOError {
+    opened :: open_under(path, WasiFs.OpenFlags { .directory = true }) else return opened
+    [entries, done] :: WasiFs.read_directory(opened)
+    out: ListedEntry[]: []
+    for {
+        chunk :: entries.read(64, -1) else break
+        for e in chunk {
+            out.push(ListedEntry { .name = e.name, .kind = entry_kind_of(e.type) })
+        }
+    }
+    outcome :: done.wait() else is WasiFs.ErrorCode {
+        return wasi_io_error(outcome, path)
+    }
+    return out
+}
+
+entry_kind_of :: fn(t: WasiFs.DescriptorType) -> EntryKind {
+    if t is WasiFs.DescriptorTypeOther {
+        return .Other
+    }
+    // @partial: a block or a character device, a pipe and a socket are `Other`.
+    return @partial match t {
+        .Directory    -> .Directory
+        .RegularFile  -> .File
+        .SymbolicLink -> .Symlink
+        _             -> .Other
+    }
+}

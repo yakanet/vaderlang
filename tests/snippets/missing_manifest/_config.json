@@ -1,5 +1,5 @@
 {
   "wasi": {
-    "differs": "`std/fs` has no WASI body yet: every file operation answers that there is no filesystem"
+    "differs": "an absolute path under no preopened directory is not found under WASI, with its own message: `no preopened directory holds ...`"
   }
 }
