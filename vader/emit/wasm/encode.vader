@@ -251,14 +251,17 @@ count_of :: fn(present: bool) -> i64 = if present { 1 } else { 0 }
 /// A module that only defines a linear memory of one page and exports it, which
 /// a component instantiates before the modules that import it (ADR 0176).
 ///
-/// @param with_allocator  whether it exports the allocator the host writes
-///                        results into room from.
+/// @param allocator_slot  the slot of the table that holds the allocator of the
+///                        module that imports the memory, which the `realloc` it
+///                        exports, for the host to write results into, calls;
+///                        null when the host writes none.
 /// @param table_slots     the slots of the table of functions it defines and
 ///                        exports too, null for none.
-export encode_memory_module :: fn(with_allocator: bool, table_slots: i64 | null) -> u8[] {
+export encode_memory_module :: fn(allocator_slot: i32 | null, table_slots: i64 | null) -> u8[] {
     out: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]
+    with_allocator :: allocator_slot != null
     if with_allocator {
-        out.push_section(.Type, type_section([], [ALLOCATOR_TYPE]))
+        out.push_section(.Type, type_section([], [ALLOCATOR_TYPE, ALLOCATE_TYPE]))
         out.push_section(.Function, [1, 0])
     }
     if table_slots != null {
@@ -282,8 +285,8 @@ export encode_memory_module :: fn(with_allocator: bool, table_slots: i64 | null)
         exports.push_all([EXTERNAL_TABLE, 0])
     }
     out.push_section(.Export, exports)
-    if with_allocator {
-        out.push_section(.Code, code_section([allocator_function()]))
+    if allocator_slot != null {
+        out.push_section(.Code, code_section([allocator_function(allocator_slot)]))
     }
     return out
 }
@@ -838,7 +841,7 @@ test_encode_memory_module_exports_one_page :: fn() -> void {
     expected: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]
     expected.push_all([0x05, 0x03, 0x01, 0x00, 0x01])
     expected.push_all([0x07, 0x0A, 0x01, 0x06, 0x6D, 0x65, 0x6D, 0x6F, 0x72, 0x79, 0x02, 0x00])
-    assert_bytes(encode_memory_module(false, null), expected)
+    assert_bytes(encode_memory_module(null, null), expected)
 }
 
 @test
@@ -848,7 +851,7 @@ test_encode_memory_module_exports_the_table_of_threads :: fn() -> void {
     expected.push_all([0x05, 0x03, 0x01, 0x00, 0x01])
     expected.push_all([0x07, 0x12, 0x02, 0x06, 0x6D, 0x65, 0x6D, 0x6F, 0x72, 0x79, 0x02, 0x00])
     expected.push_all([0x05, 0x74, 0x61, 0x62, 0x6C, 0x65, 0x01, 0x00])
-    assert_bytes(encode_memory_module(false, 3), expected)
+    assert_bytes(encode_memory_module(null, 3), expected)
 }
 
 @test

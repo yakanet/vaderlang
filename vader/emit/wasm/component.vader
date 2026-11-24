@@ -77,18 +77,20 @@ export encode_component :: fn(component: WasmComponent) -> u8[] {
     interface_count :: i64(c.interfaces.len())
     function_count :: count_functions(c.interfaces)
     has_memory :: c.core.memory_import != null
-    allocating :: c.interfaces.any_match((i) -> i.functions.any_match((f) -> allocates(f.type)))
-        || c.builtins.any_match((b) -> builtin_allocates(b))
+    allocating :: host_allocates(c.interfaces, c.builtins)
     imported :: out.push_interface_imports(c.interfaces)
     scopes :: imported.scopes
     if has_memory {
         table_slots: i64 | null: if c.core.table_import { c.core.table.len() } else { null }
-        out.push_component_section(.CoreModule, encode_memory_module(allocating, table_slots))
+        out.push_component_section(
+            .CoreModule,
+            encode_memory_module(c.allocator_of(allocating), table_slots),
+        )
         out.push_component_section(.CoreInstance, [1, INSTANTIATE, 0, 0])
         out.push_component_section(.Alias, memory_aliases(allocating))
     }
     if c.core.table_import {
-        out.push_thread_sections()
+        out.push_table_sections(c.builtins.any_match((b) -> b.kind == .ThreadNewIndirect))
     }
     out.push_component_section(.CoreModule, encode_module(c.core))
     // The allocator, when there is one, is the first core function.
@@ -136,15 +138,32 @@ memory_aliases :: fn(allocating: bool) -> u8[] {
     return out
 }
 
-// The table out of the memory's instance, then the type of its entries that
-// `thread.new-indirect` calls: the first core table and the first core type of
-// the component.
-push_thread_sections :: fn(out: u8[]) -> void {
+// Whether the host writes into room it asks the allocator for: a function of
+// `interfaces` returns a string or a list, or a read of `builtins` does.
+host_allocates :: fn(interfaces: ComponentInterface[], builtins: CanonicalBuiltin[]) -> bool =
+    interfaces.any_match((i) -> i.functions.any_match((f) -> allocates(f.type)))
+        || builtins.any_match((b) -> builtin_allocates(b))
+
+// The slot of the core module's allocator, which the memory's `realloc` calls,
+// null when the host `allocating` nothing.
+allocator_of :: fn(c: WasmComponent, allocating: bool) -> i32 | null {
+    if !allocating {
+        return null
+    }
+    return c.core.allocator_slot else panic("wasm: the host allocates through no allocator")
+}
+
+// The table out of the memory's instance, then, for a module that starts
+// `threads`, the type of its entries that `thread.new-indirect` calls: the first
+// core table and the first core type of the component.
+push_table_sections :: fn(out: u8[], threads: bool) -> void {
     alias: u8[]: [1, CORE_SORT, CORE_TABLE, ALIAS_CORE_EXPORT, 0]
     alias.push_name(TABLE_NAME)
     out.push_component_section(.Alias, alias)
-    entry :: WasmFuncType { .params = [.I32], .results = [] }
-    out.push_component_section(.CoreType, type_section([], [entry]))
+    if threads {
+        entry :: WasmFuncType { .params = [.I32], .results = [] }
+        out.push_component_section(.CoreType, type_section([], [entry]))
+    }
 }
 
 // Where the sections that export `run` find what they name.
@@ -811,6 +830,8 @@ canonical_opcode :: fn(k: CanonicalKind) -> u8 = match k {
     .ThreadYield        -> 0x0C
     .ContextGet         -> 0x0A
     .ContextSet         -> 0x0B
+    .ContextGetBlock    -> 0x0A
+    .ContextSetBlock    -> 0x0B
     .ThreadIndex        -> 0x26
     .ThreadNewIndirect  -> 0x27
     .ThreadResumeLater  -> 0x28
@@ -863,22 +884,26 @@ kind_options :: fn(k: CanonicalKind) -> u8[] = match k {
     .SubtaskCancel      -> [NOT_ASYNC]
     .SubtaskDrop        -> []
     // The type the table's entries take, and the table, both the first of the
-    // component's core index spaces (`push_thread_sections`).
+    // component's core index spaces (`push_table_sections`).
     .ThreadNewIndirect  -> [0x00, 0x00]
     .ThreadResumeLater  -> []
     .ThreadYield        -> [NOT_CANCELLABLE]
     .ThreadSuspend      -> [NOT_CANCELLABLE]
     .ThreadIndex        -> []
-    .ContextGet         -> CONTEXT_SLOT
-    .ContextSet         -> CONTEXT_SLOT
+    .ContextGet         -> RECORD_SLOT
+    .ContextSet         -> RECORD_SLOT
+    .ContextGetBlock    -> BLOCK_SLOT
+    .ContextSetBlock    -> BLOCK_SLOT
 }
 
 // A yield or a suspension a cancellation of the task does not end.
 NOT_CANCELLABLE: u8: 0x00
 
-// The one slot of the thread's context the module uses, an `i32`: `context.get
-// i32 0` and `context.set i32 0`.
-CONTEXT_SLOT: u8[]: [0x7F, 0x00]
+// The slots of the thread's context, each an `i32`: the slot of the thread's
+// record (`threads.vader`), then the address of its block of the memory
+// (`arena.vader`).
+RECORD_SLOT: u8[]: [0x7F, 0x00]
+BLOCK_SLOT: u8[]: [0x7F, 0x01]
 
 // ---- instances ------------------------------------------------------------
 

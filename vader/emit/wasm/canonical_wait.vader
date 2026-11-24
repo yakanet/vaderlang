@@ -36,7 +36,7 @@ define_subtask_wait :: fn(ctx: ModuleCtx) -> i32 {
             i32_eq(state_bits, i32_const(SUBTASK_RETURNED)),
             [
                 call(ctx.canonical_wait(), [local_get(subtask)]),
-                local_set(state, event_payload()),
+                local_set(state, event_payload(ctx)),
             ],
         ),
         ctx.drop_subtask(subtask),
@@ -124,6 +124,8 @@ stream_read_function :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -
     load_items :: canonical_load(ctx, list, array_id, items, function) else return load_items
     status :: h.frame.local(.I32)
     count :: h.frame.local(.I32)
+    // The running thread's block, which the read fills and the load reads.
+    block :: h.frame.local(.I32)
     items_per_chunk :: CHUNK_SIZE / size_of(stream.element)
     limit :: choose(
         .I32,
@@ -133,7 +135,7 @@ stream_read_function :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -
     )
     read :: call(
         ctx.builtin(.StreamRead, stream),
-        [local_get(h.handle), i32_const(CHUNK_ADDRESS), limit],
+        [local_get(h.handle), plus(block, CHUNK_OFFSET), limit],
     )
     wait :: call(ctx.canonical_copy_wait(stream), [local_get(h.handle), local_get(NANOS)])
     dropped :: i32_eq(
@@ -143,6 +145,7 @@ stream_read_function :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -
     body: WasmExpression[]: [
         h.read_handle(),
         when(i32_eqz(local_get(h.handle)), [return_([ref_null()])]),
+        local_set(block, ctx.block_address()),
         local_set(status, read),
         when(i32_eq(local_get(status), i32_const(BLOCKED)), [local_set(status, wait)]),
         local_set(count, i32_shr_u(local_get(status), i32_const(COPY_COUNT_SHIFT))),
@@ -154,9 +157,9 @@ stream_read_function :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -
                 when(i32_eqz(local_get(count)), [return_([ref_null()])]),
             ],
         ),
-        i32_store(i32_const(LIST_ADDRESS), i32_const(CHUNK_ADDRESS)),
-        store(.I32Store, i32_const(LIST_ADDRESS), local_get(count), 4),
-        call(load_items, [i32_const(LIST_ADDRESS)]),
+        store(.I32Store, local_get(block), plus(block, CHUNK_OFFSET), LIST_OFFSET),
+        store(.I32Store, local_get(block), local_get(count), LIST_OFFSET + 4),
+        call(load_items, [plus(block, LIST_OFFSET)]),
     ]
     return ctx.define_tree_helper(key, h.frame, body)
 }
@@ -192,19 +195,22 @@ define_copy_wait :: fn(ctx: ModuleCtx, key: string, stream: WitStream) -> i32 {
     started :: frame.local(.I32)
     subtask :: frame.local(.I32)
     event :: frame.local(.I32)
+    // Where the running thread's block takes the event.
+    event_at :: frame.local(.I32)
     wait_for :: ctx.imports.wait_for else panic("wasm: a stream read without `wait-for`")
     join :: ctx.builtin(.WaitableJoin, null)
     still_running :: i32_ne(
         i32_and(local_get(started), i32_const(SUBTASK_STATE_MASK)),
         i32_const(SUBTASK_RETURNED),
     )
-    wait :: call(ctx.builtin(.WaitableSetWait, null), [local_get(set), i32_const(EVENT_ADDRESS)])
-    poll :: call(ctx.builtin(.WaitableSetPoll, null), [local_get(set), i32_const(EVENT_ADDRESS)])
+    wait :: call(ctx.builtin(.WaitableSetWait, null), [local_get(set), local_get(event_at)])
+    poll :: call(ctx.builtin(.WaitableSetPoll, null), [local_get(set), local_get(event_at)])
     body: WasmExpression[]: [
         when(
             binary(.I64LtS, local_get(nanos), i64_const(0)),
-            [call(ctx.canonical_wait(), [local_get(readable)]), return_([event_payload()])],
+            [call(ctx.canonical_wait(), [local_get(readable)]), return_([event_payload(ctx)])],
         ),
+        local_set(event_at, ctx.in_block(EVENT_OFFSET)),
         local_set(set, call(ctx.builtin(.WaitableSetNew, null), [])),
         call(join, [local_get(readable), local_get(set)]),
         local_set(subtask, i32_const(0)),
@@ -237,7 +243,7 @@ define_copy_wait :: fn(ctx: ModuleCtx, key: string, stream: WitStream) -> i32 {
                     [drop(call(ctx.builtin(.SubtaskCancel, null), [local_get(subtask)]))],
                 ),
                 ctx.drop_subtask(subtask),
-                return_([event_payload()]),
+                return_([i32_load(local_get(event_at), EVENT_PAYLOAD)]),
             ],
         ),
         // The deadline came first.
@@ -283,7 +289,7 @@ future_wait_function :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -
         else return load
     resolved :: h.frame.local(h.results[0])
     waited.push(local_set(resolved, call(load, [local_get(room)])))
-    body :: h.frame.arena_scope(waited)
+    body :: ctx.arena_scope(h.frame, waited)
     body.push(local_get(resolved))
     return ctx.define_tree_helper(key, h.frame, body)
 }

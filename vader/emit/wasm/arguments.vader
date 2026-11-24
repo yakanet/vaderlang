@@ -43,7 +43,8 @@ arguments_function :: fn(ctx: ModuleCtx) -> i32 | null {
     frame :: HelperFrame { .signature = func_of([], [.EqRef]) }
     address :: frame.local(.I32)
     value :: frame.local(.EqRef)
-    body :: frame.arena_scope(
+    body :: ctx.arena_scope(
+        frame,
         [
             local_set(address, ctx.room_for(list)),
             call(get_arguments, [local_get(address)]),

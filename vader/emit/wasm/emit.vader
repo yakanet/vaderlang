@@ -120,6 +120,8 @@ translate :: fn(
     arguments :: ctx.arguments_function()
     // The table is built before the entry runs, when a helper reads it.
     init :: if entry != null && ctx.atoms != null { ctx.atom_init() } else { null }
+    allocates :: host_allocates(ctx.imports.interfaces, ctx.imports.builtins)
+    allocator :: if allocates { ctx.allocator_slot() } else { null }
     functions.push_all(ctx.helper_functions)
     if entry != null {
         calls :: RunCalls {
@@ -147,7 +149,8 @@ translate :: fn(
         .data = ctx.segments,
         .table = ctx.table,
         .table_read = ctx.table_read,
-        .table_import = ctx.imports.threads,
+        .table_import = ctx.imports.threads || allocator != null,
+        .allocator_slot = allocator,
         .tags = ctx.tags,
         .memory_import = memory_import_of(ctx.imports),
     }

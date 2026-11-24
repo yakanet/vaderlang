@@ -89,9 +89,13 @@ export WasmModule :: struct {
     /// Whether a `call_indirect` reads the table, which exists then even empty.
     table_read: bool = false
     /// Whether the table is imported, from `CANONICAL_MODULE`, rather than
-    /// defined: a component that starts threads hands it to
+    /// defined: the memory's `realloc` calls the allocator through it
+    /// (`arena.vader`), and a component that starts threads hands it to
     /// `thread.new-indirect` (`threads.vader`).
     table_import: bool = false
+    /// The slot of the table that holds the allocator, null when the host
+    /// writes no result into room it asks for.
+    allocator_slot: i32 | null = null
     /// The exception tags, each the index of its function type, which takes no
     /// result.
     tags: i32[] = []

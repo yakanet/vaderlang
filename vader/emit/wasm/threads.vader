@@ -49,7 +49,8 @@ define_new :: fn(ctx: ModuleCtx) -> i32 {
 // The slot in the table of `(context: i32) -> ()`, the trampoline: the thread of
 // the context `context` takes it as its own, then runs the function value its
 // record holds, which the record lets go of, until it returns or ends. Its
-// defer stack goes with it.
+// defer stack goes with it, and its block of the memory (`arena.vader`), which it
+// takes on its first use.
 trampoline_slot :: fn(ctx: ModuleCtx) -> i32 =
     ctx.table_slots[TRAMPOLINE] else ctx.table_entry(TRAMPOLINE, () -> ctx.define_trampoline())
 
@@ -63,10 +64,12 @@ define_trampoline :: fn(ctx: ModuleCtx) -> i32 {
     entry :: frame.local(.EqRef)
     body: WasmExpression[]: [
         call(builtin(ctx, .ContextSet, null), [local_get(context)]),
+        call(builtin(ctx, .ContextSetBlock, null), [i32_const(NO_THREAD_BLOCK)]),
         local_set(record, ctx.record_at(local_get(context))),
         local_set(entry, struct_get(gc.thread, RECORD_ENTRY, local_get(record))),
         struct_set(gc.thread, RECORD_ENTRY, local_get(record), ref_null()),
         catching(ctx.exit_tag(), [drop(ctx.entry_call(entry, []))]),
+        call(ctx.thread_block_end(), []),
         struct_set(gc.thread, RECORD_DEFERS, local_get(record), ref_null()),
     ]
     return ctx.define_tree_helper(TRAMPOLINE, frame, body)

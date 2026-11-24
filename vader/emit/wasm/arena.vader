@@ -1,39 +1,78 @@
 // vader/emit/wasm/arena: the room a call through the canonical ABI uses in the
 // linear memory.
 //
+// Each thread has a block of the memory, from the address `block_address`
+// leaves: the main thread the first page, a thread `wasm_thread_new` makes one
+// taken on its first use and handed back at its end. The block holds what the
+// canonical built-ins use (`canonical.vader`), the state of the thread's arena,
+// then the arena's first room. A wait lets the other threads run while the host
+// still reads or writes the block, so no two threads share one.
+//
 // What crosses a call through the memory, a block of parameters, a result the
-// host writes, the strings and lists it points to, is laid out in an arena past
-// what the canonical built-ins use (`canonical.vader`). The host takes room
-// through the `realloc` the memory's module exports, the core module through
-// `canonical_allocate`: both bump the same top, kept in the memory itself at
-// `ARENA_ADDRESS`, so neither module needs the other's globals. Everything read
-// back is copied into the GC heap before the call returns, so the adapter takes
-// the arena back to where it found it (`arena_scope`). The memory grows when the room
-// passes its end.
+// host writes, the strings and lists it points to, is laid out in the arena of
+// the thread that calls. The host takes room through the `realloc` the memory's
+// module exports, which calls `canonical_allocate` through the table, so both
+// take it from the same arena. Everything read back is copied into the GC heap
+// before the call returns, so the adapter takes the arena back to where it found
+// it (`arena_scope`).
+//
+// Past its first room, an arena goes on in segments, each a run of whole pages
+// with a header that keeps the arena's state before it. Taking the arena back
+// hands the segments past the mark to a list of free segments, which a segment
+// or a block is taken from first, the first that is large enough; the memory
+// grows otherwise.
 
 module "vader/emit/wasm"
 
 import "vader/core/wit"
 
-// Where the memory keeps how many bytes of the arena are handed out.
-ARENA_ADDRESS: i32: 8
+// Where a block keeps the state of its thread's arena: the first free address,
+// the end of the room in use, and the segment that room is, 0 for the block's
+// own room. A first free address of 0 is an arena not used yet.
+ARENA_TOP: i32: 8
+ARENA_END: i32: 12
+ARENA_SEGMENT: i32: 24
+
+// Where the main thread's block keeps the first free segment, 0 for none.
+FREE_SEGMENTS: i32: 28
+
+// The bytes of a block: a page less a segment's header, since a thread's block is
+// a segment of one page. The main thread's starts the first page.
+BLOCK_SIZE: i32: PAGE_BYTES - SEGMENT_HEADER
+
+// What a thread's context holds before its block is taken.
+NO_THREAD_BLOCK: i32: -1
+
+// The header of a segment: the arena's first free address and end before it
+// (the first holds the next free segment once it is handed back), the segment
+// before it, 0 for the block's room, and its bytes, the header included.
+SEGMENT_TOP: i32: 0
+SEGMENT_END: i32: 4
+SEGMENT_PREVIOUS: i32: 8
+SEGMENT_SIZE: i32: 12
+SEGMENT_HEADER: i32: 16
 
 // The core export of the memory's module the host allocates with.
 REALLOC_NAME: string: "realloc"
 
-// The bytes of a page of the memory, as a shift.
+// The bytes of a page of the memory, as a shift and as a count.
 PAGE_SHIFT: i32: 16
+PAGE_BYTES: i32: 1 << PAGE_SHIFT
 
 // `(old_address, old_size, alignment, size) -> address`: `realloc` as the
-// canonical ABI calls it. The host only asks for new room when it writes a
+// canonical ABI calls it, through the slot `slot` of the table, which holds
+// `canonical_allocate`. The host only asks for new room when it writes a
 // result, so a call that would move an old block stops the run.
-allocator_function :: fn() -> WasmFunction {
+allocator_function :: fn(slot: i32) -> WasmFunction {
     old_size :: 1
     alignment :: 2
     size :: 3
     frame :: HelperFrame { .signature = ALLOCATOR_TYPE }
-    body: WasmExpression[]: [when(local_get(old_size), [unreachable()])]
-    body.push_all(frame.allocation(size, alignment))
+    allocated :: apply(
+        CallIndirect { .type_index = ALLOCATE_TYPE_INDEX },
+        [local_get(size), local_get(alignment), i32_const(slot)],
+    )
+    body: WasmExpression[]: [when(local_get(old_size), [unreachable()]), allocated]
     instructions :: flatten(frame, body)
     return WasmFunction { .type_index = 0, .locals = frame.locals, .body = instructions }
 }
@@ -41,15 +80,252 @@ allocator_function :: fn() -> WasmFunction {
 // The core type of `allocator_function`.
 ALLOCATOR_TYPE :: WasmFuncType { .params = [.I32, .I32, .I32, .I32], .results = [.I32] }
 
-// `(size, alignment) -> address`: room in the arena for the core module.
-canonical_allocate :: fn(ctx: ModuleCtx) -> i32 =
-    ctx.helpers["canonical.allocate"] else define_allocate(ctx)
+// The core type of `canonical_allocate`, the second of the memory's module.
+ALLOCATE_TYPE       :: WasmFuncType { .params = [.I32, .I32], .results = [.I32] }
+ALLOCATE_TYPE_INDEX: i32: 1
+
+// The slot of the table that holds `canonical_allocate`, for the memory's
+// `realloc`.
+allocator_slot :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.table_slots[ALLOCATE] else ctx.table_entry(ALLOCATE, () -> ctx.canonical_allocate())
+
+ALLOCATE: string: "canonical.allocate"
+
+// `(size, alignment) -> address`: room in the running thread's arena.
+canonical_allocate :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers[ALLOCATE] else define_allocate(ctx)
 
 define_allocate :: fn(ctx: ModuleCtx) -> i32 {
     size :: 0
     alignment :: 1
-    frame :: HelperFrame { .signature = func_of([.I32, .I32], [.I32]) }
-    return ctx.define_tree_helper("canonical.allocate", frame, frame.allocation(size, alignment))
+    frame :: HelperFrame { .signature = ALLOCATE_TYPE }
+    block :: frame.local(.I32)
+    top :: frame.local(.I32)
+    end :: frame.local(.I32)
+    address :: frame.local(.I32)
+    segment :: frame.local(.I32)
+    aligned :: fn(from: WasmExpression) -> WasmExpression = i32_and(
+        i32_sub(i32_add(from, local_get(alignment)), i32_const(1)),
+        i32_sub(i32_const(0), local_get(alignment)),
+    )
+    // A segment large enough for the room whatever its alignment, which keeps
+    // the room it leaves.
+    next_segment: WasmExpression[]: [
+        local_set(
+            segment,
+            call(
+                ctx.take_segment(),
+                [i32_add(i32_add(local_get(size), local_get(alignment)), i32_const(SEGMENT_HEADER))],
+            ),
+        ),
+        store(.I32Store, local_get(segment), local_get(top), SEGMENT_TOP),
+        store(.I32Store, local_get(segment), local_get(end), SEGMENT_END),
+        store(
+            .I32Store,
+            local_get(segment),
+            i32_load(local_get(block), ARENA_SEGMENT),
+            SEGMENT_PREVIOUS,
+        ),
+        store(.I32Store, local_get(block), local_get(segment), ARENA_SEGMENT),
+        local_set(end, i32_add(local_get(segment), i32_load(local_get(segment), SEGMENT_SIZE))),
+        store(.I32Store, local_get(block), local_get(end), ARENA_END),
+        local_set(address, aligned(plus(segment, SEGMENT_HEADER))),
+    ]
+    body: WasmExpression[]: [
+        local_set(block, ctx.block_address()),
+        local_set(top, i32_load(local_get(block), ARENA_TOP)),
+        when_else(
+            i32_eqz(local_get(top)),
+            [
+                local_set(top, plus(block, ALLOCATION_OFFSET)),
+                local_set(end, plus(block, BLOCK_SIZE)),
+                store(.I32Store, local_get(block), local_get(end), ARENA_END),
+                store(.I32Store, local_get(block), i32_const(0), ARENA_SEGMENT),
+            ],
+            [local_set(end, i32_load(local_get(block), ARENA_END))],
+        ),
+        local_set(address, aligned(local_get(top))),
+        when(
+            binary(.I32GtU, i32_add(local_get(address), local_get(size)), local_get(end)),
+            next_segment,
+        ),
+        store(.I32Store, local_get(block), i32_add(local_get(address), local_get(size)), ARENA_TOP),
+        local_get(address),
+    ]
+    return ctx.define_tree_helper(ALLOCATE, frame, body)
+}
+
+// `(block, mark) -> ()`: the arena of the running thread, whose block is at
+// `block`, taken back to `mark`, a first free address it had, its segments past
+// the mark handed back.
+canonical_release :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers[RELEASE] else define_release(ctx)
+
+RELEASE: string: "canonical.release"
+
+define_release :: fn(ctx: ModuleCtx) -> i32 {
+    block :: 0
+    mark :: 1
+    frame :: HelperFrame { .signature = func_of([.I32, .I32], []) }
+    segment :: frame.local(.I32)
+    within :: i32_and(
+        binary(.I32GeU, local_get(mark), local_get(segment)),
+        binary(
+            .I32LeU,
+            local_get(mark),
+            i32_add(local_get(segment), i32_load(local_get(segment), SEGMENT_SIZE)),
+        ),
+    )
+    body: WasmExpression[]: [
+        local_set(segment, i32_load(local_get(block), ARENA_SEGMENT)),
+        loop_until(
+            i32_or(i32_eqz(local_get(segment)), within),
+            [
+                store(
+                    .I32Store,
+                    local_get(block),
+                    i32_load(local_get(segment), SEGMENT_END),
+                    ARENA_END,
+                ),
+                store(
+                    .I32Store,
+                    local_get(block),
+                    i32_load(local_get(segment), SEGMENT_PREVIOUS),
+                    ARENA_SEGMENT,
+                ),
+                call(ctx.give_segment(), [local_get(segment)]),
+                local_set(segment, i32_load(local_get(block), ARENA_SEGMENT)),
+            ],
+        ),
+        store(.I32Store, local_get(block), local_get(mark), ARENA_TOP),
+    ]
+    return ctx.define_tree_helper(RELEASE, frame, body)
+}
+
+// `(size) -> address`: a segment of at least `size` bytes, its size in its
+// header: the first free one large enough, else whole pages the memory grows by.
+take_segment :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers[TAKE_SEGMENT] else define_take(ctx)
+
+TAKE_SEGMENT: string: "canonical.take-segment"
+
+define_take :: fn(ctx: ModuleCtx) -> i32 {
+    size :: 0
+    frame :: HelperFrame { .signature = func_of([.I32], [.I32]) }
+    // The address that holds `segment`: the head of the list, or the segment
+    // before it.
+    link :: frame.local(.I32)
+    segment :: frame.local(.I32)
+    pages :: frame.local(.I32)
+    large_enough :: binary(.I32GeU, i32_load(local_get(segment), SEGMENT_SIZE), local_get(size))
+    body: WasmExpression[]: [
+        local_set(link, i32_const(FREE_SEGMENTS)),
+        local_set(segment, i32_load(i32_const(FREE_SEGMENTS))),
+        loop_until(
+            i32_or(i32_eqz(local_get(segment)), large_enough),
+            [
+                local_set(link, local_get(segment)),
+                local_set(segment, i32_load(local_get(segment), SEGMENT_TOP)),
+            ],
+        ),
+        when(
+            local_get(segment),
+            [
+                i32_store(local_get(link), i32_load(local_get(segment), SEGMENT_TOP)),
+                return_([local_get(segment)]),
+            ],
+        ),
+        local_set(pages, i32_shr_u(plus(size, PAGE_BYTES - 1), i32_const(PAGE_SHIFT))),
+        local_set(segment, i32_shl(memory_size(), i32_const(PAGE_SHIFT))),
+        when(i32_eq(memory_grow(local_get(pages)), i32_const(-1)), [unreachable()]),
+        store(
+            .I32Store,
+            local_get(segment),
+            i32_shl(local_get(pages), i32_const(PAGE_SHIFT)),
+            SEGMENT_SIZE,
+        ),
+        local_get(segment),
+    ]
+    return ctx.define_tree_helper(TAKE_SEGMENT, frame, body)
+}
+
+// `(segment) -> ()`: `segment` handed back, first of the free ones.
+give_segment :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers[GIVE_SEGMENT] else define_give(ctx)
+
+GIVE_SEGMENT: string: "canonical.give-segment"
+
+define_give :: fn(ctx: ModuleCtx) -> i32 {
+    segment :: 0
+    frame :: HelperFrame { .signature = func_of([.I32], []) }
+    body: WasmExpression[]: [
+        store(.I32Store, local_get(segment), i32_load(i32_const(FREE_SEGMENTS)), SEGMENT_TOP),
+        i32_store(i32_const(FREE_SEGMENTS), local_get(segment)),
+    ]
+    return ctx.define_tree_helper(GIVE_SEGMENT, frame, body)
+}
+
+// The address of the running thread's block: 0, the first page, in a program
+// that starts no thread.
+block_address :: fn(ctx: ModuleCtx) -> WasmExpression {
+    if !ctx.imports.threads {
+        return i32_const(0)
+    }
+    return call(ctx.thread_block(), [])
+}
+
+// The address `offset` bytes into the running thread's block.
+in_block :: fn(ctx: ModuleCtx, offset: i32) -> WasmExpression {
+    if !ctx.imports.threads {
+        return i32_const(offset)
+    }
+    return i32_add(ctx.block_address(), i32_const(offset))
+}
+
+// `() -> address`: the running thread's block, taken from the free segments on
+// its first use. The main thread's context holds 0, its block the first page.
+thread_block :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers[THREAD_BLOCK] else define_block(ctx)
+
+THREAD_BLOCK: string: "thread.block"
+
+define_block :: fn(ctx: ModuleCtx) -> i32 {
+    frame :: HelperFrame { .signature = func_of([], [.I32]) }
+    block :: frame.local(.I32)
+    taken :: call(ctx.take_segment(), [i32_const(SEGMENT_HEADER + BLOCK_SIZE)])
+    body: WasmExpression[]: [
+        local_set(block, call(builtin(ctx, .ContextGetBlock, null), [])),
+        when(
+            i32_eq(local_get(block), i32_const(NO_THREAD_BLOCK)),
+            [
+                local_set(block, i32_add(taken, i32_const(SEGMENT_HEADER))),
+                store(.I32Store, local_get(block), i32_const(0), ARENA_TOP),
+                store(.I32Store, local_get(block), i32_const(0), ARENA_SEGMENT),
+                call(builtin(ctx, .ContextSetBlock, null), [local_get(block)]),
+            ],
+        ),
+        local_get(block),
+    ]
+    return ctx.define_tree_helper(THREAD_BLOCK, frame, body)
+}
+
+// `() -> ()`: the running thread's block and its arena's segments handed back,
+// when it took one. Its thread is ending.
+thread_block_end :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers[THREAD_BLOCK_END] else define_block_end(ctx)
+
+THREAD_BLOCK_END: string: "thread.block-end"
+
+define_block_end :: fn(ctx: ModuleCtx) -> i32 {
+    frame :: HelperFrame { .signature = func_of([], []) }
+    block :: frame.local(.I32)
+    body: WasmExpression[]: [
+        local_set(block, call(builtin(ctx, .ContextGetBlock, null), [])),
+        when(
+            i32_ne(local_get(block), i32_const(NO_THREAD_BLOCK)),
+            [
+                call(ctx.canonical_release(), [local_get(block), i32_const(0)]),
+                call(ctx.give_segment(), [less(block, SEGMENT_HEADER)]),
+                call(builtin(ctx, .ContextSetBlock, null), [i32_const(NO_THREAD_BLOCK)]),
+            ],
+        ),
+    ]
+    return ctx.define_tree_helper(THREAD_BLOCK_END, frame, body)
 }
 
 // Room of the size and alignment of `t` in the arena.
@@ -58,41 +334,30 @@ room_for :: fn(ctx: ModuleCtx, t: WitType) -> WasmExpression =
 
 // `body`, then the arena taken back to where it was before it: what `body` takes
 // in the arena is handed back.
-arena_scope :: fn(frame: HelperFrame, body: WasmExpression[]) -> WasmExpression[] {
+arena_scope :: fn(ctx: ModuleCtx, frame: HelperFrame, body: WasmExpression[]) -> WasmExpression[] {
+    block :: frame.local(.I32)
     mark :: frame.local(.I32)
-    out: WasmExpression[]: [local_set(mark, arena_top())]
+    out: WasmExpression[]: [
+        local_set(block, ctx.block_address()),
+        local_set(mark, i32_load(local_get(block), ARENA_TOP)),
+    ]
     out.push_all(body)
-    out.push(i32_store(i32_const(ARENA_ADDRESS), local_get(mark)))
+    out.push(call(ctx.canonical_release(), [local_get(block), local_get(mark)]))
     return out
 }
 
-// How many bytes of the arena are handed out.
-arena_top :: fn() -> WasmExpression = i32_load(i32_const(ARENA_ADDRESS))
+// ---- tests ----------------------------------------------------------------
 
-// The room for the local `size` bytes aligned on the local `alignment`, left on
-// the stack.
-allocation :: fn(frame: HelperFrame, size: i32, alignment: i32) -> WasmExpression[] {
-    address :: frame.local(.I32)
-    pages :: frame.local(.I32)
-    end :: i32_add(local_get(address), local_get(size))
-    page_bytes :: 1 << PAGE_SHIFT
-    // The first address past what is handed out, rounded up to `alignment`.
-    first_free :: i32_add(i32_const(ALLOCATION_ADDRESS), arena_top())
-    rounded_up :: i32_and(
-        i32_sub(i32_add(first_free, local_get(alignment)), i32_const(1)),
-        i32_sub(i32_const(0), local_get(alignment)),
+import "std/testing"
+
+@test
+test_realloc_calls_the_allocator_through_its_slot :: fn() -> void {
+    body :: allocator_function(5).body
+    called :: body[body.len() - 1]
+    slot :: body[body.len() - 2]
+    assert(
+        called is CallIndirect && called.type_index == ALLOCATE_TYPE_INDEX,
+        "the allocator's type",
     )
-    // The pages the room ends in.
-    end_in_pages :: i32_shr_u(i32_add(end, i32_const(page_bytes - 1)), i32_const(PAGE_SHIFT))
-    return [
-        local_set(address, rounded_up),
-        i32_store(i32_const(ARENA_ADDRESS), i32_sub(end, i32_const(ALLOCATION_ADDRESS))),
-        // The pages the memory lacks.
-        local_set(pages, i32_sub(end_in_pages, memory_size())),
-        when(
-            i32_gt_s(local_get(pages), i32_const(0)),
-            [when(i32_eq(memory_grow(local_get(pages)), i32_const(-1)), [unreachable()])],
-        ),
-        local_get(address),
-    ]
+    assert(slot is I32Const && slot.value == 5, "the slot comes last")
 }

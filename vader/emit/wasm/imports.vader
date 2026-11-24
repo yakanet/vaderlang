@@ -61,6 +61,8 @@ THREAD_BUILTINS: CanonicalKind[]: [
     .ThreadIndex,
     .ContextGet,
     .ContextSet,
+    .ContextGetBlock,
+    .ContextSetBlock,
 ]
 
 // The interface and the function a read with a deadline waits on, as WASI 0.3

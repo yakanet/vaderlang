@@ -17,9 +17,10 @@
 // core module imports from `CANONICAL_MODULE` with the linear memory they read and
 // write. The component defines both (`component.vader`).
 //
-// The memory holds, from address 0: the event a wait reports, the top of the
-// arena, a list being lifted, the items of a stream, copied out of their GC
-// array or read from the host one chunk at a time, then the arena.
+// Each thread's block of the memory holds (`arena.vader`): the event a wait
+// reports, the state of its arena, a list being lifted, the items of a stream,
+// copied out of their GC array or read from the host one chunk at a time, then
+// the arena's first room.
 
 module "vader/emit/wasm"
 
@@ -64,18 +65,22 @@ export CanonicalKind :: enum {
     ThreadIndex,
     ContextGet,
     ContextSet,
+    ContextGetBlock,
+    ContextSetBlock,
 }
 
-// Where the memory holds what crosses it: the event a wait reports (the
-// waitable, then the payload), the top of the arena (`arena.vader`), the address
-// and the length of a list being lifted, the chunk of a stream being written or
-// read, then the arena.
-EVENT_ADDRESS: i32: 0
+// Where a thread's block holds what crosses the memory, from the block's address:
+// the event a wait reports (the waitable, then the payload), the address and the
+// length of a list being lifted, the chunk of a stream being written or read,
+// then the arena's first room. The bytes from 8 to 32 hold the state of the
+// arena, and in the main thread's block the list of free segments
+// (`arena.vader`).
+EVENT_OFFSET: i32: 0
 EVENT_PAYLOAD: i32: 4
-LIST_ADDRESS: i32: 16
-CHUNK_ADDRESS: i32: 1024
+LIST_OFFSET: i32: 16
+CHUNK_OFFSET: i32: 1024
 CHUNK_SIZE: i32: 4096
-ALLOCATION_ADDRESS: i32: CHUNK_ADDRESS + CHUNK_SIZE
+ALLOCATION_OFFSET: i32: CHUNK_OFFSET + CHUNK_SIZE
 
 // What a built-in that starts a copy returns when the copy has to wait.
 BLOCKED: i32: -1
@@ -96,7 +101,8 @@ SUBTASK_RETURNED: i32: 2
 EVENT_STREAM_READ: i32: 2
 
 // The payload of the event the last wait reported.
-event_payload :: fn() -> WasmExpression = i32_load(i32_const(EVENT_ADDRESS), EVENT_PAYLOAD)
+event_payload :: fn(ctx: ModuleCtx) -> WasmExpression =
+    i32_load(ctx.in_block(EVENT_OFFSET), EVENT_PAYLOAD)
 
 // The core import name of `b`, one per built-in and type.
 builtin_name :: fn(b: CanonicalBuiltin) -> string {
@@ -127,6 +133,8 @@ canonical_name :: fn(k: CanonicalKind) -> string = match k {
     .ThreadIndex        -> "thread.index"
     .ContextGet         -> "context.get"
     .ContextSet         -> "context.set"
+    .ContextGetBlock    -> "context.get 1"
+    .ContextSetBlock    -> "context.set 1"
 }
 
 // The core type of `k`, as the canonical ABI lowers it.
@@ -153,6 +161,8 @@ builtin_type :: fn(k: CanonicalKind) -> WasmFuncType = match k {
     .ThreadIndex        -> func_of([], [.I32])
     .ContextGet         -> func_of([], [.I32])
     .ContextSet         -> func_of([.I32], [])
+    .ContextGetBlock    -> func_of([], [.I32])
+    .ContextSetBlock    -> func_of([.I32], [])
 }
 
 func_of :: fn(params: WasmValType[], results: WasmValType[]) -> WasmFuncType =
@@ -265,7 +275,7 @@ canonical_adapter :: fn(ctx: ModuleCtx, index: i32, function: string) -> i32 | W
     }
     value :: a.push_call(wit, index, core_type) else is WasmUnsupported { return value }
     body: WasmExpression[]: if uses_arena(wit, core_type) {
-        a.frame.arena_scope(a.body)
+        a.ctx.arena_scope(a.frame, a.body)
     } else {
         a.body
     }
@@ -494,14 +504,14 @@ builtin :: fn(ctx: ModuleCtx, kind: CanonicalKind, type: WitType | null) -> i32 
 // ---- the helpers ----------------------------------------------------------
 
 // `(waitable) -> void`: wait until `waitable` signals, through a waitable set of
-// its own, which leaves the event at `EVENT_ADDRESS`.
+// its own, which leaves the event at `EVENT_OFFSET` of the thread's block.
 canonical_wait :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["canonical.wait"] else define_wait(ctx)
 
 define_wait :: fn(ctx: ModuleCtx) -> i32 {
     waitable :: 0
     frame :: HelperFrame { .signature = func_of([.I32], []) }
     set :: frame.local(.I32)
-    wait :: call(ctx.builtin(.WaitableSetWait, null), [local_get(set), i32_const(EVENT_ADDRESS)])
+    wait :: call(ctx.builtin(.WaitableSetWait, null), [local_get(set), ctx.in_block(EVENT_OFFSET)])
     body: WasmExpression[]: [
         local_set(set, call(ctx.builtin(.WaitableSetNew, null), [])),
         call(ctx.builtin(.WaitableJoin, null), [local_get(waitable), local_get(set)]),
@@ -539,8 +549,10 @@ define_write :: fn(ctx: ModuleCtx, key: string, stream: WitType) -> i32 {
     bytes :: storage_type(gc, .I8)
     at :: i32_add(i32_add(local_get(offset), local_get(sent)), local_get(k))
     byte :: array_get(bytes, local_get(storage), at, .Unsigned)
-    chunk_byte :: i32_add(i32_const(CHUNK_ADDRESS), local_get(k))
-    unwritten :: i32_add(i32_const(CHUNK_ADDRESS), local_get(done))
+    // The running thread's chunk.
+    chunk_at :: frame.local(.I32)
+    chunk_byte :: i32_add(local_get(chunk_at), local_get(k))
+    unwritten :: i32_add(local_get(chunk_at), local_get(done))
     write :: call(
         ctx.builtin(.StreamWrite, stream),
         [local_get(writable), unwritten, i32_sub(local_get(chunk), local_get(done))],
@@ -553,7 +565,7 @@ define_write :: fn(ctx: ModuleCtx, key: string, stream: WitType) -> i32 {
             [
                 call(ctx.canonical_wait(), [local_get(writable)]),
                 // The result of the copy, the payload of its event.
-                local_set(status, event_payload()),
+                local_set(status, event_payload(ctx)),
             ],
         ),
         when(i32_and(local_get(status), i32_const(COPY_STATUS_MASK)), [return_()]),
@@ -571,6 +583,7 @@ define_write :: fn(ctx: ModuleCtx, key: string, stream: WitType) -> i32 {
         local_set(sent, i32_add(local_get(sent), local_get(chunk))),
     ]
     body: WasmExpression[]: [
+        local_set(chunk_at, ctx.in_block(CHUNK_OFFSET)),
         local_set(length, i32_wrap_i64(header_field(gc, items, HEADER_LENGTH))),
         local_set(offset, header_field(gc, items, HEADER_OFFSET)),
         local_set(storage, header_field(gc, items, HEADER_STORAGE)),
