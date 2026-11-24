@@ -11,7 +11,7 @@ vader_box_t std_ascii$hex_value(uint8_t l0) {
     }
     if (l2) {
         t0 = vader_chk_sub(u8, l0, INT32_C(48));
-        l1 = vader_box_i32(631u, t0);
+        l1 = vader_box_i32(634u, t0);
         return l1;
     }
     if ((l0 >= INT32_C(65))) {
@@ -22,7 +22,7 @@ vader_box_t std_ascii$hex_value(uint8_t l0) {
     if (l2) {
         t0 = vader_chk_sub(u8, l0, INT32_C(65));
         t1 = vader_chk_add(u8, t0, INT32_C(10));
-        l1 = vader_box_i32(631u, t1);
+        l1 = vader_box_i32(634u, t1);
     } else {
         if ((l0 >= INT32_C(97))) {
             l2 = (l0 <= INT32_C(102));
@@ -32,7 +32,7 @@ vader_box_t std_ascii$hex_value(uint8_t l0) {
         if (l2) {
             t0 = vader_chk_sub(u8, l0, INT32_C(97));
             t1 = vader_chk_add(u8, t0, INT32_C(10));
-            l1 = vader_box_i32(631u, t1);
+            l1 = vader_box_i32(634u, t1);
         } else {
             l1 = vader_box_obj(0u, NULL);
         }

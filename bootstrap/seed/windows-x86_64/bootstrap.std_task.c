@@ -27,7 +27,7 @@ static void std_task$cancel__Any(void* l0) {
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     t0 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) INT64_C(0));
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 526u);
+    vader_obj_header_init(_a1_closure, 529u);
     _a1_closure->code = (void*) &vader_fn_lift___defer_std_task_10;
     _a1_closure->env = t0;
     t0 = (void*) _a1_closure;
@@ -129,7 +129,7 @@ static vader_box_t std_task$join__Any(void* l0) {
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     t0 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) INT64_C(0));
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 526u);
+    vader_obj_header_init(_a1_closure, 529u);
     _a1_closure->code = (void*) &vader_fn_lift___defer_std_task_12;
     _a1_closure->env = t0;
     t0 = (void*) _a1_closure;
@@ -139,19 +139,19 @@ static vader_box_t std_task$join__Any(void* l0) {
         l1 = vader_host_std_core$Intrinsic$current_thread();
         l2 = ((vader_struct_std_task$Task__Any_t*) l0)->f_waiters;
         vader_struct_std_task$Waiter_t* _a2_obj = (vader_struct_std_task$Waiter_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Waiter_t));
-        vader_obj_header_init(_a2_obj, 1108u);
+        vader_obj_header_init(_a2_obj, 1121u);
         _a2_obj->f_thread = l1;
         _a2_obj->f_group = vader_box_obj(0u, NULL);
         _a2_obj->f_index = INT64_C(0);
         l3 = (void*) _a2_obj;
         vader_array_push_ref((vader_array_t*) l2, l3);
         vader_struct___defer_env_std_task_15_t* _a3_obj = (vader_struct___defer_env_std_task_15_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_task_15_t));
-        vader_obj_header_init(_a3_obj, 664u);
+        vader_obj_header_init(_a3_obj, 669u);
         _a3_obj->f_cap_0 = l0;
         _a3_obj->f_cap_1 = l1;
         t0 = (void*) _a3_obj;
         vader_fn_t* _a4_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-        vader_obj_header_init(_a4_closure, 526u);
+        vader_obj_header_init(_a4_closure, 529u);
         _a4_closure->code = (void*) &vader_fn_lift___defer_std_task_14;
         _a4_closure->env = t0;
         t0 = (void*) _a4_closure;
@@ -190,12 +190,12 @@ void* std_task$launch__vader_front_resolver_ParsedFile____(void* l0) {
     }
     t1 = ((vader_struct_std_task$Started_t*) l1)->f_count;
     l2 = vader_chk_add(i64, t1, INT64_C(1));
-    vader_array_t* _a0_arr = vader_array_new(35u, 0u, 0u, 637u);
+    vader_array_t* _a0_arr = vader_array_new(35u, 0u, 0u, 640u);
     l1 = (void*) _a0_arr;
-    vader_array_t* _a1_arr = vader_array_new(60u, 0u, 13u, 1108u);
+    vader_array_t* _a1_arr = vader_array_new(61u, 0u, 13u, 1121u);
     l3 = (void*) _a1_arr;
     vader_struct_std_task$Task__Any_t* _a2_obj = (vader_struct_std_task$Task__Any_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Task__Any_t));
-    vader_obj_header_init(_a2_obj, 1106u);
+    vader_obj_header_init(_a2_obj, 1119u);
     _a2_obj->f_number = l2;
     _a2_obj->f_thread = INT64_C(-1);
     _a2_obj->f_ended = false;
@@ -203,12 +203,12 @@ void* std_task$launch__vader_front_resolver_ParsedFile____(void* l0) {
     _a2_obj->f_waiters = l3;
     l1 = (void*) _a2_obj;
     vader_struct___lambda_env_std_task_1_t* _a3_obj = (vader_struct___lambda_env_std_task_1_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_std_task_1_t));
-    vader_obj_header_init(_a3_obj, 671u);
+    vader_obj_header_init(_a3_obj, 676u);
     _a3_obj->f_cap_0 = l1;
     _a3_obj->f_cap_1 = l0;
     t2 = (void*) _a3_obj;
     vader_fn_t* _a4_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a4_closure, 526u);
+    vader_obj_header_init(_a4_closure, 529u);
     _a4_closure->code = (void*) &vader_fn_lift___lambda_std_task_0;
     _a4_closure->env = t2;
     t2 = (void*) _a4_closure;
@@ -294,11 +294,11 @@ void std_task$run__Any(void* l0, void* l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct___defer_env_std_task_9_t* _a0_obj = (vader_struct___defer_env_std_task_9_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_task_9_t));
-    vader_obj_header_init(_a0_obj, 668u);
+    vader_obj_header_init(_a0_obj, 673u);
     _a0_obj->f_cap_0 = l0;
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 526u);
+    vader_obj_header_init(_a1_closure, 529u);
     _a1_closure->code = (void*) &vader_fn_lift___defer_std_task_8;
     _a1_closure->env = t0;
     t0 = (void*) _a1_closure;
@@ -389,7 +389,7 @@ static void* std_task$started$singleton(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_std_task$Started_t* _a0_obj = (vader_struct_std_task$Started_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Started_t));
-    vader_obj_header_init(_a0_obj, 1105u);
+    vader_obj_header_init(_a0_obj, 1118u);
     _a0_obj->f_count = INT64_C(0);
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -461,28 +461,28 @@ vader_box_t std_task$try_join_all__vader_front_resolver_ParsedFile____(void* l0)
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     t0 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) INT64_C(0));
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 526u);
+    vader_obj_header_init(_a1_closure, 529u);
     _a1_closure->code = (void*) &vader_fn_lift___defer_std_task_2;
     _a1_closure->env = t0;
     t0 = (void*) _a1_closure;
     vader_defer_push(vader_ref_box(t0));
     vader_struct___defer_env_std_task_5_t* _a2_obj = (vader_struct___defer_env_std_task_5_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_task_5_t));
-    vader_obj_header_init(_a2_obj, 666u);
+    vader_obj_header_init(_a2_obj, 671u);
     _a2_obj->f_cap_0 = l0;
     t0 = (void*) _a2_obj;
     vader_fn_t* _a3_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a3_closure, 526u);
+    vader_obj_header_init(_a3_closure, 529u);
     _a3_closure->code = (void*) &vader_fn_lift___defer_std_task_4;
     _a3_closure->env = t0;
     t0 = (void*) _a3_closure;
     vader_defer_push(vader_ref_box(t0));
     l1 = std_task$watch__vader_front_resolver_ParsedFile____(l0);
     vader_struct___defer_env_std_task_7_t* _a4_obj = (vader_struct___defer_env_std_task_7_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_task_7_t));
-    vader_obj_header_init(_a4_obj, 667u);
+    vader_obj_header_init(_a4_obj, 672u);
     _a4_obj->f_cap_0 = l0;
     t0 = (void*) _a4_obj;
     vader_fn_t* _a5_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a5_closure, 526u);
+    vader_obj_header_init(_a5_closure, 529u);
     _a5_closure->code = (void*) &vader_fn_lift___defer_std_task_6;
     _a5_closure->env = t0;
     t0 = (void*) _a5_closure;
@@ -497,7 +497,7 @@ vader_box_t std_task$try_join_all__vader_front_resolver_ParsedFile____(void* l0)
         t0 = vader_array_ref_load_obj(_a6_slotarr->buf, vader_array_offset(_a6_slotarr) + (size_t) l4);
         l5 = std_task$outcome__vader_front_resolver_ParsedFile____(t0);
         l6 = l5;
-        if ((l5.tag == 641u) || (l5.tag == 1095u) || (l5.tag == 1481u) || (l5.tag == 881u) || (l5.tag == 1083u) || (l5.tag == 1101u) || (l5.tag == 1492u) || (l5.tag == 1246u) || (l5.tag == 1264u) || (l5.tag == 2138u) || (l5.tag == 2135u) || (l5.tag == 1693u)) {
+        if ((l5.tag == 644u) || (l5.tag == 1108u) || (l5.tag == 1494u) || (l5.tag == 887u) || (l5.tag == 1092u) || (l5.tag == 1114u) || (l5.tag == 1505u) || (l5.tag == 1259u) || (l5.tag == 1277u) || (l5.tag == 2154u) || (l5.tag == 2151u) || (l5.tag == 1706u)) {
             l7 = l6;
             vader_defer_pop_exec(3u);
             { vader_box_t __vret = l7; vader_gc_top = gc_frame.prev; return __vret; }
@@ -536,10 +536,10 @@ static void* std_task$watch__vader_front_resolver_ParsedFile____(void* l0) {
     void** gc_raw_roots[6] = { &l0, &l1, &l5, &l6, &l7, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 6u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(30u, 0u, 8u, 630u);
+    vader_array_t* _a0_arr = vader_array_new(30u, 0u, 8u, 633u);
     t0 = (void*) _a0_arr;
     vader_struct_std_task$Group_t* _a1_obj = (vader_struct_std_task$Group_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Group_t));
-    vader_obj_header_init(_a1_obj, 1104u);
+    vader_obj_header_init(_a1_obj, 1117u);
     _a1_obj->f_ended = t0;
     _a1_obj->f_taken = INT64_C(0);
     l1 = (void*) _a1_obj;
@@ -556,7 +556,7 @@ static void* std_task$watch__vader_front_resolver_ParsedFile____(void* l0) {
         } else {
             l6 = ((vader_struct_std_task$Task__vader_front_resolver_ParsedFile_____t*) l5)->f_waiters;
             vader_struct_std_task$Waiter_t* _a3_obj = (vader_struct_std_task$Waiter_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Waiter_t));
-            vader_obj_header_init(_a3_obj, 1108u);
+            vader_obj_header_init(_a3_obj, 1121u);
             _a3_obj->f_thread = l2;
             _a3_obj->f_group = vader_ref_box(l1);
             _a3_obj->f_index = l3;
