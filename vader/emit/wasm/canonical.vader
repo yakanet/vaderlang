@@ -57,6 +57,13 @@ export CanonicalKind :: enum {
     WaitableSetDrop,
     SubtaskCancel,
     SubtaskDrop,
+    ThreadNewIndirect,
+    ThreadResumeLater,
+    ThreadYield,
+    ThreadSuspend,
+    ThreadIndex,
+    ContextGet,
+    ContextSet,
 }
 
 // Where the memory holds what crosses it: the event a wait reports (the
@@ -113,6 +120,13 @@ canonical_name :: fn(k: CanonicalKind) -> string = match k {
     .WaitableSetDrop    -> "waitable-set.drop"
     .SubtaskCancel      -> "subtask.cancel"
     .SubtaskDrop        -> "subtask.drop"
+    .ThreadNewIndirect  -> "thread.new-indirect"
+    .ThreadResumeLater  -> "thread.resume-later"
+    .ThreadYield        -> "thread.yield"
+    .ThreadSuspend      -> "thread.suspend"
+    .ThreadIndex        -> "thread.index"
+    .ContextGet         -> "context.get"
+    .ContextSet         -> "context.set"
 }
 
 // The core type of `k`, as the canonical ABI lowers it.
@@ -132,6 +146,13 @@ builtin_type :: fn(k: CanonicalKind) -> WasmFuncType = match k {
     .WaitableSetDrop    -> func_of([.I32], [])
     .SubtaskCancel      -> func_of([.I32], [.I32])
     .SubtaskDrop        -> func_of([.I32], [])
+    .ThreadNewIndirect  -> func_of([.I32, .I32], [.I32])
+    .ThreadResumeLater  -> func_of([.I32], [])
+    .ThreadYield        -> func_of([], [.I32])
+    .ThreadSuspend      -> func_of([], [.I32])
+    .ThreadIndex        -> func_of([], [.I32])
+    .ContextGet         -> func_of([], [.I32])
+    .ContextSet         -> func_of([.I32], [])
 }
 
 func_of :: fn(params: WasmValType[], results: WasmValType[]) -> WasmFuncType =

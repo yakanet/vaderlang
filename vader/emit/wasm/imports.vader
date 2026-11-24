@@ -47,7 +47,21 @@ ImportedFunctions :: struct {
     handles: Map<i32, Handled> = Map<i32, Handled> {}
     // The WASM function index of `wait-for`, when the program reads a stream.
     wait_for: i32 | null = null
+    // Whether the program starts threads of the component model, which take the
+    // built-ins of `THREAD_BUILTINS` (`threads.vader`).
+    threads: bool = false
 }
+
+// The built-ins of a program that starts threads.
+THREAD_BUILTINS: CanonicalKind[]: [
+    .ThreadNewIndirect,
+    .ThreadResumeLater,
+    .ThreadYield,
+    .ThreadSuspend,
+    .ThreadIndex,
+    .ContextGet,
+    .ContextSet,
+]
 
 // The interface and the function a read with a deadline waits on, as WASI 0.3
 // declares it.
@@ -71,7 +85,7 @@ imported_functions :: fn(
     types: TypeTable,
     takes_arguments: bool,
 ) -> ImportedFunctions | WasmUnsupported {
-    out :: ImportedFunctions {}
+    out :: ImportedFunctions { .threads = starts_threads(m) }
     reads_streams: bool = false
     for [imp, i] in m.imports.indexed() {
         if imp.intrinsic == .WasmStreamRead {
@@ -105,6 +119,9 @@ imported_functions :: fn(
         out.add_builtins(
             DEADLINE_BUILTINS.map((kind) -> CanonicalBuiltin { .kind = kind }).collect(),
         )
+    }
+    if out.threads {
+        out.add_builtins(THREAD_BUILTINS.map((kind) -> CanonicalBuiltin { .kind = kind }).collect())
     }
     for b in out.builtins {
         out.by_builtin[builtin_name(b)] = i32(out.functions.len())

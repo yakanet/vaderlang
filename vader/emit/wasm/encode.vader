@@ -23,14 +23,17 @@ export encode_module :: fn(m: WasmModule) -> u8[] {
     if m.gc_types.len() + m.types.len() > 0 {
         out.push_section(.Type, type_section(m.gc_types, m.types))
     }
-    if m.imports.len() > 0 || m.memory_import != null {
-        out.push_section(.Import, import_section(m.imports, m.memory_import))
+    if m.imports.len() > 0 || m.memory_import != null || m.table_import {
+        out.push_section(.Import, import_section(m))
     }
     if m.functions.len() > 0 {
         out.push_section(.Function, function_section(m.functions))
     }
-    if m.table.len() > 0 || m.table_read {
+    if !m.table_import && (m.table.len() > 0 || m.table_read) {
         out.push_section(.Table, table_section(m.table))
+    }
+    if m.tags.len() > 0 {
+        out.push_section(.Tag, tag_section(m.tags))
     }
     if m.globals.len() > 0 {
         out.push_section(.Global, global_section(m.globals))
@@ -68,6 +71,7 @@ SectionId :: enum(u8) {
     Code      = 10,
     Data      = 11,
     DataCount = 12,
+    Tag       = 13,
 }
 
 // The bytes that open a function type, a struct type, an array type, and a
@@ -88,8 +92,9 @@ MUTABLE: u8: 0x01
 GC_PREFIX: u8: 0xFB
 // The abstract heap type `eq`.
 HEAP_EQ: u8: 0x6D
-// The kind of an imported or exported function, and of a memory.
+// The kind of an imported or exported function, of a table, and of a memory.
 EXTERNAL_FUNCTION: u8: 0x00
+EXTERNAL_TABLE: u8: 0x01
 EXTERNAL_MEMORY: u8: 0x02
 // The limits of a memory of one page at least and no maximum.
 ONE_PAGE_OR_MORE: u8[]: [0x00, 0x01]
@@ -103,11 +108,36 @@ push_section :: fn(out: u8[], id: SectionId, content: u8[]) -> void {
 
 // One table of functions, of exactly as many slots as `table` holds.
 table_section :: fn(table: i32[]) -> u8[] {
-    out: u8[]: [0x01, FUNCTION_REFERENCE, 0x01]
-    out.push_count(table.len())
-    out.push_count(table.len())
+    out: u8[]: [0x01]
+    out.push_table_type(table.len())
     return out
 }
+
+// A table of functions of exactly `slots` slots.
+push_table_type :: fn(out: u8[], slots: i64) -> void {
+    out.push_all([FUNCTION_REFERENCE, 0x01])
+    out.push_count(slots)
+    out.push_count(slots)
+}
+
+// Each tag an exception, of the function type it names.
+tag_section :: fn(tags: i32[]) -> u8[] {
+    out: u8[]: []
+    out.push_count(tags.len())
+    for t in tags {
+        out.push(TAG_EXCEPTION)
+        out.push_count(i64(t))
+    }
+    return out
+}
+
+// The attribute of a tag that names an exception.
+TAG_EXCEPTION: u8: 0x00
+
+// The block type of a scope that leaves nothing, and the catch clause of
+// `try_table` that catches one tag.
+EMPTY_BLOCK: u8: 0x40
+CATCH_TAG: u8: 0x00
 
 // One active segment that fills the table from its first slot with `table`.
 element_section :: fn(table: i32[]) -> u8[] {
@@ -181,19 +211,25 @@ storage_type_byte :: fn(t: WasmStorageType) -> u8 = match t {
     .EqRef -> value_type_byte(.EqRef)
 }
 
-// The memory first when there is one: it takes no function index.
-import_section :: fn(imports: WasmImport[], memory_import: string | null) -> u8[] {
+// The memory first when there is one, then the table when it is imported:
+// neither takes a function index.
+import_section :: fn(m: WasmModule) -> u8[] {
+    memory_import :: m.memory_import
     out: u8[]: []
-    if memory_import == null {
-        out.push_count(imports.len())
-    } else {
-        out.push_count(imports.len() + 1)
+    out.push_count(m.imports.len() + count_of(memory_import != null) + count_of(m.table_import))
+    if memory_import != null {
         out.push_name(memory_import)
         out.push_name(MEMORY_NAME)
         out.push(EXTERNAL_MEMORY)
         out.push_all(ONE_PAGE_OR_MORE)
     }
-    for i in imports {
+    if m.table_import {
+        out.push_name(CANONICAL_MODULE)
+        out.push_name(TABLE_NAME)
+        out.push(EXTERNAL_TABLE)
+        out.push_table_type(m.table.len())
+    }
+    for i in m.imports {
         out.push_name(i.module)
         out.push_name(i.name)
         out.push(EXTERNAL_FUNCTION)
@@ -205,24 +241,45 @@ import_section :: fn(imports: WasmImport[], memory_import: string | null) -> u8[
 /// The name a linear memory is exported and imported under.
 export MEMORY_NAME: string: "memory"
 
+/// The name the table of functions is exported and imported under, when the
+/// component hands it to `thread.new-indirect`.
+export TABLE_NAME: string: "table"
+
+// One for a thing that is there, none otherwise.
+count_of :: fn(present: bool) -> i64 = if present { 1 } else { 0 }
+
 /// A module that only defines a linear memory of one page and exports it, which
 /// a component instantiates before the modules that import it (ADR 0176).
-export encode_memory_module :: fn(with_allocator: bool) -> u8[] {
+///
+/// @param with_allocator  whether it exports the allocator the host writes
+///                        results into room from.
+/// @param table_slots     the slots of the table of functions it defines and
+///                        exports too, null for none.
+export encode_memory_module :: fn(with_allocator: bool, table_slots: i64 | null) -> u8[] {
     out: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]
     if with_allocator {
         out.push_section(.Type, type_section([], [ALLOCATOR_TYPE]))
         out.push_section(.Function, [1, 0])
     }
+    if table_slots != null {
+        tables: u8[]: [1]
+        tables.push_table_type(table_slots)
+        out.push_section(.Table, tables)
+    }
     memories: u8[]: [1]
     memories.push_all(ONE_PAGE_OR_MORE)
     out.push_section(.Memory, memories)
     exports: u8[]: []
-    exports.push_count(if with_allocator { 2 } else { 1 })
+    exports.push_count(1 + count_of(with_allocator) + count_of(table_slots != null))
     exports.push_name(MEMORY_NAME)
     exports.push_all([EXTERNAL_MEMORY, 0])
     if with_allocator {
         exports.push_name(REALLOC_NAME)
         exports.push_all([EXTERNAL_FUNCTION, 0])
+    }
+    if table_slots != null {
+        exports.push_name(TABLE_NAME)
+        exports.push_all([EXTERNAL_TABLE, 0])
     }
     out.push_section(.Export, exports)
     if with_allocator {
@@ -369,6 +426,12 @@ push_instr :: fn(out: u8[], instr: WasmInstr) -> void {
         is ArraySet        -> { out.push_gc(0x0E, [instr.type_index]) }
         is ArrayLen        -> { out.push_gc(0x0F, []) }
         is ArrayCopy       -> { out.push_gc(0x11, [instr.destination, instr.source]) }
+        is TryTable        -> {
+            out.push_all([0x1F, EMPTY_BLOCK, 0x01, CATCH_TAG])
+            out.push_count(i64(instr.tag))
+            out.push_count(0)
+        }
+        is Throw           -> { out.push_indexed(0x08, instr.tag) }
         is MemoryAccess    -> {
             out.push(memory_opcode(instr.op))
             out.push_count(i64(natural_alignment(instr.op)))
@@ -775,7 +838,49 @@ test_encode_memory_module_exports_one_page :: fn() -> void {
     expected: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]
     expected.push_all([0x05, 0x03, 0x01, 0x00, 0x01])
     expected.push_all([0x07, 0x0A, 0x01, 0x06, 0x6D, 0x65, 0x6D, 0x6F, 0x72, 0x79, 0x02, 0x00])
-    assert_bytes(encode_memory_module(false), expected)
+    assert_bytes(encode_memory_module(false, null), expected)
+}
+
+@test
+test_encode_memory_module_exports_the_table_of_threads :: fn() -> void {
+    expected: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]
+    expected.push_all([0x04, 0x05, 0x01, 0x70, 0x01, 0x03, 0x03])
+    expected.push_all([0x05, 0x03, 0x01, 0x00, 0x01])
+    expected.push_all([0x07, 0x12, 0x02, 0x06, 0x6D, 0x65, 0x6D, 0x6F, 0x72, 0x79, 0x02, 0x00])
+    expected.push_all([0x05, 0x74, 0x61, 0x62, 0x6C, 0x65, 0x01, 0x00])
+    assert_bytes(encode_memory_module(false, 3), expected)
+}
+
+@test
+test_a_try_table_catches_one_tag_to_the_scope_around_it :: fn() -> void {
+    f :: WasmFunction {
+        .type_index = 0,
+        .locals = [],
+        .body = [
+            Plain { .op = .Block },
+            TryTable { .tag = 0 },
+            Throw { .tag = 0 },
+            Plain { .op = .End },
+            Plain { .op = .End },
+        ],
+    }
+    expected: u8[]: [0x00, 0x02, 0x40, 0x1F, 0x40, 0x01, 0x00, 0x00, 0x00, 0x08, 0x00]
+    expected.push_all([0x0B, 0x0B, 0x0B])
+    assert_bytes(function_body(f), expected)
+}
+
+@test
+test_a_tag_takes_its_section_before_the_globals :: fn() -> void {
+    m :: WasmModule {
+        .types = [WasmFuncType { .params = [], .results = [] }],
+        .functions = [],
+        .exports = [],
+        .tags = [0],
+    }
+    expected: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]
+    expected.push_all([0x01, 0x04, 0x01, 0x60, 0x00, 0x00])
+    expected.push_all([0x0D, 0x03, 0x01, 0x00, 0x00])
+    assert_bytes(encode_module(m), expected)
 }
 
 @test

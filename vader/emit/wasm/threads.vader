@@ -1,0 +1,176 @@
+// vader/emit/wasm/threads: the threads of the component model, which the
+// scheduler of `std/runtime/scheduler` drives in a WASM build.
+//
+// The module keeps a record per thread, at its slot in one array: the function
+// value it runs, until it starts, and its defer stack, which `defer.push` and
+// `defer.pop_exec` reach through the record of the running thread. A thread's
+// context, `context.get i32 0`, is its slot: the main thread's is 0, the
+// context every thread of the component starts with, and a thread
+// `wasm_thread_new` makes sets its own first thing.
+//
+// `thread.new-indirect` starts a thread at the trampoline, the one entry of the
+// table it takes, which the component hands it (`component.vader`). The
+// trampoline runs the function value inside a `try_table` that catches the tag
+// of an ending thread: `wasm_thread_exit` runs the thread's pending defers, then
+// leaves its frames by throwing it.
+
+module "vader/emit/wasm"
+
+Bc :: import "vader/core/bytecode"
+import "std/iter"
+
+// The fields of a thread's record.
+RECORD_ENTRY: i32: 0
+RECORD_DEFERS: i32: 1
+
+// `(entry: eqref) -> i64`: a thread that runs the function value `entry`, which
+// starts suspended; its index.
+thread_new_function :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["thread.new"] else define_new(ctx)
+
+define_new :: fn(ctx: ModuleCtx) -> i32 {
+    gc :: ctx.gc
+    entry :: 0
+    frame :: HelperFrame { .signature = func_of([.EqRef], [.I64]) }
+    slot :: frame.local(.I32)
+    records :: call(ctx.thread_records_function(), [])
+    record :: struct_new(gc.thread, [local_get(entry), ref_null()])
+    started :: call(
+        builtin(ctx, .ThreadNewIndirect, null),
+        [i32_const(ctx.trampoline_slot()), local_get(slot)],
+    )
+    body: WasmExpression[]: [
+        local_set(slot, i32_wrap_i64(header_get(gc, records, HEADER_LENGTH))),
+        call(ctx.array_push(.EqRef), [records, record]),
+        i64_extend_i32_u(started),
+    ]
+    return ctx.define_tree_helper("thread.new", frame, body)
+}
+
+// The slot in the table of `(context: i32) -> ()`, the trampoline: the thread of
+// the context `context` takes it as its own, then runs the function value its
+// record holds, which the record lets go of, until it returns or ends. Its
+// defer stack goes with it.
+trampoline_slot :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.table_slots[TRAMPOLINE] else ctx.table_entry(TRAMPOLINE, () -> ctx.define_trampoline())
+
+TRAMPOLINE: string: "thread.trampoline"
+
+define_trampoline :: fn(ctx: ModuleCtx) -> i32 {
+    gc :: ctx.gc
+    context :: 0
+    frame :: HelperFrame { .signature = func_of([.I32], []) }
+    record :: frame.local(.EqRef)
+    entry :: frame.local(.EqRef)
+    body: WasmExpression[]: [
+        call(builtin(ctx, .ContextSet, null), [local_get(context)]),
+        local_set(record, ctx.record_at(local_get(context))),
+        local_set(entry, struct_get(gc.thread, RECORD_ENTRY, local_get(record))),
+        struct_set(gc.thread, RECORD_ENTRY, local_get(record), ref_null()),
+        catching(ctx.exit_tag(), [drop(ctx.entry_call(entry, []))]),
+        struct_set(gc.thread, RECORD_DEFERS, local_get(record), ref_null()),
+    ]
+    return ctx.define_tree_helper(TRAMPOLINE, frame, body)
+}
+
+// `() -> eqref`: the array of the records, made with the main thread's on the
+// first read.
+thread_records_function :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["thread.records"] else define_records(ctx)
+
+define_records :: fn(ctx: ModuleCtx) -> i32 {
+    gc :: ctx.gc
+    main :: struct_new(gc.thread, [ref_null(), ref_null()])
+    storage :: array_new_fixed(storage_type(gc, .EqRef), [main])
+    made :: new_header(gc, full_fields(-1, REFERENCE_ACCESS, 1, storage))
+    return ctx.define_cached("thread.records", made)
+}
+
+// `() -> eqref`: the defer stack of the running thread, made empty on its first
+// read.
+thread_defers_function :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["thread.defers"] else define_defers(ctx)
+
+define_defers :: fn(ctx: ModuleCtx) -> i32 {
+    gc :: ctx.gc
+    frame :: HelperFrame { .signature = func_of([], [.EqRef]) }
+    record :: frame.local(.EqRef)
+    defers :: struct_get(gc.thread, RECORD_DEFERS, local_get(record))
+    made :: struct_set(gc.thread, RECORD_DEFERS, local_get(record), empty_reference_array(gc))
+    body: WasmExpression[]: [
+        local_set(record, ctx.record_at(call(builtin(ctx, .ContextGet, null), []))),
+        when(unary(.RefIsNull, defers), [made]),
+        defers,
+    ]
+    return ctx.define_tree_helper("thread.defers", frame, body)
+}
+
+// `(thread: i64) -> ()`.
+thread_resume_later_function :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["thread.resume_later"] else define_resume_later(ctx)
+
+define_resume_later :: fn(ctx: ModuleCtx) -> i32 {
+    thread :: 0
+    frame :: HelperFrame { .signature = func_of([.I64], []) }
+    resumed :: call(builtin(ctx, .ThreadResumeLater, null), [i32_wrap_i64(local_get(thread))])
+    return ctx.define_tree_helper("thread.resume_later", frame, [resumed])
+}
+
+// `() -> i64`: the index of the running thread.
+thread_index_function :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["thread.index"] else define_index(ctx)
+
+define_index :: fn(ctx: ModuleCtx) -> i32 {
+    frame :: HelperFrame { .signature = func_of([], [.I64]) }
+    index :: i64_extend_i32_u(call(builtin(ctx, .ThreadIndex, null), []))
+    return ctx.define_tree_helper("thread.index", frame, [index])
+}
+
+// `() -> ()`: the built-in `kind`, whatever it answers: whether the task was
+// cancelled, which a thread of the scheduler never asks.
+dropping_builtin :: fn(ctx: ModuleCtx, kind: CanonicalKind) -> i32 =
+    ctx.helpers[canonical_name(kind)] else define_dropping(ctx, kind)
+
+define_dropping :: fn(ctx: ModuleCtx, kind: CanonicalKind) -> i32 {
+    frame :: HelperFrame { .signature = func_of([], []) }
+    body :: [drop(call(builtin(ctx, kind, null), []))]
+    return ctx.define_tree_helper(canonical_name(kind), frame, body)
+}
+
+// `() -> ()`: run every pending defer of the running thread, the last pushed
+// first, then leave its frames to the trampoline, which ends it.
+thread_exit_function :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["thread.exit"] else define_exit(ctx)
+
+define_exit :: fn(ctx: ModuleCtx) -> i32 {
+    frame :: HelperFrame { .signature = func_of([], []) }
+    count :: header_get(ctx.gc, defer_array(ctx), HEADER_LENGTH)
+    body: WasmExpression[]: [
+        call(ctx.defer_pop_exec(), [i32_wrap_i64(count)]),
+        apply(Throw { .tag = ctx.exit_tag() }, []),
+    ]
+    return ctx.define_tree_helper("thread.exit", frame, body)
+}
+
+// ---- building blocks ------------------------------------------------------
+
+// The record at the `i32` slot `slot`: the array is never a view, so its storage
+// starts at its first record.
+record_at :: fn(ctx: ModuleCtx, slot: WasmExpression) -> WasmExpression {
+    records :: call(ctx.thread_records_function(), [])
+    storage :: header_get(ctx.gc, records, HEADER_STORAGE)
+    return array_get(storage_type(ctx.gc, .EqRef), storage, slot)
+}
+
+// The tag of an ending thread, which takes no value, declared on its first use.
+exit_tag :: fn(ctx: ModuleCtx) -> i32 = ctx.exit_tag else declare_exit_tag(ctx)
+
+declare_exit_tag :: fn(ctx: ModuleCtx) -> i32 {
+    tag :: i32(ctx.tags.len())
+    ctx.tags.push(ctx.types.intern(func_of([], [])))
+    ctx.exit_tag = tag
+    return tag
+}
+
+// Whether `m` starts threads of the component model, which take the built-ins,
+// the records and the table import of this file.
+starts_threads :: fn(m: Bc.BytecodeModule) -> bool =
+    m.imports.any_match((imp) -> imp.intrinsic == .WasmThreadNew)

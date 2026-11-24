@@ -82,9 +82,13 @@ export encode_component :: fn(component: WasmComponent) -> u8[] {
     imported :: out.push_interface_imports(c.interfaces)
     scopes :: imported.scopes
     if has_memory {
-        out.push_component_section(.CoreModule, encode_memory_module(allocating))
+        table_slots: i64 | null: if c.core.table_import { c.core.table.len() } else { null }
+        out.push_component_section(.CoreModule, encode_memory_module(allocating, table_slots))
         out.push_component_section(.CoreInstance, [1, INSTANTIATE, 0, 0])
         out.push_component_section(.Alias, memory_aliases(allocating))
+    }
+    if c.core.table_import {
+        out.push_thread_sections()
     }
     out.push_component_section(.CoreModule, encode_module(c.core))
     // The allocator, when there is one, is the first core function.
@@ -130,6 +134,17 @@ memory_aliases :: fn(allocating: bool) -> u8[] {
         out.push_name(REALLOC_NAME)
     }
     return out
+}
+
+// The table out of the memory's instance, then the type of its entries that
+// `thread.new-indirect` calls: the first core table and the first core type of
+// the component.
+push_thread_sections :: fn(out: u8[]) -> void {
+    alias: u8[]: [1, CORE_SORT, CORE_TABLE, ALIAS_CORE_EXPORT, 0]
+    alias.push_name(TABLE_NAME)
+    out.push_component_section(.Alias, alias)
+    entry :: WasmFuncType { .params = [.I32], .results = [] }
+    out.push_component_section(.CoreType, type_section([], [entry]))
 }
 
 // Where the sections that export `run` find what they name.
@@ -178,6 +193,7 @@ push_run_sections :: fn(out: u8[], at: RunIndices) -> void {
 ComponentSectionId :: enum(u8) {
     CoreModule   = 1,
     CoreInstance = 2,
+    CoreType     = 3,
     Instance     = 5,
     Alias        = 6,
     Type         = 7,
@@ -215,6 +231,7 @@ DECLARE_EXPORT: u8: 0x04
 // The sorts, and the prefix that turns a sort byte into a core sort.
 CORE_SORT: u8: 0x00
 CORE_FUNC: u8: 0x00
+CORE_TABLE: u8: 0x01
 CORE_MEMORY: u8: 0x02
 SORT_FUNC: u8: 0x01
 SORT_TYPE: u8: 0x03
@@ -791,6 +808,13 @@ canonical_opcode :: fn(k: CanonicalKind) -> u8 = match k {
     .WaitableSetPoll    -> 0x21
     .WaitableSetDrop    -> 0x22
     .WaitableJoin       -> 0x23
+    .ThreadYield        -> 0x0C
+    .ContextGet         -> 0x0A
+    .ContextSet         -> 0x0B
+    .ThreadIndex        -> 0x26
+    .ThreadNewIndirect  -> 0x27
+    .ThreadResumeLater  -> 0x28
+    .ThreadSuspend      -> 0x29
 }
 
 // The options of the built-in `b`: a read that the host writes a string or a list
@@ -838,7 +862,23 @@ kind_options :: fn(k: CanonicalKind) -> u8[] = match k {
     .WaitableSetDrop    -> []
     .SubtaskCancel      -> [NOT_ASYNC]
     .SubtaskDrop        -> []
+    // The type the table's entries take, and the table, both the first of the
+    // component's core index spaces (`push_thread_sections`).
+    .ThreadNewIndirect  -> [0x00, 0x00]
+    .ThreadResumeLater  -> []
+    .ThreadYield        -> [NOT_CANCELLABLE]
+    .ThreadSuspend      -> [NOT_CANCELLABLE]
+    .ThreadIndex        -> []
+    .ContextGet         -> CONTEXT_SLOT
+    .ContextSet         -> CONTEXT_SLOT
 }
+
+// A yield or a suspension a cancellation of the task does not end.
+NOT_CANCELLABLE: u8: 0x00
+
+// The one slot of the thread's context the module uses, an `i32`: `context.get
+// i32 0` and `context.set i32 0`.
+CONTEXT_SLOT: u8[]: [0x7F, 0x00]
 
 // ---- instances ------------------------------------------------------------
 
@@ -863,9 +903,13 @@ core_instances :: fn(c: WasmComponent, first: i64, first_lowered: i64) -> u8[] {
     }
     if has_memory {
         out.push(INSTANCE_OF_EXPORTS)
-        out.push_count(c.builtins.len() + 1)
+        out.push_count(c.builtins.len() + 1 + count_of(c.core.table_import))
         out.push_name(MEMORY_NAME)
         out.push_all([CORE_MEMORY, 0])
+        if c.core.table_import {
+            out.push_name(TABLE_NAME)
+            out.push_all([CORE_TABLE, 0])
+        }
         for i in 0..<c.builtins.len() {
             out.push_name(builtin_name(c.builtins[i]))
             out.push(CORE_FUNC)

@@ -1047,6 +1047,11 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .WasmStreamRead | .WasmFutureWait -> {
         return [trap("${imp.mangled_name}: only a WASM build reads a component stream")]
     }
+    // The threads of the component model exist in a WASM build only.
+    .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
+        | .WasmThreadIndex | .WasmThreadExit -> {
+        return [trap("${imp.mangled_name}: only a WASM build drives a component thread")]
+    }
 
     // Non-intrinsics, and the members an op serves, which no call reaches as an
     // import.

@@ -195,6 +195,11 @@ export dispatch_import :: fn(
     .WasmStreamRead | .WasmFutureWait -> {
         return Trap { .message = "${info.mangled_name}: only a WASM build reads a component stream" }
     }
+    // The threads of the component model exist in a WASM build only.
+    .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
+        | .WasmThreadIndex | .WasmThreadExit -> {
+        return Trap { .message = "${info.mangled_name}: only a WASM build drives a component thread" }
+    }
     // Dynamic foreign calls. A `@test` runs ON the VM, so these have to be
     // served here too: the arms forward to the same intrinsics the natively
     // compiled VM calls directly.
@@ -1151,7 +1156,8 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop -> null
     .WaitBlockedReadFor | .WaitBlockedWriteFor -> null
     // Traps, which the evaluation reports.
-    .WasmStreamRead | .WasmFutureWait -> null
+    .WasmStreamRead | .WasmFutureWait | .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
+        | .WasmThreadIndex | .WasmThreadExit -> null
     .AbortPanic -> null
     // Served by an op, never called as an import.
     .NotIntrinsic

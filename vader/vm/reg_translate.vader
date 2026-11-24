@@ -427,7 +427,8 @@ string_import_op :: fn(t: Translation, pc: i64, id: bc.IntrinsicId) -> bool = ma
         | .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerMutexWait
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
         | .WaitBlockedReadFor | .WaitBlockedWriteFor
-        | .WasmStreamRead | .WasmFutureWait
+        | .WasmStreamRead | .WasmFutureWait | .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
+        | .WasmThreadIndex | .WasmThreadExit
         | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
         | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> false
 }

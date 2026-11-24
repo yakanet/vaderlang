@@ -88,6 +88,13 @@ export WasmModule :: struct {
     table: i32[] = []
     /// Whether a `call_indirect` reads the table, which exists then even empty.
     table_read: bool = false
+    /// Whether the table is imported, from `CANONICAL_MODULE`, rather than
+    /// defined: a component that starts threads hands it to
+    /// `thread.new-indirect` (`threads.vader`).
+    table_import: bool = false
+    /// The exception tags, each the index of its function type, which takes no
+    /// result.
+    tags: i32[] = []
     /// The module name the linear memory is imported from, null for a module
     /// without one. The canonical ABI passes what is not a scalar through it
     /// (`canonical.vader`).
@@ -121,6 +128,8 @@ export WasmInstr :: I32Const
            | GlobalGet
            | GlobalSet
            | MemoryAccess
+           | TryTable
+           | Throw
            | Plain
 
 /// `i32.const value`.
@@ -253,6 +262,14 @@ export MemoryOp :: enum {
     F32Store,
     F64Store,
 }
+
+/// `try_table` of the empty block type, catching the exception of the tag
+/// `tag` by a branch to the innermost scope around it: the body until the `end`
+/// runs, and what it throws of `tag` lands past that scope's end.
+export TryTable :: struct { tag: i32 }
+
+/// `throw tag`: raise the exception of the tag `tag`, which takes no value.
+export Throw :: struct { tag: i32 }
 
 /// An instruction without an immediate.
 export Plain :: struct { op: WasmOp }

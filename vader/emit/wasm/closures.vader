@@ -67,8 +67,12 @@ new_defer_stack :: fn(ctx: ModuleCtx) -> i32 {
     return global
 }
 
-// The defer stack, made empty on the first read.
+// The defer stack, made empty on the first read: the running thread's own when
+// the program starts threads (`threads.vader`).
 defer_array :: fn(ctx: ModuleCtx) -> WasmExpression {
+    if ctx.imports.threads {
+        return call(ctx.thread_defers_function(), [])
+    }
     global :: defer_stack(ctx)
     made :: empty_reference_array(ctx.gc)
     return sequence(
@@ -146,7 +150,12 @@ closure_entry :: fn(
     t :: ctx.function_type(type_id, function) else return t
     body :: ctx.entry_body(function_index, t.params.len(), lifted, function) else return body
     frame :: HelperFrame { .signature = entry_signature(t.params.len()) }
-    index :: ctx.define_tree_helper(key, frame, body)
+    return ctx.table_entry(key, () -> ctx.define_tree_helper(key, frame, body))
+}
+
+// The slot of the function `define` defines, appended to the table under `key`.
+table_entry :: fn(ctx: ModuleCtx, key: string, define: fn() -> i32) -> i32 {
+    index :: define()
     slot :: i32(ctx.table.len())
     ctx.table.push(index)
     ctx.table_slots[key] = slot

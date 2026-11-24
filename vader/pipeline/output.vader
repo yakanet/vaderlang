@@ -233,12 +233,26 @@ export wasm_path :: fn(out_flag: string, stem: Path) -> Path =
 export WASMTIME :: "wasmtime"
 
 /// The command line that runs the component at `component` under wasmtime:
-/// WASI 0.3, the current folder lent as `.`, the environment inherited. The
+/// WASI 0.3, the threads of the component model and the exceptions a thread
+/// ends by, the current folder lent as `.`, the environment inherited. The
 /// program's arguments follow it.
 ///
 /// @param component  the `.wasm` a `wasi-wasm32` build wrote.
-export wasmtime_command :: fn(component: string) -> string[] =
-    [WASMTIME, "run", "-S", "p3", "--dir", ".", "-S", "inherit-env", component]
+export wasmtime_command :: fn(component: string) -> string[] = [
+    WASMTIME,
+    "run",
+    "-S",
+    "p3",
+    "-W",
+    "component-model-threading",
+    "-W",
+    "exceptions",
+    "--dir",
+    ".",
+    "-S",
+    "inherit-env",
+    component,
+]
 
 /// What an artefact is written to.
 ///

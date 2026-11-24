@@ -527,6 +527,17 @@ when_else :: fn(
         .otherwise = otherwise,
     }
 
+// `body` inside a `try_table` that catches the exception of the tag `tag`: what
+// it throws of `tag` lands past the scope around it.
+catching :: fn(tag: i32, body: WasmExpression[]) -> WasmExpression {
+    opened: WasmExpression[]: [
+        apply(Plain { .op = .Block }, []),
+        apply(TryTable { .tag = tag }, []),
+    ]
+    closed: WasmExpression[]: [apply(Plain { .op = .End }, []), apply(Plain { .op = .End }, [])]
+    return sequence(opened + body + closed)
+}
+
 // `body` until `condition` holds, tested before each turn.
 loop_until :: fn(condition: WasmExpression, body: WasmExpression[]) -> WasmExpression =
     Loop { .exit_when = condition, .body = body }

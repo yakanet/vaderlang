@@ -173,7 +173,8 @@ array_member_op :: fn(id: Bc.IntrinsicId) -> ArrayOp | null = match id {
         | .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerMutexWait
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
         | .WaitBlockedReadFor | .WaitBlockedWriteFor
-        | .WasmStreamRead | .WasmFutureWait
+        | .WasmStreamRead | .WasmFutureWait | .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
+        | .WasmThreadIndex | .WasmThreadExit
         | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
         | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> null
 }

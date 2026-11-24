@@ -129,6 +129,8 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
         .data = ctx.segments,
         .table = ctx.table,
         .table_read = ctx.table_read,
+        .table_import = ctx.imports.threads,
+        .tags = ctx.tags,
         .memory_import = memory_import_of(ctx.imports),
     }
     return WasmComponent {
@@ -141,7 +143,7 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
 // The canonical built-ins and the adapters read and write the memory the
 // component defines.
 memory_import_of :: fn(imports: ImportedFunctions) -> string | null {
-    if imports.adapted.is_empty() && imports.arguments == null {
+    if imports.adapted.is_empty() && imports.arguments == null && !imports.threads {
         return null
     }
     return CANONICAL_MODULE
@@ -202,6 +204,10 @@ ModuleCtx :: struct {
     // The global of the table of a deep copy, once a helper reads it
     // (`deep_copy.vader`).
     copies: i32 | null = null
+    // The exception tags, each the index of its function type (`threads.vader`).
+    tags: i32[] = []
+    // The tag of an ending thread, once a helper throws or catches it.
+    exit_tag: i32 | null = null
 }
 
 // `run`, the core export the component lifts: it calls `init` when there is one,
@@ -821,20 +827,26 @@ intrinsic_function :: fn(
 ) -> i32 | WasmUnsupported {
     // @partial: the other members take a fixed answer, or have no WASM form yet.
     return @partial match imp.intrinsic {
-        .ByteLen           -> ctx.string_byte_len()
-        .ByteAt            -> ctx.string_byte_at()
-        .ByteSlice         -> ctx.string_byte_slice()
-        .IsAscii           -> ctx.string_is_ascii()
-        .BytesToString     -> ctx.bytes_to_string()
-        .Bytes             -> ctx.string_bytes(imp.signature.result_types[0])
-        .StringHash        -> ctx.string_hash()
-        .AbortPanic        -> ctx.panic_function()
-        .TargetCurrentOs   -> ctx.constant_function("os", OS_WASI)
-        .TargetCurrentArch -> ctx.constant_function("arch", ARCH_WASM32)
-        .WasmStreamRead    -> ctx.stream_read_function(imp, function)
-        .WasmFutureWait    -> ctx.future_wait_function(imp, function)
-        .DeepCopy          -> ctx.deep_copy_function(imp, function)
-        _                  -> ctx.fixed_function(imp, function)
+        .ByteLen               -> ctx.string_byte_len()
+        .ByteAt                -> ctx.string_byte_at()
+        .ByteSlice             -> ctx.string_byte_slice()
+        .IsAscii               -> ctx.string_is_ascii()
+        .BytesToString         -> ctx.bytes_to_string()
+        .Bytes                 -> ctx.string_bytes(imp.signature.result_types[0])
+        .StringHash            -> ctx.string_hash()
+        .AbortPanic            -> ctx.panic_function()
+        .TargetCurrentOs       -> ctx.constant_function("os", OS_WASI)
+        .TargetCurrentArch     -> ctx.constant_function("arch", ARCH_WASM32)
+        .WasmStreamRead        -> ctx.stream_read_function(imp, function)
+        .WasmFutureWait        -> ctx.future_wait_function(imp, function)
+        .DeepCopy              -> ctx.deep_copy_function(imp, function)
+        .WasmThreadNew         -> ctx.thread_new_function()
+        .WasmThreadSuspend     -> ctx.dropping_builtin(.ThreadSuspend)
+        .WasmThreadYield       -> ctx.dropping_builtin(.ThreadYield)
+        .WasmThreadResumeLater -> ctx.thread_resume_later_function()
+        .WasmThreadIndex       -> ctx.thread_index_function()
+        .WasmThreadExit        -> ctx.thread_exit_function()
+        _                      -> ctx.fixed_function(imp, function)
     }
 }
 

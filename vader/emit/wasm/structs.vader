@@ -44,6 +44,9 @@ export GcTypes :: struct {
     closure: i32 = -1
     /// The struct type of a `type` value: the index of the type it names.
     type_value: i32 = -1
+    /// The struct type of a thread's record, in a program that starts threads
+    /// (`threads.vader`).
+    thread: i32 = -1
 }
 
 // The scalar classes a box exists for.
@@ -109,6 +112,9 @@ export gc_types_of :: fn(m: Bc.BytecodeModule) -> GcTypes {
         [WasmField { .type = .EqRef }, WasmField { .type = .I32 }, WasmField { .type = .I32 }],
     )
     out.type_value = out.add([WasmField { .type = .I32 }])
+    if starts_threads(m) {
+        out.thread = out.add([WasmField { .type = .EqRef }, WasmField { .type = .EqRef }])
+    }
     return out
 }
 
