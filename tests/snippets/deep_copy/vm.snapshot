@@ -7,7 +7,5 @@ view 20 2 99 30
 constant 3 10 4 1
 bytes 4 33
 union 5
-kept 2 3
-same true false 7
 # exit
 0

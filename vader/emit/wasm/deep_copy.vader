@@ -1,0 +1,271 @@
+// vader/emit/wasm/deep_copy: `deep_copy`, a copy of every object a value
+// reaches.
+//
+// The walk is the native runtime's (`runtime/c/rt/copy.c`): an object is copied
+// on first sight, its references still the source's, then each copy has its
+// references replaced by the copies of what they reach. A table from source to
+// copy keeps two references to one object on one copy, and a cycle a cycle.
+//
+// A reference of Wasm GC has no address to hash, so the table is searched entry
+// by entry (`ref.eq`). The table is one array, made by each copy and dropped
+// after it: each source followed by its copy, the copies left to walk being the
+// entries past the scan.
+//
+// What the copy keeps rather than copies: null, a box (nothing writes a boxed
+// scalar in place), a `type` value, and a struct tasks share by design
+// (`BcStruct.shared`). A function value stops the run, as natively.
+
+module "vader/emit/wasm"
+
+Bc :: import "vader/core/bytecode"
+import "std/iter"
+
+// A struct type the copy makes anew, and how each of its fields is held.
+CopiedStruct :: struct {
+    type: i32
+    /// The type its references are replaced through: the supertype it shares
+    /// with its layout siblings, whose fields are held alike, else its own.
+    repointed_as: i32
+    fields: WasmField[]
+}
+
+// The function a call to the `deep_copy` instance `imp` reaches: a scalar is
+// its own copy.
+deep_copy_function :: fn(
+    ctx: ModuleCtx,
+    imp: Bc.BcImport,
+    function: string,
+) -> i32 | WasmUnsupported {
+    params :: value_types_of(imp.signature.params, function) else return params
+    results :: value_types_of(result_values(imp.signature.results), function) else return results
+    if params[0] == .EqRef {
+        return ctx.deep_copy_root()
+    }
+    signature :: WasmFuncType { .params = params, .results = results }
+    key :: "deep.scalar ${canonical_func_type_key(signature)}"
+    return ctx.helpers[key] else ctx.define_tree_helper(
+        key,
+        HelperFrame { .signature = signature },
+        [local_get(0)],
+    )
+}
+
+// `(value: eqref) -> eqref`: the copy of `value` and of everything it reaches.
+deep_copy_root :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["deep.copy"] else define_root(ctx)
+
+define_root :: fn(ctx: ModuleCtx) -> i32 {
+    gc :: ctx.gc
+    table :: copy_table(ctx)
+    value :: 0
+    frame :: HelperFrame { .signature = func_of([.EqRef], [.EqRef]) }
+    copy :: frame.local(.EqRef)
+    scan :: frame.local(.I64)
+    walked :: table_entry(ctx, i32_wrap_i64(local_get(scan)))
+    body: WasmExpression[]: [
+        global_set(table, empty_reference_array(gc)),
+        local_set(copy, call(ctx.deep_reach(), [local_get(value)])),
+        local_set(scan, i64_const(1)),
+        loop_until(
+            binary(.I64GeS, local_get(scan), table_length(ctx)),
+            [
+                call(ctx.deep_fix(), [walked]),
+                local_set(scan, i64_add(local_get(scan), i64_const(2))),
+            ],
+        ),
+        global_set(table, ref_null()),
+        local_get(copy),
+    ]
+    return ctx.define_tree_helper("deep.copy", frame, body)
+}
+
+// `(value: eqref) -> eqref`: the copy of `value` the table holds, else a new
+// one whose references are still the source's, noted in the table; `value`
+// itself when the copy keeps it.
+deep_reach :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["deep.reach"] else define_reach(ctx)
+
+define_reach :: fn(ctx: ModuleCtx) -> i32 {
+    gc :: ctx.gc
+    value :: 0
+    frame :: HelperFrame { .signature = func_of([.EqRef], [.EqRef]) }
+    at :: frame.local(.I32)
+    count :: frame.local(.I32)
+    entries :: frame.local(.EqRef)
+    note :: ctx.deep_note()
+    noted :: fn(copy: WasmExpression) -> WasmExpression =
+        return_([call(note, [local_get(value), copy])])
+    references :: storage_type(gc, .EqRef)
+    entry :: fn(position: WasmExpression) -> WasmExpression =
+        array_get(references, local_get(entries), position)
+    body: WasmExpression[]: [
+        when(unary(.RefIsNull, local_get(value)), [return_([local_get(value)])]),
+        local_set(count, i32_wrap_i64(table_length(ctx))),
+        local_set(entries, header_get(gc, global_get(copy_table(ctx)), HEADER_STORAGE)),
+        loop_until(
+            i32_ge_s(local_get(at), local_get(count)),
+            [
+                when(
+                    binary(.RefEq, entry(local_get(at)), local_get(value)),
+                    [return_([entry(plus(at, 1))])],
+                ),
+                local_set(at, plus(at, 2)),
+            ],
+        ),
+    ]
+    for copied in copied_structs(ctx) {
+        fields: WasmExpression[]: []
+        for field in 0..<copied.fields.len() {
+            fields.push(struct_get(copied.type, i32(field), local_get(value)))
+        }
+        made :: struct_new(copied.type, fields)
+        body.push(when(ref_test(copied.type, local_get(value)), [noted(made)]))
+    }
+    copied_array :: call(ctx.deep_array(), [local_get(value)])
+    body.push(when(ref_test(gc.array_header, local_get(value)), [noted(copied_array)]))
+    body.push(when(ref_test(gc.closure, local_get(value)), [unreachable()]))
+    body.push(local_get(value))
+    return ctx.define_tree_helper("deep.reach", frame, body)
+}
+
+// `(copy: eqref) -> ()`: each reference the copy holds replaced by the copy of
+// what it reaches. Layout siblings share one test, through their supertype.
+deep_fix :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["deep.fix"] else define_fix(ctx)
+
+define_fix :: fn(ctx: ModuleCtx) -> i32 {
+    gc :: ctx.gc
+    copy :: 0
+    frame :: HelperFrame { .signature = func_of([.EqRef], []) }
+    counter :: frame.local(.I64)
+    length :: frame.local(.I64)
+    reach :: ctx.deep_reach()
+    body: WasmExpression[]: []
+    tested: i32[]: []
+    for copied in copied_structs(ctx) {
+        type :: copied.repointed_as
+        if type in tested {
+            continue
+        }
+        tested.push(type)
+        repointed: WasmExpression[]: []
+        for field in 0..<copied.fields.len() {
+            if copied.fields[field].type == .EqRef {
+                held :: struct_get(type, i32(field), local_get(copy))
+                repointed.push(struct_set(type, i32(field), local_get(copy), call(reach, [held])))
+            }
+        }
+        if !repointed.is_empty() {
+            repointed.push(return_())
+            body.push(when(ref_test(type, local_get(copy)), repointed))
+        }
+    }
+    references :: storage_type(gc, .EqRef)
+    storage :: storage_in(gc, copy)
+    at :: i32_wrap_i64(local_get(counter))
+    element :: array_set(references, storage, at, call(reach, [array_get(references, storage, at)]))
+    of_references :: i32_eq(header_field(gc, copy, HEADER_ELEMENT), i32_const(REFERENCE_ELEMENT))
+    elements: WasmExpression[]: [
+        local_set(length, header_field(gc, copy, HEADER_LENGTH)),
+        repeat(.I64, counter, length, [element]),
+    ]
+    body.push(when(ref_test(gc.array_header, local_get(copy)), [when(of_references, elements)]))
+    return ctx.define_tree_helper("deep.fix", frame, body)
+}
+
+// `(array: eqref) -> eqref`: an array of its own over the elements `array`
+// shows, a view's included, its references still the source's.
+deep_array :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["deep.array"] else define_array(ctx)
+
+// The copy has room for four elements at least, as the native one has.
+define_array :: fn(ctx: ModuleCtx) -> i32 {
+    gc :: ctx.gc
+    array :: 0
+    frame :: HelperFrame { .signature = func_of([.EqRef], [.EqRef]) }
+    length :: frame.local(.I64)
+    capacity :: frame.local(.I64)
+    storage :: frame.local(.EqRef)
+    copy :: frame.local(.EqRef)
+    header :: HeaderFields {
+        .type_id = header_field(gc, array, HEADER_TYPE),
+        .element = header_field(gc, array, HEADER_ELEMENT),
+        .length = local_get(length),
+        .capacity = local_get(capacity),
+        .storage = local_get(storage),
+    }
+    copied :: call(
+        ctx.array_copy(),
+        [local_get(array), i64_const(0), local_get(copy), i64_const(0), local_get(length)],
+    )
+    body: WasmExpression[]: [
+        local_set(length, header_field(gc, array, HEADER_LENGTH)),
+        local_set(capacity, local_get(length)),
+        clamp(capacity, i64_const(4), .I64LtS),
+        storage_like(gc, array, capacity, storage),
+        local_set(copy, new_header(gc, header)),
+        copied,
+        local_get(copy),
+    ]
+    return ctx.define_tree_helper("deep.array", frame, body)
+}
+
+// `(source: eqref, copy: eqref) -> eqref`: the copy, noted in the table after
+// its source.
+deep_note :: fn(ctx: ModuleCtx) -> i32 = ctx.helpers["deep.note"] else define_note(ctx)
+
+define_note :: fn(ctx: ModuleCtx) -> i32 {
+    table :: copy_table(ctx)
+    source :: 0
+    copy :: 1
+    frame :: HelperFrame { .signature = func_of([.EqRef, .EqRef], [.EqRef]) }
+    push :: ctx.array_push(.EqRef)
+    body: WasmExpression[]: [
+        call(push, [global_get(table), local_get(source)]),
+        call(push, [global_get(table), local_get(copy)]),
+        local_get(copy),
+    ]
+    return ctx.define_tree_helper("deep.note", frame, body)
+}
+
+// ---- building blocks ------------------------------------------------------
+
+// The global of the table, null outside a copy.
+copy_table :: fn(ctx: ModuleCtx) -> i32 = ctx.copies else new_copy_table(ctx)
+
+new_copy_table :: fn(ctx: ModuleCtx) -> i32 {
+    global :: i32(ctx.globals.len())
+    ctx.globals.push(.EqRef)
+    ctx.copies = global
+    return global
+}
+
+// The entry of the table at the `i32` position `at`: the table is never a view,
+// so its storage starts at its first entry.
+table_entry :: fn(ctx: ModuleCtx, at: WasmExpression) -> WasmExpression {
+    storage :: header_get(ctx.gc, global_get(copy_table(ctx)), HEADER_STORAGE)
+    return array_get(storage_type(ctx.gc, .EqRef), storage, at)
+}
+
+// How many entries the table holds, an `i64`.
+table_length :: fn(ctx: ModuleCtx) -> WasmExpression =
+    header_get(ctx.gc, global_get(copy_table(ctx)), HEADER_LENGTH)
+
+// The struct types of the program the copy makes anew: all but the shared ones,
+// in the order of the bytecode types.
+copied_structs :: fn(ctx: ModuleCtx) -> CopiedStruct[] {
+    out: CopiedStruct[]: []
+    for [t, i] in ctx.module.types.indexed() {
+        if t !is Bc.BcStruct || t.shared {
+            continue
+        }
+        type :: ctx.gc.of_struct[i32(i)] else continue
+        declared :: ctx.gc.types[type]
+        if declared is WasmStructType {
+            out.push(
+                CopiedStruct {
+                    .type = type,
+                    .repointed_as = ctx.gc.of_layout[i32(i)] else type,
+                    .fields = declared.fields,
+                },
+            )
+        }
+    }
+    return out
+}

@@ -1,0 +1,21 @@
+// `deep_copy` keeps a value tasks share, a `Task`, and copies what sits beside
+// it.
+
+module "snippet"
+
+import "std/console"
+import "std/task"
+
+Holder :: struct {
+    task: Task<i32>
+    rows: i32[][]
+}
+
+main :: fn() -> i32 {
+    h :: Holder { .task = launch(() -> 7), .rows = [[1, 2], [3]] }
+    ch :: h.deep_copy()
+    ch.rows[0].push(9)
+    println("kept ${h.rows[0].len()} ${ch.rows[0].len()}")
+    println("same ${ch.task === h.task} ${ch.rows === h.rows} ${ch.task.join()}")
+    return 0
+}

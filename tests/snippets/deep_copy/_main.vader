@@ -1,12 +1,11 @@
 // `deep_copy` copies every struct and array a value reaches, once: two
 // references to one object reach one copy, a cycle stays a cycle, a view is
-// copied as the elements it shows, a constant's copy may be written, and a value
-// tasks share is kept, not copied.
+// copied as the elements it shows, and a constant's copy may be written. A value
+// tasks share is kept: `deep_copy_keeps_a_shared_task`.
 
 module "snippet"
 
 import "std/console"
-import "std/task"
 
 Point :: struct {
     x: i32
@@ -23,11 +22,6 @@ Shape :: struct {
 Node :: struct {
     label: string
     next: Node | null = null
-}
-
-Holder :: struct {
-    task: Task<i32>
-    rows: i32[][]
 }
 
 LIMITS :: [10, 20, 30]
@@ -79,11 +73,5 @@ main :: fn() -> i32 {
     if v is Point {
         println("union ${v.x}")
     }
-
-    h :: Holder { .task = launch(() -> 7), .rows = [[1, 2], [3]] }
-    ch :: h.deep_copy()
-    ch.rows[0].push(9)
-    println("kept ${h.rows[0].len()} ${ch.rows[0].len()}")
-    println("same ${ch.task === h.task} ${ch.rows === h.rows} ${ch.task.join()}")
     return 0
 }

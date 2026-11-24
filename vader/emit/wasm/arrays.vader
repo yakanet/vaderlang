@@ -911,6 +911,13 @@ new_header :: fn(gc: GcTypes, fields: HeaderFields) -> WasmExpression {
     return struct_new(gc.array_header, values)
 }
 
+// A new empty array of references, of no type of the bytecode: nothing tests it
+// against one.
+empty_reference_array :: fn(gc: GcTypes) -> WasmExpression {
+    empty :: array_new_fixed(storage_type(gc, .EqRef), [])
+    return new_header(gc, full_fields(-1, REFERENCE_ACCESS, 0, empty))
+}
+
 // The field `field` of the header of the array in the local `array`.
 header_field :: fn(gc: GcTypes, array: i32, field: i32) -> WasmExpression =
     header_get(gc, local_get(array), field)

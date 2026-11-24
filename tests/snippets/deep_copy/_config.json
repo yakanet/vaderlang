@@ -1,5 +1,0 @@
-{
-  "wasi": {
-    "differs": "`deep_copy` has no WASM form yet: it traps, as starting a task does"
-  }
-}

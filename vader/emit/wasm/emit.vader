@@ -199,6 +199,9 @@ ModuleCtx :: struct {
     defers: i32 | null = null
     // Whether a function pushes a defer, which a trap then runs (`trap_if`).
     has_defers: bool = false
+    // The global of the table of a deep copy, once a helper reads it
+    // (`deep_copy.vader`).
+    copies: i32 | null = null
 }
 
 // `run`, the core export the component lifts: it calls `init` when there is one,
@@ -756,8 +759,7 @@ constant_function :: fn(ctx: ModuleCtx, key: string, value: i32) -> i32 =
 // What a member with no host to reach answers, as long as a component runs one
 // thread and starts no other: a lock is never taken by anyone else, the thread is
 // the first, nothing cancels it, the host's collector keeps no count. A member
-// that needs another thread, a C library or a descriptor to wait on traps, and so
-// does `deep_copy`, which has no WASM form yet.
+// that needs another thread, a C library or a descriptor to wait on traps.
 FixedAnswer :: enum {
     /// Each result zero, none for a member that returns nothing.
     Zero,
@@ -776,7 +778,7 @@ fixed_answer_of :: fn(id: Bc.IntrinsicId) -> FixedAnswer | null = @partial match
         | .SchedulerTaskEnded | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMutexWait
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitBlockedReadFor
         | .WaitBlockedWriteFor | .WaitStop | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall
-        | .FfiCallFrame | .DeepCopy -> .Trap
+        | .FfiCallFrame -> .Trap
     _ -> null
 }
 
@@ -831,6 +833,7 @@ intrinsic_function :: fn(
         .TargetCurrentArch -> ctx.constant_function("arch", ARCH_WASM32)
         .WasmStreamRead    -> ctx.stream_read_function(imp, function)
         .WasmFutureWait    -> ctx.future_wait_function(imp, function)
+        .DeepCopy          -> ctx.deep_copy_function(imp, function)
         _                  -> ctx.fixed_function(imp, function)
     }
 }

@@ -1,0 +1,50 @@
+# Typecheck
+
+## tests/snippets/deep_copy_keeps_a_shared_task
+  StructDecl     Holder               :: Holder
+  FnDecl         main                 :: fn() -> i32
+  expr 15:10    StructLitExpr  :: Holder
+  expr 15:27    CallExpr       :: Task<i32>
+  expr 15:27    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 15:34    LambdaExpr     :: fn() -> i32
+  expr 15:52    SeqLitExpr     :: i32[][]
+  expr 15:53    SeqLitExpr     :: i32[]
+  expr 15:61    SeqLitExpr     :: i32[]
+  expr 16:11    CallExpr       :: Holder
+  expr 16:11    FieldExpr      :: fn() -> Holder
+  expr 16:11    IdentExpr      :: Holder
+  expr 17:5     CallExpr       :: void
+  expr 17:5     FieldExpr      :: fn(i32) -> void
+  expr 17:5     FieldExpr      :: i32[][]
+  expr 17:5     IdentExpr      :: Holder
+  expr 17:5     IndexExpr      :: i32[]
+  expr 18:13    StringLitExpr  :: string
+  expr 18:21    CallExpr       :: i64
+  expr 18:21    FieldExpr      :: fn() -> i64
+  expr 18:21    FieldExpr      :: i32[][]
+  expr 18:21    IdentExpr      :: Holder
+  expr 18:21    IndexExpr      :: i32[]
+  expr 18:40    CallExpr       :: i64
+  expr 18:40    FieldExpr      :: fn() -> i64
+  expr 18:40    FieldExpr      :: i32[][]
+  expr 18:40    IdentExpr      :: Holder
+  expr 18:40    IndexExpr      :: i32[]
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 19:13    StringLitExpr  :: string
+  expr 19:21    BinaryExpr     :: bool
+  expr 19:21    FieldExpr      :: Task<i32>
+  expr 19:21    IdentExpr      :: Holder
+  expr 19:33    FieldExpr      :: Task<i32>
+  expr 19:33    IdentExpr      :: Holder
+  expr 19:43    BinaryExpr     :: bool
+  expr 19:43    FieldExpr      :: i32[][]
+  expr 19:43    IdentExpr      :: Holder
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void
+  expr 19:55    FieldExpr      :: i32[][]
+  expr 19:55    IdentExpr      :: Holder
+  expr 19:65    CallExpr       :: Cancelled | i32
+  expr 19:65    FieldExpr      :: Task<i32>
+  expr 19:65    FieldExpr      :: fn() -> Cancelled | i32
+  expr 19:65    IdentExpr      :: Holder
