@@ -264,21 +264,32 @@ Adapter :: struct {
 }
 
 // Whether a call to `f` of the core type `core_type` takes room in the arena: for
-// a result the host writes to the memory, as it does for every async call.
+// a result the host writes to the memory, as it does for every async call, and
+// for a parameter written there.
 uses_arena :: fn(f: WitFunction, core_type: WasmFuncType) -> bool {
+    if params_through_memory(f) || f.params.any_match((p) -> is_written_flat(p.type)) {
+        return true
+    }
     if f.result == null {
         return false
     }
     return f.is_async || core_type.results.is_empty()
 }
 
-// What an argument takes: what is done before the call, the value passed, what
-// is done after the call.
+// Whether a parameter of type `t` passed flat is written to the arena first, its
+// core values read back: anything but a scalar, a stream and a handle.
+is_written_flat :: fn(t: WitType) -> bool = !is_flat_scalar(t) && t !is WitStream | WitHandle
+
+// What an argument takes: what is done before the call, the core values passed,
+// what is done after the call.
 Lowered :: struct {
     before: WasmExpression[] = []
-    argument: WasmExpression
+    arguments: WasmExpression[] = []
     after: WasmExpression[] = []
 }
+
+// The local of no block: the parameters of the call pass flat.
+NO_BLOCK: i32: -1
 
 // Lower the arguments, call the import, and lift what it returns into a local,
 // returned; null for nothing. A result too large to come back flat, or the
@@ -295,10 +306,26 @@ push_call :: fn(
         else panic("wasm: an adapted import that is not imported")
     arguments: WasmExpression[]: []
     after: WasmExpression[]: []
-    for [p, i] in wit.params.indexed() {
-        lowered :: a.lower_param(p.type, i32(i)) else return lowered
+    through_memory :: params_through_memory(wit)
+    // The block the parameters are written to, when they go through the memory.
+    block :: if through_memory { a.frame.local(.I32) } else { NO_BLOCK }
+    types :: wit.params.map((p) -> p.type).collect()
+    if through_memory {
+        a.body.push(local_set(block, a.ctx.room_for(WitTuple { .elements = types })))
+        arguments.push(local_get(block))
+    }
+    starts :: sequence_offsets(types).starts
+    for [t, i] in types.indexed() {
+        lowered :: if through_memory {
+            a.store_param(t, i32(i), i32_add(local_get(block), i32_const(starts[i])))
+        } else {
+            a.lower_param(t, i32(i))
+        }
+        if lowered is WasmUnsupported {
+            return lowered
+        }
         a.body.push_all(lowered.before)
-        arguments.push(lowered.argument)
+        arguments.push_all(lowered.arguments)
         after.push_all(lowered.after)
     }
     result :: wit.result
@@ -361,7 +388,8 @@ lift_flat :: fn(a: Adapter, t: WitType, value: WasmExpression) -> WasmExpression
 
 // The parameter `index` of type `t`, lowered: a stream is opened, passed by its
 // readable end, then written and closed after the call; a handle is passed as
-// the one field of its struct; a scalar is passed as itself, an `f32` narrowed.
+// the one field of its struct; a scalar is passed as itself, an `f32` narrowed;
+// anything else is written to room of its own, then its core values read back.
 lower_param :: fn(a: Adapter, t: WitType, index: i32) -> Lowered | WasmUnsupported {
     if t is WitStream {
         return a.lower_stream(t, index)
@@ -369,12 +397,36 @@ lower_param :: fn(a: Adapter, t: WitType, index: i32) -> Lowered | WasmUnsupport
     if t is WitHandle {
         held :: struct_type(a.ctx, a.imp.signature.param_types[index], a.function)
             else return held
-        return Lowered { .argument = struct_get(held, 0, local_get(index)) }
+        return Lowered { .arguments = [struct_get(held, 0, local_get(index))] }
     }
     if is_flat_scalar(t) {
-        return Lowered { .argument = core_from_held(t, local_get(index)) }
+        return Lowered { .arguments = [core_from_held(t, local_get(index))] }
     }
-    return no_lowering(t, a.function)
+    room :: a.frame.local(.I32)
+    written :: a.store_param(t, index, local_get(room)) else return written
+    loads :: flat_loads(t, local_get(room), a.function) else return loads
+    before: WasmExpression[]: [local_set(room, a.ctx.room_for(t))]
+    before.push_all(written.before)
+    return Lowered { .before = before, .arguments = loads, .after = written.after }
+}
+
+// The parameter `index` of type `t` written at `address`: a stream by the
+// readable end `lower_stream` opens, anything else by its store helper.
+store_param :: fn(
+    a: Adapter,
+    t: WitType,
+    index: i32,
+    address: WasmExpression,
+) -> Lowered | WasmUnsupported {
+    if t is WitStream {
+        opened :: a.lower_stream(t, index) else return opened
+        before: WasmExpression[]: opened.before
+        before.push(i32_store(address, opened.arguments[0]))
+        return Lowered { .before = before, .after = opened.after }
+    }
+    write :: canonical_store(a.ctx, t, a.imp.signature.param_types[index], a.function)
+        else return write
+    return Lowered { .before = [call(write, [address, local_get(index)])] }
 }
 
 lower_stream :: fn(a: Adapter, t: WitStream, index: i32) -> Lowered | WasmUnsupported {
@@ -391,7 +443,7 @@ lower_stream :: fn(a: Adapter, t: WitStream, index: i32) -> Lowered | WasmUnsupp
             local_set(pair, call(a.ctx.builtin(.StreamNew, t), [])),
             local_set(writable, writable_end),
         ],
-        .argument = unary(.I32WrapI64, local_get(pair)),
+        .arguments = [unary(.I32WrapI64, local_get(pair))],
         .after = [
             call(a.ctx.canonical_write(t), [local_get(writable), local_get(index)]),
             call(a.ctx.builtin(.StreamDropWritable, t), [local_get(writable)]),

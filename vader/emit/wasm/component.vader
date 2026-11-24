@@ -194,6 +194,9 @@ INSTANCE_TYPE: u8: 0x42
 FUNC_TYPE_SYNC: u8: 0x40
 ASYNC_FUNC_TYPE: u8: 0x43
 RESULT_TYPE: u8: 0x6A
+RECORD_TYPE: u8: 0x72
+VARIANT_TYPE: u8: 0x71
+FLAGS_TYPE: u8: 0x6E
 OWN_TYPE: u8: 0x69
 BORROW_TYPE: u8: 0x68
 OPTION_TYPE: u8: 0x6B
@@ -224,6 +227,8 @@ TYPE_BOUND_SUB_RESOURCE: u8: 0x01
 // A function type's results: one unnamed value, or none.
 ONE_RESULT: u8: 0x00
 NO_RESULT: u8[]: [0x01, 0x00]
+// A case of a variant that refines none of the others.
+NO_REFINEMENT: u8: 0x00
 // An optional type left out, or given.
 NO_TYPE: u8: 0x00
 SOME_TYPE: u8: 0x01
@@ -244,7 +249,7 @@ lowering_options :: fn(f: WitFunction) -> u8[] {
     if allocating {
         options.push([UTF8_OPTION])
     }
-    if f.is_async || allocating || returns_through_memory(f) {
+    if f.is_async || allocating || returns_through_memory(f) || reads_params_from_memory(f) {
         options.push(MEMORY_OPTION)
     }
     if allocating {
@@ -402,6 +407,30 @@ type_index :: fn(scope: TypeScope, t: WitType) -> i64 {
             definition.push_optional_type(scope, t.ok)
             definition.push_optional_type(scope, t.error)
         }
+        is WitRecord -> {
+            definition.push(RECORD_TYPE)
+            definition.push_count(t.fields.len())
+            for f in t.fields {
+                definition.push_name(f.name)
+                definition.push_value_type(scope, f.type)
+            }
+        }
+        is WitVariant -> {
+            definition.push(VARIANT_TYPE)
+            definition.push_count(t.cases.len())
+            for c in t.cases {
+                definition.push_name(c.name)
+                definition.push_optional_type(scope, c.type)
+                definition.push(NO_REFINEMENT)
+            }
+        }
+        is WitFlags -> {
+            definition.push(FLAGS_TYPE)
+            definition.push_count(t.flags.len())
+            for f in t.flags {
+                definition.push_name(f)
+            }
+        }
         is WitHandle -> {
             definition.push(handle_type_byte(t))
             definition.push_count(scope.resource_index(t.resource))
@@ -434,9 +463,7 @@ type_index :: fn(scope: TypeScope, t: WitType) -> i64 {
         }
     }
     defined :: scope.define(definition)
-    index :: if t is WitEnum && scope.in_instance { scope.export_type(t.name, defined) } else {
-        defined
-    }
+    index :: scope.exported(t, defined)
     scope.indices[key] = index
     return index
 }
@@ -480,6 +507,21 @@ resource_index :: fn(scope: TypeScope, t: WitType) -> i64 {
 }
 
 handle_type_byte :: fn(h: WitHandle) -> u8 = if h.is_borrow { BORROW_TYPE } else { OWN_TYPE }
+
+// The index the functions of `scope` name the type `t` defined at `defined` by:
+// in an instance type, a named type is exported under its name, which the
+// component model asks of every type an instance's function names, and the
+// export's index is the one they name.
+exported :: fn(scope: TypeScope, t: WitType, defined: i64) -> i64 {
+    if !scope.in_instance {
+        return defined
+    }
+    return match t {
+        is WitEnum | WitRecord | WitVariant | WitFlags -> scope.export_type(t.name, defined)
+        is WitScalar | WitList | WitResult | WitTuple | WitOption -> defined
+        is WitStream | WitFuture | WitHandle | WitUnsupported | WitNotLowered -> defined
+    }
+}
 
 // Export the type `index` of an instance type under `name`, which gives it the
 // index the functions name.
@@ -707,7 +749,17 @@ push_nested :: fn(out: WitType[], t: WitType | null) -> void {
                 out.push_nested(e)
             }
         }
-        is WitScalar | WitEnum | WitUnsupported | WitNotLowered -> {}
+        is WitRecord -> {
+            for f in t.fields {
+                out.push_nested(f.type)
+            }
+        }
+        is WitVariant -> {
+            for c in t.cases {
+                out.push_nested(c.type)
+            }
+        }
+        is WitScalar | WitEnum | WitFlags | WitUnsupported | WitNotLowered -> {}
     }
 }
 

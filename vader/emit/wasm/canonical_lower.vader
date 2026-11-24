@@ -1,0 +1,232 @@
+// vader/emit/wasm/canonical_lower: a Vader value written into the linear memory.
+//
+// What the host reads from the memory, a block of parameters past the flat
+// limit or a parameter whose core values a copy makes, is written where `store`
+// of the canonical ABI's specification puts it, at the layout
+// `canonical_layout.vader` gives: a scalar at its width, a string as the address
+// and the length of a copy of its bytes in the arena, an enum as its case, flags
+// as their bits, a handle as the field of its struct, a record as its fields one
+// after the other. One helper per WIT type and bytecode type,
+// `(address, value) -> ()`; a record calls the helpers of its fields.
+//
+// A parameter that crosses flat but is no scalar, a string or a record, is
+// written to room of its own, then its core values read back from it
+// (`flat_loads`): the copy of a string is made once, by the same helper.
+//
+// The bytecode type says how Vader holds the value: the front end checked that
+// it holds what the WIT type says (ADR 0179).
+
+module "vader/emit/wasm"
+
+Bc :: import "vader/core/bytecode"
+import "std/iter"
+import "vader/core/wit"
+
+// The helper writing a value of `t`, held as the bytecode type `type_id`, at an
+// address.
+canonical_store :: fn(
+    ctx: ModuleCtx,
+    t: WitType,
+    type_id: i32,
+    function: string,
+) -> i32 | WasmUnsupported {
+    key :: "canonical.store ${wit_type_text(t)} ${type_id}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    held :: held_type_of(ctx, t, type_id, function) else return held
+    lower :: Lower {
+        .ctx = ctx,
+        .function = function,
+        .frame = HelperFrame { .signature = func_of([.I32, held], []) },
+    }
+    body :: lower.store_body(t, type_id) else return body
+    return ctx.define_tree_helper(key, lower.frame, body)
+}
+
+// A store helper being written.
+Lower :: struct {
+    ctx: ModuleCtx
+    function: string
+    frame: HelperFrame
+}
+
+// The parameters of a store helper: where the value goes, and the value.
+STORE_ADDRESS: i32: 0
+STORE_VALUE: i32: 1
+
+store_body :: fn(
+    l: Lower,
+    t: WitType,
+    type_id: i32,
+) -> WasmExpression[] | WasmUnsupported = match t {
+    is WitScalar      -> [l.scalar_store(t)]
+    is WitEnum        -> [l.unsigned_store(case_bytes(t.cases.len()), stored_value())]
+    is WitFlags       -> l.flags_store(t, type_id)
+    is WitHandle      -> l.handle_store(type_id)
+    is WitRecord      -> l.sequence_store(field_types(t), type_id)
+    is WitTuple       -> l.sequence_store(t.elements, type_id)
+    is WitUnsupported -> WasmUnsupported { .reason = "`${l.function}`: ${t.reason}" }
+    is WitVariant     -> no_variant_mapping(t, l.function)
+    is WitNotLowered  -> no_lowering(t, l.function)
+    is NotStoredYet   -> no_lowering(t, l.function)
+}
+
+// The types no store helper writes yet: they need the correspondence between
+// their cases and the variants of the union that holds them, or a copy of their
+// elements.
+NotStoredYet :: WitList | WitResult | WitOption | WitStream | WitFuture
+
+// An unsigned integer of `bytes` bytes at the address.
+unsigned_store :: fn(l: Lower, bytes: i32, value: WasmExpression) -> WasmExpression =
+    store(scalar_store_op(unsigned_of_bytes(bytes)), store_at(), value)
+
+store_at :: fn() -> WasmExpression = local_get(STORE_ADDRESS)
+
+stored_value :: fn() -> WasmExpression = local_get(STORE_VALUE)
+
+scalar_store :: fn(l: Lower, s: WitScalar) -> WasmExpression {
+    if s == .String {
+        return call(canonical_string_out(l.ctx), [store_at(), stored_value()])
+    }
+    return store(scalar_store_op(s), store_at(), core_from_held(s, stored_value()))
+}
+
+scalar_store_op :: fn(s: WitScalar) -> MemoryOp = match s {
+    .Bool | .S8 | .U8             -> .I32Store8
+    .S16 | .U16                   -> .I32Store16
+    .S32 | .U32 | .Char | .String -> .I32Store
+    .S64 | .U64                   -> .I64Store
+    .F32                          -> .F32Store
+    .F64                          -> .F64Store
+}
+
+// Flags: the `bool` fields of the struct `type_id`, one bit each.
+flags_store :: fn(l: Lower, t: WitFlags, type_id: i32) -> WasmExpression[] | WasmUnsupported {
+    held :: struct_type(l.ctx, type_id, l.function) else return held
+    bits: WasmExpression = i32_const(0)
+    for i in 0..<t.flags.len() {
+        flag :: struct_get(held, i32(i), stored_value())
+        bits = i32_or(bits, i32_shl(flag, i32_const(i32(i))))
+    }
+    return [l.unsigned_store(flags_bytes(t.flags.len()), bits)]
+}
+
+// A handle: the one field of the struct `type_id`.
+handle_store :: fn(l: Lower, type_id: i32) -> WasmExpression[] | WasmUnsupported {
+    held :: struct_type(l.ctx, type_id, l.function) else return held
+    return [i32_store(store_at(), struct_get(held, 0, stored_value()))]
+}
+
+// A tuple or a record: each field of the struct `type_id` written where its
+// element lies.
+sequence_store :: fn(
+    l: Lower,
+    types: WitType[],
+    type_id: i32,
+) -> WasmExpression[] | WasmUnsupported {
+    held_struct :: sequence_struct(l.ctx, type_id, types, l.function) else return held_struct
+    held :: struct_type(l.ctx, type_id, l.function) else return held
+    starts :: sequence_offsets(types).starts
+    out: WasmExpression[]: []
+    for [e, i] in types.indexed() {
+        field_type :: held_struct.fields[i].type_index
+        store_field :: canonical_store(l.ctx, e, field_type, l.function) else return store_field
+        field :: struct_get(held, i32(i), stored_value())
+        out.push(call(store_field, [i32_add(store_at(), i32_const(starts[i])), field]))
+    }
+    return out
+}
+
+// `(address, atom) -> ()`: the bytes of `atom` copied into the arena, their
+// address and their length written at `address`.
+canonical_string_out :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["canonical.string-out"] else define_string_out(ctx)
+
+define_string_out :: fn(ctx: ModuleCtx) -> i32 {
+    frame :: HelperFrame { .signature = func_of([.I32, .I32], []) }
+    entry :: frame.local(.EqRef)
+    bytes :: frame.local(.EqRef)
+    start :: frame.local(.I32)
+    length :: frame.local(.I32)
+    copy :: frame.local(.I32)
+    k :: frame.local(.I32)
+    byte :: byte_in(ctx.gc, local_get(bytes), i32_add(local_get(start), local_get(k)))
+    body: WasmExpression[]: [
+        local_set(entry, entry_at(ctx, stored_value())),
+        local_set(bytes, entry_field(ctx, entry, ATOM_BYTES)),
+        local_set(start, entry_field(ctx, entry, ATOM_START)),
+        local_set(length, entry_field(ctx, entry, ATOM_LENGTH)),
+        local_set(copy, call(canonical_allocate(ctx), [local_get(length), i32_const(1)])),
+        repeat(
+            .I32,
+            k,
+            length,
+            [store(.I32Store8, i32_add(local_get(copy), local_get(k)), byte)],
+        ),
+        i32_store(store_at(), local_get(copy)),
+        store(.I32Store, store_at(), local_get(length), 4),
+    ]
+    return ctx.define_tree_helper("canonical.string-out", frame, body)
+}
+
+// The core values a value of `t` flattens to, read from where it was written at
+// `address`, in the order `flat_types_of` gives them.
+flat_loads :: fn(
+    t: WitType,
+    address: WasmExpression,
+    function: string,
+) -> WasmExpression[] | WasmUnsupported = match t {
+    is WitScalar      -> scalar_flat_loads(t, address)
+    is WitEnum        -> [load(case_load(t.cases.len()), address)]
+    is WitFlags       -> [load(flags_load(t), address)]
+    is WitHandle      -> [i32_load(address)]
+    is WitRecord      -> sequence_flat_loads(field_types(t), address, function)
+    is WitTuple       -> sequence_flat_loads(t.elements, address, function)
+    is WitUnsupported -> WasmUnsupported { .reason = "`${function}`: ${t.reason}" }
+    is WitVariant     -> no_variant_mapping(t, function)
+    is WitNotLowered  -> no_lowering(t, function)
+    is NotStoredYet   -> no_lowering(t, function)
+}
+
+scalar_flat_loads :: fn(s: WitScalar, address: WasmExpression) -> WasmExpression[] {
+    if s == .String {
+        return [i32_load(address), i32_load(address, 4)]
+    }
+    return [load(scalar_load(s), address)]
+}
+
+sequence_flat_loads :: fn(
+    types: WitType[],
+    address: WasmExpression,
+    function: string,
+) -> WasmExpression[] | WasmUnsupported {
+    starts :: sequence_offsets(types).starts
+    out: WasmExpression[]: []
+    for [e, i] in types.indexed() {
+        loads :: flat_loads(e, i32_add(address, i32_const(starts[i])), function) else return loads
+        out.push_all(loads)
+    }
+    return out
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/testing"
+
+@test
+test_a_record_is_read_back_as_its_flat_values :: fn() -> void {
+    owner :: WitOwner {
+        .package = WitPackageName { .namespace = "wasi", .name = "filesystem" },
+        .interface = "types",
+    }
+    fields :: [
+        WitParam { .name = "kind", .type = .U8 },
+        WitParam { .name = "name", .type = .String },
+    ]
+    t :: WitRecord { .name = "entry", .owner = owner, .fields = fields }
+    loads :: flat_loads(t, i32_const(64), "entry") else panic("a record reads back")
+    assert_eq(loads.len(), 3)
+}

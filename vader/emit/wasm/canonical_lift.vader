@@ -138,9 +138,12 @@ load_body :: fn(
     is WitList               -> l.list_body(t, type_id)
     is WitResult             -> l.result_body(t, type_id)
     is WitOption             -> l.option_body(t, type_id)
-    is WitTuple              -> l.tuple_body(t, type_id)
+    is WitTuple              -> l.sequence_body(t.elements, type_id)
     is WitStream | WitFuture -> l.handle_body(type_id)
     is WitHandle             -> l.handle_body(type_id)
+    is WitRecord             -> l.sequence_body(field_types(t), type_id)
+    is WitFlags              -> l.flags_body(t, type_id)
+    is WitVariant            -> no_variant_mapping(t, l.function)
     is WitNotLowered         -> l.no_lift(t)
     is WitUnsupported        -> WasmUnsupported { .reason = "`${l.function}`: ${t.reason}" }
 }
@@ -149,11 +152,11 @@ no_lift :: fn(l: Lift, t: WitType) -> WasmUnsupported =
     WasmUnsupported { .reason = "`${l.function}`: no lifting yet for `${wit_type_text(t)}`" }
 
 // The load of a case stored in the bytes `case_bytes` gives.
-case_load :: fn(count: i64) -> MemoryOp = match case_bytes(count) {
-    1 -> .I32Load8U
-    2 -> .I32Load16U
-    _ -> .I32Load
-}
+case_load :: fn(count: i64) -> MemoryOp = scalar_load(unsigned_of_bytes(case_bytes(count)))
+
+// The load of the bits of `t`.
+flags_load :: fn(t: WitFlags) -> MemoryOp =
+    scalar_load(unsigned_of_bytes(flags_bytes(t.flags.len())))
 
 scalar_value :: fn(l: Lift, s: WitScalar) -> WasmExpression {
     at :: local_get(ADDRESS)
@@ -216,25 +219,62 @@ list_body :: fn(l: Lift, t: WitList, type_id: i32 | null) -> WasmExpression[] | 
     ]
 }
 
-// A tuple: each element read where it lies, into the struct `type_id` a Vader
-// tuple is.
-tuple_body :: fn(l: Lift, t: WitTuple, type_id: i32 | null) -> WasmExpression[] | WasmUnsupported {
+// A tuple or a record: each element read where it lies, into the struct
+// `type_id` that holds them in their order.
+sequence_body :: fn(
+    l: Lift,
+    types: WitType[],
+    type_id: i32 | null,
+) -> WasmExpression[] | WasmUnsupported {
     struct_id :: type_id else return WasmUnsupported {
-        .reason = "`${l.function}`: an erased tuple",
+        .reason = "`${l.function}`: an erased tuple or record",
     }
-    held :: l.ctx.module.types[struct_id]
-    if held !is Bc.BcStruct || held.fields.len() != t.elements.len() {
-        return WasmUnsupported { .reason = "`${l.function}`: a tuple held as no tuple" }
-    }
-    starts :: element_offsets(t).starts
+    held :: sequence_struct(l.ctx, struct_id, types, l.function) else return held
+    starts :: sequence_offsets(types).starts
     elements: WasmExpression[]: []
-    for [e, i] in t.elements.indexed() {
+    for [e, i] in types.indexed() {
         load_element :: canonical_load(l.ctx, e, held.fields[i].type_index, l.function)
             else return load_element
         elements.push(call(load_element, [i32_add(local_get(ADDRESS), i32_const(starts[i]))]))
     }
     tuple :: struct_type(l.ctx, struct_id, l.function) else return tuple
     return [struct_new(tuple, elements)]
+}
+
+// The struct `type_id` that holds a tuple or a record of `types`, a field each.
+sequence_struct :: fn(
+    ctx: ModuleCtx,
+    type_id: i32,
+    types: WitType[],
+    function: string,
+) -> Bc.BcStruct | WasmUnsupported {
+    held :: ctx.module.types[type_id]
+    if held !is Bc.BcStruct || held.fields.len() != types.len() {
+        return WasmUnsupported { .reason = "`${function}`: a tuple or a record held as no struct" }
+    }
+    return held
+}
+
+// A variant crosses once the front end records which variant of the union
+// holding it takes which of its cases.
+no_variant_mapping :: fn(t: WitType, function: string) -> WasmUnsupported = WasmUnsupported {
+    .reason = "`${function}`: `${wit_type_text(t)}` is a variant, whose cases are not yet "
+        + "matched to the variants of the union that holds it",
+}
+
+// Flags: one `bool` per bit, into the struct `type_id` of as many fields.
+flags_body :: fn(l: Lift, t: WitFlags, type_id: i32 | null) -> WasmExpression[] | WasmUnsupported {
+    struct_id :: type_id else return WasmUnsupported { .reason = "`${l.function}`: erased flags" }
+    held :: struct_type(l.ctx, struct_id, l.function) else return held
+    bits :: l.frame.local(.I32)
+    fields: WasmExpression[]: []
+    for i in 0..<t.flags.len() {
+        fields.push(i32_and(i32_shr_u(local_get(bits), i32_const(i32(i))), i32_const(1)))
+    }
+    return [
+        local_set(bits, load(flags_load(t), local_get(ADDRESS))),
+        struct_new(held, fields),
+    ]
 }
 
 // The handle of a stream or a future, in the struct `type_id` that holds it.

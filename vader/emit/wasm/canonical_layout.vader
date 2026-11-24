@@ -32,7 +32,7 @@ flat_type_of :: fn(f: WitFunction, function: string) -> WasmFuncType | WasmUnsup
         flat :: flat_types_of(p.type) else return unsupported_in(flat, function)
         params.push_all(flat)
     }
-    if params.len() > flat_params_limit(f) {
+    if i64(params.len()) > flat_params_limit(f) {
         params.clear()
         params.push(.I32)
     }
@@ -55,6 +55,22 @@ flat_params_limit :: fn(f: WitFunction) -> i64 = if f.is_async { MAX_FLAT_ASYNC_
     MAX_FLAT_PARAMS
 }
 
+// Whether the parameters of `f` cross as the address of a block holding them:
+// they flatten to more values than `flat_params_limit`.
+params_through_memory :: fn(f: WitFunction) -> bool {
+    count: i64 = 0
+    for p in f.params {
+        flat :: flat_types_of(p.type) else return false
+        count += flat.len()
+    }
+    return count > flat_params_limit(f)
+}
+
+// Whether the host reads a parameter of `f` from the memory: a block of them, or
+// a string or a list one of them points to.
+reads_params_from_memory :: fn(f: WitFunction) -> bool =
+    params_through_memory(f) || f.params.any_match((p) -> holds_room(p.type))
+
 unsupported_in :: fn(t: WasmUnsupported, function: string) -> WasmUnsupported =
     WasmUnsupported { .reason = "`${function}`: ${t.reason}" }
 
@@ -66,7 +82,10 @@ flat_types_of :: fn(t: WitType) -> WasmValType[] | WasmUnsupported = match t {
     is WitList                         -> [.I32, .I32]
     is WitResult                       -> flat_variant_types([t.ok, t.error])
     is WitOption                       -> flat_variant_types([null, t.value])
-    is WitTuple                        -> flat_tuple_types(t)
+    is WitTuple                        -> flat_sequence_types(t.elements)
+    is WitRecord                       -> flat_sequence_types(field_types(t))
+    is WitVariant                      -> flat_variant_types(case_types(t))
+    is WitFlags                        -> flat_flags_types(t)
     is WitUnsupported                  -> WasmUnsupported { .reason = t.reason }
     is WitNotLowered                   -> WasmUnsupported {
         .reason = "no canonical ABI yet for `${wit_type_text(t)}`",
@@ -74,7 +93,7 @@ flat_types_of :: fn(t: WitType) -> WasmValType[] | WasmUnsupported = match t {
 }
 
 // The WIT types read from a `.wit` file that the canonical ABI does not cross yet.
-WitNotLowered :: WitRecord | WitVariant | WitFlags | WitResource | WitAlias
+WitNotLowered :: WitResource | WitAlias
 
 flat_scalar_types :: fn(s: WitScalar) -> WasmValType[] = match s {
     .Bool | .S8 | .U8 | .S16 | .U16 | .S32 | .U32 | .Char -> [.I32]
@@ -84,15 +103,49 @@ flat_scalar_types :: fn(s: WitScalar) -> WasmValType[] = match s {
     .String -> [.I32, .I32]
 }
 
-// A tuple flattens to its elements, one after the other.
-flat_tuple_types :: fn(t: WitTuple) -> WasmValType[] | WasmUnsupported {
+// A tuple or a record flattens to its elements, one after the other.
+flat_sequence_types :: fn(types: WitType[]) -> WasmValType[] | WasmUnsupported {
     out: WasmValType[]: []
-    for e in t.elements {
+    for e in types {
         flat :: flat_types_of(e) else return flat
         out.push_all(flat)
     }
     return out
 }
+
+// Flags flatten to one `i32` of their bits, as long as they fit one.
+flat_flags_types :: fn(t: WitFlags) -> WasmValType[] | WasmUnsupported {
+    if t.flags.len() > MAX_FLAGS {
+        return WasmUnsupported { .reason = "more than ${MAX_FLAGS} flags in `${t.name}`" }
+    }
+    return [.I32]
+}
+
+// How many flags one `i32` holds.
+MAX_FLAGS: i64: 32
+
+// The bytes flags of `count` names are stored in.
+flags_bytes :: fn(count: i64) -> i32 {
+    if count <= 8 {
+        return 1
+    }
+    if count <= 16 {
+        return 2
+    }
+    return 4
+}
+
+// The unsigned scalar of `bytes` bytes, which a case or flags are stored as.
+unsigned_of_bytes :: fn(bytes: i32) -> WitScalar = match bytes {
+    1 -> .U8
+    2 -> .U16
+    _ -> .U32
+}
+
+field_types :: fn(r: WitRecord) -> WitType[] = r.fields.map((f) -> f.type).collect()
+
+// What each case of `v` carries, null for nothing.
+case_types :: fn(v: WitVariant) -> (WitType | null)[] = v.cases.map((c) -> c.type).collect()
 
 // A variant flattens to its case, then the values of its payloads, each position
 // the join of what the cases hold there.
@@ -134,7 +187,10 @@ size_of :: fn(t: WitType) -> i32 = match t {
     is WitList               -> 8
     is WitResult             -> variant_size([t.ok, t.error])
     is WitOption             -> variant_size([null, t.value])
-    is WitTuple              -> align_to(element_offsets(t).end, alignment_of(t))
+    is WitTuple              -> sequence_size(t.elements)
+    is WitRecord             -> sequence_size(field_types(t))
+    is WitVariant            -> variant_size(case_types(t))
+    is WitFlags              -> flags_bytes(t.flags.len())
     is WitUnsupported        -> no_layout(t.reason)
     is WitNotLowered         -> no_layout(wit_type_text(t))
 }
@@ -148,6 +204,9 @@ alignment_of :: fn(t: WitType) -> i32 = match t {
     is WitResult                       -> variant_alignment([t.ok, t.error])
     is WitOption                       -> variant_alignment([null, t.value])
     is WitTuple                        -> max_alignment(t.elements)
+    is WitRecord                       -> max_alignment(field_types(t))
+    is WitVariant                      -> variant_alignment(case_types(t))
+    is WitFlags                        -> flags_bytes(t.flags.len())
     is WitUnsupported                  -> no_layout(t.reason)
     is WitNotLowered                   -> no_layout(wit_type_text(t))
 }
@@ -159,16 +218,23 @@ ElementOffsets :: struct {
     end: i32
 }
 
-element_offsets :: fn(t: WitTuple) -> ElementOffsets {
+element_offsets :: fn(t: WitTuple) -> ElementOffsets = sequence_offsets(t.elements)
+
+// Where each of `types`, laid one after the other, starts, and where the last ends.
+sequence_offsets :: fn(types: WitType[]) -> ElementOffsets {
     starts: i32[]: []
     at: i32 = 0
-    for e in t.elements {
+    for e in types {
         at = align_to(at, alignment_of(e))
         starts.push(at)
         at += size_of(e)
     }
     return ElementOffsets { .starts = starts, .end = at }
 }
+
+// The bytes of `types` laid one after the other, padded to their alignment.
+sequence_size :: fn(types: WitType[]) -> i32 =
+    align_to(sequence_offsets(types).end, max_alignment(types))
 
 max_alignment :: fn(types: WitType[]) -> i32 {
     out: i32 = 1
@@ -250,7 +316,10 @@ holds_room :: fn(t: WitType | null) -> bool {
         is WitResult -> holds_room(t.ok) || holds_room(t.error)
         is WitOption -> holds_room(t.value)
         is WitTuple -> t.elements.any_match((e) -> holds_room(e))
-        is WitEnum | WitStream | WitFuture | WitHandle | WitUnsupported | WitNotLowered -> false
+        is WitRecord -> t.fields.any_match((f) -> holds_room(f.type))
+        is WitVariant -> t.cases.any_match((c) -> holds_room(c.type))
+        is WitEnum | WitFlags | WitStream | WitFuture | WitHandle -> false
+        is WitUnsupported | WitNotLowered -> false
     }
 }
 
@@ -367,4 +436,63 @@ test_a_tuple_aligns_each_element :: fn() -> void {
     assert_eq(element_offsets(t).starts[1], 8)
     assert_eq(size_of(t), 24)
     assert_eq(alignment_of(t), 8)
+}
+
+TEST_OWNER: WitOwner: WitOwner {
+    .package = WitPackageName { .namespace = "wasi", .name = "filesystem" },
+    .interface = "types",
+}
+
+@test
+test_flags_take_the_bytes_their_count_needs :: fn() -> void {
+    four :: WitFlags { .name = "open-flags", .owner = TEST_OWNER, .flags = ["a", "b", "c", "d"] }
+    assert_eq(size_of(four), 1)
+    nine :: WitFlags { ...four, .flags = ["a", "b", "c", "d", "e", "f", "g", "h", "i"] }
+    assert_eq(size_of(nine), 2)
+    assert_eq(alignment_of(nine), 2)
+    flat :: flat_types_of(nine) else panic("flags flatten")
+    assert_eq(flat.len(), 1)
+}
+
+@test
+test_a_record_lays_out_its_fields_as_a_tuple :: fn() -> void {
+    fields :: [WitParam { .name = "kind", .type = .U8 }, WitParam { .name = "size", .type = .U64 }]
+    t :: WitRecord { .name = "stat", .owner = TEST_OWNER, .fields = fields }
+    assert_eq(size_of(t), 16)
+    assert_eq(alignment_of(t), 8)
+    flat :: flat_types_of(t) else panic("a record flattens")
+    assert(flat.len() == 2 && flat[1] == .I64, "one value per field")
+}
+
+@test
+test_a_variant_places_its_payload_past_its_case :: fn() -> void {
+    cases :: [
+        WitCase { .name = "access" },
+        WitCase { .name = "other", .type = WitOption { .value = .String } },
+    ]
+    t :: WitVariant { .name = "error-code", .owner = TEST_OWNER, .cases = cases }
+    assert_eq(size_of(t), 16)
+    assert_eq(alignment_of(t), 4)
+    flat :: flat_types_of(t) else panic("a variant flattens")
+    assert_eq(flat.len(), 4)
+}
+
+@test
+test_the_parameters_of_open_at_cross_through_the_memory :: fn() -> void {
+    flags :: WitFlags { .name = "path-flags", .owner = TEST_OWNER, .flags = ["symlink-follow"] }
+    params :: [
+        WitParam { .name = "path-flags", .type = flags },
+        WitParam { .name = "path", .type = .String },
+        WitParam { .name = "open-flags", .type = flags },
+    ]
+    sync :: WitFunction { .params = params, .result = null }
+    assert(!params_through_memory(sync), "four values pass flat to a synchronous call")
+    asynchronous :: WitFunction { ...sync, .is_async = true }
+    assert(!params_through_memory(asynchronous), "four values pass flat to an async call")
+    extra :: params.clone()
+    extra.push(params[0])
+    five :: WitFunction { ...asynchronous, .params = extra }
+    assert(params_through_memory(five), "five do not")
+    flat :: flat_type_of(five, "open-at") else panic("open-at lowers")
+    assert_eq(flat.params.len(), 1)
 }

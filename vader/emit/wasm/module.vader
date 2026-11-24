@@ -248,6 +248,10 @@ export MemoryOp :: enum {
     I32Load16U,
     I32Store,
     I32Store8,
+    I32Store16,
+    I64Store,
+    F32Store,
+    F64Store,
 }
 
 /// An instruction without an immediate.

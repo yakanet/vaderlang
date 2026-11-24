@@ -400,15 +400,19 @@ memory_opcode :: fn(op: MemoryOp) -> u8 = match op {
     .I32Load16S -> 0x2E
     .I32Load16U -> 0x2F
     .I32Store   -> 0x36
+    .I64Store   -> 0x37
+    .F32Store   -> 0x38
+    .F64Store   -> 0x39
     .I32Store8  -> 0x3A
+    .I32Store16 -> 0x3B
 }
 
 // The alignment an access declares, as the log2 of its width in bytes.
 natural_alignment :: fn(op: MemoryOp) -> i32 = match op {
-    .I64Load | .F64Load                          -> 3
-    .I32Load | .F32Load | .I32Store              -> 2
-    .I32Load16S | .I32Load16U                    -> 1
-    .I32Load8S | .I32Load8U | .I32Store8         -> 0
+    .I64Load | .F64Load | .I64Store | .F64Store -> 3
+    .I32Load | .F32Load | .I32Store | .F32Store -> 2
+    .I32Load16S | .I32Load16U | .I32Store16     -> 1
+    .I32Load8S | .I32Load8U | .I32Store8        -> 0
 }
 
 array_get_code :: fn(extension: Extension) -> u8 = match extension {
