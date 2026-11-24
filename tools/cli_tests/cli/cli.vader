@@ -306,8 +306,9 @@ export build_binary :: fn(name: string, flags: string[], source: string) -> stri
 
 /// A fresh folder whose `lib/` holds `std/` and `system/`, copied from the
 /// repository, beside the namespace `namespace`, whose one file holds `source`:
-/// a library root of its own, which a command run in the folder searches. A
-/// copy that fails fails the test.
+/// a library root of its own, which a command run in the folder searches. The
+/// WIT of WASI, which `std` imports, is copied to its `runtime/wasi/`. A copy
+/// that fails fails the test.
 ///
 /// @param name       tells the folder apart from those of the other tests.
 /// @param namespace  the namespace staged beside the copies.
@@ -317,8 +318,8 @@ export staged_library_root :: fn(name: string, namespace: string, source: string
     dir :: scratch_dir(name)
     assert_succeeds(create_dir("${dir}/lib/${namespace}"))
     assert_succeeds(write_file("${dir}/lib/${namespace}/${namespace}.vader", source))
-    for copied in ["std", "system"] {
-        tree :: copy_tree("lib/${copied}", "${dir}/lib/${copied}") else is Error {
+    for copied in ["lib/std", "lib/system", "runtime/wasi"] {
+        tree :: copy_tree(copied, "${dir}/${copied}") else is Error {
             panic(tree.message())
         }
     }

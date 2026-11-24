@@ -4,6 +4,11 @@
 
 Accepted (2026-11-23). Amends 0176 on where the WIT type comes from.
 
+**Superseded by
+[0179](0179-a-wit-interface-is-imported-as-a-module.md) (2026-11-24)**: the WIT
+type of an import is its interface's, and an `@extern` written by hand cannot
+name a `WasmInterface`; the derivation is gone.
+
 ## Context
 
 Until now the WASM emitter derived the WIT type of an import from its bytecode

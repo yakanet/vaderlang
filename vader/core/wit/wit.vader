@@ -1,12 +1,11 @@
 // vader/core/wit: the WIT type of a function a WASM build imports.
 //
-// The front end derives it from the Vader declaration of an `@extern` naming a
-// `WasmInterface` (`vader/midir/wit.vader`), where the Vader types are still
-// whole: the bytecode keeps an enum as an integer, without the names of its
-// cases. The WASM emitter writes the component's import from it, and lowers each
-// call through the canonical ABI. A `.wit` file read by `reader.vader` and
-// resolved by `resolve.vader` gives the same types, and the named ones the
-// emitter does not cross yet.
+// A `.wit` file read by `reader.vader` and resolved by `resolve.vader` gives it:
+// the module of an imported interface (`generate.vader`) declares each function,
+// and the build hands the type of each to the backend, since the bytecode keeps
+// an enum as an integer, without the names of its cases. The WASM emitter writes
+// the component's import from it, and lowers each call through the canonical
+// ABI.
 //
 // The `.virt` text holds it as one token with neither space nor parenthesis,
 // which delimit the attributes and the signature of an import line, close to how

@@ -38,6 +38,8 @@
   }
 
 ## lowered in dependencies
+  wasi:clocks/system-clock@0.3.0
+    struct wasi:clocks.system-clock@0.3.0.Instant  // wasi_0clocks_system_3clock_10_23_20$Instant
   std/console
     fn std.console.println<string>  // std_console$println__string
     fn std.console.write  // std_console$write

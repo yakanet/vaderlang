@@ -2,7 +2,7 @@
 // lays it out, driving builds and holding its namespaces.
 //
 // A bundle is a layout, not a project: the binary at its root, then one library
-// root `lib/` and `runtime/c/` beside it. `$VADER_HOME` cannot stand in for it,
+// root `lib/`, and `runtime/c/` and `runtime/wasi/` beside it. `$VADER_HOME` cannot stand in for it,
 // since the shape on disk is what these check: the binary is copied, never
 // linked, as the toolchain is found from where the binary is, and a link would
 // lead back to the repository.
@@ -18,7 +18,8 @@ import "std/target"
 import "tools/cli_tests/cli"
 
 // A bundle staged in a fresh folder `name` tells apart, laid out as `dist/` is:
-// every namespace of `lib/` and `runtime/c/`. A copy that fails fails the test.
+// every namespace of `lib/`, `runtime/c/` and `runtime/wasi/`. A copy that fails
+// fails the test.
 staged_bundle :: fn(name: string) -> string {
     dir :: scratch_dir(name)
     binary :: "${dir}/${Path(vader_binary()).filename()}"
@@ -36,7 +37,9 @@ staged_bundle :: fn(name: string) -> string {
             panic(copied.message())
         }
     }
-    runtime :: copy_tree("runtime/c", "${dir}/runtime/c") else is Error { panic(runtime.message()) }
+    for runtime in ["runtime/c", "runtime/wasi"] {
+        copied :: copy_tree(runtime, "${dir}/${runtime}") else is Error { panic(copied.message()) }
+    }
     return dir
 }
 

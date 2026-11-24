@@ -11,7 +11,7 @@ std_console$read_ready <- lib/std/console/console.vader:330
 std_console$system_poll_stdin <- lib/std/console/console.vader:413
 std_console$write_bytes <- lib/std/console/console.vader:76
 std_console$write_text <- lib/std/console/console.vader:99
-std_io$io_error_of <- lib/std/io/io.vader:150
-std_io$last_io_error <- lib/std/io/io.vader:125
-std_time$monotonic_ns <- lib/std/time/time.vader:98
-std_time$now_unix_ms <- lib/std/time/time.vader:71
+std_io$io_error_of <- lib/std/io/io.vader:149
+std_io$last_io_error <- lib/std/io/io.vader:124
+std_time$monotonic_ns <- lib/std/time/time.vader:99
+std_time$now_unix_ms <- lib/std/time/time.vader:72

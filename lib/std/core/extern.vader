@@ -2,12 +2,12 @@
 //
 // A `CLibrary` names a C library once, a `WasmInterface` a component interface;
 // each `@extern` that comes from one names the constant as its `from`
-// (`@extern(RAYLIB, "InitWindow")`, `@extern(MONOTONIC_CLOCK, "now")`). A
-// `WasmStream` and a `WasmFuture` stand for the WIT types an interface's
-// functions take and return, which no other Vader type spells. The
-// compiler evaluates the constant when it builds, so its fields may depend on
-// the target through `VADER_OS` and `VADER_ARCH`. Part of `std/core`: no import
-// names it.
+// (`@extern(RAYLIB, "InitWindow")`). Only the module of an imported WIT
+// interface declares the functions of a `WasmInterface`, and a `WasmFuture`
+// stands there for the WIT `future` they return, which no other Vader type
+// spells. The compiler evaluates the constant when it builds, so its fields may
+// depend on the target through `VADER_OS` and `VADER_ARCH`. Part of `std/core`:
+// no import names it.
 
 module "std/core"
 
@@ -42,8 +42,9 @@ export CLibrary :: struct {
 /// `wasi:clocks/monotonic-clock@0.3.0` is the package `wasi:clocks`, the
 /// interface `monotonic-clock` and the version `0.3.0`.
 ///
-/// A WASM build imports it into the component it writes, and the signature of
-/// each `@extern` from it gives the type of the function it imports.
+/// A WASM build imports it into the component it writes. The module of an
+/// imported WIT interface declares it and its functions: an `@extern` written by
+/// hand cannot name one.
 export WasmInterface :: struct {
     /// The namespace and the package, `wasi:clocks`.
     package: string
@@ -51,13 +52,7 @@ export WasmInterface :: struct {
     version: string
 }
 
-/// The items a WIT `stream<T>` carries, as an `@extern` of a `WasmInterface`
-/// takes them: the call opens the stream, writes every item, then closes it.
-export WasmStream :: struct<T> {
-    items: T[]
-}
-
-/// What a WIT `future<T>` resolves to, as an `@extern` of a `WasmInterface`
+/// What a WIT `future<T>` resolves to, as a function of an imported interface
 /// returns it: the call waits for it once its streams are written.
 export WasmFuture :: struct<T> {
     value: T

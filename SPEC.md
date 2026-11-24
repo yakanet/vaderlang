@@ -3767,7 +3767,7 @@ LIBM: CLibrary: CLibrary { .name = "", .headers = ["<math.h>"] }
 `@extern` takes 0 to 2 arguments:
 
 - without arguments, the symbol is the function's own name;
-- the first, `from`, is where the function comes from: a `CLibrary` constant (below), or a `WasmInterface` constant, the component interface a WASM build imports it from (*WASM imports*). Without one, the symbol is one the program links anyway, such as a C library function;
+- the first, `from`, is where the function comes from: a `CLibrary` constant (below), or a `WasmInterface` constant, the component interface a WASM build imports it from, which only the module of an imported interface names (*WASM imports*). Without one, the symbol is one the program links anyway, such as a C library function;
 - the symbol, a string, comes last, positional after `from` or written `symbol = "..."`: the C linker symbol, or the name of the function the interface exports.
 
 A free function without a body must be `@extern`. One whose parameters are types alone is a function type instead (*Type aliases*).
@@ -4121,32 +4121,15 @@ At compile time (§14), a call that needs an adapter (`docs/TOOLING.md` *`vader 
 
 ### WASM imports
 
-A program built for WASM is a WebAssembly component (§17 *WebAssembly*). An `@extern` whose `from` is an interface is a function that component imports:
+A program built for WASM is a WebAssembly component (§17 *WebAssembly*). The functions it imports from its host are those of the interfaces of WIT it imports (§11 *Interfaces of WIT*):
 
 ```vader
-MONOTONIC_CLOCK :: WasmInterface {
-    .package = "wasi:clocks",
-    .name = "monotonic-clock",
-    .version = "0.3.0",
-}
+Clock :: import "wasi:clocks/monotonic-clock@0.3.0"
 
-@extern(MONOTONIC_CLOCK, "now")
-monotonic_now :: fn() -> u64
+elapsed :: fn(start: u64) -> u64 = Clock.now() - start
 ```
 
-A `WasmInterface` (`std/core`) names an interface as WIT writes it, `wasi:clocks/monotonic-clock@0.3.0` here. The compiler evaluates the constant at compile time, as it does a `CLibrary`.
-
-The function's signature gives the WIT type of the import. Each parameter and the result have a WIT counterpart:
-
-- a number, `bool` and `char` are the WIT scalar of the same width and signedness, `string` is `string`;
-- a struct is a `record` of its fields, an array a `list` of its elements;
-- an enum without variant data, whose values are its ranks and whose width is left unwritten, or written as the narrowest unsigned integer that holds them, is an `enum`;
-- `void | E` is `result<_, E>`;
-- `WasmStream<T>` (`std/core`) is `stream<T>`: the call opens the stream, writes its `items`, then closes it;
-- `WasmFuture<T>` (`std/core`) is `future<T>`: the call waits for it and returns its `value`;
-- a result of `void` means the function returns nothing.
-
-Any other type, or a struct that contains itself, is an error. A WIT name is the Vader name in kebab case: the parameter `how_long` is `how-long`, the enum `ErrorCode` is `error-code` and its variant `IllegalByteSequence` is `illegal-byte-sequence`.
+The module of an interface declares each function as an `@extern` whose `from` is a `WasmInterface` (`std/core`), the interface as WIT names it, and its WIT type comes from the `.wit` file. An `@extern` written in a program cannot name a `WasmInterface`: it is an error.
 
 How a function is exposed to the host, beside the entry, is not designed yet.
 
@@ -4699,7 +4682,7 @@ A native build writes portable C, compiles it with the system C compiler (`docs/
 
 ### WebAssembly
 
-A build for `wasi-wasm32` writes a WebAssembly component that runs on a WASI 0.3 host, such as `wasmtime run`. It imports the interfaces its `@extern` declarations name (§13 *WASM imports*) and exports `wasi:cli/run`. Its `run` calls `main`, and the run succeeds when `main` returns nothing or 0, and fails otherwise: the exit code of a failed run is the host's, 1 under `wasmtime`.
+A build for `wasi-wasm32` writes a WebAssembly component that runs on a WASI 0.3 host, such as `wasmtime run`. It imports the functions of the interfaces of WIT the program imports (§13 *WASM imports*) and exports `wasi:cli/run`. Its `run` calls `main`, and the run succeeds when `main` returns nothing or 0, and fails otherwise: the exit code of a failed run is the host's, 1 under `wasmtime`.
 
 The backend translates part of the language so far, and a build stops, naming what it does not translate yet. The `browser-wasm32` target selects `@target` bodies, which `vader check --target=browser-wasm32` checks, but no build emits a module for it yet.
 

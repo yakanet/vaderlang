@@ -1,5 +1,5 @@
-// T3050: a function of an interface takes and returns types WIT describes; a
-// union has no WIT counterpart yet.
+// T3050: a function of a component interface is declared by the module of its
+// WIT, which an import writes; an `@extern` written by hand cannot name one.
 module "snippet"
 
 CLOCK :: WasmInterface {
@@ -9,6 +9,6 @@ CLOCK :: WasmInterface {
 }
 
 @extern(CLOCK, "now")
-now :: fn(when: i64 | null) -> u64
+now :: fn() -> u64
 
 main :: fn() -> i32 { return 0 }

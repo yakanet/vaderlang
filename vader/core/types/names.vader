@@ -276,12 +276,6 @@ export STRUCT_C_LIBRARY: string: @type_name(CLibrary)
 /// `std/core::WasmInterface`, the component interface an `@extern` names.
 export STRUCT_WASM_INTERFACE: string: @type_name(WasmInterface)
 
-/// `std/core::WasmStream`, a WIT `stream` an `@extern` of an interface takes.
-export STRUCT_WASM_STREAM: string: @type_name(WasmStream)
-
-/// `std/core::WasmFuture`, a WIT `future` an `@extern` of an interface returns.
-export STRUCT_WASM_FUTURE: string: @type_name(WasmFuture)
-
 /// `std/core::Condition`, an expression a compiler decorator reads as written.
 export STRUCT_CONDITION: string: @type_name(Condition)
 

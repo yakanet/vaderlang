@@ -344,6 +344,12 @@ export prepare_cfg_bytecode_with :: fn(
         verify_bounds,
     )
 
+// Whether the module `id` of `project` holds a function, once pruned.
+holds_a_function :: fn(project: LoweredProject, id: string) -> bool {
+    module :: project.modules[id] else return false
+    return module.decls.any_match((d) -> d is LoweredFnDecl)
+}
+
 /// Carry an ALREADY-LOWERED entry through prune -> CFG -> bytecode.
 ///
 /// Same reason as `lower_to_entry_from`: a caller that already lowered does not
@@ -385,7 +391,7 @@ export prepare_cfg_bytecode_from :: fn(
         .pre_diags   = le.pre_diags,
         .lower_diags = lower_diags,
         .in_scope_files = le.in_scope_files,
-        .generated   = le.generated,
+        .generated   = with_called_interfaces(le.generated, (id: string) -> holds_a_function(pruned, id)),
         .module      = module,
         .verify_bounds = verify_bounds,
     }

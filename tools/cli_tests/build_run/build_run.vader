@@ -222,6 +222,35 @@ test_a_wasm_build_calls_a_function_of_an_imported_interface :: fn() -> void {
     assert(built.exit == 0, built.stderr)
 }
 
+// Two interfaces may each declare a function of one name: each keeps its own type,
+// a `u64` here, where the `now` of `system-clock` returns a record. Of the modules
+// of the interfaces, `build/expanded/` holds those whose functions the program
+// calls.
+@test
+test_a_wasm_build_keeps_apart_two_functions_of_one_name :: fn() -> void {
+    dir :: staged(
+        "wasm_interfaces_one_name",
+        """
+        module "main"
+
+        Clock :: import "wasi:clocks/monotonic-clock@0.3.0"
+        Wall :: import "wasi:clocks/system-clock@0.3.0"
+
+        main :: fn() -> i32 {
+            start :: Wall.Instant { .seconds = 0, .nanoseconds = 0 }
+            return i32(Clock.now() % 2) + i32(start.nanoseconds)
+        }
+        """,
+    )
+    no_cc: [string, string | null][]: [["CC", ""]]
+    argv :: ["build", "--target=wasi-wasm32", "--out=${dir}/main.wasm", "main.vader"]
+    built :: vader_in(dir, argv, no_cc)
+    assert(built.exit == 0, built.stderr)
+    copies :: "${dir}/build/expanded/wit/wasi_0clocks"
+    assert(exists("${copies}/monotonic-clock@0.3.0.vader"), "the module of a called interface")
+    assert(!exists("${copies}/system-clock@0.3.0.vader"), "no module whose functions go uncalled")
+}
+
 @test
 test_run_refuses_a_build_that_makes_no_program_for_this_host :: fn() -> void {
     dir :: staged("nothing_to_run", program("app", 0))

@@ -89,6 +89,10 @@ export GeneratedCode :: struct {
     sources: GeneratedSource[] = []
     /// The files and the modules of the load, each a name code is written for.
     origins: string[] = []
+    /// The id of each module of a WIT interface the toolchain ships: a build
+    /// keeps its source only when the program calls its functions
+    /// (`with_called_interfaces`), since `std` imports some for one target.
+    shipped_interfaces: Set<string> = Set<string> {}
 }
 
 /// The code the compiler wrote as source for the modules of `loaded` the build
@@ -104,6 +108,9 @@ export generated_code :: fn(loaded: LoadedProject) -> GeneratedCode {
             continue
         }
         out.origins.push(lm.module.module_name)
+        if lm.module.origin == .Toolchain {
+            out.shipped_interfaces.add(lm.module.id)
+        }
         for f in lm.module.files {
             if is_generated_file(f.path) {
                 out.sources.push(GeneratedSource { .file = f.path, .content = f.content })
@@ -114,6 +121,19 @@ export generated_code :: fn(loaded: LoadedProject) -> GeneratedCode {
     }
     out.sources.push_all(loaded.given_bodies)
     return out
+}
+
+/// `code` without the modules of a WIT interface the toolchain ships whose
+/// functions the program does not call.
+///
+/// @param code    the code written for a load (`generated_code`).
+/// @param called  whether the program calls a function of the module of an id.
+export with_called_interfaces :: fn(
+    code: GeneratedCode,
+    called: fn(string) -> bool,
+) -> GeneratedCode {
+    kept :: code.sources.filter((s) -> !(s.file in code.shipped_interfaces) || called(s.file))
+    return GeneratedCode { ...code, .sources = kept.collect() }
 }
 
 /// The names, under the folder of each kind, of the code written for `origins`:

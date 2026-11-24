@@ -740,10 +740,10 @@ validate_extern_signature :: fn(
     diags: Diagnostic[],
 ) -> void {
     if imports_from_interface(decl, typed) {
-        // The module of a WIT interface takes its types from the `.wit` it is
-        // written from.
+        // The module of a WIT interface takes its types from its `.wit`.
         if !is_wit_module_file(decl.span.start.file) {
-            validate_interface_signature(decl, signature, typed, diags)
+            detail :: "a function of a component is declared by its WIT: import the interface (`import \"wasi:cli/stdout@0.3.0\"`)"
+            diags.push(typecheck_error(.InvalidExternDecl, decl.span, detail))
         }
         return
     }
@@ -862,72 +862,6 @@ validate_extern_signature :: fn(
                 "`@extern` return type must be a primitive, `string`, `CPointer | null`, a `@c_struct`, or `void`, got `${display_type(return_type)}`",
             ),
         )
-    }
-}
-
-// The parameter and result types of `decl`, a function of a component interface:
-// each must have a WIT type, which the import's component type is derived from.
-validate_interface_signature :: fn(
-    decl: AST.FnDecl,
-    signature: FnType,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-) -> void {
-    enclosing :: Set<i32> {}
-    for i in 0..<decl.params.len() {
-        if !has_wit_type(signature.params[i], typed, enclosing) {
-            detail :: "a function of an interface takes types WIT describes, got `${display_type(signature.params[i])}`"
-            diags.push(typecheck_error(.InvalidExternDecl, decl.params[i].span, detail))
-        }
-    }
-    result :: signature.return_type
-    if !is_void(result) && !has_wit_type(result, typed, enclosing) {
-        detail :: "a function of an interface returns a type WIT describes, or `void`, got `${display_type(signature.return_type)}`"
-        diags.push(typecheck_error(.InvalidExternDecl, return_type_span(decl), detail))
-    }
-}
-
-// Whether `t` has a WIT type: a number, `bool`, `char` and `string` are
-// themselves, a struct is a `record` of its fields, an array a `list`, an enum
-// stored as WIT stores one (`is_wit_enum`) an `enum`, `void | E` a `result<_, E>`,
-// `WasmStream<T>` and `WasmFuture<T>` a `stream<T>` and a `future<T>`. A struct
-// met again inside itself has none: a WIT type cannot contain itself.
-// `enclosing` holds the structs being walked.
-has_wit_type :: fn(t: Type, typed: TypedProgram, enclosing: Set<i32>) -> bool {
-    // @partial: the types WIT has a counterpart for are listed, every other
-    // variant has none yet.
-    @partial match t {
-        is UnresolvedType -> { return true }
-        is PrimitiveType  -> { return t.name != TY_VOID.name && t.name != TY_NULL.name }
-        is RangeType -> { return is_machine_range(t) }
-        is ArrayType -> { return has_wit_type(t.element, typed, enclosing) }
-        is EnumType -> { return is_wit_enum(t) }
-        is UnionType -> {
-            if t.variants.len() != 2 || !t.variants.any_match(is_void) {
-                return false
-            }
-            return t.variants.all_match((v) -> is_void(v) || has_wit_type(v, typed, enclosing))
-        }
-        is StructType -> {
-            if t.args.len() == 1 && is_core_struct(t, STRUCT_WASM_STREAM) {
-                return has_wit_type(t.args[0], typed, enclosing)
-            }
-            if t.args.len() == 1 && is_core_struct(t, STRUCT_WASM_FUTURE) {
-                return is_void(t.args[0]) || has_wit_type(t.args[0], typed, enclosing)
-            }
-            fields :: typed.struct_fields[t.symbol.id] else return false
-            if !enclosing.add(t.symbol.id) {
-                return false
-            }
-            for [_, field] in fields {
-                if !has_wit_type(field.ty, typed, enclosing) {
-                    return false
-                }
-            }
-            enclosing.remove(t.symbol.id)
-            return true
-        }
-        _ -> { return false }
     }
 }
 

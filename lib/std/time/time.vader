@@ -11,8 +11,9 @@ import "std/ascii"
 import "std/math"
 import "std/string"
 import "system/posix"
-import "system/wasi"
 import "system/windows"
+MonotonicClock :: import "wasi:clocks/monotonic-clock@0.3.0"
+SystemClock :: import "wasi:clocks/system-clock@0.3.0"
 
 /// Wall-clock instant: nanoseconds since the Unix epoch (1970-01-01 UTC).
 /// Suitable for formatting, persistence, and absolute-time comparisons.
@@ -59,7 +60,7 @@ now_unix_ms :: fn() -> i64 {
 
 @target(.Wasi)
 now_unix_ms :: fn() -> i64 {
-    now :: wasi_system_now()
+    now :: SystemClock.now()
     return now.seconds * 1_000 + i64(now.nanoseconds) / 1_000_000
 }
 
@@ -92,7 +93,7 @@ monotonic_ns :: fn() -> i64 {
 // The mark is a `u64` of nanoseconds: its bits are the `i64` until the clock
 // has run for 292 years.
 @target(.Wasi)
-monotonic_ns :: fn() -> i64 = i64(wasi_monotonic_now())
+monotonic_ns :: fn() -> i64 = i64(MonotonicClock.now())
 
 @target(.Windows)
 monotonic_ns :: fn() -> i64 {

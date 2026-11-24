@@ -3,7 +3,7 @@ type 0 scalar null
 type 1 scalar void
 type 2 union 3,4
 type 3 scalar i32
-type 4 struct wasi_0filesystem_types_10_23_20$DescriptorTypeOther { value:14 }
+type 4 struct wasi_0filesystem_types_10_23_20$DescriptorTypeOther { value:13 }
 type 5 scalar string
 type 6 struct std_core$Buffer {  }
 type 7 scalar i64
@@ -11,10 +11,10 @@ type 8 scalar u64
 type 9 scalar bool
 type 10 array 11
 type 11 scalar u8
-type 12 struct wasi_0filesystem_types_10_23_20$ErrorCodeOther { value:14 }
-type 13 struct wasi_0filesystem_types_10_23_20$DescriptorStat { type:16,link_count:8,size:8,data_access_timestamp:17,data_modification_timestamp:17,status_change_timestamp:17 }
-type 14 union 0,5
-type 15 struct wasi_0filesystem_types_10_23_20$DescriptorFlags { read:9,write:9,file_integrity_sync:9,data_integrity_sync:9,requested_write_sync:9,mutate_directory:9 }
+type 12 struct wasi_0filesystem_types_10_23_20$ErrorCodeOther { value:13 }
+type 13 union 0,5
+type 14 struct wasi_0filesystem_types_10_23_20$DescriptorFlags { read:9,write:9,file_integrity_sync:9,data_integrity_sync:9,requested_write_sync:9,mutate_directory:9 }
+type 15 struct wasi_0filesystem_types_10_23_20$DescriptorStat { type:16,link_count:8,size:8,data_access_timestamp:17,data_modification_timestamp:17,status_change_timestamp:17 }
 type 16 union 11,4
 type 17 union 18,0
 type 18 struct wasi_0clocks_system_3clock_10_23_20$Instant { seconds:7,nanoseconds:19 }
@@ -143,7 +143,7 @@ fn 1 snippet$main () -> i32
   bool.const false
   bool.const false
   bool.const false
-  struct.new_stack 15   ; wasi_0filesystem_types_10_23_20$DescriptorFlags
+  struct.new_stack 14   ; wasi_0filesystem_types_10_23_20$DescriptorFlags
   local.set 1   ; flags
   i32.const 2
   retag 11   ; u8
@@ -152,7 +152,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; at
   null.const
   null.const
-  struct.new 13   ; wasi_0filesystem_types_10_23_20$DescriptorStat
+  struct.new 15   ; wasi_0filesystem_types_10_23_20$DescriptorStat
   local.set 2   ; stat
   i64.const 74
   buffer.new
@@ -196,7 +196,7 @@ fn 1 snippet$main () -> i32
   string.const 5   ; " "
   call 5   ; std_core$write_string_at
   local.set 4   ; __off_1
-  local.field 1 15 0   ; flags wasi_0filesystem_types_10_23_20$DescriptorFlags.read
+  local.field 1 14 0   ; flags wasi_0filesystem_types_10_23_20$DescriptorFlags.read
   ref.cast 9   ; bool
   local.set 7   ; $field_38
   local.get 3   ; __buf_0
@@ -209,7 +209,7 @@ fn 1 snippet$main () -> i32
   string.const 5   ; " "
   call 5   ; std_core$write_string_at
   local.set 4   ; __off_1
-  local.field 1 15 1   ; flags wasi_0filesystem_types_10_23_20$DescriptorFlags.write
+  local.field 1 14 1   ; flags wasi_0filesystem_types_10_23_20$DescriptorFlags.write
   ref.cast 9   ; bool
   local.set 7   ; $field_38
   local.get 3   ; __buf_0
@@ -221,7 +221,7 @@ fn 1 snippet$main () -> i32
   local.get 4   ; __off_1
   call 4   ; std_core$finish_buffer
   call 12   ; std_console$println__string
-  local.field 2 13 0   ; stat wasi_0filesystem_types_10_23_20$DescriptorStat.type
+  local.field 2 15 0   ; stat wasi_0filesystem_types_10_23_20$DescriptorStat.type
   call 0   ; snippet$describe
   local.tee 8   ; __p_2
   call.import 0   ; std_core$Intrinsic$byte_len
@@ -243,7 +243,7 @@ fn 1 snippet$main () -> i32
   string.const 5   ; " "
   call 5   ; std_core$write_string_at
   local.set 4   ; __off_1
-  local.field 2 13 2   ; stat wasi_0filesystem_types_10_23_20$DescriptorStat.size
+  local.field 2 15 2   ; stat wasi_0filesystem_types_10_23_20$DescriptorStat.size
   ref.cast 8   ; u64
   local.set 6   ; $cast_31
   local.get 0   ; at

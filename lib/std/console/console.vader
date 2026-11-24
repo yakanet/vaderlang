@@ -11,8 +11,10 @@ module "std/console"
 import "std/io"
 import "std/time"
 import "system/posix"
-import "system/wasi"
 import "system/windows"
+WasiStderr :: import "wasi:cli/stderr@0.3.0"
+WasiStdout :: import "wasi:cli/stdout@0.3.0"
+WasiCli :: import "wasi:cli/types@0.3.0"
 
 /// A standard output stream. Used by the `print` / `println` / `eprint` /
 /// `eprintln` wrappers below to pick a target, and exported so terminal-aware
@@ -42,17 +44,15 @@ write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
     return -1
 }
 
-// WASI writes a stream, the whole of it before the call returns. A struct keeps
-// what it holds, and `buf` may be a view of a string's bytes: the stream takes a
-// copy.
+// WASI writes a stream, the whole of it before the call returns.
 @target(.Wasi)
 write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
-    data :: WasmStream<u8> { .items = buf[0..<count].clone() }
+    data :: buf[0..<count]
     written :: match out {
-        .Stdout -> wasi_write_stdout(data)
-        .Stderr -> wasi_write_stderr(data)
+        .Stdout -> WasiStdout.write_via_stream(data)
+        .Stderr -> WasiStderr.write_via_stream(data)
     }
-    if written.value is ErrorCode {
+    if written.value is WasiCli.ErrorCode {
         return -1
     }
     return i32(count)

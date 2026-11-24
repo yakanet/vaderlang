@@ -90,7 +90,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, roots: i64[] = []) -> Low
                     // mangle, so index them by mangle.
                     by_mangle[d.mangled] = d
                 }
-                if is_fn_root(d, is_entry, has_main, roots) {
+                if is_fn_root(d, is_entry, has_main, roots, lp.interfaces) {
                     mark_reachable(d, reachable_sym, reachable_mangle)
                     worklist.push(d)
                     // A root with a body is called from outside the program,
@@ -290,12 +290,22 @@ fn_survives :: fn(
 /// `@extern` fn, the fns of `roots`, and (when the
 /// project exposes no `main`): every fn of the ENTRY module. A no-main build
 /// keeps its own whole surface ; dependencies (every non-entry module) are
-/// pruned to the set reachable from the roots.
-is_fn_root :: fn(fn_decl: LoweredFnDecl, is_entry: bool, has_main: bool, roots: i64[]) -> bool {
+/// pruned to the set reachable from the roots. A function of a component
+/// interface is no root: a build imports only the ones the program calls.
+is_fn_root :: fn(
+    fn_decl: LoweredFnDecl,
+    is_entry: bool,
+    has_main: bool,
+    roots: i64[],
+    interfaces: Map<i64, WasmInterface>,
+) -> bool {
     if is_entry && !has_main { return true }
+    ast :: fn_decl.origin.decl
+    if ast is FnDecl && ast.id in interfaces {
+        return false
+    }
     if fn_decl.body == null { return true }
     if fn_decl.origin.is_main { return true }
-    ast :: fn_decl.origin.decl
     if ast is FnDecl {
         if ast.id in roots {
             return true

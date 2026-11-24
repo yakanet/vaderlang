@@ -7,8 +7,8 @@
 typedef struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorTypeOther_t vader_struct_wasi_0filesystem_types_10_23_20$DescriptorTypeOther_t;
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
 typedef struct vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t;
-typedef struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t;
 typedef struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t;
+typedef struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t;
 typedef struct vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t;
 
 struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorTypeOther_t {
@@ -22,15 +22,6 @@ struct vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t {
     vader_obj_header_t header;
     vader_box_t f_value;
 };
-struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t {
-    vader_obj_header_t header;
-    vader_box_t f_type;
-    uint64_t f_link_count;
-    uint64_t f_size;
-    vader_box_t f_data_access_timestamp;
-    vader_box_t f_data_modification_timestamp;
-    vader_box_t f_status_change_timestamp;
-};
 struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t {
     vader_obj_header_t header;
     bool f_read;
@@ -39,6 +30,15 @@ struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t {
     bool f_data_integrity_sync;
     bool f_requested_write_sync;
     bool f_mutate_directory;
+};
+struct vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t {
+    vader_obj_header_t header;
+    vader_box_t f_type;
+    uint64_t f_link_count;
+    uint64_t f_size;
+    vader_box_t f_data_access_timestamp;
+    vader_box_t f_data_modification_timestamp;
+    vader_box_t f_status_change_timestamp;
 };
 struct vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t {
     vader_obj_header_t header;
@@ -198,18 +198,18 @@ const vader_type_info_t vader_type_info_table[20] = {
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t, f_value) },
         .ptr_count = 1,
     },
-    [13] = {
+    [13] = { .slot_size = 16 },
+    [14] = {
+        .kind = VADER_TYPE_KIND_STRUCT,
+        .size = sizeof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t),
+        .slot_size = 8,
+    },
+    [15] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t, f_type), offsetof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t, f_data_access_timestamp), offsetof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t, f_data_modification_timestamp), offsetof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t, f_status_change_timestamp) },
         .ptr_count = 4,
-    },
-    [14] = { .slot_size = 16 },
-    [15] = {
-        .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t),
-        .slot_size = 8,
     },
     [16] = { .slot_size = 16 },
     [17] = { .slot_size = 16 },
@@ -324,7 +324,7 @@ static int32_t snippet$main(void) {
     _a0_obj->f_nanoseconds = (uint32_t) 250;
     l0 = (void*) _a0_obj;
     vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t* _a2_obj = &_a1_storage;
-    vader_obj_header_init(_a2_obj, 15u);
+    vader_obj_header_init(_a2_obj, 14u);
     _a2_obj->f_read = true;
     _a2_obj->f_write = false;
     _a2_obj->f_file_integrity_sync = false;
@@ -333,7 +333,7 @@ static int32_t snippet$main(void) {
     _a2_obj->f_mutate_directory = false;
     l1 = (void*) _a2_obj;
     vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t* _a3_obj = (vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t*) vader_gc_alloc(sizeof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t));
-    vader_obj_header_init(_a3_obj, 13u);
+    vader_obj_header_init(_a3_obj, 15u);
     _a3_obj->f_type = vader_box_i32(11u, INT32_C(2));
     _a3_obj->f_link_count = (uint64_t) 1;
     _a3_obj->f_size = (uint64_t) 4096;

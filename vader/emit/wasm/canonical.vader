@@ -2,7 +2,7 @@
 //
 // A call whose arguments or result are more than scalars Vader holds as the
 // core function takes them goes through an adapter, a helper with the Vader
-// signature (`needs_adapter`). It lowers the arguments: a stream (`WasmStream`)
+// signature (`needs_adapter`). It lowers the arguments: a stream (an array)
 // is opened, passed by its readable end, then written whole and closed after the
 // call. It calls the import, then lifts the result (`canonical_lift.vader`): one
 // too large to come back flat is read from the room it was written to, a future
@@ -287,7 +287,6 @@ lower_stream :: fn(a: Adapter, t: WitStream, index: i32) -> Lowered | WasmUnsupp
     if !is_byte_stream(t) {
         return no_lowering(t, a.function)
     }
-    items :: a.stream_items(index) else return items
     pair :: a.frame.local(.I64)
     writable :: a.frame.local(.I32)
     // `stream.new` returns the readable end in the low half, the writable end in
@@ -300,24 +299,10 @@ lower_stream :: fn(a: Adapter, t: WitStream, index: i32) -> Lowered | WasmUnsupp
         ],
         .argument = unary(.I32WrapI64, local_get(pair)),
         .after = [
-            call(a.ctx.canonical_write(t), [local_get(writable), items]),
+            call(a.ctx.canonical_write(t), [local_get(writable), local_get(index)]),
             call(a.ctx.builtin(.StreamDropWritable, t), [local_get(writable)]),
         ],
     }
-}
-
-// The array of the items the stream parameter `index` writes: the parameter
-// itself, or the `items` of the `WasmStream` that `system/wasi` passes.
-stream_items :: fn(a: Adapter, index: i32) -> WasmExpression | WasmUnsupported {
-    type_id :: a.imp.signature.param_types[index]
-    if a.ctx.module.types[type_id] is Bc.BcArray {
-        return local_get(index)
-    }
-    stream :: a.ctx.gc.of_struct[type_id]
-        else return WasmUnsupported {
-            .reason = "`${a.function}`: a stream is neither an array nor a `WasmStream`",
-        }
-    return struct_get(stream, 0, local_get(index))
 }
 
 no_lowering :: fn(t: WitType, function: string) -> WasmUnsupported =

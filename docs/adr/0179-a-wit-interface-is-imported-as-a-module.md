@@ -211,6 +211,10 @@ written by hand for C.
 - Every build reads and generates the WIT interfaces `std` imports, a native one
   included, and the language server on each analysis. Measured before `std` switches
   to them; a cache by content follows if it shows.
+- A function of an interface is no root of the dead-code prune: a build imports
+  only the ones the program calls, and writes under `build/expanded/wit/` the
+  module of a shipped interface only when it calls one of its functions. The
+  interfaces `std` imports for WASI leave nothing in a native build.
 - The language server watches `**/*.wit`. Before a first build, go-to-definition into
   an interface has no file to open.
 - The generator joins the contract of the seed: a rule `std` relies on (a name, a

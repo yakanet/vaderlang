@@ -16,8 +16,6 @@ import "system/libc"
 @allow_unused
 import "system/posix"
 @allow_unused
-import "system/wasi"
-@allow_unused
 import "system/windows"
 
 main :: fn() -> i32 = 0
