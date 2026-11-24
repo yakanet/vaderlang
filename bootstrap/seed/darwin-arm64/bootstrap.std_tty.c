@@ -36,7 +36,7 @@ static vader_string_t std_tty$escape(bool l0, vader_string_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     if (l0) {
-        t0 = concat_3(18u, l1, 2869u);
+        t0 = concat_3(18u, l1, 2867u);
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_gc_top = gc_frame.prev; return 0u; }
@@ -127,7 +127,7 @@ static bool std_tty$no_color_set$singleton(void) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l0 = std_env$get_env(894u);
+    l0 = std_env$get_env(895u);
     if (l0.tag == 0u) {
         l1 = 0u;
         l2 = 0u;

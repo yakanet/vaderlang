@@ -109,14 +109,14 @@ static void* vader_support_profile$build_log$singleton(void) {
     void** gc_raw_roots[4] = { &l0, &l1, &l2, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(441u, 0u, 13u, 2086u);
+    vader_array_t* _a0_arr = vader_array_new(441u, 0u, 13u, 2093u);
     l0 = (void*) _a0_arr;
-    vader_array_t* _a1_arr = vader_array_new(443u, 0u, 13u, 2089u);
+    vader_array_t* _a1_arr = vader_array_new(443u, 0u, 13u, 2096u);
     l1 = (void*) _a1_arr;
-    vader_array_t* _a2_arr = vader_array_new(28u, 0u, 0u, 623u);
+    vader_array_t* _a2_arr = vader_array_new(28u, 0u, 0u, 626u);
     l2 = (void*) _a2_arr;
     vader_struct_vader_support_profile$BuildLog_t* _a3_obj = (vader_struct_vader_support_profile$BuildLog_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_profile$BuildLog_t));
-    vader_obj_header_init(_a3_obj, 2084u);
+    vader_obj_header_init(_a3_obj, 2091u);
     _a3_obj->f_verbose = false;
     _a3_obj->f_step = INT32_C(-1);
     _a3_obj->f_passes = l0;
@@ -233,7 +233,7 @@ static void vader_support_profile$log_end(uint8_t l0, int64_t l1) {
     }
     l2 = ((vader_struct_vader_support_profile$BuildLog_t*) l2)->f_passes;
     vader_struct_vader_support_profile$PassTime_t* _a1_obj = (vader_struct_vader_support_profile$PassTime_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_profile$PassTime_t));
-    vader_obj_header_init(_a1_obj, 2086u);
+    vader_obj_header_init(_a1_obj, 2093u);
     _a1_obj->f_name = l3;
     _a1_obj->f_ns = l1;
     l4 = (void*) _a1_obj;
@@ -297,7 +297,7 @@ void vader_support_profile$note_stage(vader_string_t l0, bool l1, int64_t l2) {
     }
     l5 = ((vader_struct_vader_support_profile$BuildLog_t*) l3)->f_stages;
     vader_struct___lambda_env_vader_support_profile_4_t* _a0_obj = (vader_struct___lambda_env_vader_support_profile_4_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_vader_support_profile_4_t));
-    vader_obj_header_init(_a0_obj, 867u);
+    vader_obj_header_init(_a0_obj, 872u);
     _a0_obj->f_cap_0 = l0;
     l6 = (void*) _a0_obj;
     l4 = vader_box_obj(0u, NULL);
@@ -320,7 +320,7 @@ void vader_support_profile$note_stage(vader_string_t l0, bool l1, int64_t l2) {
     if (l4.tag == 0u) {
         l5 = ((vader_struct_vader_support_profile$BuildLog_t*) l3)->f_stages;
         vader_struct_vader_support_profile$StageTime_t* _a2_obj = (vader_struct_vader_support_profile$StageTime_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_profile$StageTime_t));
-        vader_obj_header_init(_a2_obj, 2089u);
+        vader_obj_header_init(_a2_obj, 2096u);
         _a2_obj->f_name = l0;
         _a2_obj->f_sources_ns = INT64_C(0);
         _a2_obj->f_bodies_ns = INT64_C(0);
@@ -356,7 +356,7 @@ static vader_string_t vader_support_profile$open_name(vader_box_t l0) {
         t1 = vader_support_profile$phase_name(t0);
         return t1;
     }
-    return 2994u;
+    return 2991u;
 }
 
 static vader_string_t vader_support_profile$painted_name(int64_t l0, vader_string_t l1) {
@@ -381,38 +381,38 @@ static vader_string_t vader_support_profile$painted_name(int64_t l0, vader_strin
 static vader_string_t vader_support_profile$phase_name(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        l1 = 2833u;
+        l1 = 2831u;
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 3416u;
+        l1 = 3413u;
     } else if (l0 == INT32_C(2)) {
-        l1 = 2263u;
+        l1 = 2261u;
     } else if (l0 == INT32_C(3)) {
-        l1 = 2855u;
+        l1 = 2853u;
     } else if (l0 == INT32_C(4)) {
-        l1 = 3081u;
+        l1 = 3078u;
     } else if (l0 == INT32_C(5)) {
-        l1 = 2227u;
+        l1 = 2225u;
     } else if (l0 == INT32_C(6)) {
-        l1 = 2228u;
+        l1 = 2226u;
     } else if (l0 == INT32_C(7)) {
-        l1 = 2420u;
+        l1 = 2418u;
     } else if (l0 == INT32_C(8)) {
-        l1 = 2146u;
+        l1 = 2144u;
     } else if (l0 == INT32_C(9)) {
-        l1 = 2163u;
+        l1 = 2161u;
     } else if (l0 == INT32_C(10)) {
-        l1 = 2224u;
+        l1 = 2222u;
     } else if (l0 == INT32_C(11)) {
-        l1 = 2827u;
+        l1 = 2825u;
     } else if (l0 == INT32_C(12)) {
-        l1 = 3678u;
+        l1 = 3675u;
     } else {
         if (!(l0 == INT32_C(13))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 3092u;
+        l1 = 3089u;
     }
     return l1;
 }
@@ -522,7 +522,7 @@ static void vader_support_profile$print_step(void* l0) {
             }
         }
         l9 = ((vader_struct_vader_support_profile$BuildLog_t*) l0)->f_stages;
-        vader_array_t* _a3_arr = vader_array_new(443u, 0u, 13u, 2089u);
+        vader_array_t* _a3_arr = vader_array_new(443u, 0u, 13u, 2096u);
         l10 = (void*) _a3_arr;
         l1 = vader_array_length(((vader_array_t*) l9));
         l3 = INT64_C(0);
@@ -554,7 +554,7 @@ static void vader_support_profile$print_step(void* l0) {
                 l1 = vader_chk_add(i64, l1, l14);
                 l4 = (l4 + INT64_C(1));
             }
-            vader_support_profile$print_line(INT64_C(1), 3202u, 0u, l1);
+            vader_support_profile$print_line(INT64_C(1), 3199u, 0u, l1);
             l1 = vader_array_length(((vader_array_t*) l2));
             l3 = INT64_C(0);
             while ((l3 < l1)) {
@@ -619,7 +619,7 @@ void vader_support_profile$prof_begin(uint8_t l0) {
         std_console$eprintln__string(t3);
     }
     vader_support_profile$log_begin(l0);
-    ((vader_struct_vader_support_profile$Profiler_t*) l1)->f_open = vader_box_i32(628u, (int32_t)(uint32_t) l0);
+    ((vader_struct_vader_support_profile$Profiler_t*) l1)->f_open = vader_box_i32(631u, (int32_t)(uint32_t) l0);
     VADER_WRITE_BARRIER((vader_struct_vader_support_profile$Profiler_t*) l1);
     t1 = vader_global_2;
     if (t1 == INT32_C(2)) {
@@ -669,7 +669,7 @@ void vader_support_profile$prof_end(uint8_t l0) {
         l1 = vader_support_profile$profiler();
     }
     l2 = std_time$since(((vader_struct_vader_support_profile$Profiler_t*) l1)->f_started);
-    if (!(vader_box_eq(((vader_struct_vader_support_profile$Profiler_t*) l1)->f_open, vader_box_i32(628u, (int32_t)(uint32_t) l0)))) {
+    if (!(vader_box_eq(((vader_struct_vader_support_profile$Profiler_t*) l1)->f_open, vader_box_i32(631u, (int32_t)(uint32_t) l0)))) {
         l3 = vader_support_profile$phase_name(l0);
         l3 = concat_3(1223u, l3, 468u);
         t2 = vader_support_profile$open_name(((vader_struct_vader_support_profile$Profiler_t*) l1)->f_open);
@@ -760,14 +760,14 @@ static void* vader_support_profile$profiler$singleton(void) {
     void** gc_raw_roots[4] = { &l0, &l1, &l2, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(31u, 0u, 1u, 628u);
+    vader_array_t* _a0_arr = vader_array_new(31u, 0u, 1u, 631u);
     l0 = (void*) _a0_arr;
-    vader_array_t* _a1_arr = vader_array_new(35u, 0u, 0u, 634u);
+    vader_array_t* _a1_arr = vader_array_new(35u, 0u, 0u, 637u);
     l1 = (void*) _a1_arr;
-    vader_array_t* _a2_arr = vader_array_new(29u, 0u, 7u, 626u);
+    vader_array_t* _a2_arr = vader_array_new(29u, 0u, 7u, 629u);
     l2 = (void*) _a2_arr;
     vader_struct_std_collections$Map__vader_support_profile_ProfPhase__Any_t* _a3_obj = (vader_struct_std_collections$Map__vader_support_profile_ProfPhase__Any_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$Map__vader_support_profile_ProfPhase__Any_t));
-    vader_obj_header_init(_a3_obj, 1060u);
+    vader_obj_header_init(_a3_obj, 1065u);
     _a3_obj->f_ekeys = l0;
     _a3_obj->f_evals = l1;
     _a3_obj->f_index = l2;
@@ -777,7 +777,7 @@ static void* vader_support_profile$profiler$singleton(void) {
     _a3_obj->f_tombs = INT64_C(0);
     l0 = (void*) _a3_obj;
     vader_struct_vader_support_profile$Counters_t* _a4_obj = (vader_struct_vader_support_profile$Counters_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_profile$Counters_t));
-    vader_obj_header_init(_a4_obj, 2085u);
+    vader_obj_header_init(_a4_obj, 2092u);
     _a4_obj->f_peak_rss = INT64_C(0);
     _a4_obj->f_copied = INT64_C(0);
     _a4_obj->f_allocated = INT64_C(0);
@@ -785,7 +785,7 @@ static void* vader_support_profile$profiler$singleton(void) {
     _a4_obj->f_collections = INT64_C(0);
     l1 = (void*) _a4_obj;
     vader_struct_vader_support_profile$Profiler_t* _a5_obj = (vader_struct_vader_support_profile$Profiler_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_profile$Profiler_t));
-    vader_obj_header_init(_a5_obj, 2088u);
+    vader_obj_header_init(_a5_obj, 2095u);
     _a5_obj->f_totals = l0;
     _a5_obj->f_open = vader_box_obj(0u, NULL);
     _a5_obj->f_start = l1;
@@ -841,7 +841,7 @@ static bool vader_support_profile$profiling$singleton(void) {
     bool t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = std_env$is_env_flag_on(1180u);
+    t0 = std_env$is_env_flag_on(1181u);
     if (!(t0)) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
@@ -868,7 +868,7 @@ static void* vader_support_profile$read_counters(void) {
     l4 = vader_host_std_core$Intrinsic$allocations();
     l5 = vader_host_std_core$Intrinsic$collections();
     vader_struct_vader_support_profile$Counters_t* _a0_obj = (vader_struct_vader_support_profile$Counters_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_profile$Counters_t));
-    vader_obj_header_init(_a0_obj, 2085u);
+    vader_obj_header_init(_a0_obj, 2092u);
     _a0_obj->f_peak_rss = l1;
     _a0_obj->f_copied = l2;
     _a0_obj->f_allocated = l3;
@@ -895,21 +895,21 @@ static vader_string_t vader_support_profile$stage_detail(void* l0) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(28u, 0u, 0u, 623u);
+    vader_array_t* _a0_arr = vader_array_new(28u, 0u, 0u, 626u);
     l1 = (void*) _a0_arr;
     t0 = ((vader_struct_vader_support_profile$StageTime_t*) l0)->f_sources_ns;
     if ((t0 > INT64_C(0))) {
         t0 = ((vader_struct_vader_support_profile$StageTime_t*) l0)->f_sources_ns;
         l2 = vader_support_profile$display_duration(t0);
-        l2 = concat_2(3196u, l2);
-        vader_array_push_scalar((vader_array_t*) l1, vader_box_string(623u, l2));
+        l2 = concat_2(3193u, l2);
+        vader_array_push_scalar((vader_array_t*) l1, vader_box_string(626u, l2));
     }
     t0 = ((vader_struct_vader_support_profile$StageTime_t*) l0)->f_bodies_ns;
     if ((t0 > INT64_C(0))) {
         t0 = ((vader_struct_vader_support_profile$StageTime_t*) l0)->f_bodies_ns;
         l2 = vader_support_profile$display_duration(t0);
-        l2 = concat_2(2088u, l2);
-        vader_array_push_scalar((vader_array_t*) l1, vader_box_string(623u, l2));
+        l2 = concat_2(2086u, l2);
+        vader_array_push_scalar((vader_array_t*) l1, vader_box_string(626u, l2));
         l2 = 444u;
         t1 = std_string$join(l1, l2);
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }

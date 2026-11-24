@@ -189,7 +189,7 @@ static vader_box_t std_path$last_separator(vader_string_t l0, int64_t l1) {
             if (!(t0 == INT32_C(47))) {
                 continue;
             }
-            return vader_box_i64(627u, l2);
+            return vader_box_i64(630u, l2);
         }
         break;
     }
@@ -219,7 +219,7 @@ static vader_box_t std_path$next_separator(vader_string_t l0, int64_t l1) {
     while ((l2 < l3)) {
         t0 = vader_host_std_core$Intrinsic$byte_at(l0, l2);
         if (t0 == INT32_C(47)) {
-            return vader_box_i64(627u, l2);
+            return vader_box_i64(630u, l2);
         }
         l2 = (l2 + INT64_C(1));
     }
@@ -264,7 +264,7 @@ static vader_string_t std_path$normalize_on(vader_string_t l0, uint8_t l1) {
     }
     l3 = std_path$root_length(l0, l1);
     l4 = std_path$is_anchored(l0, l1);
-    vader_array_t* _a0_arr = vader_array_new(28u, 0u, 0u, 623u);
+    vader_array_t* _a0_arr = vader_array_new(28u, 0u, 0u, 626u);
     l5 = (void*) _a0_arr;
     l6 = l3;
     while ((l6 <= l2)) {
@@ -311,7 +311,7 @@ static vader_string_t std_path$normalize_on(vader_string_t l0, uint8_t l1) {
             l13 = !(l4);
         }
         if (l13) {
-            vader_array_push_scalar((vader_array_t*) l5, vader_box_string(623u, l9));
+            vader_array_push_scalar((vader_array_t*) l5, vader_box_string(626u, l9));
         }
     }
     if (l3 == INT64_C(0)) {
@@ -320,10 +320,10 @@ static vader_string_t std_path$normalize_on(vader_string_t l0, uint8_t l1) {
             { vader_gc_top = gc_frame.prev; return 492u; }
         }
     }
-    vader_array_t* _a2_arr = vader_array_new(28u, 0u, 0u, 623u);
+    vader_array_t* _a2_arr = vader_array_new(28u, 0u, 0u, 626u);
     t4 = (void*) _a2_arr;
     vader_struct_std_string__builder$StringBuilder_t* _a3_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
-    vader_obj_header_init(_a3_obj, 1096u);
+    vader_obj_header_init(_a3_obj, 1103u);
     _a3_obj->f_parts = t4;
     l14 = (void*) _a3_obj;
     l9 = vader_host_std_core$Intrinsic$byte_slice(l0, INT64_C(0), l3);
