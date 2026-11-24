@@ -343,7 +343,7 @@ find_snippets :: fn(found: Discovery, phases: string[]) -> void {
         if phases.contains(NATIVE_PHASE) && runs_natively(dir, config) {
             kept.push(NATIVE_PHASE)
         }
-        if phases.contains(WASI_PHASE) && exists("${dir}/${VM_SNAPSHOT}") {
+        if phases.contains(WASI_PHASE) && runs_under_wasi(dir, config) {
             kept.push(WASI_PHASE)
         }
         if phases.contains(FORMAT_PHASE) {
@@ -399,6 +399,11 @@ runs_on_vm :: fn(dir: string, config: SnippetConfig) -> bool {
 // with, and its `_config.json` does not exclude the native run on this host.
 runs_natively :: fn(dir: string, config: SnippetConfig) -> bool =
     exists("${dir}/${VM_SNAPSHOT}") && !excludes_this_host(config.native)
+
+// Whether the run of the snippet in `dir`, of config `config`, is checked under
+// wasmtime: it has one, and its config does not exclude it.
+runs_under_wasi :: fn(dir: string, config: SnippetConfig) -> bool =
+    exists("${dir}/${VM_SNAPSHOT}") && !config.wasi.skipped
 
 // Whether `run` is not checked here: everywhere (`skip`), or on the host's
 // platform (`skip_on`).

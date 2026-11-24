@@ -1,0 +1,5 @@
+{
+  "wasi": {
+    "skip": "it calls C through `@extern`, which a WASI build has no form for"
+  }
+}

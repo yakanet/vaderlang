@@ -8,5 +8,8 @@
     "skip_on": {
       "win32": "MinGW keeps gettimeofday in the static libmingwex.a: the native build links it, the VM's dlsym cannot reach it"
     }
+  },
+  "wasi": {
+    "skip": "it calls C through `@extern`, which a WASI build has no form for"
   }
 }

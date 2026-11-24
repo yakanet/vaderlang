@@ -4,7 +4,7 @@
 // file may name the phases its snapshots cover (`phases`), the modules the
 // module-scoped dumps show (`modules`), where its native run is not checked
 // (`native`), where and from what its run on the VM is (`vm`), and why its run
-// under wasmtime differs from it (`wasi`). A file with a
+// under wasmtime is not checked or differs from it (`wasi`). A file with a
 // problem is reported and its snippet is not checked: read as the defaults, a
 // mistyped phase would turn a check off in silence, or let `--update` write the
 // snapshots of phases the snippet does not keep.
@@ -55,7 +55,7 @@ CONFIG_FILE :: "_config.json"
 CONFIG_KEYS: string[]: ["phases", "modules", "native", "vm", "wasi"]
 NATIVE_KEYS: string[]: ["skip", "skip_on"]
 VM_KEYS: string[]: ["skip", "skip_on", "from"]
-WASI_KEYS: string[]: ["differs"]
+WASI_KEYS: string[]: ["skip", "differs"]
 
 // The platforms `skip_on` may name: the names `host_platform` gives.
 PLATFORMS: string[]: ["darwin", "linux", "win32"]
@@ -160,6 +160,9 @@ run_of :: fn(
     if skip != null && skip_on != null {
         problems.push("`${side}.skip` already excludes every platform")
     }
+    if skip != null && differs != null {
+        problems.push("`${side}.skip` leaves no run to differ")
+    }
     if skip != null {
         check_reason("${side}.skip", skip, problems)
     }
@@ -244,6 +247,14 @@ problems_of :: fn(text: string) -> string[] {
 test_a_config_with_known_keys_has_no_problem :: fn() -> void {
     text :: "{\"phases\": [\"lexer\"], \"modules\": [\"m\"], \"vm\": {\"from\": \"build\"}}"
     assert_eq(problems_of(text).len(), 0)
+}
+
+@test
+test_a_skipped_wasi_run_cannot_differ :: fn() -> void {
+    assert_eq(
+        problems_of("{\"wasi\": {\"skip\": \"a\", \"differs\": \"b\"}}").join("|"),
+        "`wasi.skip` leaves no run to differ",
+    )
 }
 
 @test
