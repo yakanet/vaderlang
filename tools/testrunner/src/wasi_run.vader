@@ -23,7 +23,8 @@ check_wasi :: fn(case: Case, dir: string) -> StageReport | CaseFailure {
     began :: monotonic()
     request :: BuildRequest { .target = Target { .os = .Wasi, .arch = .Wasm32 } }
     prepared :: program_of(Path(entry_path(case)), request) else return skipped(began)
-    bytes :: wasm_binary_of(prepared.module, prepared.entry) else return skipped(began)
+    bytes :: wasm_binary_of(prepared.module, prepared.entry, prepared.exit_threads)
+        else return skipped(began)
     component :: "${dir}/_main.wasm"
     written :: write_file(component, bytes)
         else return CaseFailure { .message = "`${component}`: ${written.message()}" }

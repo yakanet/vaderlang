@@ -36,12 +36,18 @@ WasmUnsupported implements Error -> self.reason
 ///
 /// @param m              the program's bytecode.
 /// @param entry_mangled  the mangled name of its entry (`entry_function_index`).
+/// @param exit_mangled   the mangled name of the scheduler's `exit_threads`,
+///                       which `run` hands the entry's code to; `""` for none.
 /// @return               a component exporting `wasi:cli/run`, whose `run`
 ///                       calls the entry.
 /// @error                `WasmUnsupported` on the first op or value type the
 ///                       emitter does not translate yet.
-export wasm_binary_of :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> u8[] | WasmUnsupported {
-    component :: wasm_component_of(m, entry_mangled) else return component
+export wasm_binary_of :: fn(
+    m: Bc.BytecodeModule,
+    entry_mangled: string,
+    exit_mangled: string = "",
+) -> u8[] | WasmUnsupported {
+    component :: wasm_component_of(m, entry_mangled, exit_mangled) else return component
     return encode_component(component)
 }
 
@@ -49,6 +55,7 @@ export wasm_binary_of :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> u8[]
 ///
 /// @param m              the program's bytecode.
 /// @param entry_mangled  the mangled name of its entry (`entry_function_index`).
+/// @param exit_mangled   as `wasm_binary_of` takes it.
 /// @return               the core module of `wasm_module_of` and the interfaces
 ///                       its imports come from.
 /// @error                `WasmUnsupported` on the first op or value type the
@@ -57,8 +64,9 @@ export wasm_binary_of :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> u8[]
 export wasm_component_of :: fn(
     m: Bc.BytecodeModule,
     entry_mangled: string,
+    exit_mangled: string = "",
 ) -> WasmComponent | WasmUnsupported {
-    component :: translate(m, entry_mangled) else return component
+    component :: translate(m, entry_mangled, exit_mangled) else return component
     if component.core.exports.len() == 0 {
         return WasmUnsupported { .reason = "the program has no entry for `run` to call" }
     }
@@ -84,8 +92,13 @@ export wasm_module_of :: fn(
 }
 
 // The core module of `wasm_module_of`, with the interfaces its imports come from.
-translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | WasmUnsupported {
+translate :: fn(
+    m: Bc.BytecodeModule,
+    entry_mangled: string,
+    exit_mangled: string = "",
+) -> WasmComponent | WasmUnsupported {
     entry :: Bc.entry_function_index(m, entry_mangled)
+    exit :: Bc.function_named(m, exit_mangled)
     takes_arguments :: entry != null && m.functions[entry].signature.params.len() > 0
     ctx :: module_context_of(m, takes_arguments) else return ctx
     functions: WasmFunction[]: []
@@ -109,8 +122,13 @@ translate :: fn(m: Bc.BytecodeModule, entry_mangled: string) -> WasmComponent | 
     init :: if entry != null && ctx.atoms != null { ctx.atom_init() } else { null }
     functions.push_all(ctx.helper_functions)
     if entry != null {
-        run :: run_function(ctx, m.functions[entry], ctx.first_function + entry, init, arguments)
-            else return run
+        calls :: RunCalls {
+            .entry = ctx.first_function + entry,
+            .init = init,
+            .arguments = arguments,
+            .exit = if exit == null { null } else { ctx.first_function + exit },
+        }
+        run :: run_function(ctx, m.functions[entry], calls) else return run
         exports.push(
             WasmExport {
                 .name = RUN_EXPORT,
@@ -210,41 +228,54 @@ ModuleCtx :: struct {
     exit_tag: i32 | null = null
 }
 
-// `run`, the core export the component lifts: it calls `init` when there is one,
-// then the entry, at `entry`, on what `arguments` reads when it takes them, and
-// returns the case of `result` the host reads, `ok` (0) for an entry that returns
-// nothing or 0, `err` (1) for any other code.
+// `run`, the core export the component lifts: it makes the `calls`, the entry
+// `entry` among them, and returns the case of `result` the host reads, `ok` (0)
+// for a code of 0, `err` (1) for any other. The code is the entry's, 0 for an
+// entry that returns nothing, as the scheduler's exit leaves it.
 run_function :: fn(
     ctx: ModuleCtx,
     entry: Bc.BcFunction,
-    index: i32,
-    init: i32 | null,
-    arguments: i32 | null,
+    calls: RunCalls,
 ) -> WasmFunction | WasmUnsupported {
     body: WasmInstr[]: []
+    init :: calls.init
     if init != null {
         body.push(Call { .function_index = init })
     }
+    arguments :: calls.arguments
     if arguments != null {
         body.push(Call { .function_index = arguments })
     }
-    body.push(Call { .function_index = index })
+    body.push(Call { .function_index = calls.entry })
     results :: result_values(entry.signature.results)
     if results.len() == 0 {
         body.push(I32Const { .value = 0 })
-    } else if results.len() == 1 && results[0] == .I32 {
-        body.push_all([I32Const { .value = 0 }, Plain { .op = .I32Ne }])
-    } else {
+    } else if results.len() != 1 || results[0] != .I32 {
         return WasmUnsupported {
             .reason = "`${entry.name}`: an entry returns nothing or an `i32` code",
         }
     }
+    exit :: calls.exit
+    if exit != null {
+        body.push(Call { .function_index = exit })
+    }
+    body.push_all([I32Const { .value = 0 }, Plain { .op = .I32Ne }])
     run_type :: WasmFuncType { .params = [], .results = [.I32] }
     return WasmFunction {
         .type_index = ctx.types.intern(run_type),
         .locals = [],
         .body = body,
     }
+}
+
+// The functions `run` calls: the entry, and before it the atom table's and the
+// arguments' initialisations, after it the scheduler's exit, each when there is
+// one.
+RunCalls :: struct {
+    entry: i32
+    init: i32 | null = null
+    arguments: i32 | null = null
+    exit: i32 | null = null
 }
 
 // The function types of a module, each once, as the format wants them.

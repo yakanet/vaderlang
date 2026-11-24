@@ -67,6 +67,8 @@ export Lowering :: struct {
 /// @param keep_frames  lower a call to a function that only forwards to a primitive
 ///                     operation as a call, not as the operation : a debugged
 ///                     program keeps every frame its source writes.
+/// @param roots        functions of a module lowered lazily that the compiler
+///                     calls by itself, lowered though nothing reaches them.
 /// @return             the lowering to hand to `finish_lowering`, once the
 ///                     constants of its `awaited` have their value.
 export begin_lowering :: fn(
@@ -75,7 +77,8 @@ export begin_lowering :: fn(
     evaluated: EvaluatedProject,
     diags: Diagnostic[],
     keep_frames: bool = false,
-) -> Lowering = begin_lowering_of(loaded, typed, evaluated, [], diags, keep_frames)
+    roots: Symbol[] = [],
+) -> Lowering = begin_lowering_of(loaded, typed, evaluated, [], diags, keep_frames, roots)
 
 /// VM-backed-comptime staging variant : lower ONLY the closure reachable from
 /// `eager_modules` (the modules owning `vm_required` @comptime consts) instead
@@ -97,6 +100,7 @@ export lower_project_staged :: fn(
 begin_lowering_of :: fn(
     loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject,
     eager_modules: string[], diags: Diagnostic[], keep_frames: bool = false,
+    roots: Symbol[] = [],
 ) -> Lowering {
     // Staging mode narrows the eager (with-body) set from the single entry to
     // `eager_modules`; the whole-project generic-struct materialization is
@@ -126,6 +130,11 @@ begin_lowering_of :: fn(
     // for-in / Iterator step loop.
     populate_impls(loaded, typed, project_ctx)
     populate_fn_symbols(typed, project_ctx)
+    for root in roots {
+        if project_ctx.nongeneric_imported_fns.add(root.id) {
+            project_ctx.nongeneric_imported_queue.push(root)
+        }
+    }
     project :: new_lowered_project()
     project.entry = loaded.entry
     project.libraries = evaluated.libraries

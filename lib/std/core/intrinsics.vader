@@ -193,6 +193,23 @@ export Intrinsic :: trait {
     /// What `future` resolves to, waited for, the future dropped.
     wasm_future_wait :: fn<T>(future: WasmFuture<T>) -> T
 
+    // ---- threads of the component model --------------------------------
+
+    /// A thread of the component model that runs `entry`, suspended until a
+    /// `wasm_thread_resume_later` names it; its index.
+    wasm_thread_new :: fn(entry: fn() -> void) -> i64
+    /// Suspend the running thread until a `wasm_thread_resume_later` names it.
+    wasm_thread_suspend :: fn() -> void
+    /// Make the suspended thread `thread` ready to run again.
+    wasm_thread_resume_later :: fn(thread: i64) -> void
+    /// Let the threads that are ready run, then go on.
+    wasm_thread_yield :: fn() -> void
+    /// The index of the running thread.
+    wasm_thread_index :: fn() -> i64
+    /// Run the running thread's pending defers, the last pushed first, then end
+    /// it: it never returns.
+    wasm_thread_exit :: fn() -> void
+
     // ---- foreign calls from the VM --------------------------------------
 
     /// Open the shared library `name`, by the platform's search ; 0 when absent.

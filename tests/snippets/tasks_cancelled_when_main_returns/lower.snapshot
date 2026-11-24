@@ -1,0 +1,123 @@
+# Lower
+
+## snippet
+  snippet.main :: fn() -> i32 {  // snippet$main
+      _: Task<void> = std.task.launch<void>(__lambda_snippet_0)
+      _: Task<Cancelled | void> = std.task.launch<Cancelled | void>(__lambda_snippet_3)
+      std.task.sleep(std.time.millis(i64(1)))
+      std.console.println<string>("main returns")
+      return 0
+  }
+  __defer_env_snippet_2 :: struct {}
+  __defer_snippet_1 :: fn(__env_0: __defer_env_snippet_2) -> void {
+      std.console.println<string>("first defers")
+  }
+  __lambda_snippet_0 :: fn() -> void {
+      @defer_push(@closure(__defer_snippet_1, __defer_env_snippet_2 {}))
+      std.task.sleep(std.time.millis(i64(5)))
+      std.console.println<string>("never")
+      @defer_run(1)
+  }
+  __defer_env_snippet_6 :: struct {}
+  __defer_snippet_5 :: fn(__env_0: __defer_env_snippet_6) -> void {
+      std.console.println<string>("inner defers")
+  }
+  __lambda_snippet_4 :: fn() -> void {
+      @defer_push(@closure(__defer_snippet_5, __defer_env_snippet_6 {}))
+      std.task.sleep(std.time.millis(i64(20)))
+      @defer_run(1)
+  }
+  __defer_env_snippet_8 :: struct {}
+  __defer_snippet_7 :: fn(__env_0: __defer_env_snippet_8) -> void {
+      std.console.println<string>("second defers")
+  }
+  __lambda_snippet_3 :: fn() -> Cancelled | void {
+      inner: Task<void> = std.task.launch<void>(__lambda_snippet_4)
+      @defer_push(@closure(__defer_snippet_7, __defer_env_snippet_8 {}))
+      __block_1: Cancelled | void = std.task.join<void>(inner)
+      @defer_run(1)
+      __block_1
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.drop_last<i64>  // std_core$drop_last__i64
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.index_of<i64>  // std_core$index_of__i64
+    fn std.core.remove_value<i64>  // std_core$remove_value__i64
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Cancelled  // std_core$Cancelled
+  std/runtime/scheduler
+    fn __defer_std_runtime_scheduler_0
+    fn __defer_std_runtime_scheduler_2
+    fn __defer_std_runtime_scheduler_4
+    fn std.runtime.scheduler.await_gate  // std_runtime_scheduler$await_gate
+    fn std.runtime.scheduler.gate_or_new  // std_runtime_scheduler$gate_or_new
+    fn std.runtime.scheduler.let_go  // std_runtime_scheduler$let_go
+    fn std.runtime.scheduler.monitor_enter  // std_runtime_scheduler$monitor_enter
+    fn std.runtime.scheduler.monitor_enter_to_publish  // std_runtime_scheduler$monitor_enter_to_publish
+    fn std.runtime.scheduler.run_gated  // std_runtime_scheduler$run_gated
+    struct __defer_env_std_runtime_scheduler_1
+    struct __defer_env_std_runtime_scheduler_3
+    struct __defer_env_std_runtime_scheduler_5
+    struct std.runtime.scheduler.InitGate  // std_runtime_scheduler$InitGate
+  std/task
+    global #0 i32  started.state
+    global #1 Started  started.instance
+    global #2 InitGate | null  started.gate
+    fn __defer_std_task_10
+    fn __defer_std_task_4
+    fn __defer_std_task_6
+    fn __defer_std_task_8
+    fn __lambda_std_task_0
+    fn __lambda_std_task_2
+    fn std.task.Task<Any>.equals  // std_task$Task$std_core$Equals$equals__Any
+    fn std.task.Task<Any>.to_string  // std_task$Task$std_core$Display$to_string__Any
+    fn std.task.Task<void>.equals  // std_task$Task$std_core$Equals$equals__void
+    fn std.task.Task<void>.to_string  // std_task$Task$std_core$Display$to_string__void
+    fn std.task.end<Any>  // std_task$end__Any
+    fn std.task.end<void>  // std_task$end__void
+    fn std.task.join<void>  // std_task$join__void
+    fn std.task.launch<Cancelled | void>  // std_task$launch__std_core_Cancelled___void
+    fn std.task.launch<void>  // std_task$launch__void
+    fn std.task.outcome<void>  // std_task$outcome__void
+    fn std.task.run<Any>  // std_task$run__Any
+    fn std.task.run<void>  // std_task$run__void
+    fn std.task.sleep  // std_task$sleep
+    fn std.task.start_thread  // std_task$start_thread
+    fn std.task.started  // std_task$started
+    fn std.task.stop_waiting<void>  // std_task$stop_waiting__void
+    fn std_task$Task$std_core$Equals$equals__void$guard
+    fn std_task$started$keep
+    fn std_task$started$singleton
+    struct __defer_env_std_task_11
+    struct __defer_env_std_task_5
+    struct __defer_env_std_task_7
+    struct __defer_env_std_task_9
+    struct __lambda_env_std_task_1
+    struct __lambda_env_std_task_3
+    struct std.task.Group  // std_task$Group
+    struct std.task.Started  // std_task$Started
+    struct std.task.Task<Any>  // std_task$Task__Any
+    struct std.task.Task<Cancelled | void>  // std_task$Task__std_core_Cancelled___void
+    struct std.task.Task<void>  // std_task$Task__void
+    struct std.task.Waiter  // std_task$Waiter
+  std/time
+    fn std.time.millis  // std_time$millis

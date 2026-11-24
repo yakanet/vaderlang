@@ -1,0 +1,381 @@
+{
+  "ast": {
+    "kind": "Program",
+    "module": {
+      "kind": "ModuleDecl",
+      "name": "snippet"
+    },
+    "decls": [
+      {
+        "kind": "ImportDecl",
+        "path": "std/console",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "ImportDecl",
+        "path": "std/task",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "ImportDecl",
+        "path": "std/time",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "main",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "_"
+              },
+              "type": null,
+              "value": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "launch"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "LambdaExpr",
+                      "params": [],
+                      "returnType": null,
+                      "body": {
+                        "kind": "BlockExpr",
+                        "stmts": [
+                          {
+                            "kind": "DeferStmt",
+                            "body": {
+                              "kind": "ExprStmt",
+                              "expr": {
+                                "kind": "CallExpr",
+                                "callee": {
+                                  "kind": "IdentExpr",
+                                  "name": "println"
+                                },
+                                "args": [
+                                  {
+                                    "name": null,
+                                    "value": {
+                                      "kind": "StringLitExpr",
+                                      "parts": [
+                                        {
+                                          "kind": "text",
+                                          "value": "first defers"
+                                        }
+                                      ]
+                                    },
+                                    "spread": false
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "kind": "ExprStmt",
+                            "expr": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "IdentExpr",
+                                "name": "sleep"
+                              },
+                              "args": [
+                                {
+                                  "name": null,
+                                  "value": {
+                                    "kind": "CallExpr",
+                                    "callee": {
+                                      "kind": "FieldExpr",
+                                      "target": {
+                                        "kind": "IntLitExpr",
+                                        "value": "5n"
+                                      },
+                                      "field": "millis"
+                                    },
+                                    "args": []
+                                  },
+                                  "spread": false
+                                }
+                              ]
+                            }
+                          }
+                        ],
+                        "trailing": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "println"
+                          },
+                          "args": [
+                            {
+                              "name": null,
+                              "value": {
+                                "kind": "StringLitExpr",
+                                "parts": [
+                                  {
+                                    "kind": "text",
+                                    "value": "never"
+                                  }
+                                ]
+                              },
+                              "spread": false
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "_"
+              },
+              "type": null,
+              "value": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "launch"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "LambdaExpr",
+                      "params": [],
+                      "returnType": null,
+                      "body": {
+                        "kind": "BlockExpr",
+                        "stmts": [
+                          {
+                            "kind": "LetStmt",
+                            "mutable": false,
+                            "binding": {
+                              "kind": "SimpleBinding",
+                              "name": "inner"
+                            },
+                            "type": null,
+                            "value": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "IdentExpr",
+                                "name": "launch"
+                              },
+                              "args": [
+                                {
+                                  "name": null,
+                                  "value": {
+                                    "kind": "LambdaExpr",
+                                    "params": [],
+                                    "returnType": null,
+                                    "body": {
+                                      "kind": "BlockExpr",
+                                      "stmts": [
+                                        {
+                                          "kind": "DeferStmt",
+                                          "body": {
+                                            "kind": "ExprStmt",
+                                            "expr": {
+                                              "kind": "CallExpr",
+                                              "callee": {
+                                                "kind": "IdentExpr",
+                                                "name": "println"
+                                              },
+                                              "args": [
+                                                {
+                                                  "name": null,
+                                                  "value": {
+                                                    "kind": "StringLitExpr",
+                                                    "parts": [
+                                                      {
+                                                        "kind": "text",
+                                                        "value": "inner defers"
+                                                      }
+                                                    ]
+                                                  },
+                                                  "spread": false
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      ],
+                                      "trailing": {
+                                        "kind": "CallExpr",
+                                        "callee": {
+                                          "kind": "IdentExpr",
+                                          "name": "sleep"
+                                        },
+                                        "args": [
+                                          {
+                                            "name": null,
+                                            "value": {
+                                              "kind": "CallExpr",
+                                              "callee": {
+                                                "kind": "FieldExpr",
+                                                "target": {
+                                                  "kind": "IntLitExpr",
+                                                  "value": "20n"
+                                                },
+                                                "field": "millis"
+                                              },
+                                              "args": []
+                                            },
+                                            "spread": false
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "spread": false
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "kind": "DeferStmt",
+                            "body": {
+                              "kind": "ExprStmt",
+                              "expr": {
+                                "kind": "CallExpr",
+                                "callee": {
+                                  "kind": "IdentExpr",
+                                  "name": "println"
+                                },
+                                "args": [
+                                  {
+                                    "name": null,
+                                    "value": {
+                                      "kind": "StringLitExpr",
+                                      "parts": [
+                                        {
+                                          "kind": "text",
+                                          "value": "second defers"
+                                        }
+                                      ]
+                                    },
+                                    "spread": false
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "trailing": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "inner"
+                            },
+                            "field": "join"
+                          },
+                          "args": []
+                        }
+                      }
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "sleep"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IntLitExpr",
+                          "value": "1n"
+                        },
+                        "field": "millis"
+                      },
+                      "args": []
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "main returns"
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "0n"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

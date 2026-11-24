@@ -17,6 +17,7 @@ import "std/iter"
 import "std/path"
 import "toolchain/diagnostics"
 import "vader/core/mangle"
+import "vader/core/symbol"
 import "vader/front/resolver"
 import "vader/support/target"
 import "vader/front/typecheck"
@@ -285,7 +286,14 @@ lower_evaluated :: fn(
     diags: Diagnostic[],
     keep_frames: bool,
 ) -> LoweredProject {
-    lowering :: begin_lowering(pipeline.loaded, pipeline.typed, pipeline.evaluated, diags, keep_frames)
+    lowering :: begin_lowering(
+        pipeline.loaded,
+        pipeline.typed,
+        pipeline.evaluated,
+        diags,
+        keep_frames,
+        called_by_compiler(pipeline),
+    )
     if lowering.awaited.len() > 0 {
         owners :: lowering.awaited.map((constant) -> constant.module).distinct().collect()
         Prof.prof_end(.Lower)
@@ -314,6 +322,10 @@ export CfgBytecode :: struct {
     /// The accesses proven in bounds keep their check, under a message of its
     /// own (`BuildRequest.verify_bounds`): the C emit reads it.
     verify_bounds: bool = false
+    /// The mangle of the scheduler's `exit_threads`, which a WASI component's
+    /// `run` calls once the entry returns; `""` for another target, or a
+    /// program that never loads the scheduler.
+    exit_threads: string = ""
 }
 
 /// Front end + lower + prune -> CFG -> bytecode, in one call.
@@ -367,9 +379,17 @@ export prepare_cfg_bytecode_from :: fn(
     le: LoweredEntry, file: Path, want_debug: bool, verify: bool = false,
     prove_bounds: bool = false, verify_bounds: bool = false,
 ) -> CfgBytecode {
+    // Nothing calls `exit_threads`: the prune and the bytecode keep it.
+    exit :: exit_threads_of(le.lowered)
+    roots: i64[]: []
+    kept: string[]: []
+    if exit != null {
+        roots.push(exit.origin.decl.id)
+        kept.push(exit.mangled)
+    }
     // profiling brackets: inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
     Prof.prof_begin(.Prune)
-    pruned :: prune_unreachable_fns(le.lowered)
+    pruned :: prune_unreachable_fns(le.lowered, roots)
     Prof.prof_end(.Prune)
     // The prune rewrites the decl set, so it gets its own check: a dropped
     // decl something still references is what `I7002` / `I7010` look for.
@@ -380,7 +400,7 @@ export prepare_cfg_bytecode_from :: fn(
     // bytecode-dump callers pass false to skip the per-op DebugPos alloc.
     opts :: EmitOptions {
         .optimize = true,
-        .keep_mangles = [],
+        .keep_mangles = kept,
         .want_debug = want_debug,
     }
     passes :: CfgPassOptions { .verify = verify, .prove_bounds = prove_bounds }
@@ -394,5 +414,37 @@ export prepare_cfg_bytecode_from :: fn(
         .generated   = with_called_interfaces(le.generated, (id: string) -> holds_a_function(pruned, id)),
         .module      = module,
         .verify_bounds = verify_bounds,
+        .exit_threads = if exit == null { "" } else { exit.mangled },
     }
+}
+
+// The functions nothing in `pipeline` calls that the compiler calls by itself:
+// the scheduler's `exit_threads`, which a WASI component's `run` calls once
+// `main` returns.
+called_by_compiler :: fn(pipeline: EvaluatedPipeline) -> Symbol[] {
+    view :: pipeline.view
+    if view !is Target || view.os != .Wasi {
+        return []
+    }
+    id :: find_scheduler_module_id(pipeline.loaded) else return []
+    scheduler :: pipeline.loaded.modules[id] else return []
+    exit :: scheduler.collected.symbols[EXIT_THREADS] else return []
+    return [exit]
+}
+
+// The scheduler's `exit_threads` in `lowered`, which only a WASI component
+// that loads the scheduler lowers (`called_by_compiler`).
+exit_threads_of :: fn(lowered: LoweredProject) -> LoweredFnDecl | null {
+    for [_, m] in lowered.modules {
+        if m.display_path != SCHEDULER_MODULE {
+            continue
+        }
+        for d in m.decls.filter_is<LoweredFnDecl>() {
+            symbol :: d.origin.symbol
+            if symbol != null && symbol.name == EXIT_THREADS {
+                return d
+            }
+        }
+    }
+    return null
 }

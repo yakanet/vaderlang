@@ -109,9 +109,14 @@ check_project_modules :: fn(
         typed.impl_tables = impl_tables
         per_module[id] = typed
     }
+    // The scheduler's own values take no gate: a gate asks the scheduler which
+    // thread runs.
     gate_runtime :: scheduler_gate_runtime(project)
-    for [_, typed] in per_module {
-        typed.gate_runtime = gate_runtime
+    scheduler :: find_scheduler_module_id(project)
+    for [id, typed] in per_module {
+        if id != scheduler {
+            typed.gate_runtime = gate_runtime
+        }
     }
     // An alias naming an enum (`Form :: Kind`) needs its `EnumType`, not the
     // struct placeholder, or it registers as a distinct over that placeholder.

@@ -25,6 +25,7 @@ import "std/collections"
 import "std/iter"
 import "toolchain/span"
 import "vader/core/types"
+import "vader/front/resolver"
 import "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
@@ -182,10 +183,14 @@ door_nodes :: fn(ctx: TaskCtx) -> i32[] {
     return out
 }
 
-// Note the `@singleton` nodes.
+// Note the `@singleton` nodes. The scheduler's own state is the runtime's, which
+// every thread shares by design, as the check does not see the threads the
+// scheduler starts.
 note_singletons :: fn(ctx: TaskCtx) -> void {
     for node in 0..<ctx.index.functions.len() {
-        if AST.has_compiler_decorator(ctx.index.functions[node].decl.decorators, .Singleton) {
+        f :: ctx.index.functions[node]
+        is_scheduler :: f.typed.resolved.display_path == SCHEDULER_MODULE
+        if !is_scheduler && AST.has_compiler_decorator(f.decl.decorators, .Singleton) {
             ctx.singleton_nodes.push(i32(node))
         }
     }

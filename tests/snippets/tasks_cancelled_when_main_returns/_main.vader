@@ -1,0 +1,32 @@
+// When `main` returns, the tasks still running are cancelled: stderr names
+// each one, the run fails, and their defers run, a task's after those of the
+// tasks it launched. Under WASI a sleeping task leaves once its sleep ends,
+// so the sleeps stay short.
+module "snippet"
+
+import "std/console"
+import "std/task"
+import "std/time"
+
+main :: fn() -> i32 {
+    _ :: launch(
+        fn() {
+            defer println("first defers")
+            sleep(5.millis())
+            println("never")
+        },
+    )
+    _ :: launch(
+        fn() {
+            inner :: launch(fn() {
+                defer println("inner defers")
+                sleep(20.millis())
+            })
+            defer println("second defers")
+            inner.join()
+        },
+    )
+    sleep(1.millis())
+    println("main returns")
+    return 0
+}

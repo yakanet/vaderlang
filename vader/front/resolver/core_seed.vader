@@ -59,7 +59,10 @@ export find_core_module_id :: fn(project: LoadedProject) -> string | null =
 /// The loaded `std/runtime/scheduler` module's id, or null when the program never
 /// loads it, and so runs on one thread.
 export find_scheduler_module_id :: fn(project: LoadedProject) -> string | null =
-    find_module_id(project, "std/runtime/scheduler")
+    find_module_id(project, SCHEDULER_MODULE)
+
+/// The declared name of the scheduler's module.
+export SCHEDULER_MODULE :: "std/runtime/scheduler"
 
 /// The function that hands a constant built once its gate, by its name in the
 /// scheduler.
@@ -73,9 +76,13 @@ export RUN_GATED :: "run_gated"
 /// name in the scheduler.
 export GATE_MONITOR :: "monitor_enter_to_publish"
 
+/// The function of the scheduler a WASI component's `run` calls once the entry
+/// returns, by its name in the scheduler.
+export EXIT_THREADS :: "exit_threads"
+
 /// The functions the compiler calls with no source that writes their name: a
 /// load that keeps only what is reached keeps them.
-export GATE_FUNCTIONS: string[]: [GATE_OR_NEW, RUN_GATED, GATE_MONITOR]
+export CALLED_BY_NAME: string[]: [GATE_OR_NEW, RUN_GATED, GATE_MONITOR, EXIT_THREADS]
 
 // The id of the loaded module declared as `name`.
 find_module_id :: fn(project: LoadedProject, name: string) -> string | null {

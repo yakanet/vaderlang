@@ -820,7 +820,7 @@ trimmed_to_reached :: fn(ctx: LoadState) -> DeferredModule[] {
             .discarded = read.discarded_bodies,
         })
     }
-    reached :: only_reached(units, GATE_FUNCTIONS)
+    reached :: only_reached(units, CALLED_BY_NAME)
     out: DeferredModule[]: []
     for i in 0..<ctx.deferred.len() {
         out.push(DeferredModule {

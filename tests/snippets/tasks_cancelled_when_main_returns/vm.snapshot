@@ -1,0 +1,11 @@
+# stdout
+main returns
+first defers
+inner defers
+second defers
+# stderr
+vader: task #1 still runs when main returns: cancelled
+vader: task #2 still runs when main returns: cancelled
+vader: task #3 still runs when main returns: cancelled
+# exit
+1

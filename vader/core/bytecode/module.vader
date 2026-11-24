@@ -377,17 +377,32 @@ export BytecodeModule :: struct {
 /// @return               the entry's index in `m.functions`, null when the
 ///                       program has none.
 export entry_function_index :: fn(m: BytecodeModule, entry_mangled: string) -> i32 | null {
-    if entry_mangled != "" {
-        for i in 0..<m.functions.len() {
-            f :: m.functions[i]
-            if f.name == entry_mangled && f.body.len() > 0 {
-                return i32(i)
-            }
-        }
+    named :: function_named(m, entry_mangled)
+    if named != null {
+        return named
     }
     for i in 0..<m.functions.len() {
         f :: m.functions[i]
         if f.is_main && f.body.len() > 0 {
+            return i32(i)
+        }
+    }
+    return null
+}
+
+/// Find the function with a body named `mangled`.
+///
+/// @param m        the program's bytecode.
+/// @param mangled  the function's mangled name, `""` for none.
+/// @return         its index in `m.functions`, null when no function with a
+///                 body has that name.
+export function_named :: fn(m: BytecodeModule, mangled: string) -> i32 | null {
+    if mangled == "" {
+        return null
+    }
+    for i in 0..<m.functions.len() {
+        f :: m.functions[i]
+        if f.name == mangled && f.body.len() > 0 {
             return i32(i)
         }
     }

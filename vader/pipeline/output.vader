@@ -209,7 +209,7 @@ write_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: BuildReques
 
 // Write the `.wasm` module of a program built for a WASM target.
 write_wasm :: fn(b: CfgBytecode, stem: Path, request: BuildRequest) -> i32 {
-    bytes :: Wasm.wasm_binary_of(b.module, b.entry) else {
+    bytes :: Wasm.wasm_binary_of(b.module, b.entry, b.exit_threads) else {
         eprintln("vader build: ${bytes.reason}")
         return 1
     }

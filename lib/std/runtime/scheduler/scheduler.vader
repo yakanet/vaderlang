@@ -13,7 +13,9 @@
 //
 // The runtime serves these, and under the VM the host serves them with its
 // own: a program and the VM that runs it share one scheduler. This module
-// imports nothing, so any module can sit on it: `std/task` and `std/process` do.
+// imports nothing but what a WASI build reaches the host through, so any module
+// can sit on it: `std/task` and `std/process` do. A WASI build has no runtime
+// to serve them: `scheduler_wasi.vader` keeps the threads itself.
 //
 // Over them, the gates of the values built on first use: in a program that
 // loads this module, every `@singleton`, and every constant whose value runs
@@ -36,6 +38,7 @@ module "std/runtime/scheduler"
 /// @param entry   what the thread runs.
 /// @param number  how a report names it, from 1.
 /// @return        the thread's handle.
+@target
 export spawn_thread :: fn(entry: fn() -> void, number: i64) -> i64 =
     Intrinsic.spawn_thread(entry, number)
 
@@ -48,6 +51,7 @@ export spawn_thread :: fn(entry: fn() -> void, number: i64) -> i64 =
 ///         would ever wake one. Also when C is running under the park: a
 ///         callback that C called cannot park, since another thread would run
 ///         over the C frames.
+@target
 export park :: fn() -> void = Intrinsic.park()
 
 /// Make `thread` ready, unless it has ended: a parked thread runs again in its
@@ -55,6 +59,7 @@ export park :: fn() -> void = Intrinsic.park()
 /// first.
 ///
 /// @param thread  the handle of the thread to wake.
+@target
 export wake :: fn(thread: i64) -> void = Intrinsic.wake(thread)
 
 /// Park the running thread for at least `nanos` nanoseconds, while the other
@@ -67,6 +72,7 @@ export wake :: fn(thread: i64) -> void = Intrinsic.wake(thread)
 ///
 /// @param nanos  how long to sleep.
 /// @error        as `park`.
+@target
 export sleep_for :: fn(nanos: i64) -> void = Intrinsic.sleep_for(nanos)
 
 /// Cancel `thread`: at its next run, it cancels the threads it launched that
@@ -79,13 +85,16 @@ export sleep_for :: fn(nanos: i64) -> void = Intrinsic.sleep_for(nanos)
 /// @param thread  the handle of the thread to cancel.
 /// @error         stops the program on the main thread, which cannot be
 ///                cancelled.
+@target
 export cancel_thread :: fn(thread: i64) -> void = Intrinsic.cancel_thread(thread)
 
 /// The handle of the running thread. The main thread has one from the start.
+@target
 export current_thread :: fn() -> i64 = Intrinsic.current_thread()
 
 /// Whether the running thread was cancelled: it is unwinding, or it was
 /// cancelled before it started and runs its entry.
+@target
 export is_cancelled :: fn() -> bool = Intrinsic.is_cancelled()
 
 /// Whether `thread` is on its way out, so that `main` returning waits for it
@@ -93,12 +102,25 @@ export is_cancelled :: fn() -> bool = Intrinsic.is_cancelled()
 /// leaving and a defer of that thread's cancellation did not launch it.
 ///
 /// @param thread  the handle of a thread; one that has ended is not leaving.
+@target
 export is_leaving :: fn(thread: i64) -> bool = Intrinsic.is_leaving(thread)
 
 /// Say that the running thread's task has ended: whoever waits for it may go on
 /// while the thread still leaves the runtime, and `main` returning meanwhile
 /// waits for the thread without naming it.
+@target
 export task_ended :: fn() -> void = Intrinsic.task_ended()
+
+/// What `main` returning leaves of the program, its exit code `code`: the
+/// threads still running are cancelled and waited for, and stderr names each
+/// one whose task had not ended, which makes the code 1 when it was 0. A WASI
+/// component's `run` calls it once the entry returns: the compiler reaches it
+/// by its name. Elsewhere the runtime does it, and the code passes through.
+///
+/// @param code  what the entry returned, 0 for an entry that returns nothing.
+/// @return      the code the program exits with.
+@target
+export exit_threads :: fn(code: i32) -> i32 = code
 
 /// Make the running thread's next park end once descriptor `fd` has input to
 /// read, or has reached its end. The watch lasts that one park, which a `wake`
@@ -191,6 +213,7 @@ export unlock :: fn(mutex: Mutex) -> void = Intrinsic.mutex_unlock(mutex)
 /// defers run: they unwind a body that held it.
 ///
 /// @param mutex  a mutex the running thread holds.
+@target
 export wait :: fn(mutex: Mutex) -> void = Intrinsic.mutex_wait(mutex)
 
 // ---- gates ----------------------------------------------------------------
