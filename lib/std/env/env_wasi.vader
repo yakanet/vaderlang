@@ -1,0 +1,68 @@
+// std/env/env_wasi: the environment of a WASI program.
+//
+// WASI hands a program its environment and its initial working directory once
+// (`wasi:cli/environment`), and has no call to change either. The program keeps
+// them, as wasi-libc does: a change is seen by the program alone, which launches
+// no process to pass it on to. WASI has no path to the running executable.
+
+module "std/env"
+
+import "std/iter"
+import "std/path"
+WasiEnvironment :: import "wasi:cli/environment@0.3.0"
+
+// The environment and the working directory of the program, read once.
+WasiEnv :: struct {
+    vars: EnvVar[]
+    cwd: string
+}
+
+@singleton
+wasi_env :: fn() -> WasiEnv {
+    pairs :: WasiEnvironment.get_environment()
+    vars :: pairs.map((pair) -> EnvVar { .name = pair.0, .value = pair.1 }).collect()
+    return WasiEnv { .vars = vars, .cwd = WasiEnvironment.get_initial_cwd() else "." }
+}
+
+@target(.Wasi)
+get_env :: fn(name: string) -> string | null {
+    found :: wasi_env().vars.find((v) -> v.name == name) else return null
+    return found.value
+}
+
+@target(.Wasi)
+system_environ_entry :: fn(index: i64) -> string | null {
+    vars :: wasi_env().vars
+    if index >= vars.len() {
+        return null
+    }
+    return "${vars[index].name}=${vars[index].value}"
+}
+
+@target(.Wasi)
+system_set_env :: fn(name: string, value: string) -> void | IOError {
+    env :: wasi_env()
+    found :: env.vars.find((v) -> v.name == name) else {
+        env.vars.push(EnvVar { .name = name, .value = value })
+        return
+    }
+    found.value = value
+}
+
+@target(.Wasi)
+system_unset_env :: fn(name: string) -> void | IOError {
+    env :: wasi_env()
+    env.vars = env.vars.filter((v) -> v.name != name).collect()
+}
+
+@target(.Wasi)
+current_executable_location :: fn() -> string = "."
+
+@target(.Wasi)
+current_working_directory :: fn() -> string = wasi_env().cwd
+
+@target(.Wasi)
+set_current_working_directory :: fn(path: string) -> void | IOError {
+    env :: wasi_env()
+    env.cwd = env.cwd.to_path().join(path).normalize().as_string()
+}

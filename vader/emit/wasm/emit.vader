@@ -753,13 +753,71 @@ constant_function :: fn(ctx: ModuleCtx, key: string, value: i32) -> i32 =
         [i32_const(value)],
     )
 
+// What a member with no host to reach answers, as long as a component runs one
+// thread and starts no other: a lock is never taken by anyone else, the thread is
+// the first, nothing cancels it, the host's collector keeps no count. A member
+// that needs another thread, a C library or a descriptor to wait on traps, and so
+// does `deep_copy`, which has no WASM form yet.
+FixedAnswer :: enum {
+    /// Each result zero, none for a member that returns nothing.
+    Zero,
+    Trap,
+}
+
+// The answer of the member `id`, null for a member with no WASM form yet.
+fixed_answer_of :: fn(id: Bc.IntrinsicId) -> FixedAnswer | null = @partial match id {
+    // @partial: the members left have no WASM form yet.
+    .SchedulerMonitorEnter | .SchedulerMonitorGive | .SchedulerMonitorExit | .SchedulerPublish
+        | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerCurrent | .SchedulerIsCancelled
+        | .SchedulerIsLeaving | .RuntimeCollect | .RuntimeCountAllocations | .RuntimeCollections
+        | .RuntimeBytesUsed | .RuntimeBytesCopied | .RuntimeAllocatedBytes
+        | .RuntimeAllocations -> .Zero
+    .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor | .SchedulerCancel
+        | .SchedulerTaskEnded | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMutexWait
+        | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitBlockedReadFor
+        | .WaitBlockedWriteFor | .WaitStop | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall
+        | .FfiCallFrame | .DeepCopy -> .Trap
+    _ -> null
+}
+
+// `(params) -> results` of the member `imp`, answering what `fixed_answer_of`
+// says.
+fixed_function :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -> i32 | WasmUnsupported {
+    answer :: fixed_answer_of(imp.intrinsic) else return WasmUnsupported {
+        .reason = "`${function}`: no WASM form yet for `${imp.extern_name}`",
+    }
+    params :: value_types_of(imp.signature.params, function) else return params
+    results :: value_types_of(result_values(imp.signature.results), function) else return results
+    signature :: WasmFuncType { .params = params, .results = results }
+    key :: "fixed.${imp.extern_name} ${canonical_func_type_key(signature)}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    body: WasmExpression[]: match answer {
+        .Zero -> results.map((r) -> zero_of(r)).collect()
+        .Trap -> [unreachable()]
+    }
+    return ctx.define_tree_helper(key, HelperFrame { .signature = signature }, body)
+}
+
+zero_of :: fn(t: WasmValType) -> WasmExpression = match t {
+    .I32   -> i32_const(0)
+    .I64   -> i64_const(0)
+    .F32   -> unary(.F32DemoteF64, f64_zero())
+    .F64   -> f64_zero()
+    .EqRef -> ref_null()
+}
+
+f64_zero :: fn() -> WasmExpression = Apply { .instruction = F64Const { .value = 0.0 } }
+
 // The function a call to the `Intrinsic` member `imp` reaches.
 intrinsic_function :: fn(
     ctx: ModuleCtx,
     imp: Bc.BcImport,
     function: string,
 ) -> i32 | WasmUnsupported {
-    // @partial: the members with no WASM form yet stop the emission.
+    // @partial: the other members take a fixed answer, or have no WASM form yet.
     return @partial match imp.intrinsic {
         .ByteLen           -> ctx.string_byte_len()
         .ByteAt            -> ctx.string_byte_at()
@@ -773,9 +831,7 @@ intrinsic_function :: fn(
         .TargetCurrentArch -> ctx.constant_function("arch", ARCH_WASM32)
         .WasmStreamRead    -> ctx.stream_read_function(imp, function)
         .WasmFutureWait    -> ctx.future_wait_function(imp, function)
-        _                  -> WasmUnsupported {
-            .reason = "`${function}`: no WASM form yet for `${imp.extern_name}`",
-        }
+        _                  -> ctx.fixed_function(imp, function)
     }
 }
 

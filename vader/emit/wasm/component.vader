@@ -191,6 +191,7 @@ INSTANCE_TYPE: u8: 0x42
 FUNC_TYPE_SYNC: u8: 0x40
 ASYNC_FUNC_TYPE: u8: 0x43
 RESULT_TYPE: u8: 0x6A
+OPTION_TYPE: u8: 0x6B
 ENUM_TYPE: u8: 0x6D
 STREAM_TYPE: u8: 0x66
 FUTURE_TYPE: u8: 0x65
@@ -378,6 +379,10 @@ type_index :: fn(scope: TypeScope, t: WitType) -> i64 {
             definition.push_optional_type(scope, t.ok)
             definition.push_optional_type(scope, t.error)
         }
+        is WitOption -> {
+            definition.push(OPTION_TYPE)
+            definition.push_value_type(scope, t.value)
+        }
         is WitList -> {
             definition.push(LIST_TYPE)
             definition.push_value_type(scope, t.element)
@@ -550,6 +555,7 @@ push_enums_of :: fn(out: WitEnum[], t: WitType | null) -> void {
             out.push_enums_of(t.error)
         }
         is WitList -> out.push_enums_of(t.element)
+        is WitOption -> out.push_enums_of(t.value)
         is WitStream -> out.push_enums_of(t.element)
         is WitFuture -> out.push_enums_of(t.value)
         is WitTuple -> {

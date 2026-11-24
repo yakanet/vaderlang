@@ -64,6 +64,7 @@ flat_types_of :: fn(t: WitType) -> WasmValType[] | WasmUnsupported = match t {
     is WitEnum | WitStream | WitFuture -> [.I32]
     is WitList                         -> [.I32, .I32]
     is WitResult                       -> flat_variant_types([t.ok, t.error])
+    is WitOption                       -> flat_variant_types([null, t.value])
     is WitTuple                        -> flat_tuple_types(t)
     is WitUnsupported                  -> WasmUnsupported { .reason = t.reason }
     is WitNotLowered                   -> WasmUnsupported {
@@ -72,7 +73,7 @@ flat_types_of :: fn(t: WitType) -> WasmValType[] | WasmUnsupported = match t {
 }
 
 // The WIT types read from a `.wit` file that the canonical ABI does not cross yet.
-WitNotLowered :: WitRecord | WitVariant | WitFlags | WitOption | WitResource | WitHandle | WitAlias
+WitNotLowered :: WitRecord | WitVariant | WitFlags | WitResource | WitHandle | WitAlias
 
 flat_scalar_types :: fn(s: WitScalar) -> WasmValType[] = match s {
     .Bool | .S8 | .U8 | .S16 | .U16 | .S32 | .U32 | .Char -> [.I32]
@@ -130,6 +131,7 @@ size_of :: fn(t: WitType) -> i32 = match t {
     is WitStream | WitFuture -> 4
     is WitList               -> 8
     is WitResult             -> variant_size([t.ok, t.error])
+    is WitOption             -> variant_size([null, t.value])
     is WitTuple              -> align_to(element_offsets(t).end, alignment_of(t))
     is WitUnsupported        -> no_layout(t.reason)
     is WitNotLowered         -> no_layout(wit_type_text(t))
@@ -141,6 +143,7 @@ alignment_of :: fn(t: WitType) -> i32 = match t {
     is WitEnum                         -> case_bytes(t.cases.len())
     is WitStream | WitFuture | WitList -> 4
     is WitResult                       -> variant_alignment([t.ok, t.error])
+    is WitOption                       -> variant_alignment([null, t.value])
     is WitTuple                        -> max_alignment(t.elements)
     is WitUnsupported                  -> no_layout(t.reason)
     is WitNotLowered                   -> no_layout(wit_type_text(t))
@@ -242,6 +245,7 @@ holds_room :: fn(t: WitType | null) -> bool {
         is WitScalar -> t == .String
         is WitList -> true
         is WitResult -> holds_room(t.ok) || holds_room(t.error)
+        is WitOption -> holds_room(t.value)
         is WitTuple -> t.elements.any_match((e) -> holds_room(e))
         is WitEnum | WitStream | WitFuture | WitUnsupported | WitNotLowered -> false
     }
@@ -288,6 +292,20 @@ test_a_result_of_a_string_aligns_its_payload_on_four :: fn() -> void {
     t :: WitResult { .ok = .String, .error = ERROR_CODE }
     assert_eq(size_of(t), 12)
     assert_eq(alignment_of(t), 4)
+}
+
+@test
+test_an_option_of_a_string_flattens_to_its_case_and_the_string :: fn() -> void {
+    flat :: flat_types_of(WitOption { .value = .String }) else panic("an option flattens")
+    assert_eq(flat.len(), 3)
+}
+
+@test
+test_an_option_of_a_string_aligns_its_value_on_four :: fn() -> void {
+    t :: WitOption { .value = .String }
+    assert_eq(size_of(t), 12)
+    assert_eq(alignment_of(t), 4)
+    assert_eq(payload_offset([null, t.value]), 4)
 }
 
 @test

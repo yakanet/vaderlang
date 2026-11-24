@@ -118,7 +118,7 @@ export write_file :: fn(path: string, content: u8[] | string) -> void | IOError 
 // `ERROR_ALREADY_EXISTS`) and neither says WHAT is there, so both re-ask rather
 // than read the error code: a regular file in the way must stay a failure.
 @target
-mkdir_one :: fn(path: string) -> bool
+mkdir_one :: fn(path: string) -> bool = false
 
 @target(.Linux, .Darwin)
 mkdir_one :: fn(path: string) -> bool = sys_mkdir(path, 0o777) == 0 || is_dir(path)
@@ -165,7 +165,7 @@ export create_dir :: fn(path: string) -> void | IOError {
 // Create one directory that was not there. False when the name is taken as well
 // as when it cannot be created: the caller tells the two apart.
 @target
-mkdir_new :: fn(path: string) -> bool
+mkdir_new :: fn(path: string) -> bool = false
 
 @target(.Linux, .Darwin)
 mkdir_new :: fn(path: string) -> bool = sys_mkdir(path, 0o777) == 0
@@ -237,7 +237,7 @@ export read_file_string :: fn(path: string, max_bytes: i64 = READ_LIMIT_DEFAULT)
 /// @return      `true` if the entry exists, `false` otherwise (including
 ///              on access errors).
 @target
-export exists :: fn(path: string) -> bool
+export exists :: fn(path: string) -> bool = false
 
 @target(.Linux, .Darwin)
 exists :: fn(path: string) -> bool = sys_access(path, F_OK) == 0
@@ -258,7 +258,7 @@ exists :: fn(path: string) -> bool = get_file_attributes(to_wide(path)) != INVAL
 /// @param path  filesystem path to probe.
 /// @return      `true` iff `path` names a directory.
 @target
-export is_dir :: fn(path: string) -> bool
+export is_dir :: fn(path: string) -> bool = false
 
 // Through the runtime rather than a `struct stat` mirror, see
 // `lib/system/posix/posix.vader::sys_path_kind` for why no mirror can express it.
@@ -281,7 +281,7 @@ is_dir :: fn(path: string) -> bool {
 /// @error       `IOError` when `path` cannot be probed : `NotFound` when it does
 ///              not exist.
 @target
-export modification_time :: fn(path: string) -> i64 | IOError
+export modification_time :: fn(path: string) -> i64 | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
 modification_time :: fn(path: string) -> i64 | IOError {
@@ -316,7 +316,7 @@ FILETIME_UNIX_EPOCH_TICKS: i64: 116_444_736_000_000_000
 /// @error       `IOError` when `path` cannot be resolved: `NotFound` when it
 ///              does not exist.
 @target
-export real_path :: fn(path: string) -> string | IOError
+export real_path :: fn(path: string) -> string | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
 real_path :: fn(path: string) -> string | IOError {
@@ -377,7 +377,7 @@ ListedEntry :: struct {
 // system gives them: `.` and `..` left out. A link is reported as one, never
 // followed.
 @target
-list_dir :: fn(path: string) -> ListedEntry[] | IOError
+list_dir :: fn(path: string) -> ListedEntry[] | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
 list_dir :: fn(path: string) -> ListedEntry[] | IOError {

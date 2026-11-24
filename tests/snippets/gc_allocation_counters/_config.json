@@ -1,5 +1,8 @@
 {
   "vm": {
     "skip": "the VM has no collector: its allocation counters stay at 0"
+  },
+  "wasi": {
+    "differs": "the host collects a WASM build's objects and keeps no count of them"
   }
 }

@@ -1,5 +1,8 @@
 {
   "vm": {
     "from": "build"
+  },
+  "wasi": {
+    "differs": "`std/fs` has no WASI body yet: every file operation answers that there is no filesystem"
   }
 }

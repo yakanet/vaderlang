@@ -1,0 +1,5 @@
+{
+  "wasi": {
+    "differs": "no task runs under WASI yet: starting one traps"
+  }
+}

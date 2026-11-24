@@ -19,6 +19,7 @@
 
 module "std/process"
 
+import "std/abort"
 import "std/env"
 import "std/io"
 import "std/iter"
@@ -252,8 +253,16 @@ launch_child :: fn(
     return launched
 }
 
+// What a function given a child says on a target with no processes, where
+// nothing launched one.
+NO_CHILD :: "no process on this target: nothing launched one"
+
 /// Launch `argv`, not empty, with pipes on its stdout and stderr, and on its
 /// stdin when `piped_input` is set; otherwise it shares this process's stdin.
+///
+/// The general bodies of this file serve the targets with no processes,
+/// `wasi-wasm32` and `browser-wasm32`: no child is launched there, so the
+/// functions that take one are never reached.
 ///
 /// @param argv         the command line.
 /// @param piped_input  whether the child reads a pipe this process writes.
@@ -261,7 +270,8 @@ launch_child :: fn(
 /// @return             the child and the write end of its stdin, or null when it
 ///                     could not be launched.
 @target
-start_child :: fn(argv: string[], piped_input: bool, options: SpawnOptions) -> Launched | null
+start_child :: fn(argv: string[], piped_input: bool, options: SpawnOptions) -> Launched | null =
+    null
 
 // The `NAME=value` entries of the environment a child launched with `changes`
 // sees: this process's, each change applied in turn.
@@ -290,7 +300,7 @@ same_variable :: fn(a: string, b: string) -> bool = a.to_upper() == b.to_upper()
 /// @return       `RUNNING` while alive, `SIGNALED` on abnormal termination,
 ///               else the exit code (>= 0).
 @target
-poll_exit :: fn(child: ChildProcess) -> i32
+poll_exit :: fn(child: ChildProcess) -> i32 = panic(NO_CHILD)
 
 /// Terminate `child` and reap it.
 ///
@@ -302,7 +312,7 @@ poll_exit :: fn(child: ChildProcess) -> i32
 ///
 /// @param child  what `spawn_start` returned.
 @target
-export kill :: fn(child: ChildProcess) -> void
+export kill :: fn(child: ChildProcess) -> void = panic(NO_CHILD)
 
 @target(.Linux, .Darwin)
 start_child :: fn(argv: string[], piped_input: bool, options: SpawnOptions) -> Launched | null {
@@ -464,7 +474,7 @@ close_pair :: fn(fds: i32[]) -> void {
 /// @param into  the accumulating buffer.
 /// @return      true once the writer is gone and the pipe is drained.
 @target
-drain_pipe :: fn(pipe: Descriptor, into: u8[]) -> bool
+drain_pipe :: fn(pipe: Descriptor, into: u8[]) -> bool = panic(NO_CHILD)
 
 @target(.Linux, .Darwin)
 drain_pipe :: fn(pipe: Descriptor, into: u8[]) -> bool {
@@ -591,7 +601,7 @@ close_pipes :: fn(child: ChildProcess) -> void {
 
 // Close `pipe`, an end of a child's pipe this process holds.
 @target
-close_descriptor :: fn(pipe: Descriptor) -> void
+close_descriptor :: fn(pipe: Descriptor) -> void = panic(NO_CHILD)
 
 @target(.Linux, .Darwin)
 close_descriptor :: fn(pipe: Descriptor) -> void {
@@ -994,7 +1004,7 @@ export wait :: fn(child: ChildProcess) -> ProcessResult | ProcessError {
 // or it ended. Anything that wakes the task ends the park too, and the caller
 // polls again.
 @target
-await_child :: fn(child: ChildProcess) -> void
+await_child :: fn(child: ChildProcess) -> void = panic(NO_CHILD)
 
 @target(.Linux, .Darwin, .Windows)
 await_child :: fn(child: ChildProcess) -> void {
@@ -1049,7 +1059,7 @@ write_all :: fn(program: string, pipe: Descriptor, data: u8[]) -> void | Process
 // Write the start of `bytes` on `pipe`, the task parked while the pipe is full:
 // how many bytes, or -1 on a failure, whose error `last_io_error` gives.
 @target
-write_some :: fn(pipe: Descriptor, bytes: u8[]) -> i64
+write_some :: fn(pipe: Descriptor, bytes: u8[]) -> i64 = panic(NO_CHILD)
 
 @target(.Linux, .Darwin)
 write_some :: fn(pipe: Descriptor, bytes: u8[]) -> i64 {
@@ -1151,7 +1161,8 @@ has_news :: fn(child: ChildProcess) -> bool =
 /// @error       `ProcessError` when `argv` is empty, the program cannot be
 ///              launched, or a signal (an exception, on Windows) ended it.
 @target
-export run_attached :: fn(argv: string[]) -> i32 | ProcessError
+export run_attached :: fn(argv: string[]) -> i32 | ProcessError =
+    ProcessError { .msg = "no process can be launched on this target" }
 
 @target(.Linux, .Darwin)
 run_attached :: fn(argv: string[]) -> i32 | ProcessError {

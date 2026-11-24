@@ -1,5 +1,8 @@
 {
   "vm": {
     "from": "build"
+  },
+  "wasi": {
+    "differs": "the host collects a WASM build's objects and keeps no count of them"
   }
 }

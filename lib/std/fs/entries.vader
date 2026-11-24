@@ -82,7 +82,7 @@ export set_read_only :: fn(path: string, read_only: bool) -> void | IOError {
 }
 
 @target
-system_metadata :: fn(path: string, follow_links: bool) -> Metadata | IOError
+system_metadata :: fn(path: string, follow_links: bool) -> Metadata | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
 system_metadata :: fn(path: string, follow_links: bool) -> Metadata | IOError {
@@ -184,7 +184,7 @@ reparse_tag_of :: fn(h: Handle, attributes: u32, follow_links: bool) -> u32 {
 }
 
 @target
-system_set_read_only :: fn(path: string, read_only: bool) -> void | IOError
+system_set_read_only :: fn(path: string, read_only: bool) -> void | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
 system_set_read_only :: fn(path: string, read_only: bool) -> void | IOError {
@@ -285,7 +285,7 @@ is_same_file :: fn(from: string, to: string) -> bool {
 }
 
 @target
-system_rename :: fn(from: string, to: string) -> void | IOError
+system_rename :: fn(from: string, to: string) -> void | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
 system_rename :: fn(from: string, to: string) = failure_unless(
@@ -300,7 +300,7 @@ system_rename :: fn(from: string, to: string) -> void | IOError {
 }
 
 @target
-system_copy :: fn(from: string, to: string) -> void | IOError
+system_copy :: fn(from: string, to: string) -> void | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
 system_copy :: fn(from: string, to: string) -> void | IOError {
@@ -382,7 +382,7 @@ export remove :: fn(path: string, options: RemoveOptions = RemoveOptions {}) -> 
 
 // Remove what `path` names, as `remove` does once `path` holds no NUL.
 @target
-system_remove :: fn(path: string, options: RemoveOptions) -> void | IOError
+system_remove :: fn(path: string, options: RemoveOptions) -> void | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
 system_remove :: fn(path: string, options: RemoveOptions) -> void | IOError {
@@ -431,7 +431,7 @@ remove_directory :: fn(path: string, options: RemoveOptions) -> void | IOError {
 }
 
 @target
-system_remove_directory :: fn(path: string) -> void | IOError
+system_remove_directory :: fn(path: string) -> void | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
 system_remove_directory :: fn(path: string) = failure_unless(

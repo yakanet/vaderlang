@@ -206,12 +206,16 @@ export close :: fn(f: File) -> void | IOError {
 // What a read, a write or a seek on a closed `File` answers.
 FILE_CLOSED: IOError: IOError { .msg = "file is closed", .kind = .BadHandle }
 
+// What every file operation answers on a target with no filesystem: the
+// general bodies of the system primitives, which serve the WebAssembly targets.
+NO_FILESYSTEM: IOError: IOError { .msg = "no filesystem on this target" }
+
 // ---- system primitives ----------------------------------------------------
 
 // Open `path` as `options` say, which `refusal_of` has checked: a
 // descriptor on POSIX, a handle on Windows.
 @target
-system_open :: fn(path: string, options: OpenOptions) -> Fd | Handle | IOError
+system_open :: fn(path: string, options: OpenOptions) -> Fd | Handle | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
 system_open :: fn(path: string, options: OpenOptions) -> Fd | Handle | IOError {
@@ -301,7 +305,7 @@ disposition :: fn(options: OpenOptions) -> u32 {
 
 // Read at most `count` bytes into `into`: how many, 0 at the end of the file.
 @target
-system_read :: fn(handle: Fd | Handle, into: u8[], count: i64) -> i64 | IOError
+system_read :: fn(handle: Fd | Handle, into: u8[], count: i64) -> i64 | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
 system_read :: fn(handle: Fd | Handle, into: u8[], count: i64) -> i64 | IOError {
@@ -333,7 +337,7 @@ system_read :: fn(handle: Fd | Handle, into: u8[], count: i64) -> i64 | IOError 
 // The size of the regular file `handle` is open on, -1 for anything else: a
 // pipe or a device, whose size says nothing of what a read finds.
 @target
-system_size :: fn(handle: Fd | Handle) -> i64
+system_size :: fn(handle: Fd | Handle) -> i64 = -1
 
 @target(.Linux, .Darwin)
 system_size :: fn(handle: Fd | Handle) -> i64 = sys_fd_size(fd_of(handle))
@@ -350,7 +354,7 @@ system_size :: fn(handle: Fd | Handle) -> i64 {
 
 // Write what one system call takes of `bytes`: how many.
 @target
-system_write :: fn(handle: Fd | Handle, bytes: u8[]) -> i64 | IOError
+system_write :: fn(handle: Fd | Handle, bytes: u8[]) -> i64 | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
 system_write :: fn(handle: Fd | Handle, bytes: u8[]) -> i64 | IOError {
@@ -378,7 +382,8 @@ system_write :: fn(handle: Fd | Handle, bytes: u8[]) -> i64 | IOError {
 
 // Move the position `offset` bytes from `from`: the new one, from the start.
 @target
-system_seek :: fn(handle: Fd | Handle, offset: i64, from: SeekFrom) -> i64 | IOError
+system_seek :: fn(handle: Fd | Handle, offset: i64, from: SeekFrom) -> i64 | IOError =
+    NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
 system_seek :: fn(handle: Fd | Handle, offset: i64, from: SeekFrom) -> i64 | IOError {
@@ -414,7 +419,7 @@ method_of :: fn(from: SeekFrom) -> u32 = match from {
 
 // Give the handle back to the system.
 @target
-system_close :: fn(handle: Fd | Handle) -> void | IOError
+system_close :: fn(handle: Fd | Handle) -> void | IOError = NO_FILESYSTEM
 
 @target(.Linux, .Darwin)
 system_close :: fn(handle: Fd | Handle) -> void | IOError {

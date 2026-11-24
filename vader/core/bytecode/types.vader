@@ -456,12 +456,21 @@ export fn_at :: fn(types: BcType[], type_index: i32) -> BcFn | null {
 ///
 /// @param types       the module type table.
 /// @param type_index  the slot.
-export is_void_at :: fn(types: BcType[], type_index: i32) -> bool {
+export is_void_at :: fn(types: BcType[], type_index: i32) -> bool =
+    is_scalar_at(types, type_index, .Void)
+
+/// Whether the slot `type_index` holds the scalar of class `class`: false outside
+/// the table.
+///
+/// @param types       the module type table.
+/// @param type_index  the slot.
+/// @param class       the scalar class looked for.
+export is_scalar_at :: fn(types: BcType[], type_index: i32, class: ValType) -> bool {
     if type_index < 0 || i64(type_index) >= types.len() {
         return false
     }
     t :: types[type_index]
-    return t is BcScalar && t.val == .Void
+    return t is BcScalar && t.val == class
 }
 
 /// The struct whose layout a field access on the union `union_index` reads : its
