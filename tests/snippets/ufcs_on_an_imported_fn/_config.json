@@ -1,5 +1,0 @@
-{
-  "wasi": {
-    "differs": "`std/fs` only reads under WASI so far: a write, a seek and the directory operations answer that there is no filesystem"
-  }
-}

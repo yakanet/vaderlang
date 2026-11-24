@@ -9,6 +9,7 @@
 module "vader/pipeline"
 
 import "std/console"
+import "std/env"
 import "std/path"
 import "vader/emit/c"
 import "vader/emit/virt"
@@ -230,16 +231,17 @@ export wasm_path :: fn(out_flag: string, stem: Path) -> Path =
     output_path(out_flag, "${stem}.wasm".to_path())
 
 /// The program a WASM build runs under.
-export WASMTIME :: "wasmtime"
+export WASMTIME_EXECUTABLE :: "wasmtime"
 
 /// The command line that runs the component at `component` under wasmtime:
 /// WASI 0.3, the threads of the component model and the exceptions a thread
-/// ends by, the current folder lent as `.`, the environment inherited. The
-/// program's arguments follow it.
+/// ends by, the current folder lent as `.` and the temporary one under its own
+/// path, which `temp_dir` names through the environment the program inherits.
+/// The program's arguments follow it.
 ///
 /// @param component  the `.wasm` a `wasi-wasm32` build wrote.
 export wasmtime_command :: fn(component: string) -> string[] = [
-    WASMTIME,
+    WASMTIME_EXECUTABLE,
     "run",
     "-S",
     "p3",
@@ -249,6 +251,8 @@ export wasmtime_command :: fn(component: string) -> string[] = [
     "exceptions",
     "--dir",
     ".",
+    "--dir",
+    temp_dir(),
     "-S",
     "inherit-env",
     component,

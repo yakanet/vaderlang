@@ -4,12 +4,14 @@
 // resolved as wasi-libc resolves it: under the preopened directory whose name
 // prefixes it by whole components, the longest and at a tie the latest, a
 // relative path under `.`.
-// A file is the descriptor `open-at` returns, held by its `File` with the read
-// under way: the stream `read-via-stream` opens on the first read, kept until it
-// ends.
+// A file is the descriptor `open-at` returns, held by its `File` with its
+// position and the read under way: the stream `read-via-stream` opens at the
+// position on the first read, kept until it ends or a write or a seek moves the
+// position. A write sends its bytes whole through `write-via-stream`, or
+// `append-via-stream` for a file open to append, and waits for them.
 //
-// Reads only so far: a write, a seek and the directory operations answer that
-// this target has no filesystem yet, and a descriptor is never dropped.
+// WASI has no permission bits: a file is never read-only, and setting it so is
+// refused. A descriptor is never dropped.
 
 module "std/fs"
 
@@ -21,9 +23,13 @@ import "system/wasi"
 WasiFs :: import "wasi:filesystem/types@0.3.0"
 WasiPreopens :: import "wasi:filesystem/preopens@0.3.0"
 
-// A file open under WASI: its descriptor, and the read under way.
+// A file open under WASI: its descriptor, its position, and the read under way.
 WasiFile :: struct {
     descriptor: WasiFs.Descriptor
+    /// Where the next read or write starts, from the start of the file.
+    position: i64 = 0
+    /// Open to append: a write goes at the end, wherever the position stands.
+    append: bool = false
     /// Null before the first read, and once the stream has ended.
     read: WasiRead | null = null
     /// Whether the stream has ended: a read past it reads nothing.
@@ -80,22 +86,54 @@ wasi_io_error :: fn(failure: WasiFs.ErrorCode, path: string) -> IOError {
     return io_error_of(code, "`${path}`: error ${code}")
 }
 
-// The descriptor `open-at` opens for reading at `path`, with `flags`.
-open_under :: fn(path: string, flags: WasiFs.OpenFlags) -> WasiFs.Descriptor | IOError {
+// What a descriptor opened only to read is allowed.
+READ_ONLY :: WasiFs.DescriptorFlags { .read = true }
+
+// The descriptor `open-at` opens at `path`, with `flags`, for what `access`
+// allows.
+open_under :: fn(
+    path: string,
+    flags: WasiFs.OpenFlags,
+    access: WasiFs.DescriptorFlags = READ_ONLY,
+) -> WasiFs.Descriptor | IOError {
     found :: resolve(path) else return found
-    read :: WasiFs.DescriptorFlags { .read = true }
-    opened :: WasiFs.open_at(found.0, WasiFs.PathFlags {}, found.1, flags, read)
+    opened :: WasiFs.open_at(found.0, WasiFs.PathFlags {}, found.1, flags, access)
         else is WasiFs.ErrorCode { return wasi_io_error(opened, path) }
     return opened
 }
 
 @target(.Wasi)
 system_open :: fn(path: string, options: OpenOptions) -> FileHandle | IOError {
-    if options.write || options.append || options.create || options.create_new {
-        return NO_FILESYSTEM
+    flags :: WasiFs.OpenFlags {
+        .create = options.create || options.create_new,
+        .exclusive = options.create_new,
+        .truncate = options.truncate,
     }
-    opened :: open_under(path, WasiFs.OpenFlags {}) else return opened
-    return WasiFile { .descriptor = opened }
+    access :: WasiFs.DescriptorFlags {
+        .read = options.read,
+        .write = options.write || options.append,
+    }
+    opened :: open_under(path, flags, access) else return opened
+    // `open-at` takes a directory for reading alone, which the first read then
+    // refuses; a write refuses it already.
+    if !access.write && is_directory(opened) {
+        return IOError { .msg = "`${path}`: is a directory", .kind = .IsADirectory }
+    }
+    return WasiFile { .descriptor = opened, .append = options.append }
+}
+
+// Whether `descriptor` is a directory.
+is_directory :: fn(descriptor: WasiFs.Descriptor) -> bool {
+    stat :: descriptor_stat(descriptor) else return false
+    return entry_kind_of(stat.type) == .Directory
+}
+
+// What `descriptor` names, null when the host cannot say.
+descriptor_stat :: fn(descriptor: WasiFs.Descriptor) -> WasiFs.DescriptorStat | null {
+    stat :: WasiFs.stat(descriptor) else is WasiFs.ErrorCode {
+        return null
+    }
+    return stat
 }
 
 @target(.Wasi)
@@ -105,7 +143,7 @@ system_read :: fn(handle: FileHandle, into: u8[], count: i64) -> i64 | IOError {
         return 0
     }
     read :: file.read else {
-        [bytes, done] :: WasiFs.read_via_stream(file.descriptor, 0)
+        [bytes, done] :: WasiFs.read_via_stream(file.descriptor, u64(file.position))
         started :: WasiRead { .bytes = bytes, .done = done }
         file.read = started
         started
@@ -121,25 +159,80 @@ system_read :: fn(handle: FileHandle, into: u8[], count: i64) -> i64 | IOError {
     for [b, i] in chunk.indexed() {
         into[i] = b
     }
+    file.position += chunk.len()
     return chunk.len()
 }
 
 @target(.Wasi)
-system_size :: fn(handle: FileHandle) -> i64 = -1
+system_write :: fn(handle: FileHandle, bytes: u8[]) -> i64 | IOError {
+    file :: wasi_file_of(handle)
+    file.moved()
+    done :: if file.append {
+        WasiFs.append_via_stream(file.descriptor, bytes)
+    } else {
+        WasiFs.write_via_stream(file.descriptor, bytes, u64(file.position))
+    }
+    outcome :: done.wait() else is WasiFs.ErrorCode {
+        return wasi_io_error(outcome, "a write")
+    }
+    file.position += bytes.len()
+    return bytes.len()
+}
+
+@target(.Wasi)
+system_seek :: fn(handle: FileHandle, offset: i64, from: SeekFrom) -> i64 | IOError {
+    file :: wasi_file_of(handle)
+    base: i64: match from {
+        .Start   -> 0
+        .Current -> file.position
+        .End     -> system_size(handle)
+    }
+    position :: base + offset
+    if base < 0 || position < 0 {
+        return IOError { .msg = "seek failed", .kind = .InvalidInput }
+    }
+    file.moved()
+    file.position = position
+    return position
+}
+
+@target(.Wasi)
+system_size :: fn(handle: FileHandle) -> i64 {
+    stat :: descriptor_stat(wasi_file_of(handle).descriptor) else return -1
+    return i64(stat.size)
+}
 
 @target(.Wasi)
 system_close :: fn(handle: FileHandle) -> void | IOError {
     wasi_file_of(handle).read = null
 }
 
+// The position of `file` moved, or its bytes changed under it: the read under
+// way, which reads on from where it started, is dropped.
+moved :: fn(file: WasiFile) -> void {
+    file.read = null
+    file.ended = false
+}
+
 // What `path` names, its links followed, null when it cannot be reached.
-stat_of :: fn(path: string) -> WasiFs.DescriptorStat | null {
-    found :: resolve(path) else return null
-    stat :: WasiFs.stat_at(found.0, WasiFs.PathFlags { .symlink_follow = true }, found.1)
-    if stat is WasiFs.DescriptorStat {
-        return stat
+stat_of :: fn(path: string) -> WasiFs.DescriptorStat | null = stat_at(path, true) else null
+
+// What `path` names, its links followed when `follow_links` says so.
+stat_at :: fn(path: string, follow_links: bool) -> WasiFs.DescriptorStat | IOError {
+    found :: resolve(path) else return found
+    flags :: WasiFs.PathFlags { .symlink_follow = follow_links }
+    stat :: WasiFs.stat_at(found.0, flags, found.1) else is WasiFs.ErrorCode {
+        return wasi_io_error(stat, path)
     }
-    return null
+    return stat
+}
+
+// The nanoseconds since the Unix epoch of `instant`, 0 for none.
+nanoseconds_of :: fn(instant: WasiFs.Instant | null) -> i64 {
+    if instant == null {
+        return 0
+    }
+    return instant.seconds * 1_000_000_000 + i64(instant.nanoseconds)
 }
 
 @target(.Wasi)
@@ -149,6 +242,81 @@ exists :: fn(path: string) -> bool = stat_of(path) != null
 is_dir :: fn(path: string) -> bool {
     stat :: stat_of(path) else return false
     return entry_kind_of(stat.type) == .Directory
+}
+
+@target(.Wasi)
+modification_time :: fn(path: string) -> i64 | IOError {
+    stat :: stat_at(path, true) else return stat
+    return nanoseconds_of(stat.data_modification_timestamp)
+}
+
+@target(.Wasi)
+system_metadata :: fn(path: string, follow_links: bool) -> Metadata | IOError {
+    stat :: stat_at(path, follow_links) else return stat
+    return Metadata {
+        .kind = entry_kind_of(stat.type),
+        .size = i64(stat.size),
+        .modification_time = nanoseconds_of(stat.data_modification_timestamp),
+        .read_only = false,
+    }
+}
+
+@target(.Wasi)
+system_set_read_only :: fn(path: string, read_only: bool) -> void | IOError =
+    IOError { .msg = "`${path}`: WASI has no permissions to set" }
+
+// A directory above a preopened one is there, though the program cannot reach
+// it: `create_dir` passes it on the way to the one it creates.
+@target(.Wasi)
+mkdir_one :: fn(path: string) -> bool = mkdir_new(path) || is_dir(path) || holds_a_preopen(path)
+
+// Whether `path` is a directory above a preopened one.
+holds_a_preopen :: fn(path: string) -> bool {
+    for entry in WasiPreopens.get_directories() {
+        prefix :: preopen_prefix(entry.1)
+        if prefix != path && covers(path, prefix) {
+            return true
+        }
+    }
+    return false
+}
+
+@target(.Wasi)
+mkdir_new :: fn(path: string) -> bool {
+    found :: resolve(path) else return false
+    return WasiFs.create_directory_at(found.0, found.1) !is WasiFs.ErrorCode
+}
+
+@target(.Wasi)
+system_rename :: fn(from: string, to: string) -> void | IOError {
+    source :: resolve(from) else return source
+    target :: resolve(to) else return target
+    renamed :: WasiFs.rename_at(source.0, source.1, target.0, target.1) else is WasiFs.ErrorCode {
+        return wasi_io_error(renamed, from)
+    }
+}
+
+@target(.Wasi)
+system_copy :: fn(from: string, to: string) -> void | IOError = from.copy_content(to)
+
+@target(.Wasi)
+system_remove :: fn(path: string, options: RemoveOptions) -> void | IOError {
+    stat :: stat_at(path, false) else return stat
+    if entry_kind_of(stat.type) == .Directory {
+        return path.remove_directory(options)
+    }
+    found :: resolve(path) else return found
+    removed :: WasiFs.unlink_file_at(found.0, found.1) else is WasiFs.ErrorCode {
+        return wasi_io_error(removed, path)
+    }
+}
+
+@target(.Wasi)
+system_remove_directory :: fn(path: string) -> void | IOError {
+    found :: resolve(path) else return found
+    removed :: WasiFs.remove_directory_at(found.0, found.1) else is WasiFs.ErrorCode {
+        return wasi_io_error(removed, path)
+    }
 }
 
 // The entries of the directory `path`, read from the stream `read-directory`

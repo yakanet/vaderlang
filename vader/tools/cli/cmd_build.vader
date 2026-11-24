@@ -276,10 +276,10 @@ wasmtime_line :: fn(binary: Path) -> string[] | null {
         eprintln("vader ${RUN_COMMAND}: the build left no component at `${binary.to_native()}`")
         return null
     }
-    asked :: spawn([WASMTIME, "--version"])
+    asked :: spawn([WASMTIME_EXECUTABLE, "--version"])
     if asked is ProcessError || asked.exit != 0 {
         eprintln(
-            "vader ${RUN_COMMAND}: a `wasi-wasm32` build runs under `${WASMTIME}`, which "
+            "vader ${RUN_COMMAND}: a `wasi-wasm32` build runs under `${WASMTIME_EXECUTABLE}`, which "
                 + "did not start: install it (https://wasmtime.dev)",
         )
         return null
@@ -288,7 +288,7 @@ wasmtime_line :: fn(binary: Path) -> string[] | null {
     if release == null || release.major < WASMTIME_OLDEST {
         eprintln(
             "vader ${RUN_COMMAND}: `${asked.stdout.trim()}` is too old to run WASI 0.3: "
-                + "it takes ${WASMTIME} ${WASMTIME_OLDEST} or later",
+                + "it takes ${WASMTIME_EXECUTABLE} ${WASMTIME_OLDEST} or later",
         )
         return null
     }

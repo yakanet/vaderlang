@@ -22,7 +22,7 @@ type 19 struct std_fs$OpenOptions { read:9,write:9,append:9,create:9,truncate:9,
 type 20 struct std_fs$RemoveOptions { recursive:9,force:9 }
 type 21 union 2,22,23
 type 22 scalar pointer
-type 23 struct std_fs$WasiFile { descriptor:35,read:36,ended:9 }
+type 23 struct std_fs$WasiFile { descriptor:35,position:4,append:9,read:36,ended:9 }
 type 24 union 2,22,5,23
 type 25 union 26,5
 type 26 array 4

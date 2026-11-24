@@ -53,6 +53,8 @@ struct vader_struct_std_fs$File_t {
 struct vader_struct_std_fs$WasiFile_t {
     vader_obj_header_t header;
     void* f_descriptor;
+    int64_t f_position;
+    bool f_append;
     vader_box_t f_read;
     bool f_ended;
 };

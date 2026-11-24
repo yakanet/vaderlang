@@ -25,7 +25,7 @@ type 22 struct __defer_env_std_fs_1 { cap_0:20 }
 type 23 struct std_fs$OpenOptions { read:8,write:8,append:8,create:8,truncate:8,create_new:8 }
 type 24 union 2,25,26
 type 25 scalar pointer
-type 26 struct std_fs$WasiFile { descriptor:37,read:38,ended:8 }
+type 26 struct std_fs$WasiFile { descriptor:37,position:4,append:8,read:38,ended:8 }
 type 27 union 4,16
 type 28 union 29,16
 type 29 array 4

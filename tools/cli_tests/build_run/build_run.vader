@@ -9,6 +9,7 @@
 
 module "tools/cli_tests/build_run"
 
+import "std/env"
 import "std/fs"
 import "std/path"
 import "std/string"
@@ -312,7 +313,8 @@ test_a_wasm_build_lists_its_preopened_directories :: fn() -> void {
     no_cc: [string, string | null][]: [["CC", ""]]
     run :: vader_in(dir, ["build", "--target=wasi-wasm32", "--run", "main.vader"], no_cc)
     assert_eq(run.exit, 0)
-    assert_eq(run.stdout, ". true\n")
+    // The temporary folder is lent too, under its own path.
+    assert_eq(run.stdout, ". true\n${temp_dir()} true\n")
 }
 
 // A result crosses with each of its sides held by the variant of the union the

@@ -22,7 +22,7 @@ type 19 union 20,17
 type 20 struct std_fs$File { handle:22,closed:13 }
 type 21 struct std_fs$OpenOptions { read:13,write:13,append:13,create:13,truncate:13,create_new:13 }
 type 22 union 2,5,23
-type 23 struct std_fs$WasiFile { descriptor:34,read:35,ended:13 }
+type 23 struct std_fs$WasiFile { descriptor:34,position:9,append:13,read:35,ended:13 }
 type 24 union 25,17
 type 25 array 9
 type 26 union 2,5,17,23

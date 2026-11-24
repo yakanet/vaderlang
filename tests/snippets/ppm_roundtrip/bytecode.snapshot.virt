@@ -23,7 +23,7 @@ type 20 struct std_fs$File { handle:22,closed:12 }
 type 21 struct std_fs$OpenOptions { read:12,write:12,append:12,create:12,truncate:12,create_new:12 }
 type 22 union 2,23,24
 type 23 scalar pointer
-type 24 struct std_fs$WasiFile { descriptor:27,read:28,ended:12 }
+type 24 struct std_fs$WasiFile { descriptor:27,position:5,append:12,read:28,ended:12 }
 type 25 union 5,16
 type 26 union 2,23,16,24
 type 27 struct wasi_0filesystem_types_10_23_20$Descriptor { handle:2 }
