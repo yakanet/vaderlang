@@ -44,7 +44,7 @@ ImportedFunctions :: struct {
     arguments: i32 | null = null
     // The stream or the future the struct holding a handle stands for, by the
     // struct's bytecode type: what a read or a wait of one calls the built-ins of.
-    handles: Map<i32, WitStream | WitFuture> = Map<i32, WitStream | WitFuture> {}
+    handles: Map<i32, Handled> = Map<i32, Handled> {}
     // The WASM function index of `wait-for`, when the program reads a stream.
     wait_for: i32 | null = null
 }
@@ -91,7 +91,8 @@ imported_functions :: fn(
         }
         result :: wit.result
         if result != null && imp.signature.result_types.len() > 0 {
-            out.record_handles(m.types, result, imp.signature.result_types[0])
+            holders :: result_holders(imp, wit)
+            out.record_handles(m.types, result, imp.signature.result_types[0], holders)
         }
     }
     if takes_arguments {
@@ -135,9 +136,10 @@ record_handles :: fn(
     types: Bc.BcType[],
     t: WitType,
     type_id: i32,
+    holders: WitHolders,
 ) -> void {
     if t is WitStream | WitFuture {
-        imports.handles[type_id] = t
+        imports.handles[type_id] = Handled { .type = t, .holders = holders }
         return
     }
     if t !is WitTuple {
@@ -146,9 +148,15 @@ record_handles :: fn(
     held :: types[type_id]
     if held is Bc.BcStruct && held.fields.len() == t.elements.len() {
         for [e, i] in t.elements.indexed() {
-            imports.record_handles(types, e, held.fields[i].type_index)
+            imports.record_handles(types, e, held.fields[i].type_index, child_holders(holders, t, i))
         }
     }
+}
+
+// A stream or a future a call returns, and the holders of its tree.
+Handled :: struct {
+    type: WitStream | WitFuture
+    holders: WitHolders
 }
 
 // A function of an interface the program imports.

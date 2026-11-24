@@ -18,7 +18,6 @@
 
 module "vader/emit/wasm"
 
-Bc :: import "vader/core/bytecode"
 import "std/iter"
 import "vader/core/wit"
 
@@ -68,15 +67,13 @@ store_body :: fn(
     is WitRecord      -> l.sequence_store(field_types(t), type_id)
     is WitTuple       -> l.sequence_store(t.elements, type_id)
     is WitUnsupported -> WasmUnsupported { .reason = "`${l.function}`: ${t.reason}" }
-    is WitVariant     -> no_variant_mapping(t, l.function)
     is WitNotLowered  -> no_lowering(t, l.function)
     is NotStoredYet   -> no_lowering(t, l.function)
 }
 
-// The types no store helper writes yet: they need the correspondence between
-// their cases and the variants of the union that holds them, or a copy of their
-// elements.
-NotStoredYet :: WitList | WitResult | WitOption | WitStream | WitFuture
+// The types no store helper writes yet: they need the holders of their parts
+// (`canonical_holders.vader`), or a copy of their elements.
+NotStoredYet :: WitList | WitResult | WitOption | WitVariant | WitStream | WitFuture
 
 // An unsigned integer of `bytes` bytes at the address.
 unsigned_store :: fn(l: Lower, bytes: i32, value: WasmExpression) -> WasmExpression =
@@ -185,7 +182,6 @@ flat_loads :: fn(
     is WitRecord      -> sequence_flat_loads(field_types(t), address, function)
     is WitTuple       -> sequence_flat_loads(t.elements, address, function)
     is WitUnsupported -> WasmUnsupported { .reason = "`${function}`: ${t.reason}" }
-    is WitVariant     -> no_variant_mapping(t, function)
     is WitNotLowered  -> no_lowering(t, function)
     is NotStoredYet   -> no_lowering(t, function)
 }

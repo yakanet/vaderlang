@@ -360,7 +360,7 @@ returned :: fn(g: Generation, f: WitNamedFunction) -> Returned | NoForm {
         return g.returned_result(f, t)
     }
     if t is WitOption {
-        return g.returned_union(f, t.value, "null", ["null"])
+        return g.returned_union(f, t.value, "null", wraps_returned_value(t))
     }
     text :: g.returned_text(t) else return text
     return Returned { .text = text }
@@ -397,22 +397,38 @@ future_value_text :: fn(g: Generation, t: WitFuture) -> string | NoForm {
 returned_result :: fn(g: Generation, f: WitNamedFunction, r: WitResult) -> Returned | NoForm {
     error :: r.error else return no_form(r, "a `result` without error")
     error_text :: g.type_text(error) else return error_text
-    ok :: r.ok else return Returned { .text = "void | ${error_text}" }
-    return g.returned_union(f, ok, error_text, tags_of(error))
+    ok :: r.ok else return Returned { .text = "void | ${grouped(error_text)}" }
+    return g.returned_union(f, ok, grouped(error_text), wraps_returned_value(r))
 }
 
-// `ok | other`, the ok side wrapped in `<Function>Ok` when it shares a tag of
-// `other_tags`.
+/// Whether the module of an interface wraps the value a function returns in
+/// `<Function>Ok`: the value of an option, or the ok side of a result, when its
+/// run-time tags meet those of the other side.
+///
+/// @param returned  what the function returns.
+export wraps_returned_value :: fn(returned: WitType) -> bool {
+    if returned is WitOption {
+        return tags_meet(tags_of(returned.value), ["null"])
+    }
+    if returned !is WitResult {
+        return false
+    }
+    ok :: returned.ok else return false
+    error :: returned.error else return false
+    return shares_tag(ok, error)
+}
+
+// `ok | other`, the ok side wrapped in `<Function>Ok` when `wraps`.
 returned_union :: fn(
     g: Generation,
     f: WitNamedFunction,
     ok: WitType,
     other: string,
-    other_tags: string[],
+    wraps: bool,
 ) -> Returned | NoForm {
     ok_text :: g.type_text(ok) else return ok_text
-    if !tags_meet(tags_of(ok), other_tags) {
-        return Returned { .text = "${ok_text} | ${other}" }
+    if !wraps {
+        return Returned { .text = "${grouped(ok_text)} | ${other}" }
     }
     wrapper :: "${pascal_name(function_words(f))}Ok"
     return Returned {
@@ -534,7 +550,7 @@ type_text :: fn(g: Generation, t: WitType) -> string | NoForm {
                 return no_form(t, SHARED_TAG)
             }
             value :: g.type_text(t.value) else return value
-            "${value} | null"
+            "${grouped(value)} | null"
         }
         is WitTuple              -> {
             elements: string[]: []
@@ -554,12 +570,12 @@ type_text :: fn(g: Generation, t: WitType) -> string | NoForm {
 result_text :: fn(g: Generation, r: WitResult) -> string | NoForm {
     error :: r.error else return no_form(r, "a `result` without error")
     error_text :: g.type_text(error) else return error_text
-    ok :: r.ok else return "void | ${error_text}"
+    ok :: r.ok else return "void | ${grouped(error_text)}"
     if shares_tag(ok, error) {
         return no_form(r, SHARED_TAG)
     }
     ok_text :: g.type_text(ok) else return ok_text
-    return "${ok_text} | ${error_text}"
+    return "${grouped(ok_text)} | ${grouped(error_text)}"
 }
 
 SHARED_TAG :: "a union whose sides share a run-time tag"
@@ -580,7 +596,9 @@ named_text :: fn(g: Generation, owner: WitOwner, name: string) -> string {
     return "${alias}.${pascal_name(name)}"
 }
 
-// A union as a list's element, in parentheses.
+// A union inside another type, in parentheses: a list's element, a side of a result,
+// the value of an option. The tree of the text is then the tree of the WIT type,
+// which the lowering walks (`wit_types_of`, `vader/lower`).
 grouped :: fn(t: string) -> string = if " | " in t { "(${t})" } else { t }
 
 scalar_text :: fn(s: WitScalar) -> string = match s {

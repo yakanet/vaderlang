@@ -561,6 +561,65 @@ read_wit_or_none :: fn(r: WitReader) -> WitNoneOr | null {
     return WitNoneOr { .type = t }
 }
 
+// ---- the tree a value crosses as -------------------------------------------
+//
+// The bytecode holds a union flat, so which of its variants holds which part of a
+// WIT value is not in its types: the front end records it, one entry per node of
+// this tree, in the order `wit_children` walks it (`BcImport.wit_types`).
+
+/// The nodes right below `t`, in the order a walk of the tree takes them: the
+/// sides of a result that carry something, the value of an option, a list, a
+/// stream or a future, the elements of a tuple, the fields of a record, and what
+/// the cases of a variant carry. A handle, a scalar, an enum, a set of flags and a
+/// resource have none.
+///
+/// @param t  a node.
+export wit_children :: fn(t: WitType) -> WitType[] = match t {
+    is WitResult  -> present([t.ok, t.error])
+    is WitOption  -> [t.value]
+    is WitList    -> [t.element]
+    is WitStream  -> [t.element]
+    is WitFuture  -> present([t.value])
+    is WitTuple   -> t.elements
+    is WitRecord  -> t.fields.map((f) -> f.type).collect()
+    is WitVariant -> present(t.cases.map((c) -> c.type).collect())
+    is WitAlias   -> [t.target]
+    is WitScalar | WitEnum | WitFlags | WitHandle | WitResource | WitUnsupported -> []
+}
+
+/// Whether a case of `t` carries nothing: the module of its interface holds those
+/// as one enum.
+///
+/// @param t  the variant.
+export has_bare_cases :: fn(t: WitVariant) -> bool = t.cases.any_match((c) -> c.type == null)
+
+/// How many nodes the tree of `t` holds, `t` included.
+///
+/// @param t  the root of the tree.
+export wit_node_count :: fn(t: WitType) -> i64 = 1 + wit_children(t).map(wit_node_count).sum()
+
+/// The trees of a function, in the order of its table: its parameters, then what
+/// it returns.
+///
+/// @param f  the function.
+export wit_roots :: fn(f: WitFunction) -> WitType[] {
+    roots: WitType[]: f.params.map((p) -> p.type).collect()
+    result :: f.result else return roots
+    roots.push(result)
+    return roots
+}
+
+// The types of `types` that are there.
+present :: fn(types: (WitType | null)[]) -> WitType[] {
+    out: WitType[]: []
+    for t in types {
+        if t != null {
+            out.push(t)
+        }
+    }
+    return out
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/abort"
@@ -637,4 +696,29 @@ test_wit_without_aliases_reaches_inside_a_record :: fn() -> void {
         wit_function_text(without_aliases(f)),
         "[at:u64]->result<record:a:b/i.times{access:option<u64>},u64>",
     )
+}
+
+@test
+test_wit_node_count_of_a_result_of_a_record :: fn() -> void {
+    owner :: WitOwner { .package = WitPackageName { .namespace = "a", .name = "b" }, .interface = "c" }
+    record :: WitRecord {
+        .name = "pair",
+        .owner = owner,
+        .fields = [
+            WitParam { .name = "x", .type = WitOption { .value = .U8 } },
+            WitParam { .name = "y", .type = .Bool },
+        ],
+    }
+    assert_eq(wit_node_count(WitResult { .ok = record, .error = .U32 }), 6)
+}
+
+@test
+test_wit_children_skip_a_bare_case :: fn() -> void {
+    owner :: WitOwner { .package = WitPackageName { .namespace = "a", .name = "b" }, .interface = "c" }
+    variant :: WitVariant {
+        .name = "code",
+        .owner = owner,
+        .cases = [WitCase { .name = "io" }, WitCase { .name = "other", .type = .U32 }],
+    }
+    assert_eq(wit_children(variant).len(), 1)
 }

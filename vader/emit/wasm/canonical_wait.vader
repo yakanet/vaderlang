@@ -55,6 +55,7 @@ drop_subtask :: fn(ctx: ModuleCtx, subtask: i32) -> WasmExpression =
 // the local the handle is read into.
 HandleHelper :: struct {
     handled: WitStream | WitFuture
+    holders: WitHolders
     frame: HelperFrame
     results: WasmValType[]
     layout: i32
@@ -75,7 +76,8 @@ handle_helper :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -> Handl
     frame :: HelperFrame { .signature = func_of(params, results) }
     layout :: layout_type(ctx, holder, function) else return layout
     return HandleHelper {
-        .handled = handled,
+        .handled = handled.type,
+        .holders = handled.holders,
         .frame = frame,
         .results = results,
         .layout = layout,
@@ -115,8 +117,11 @@ stream_read_function :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -
         return wrong_handle(function)
     }
     array_id :: array_variant(ctx, imp.signature.result_types[0], function) else return array_id
-    load_items :: canonical_load(ctx, WitList { .element = stream.element }, array_id, function)
-        else return load_items
+    // The items come back as a list of the stream's elements, held as the array.
+    items :: WitHolders { .ids = [array_id] }
+    items.ids.push_all(child_holders(h.holders, stream, 0).ids)
+    list :: WitList { .element = stream.element }
+    load_items :: canonical_load(ctx, list, array_id, items, function) else return load_items
     status :: h.frame.local(.I32)
     count :: h.frame.local(.I32)
     items_per_chunk :: CHUNK_SIZE / size_of(stream.element)
@@ -273,7 +278,9 @@ future_wait_function :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -
     if value == null || h.results.is_empty() {
         return ctx.define_tree_helper(key, h.frame, waited)
     }
-    load :: canonical_load(ctx, value, imp.signature.result_types[0], function) else return load
+    value_holders :: child_holders(h.holders, future, 0)
+    load :: canonical_load(ctx, value, imp.signature.result_types[0], value_holders, function)
+        else return load
     resolved :: h.frame.local(h.results[0])
     waited.push(local_set(resolved, call(load, [local_get(room)])))
     body :: h.frame.arena_scope(waited)

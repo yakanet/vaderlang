@@ -370,7 +370,9 @@ result_local :: fn(a: Adapter) -> i32 | WasmUnsupported {
 // `address`, into the local returned.
 push_load :: fn(a: Adapter, t: WitType, address: i32) -> i32 | WasmUnsupported {
     value :: a.result_local() else return value
-    load :: canonical_load(a.ctx, t, a.imp.signature.result_types[0], a.function)
+    wit :: a.imp.wit else return no_lowering(t, a.function)
+    result_type :: a.imp.signature.result_types[0]
+    load :: canonical_load(a.ctx, t, result_type, result_holders(a.imp, wit), a.function)
         else return load
     a.body.push(local_set(value, call(load, [local_get(address)])))
     return value

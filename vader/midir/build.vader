@@ -290,6 +290,7 @@ make_extern_decl :: fn(d: LoweredFnDecl, lp: LoweredProject) -> CFGExternDecl {
         .library     = library,
         .wasm_interface = interface,
         .wit         = of_declaration(d, lp.wit_functions),
+        .wit_types   = of_declaration(d, lp.wit_types) else [],
         .intrinsic   = d.intrinsic,
     }
 }

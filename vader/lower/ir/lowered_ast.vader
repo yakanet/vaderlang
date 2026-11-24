@@ -173,6 +173,9 @@ export LoweredProject :: struct {
     /// The WIT type of each `@extern` of the module of a WIT interface, the
     /// function its interface declares, keyed by the declaration's node id.
     wit_functions:  Map<i64, WitFunction> = Map<i64, WitFunction> {}
+    /// The type that holds each node of the trees of those functions, by the same
+    /// key (`wit_types_of`, `vader/lower/wit_types.vader`).
+    wit_types:      Map<i64, (Type | null)[]> = Map<i64, (Type | null)[]> {}
     /// Const symbol id -> accessor fn, populated by `inline_consts` for
     /// bulky array consts (`fn-wrap` bucket). `build_ident` emits a 0-arg
     /// `call` to the accessor. The accessor carries a fresh synthetic id, so the

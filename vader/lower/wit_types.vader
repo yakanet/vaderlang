@@ -1,0 +1,389 @@
+// vader/lower/wit_types: the Vader type that holds each part of a WIT value.
+//
+// The bytecode holds a union flat: what `open-at` returns, `Descriptor |
+// ErrorCode`, is one union of the struct of the resource, the enum of the bare
+// cases of `error-code` and the struct of its case `other`, and nothing in it
+// says which variant holds which side of the WIT `result`. The module of an
+// interface writes the tree of each WIT type in its text, a nested union in
+// parentheses (`vader/core/wit/generate.vader`), so the walk below follows that
+// text beside the WIT type and records, for each node in the order `wit_children`
+// takes them, the type that holds it. The bytecode interns the table
+// (`BcImport.wit_types`) and the WASM emitter reads it.
+//
+// The entry of a node is its own type, but for three:
+// - a `result` or an `option` whose value the module wraps holds the wrapper,
+//   `<Function>Ok`;
+// - a `variant` holds the enum of its bare cases;
+// - what a case of a variant carries holds the struct of that case.
+// A named type is reached through the declaration its name designates in the
+// text: of the same module, or of the one a namespace import names.
+
+module "vader/lower"
+
+import "std/collections"
+import "std/iter"
+import "toolchain/ast"
+import "toolchain/diagnostics"
+import "vader/core/types"
+import "vader/core/wit"
+import "vader/front/resolver"
+import "vader/front/typecheck"
+
+// The modules of the WIT interfaces, by id: their types, and their declarations
+// by name.
+WitModules :: struct {
+    typed: Map<string, TypedProgram>
+    declarations: Map<string, Map<string, Decl>>
+}
+
+// A type expression and the module it is written in.
+Written :: struct {
+    expr: Expr
+    module: string
+}
+
+// `expr`, written in the same module as `at`.
+within :: fn(at: Written, expr: Expr) -> Written = Written { .expr = expr, .module = at.module }
+
+// A walk of the trees of one function: the entries so far.
+WitWalk :: struct {
+    modules: WitModules
+    entries: (Type | null)[] = []
+}
+
+// The type that holds each node of the trees of each function of `functions`, by
+// the node id of its declaration: a declaration whose text is not the tree of its
+// function has none, and the WASM build refuses its calls.
+wit_types_by_declaration :: fn(
+    loaded: LoadedProject,
+    typed: TypedProject,
+    functions: Map<i64, WitFunction>,
+) -> Map<i64, (Type | null)[]> {
+    out :: Map<i64, (Type | null)[]> {}
+    if functions.len() == 0 {
+        return out
+    }
+    modules :: wit_modules_of(loaded, typed)
+    for [id, module] in loaded.modules {
+        if !(id in modules.typed) {
+            continue
+        }
+        for decl in module_decls(module).filter_is<FnDecl>() {
+            f :: functions[decl.id] else continue
+            types :: wit_types_of(f, decl, id, modules) else continue
+            out[decl.id] = types
+        }
+    }
+    return out
+}
+
+// The modules of the WIT interfaces among `loaded`.
+wit_modules_of :: fn(loaded: LoadedProject, typed: TypedProject) -> WitModules {
+    modules :: WitModules {
+        .typed = Map<string, TypedProgram> {},
+        .declarations = Map<string, Map<string, Decl>> {},
+    }
+    for [id, module] in loaded.modules {
+        if !is_wit_module_file(module.module.id) {
+            continue
+        }
+        program :: typed.modules[id] else continue
+        modules.typed[id] = program
+        by_name :: Map<string, Decl> {}
+        for decl in module_decls(module) {
+            name :: declared_name(decl) else continue
+            by_name[name] = decl
+        }
+        modules.declarations[id] = by_name
+    }
+    return modules
+}
+
+// The name a type declaration binds, null for another declaration.
+declared_name :: fn(decl: Decl) -> string | null {
+    if decl is StructDecl {
+        return decl.name
+    }
+    if decl is EnumDecl {
+        return decl.name
+    }
+    if decl is ConstDecl {
+        return decl.name
+    }
+    return null
+}
+
+/// The type that holds each node of the trees of `f`, its parameters then its
+/// result, in the order `wit_children` takes them ; null when the declaration
+/// does not write the tree of `f`.
+///
+/// @param f        the WIT type of the function.
+/// @param decl     its declaration, in the module of its interface.
+/// @param module   the id of that module.
+/// @param modules  the modules of the WIT interfaces.
+wit_types_of :: fn(
+    f: WitFunction,
+    decl: FnDecl,
+    module: string,
+    modules: WitModules,
+) -> (Type | null)[] | null {
+    walk :: WitWalk { .modules = modules }
+    if decl.params.len() != f.params.len() {
+        return null
+    }
+    for [p, i] in f.params.indexed() {
+        written :: decl.params[i].ty else return null
+        if !walk.node(p.type, Written { .expr = written, .module = module }) {
+            return null
+        }
+    }
+    result :: f.result else return walk.entries
+    written :: decl.return_type else return null
+    at :: Written { .expr = written, .module = module }
+    if !walk.returned(result, at) {
+        return null
+    }
+    return walk.entries
+}
+
+// What a function returns: its value wrapped in `<Function>Ok` when the module
+// wraps it, any node otherwise.
+returned :: fn(w: WitWalk, t: WitType, at: Written) -> bool {
+    if !wraps_returned_value(t) {
+        return w.node(t, at)
+    }
+    sides :: union_sides(at.expr) else return false
+    wrapper :: at.within(sides.0)
+    w.entries.push(w.type_of(wrapper))
+    value :: w.wrapped_value(wrapper) else return false
+    if t is WitOption {
+        return w.node(t.value, value)
+    }
+    if t is WitResult {
+        ok :: t.ok else return false
+        error :: t.error else return false
+        return w.node(ok, value) && w.node(error, at.within(sides.1))
+    }
+    return false
+}
+
+// The entries of the tree of `t`, written `at`: false when the text is not that
+// tree.
+node :: fn(w: WitWalk, t: WitType, at: Written) -> bool {
+    e :: at.expr
+    return match t {
+        is WitResult   -> w.result(t, at)
+        is WitOption   -> w.option(t, at)
+        is WitList     -> w.below(t.element, at, array_element(e))
+        is WitStream   -> w.below(t.element, at, stream_element(e))
+        is WitFuture   -> w.future(t, at)
+        is WitTuple    -> w.tuple(t, at)
+        is WitRecord   -> w.record(t, at)
+        is WitVariant  -> w.variant(t, at)
+        is WitAlias    -> false
+        is WitScalar | WitEnum | WitFlags | WitHandle | WitResource | WitUnsupported -> {
+            w.entries.push(w.type_of(at))
+            true
+        }
+    }
+}
+
+// A result, `ok | error`, or `void | error` without ok.
+result :: fn(w: WitWalk, t: WitResult, at: Written) -> bool {
+    sides :: union_sides(at.expr) else return false
+    w.entries.push(w.type_of(at))
+    error :: t.error else return false
+    ok :: t.ok
+    if ok != null && !w.node(ok, at.within(sides.0)) {
+        return false
+    }
+    return w.node(error, at.within(sides.1))
+}
+
+// An option, `value | null`.
+option :: fn(w: WitWalk, t: WitOption, at: Written) -> bool {
+    sides :: union_sides(at.expr) else return false
+    w.entries.push(w.type_of(at))
+    return w.node(t.value, at.within(sides.0))
+}
+
+// A list or a stream, its `element` written `inner` in the text of the node.
+below :: fn(w: WitWalk, element: WitType, at: Written, inner: Expr | null) -> bool {
+    written :: inner else return false
+    w.entries.push(w.type_of(at))
+    return w.node(element, at.within(written))
+}
+
+// A future, `WasmFuture<value>`.
+future :: fn(w: WitWalk, t: WitFuture, at: Written) -> bool {
+    w.entries.push(w.type_of(at))
+    value :: t.value else return true
+    written :: first_type_argument(at.expr) else return false
+    return w.node(value, at.within(written))
+}
+
+// A tuple, `[a, b]`.
+tuple :: fn(w: WitWalk, t: WitTuple, at: Written) -> bool {
+    e :: at.expr
+    if e !is SeqLitExpr || e.elements.len() != t.elements.len() {
+        return false
+    }
+    w.entries.push(w.type_of(at))
+    for [element, i] in t.elements.indexed() {
+        if !w.node(element, at.within(e.elements[i])) {
+            return false
+        }
+    }
+    return true
+}
+
+// A record: the fields of the struct its name designates.
+record :: fn(w: WitWalk, t: WitRecord, at: Written) -> bool {
+    found :: w.declaration(at) else return false
+    decl :: found.0
+    if decl !is StructDecl || decl.fields.len() != t.fields.len() {
+        return false
+    }
+    w.entries.push(w.type_of(at))
+    for [field, i] in t.fields.indexed() {
+        if !w.node(field.type, Written { .expr = decl.fields[i].ty, .module = found.1 }) {
+            return false
+        }
+    }
+    return true
+}
+
+// A variant: an enum when no case carries a payload, otherwise the union its name
+// designates, of the enum of its bare cases, first, then of one struct per case
+// with a payload, in their order.
+variant :: fn(w: WitWalk, t: WitVariant, at: Written) -> bool {
+    carried :: wit_children(t)
+    if carried.len() == 0 {
+        w.entries.push(w.type_of(at))
+        return true
+    }
+    found :: w.declaration(at) else return false
+    decl :: found.0
+    if decl !is ConstDecl {
+        return false
+    }
+    members :: collect_bitor_variants(decl.value)
+    first_case: i64: if has_bare_cases(t) { 1 } else { 0 }
+    if members.len() != first_case + carried.len() {
+        return false
+    }
+    if first_case == 1 {
+        w.entries.push(w.type_of(Written { .expr = members[0], .module = found.1 }))
+    } else {
+        w.entries.push(w.type_of(at))
+    }
+    for [payload, i] in carried.indexed() {
+        case :: Written { .expr = members[first_case + i], .module = found.1 }
+        if !w.carried(payload, case) {
+            return false
+        }
+    }
+    return true
+}
+
+// What a case of a variant carries, held by the struct `case` of that case.
+carried :: fn(w: WitWalk, payload: WitType, case: Written) -> bool {
+    value :: w.wrapped_value(case) else return false
+    before :: w.entries.len()
+    if !w.node(payload, value) {
+        return false
+    }
+    w.entries[before] = w.type_of(case)
+    return true
+}
+
+// The field `value` of the struct `wrapper` designates: a case of a variant, or
+// the `<Function>Ok` of a returned value.
+wrapped_value :: fn(w: WitWalk, wrapper: Written) -> Written | null {
+    found :: w.declaration(wrapper) else return null
+    decl :: found.0
+    if decl !is StructDecl || decl.fields.len() != 1 {
+        return null
+    }
+    return Written { .expr = decl.fields[0].ty, .module = found.1 }
+}
+
+// How many aliases of aliases the walk follows before it gives up: a `use` brings
+// in an alias, which may name another `use`.
+MAX_ALIAS_HOPS: i64: 8
+
+// The declaration a name designates, and its module, through the aliases that
+// name another name (`@alias Instant :: ClocksSystemClock.Instant`).
+declaration :: fn(w: WitWalk, at: Written) -> [Decl, string] | null {
+    found := w.named(at) else return null
+    for _ in 0..<MAX_ALIAS_HOPS {
+        decl :: found.0
+        if decl !is ConstDecl || !is_type_name(decl.value) {
+            return found
+        }
+        found = w.named(Written { .expr = decl.value, .module = found.1 }) else return null
+    }
+    return null
+}
+
+is_type_name :: fn(e: Expr) -> bool = e is IdentExpr || e is FieldExpr
+
+// The declaration `at` names directly: a name of its module, or `Alias.Name`
+// through a namespace import.
+named :: fn(w: WitWalk, at: Written) -> [Decl, string] | null {
+    e :: at.expr
+    if e is IdentExpr {
+        return w.declared_in(at.module, e.name)
+    }
+    if e !is FieldExpr || e.target !is IdentExpr {
+        return null
+    }
+    program :: w.modules.typed[at.module] else return null
+    target :: namespace_base_mod_id(e.target, program) else return null
+    return w.declared_in(target, e.field)
+}
+
+// The declaration of `name` in the module `module`, and that module.
+declared_in :: fn(w: WitWalk, module: string, name: string) -> [Decl, string] | null {
+    by_name :: w.modules.declarations[module] else return null
+    decl :: by_name[name] else return null
+    return [decl, module]
+}
+
+// The type `at` writes, null when its module is not one of an interface.
+type_of :: fn(w: WitWalk, at: Written) -> Type | null {
+    program :: w.modules.typed[at.module] else return null
+    diagnostics: Diagnostic[]: []
+    return type_from_expr(at.expr, program.resolved, diagnostics)
+}
+
+// The two sides of `a | b`, null for another expression.
+union_sides :: fn(e: Expr) -> [Expr, Expr] | null {
+    if e !is BinaryExpr || e.op != .BitOr {
+        return null
+    }
+    return [e.left, e.right]
+}
+
+// `T` of `T[]`, null for another expression.
+array_element :: fn(e: Expr) -> Expr | null {
+    if e !is ArrayTypeExpr {
+        return null
+    }
+    return e.element
+}
+
+// `T` of a stream: `T[]` as a parameter, written whole by the call, or
+// `WasmReadable<T>` as a result.
+stream_element :: fn(e: Expr) -> Expr | null {
+    element :: array_element(e) else return first_type_argument(e)
+    return element
+}
+
+// `T` of `WasmReadable<T>` or `WasmFuture<T>`, null for another expression.
+first_type_argument :: fn(e: Expr) -> Expr | null {
+    if e !is GenericInstExpr || e.type_args.len() != 1 {
+        return null
+    }
+    return e.type_args[0]
+}

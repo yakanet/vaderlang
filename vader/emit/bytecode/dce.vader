@@ -320,6 +320,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> Bc
     for imp in ctx.imports {
         roots.push_all(imp.signature.result_types)
         for pt in imp.signature.param_types { roots.push(pt) }
+        roots.push_all(imp.wit_types.filter((t) -> t >= 0).collect())
     }
     for g in ctx.globals { roots.push(g.type_id) }
     // Pinned types : arg/result type indices that Call ops reference.
@@ -371,7 +372,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> Bc
     // Same for imports.
     new_imports: BcImport[]: []
     for imp in ctx.imports {
-        new_imports.push(BcImport { ...imp, .signature = remap_signature(imp.signature, remap) })
+        new_imports.push(remap_import(imp, remap))
     }
     ctx.imports = new_imports
     ctx.globals = remap_globals(ctx.globals, remap)

@@ -38,7 +38,7 @@ arguments_function :: fn(ctx: ModuleCtx) -> i32 | null {
     get_arguments :: ctx.imports.arguments else return null
     list :: ARGUMENTS_FUNCTION.type.result else panic("wasm: `get-arguments` returns a list")
     strings :: Bc.find_string_array_type_id(ctx.module.types)
-    load :: canonical_load(ctx, list, strings, "get-arguments")
+    load :: canonical_load(ctx, list, strings, NO_HOLDERS, "get-arguments")
         else panic("wasm: the arguments are read as a `string[]`: ${load.reason}")
     frame :: HelperFrame { .signature = func_of([], [.EqRef]) }
     address :: frame.local(.I32)

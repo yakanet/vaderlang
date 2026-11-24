@@ -1,0 +1,116 @@
+// vader/emit/wasm/canonical_holders: which bytecode type holds each part of a
+// WIT value.
+//
+// The bytecode keeps a union flat: `Descriptor | ErrorCode` is one union of
+// three variants, and nothing in it says which holds the `ok` of the WIT
+// `result`. The front end records it, one entry per node of the WIT tree of each
+// parameter and of the result, in the order `wit_children` takes them
+// (`BcImport.wit_types`); `vader/lower/wit_types.vader` says what each entry
+// holds. What a case of a variant carries is held by the field of the case's
+// struct, which the table does not name: `rooted` puts it in place.
+
+module "vader/emit/wasm"
+
+Bc :: import "vader/core/bytecode"
+import "std/iter"
+import "std/string"
+import "vader/core/wit"
+
+// The entries of one tree, its root first, then the tree of each child in turn:
+// none when the import has no table.
+WitHolders :: struct {
+    ids: i32[] = []
+}
+
+// The holders of a tree whose import recorded none.
+NO_HOLDERS :: WitHolders {}
+
+// The holders of each tree of `wit`, its parameters then its result, from the
+// table `table` of its import.
+holders_of_roots :: fn(table: i32[], wit: WitFunction) -> WitHolders[] {
+    out: WitHolders[]: []
+    at: i64 = 0
+    for root in wit_roots(wit) {
+        count :: wit_node_count(root)
+        out.push(slice_of(table, at, count))
+        at += count
+    }
+    return out
+}
+
+// The holders of what the function `imp` returns, none when it returns nothing.
+result_holders :: fn(imp: Bc.BcImport, wit: WitFunction) -> WitHolders {
+    if wit.result == null {
+        return NO_HOLDERS
+    }
+    roots :: holders_of_roots(imp.wit_types, wit)
+    return roots[roots.len() - 1]
+}
+
+// The type that holds the root, null when none does.
+holder_of :: fn(h: WitHolders) -> i32 | null {
+    if h.ids.len() == 0 || h.ids[0] < 0 {
+        return null
+    }
+    return h.ids[0]
+}
+
+// The holders of the child `k` of `t`, the root of `h`.
+child_holders :: fn(h: WitHolders, t: WitType, k: i64) -> WitHolders {
+    if h.ids.len() == 0 {
+        return NO_HOLDERS
+    }
+    children :: wit_children(t)
+    at: i64 = 1
+    for i in 0..<k {
+        at += wit_node_count(children[i])
+    }
+    return slice_of(h.ids, at, wit_node_count(children[k]))
+}
+
+// `h` with `id` as the type of its root: what a case of a variant carries is
+// held by the field of the case's struct, which the table does not name.
+rooted :: fn(h: WitHolders, id: i32) -> WitHolders {
+    if h.ids.len() == 0 {
+        return NO_HOLDERS
+    }
+    ids :: h.ids.clone()
+    ids[0] = id
+    return WitHolders { .ids = ids }
+}
+
+// The entries, as a key of a helper: two trees held alike share it.
+holders_text :: fn(h: WitHolders) -> string = h.ids.map((id) -> "${id}").collect().join(",")
+
+// The `count` entries of `ids` from `at`, none when the table is short of them.
+slice_of :: fn(ids: i32[], at: i64, count: i64) -> WitHolders {
+    if at + count > ids.len() {
+        return NO_HOLDERS
+    }
+    return WitHolders { .ids = ids[at..<at + count] }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_child_holders_of_a_result_skip_the_ok_tree :: fn() -> void {
+    ok :: WitTuple { .elements = [.U8, .U32] }
+    t :: WitResult { .ok = ok, .error = .U32 }
+    h :: WitHolders { .ids = [10, 11, 12, 13, 14] }
+    assert_eq(holders_text(child_holders(h, t, 1)), "14")
+    assert_eq(holders_text(child_holders(h, t, 0)), "11,12,13")
+}
+
+@test
+test_holders_of_roots_split_the_table :: fn() -> void {
+    wit :: WitFunction {
+        .params = [WitParam { .name = "x", .type = WitList { .element = .U8 } }],
+        .result = .U32,
+    }
+    roots :: holders_of_roots([1, 2, 3], wit)
+    assert_eq(roots.len(), 2)
+    assert_eq(holders_text(roots[0]), "1,2")
+    assert_eq(holders_text(roots[1]), "3")
+}

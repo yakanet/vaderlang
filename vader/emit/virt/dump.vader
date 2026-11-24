@@ -415,10 +415,15 @@ interface_attributes :: fn(imp: BcImport) -> string {
     return "interface_package=${i.package} interface_name=${i.name} interface_version=${i.version} ${wit}"
 }
 
-// The `wit=` attribute of an import whose WIT type is known, `""` otherwise.
+// The `wit=` attribute of an import whose WIT type is known, and its
+// `wit_types=` when the front end recorded them, `""` otherwise.
 wit_attribute :: fn(imp: BcImport) -> string {
     wit :: imp.wit else return ""
-    return "wit=${wit_function_text(wit)} "
+    text :: "wit=${wit_function_text(wit)} "
+    if imp.wit_types.len() == 0 {
+        return text
+    }
+    return "${text}wit_types=${imp.wit_types.map((t) -> "${t}").collect().join(",")} "
 }
 
 // `<lib>:` before the symbol of an import that names a library, `""` otherwise.

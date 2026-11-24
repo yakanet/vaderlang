@@ -607,6 +607,7 @@ parse_import_decl_bc :: fn(
     interface_name := ""
     interface_version := ""
     wit: WitFunction | null = null
+    wit_types: i32[]: []
     library :: read_library(raw_name)
     for i in (name_i + 2)..<parts.len() {
         attr :: parts[i]
@@ -630,6 +631,12 @@ parse_import_decl_bc :: fn(
                 return DirectiveError { .reason = "unreadable WIT type `${attr}`" }
             }
             wit = read
+        }
+        if attr.starts_with("wit_types=") {
+            for field in attr.trim_prefix("wit_types=").split(",") {
+                parsed :: parse_int_in_base(field, 10)
+                wit_types.push(if parsed is ParseError { -1 } else { i32(parsed) })
+            }
         }
         if attr.starts_with("headers=") {
             c_headers = paths_from_tokens(attr.trim_prefix("headers="))
@@ -728,6 +735,7 @@ parse_import_decl_bc :: fn(
         .library       = library,
         .wasm_interface = read_interface(interface_package, interface_name, interface_version),
         .wit = wit,
+        .wit_types = wit_types,
     })
 }
 

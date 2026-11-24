@@ -95,6 +95,9 @@ export CFGExternDecl :: struct {
     wasm_interface: WasmInterface | null = null
     /// The WIT type of the function when `wasm_interface` names one (`wit.vader`).
     wit: WitFunction | null = null
+    /// The type that holds each node of the trees of `wit`, as the lowering
+    /// recorded them (`LoweredProject.wit_types`).
+    wit_types: (Type | null)[] = []
     /// See `LoweredFnDecl.intrinsic`.
     intrinsic: string = ""
 }

@@ -22,15 +22,17 @@ import "vader/core/wit"
 
 // The helper reading a value of `t` held as the bytecode type `type_id`, null
 // when the bytecode erased the union holding it to a reference: a scalar then
-// takes the class its WIT type stores it as (`erased_class`).
+// takes the class its WIT type stores it as (`erased_class`). `holders` says
+// which variant of a union holds each part of the value (`canonical_holders`).
 canonical_load :: fn(
     ctx: ModuleCtx,
     t: WitType,
     type_id: i32 | null,
+    holders: WitHolders,
     function: string,
 ) -> i32 | WasmUnsupported {
     held_as: string: if type_id == null { "erased" } else { "${type_id}" }
-    key :: "canonical.load ${wit_type_text(t)} ${held_as}"
+    key :: "canonical.load ${wit_type_text(t)} ${held_as} [${holders_text(holders)}]"
     known :: ctx.helpers[key]
     if known != null {
         return known
@@ -41,7 +43,7 @@ canonical_load :: fn(
         .function = function,
         .frame = HelperFrame { .signature = func_of([.I32], [held]) },
     }
-    body :: lift.load_body(t, type_id) else return body
+    body :: lift.load_body(t, type_id, holders) else return body
     return ctx.define_tree_helper(key, lift.frame, body)
 }
 
@@ -132,18 +134,19 @@ load_body :: fn(
     l: Lift,
     t: WitType,
     type_id: i32 | null,
+    holders: WitHolders,
 ) -> WasmExpression[] | WasmUnsupported = match t {
     is WitScalar             -> [l.scalar_value(t)]
     is WitEnum               -> [load(case_load(t.cases.len()), local_get(ADDRESS))]
-    is WitList               -> l.list_body(t, type_id)
-    is WitResult             -> l.result_body(t, type_id)
-    is WitOption             -> l.option_body(t, type_id)
-    is WitTuple              -> l.sequence_body(t.elements, type_id)
+    is WitList               -> l.list_body(t, type_id, holders)
+    is WitResult             -> l.result_body(t, type_id, holders)
+    is WitOption             -> l.option_body(t, type_id, holders)
+    is WitTuple              -> l.sequence_body(t, t.elements, type_id, holders)
     is WitStream | WitFuture -> l.handle_body(type_id)
     is WitHandle             -> l.handle_body(type_id)
-    is WitRecord             -> l.sequence_body(field_types(t), type_id)
+    is WitRecord             -> l.sequence_body(t, field_types(t), type_id, holders)
     is WitFlags              -> l.flags_body(t, type_id)
-    is WitVariant            -> no_variant_mapping(t, l.function)
+    is WitVariant            -> l.variant_body(t, type_id, holders)
     is WitNotLowered         -> l.no_lift(t)
     is WitUnsupported        -> WasmUnsupported { .reason = "`${l.function}`: ${t.reason}" }
 }
@@ -179,7 +182,12 @@ scalar_load :: fn(s: WitScalar) -> MemoryOp = match s {
 
 // A list: its address and its length, each element read at its size into a new
 // storage of the array type `type_id`.
-list_body :: fn(l: Lift, t: WitList, type_id: i32 | null) -> WasmExpression[] | WasmUnsupported {
+list_body :: fn(
+    l: Lift,
+    t: WitList,
+    type_id: i32 | null,
+    holders: WitHolders,
+) -> WasmExpression[] | WasmUnsupported {
     array_id :: type_id else return WasmUnsupported { .reason = "`${l.function}`: an erased list" }
     types :: l.ctx.module.types
     array :: types[array_id]
@@ -187,7 +195,8 @@ list_body :: fn(l: Lift, t: WitList, type_id: i32 | null) -> WasmExpression[] | 
         return WasmUnsupported { .reason = "`${l.function}`: a list held as no array" }
     }
     access :: element_access(types, types[array.element])
-    load_element :: canonical_load(l.ctx, t.element, array.element, l.function)
+    elements :: child_holders(holders, t, 0)
+    load_element :: canonical_load(l.ctx, t.element, array.element, elements, l.function)
         else return load_element
     storage_type_index :: storage_type(l.ctx.gc, storage_of_access(access))
     items :: l.frame.local(.I32)
@@ -219,12 +228,14 @@ list_body :: fn(l: Lift, t: WitList, type_id: i32 | null) -> WasmExpression[] | 
     ]
 }
 
-// A tuple or a record: each element read where it lies, into the struct
-// `type_id` that holds them in their order.
+// A tuple or a record `t` of `types`: each element read where it lies, into the
+// struct `type_id` that holds them in their order.
 sequence_body :: fn(
     l: Lift,
+    t: WitType,
     types: WitType[],
     type_id: i32 | null,
+    holders: WitHolders,
 ) -> WasmExpression[] | WasmUnsupported {
     struct_id :: type_id else return WasmUnsupported {
         .reason = "`${l.function}`: an erased tuple or record",
@@ -233,7 +244,8 @@ sequence_body :: fn(
     starts :: sequence_offsets(types).starts
     elements: WasmExpression[]: []
     for [e, i] in types.indexed() {
-        load_element :: canonical_load(l.ctx, e, held.fields[i].type_index, l.function)
+        field_type :: held.fields[i].type_index
+        load_element :: canonical_load(l.ctx, e, field_type, child_holders(holders, t, i), l.function)
             else return load_element
         elements.push(call(load_element, [i32_add(local_get(ADDRESS), i32_const(starts[i]))]))
     }
@@ -253,13 +265,6 @@ sequence_struct :: fn(
         return WasmUnsupported { .reason = "`${function}`: a tuple or a record held as no struct" }
     }
     return held
-}
-
-// A variant crosses once the front end records which variant of the union
-// holding it takes which of its cases.
-no_variant_mapping :: fn(t: WitType, function: string) -> WasmUnsupported = WasmUnsupported {
-    .reason = "`${function}`: `${wit_type_text(t)}` is a variant, whose cases are not yet "
-        + "matched to the variants of the union that holds it",
 }
 
 // Flags: one `bool` per bit, into the struct `type_id` of as many fields.
@@ -286,73 +291,219 @@ handle_body :: fn(l: Lift, type_id: i32 | null) -> WasmExpression[] | WasmUnsupp
     return [struct_new(held, [i32_load(local_get(ADDRESS))])]
 }
 
-// A result: its case, then the payload of that case past it, as the variant of
-// the union `type_id`. Only `void | E` so far: which variant of a union holds the
-// `ok` of `T | E` takes the correspondence the front end will record.
+// A result: its case, then the value of that case past it, as the union
+// `type_id` holds it: `void` for a side with nothing, the ok side in its wrapper
+// when the module wraps it.
 result_body :: fn(
     l: Lift,
     t: WitResult,
     type_id: i32 | null,
+    holders: WitHolders,
 ) -> WasmExpression[] | WasmUnsupported {
-    if t.ok != null {
-        return l.no_lift(t)
-    }
+    union_id :: type_id else return l.no_lift(t)
     error :: t.error else return l.no_lift(t)
-    empty :: Emptied { .class = .Void, .value = struct_new(l.ctx.gc.void_box, []) }
-    return l.second_case_body(t, error, type_id, empty)
+    offset :: payload_offset([t.ok, t.error])
+    ok_value :: l.ok_value(t, holders, union_id, offset) else return ok_value
+    error_holders :: child_holders(holders, t, wit_children(t).len() - 1)
+    error_value :: l.side_value(error, error_holders, union_id, offset) else return error_value
+    is_ok :: i32_eqz(load(.I32Load8U, local_get(ADDRESS)))
+    return [choose(.EqRef, is_ok, ok_value, error_value)]
+}
+
+// The ok side of `t`: `void` when it carries nothing.
+ok_value :: fn(
+    l: Lift,
+    t: WitResult,
+    holders: WitHolders,
+    union_id: i32,
+    offset: i32,
+) -> WasmExpression | WasmUnsupported {
+    ok :: t.ok else return struct_new(l.ctx.gc.void_box, [])
+    return l.value_of_side(ok, child_holders(holders, t, 0), holders, union_id, offset)
 }
 
 // An option: its case, then the value past it when the case is `some`, as the
-// union `type_id` of the value and `null`.
+// union `type_id` holds it, of the value, in its wrapper when the module wraps
+// it, and `null`.
 option_body :: fn(
     l: Lift,
     t: WitOption,
     type_id: i32 | null,
+    holders: WitHolders,
 ) -> WasmExpression[] | WasmUnsupported {
-    none :: Emptied { .class = .Null, .value = ref_null() }
-    return l.second_case_body(t, t.value, type_id, none)
-}
-
-// The first case of a variant of two, which holds nothing: the scalar class of
-// the union variant it is, and the value Vader holds it as.
-Emptied :: struct {
-    class: Bc.ValType
-    value: WasmExpression
-}
-
-// A variant `t` whose first case holds nothing and whose second holds `payload`:
-// its case, then the payload past it, as the union `type_id` of `empty` and the
-// payload.
-second_case_body :: fn(
-    l: Lift,
-    t: WitType,
-    payload: WitType,
-    type_id: i32 | null,
-    empty: Emptied,
-) -> WasmExpression[] | WasmUnsupported {
-    payload_type :: l.variant_beside(t, type_id, empty.class)
-        else is WasmUnsupported { return payload_type }
-    value :: l.payload_value(payload, payload_type, payload_offset([null, payload]))
+    union_id :: type_id else return l.no_lift(t)
+    offset :: payload_offset([null, t.value])
+    value :: l.value_of_side(t.value, child_holders(holders, t, 0), holders, union_id, offset)
         else return value
-    is_empty :: i32_eqz(load(.I32Load8U, local_get(ADDRESS)))
-    return [choose(.EqRef, is_empty, empty.value, value)]
+    is_none :: i32_eqz(load(.I32Load8U, local_get(ADDRESS)))
+    return [choose(.EqRef, is_none, ref_null(), value)]
 }
 
-// The variant of the union `type_id` that is not the scalar `class`, null when
-// the bytecode erased the union to a reference.
-variant_beside :: fn(
+// The value of a side of a result, or of an option, `parent` the holders of the
+// result or the option: in the wrapper they name, if any, or as its union holds
+// it.
+value_of_side :: fn(
     l: Lift,
     t: WitType,
-    type_id: i32 | null,
-    class: Bc.ValType,
-) -> i32 | null | WasmUnsupported {
-    union_id :: type_id else return null
-    types :: l.ctx.module.types
-    union :: types[union_id]
-    if union !is Bc.BcUnion {
-        return null
+    holders: WitHolders,
+    parent: WitHolders,
+    union_id: i32,
+    offset: i32,
+) -> WasmExpression | WasmUnsupported {
+    wrapper :: l.wrapper_of(parent) else return l.side_value(t, holders, union_id, offset)
+    return l.wrapped(t, wrapper, holders, i32_add(local_get(ADDRESS), i32_const(offset)))
+}
+
+// A value of `t` read at `at` into the struct `struct_id` of one field that
+// wraps it: the `<Function>Ok` of a returned value, the struct of a case of a
+// variant.
+wrapped :: fn(
+    l: Lift,
+    t: WitType,
+    struct_id: i32,
+    holders: WitHolders,
+    at: WasmExpression,
+) -> WasmExpression | WasmUnsupported {
+    held :: l.ctx.module.types[struct_id]
+    if held !is Bc.BcStruct || held.fields.len() != 1 {
+        return no_holder(t, l.function)
     }
-    return union.variants.find((v) -> !Bc.is_scalar_at(types, v, class)) else return l.no_lift(t)
+    field_type :: held.fields[0].type_index
+    load_value :: canonical_load(l.ctx, t, field_type, rooted(holders, field_type), l.function)
+        else return load_value
+    wasm_struct :: struct_type(l.ctx, struct_id, l.function) else return wasm_struct
+    return struct_new(wasm_struct, [call(load_value, [at])])
+}
+
+// The wrapper of the value of a result or an option, when the module wraps it:
+// the struct its holders name in place of the union.
+wrapper_of :: fn(l: Lift, holders: WitHolders) -> i32 | null {
+    id :: holder_of(holders) else return null
+    if l.ctx.module.types[id] is Bc.BcStruct {
+        return id
+    }
+    return null
+}
+
+// The value of one side of a result, or of an option, at `offset` past the
+// address, as the variant of the union `union_id` its holders name: a variant
+// with a payload spreads over the variants of the union.
+side_value :: fn(
+    l: Lift,
+    t: WitType,
+    holders: WitHolders,
+    union_id: i32,
+    offset: i32,
+) -> WasmExpression | WasmUnsupported {
+    at :: i32_add(local_get(ADDRESS), i32_const(offset))
+    if t is WitVariant && wit_children(t).len() > 0 {
+        return l.spread_variant(t, holders, union_id, at)
+    }
+    held :: l.variant_of(union_id, holder_of(holders)) else return no_holder(t, l.function)
+    return l.payload_value(t, held, holders, offset)
+}
+
+// A variant that is the type `type_id` itself: its enum when no case carries a
+// payload, the union of its enum and of the structs of its cases otherwise.
+variant_body :: fn(
+    l: Lift,
+    t: WitVariant,
+    type_id: i32 | null,
+    holders: WitHolders,
+) -> WasmExpression[] | WasmUnsupported {
+    if wit_children(t).len() == 0 {
+        return [load(case_load(t.cases.len()), local_get(ADDRESS))]
+    }
+    union_id :: type_id else return l.no_lift(t)
+    value :: l.spread_variant(t, holders, union_id, local_get(ADDRESS)) else return value
+    return [value]
+}
+
+// A variant with a payload, read at `address`, as the union `union_id` holds it:
+// the enum of its bare cases, boxed, or the struct of its case with a payload.
+spread_variant :: fn(
+    l: Lift,
+    t: WitVariant,
+    holders: WitHolders,
+    union_id: i32,
+    address: WasmExpression,
+) -> WasmExpression | WasmUnsupported {
+    cases :: case_types(t)
+    case :: l.frame.local(.I32)
+    read_case :: local_set(case, load(case_load(cases.len()), address))
+    payload_at :: i32_add(address, i32_const(payload_offset(cases)))
+    value: WasmExpression | null = null
+    if has_bare_cases(t) {
+        bare :: l.bare_cases_value(t, holders, union_id, case) else return bare
+        value = bare
+    }
+    carried: i64 = 0
+    for [c, i] in t.cases.indexed() {
+        payload :: c.type else continue
+        case_holders :: child_holders(holders, t, carried)
+        carried += 1
+        this :: l.case_value(t, payload, case_holders, union_id, payload_at) else return this
+        if value == null {
+            value = this
+        } else {
+            value = choose(.EqRef, i32_eq(local_get(case), i32_const(i32(i))), this, value)
+        }
+    }
+    found :: value else return no_holder(t, l.function)
+    return sequence([read_case, found])
+}
+
+// The bare cases of `t`, the case read into the local `case`: its position
+// among the bare cases, boxed as the enum `holders` names.
+bare_cases_value :: fn(
+    l: Lift,
+    t: WitVariant,
+    holders: WitHolders,
+    union_id: i32,
+    case: i32,
+) -> WasmExpression | WasmUnsupported {
+    enum_id :: l.variant_of(union_id, holder_of(holders)) else return no_holder(t, l.function)
+    held :: l.ctx.module.types[enum_id]
+    if held !is Bc.BcScalar {
+        return no_holder(t, l.function)
+    }
+    // The position of the case among the bare ones: each case with a payload
+    // before it moves it back by one.
+    ordinal: WasmExpression = local_get(case)
+    for [c, i] in t.cases.indexed() {
+        if c.type != null {
+            ordinal = i32_sub(ordinal, binary(.I32GtU, local_get(case), i32_const(i32(i))))
+        }
+    }
+    return struct_new(box_of_class(l.ctx.gc, held.val), [ordinal])
+}
+
+// A case of `t` that carries `payload`, read at `payload_at`, in the struct of
+// that case `holders` names.
+case_value :: fn(
+    l: Lift,
+    t: WitVariant,
+    payload: WitType,
+    holders: WitHolders,
+    union_id: i32,
+    payload_at: WasmExpression,
+) -> WasmExpression | WasmUnsupported {
+    struct_id :: l.variant_of(union_id, holder_of(holders)) else return no_holder(t, l.function)
+    return l.wrapped(payload, struct_id, holders, payload_at)
+}
+
+// `id` when it is a variant of the union `union_id`, null otherwise.
+variant_of :: fn(l: Lift, union_id: i32, id: i32 | null) -> i32 | null {
+    variant :: id else return null
+    union :: l.ctx.module.types[union_id]
+    if union is Bc.BcUnion && variant in union.variants {
+        return variant
+    }
+    return null
+}
+
+no_holder :: fn(t: WitType, function: string) -> WasmUnsupported = WasmUnsupported {
+    .reason = "`${function}`: no variant of the union that holds `${wit_type_text(t)}` is known",
 }
 
 // The payload of type `t` at `offset` past the address, boxed when it is a
@@ -361,9 +512,10 @@ payload_value :: fn(
     l: Lift,
     t: WitType,
     type_id: i32 | null,
+    holders: WitHolders,
     offset: i32,
 ) -> WasmExpression | WasmUnsupported {
-    load_payload :: canonical_load(l.ctx, t, type_id, l.function) else return load_payload
+    load_payload :: canonical_load(l.ctx, t, type_id, holders, l.function) else return load_payload
     value :: call(load_payload, [i32_add(local_get(ADDRESS), i32_const(offset))])
     class :: held_class(l.ctx, t, type_id) else return value
     return struct_new(box_of_class(l.ctx.gc, class), [value])

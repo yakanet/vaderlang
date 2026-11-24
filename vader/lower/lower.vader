@@ -131,6 +131,7 @@ begin_lowering_of :: fn(
     project.libraries = evaluated.libraries
     project.interfaces = evaluated.interfaces
     project.wit_functions = wit_functions_of(loaded, evaluated.interfaces)
+    project.wit_types = wit_types_by_declaration(loaded, typed, project.wit_functions)
     for [_, program] in typed.modules {
         for symbol_id in program.identity_compared {
             project.identity_compared.add(symbol_id)

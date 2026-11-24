@@ -76,6 +76,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
         .library = ext.library,
         .wasm_interface = ext.wasm_interface,
         .wit = ext.wit,
+        .wit_types = ext.wit_types.map((t) -> interned_or_none(t, ctx)).collect(),
         .c_variadic_fixed = ext.c_variadic_fixed,
         .param_c_types = param_c_types_of(ext.origin),
         .result_c_type = result_c_type_of(ext.origin),
@@ -89,6 +90,14 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
     // `Intrinsic` carries the instance's mangle with a synthetic `id = 0`, so the
     // symbol-id path can't resolve it: the InstrCall emit falls back to this map.
     ctx.import_index_by_mangle[ext.mangled] = import_index
+}
+
+// The index of `t` in the table of types, `-1` for none.
+interned_or_none :: fn(t: Type | null, ctx: EmitterCtx) -> i32 {
+    if t == null {
+        return -1
+    }
+    return intern_type(t, ctx)
 }
 
 reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {

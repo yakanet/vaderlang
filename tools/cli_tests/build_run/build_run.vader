@@ -315,6 +315,64 @@ test_a_wasm_build_lists_its_preopened_directories :: fn() -> void {
     assert_eq(run.stdout, ". true\n")
 }
 
+// A result crosses with each of its sides held by the variant of the union the
+// front end names: the record of the ok side, the enum of the bare cases of
+// `error-code` and, inside the record, the enum of `descriptor-type` and an
+// option of a record.
+@test
+test_a_wasm_build_reads_the_status_of_a_file :: fn() -> void {
+    if !has_wasmtime() {
+        return
+    }
+    dir :: staged(
+        "wasm_file_status",
+        """
+        module "main"
+
+        import "std/console"
+        Fs :: import "wasi:filesystem/types@0.3.0"
+        Preopens :: import "wasi:filesystem/preopens@0.3.0"
+
+        status :: fn(d: Fs.Descriptor, path: string, flags: Fs.OpenFlags) -> string {
+            read :: Fs.DescriptorFlags { .read = true }
+            opened :: Fs.open_at(d, Fs.PathFlags {}, path, flags, read) else is Fs.ErrorCode {
+                return "error \${error_case(opened)}"
+            }
+            stat :: Fs.stat(opened) else is Fs.ErrorCode {
+                return "stat error \${error_case(stat)}"
+            }
+            kind :: stat.type
+            if kind is Fs.DescriptorTypeOther {
+                return "other"
+            }
+            return "type \${i32(kind)} \${stat.size > 0} \${stat.data_access_timestamp != null}"
+        }
+
+        error_case :: fn(code: Fs.ErrorCode) -> string {
+            if code is Fs.ErrorCodeOther {
+                return "other"
+            }
+            return "\${i32(code)}"
+        }
+
+        main :: fn() -> i32 {
+            d :: Preopens.get_directories()[0].0
+            println(status(d, "main.vader", Fs.OpenFlags {}))
+            println(status(d, ".", Fs.OpenFlags { .directory = true }))
+            println(status(d, "missing", Fs.OpenFlags {}))
+            println(status(d, "main.vader", Fs.OpenFlags { .directory = true }))
+            return 0
+        }
+        """,
+    )
+    no_cc: [string, string | null][]: [["CC", ""]]
+    run :: vader_in(dir, ["build", "--target=wasi-wasm32", "--run", "main.vader"], no_cc)
+    assert_eq(run.exit, 0)
+    // `regular-file` is the case 5 of `descriptor-type`, `directory` the case 2;
+    // `no-entry` the case 19 of `error-code`, `not-directory` the case 23.
+    assert_eq(run.stdout, "type 5 true true\ntype 2 true true\nerror 19\nerror 23\n")
+}
+
 @test
 test_run_refuses_a_build_that_makes_no_program_for_this_host :: fn() -> void {
     dir :: staged("nothing_to_run", program("app", 0))
