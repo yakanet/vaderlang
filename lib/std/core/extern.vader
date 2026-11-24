@@ -53,13 +53,14 @@ export WasmInterface :: struct {
 }
 
 /// The readable end of a WIT `stream<T>` that a function of an imported
-/// interface returns: the handle the host gave.
+/// interface returns: the handle the host gave, read a chunk at a time
+/// (`system/wasi`).
 export WasmReadable :: struct<T> {
     handle: i32
 }
 
-/// What a WIT `future<T>` resolves to, as a function of an imported interface
-/// returns it: the call waits for it once its streams are written.
+/// A WIT `future<T>` that a function of an imported interface returns: the handle
+/// the host gave, waited for once (`system/wasi`).
 export WasmFuture :: struct<T> {
-    value: T
+    handle: i32
 }

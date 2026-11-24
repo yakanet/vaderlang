@@ -11,8 +11,10 @@ module "std/console"
 import "std/io"
 import "std/time"
 import "system/posix"
+import "system/wasi"
 import "system/windows"
 WasiStderr :: import "wasi:cli/stderr@0.3.0"
+WasiStdin :: import "wasi:cli/stdin@0.3.0"
 WasiStdout :: import "wasi:cli/stdout@0.3.0"
 WasiCli :: import "wasi:cli/types@0.3.0"
 
@@ -52,7 +54,7 @@ write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
         .Stdout -> WasiStdout.write_via_stream(data)
         .Stderr -> WasiStderr.write_via_stream(data)
     }
-    if written.value is WasiCli.ErrorCode {
+    if written.wait() is WasiCli.ErrorCode {
         return -1
     }
     return i32(count)
@@ -295,9 +297,9 @@ export read_stdin_to_end :: fn() -> string | IOError {
 /// @param max  ceiling on the bytes returned, positive.
 /// @error      `IOError` of kind `.EndOfInput` at end of input, or on a failed
 ///             read.
-/// The general body covers the targets with no backend that could run this:
-/// `wasi-wasm32` and `browser-wasm32`. Reporting failure is what every caller
-/// already handles, and it is what `write_bytes` does on the same targets.
+/// The general body covers the target with no backend that could run this,
+/// `browser-wasm32`. Reporting failure is what every caller already handles, and
+/// it is what `write_bytes` does on the same target.
 @target
 read_ready :: fn(max: i64) -> u8[] | IOError {
     return IOError { .msg = "stdin is not available on this target" }
@@ -366,6 +368,65 @@ read_console :: fn(max: i64) -> u8[] | IOError {
     return buf[0..<got]
 }
 
+// ---- stdin under WASI -------------------------------------------------------
+
+// The stdin of a WASI program, opened at its first read: the stream
+// `read-via-stream` returned and the outcome of the stream, what a poll read
+// ahead of the next reads and where they are in it, and how the stream ended
+// once it has.
+WasiStdinState :: struct {
+    bytes: WasmReadable<u8>
+    done: WasmFuture<void | WasiCli.ErrorCode>
+    ahead: u8[] = []
+    ahead_at: i64 = 0
+    end: IOError | null = null
+}
+
+@singleton
+wasi_stdin :: fn() -> WasiStdinState {
+    [bytes, done] :: WasiStdin.read_via_stream()
+    return WasiStdinState { .bytes = bytes, .done = done }
+}
+
+@target(.Wasi)
+read_ready :: fn(max: i64) -> u8[] | IOError {
+    stdin :: wasi_stdin()
+    if stdin.has_ahead() {
+        return stdin.take_ahead(max)
+    }
+    ended :: stdin.end
+    if ended != null {
+        return ended
+    }
+    return stdin.bytes.read(max, -1) else {
+        end :: how_ended(stdin.done)
+        stdin.end = end
+        return end
+    }
+}
+
+has_ahead :: fn(stdin: WasiStdinState) -> bool = stdin.ahead_at < stdin.ahead.len()
+
+// Up to `max` of the bytes a poll read ahead, copying only those.
+take_ahead :: fn(stdin: WasiStdinState, max: i64) -> u8[] {
+    from :: stdin.ahead_at
+    left :: stdin.ahead.len() - from
+    to :: from + if max < left { max } else { left }
+    stdin.ahead_at = to
+    return stdin.ahead[from..<to]
+}
+
+// How stdin ended: the outcome of its stream, which is waited for once, so the
+// reads that follow keep it. A broken pipe ends the input, as it does on Linux
+// and macOS.
+how_ended :: fn(done: WasmFuture<void | WasiCli.ErrorCode>) -> IOError {
+    outcome :: done.wait()
+    if outcome is WasiCli.ErrorCode && outcome != .Pipe {
+        return IOError { .msg = "stdin read failed: ${outcome.message()}" }
+    }
+    return END_OF_INPUT
+}
+
 // With another task, the wait returns once stdin reads, and the system then
 // answers at once; alone, it returns at once, and the system waits.
 /// True iff stdin has data ready within `timeout` (zero is a non-blocking
@@ -383,15 +444,36 @@ read_console :: fn(max: i64) -> u8[] | IOError {
 ///                 one waits with no deadline.
 /// @return         `true` if a subsequent `read_stdin` won't block on the
 ///                 first byte (data ready, or EOF/hangup pending).
-export poll_stdin :: fn(timeout: Duration) -> bool =
+export poll_stdin :: fn(timeout: Duration) -> bool = stdin_ready_within(timeout)
+
+@target
+stdin_ready_within :: fn(timeout: Duration) -> bool =
     wait_readable_for(STDIN, timeout) && system_poll_stdin(poll_milliseconds(timeout))
+
+// WASI has no descriptor to poll: what the poll reads goes ahead of the next
+// read.
+@target(.Wasi)
+stdin_ready_within :: fn(timeout: Duration) -> bool {
+    stdin :: wasi_stdin()
+    if stdin.has_ahead() || stdin.end != null {
+        return true
+    }
+    // The stream ended: the next read reports how.
+    chunk :: stdin.bytes.read(READ_CHUNK, timeout.to_nanos()) else {
+        stdin.end = how_ended(stdin.done)
+        return true
+    }
+    stdin.ahead = chunk
+    stdin.ahead_at = 0
+    return chunk.len() > 0
+}
 
 // Ask the system whether stdin has data ready within `timeout_ms`, blocking
 // every task meanwhile.
 @target
 system_poll_stdin :: fn(timeout_ms: i32) -> bool {
-    // No descriptor to poll: `wasi-wasm32` and `browser-wasm32`. Reporting ready
-    // lets the read attempt observe the real state, and never spins.
+    // No descriptor to poll: `browser-wasm32`. Reporting ready lets the read
+    // attempt observe the real state, and never spins.
     return true
 }
 

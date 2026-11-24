@@ -3187,7 +3187,9 @@ A type takes the Pascal case of its WIT name, a case too, and a field its snake 
 The module also holds the functions of the interface, functions without body that a WebAssembly build imports from its host:
 
 - A function takes the snake case of its name. A method of a resource takes the resource first, as `self_`. A static function is named after its resource, `[static]tcp-socket.create` is `tcp_socket_create`, and a constructor is `new_` and its resource.
-- `option<T>` is `T | null`, `result<T, E>` is `T | E`, `result<_, E>` is `void | E`, `list<T>` is `T[]` and `tuple<A, B>` is `[A, B]`. A stream the function takes is a `T[]`, written whole by the call, and a future it returns a `WasmFuture<T>`.
+- `option<T>` is `T | null`, `result<T, E>` is `T | E`, `result<_, E>` is `void | E`, `list<T>` is `T[]` and `tuple<A, B>` is `[A, B]`.
+- A stream the function takes is a `T[]`, written whole by the call. A stream it returns is a `WasmReadable<T>`, and `read(max, nanos)` of `system/wasi` takes up to `max` items of it, waiting `nanos` at most: an empty array when none came in time, `null` once the stream has ended. A future it returns is a `WasmFuture<T>`, and `wait()` of `system/wasi` returns its value; a future is waited for once.
+- A call to an `async` function returns once the function has.
 - When a union could not tell the two sides of a returned `result` or `option` apart, the first is wrapped in a struct named after the function and `Ok`, which holds it as `value`: the method `get-type` of `descriptor` returns `DescriptorGetTypeOk | ErrorCode`.
 - A type a `result` of the package holds as its error implements `Error`, its message the WIT name of its case.
 - A function whose types have no Vader form yet is left out, and a comment in the module says why.

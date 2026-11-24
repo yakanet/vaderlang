@@ -184,6 +184,15 @@ export Intrinsic :: trait {
     /// The architecture the process runs on.
     current_arch :: fn() -> Arch
 
+    // ---- component streams and futures ---------------------------------
+
+    /// Up to `max` items of `stream`, `nanos` at most of waiting for them, a
+    /// negative `nanos` without deadline ; empty when none came in time, null
+    /// once its writer is gone.
+    wasm_stream_read :: fn<T>(stream: WasmReadable<T>, max: i64, nanos: i64) -> T[] | null
+    /// What `future` resolves to, waited for, the future dropped.
+    wasm_future_wait :: fn<T>(future: WasmFuture<T>) -> T
+
     // ---- foreign calls from the VM --------------------------------------
 
     /// Open the shared library `name`, by the platform's search ; 0 when absent.

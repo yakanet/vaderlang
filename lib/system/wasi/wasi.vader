@@ -1,0 +1,29 @@
+// system/wasi: the streams and the futures of the WASI interfaces.
+//
+// A function of an imported WIT interface returns a stream as a `WasmReadable`
+// and a future as a `WasmFuture`, the handles the host gave (`std/core`). These
+// read and wait for them, as `std/console` does for stdin; a program that reads
+// a file or stdin calls `std/fs` or `std/console` instead. Only a WASM build
+// serves them: the interpreter and a native build stop at the call.
+
+module "system/wasi"
+
+/// Up to `max` items of `stream`, at least one unless `nanos` runs out first.
+///
+/// @param stream  the stream, which a read finds ended once its writer is gone.
+/// @param max     ceiling on the items returned, positive.
+/// @param nanos   the longest wait: zero takes only what is there, a negative one
+///                waits with no deadline.
+/// @return        the items read, empty when none came in time, null once the
+///                writer of the stream is gone.
+/// @example
+///   # WasiStdin :: import "wasi:cli/stdin@0.3.0"
+///   [bytes, done] :: WasiStdin.read_via_stream()
+///   chunk :: bytes.read(4096, -1)   // up to 4096 bytes, null at the end
+export read :: fn<T>(stream: WasmReadable<T>, max: i64, nanos: i64) -> T[] | null =
+    Intrinsic.wasm_stream_read(stream, max, nanos)
+
+/// What `future` resolves to, waiting for it: a future is waited for once.
+///
+/// @param future  a future that no wait has taken yet.
+export wait :: fn<T>(future: WasmFuture<T>) -> T = Intrinsic.wasm_future_wait(future)

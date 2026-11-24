@@ -1,0 +1,282 @@
+// vader/emit/wasm/canonical_wait: the reads and the waits on what the host does.
+//
+// A stream a call returns (`WasmReadable`) is read a chunk at a time, a future
+// (`WasmFuture`) waited for once, an async call waited for until it returns; each
+// waits through a waitable set of its own (`canonical_wait`, `canonical.vader`).
+// A read with a deadline joins its set with a subtask of `wait-for`, which the
+// program imports when it reads a stream (`imports.vader`), and cancels the read
+// when the deadline comes first, keeping what arrived meanwhile; a deadline
+// already past polls the set instead. Once a stream has ended, or a future was
+// waited for, its handle is dropped and its struct holds 0 in its place: a
+// stream that ended reads as ended again, which the host would trap on.
+//
+// The host reads a stream into the chunk of the memory, which is lifted as the
+// list it is (`canonical_lift.vader`).
+
+module "vader/emit/wasm"
+
+Bc :: import "vader/core/bytecode"
+import "std/abort"
+import "std/iter"
+import "vader/core/wit"
+
+// `(state) -> void`: wait until the subtask whose async call returned `state`
+// returns, then drop it.
+canonical_subtask_wait :: fn(ctx: ModuleCtx) -> i32 =
+    ctx.helpers["canonical.subtask-wait"] else define_subtask_wait(ctx)
+
+define_subtask_wait :: fn(ctx: ModuleCtx) -> i32 {
+    state :: 0
+    frame :: HelperFrame { .signature = func_of([.I32], []) }
+    subtask :: frame.local(.I32)
+    state_bits :: i32_and(local_get(state), i32_const(SUBTASK_STATE_MASK))
+    body: WasmExpression[]: [
+        local_set(subtask, i32_shr_u(local_get(state), i32_const(SUBTASK_HANDLE_SHIFT))),
+        loop_until(
+            i32_eq(state_bits, i32_const(SUBTASK_RETURNED)),
+            [
+                call(ctx.canonical_wait(), [local_get(subtask)]),
+                local_set(state, event_payload()),
+            ],
+        ),
+        ctx.drop_subtask(subtask),
+    ]
+    return ctx.define_tree_helper("canonical.subtask-wait", frame, body)
+}
+
+// Drop the subtask in the local `subtask`, unless it holds none.
+drop_subtask :: fn(ctx: ModuleCtx, subtask: i32) -> WasmExpression =
+    when(local_get(subtask), [call(ctx.builtin(.SubtaskDrop, null), [local_get(subtask)])])
+
+// ---- handles ----------------------------------------------------------------
+
+// The helper of an `Intrinsic` member on a handle, being written: the stream or
+// the future it stands for, its frame, the type its handle is read through, and
+// the local the handle is read into.
+HandleHelper :: struct {
+    handled: WitStream | WitFuture
+    frame: HelperFrame
+    results: WasmValType[]
+    layout: i32
+    handle: i32
+}
+
+// The parameter of a member on a handle that holds it.
+HANDLE_HOLDER: i32: 0
+
+// The helper of the member `imp`, whose first parameter holds a handle.
+handle_helper :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -> HandleHelper | WasmUnsupported {
+    holder :: imp.signature.param_types[HANDLE_HOLDER]
+    handled :: ctx.imports.handles[holder] else return WasmUnsupported {
+        .reason = "`${function}`: a handle no import of an interface returns",
+    }
+    params :: value_types_of(imp.signature.params, function) else return params
+    results :: value_types_of(result_values(imp.signature.results), function) else return results
+    frame :: HelperFrame { .signature = func_of(params, results) }
+    layout :: layout_type(ctx, holder, function) else return layout
+    return HandleHelper {
+        .handled = handled,
+        .frame = frame,
+        .results = results,
+        .layout = layout,
+        .handle = frame.local(.I32),
+    }
+}
+
+// Read the handle into its local.
+read_handle :: fn(h: HandleHelper) -> WasmExpression =
+    local_set(h.handle, struct_get(h.layout, 0, local_get(HANDLE_HOLDER)))
+
+// Leave 0 in place of the handle, dropped.
+clear_handle :: fn(h: HandleHelper) -> WasmExpression =
+    struct_set(h.layout, 0, local_get(HANDLE_HOLDER), i32_const(0))
+
+wrong_handle :: fn(function: string) -> WasmUnsupported =
+    WasmUnsupported { .reason = "`${function}`: a stream and a future taken for each other" }
+
+// ---- streams ----------------------------------------------------------------
+
+// The other parameters of `Intrinsic.wasm_stream_read`.
+MAX: i32: 1
+NANOS: i32: 2
+
+// The helper behind `Intrinsic.wasm_stream_read` of the import `imp`: up to `max`
+// items of the stream, `nanos` at most of waiting, a negative `nanos` without
+// deadline; an empty array when none came in time, null once the stream ended.
+stream_read_function :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -> i32 | WasmUnsupported {
+    key :: "canonical.stream-read ${imp.signature.param_types[HANDLE_HOLDER]}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    h :: handle_helper(ctx, imp, function) else return h
+    stream :: h.handled
+    if stream !is WitStream {
+        return wrong_handle(function)
+    }
+    array_id :: array_variant(ctx, imp.signature.result_types[0], function) else return array_id
+    load_items :: canonical_load(ctx, WitList { .element = stream.element }, array_id, function)
+        else return load_items
+    status :: h.frame.local(.I32)
+    count :: h.frame.local(.I32)
+    items_per_chunk :: CHUNK_SIZE / size_of(stream.element)
+    limit :: choose(
+        .I32,
+        binary(.I64LtS, local_get(MAX), i64_const(i64(items_per_chunk))),
+        i32_wrap_i64(local_get(MAX)),
+        i32_const(items_per_chunk),
+    )
+    read :: call(
+        ctx.builtin(.StreamRead, stream),
+        [local_get(h.handle), i32_const(CHUNK_ADDRESS), limit],
+    )
+    wait :: call(ctx.canonical_copy_wait(stream), [local_get(h.handle), local_get(NANOS)])
+    dropped :: i32_eq(
+        i32_and(local_get(status), i32_const(COPY_STATUS_MASK)),
+        i32_const(COPY_DROPPED),
+    )
+    body: WasmExpression[]: [
+        h.read_handle(),
+        when(i32_eqz(local_get(h.handle)), [return_([ref_null()])]),
+        local_set(status, read),
+        when(i32_eq(local_get(status), i32_const(BLOCKED)), [local_set(status, wait)]),
+        local_set(count, i32_shr_u(local_get(status), i32_const(COPY_COUNT_SHIFT))),
+        when(
+            dropped,
+            [
+                call(ctx.builtin(.StreamDropReadable, stream), [local_get(h.handle)]),
+                h.clear_handle(),
+                when(i32_eqz(local_get(count)), [return_([ref_null()])]),
+            ],
+        ),
+        i32_store(i32_const(LIST_ADDRESS), i32_const(CHUNK_ADDRESS)),
+        store(.I32Store, i32_const(LIST_ADDRESS), local_get(count), 4),
+        call(load_items, [i32_const(LIST_ADDRESS)]),
+    ]
+    return ctx.define_tree_helper(key, h.frame, body)
+}
+
+// The array the union `type_id`, an array or null, holds.
+array_variant :: fn(ctx: ModuleCtx, type_id: i32, function: string) -> i32 | WasmUnsupported {
+    types :: ctx.module.types
+    held :: types[type_id]
+    no_array :: WasmUnsupported { .reason = "`${function}`: a read returns no array" }
+    if held is Bc.BcArray {
+        return type_id
+    }
+    if held !is Bc.BcUnion {
+        return no_array
+    }
+    return held.variants.find((v) -> types[v] is Bc.BcArray) else return no_array
+}
+
+// `(readable, nanos) -> status`: wait for the read of the stream `stream` that
+// `readable` started, `nanos` at most; a negative `nanos` waits without deadline,
+// a zero one polls. A read the deadline comes before is cancelled: what it
+// moved meanwhile is in the status.
+canonical_copy_wait :: fn(ctx: ModuleCtx, stream: WitStream) -> i32 {
+    key :: "canonical.copy-wait ${wit_type_text(stream)}"
+    return ctx.helpers[key] else define_copy_wait(ctx, key, stream)
+}
+
+define_copy_wait :: fn(ctx: ModuleCtx, key: string, stream: WitStream) -> i32 {
+    readable :: 0
+    nanos :: 1
+    frame :: HelperFrame { .signature = func_of([.I32, .I64], [.I32]) }
+    set :: frame.local(.I32)
+    started :: frame.local(.I32)
+    subtask :: frame.local(.I32)
+    event :: frame.local(.I32)
+    wait_for :: ctx.imports.wait_for else panic("wasm: a stream read without `wait-for`")
+    join :: ctx.builtin(.WaitableJoin, null)
+    still_running :: i32_ne(
+        i32_and(local_get(started), i32_const(SUBTASK_STATE_MASK)),
+        i32_const(SUBTASK_RETURNED),
+    )
+    wait :: call(ctx.builtin(.WaitableSetWait, null), [local_get(set), i32_const(EVENT_ADDRESS)])
+    poll :: call(ctx.builtin(.WaitableSetPoll, null), [local_get(set), i32_const(EVENT_ADDRESS)])
+    body: WasmExpression[]: [
+        when(
+            binary(.I64LtS, local_get(nanos), i64_const(0)),
+            [call(ctx.canonical_wait(), [local_get(readable)]), return_([event_payload()])],
+        ),
+        local_set(set, call(ctx.builtin(.WaitableSetNew, null), [])),
+        call(join, [local_get(readable), local_get(set)]),
+        local_set(subtask, i32_const(0)),
+        // A deadline still ahead is a subtask of `wait-for` in the same set.
+        when(
+            i64_ne(local_get(nanos), i64_const(0)),
+            [
+                local_set(started, call(wait_for, [local_get(nanos)])),
+                when(
+                    still_running,
+                    [
+                        local_set(
+                            subtask,
+                            i32_shr_u(local_get(started), i32_const(SUBTASK_HANDLE_SHIFT)),
+                        ),
+                        call(join, [local_get(subtask), local_get(set)]),
+                    ],
+                ),
+            ],
+        ),
+        local_set(event, choose(.I32, local_get(subtask), wait, poll)),
+        call(join, [local_get(readable), i32_const(0)]),
+        when(local_get(subtask), [call(join, [local_get(subtask), i32_const(0)])]),
+        call(ctx.builtin(.WaitableSetDrop, null), [local_get(set)]),
+        when(
+            i32_eq(local_get(event), i32_const(EVENT_STREAM_READ)),
+            [
+                when(
+                    local_get(subtask),
+                    [drop(call(ctx.builtin(.SubtaskCancel, null), [local_get(subtask)]))],
+                ),
+                ctx.drop_subtask(subtask),
+                return_([event_payload()]),
+            ],
+        ),
+        // The deadline came first.
+        ctx.drop_subtask(subtask),
+        call(ctx.builtin(.StreamCancelRead, stream), [local_get(readable)]),
+    ]
+    return ctx.define_tree_helper(key, frame, body)
+}
+
+// ---- futures ----------------------------------------------------------------
+
+// The helper behind `Intrinsic.wasm_future_wait` of the import `imp`: the value
+// the future resolves to, read once the host has written it, the future dropped.
+future_wait_function :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -> i32 | WasmUnsupported {
+    key :: "canonical.future-wait ${imp.signature.param_types[HANDLE_HOLDER]}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    h :: handle_helper(ctx, imp, function) else return h
+    future :: h.handled
+    if future !is WitFuture {
+        return wrong_handle(function)
+    }
+    room :: h.frame.local(.I32)
+    value :: future.value
+    where: WasmExpression: if value == null { i32_const(0) } else { ctx.room_for(value) }
+    read :: call(ctx.builtin(.FutureRead, future), [local_get(h.handle), local_get(room)])
+    waited: WasmExpression[]: [
+        h.read_handle(),
+        // A future is waited for once.
+        when(i32_eqz(local_get(h.handle)), [unreachable()]),
+        local_set(room, where),
+        when(i32_eq(read, i32_const(BLOCKED)), [call(ctx.canonical_wait(), [local_get(h.handle)])]),
+        call(ctx.builtin(.FutureDropReadable, future), [local_get(h.handle)]),
+        h.clear_handle(),
+    ]
+    if value == null || h.results.is_empty() {
+        return ctx.define_tree_helper(key, h.frame, waited)
+    }
+    load :: canonical_load(ctx, value, imp.signature.result_types[0], function) else return load
+    resolved :: h.frame.local(h.results[0])
+    waited.push(local_set(resolved, call(load, [local_get(room)])))
+    body :: h.frame.arena_scope(waited)
+    body.push(local_get(resolved))
+    return ctx.define_tree_helper(key, h.frame, body)
+}

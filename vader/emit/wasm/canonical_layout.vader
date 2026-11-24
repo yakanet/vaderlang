@@ -17,20 +17,30 @@ import "vader/core/wit"
 // as results: past them, the values cross through the memory.
 MAX_FLAT_PARAMS: i64: 16
 MAX_FLAT_RESULTS: i64: 1
+// How many flat values an async call passes at most as parameters.
+MAX_FLAT_ASYNC_PARAMS: i64: 4
 
 // The core type of `f` lowered by `canon lower`: its parameters flat when they
 // hold `MAX_FLAT_PARAMS` values at most, else the address of a block holding
 // them; its result flat when it holds one value, else the address the host
-// writes it to, passed last.
+// writes it to, passed last. An async function is lowered async: its parameters
+// flat up to `MAX_FLAT_ASYNC_PARAMS` values, its result always written to the
+// memory, and it returns the state of the call (`canonical.vader`).
 flat_type_of :: fn(f: WitFunction, function: string) -> WasmFuncType | WasmUnsupported {
     params: WasmValType[]: []
     for p in f.params {
         flat :: flat_types_of(p.type) else return unsupported_in(flat, function)
         params.push_all(flat)
     }
-    if params.len() > MAX_FLAT_PARAMS {
+    if params.len() > flat_params_limit(f) {
         params.clear()
         params.push(.I32)
+    }
+    if f.is_async {
+        if f.result != null {
+            params.push(.I32)
+        }
+        return func_of(params, [.I32])
     }
     result :: f.result else return func_of(params, [])
     results :: flat_types_of(result) else return unsupported_in(results, function)
@@ -39,6 +49,10 @@ flat_type_of :: fn(f: WitFunction, function: string) -> WasmFuncType | WasmUnsup
         return func_of(params, [])
     }
     return func_of(params, results)
+}
+
+flat_params_limit :: fn(f: WitFunction) -> i64 = if f.is_async { MAX_FLAT_ASYNC_PARAMS } else {
+    MAX_FLAT_PARAMS
 }
 
 unsupported_in :: fn(t: WasmUnsupported, function: string) -> WasmUnsupported =
@@ -50,6 +64,7 @@ flat_types_of :: fn(t: WitType) -> WasmValType[] | WasmUnsupported = match t {
     is WitEnum | WitStream | WitFuture -> [.I32]
     is WitList                         -> [.I32, .I32]
     is WitResult                       -> flat_variant_types([t.ok, t.error])
+    is WitTuple                        -> flat_tuple_types(t)
     is WitUnsupported                  -> WasmUnsupported { .reason = t.reason }
     is WitNotLowered                   -> WasmUnsupported {
         .reason = "no canonical ABI yet for `${wit_type_text(t)}`",
@@ -57,14 +72,7 @@ flat_types_of :: fn(t: WitType) -> WasmValType[] | WasmUnsupported = match t {
 }
 
 // The WIT types read from a `.wit` file that the canonical ABI does not cross yet.
-WitNotLowered :: WitRecord
-               | WitVariant
-               | WitFlags
-               | WitOption
-               | WitTuple
-               | WitResource
-               | WitHandle
-               | WitAlias
+WitNotLowered :: WitRecord | WitVariant | WitFlags | WitOption | WitResource | WitHandle | WitAlias
 
 flat_scalar_types :: fn(s: WitScalar) -> WasmValType[] = match s {
     .Bool | .S8 | .U8 | .S16 | .U16 | .S32 | .U32 | .Char -> [.I32]
@@ -72,6 +80,16 @@ flat_scalar_types :: fn(s: WitScalar) -> WasmValType[] = match s {
     .F32 -> [.F32]
     .F64 -> [.F64]
     .String -> [.I32, .I32]
+}
+
+// A tuple flattens to its elements, one after the other.
+flat_tuple_types :: fn(t: WitTuple) -> WasmValType[] | WasmUnsupported {
+    out: WasmValType[]: []
+    for e in t.elements {
+        flat :: flat_types_of(e) else return flat
+        out.push_all(flat)
+    }
+    return out
 }
 
 // A variant flattens to its case, then the values of its payloads, each position
@@ -112,6 +130,7 @@ size_of :: fn(t: WitType) -> i32 = match t {
     is WitStream | WitFuture -> 4
     is WitList               -> 8
     is WitResult             -> variant_size([t.ok, t.error])
+    is WitTuple              -> align_to(element_offsets(t).end, alignment_of(t))
     is WitUnsupported        -> no_layout(t.reason)
     is WitNotLowered         -> no_layout(wit_type_text(t))
 }
@@ -122,8 +141,35 @@ alignment_of :: fn(t: WitType) -> i32 = match t {
     is WitEnum                         -> case_bytes(t.cases.len())
     is WitStream | WitFuture | WitList -> 4
     is WitResult                       -> variant_alignment([t.ok, t.error])
+    is WitTuple                        -> max_alignment(t.elements)
     is WitUnsupported                  -> no_layout(t.reason)
     is WitNotLowered                   -> no_layout(wit_type_text(t))
+}
+
+// Where each element of `t` starts in the memory, and where the last ends: each
+// at the next multiple of its alignment.
+ElementOffsets :: struct {
+    starts: i32[]
+    end: i32
+}
+
+element_offsets :: fn(t: WitTuple) -> ElementOffsets {
+    starts: i32[]: []
+    at: i32 = 0
+    for e in t.elements {
+        at = align_to(at, alignment_of(e))
+        starts.push(at)
+        at += size_of(e)
+    }
+    return ElementOffsets { .starts = starts, .end = at }
+}
+
+max_alignment :: fn(types: WitType[]) -> i32 {
+    out: i32 = 1
+    for t in types {
+        out = max(out, alignment_of(t))
+    }
+    return out
 }
 
 // `flat_types_of` turned the type down before any layout is asked of it.
@@ -176,6 +222,14 @@ payload_offset :: fn(cases: (WitType | null)[]) -> i32 =
 // `at` rounded up to a multiple of `alignment`, a power of two.
 align_to :: fn(at: i32, alignment: i32) -> i32 = (at + alignment - 1) & -alignment
 
+// Whether the result of `f` comes back through the memory: it takes more flat
+// values than a call returns.
+returns_through_memory :: fn(f: WitFunction) -> bool {
+    result :: f.result else return false
+    flat :: flat_types_of(result) else return false
+    return flat.len() > MAX_FLAT_RESULTS
+}
+
 // Whether the host writes a result of `f` into room it asks the memory's
 // allocator for: one that holds a string or a list.
 allocates :: fn(f: WitFunction) -> bool = holds_room(f.result)
@@ -188,6 +242,7 @@ holds_room :: fn(t: WitType | null) -> bool {
         is WitScalar -> t == .String
         is WitList -> true
         is WitResult -> holds_room(t.ok) || holds_room(t.error)
+        is WitTuple -> t.elements.any_match((e) -> holds_room(e))
         is WitEnum | WitStream | WitFuture | WitUnsupported | WitNotLowered -> false
     }
 }
@@ -258,4 +313,37 @@ test_a_stream_and_a_future_flatten_to_handles :: fn() -> void {
     flat :: flat_type_of(f, "write-via-stream") else panic("a stream write flattens")
     assert_eq(flat.params.len(), 1)
     assert(flat.params[0] == .I32 && flat.results[0] == .I32, "two handles")
+}
+
+@test
+test_a_tuple_of_two_handles_comes_back_through_the_memory :: fn() -> void {
+    t :: WitTuple {
+        .elements = [
+            WitStream { .element = .U8 },
+            WitFuture { .value = WitResult { .error = ERROR_CODE } },
+        ],
+    }
+    assert_eq(size_of(t), 8)
+    assert_eq(element_offsets(t).starts[1], 4)
+    f :: WitFunction { .params = [], .result = t }
+    flat :: flat_type_of(f, "read-via-stream") else panic("a tuple flattens")
+    assert(
+        flat.params.len() == 1 && flat.results.is_empty(),
+        "the result's address is the parameter",
+    )
+}
+
+@test
+test_an_async_call_returns_its_state_and_takes_room_for_its_result :: fn() -> void {
+    f :: WitFunction { .params = [], .result = .U64, .is_async = true }
+    flat :: flat_type_of(f, "now") else panic("an async call lowers")
+    assert(flat.params.len() == 1 && flat.results.len() == 1, "the room in, the state out")
+}
+
+@test
+test_a_tuple_aligns_each_element :: fn() -> void {
+    t :: WitTuple { .elements = [.U8, .U64, .U16] }
+    assert_eq(element_offsets(t).starts[1], 8)
+    assert_eq(size_of(t), 24)
+    assert_eq(alignment_of(t), 8)
 }

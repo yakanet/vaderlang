@@ -771,6 +771,8 @@ intrinsic_function :: fn(
         .AbortPanic        -> ctx.panic_function()
         .TargetCurrentOs   -> ctx.constant_function("os", OS_WASI)
         .TargetCurrentArch -> ctx.constant_function("arch", ARCH_WASM32)
+        .WasmStreamRead    -> ctx.stream_read_function(imp, function)
+        .WasmFutureWait    -> ctx.future_wait_function(imp, function)
         _                  -> WasmUnsupported {
             .reason = "`${function}`: no WASM form yet for `${imp.extern_name}`",
         }

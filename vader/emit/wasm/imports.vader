@@ -8,7 +8,9 @@
 // bindings of `std` and the module of an imported interface) share its import.
 // A call whose arguments or result
 // Vader does not hold as the core function takes them goes through an adapter,
-// whose canonical built-ins come last among the imports (`canonical.vader`). The other
+// whose canonical built-ins come last among the imports (`canonical.vader`). A
+// program that reads a stream imports `wait-for` as well, which a read with a
+// deadline waits on (`canonical_wait.vader`). The other
 // imports (a C library) have no WASM form yet: a call to one stops the
 // emission.
 
@@ -40,7 +42,27 @@ ImportedFunctions :: struct {
     // The WASM function index of `get-arguments`, when the entry takes them
     // (`arguments.vader`).
     arguments: i32 | null = null
+    // The stream or the future the struct holding a handle stands for, by the
+    // struct's bytecode type: what a read or a wait of one calls the built-ins of.
+    handles: Map<i32, WitStream | WitFuture> = Map<i32, WitStream | WitFuture> {}
+    // The WASM function index of `wait-for`, when the program reads a stream.
+    wait_for: i32 | null = null
 }
+
+// The interface and the function a read with a deadline waits on, as WASI 0.3
+// declares it.
+WAIT_FOR_INTERFACE: string: "wasi:clocks/monotonic-clock@0.3.0"
+WAIT_FOR: ComponentFunction: ComponentFunction {
+    .name = "wait-for",
+    .type = WitFunction {
+        .params = [WitParam { .name = "how-long", .type = .U64 }],
+        .result = null,
+        .is_async = true,
+    },
+}
+
+// The built-ins a read with a deadline calls beside those of its stream.
+DEADLINE_BUILTINS: CanonicalKind[]: [.WaitableSetPoll, .SubtaskCancel, .SubtaskDrop]
 
 // The imports of `m`, their core types interned in `types`, and `get-arguments`
 // when the entry `takes_arguments`.
@@ -50,7 +72,11 @@ imported_functions :: fn(
     takes_arguments: bool,
 ) -> ImportedFunctions | WasmUnsupported {
     out :: ImportedFunctions {}
+    reads_streams: bool = false
     for [imp, i] in m.imports.indexed() {
+        if imp.intrinsic == .WasmStreamRead {
+            reads_streams = true
+        }
         interface :: imp.wasm_interface else continue
         module :: Bc.qualified_interface_name(interface)
         wit :: imp.wit else {
@@ -63,9 +89,21 @@ imported_functions :: fn(
             out.adapted.add(i32(i))
             out.add_builtins(builtins_of(wit))
         }
+        result :: wit.result
+        if result != null && imp.signature.result_types.len() > 0 {
+            out.record_handles(m.types, result, imp.signature.result_types[0])
+        }
     }
     if takes_arguments {
         added :: out.add_arguments_import(types) else return added
+    }
+    if reads_streams {
+        wait_for :: out.import_function(types, WAIT_FOR_INTERFACE, WAIT_FOR, "wait-for")
+            else return wait_for
+        out.wait_for = wait_for
+        out.add_builtins(
+            DEADLINE_BUILTINS.map((kind) -> CanonicalBuiltin { .kind = kind }).collect(),
+        )
     }
     for b in out.builtins {
         out.by_builtin[builtin_name(b)] = i32(out.functions.len())
@@ -86,6 +124,29 @@ add_builtins :: fn(imports: ImportedFunctions, builtins: CanonicalBuiltin[]) -> 
         name :: builtin_name(b)
         if !imports.builtins.any_match((known) -> builtin_name(known) == name) {
             imports.builtins.push(b)
+        }
+    }
+}
+
+// Note the streams and the futures `t` holds as handles, the value of type
+// `type_id`: `t` itself, or the elements of a tuple.
+record_handles :: fn(
+    imports: ImportedFunctions,
+    types: Bc.BcType[],
+    t: WitType,
+    type_id: i32,
+) -> void {
+    if t is WitStream | WitFuture {
+        imports.handles[type_id] = t
+        return
+    }
+    if t !is WitTuple {
+        return
+    }
+    held :: types[type_id]
+    if held is Bc.BcStruct && held.fields.len() == t.elements.len() {
+        for [e, i] in t.elements.indexed() {
+            imports.record_handles(types, e, held.fields[i].type_index)
         }
     }
 }

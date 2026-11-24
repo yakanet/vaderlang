@@ -7,10 +7,11 @@ VADER_ARCH = .X86_64
 
 # Selected body
 main$pad <- main.vader:16
-std_console$read_ready <- lib/std/console/console.vader:330
-std_console$system_poll_stdin <- lib/std/console/console.vader:413
-std_console$write_bytes <- lib/std/console/console.vader:76
-std_console$write_text <- lib/std/console/console.vader:99
+std_console$read_ready <- lib/std/console/console.vader:332
+std_console$stdin_ready_within <- lib/std/console/console.vader:451
+std_console$system_poll_stdin <- lib/std/console/console.vader:495
+std_console$write_bytes <- lib/std/console/console.vader:78
+std_console$write_text <- lib/std/console/console.vader:101
 std_env$current_executable_location <- lib/std/env/env.vader:232
 std_env$current_working_directory <- lib/std/env/env.vader:262
 std_env$get_env <- lib/std/env/env.vader:41

@@ -5,10 +5,12 @@
 // signature (`needs_adapter`). It lowers the arguments: a stream (an array)
 // is opened, passed by its readable end, then written whole and closed after the
 // call. It calls the import, then lifts the result (`canonical_lift.vader`): one
-// too large to come back flat is read from the room it was written to, a future
-// (`WasmFuture`) is waited for and its value read. The call is synchronous on
-// the Vader side, and the arena is released before the adapter returns
-// (`arena.vader`).
+// too large to come back flat is read from the room it was written to, a stream
+// or a future the call returns is held as the handle the host gave
+// (`WasmReadable`, `WasmFuture`), which the program reads and waits for later
+// (`canonical_wait.vader`). An async function is called async and waited for, so
+// the call is synchronous on the Vader side. The arena is released before the
+// adapter returns (`arena.vader`).
 //
 // The adapter reaches the host through the canonical built-ins
 // (`stream.new`, `stream.write`, `future.read`, the waitable sets), which the
@@ -16,8 +18,8 @@
 // write. The component defines both (`component.vader`).
 //
 // The memory holds, from address 0: the event a wait reports, the top of the
-// arena, the bytes of a stream, copied out of their GC array one chunk at a
-// time, then the arena.
+// arena, a list being lifted, the items of a stream, copied out of their GC
+// array or read from the host one chunk at a time, then the arena.
 
 module "vader/emit/wasm"
 
@@ -41,21 +43,29 @@ export CanonicalBuiltin :: struct {
 /// The canonical built-ins an adapter calls.
 export CanonicalKind :: enum {
     StreamNew,
+    StreamRead,
     StreamWrite,
+    StreamCancelRead,
+    StreamDropReadable,
     StreamDropWritable,
     FutureRead,
     FutureDropReadable,
     WaitableSetNew,
     WaitableJoin,
     WaitableSetWait,
+    WaitableSetPoll,
     WaitableSetDrop,
+    SubtaskCancel,
+    SubtaskDrop,
 }
 
 // Where the memory holds what crosses it: the event a wait reports (the
-// waitable, then the payload), the top of the arena (`arena.vader`), the chunk
-// of a stream being written, then the arena.
+// waitable, then the payload), the top of the arena (`arena.vader`), the address
+// and the length of a list being lifted, the chunk of a stream being written or
+// read, then the arena.
 EVENT_ADDRESS: i32: 0
 EVENT_PAYLOAD: i32: 4
+LIST_ADDRESS: i32: 16
 CHUNK_ADDRESS: i32: 1024
 CHUNK_SIZE: i32: 4096
 ALLOCATION_ADDRESS: i32: CHUNK_ADDRESS + CHUNK_SIZE
@@ -67,6 +77,19 @@ BLOCKED: i32: -1
 // it moved. A copy that did not complete, the other end dropped, ends a stream.
 COPY_STATUS_MASK: i32: 0xF
 COPY_COUNT_SHIFT: i32: 4
+COPY_DROPPED: i32: 1
+
+// The low bits of what an async call returns say its state, the others the
+// handle of its subtask while it runs.
+SUBTASK_STATE_MASK: i32: 0xF
+SUBTASK_HANDLE_SHIFT: i32: 4
+SUBTASK_RETURNED: i32: 2
+
+// The event a wait reports for a read of a stream.
+EVENT_STREAM_READ: i32: 2
+
+// The payload of the event the last wait reported.
+event_payload :: fn() -> WasmExpression = i32_load(i32_const(EVENT_ADDRESS), EVENT_PAYLOAD)
 
 // The core import name of `b`, one per built-in and type.
 builtin_name :: fn(b: CanonicalBuiltin) -> string {
@@ -76,33 +99,46 @@ builtin_name :: fn(b: CanonicalBuiltin) -> string {
 
 canonical_name :: fn(k: CanonicalKind) -> string = match k {
     .StreamNew          -> "stream.new"
+    .StreamRead         -> "stream.read"
     .StreamWrite        -> "stream.write"
+    .StreamCancelRead   -> "stream.cancel-read"
+    .StreamDropReadable -> "stream.drop-readable"
     .StreamDropWritable -> "stream.drop-writable"
     .FutureRead         -> "future.read"
     .FutureDropReadable -> "future.drop-readable"
     .WaitableSetNew     -> "waitable-set.new"
     .WaitableJoin       -> "waitable.join"
     .WaitableSetWait    -> "waitable-set.wait"
+    .WaitableSetPoll    -> "waitable-set.poll"
     .WaitableSetDrop    -> "waitable-set.drop"
+    .SubtaskCancel      -> "subtask.cancel"
+    .SubtaskDrop        -> "subtask.drop"
 }
 
 // The core type of `k`, as the canonical ABI lowers it.
 builtin_type :: fn(k: CanonicalKind) -> WasmFuncType = match k {
     .StreamNew          -> func_of([], [.I64])
+    .StreamRead         -> func_of([.I32, .I32, .I32], [.I32])
     .StreamWrite        -> func_of([.I32, .I32, .I32], [.I32])
+    .StreamCancelRead   -> func_of([.I32], [.I32])
+    .StreamDropReadable -> func_of([.I32], [])
     .StreamDropWritable -> func_of([.I32], [])
     .FutureRead         -> func_of([.I32, .I32], [.I32])
     .FutureDropReadable -> func_of([.I32], [])
     .WaitableSetNew     -> func_of([], [.I32])
     .WaitableJoin       -> func_of([.I32, .I32], [])
     .WaitableSetWait    -> func_of([.I32, .I32], [.I32])
+    .WaitableSetPoll    -> func_of([.I32, .I32], [.I32])
     .WaitableSetDrop    -> func_of([.I32], [])
+    .SubtaskCancel      -> func_of([.I32], [.I32])
+    .SubtaskDrop        -> func_of([.I32], [])
 }
 
 func_of :: fn(params: WasmValType[], results: WasmValType[]) -> WasmFuncType =
     WasmFuncType { .params = params, .results = results }
 
-// The built-ins the adapter of `f` calls.
+// The built-ins the adapter of `f` calls, and those that read and wait for the
+// streams and the futures it returns.
 builtins_of :: fn(f: WitFunction) -> CanonicalBuiltin[] {
     out: CanonicalBuiltin[]: []
     for p in f.params.filter((p) -> p.type is WitStream) {
@@ -110,12 +146,18 @@ builtins_of :: fn(f: WitFunction) -> CanonicalBuiltin[] {
         out.push(CanonicalBuiltin { .kind = .StreamWrite, .type = p.type })
         out.push(CanonicalBuiltin { .kind = .StreamDropWritable, .type = p.type })
     }
-    result :: f.result
-    if result is WitFuture {
-        out.push(CanonicalBuiltin { .kind = .FutureRead, .type = result })
-        out.push(CanonicalBuiltin { .kind = .FutureDropReadable, .type = result })
+    for t in returned_handles(f.result) {
+        kinds: CanonicalKind[]: if t is WitStream { STREAM_READ_BUILTINS } else {
+            FUTURE_READ_BUILTINS
+        }
+        for kind in kinds {
+            out.push(CanonicalBuiltin { .kind = kind, .type = t })
+        }
     }
-    // No waitable set without a stream or a future to wait for.
+    if f.is_async {
+        out.push(CanonicalBuiltin { .kind = .SubtaskDrop })
+    }
+    // No waitable set without a stream, a future or a subtask to wait for.
     if out.is_empty() {
         return out
     }
@@ -123,6 +165,27 @@ builtins_of :: fn(f: WitFunction) -> CanonicalBuiltin[] {
         out.push(CanonicalBuiltin { .kind = kind })
     }
     return out
+}
+
+STREAM_READ_BUILTINS: CanonicalKind[]: [.StreamRead, .StreamCancelRead, .StreamDropReadable]
+FUTURE_READ_BUILTINS: CanonicalKind[]: [.FutureRead, .FutureDropReadable]
+
+// The streams and the futures `t` holds as the handles the host gives: `t`
+// itself, or the elements of a tuple.
+returned_handles :: fn(t: WitType | null) -> (WitStream | WitFuture)[] {
+    out: (WitStream | WitFuture)[]: []
+    out.push_handles(t)
+    return out
+}
+
+push_handles :: fn(out: (WitStream | WitFuture)[], t: WitType | null) -> void {
+    if t is WitStream | WitFuture {
+        out.push(t)
+    } else if t is WitTuple {
+        for e in t.elements {
+            out.push_handles(e)
+        }
+    }
 }
 
 WAITABLE_SET_BUILTINS: CanonicalKind[]: [
@@ -134,10 +197,10 @@ WAITABLE_SET_BUILTINS: CanonicalKind[]: [
 
 // ---- the adapter ----------------------------------------------------------
 
-// Whether a call to `f` goes through an adapter: unless every parameter and the
-// result are scalars a Vader value passes as they are.
+// Whether a call to `f` goes through an adapter: unless it is synchronous and
+// every parameter and the result are scalars a Vader value passes as they are.
 needs_adapter :: fn(f: WitFunction) -> bool {
-    if f.params.any_match((p) -> !passes_as_is(p.type)) {
+    if f.is_async || f.params.any_match((p) -> !passes_as_is(p.type)) {
         return true
     }
     result :: f.result else return false
@@ -200,14 +263,13 @@ Adapter :: struct {
     body: WasmExpression[] = []
 }
 
-// Whether a call to `f` of the core type `core_type` takes room in the arena:
-// for a result the host writes to the memory, or for the value of a future.
+// Whether a call to `f` of the core type `core_type` takes room in the arena: for
+// a result the host writes to the memory, as it does for every async call.
 uses_arena :: fn(f: WitFunction, core_type: WasmFuncType) -> bool {
-    result :: f.result else return false
-    if result is WitFuture {
-        return result.value != null
+    if f.result == null {
+        return false
     }
-    return core_type.results.is_empty()
+    return f.is_async || core_type.results.is_empty()
 }
 
 // What an argument takes: what is done before the call, the value passed, what
@@ -219,9 +281,10 @@ Lowered :: struct {
 }
 
 // Lower the arguments, call the import, and lift what it returns into a local,
-// returned; null for nothing. A result too large to come back flat is written
-// to room passed last; a future, or a value that comes back flat, is kept while
-// what the arguments do after the call is done.
+// returned; null for nothing. A result too large to come back flat, or the
+// result of an async call, is written to room passed last; a value that comes
+// back flat is kept while what the arguments do after the call is done. An async
+// call is waited for once the arguments are written.
 push_call :: fn(
     a: Adapter,
     wit: WitFunction,
@@ -238,36 +301,62 @@ push_call :: fn(
         arguments.push(lowered.argument)
         after.push_all(lowered.after)
     }
-    result :: wit.result else {
-        a.body.push(call(import_index, arguments))
+    result :: wit.result
+    if result != null && !wit.is_async && !core_type.results.is_empty() {
+        value :: a.result_local() else return value
+        lifted :: a.lift_flat(result, call(import_index, arguments)) else return lifted
+        a.body.push(local_set(value, lifted))
         a.body.push_all(after)
+        return value
+    }
+    address :: a.frame.local(.I32)
+    if result != null {
+        a.body.push(local_set(address, a.ctx.room_for(result)))
+        arguments.push(local_get(address))
+    }
+    called :: call(import_index, arguments)
+    if wit.is_async {
+        state :: a.frame.local(.I32)
+        a.body.push(local_set(state, called))
+        a.body.push_all(after)
+        a.body.push(call(a.ctx.canonical_subtask_wait(), [local_get(state)]))
+    } else {
+        a.body.push(called)
+        a.body.push_all(after)
+    }
+    if result == null {
         return null
     }
+    return a.push_load(result, address)
+}
+
+// The local the result goes to, of the type the Vader signature returns.
+result_local :: fn(a: Adapter) -> i32 | WasmUnsupported {
     results :: a.frame.signature.results
     if results.is_empty() {
         return WasmUnsupported { .reason = "`${a.function}`: a result the Vader signature drops" }
     }
-    value :: a.frame.local(results[0])
-    if result is WitFuture {
-        handle :: a.frame.local(.I32)
-        a.body.push(local_set(handle, call(import_index, arguments)))
-        a.body.push_all(after)
-        resolved :: a.push_future_read(result, handle) else return resolved
-        a.body.push(local_set(value, resolved))
-    } else if core_type.results.is_empty() {
-        address :: a.frame.local(.I32)
-        a.body.push(local_set(address, a.ctx.room_for(result)))
-        arguments.push(local_get(address))
-        a.body.push(call(import_index, arguments))
-        a.body.push_all(after)
-        load :: canonical_load(a.ctx, result, a.imp.signature.result_types[0], a.function)
-            else return load
-        a.body.push(local_set(value, call(load, [local_get(address)])))
-    } else {
-        a.body.push(local_set(value, held_from_core(result, call(import_index, arguments))))
-        a.body.push_all(after)
-    }
+    return a.frame.local(results[0])
+}
+
+// Read the result of type `t` the host wrote at the address in the local
+// `address`, into the local returned.
+push_load :: fn(a: Adapter, t: WitType, address: i32) -> i32 | WasmUnsupported {
+    value :: a.result_local() else return value
+    load :: canonical_load(a.ctx, t, a.imp.signature.result_types[0], a.function)
+        else return load
+    a.body.push(local_set(value, call(load, [local_get(address)])))
     return value
+}
+
+// `value`, the flat result of type `t`, as Vader holds it: a stream or a future
+// is its handle in a struct of its own.
+lift_flat :: fn(a: Adapter, t: WitType, value: WasmExpression) -> WasmExpression | WasmUnsupported {
+    if t is WitStream | WitFuture {
+        held :: struct_type(a.ctx, a.imp.signature.result_types[0], a.function) else return held
+        return struct_new(held, [value])
+    }
+    return held_from_core(t, value)
 }
 
 // The parameter `index` of type `t`, lowered: a stream is opened, passed by its
@@ -312,42 +401,6 @@ no_lowering :: fn(t: WitType, function: string) -> WasmUnsupported =
 is_byte_stream :: fn(t: WitStream) -> bool {
     element :: t.element
     return element is WitScalar && element == .U8
-}
-
-// Read the value the future in the local `handle` resolves to, into room in the
-// arena once the host has written it, then close the future: the `WasmFuture`
-// that holds the value.
-push_future_read :: fn(
-    a: Adapter,
-    future: WitFuture,
-    handle: i32,
-) -> WasmExpression | WasmUnsupported {
-    result_type :: a.imp.signature.result_types[0]
-    no_struct :: WasmUnsupported { .reason = "`${a.function}`: a future is no struct" }
-    struct_type :: a.ctx.gc.of_struct[result_type] else return no_struct
-    held :: a.ctx.module.types[result_type]
-    if held !is Bc.BcStruct {
-        return no_struct
-    }
-    room :: a.frame.local(.I32)
-    status :: a.frame.local(.I32)
-    value :: future.value
-    where: WasmExpression: if value == null { i32_const(0) } else { a.ctx.room_for(value) }
-    read :: call(a.ctx.builtin(.FutureRead, future), [local_get(handle), local_get(room)])
-    blocked :: i32_eq(local_get(status), i32_const(BLOCKED))
-    a.body.push_all(
-        [
-            local_set(room, where),
-            local_set(status, read),
-            when(blocked, [call(a.ctx.canonical_wait(), [local_get(handle)])]),
-            call(a.ctx.builtin(.FutureDropReadable, future), [local_get(handle)]),
-        ],
-    )
-    if value == null {
-        return struct_new(struct_type, [struct_new(a.ctx.gc.void_box, [])])
-    }
-    load :: canonical_load(a.ctx, value, held.fields[0].type_index, a.function) else return load
-    return struct_new(struct_type, [call(load, [local_get(room)])])
 }
 
 // The function index of the built-in `kind` on `type`, which
@@ -420,7 +473,7 @@ define_write :: fn(ctx: ModuleCtx, key: string, stream: WitType) -> i32 {
             [
                 call(ctx.canonical_wait(), [local_get(writable)]),
                 // The result of the copy, the payload of its event.
-                local_set(status, i32_load(i32_const(EVENT_ADDRESS), EVENT_PAYLOAD)),
+                local_set(status, event_payload()),
             ],
         ),
         when(i32_and(local_get(status), i32_const(COPY_STATUS_MASK)), [return_()]),
@@ -451,11 +504,13 @@ define_write :: fn(ctx: ModuleCtx, key: string, stream: WitType) -> i32 {
 
 import "std/testing"
 
+WRITE_OUTCOME: WitFuture: WitFuture {
+    .value = WitResult { .error = WitEnum { .name = "error-code", .cases = ["io", "pipe"] } },
+}
+
 STDOUT_WRITE: WitFunction: WitFunction {
     .params = [WitParam { .name = "data", .type = WitStream { .element = .U8 } }],
-    .result = WitFuture {
-        .value = WitResult { .error = WitEnum { .name = "error-code", .cases = ["io", "pipe"] } },
-    },
+    .result = WRITE_OUTCOME,
 }
 
 @test
@@ -480,4 +535,29 @@ test_the_builtins_of_a_stream_write :: fn() -> void {
     assert_eq(names[0], "stream.new stream<u8>")
     assert_eq(names[3], "future.read future<result<_,enum:error-code{io,pipe}>>")
     assert_eq(names[8], "waitable-set.drop")
+}
+
+@test
+test_the_builtins_of_a_stream_returned_in_a_tuple :: fn() -> void {
+    read_via_stream :: WitFunction {
+        .params = [],
+        .result = WitTuple { .elements = [WitStream { .element = .U8 }, WRITE_OUTCOME] },
+    }
+    names :: builtins_of(read_via_stream).map(builtin_name).collect()
+    assert_eq(names[0], "stream.read stream<u8>")
+    assert_eq(names[2], "stream.drop-readable stream<u8>")
+    assert_eq(names[3], "future.read future<result<_,enum:error-code{io,pipe}>>")
+    assert_eq(names.len(), 9)
+}
+
+@test
+test_an_async_call_is_adapted_and_waits_for_its_subtask :: fn() -> void {
+    wait_for :: WitFunction {
+        .params = [WitParam { .name = "how-long", .type = .U64 }],
+        .result = null,
+        .is_async = true,
+    }
+    assert(needs_adapter(wait_for), "an async call returns its state")
+    names :: builtins_of(wait_for).map(builtin_name).collect()
+    assert_eq(names[0], "subtask.drop")
 }

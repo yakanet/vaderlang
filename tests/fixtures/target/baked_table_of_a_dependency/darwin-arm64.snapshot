@@ -7,10 +7,11 @@ VADER_ARCH = .Arm64
 
 # Selected body
 main$pad <- main.vader:19
-std_console$read_ready <- lib/std/console/console.vader:312
-std_console$system_poll_stdin <- lib/std/console/console.vader:399
-std_console$write_bytes <- lib/std/console/console.vader:62
-std_console$write_text <- lib/std/console/console.vader:96
+std_console$read_ready <- lib/std/console/console.vader:314
+std_console$stdin_ready_within <- lib/std/console/console.vader:451
+std_console$system_poll_stdin <- lib/std/console/console.vader:481
+std_console$write_bytes <- lib/std/console/console.vader:64
+std_console$write_text <- lib/std/console/console.vader:98
 std_env$current_executable_location <- lib/std/env/env.vader:214
 std_env$current_working_directory <- lib/std/env/env.vader:253
 std_env$get_env <- lib/std/env/env.vader:38

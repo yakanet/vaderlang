@@ -5,7 +5,9 @@
 Accepted (2026-11-23). Amends 0178 on where the WIT type of an import comes from,
 and on `WasmStream` / `WasmFuture`. Adds a point to the stages of 0156. Amended the
 same day, before it landed: the WIT type of a function is the interface's, which the
-build keeps, and no text on the declaration carries it.
+build keeps, and no text on the declaration carries it. Amended 2026-11-24: a stream
+or a future returned in a tuple has a form, an `async func` is lowered async, and
+`system/wasi` comes back to read the handles.
 
 ## Context
 
@@ -128,9 +130,12 @@ written by hand for C.
   | `stream<T>` as a parameter of a `func` | `T[]`, written whole by the call |
   | `stream<T>` in a result | `WasmReadable<T>`, read by chunks, then dropped |
   | `future<T>` in a result | `WasmFuture<T>`, a handle the caller waits on |
-  | `async func` | lowered synchronously: the call blocks |
+  | `async func` | lowered async and waited for: the call blocks |
 
-  `WasmStream` is retired; `WasmFuture` becomes a handle.
+  `WasmStream` is retired; `WasmFuture` becomes a handle. A tuple of a result holds
+  them as its elements (`read-via-stream` returns `[WasmReadable<u8>, WasmFuture<...>]`).
+  `read` and `wait` of `system/wasi` read and wait for them, through two members of
+  `Intrinsic` that only a WASM build serves.
 - **Tags never collide.** Where the two sides of a `result` or an `option` would carry
   one run-time tag (`result<string, string>`, `result<descriptor-type, error-code>`,
   two enums of one width, `option<option<T>>`), the ok side is wrapped in a struct of
@@ -152,7 +157,7 @@ written by hand for C.
 - Items marked `@unstable` are left out.
 - A function with no Vader form yet is left out of the module, a comment there naming
   it and why, so a call to it is an unknown name: `future<T>` as a parameter, a stream
-  or a future inside another type (`read-via-stream` returns one in a tuple),
+  or a future inside another type than the tuple of a result,
   `stream<T>` as a parameter of an `async func` (the blocked caller could not write
   it), `error-context`. A named type with no Vader form yet is an error at the `.wit`
   line when a program imports the interface.
@@ -205,8 +210,8 @@ written by hand for C.
 
 ## Consequences
 
-- `system/wasi` goes; `std/io`, `std/time`, `std/env` and `std/fs` import WASI
-  interfaces like any module, and the wiring of `get-arguments` in the emitter goes.
+- `system/wasi` loses its declarations; `std/io`, `std/time`, `std/env` and `std/fs`
+  import WASI interfaces like any module, and the wiring of `get-arguments` in the emitter goes.
 - The language gains a form of import, which SPEC.md describes.
 - Every build reads and generates the WIT interfaces `std` imports, a native one
   included, and the language server on each analysis. Measured before `std` switches

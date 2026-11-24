@@ -3,7 +3,9 @@
 // What the host writes, a result too large to come back flat or the value of a
 // future, is read into the form Vader holds it in: a scalar as itself, a
 // `string` as its atom, a `list` as an array header over a new storage, a
-// `result` as a union, its payload boxed when it is a scalar. One helper per WIT
+// `result` as a union, its payload boxed when it is a scalar, a `tuple` as the
+// struct of its elements, a stream or a future as the struct of its handle
+// (`WasmReadable`, `WasmFuture`). One helper per WIT
 // type and bytecode type, `(address) -> value`, following `load` of the
 // canonical ABI's specification at the layout `canonical_layout.vader` gives;
 // a container calls the helper of its elements.
@@ -134,7 +136,8 @@ load_body :: fn(
     is WitEnum               -> [load(case_load(t.cases.len()), local_get(ADDRESS))]
     is WitList               -> l.list_body(t, type_id)
     is WitResult             -> l.result_body(t, type_id)
-    is WitStream | WitFuture -> l.no_lift(t)
+    is WitTuple              -> l.tuple_body(t, type_id)
+    is WitStream | WitFuture -> l.handle_body(type_id)
     is WitNotLowered         -> l.no_lift(t)
     is WitUnsupported        -> WasmUnsupported { .reason = "`${l.function}`: ${t.reason}" }
 }
@@ -208,6 +211,36 @@ list_body :: fn(l: Lift, t: WitList, type_id: i32 | null) -> WasmExpression[] | 
         ),
         new_header(l.ctx.gc, header),
     ]
+}
+
+// A tuple: each element read where it lies, into the struct `type_id` a Vader
+// tuple is.
+tuple_body :: fn(l: Lift, t: WitTuple, type_id: i32 | null) -> WasmExpression[] | WasmUnsupported {
+    struct_id :: type_id else return WasmUnsupported {
+        .reason = "`${l.function}`: an erased tuple",
+    }
+    held :: l.ctx.module.types[struct_id]
+    if held !is Bc.BcStruct || held.fields.len() != t.elements.len() {
+        return WasmUnsupported { .reason = "`${l.function}`: a tuple held as no tuple" }
+    }
+    starts :: element_offsets(t).starts
+    elements: WasmExpression[]: []
+    for [e, i] in t.elements.indexed() {
+        load_element :: canonical_load(l.ctx, e, held.fields[i].type_index, l.function)
+            else return load_element
+        elements.push(call(load_element, [i32_add(local_get(ADDRESS), i32_const(starts[i]))]))
+    }
+    tuple :: struct_type(l.ctx, struct_id, l.function) else return tuple
+    return [struct_new(tuple, elements)]
+}
+
+// The handle of a stream or a future, in the struct `type_id` that holds it.
+handle_body :: fn(l: Lift, type_id: i32 | null) -> WasmExpression[] | WasmUnsupported {
+    struct_id :: type_id else return WasmUnsupported {
+        .reason = "`${l.function}`: an erased handle",
+    }
+    held :: struct_type(l.ctx, struct_id, l.function) else return held
+    return [struct_new(held, [i32_load(local_get(ADDRESS))])]
 }
 
 // A result: its case, then the payload of that case past it, as the variant of

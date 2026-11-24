@@ -195,6 +195,7 @@ ENUM_TYPE: u8: 0x6D
 STREAM_TYPE: u8: 0x66
 FUTURE_TYPE: u8: 0x65
 LIST_TYPE: u8: 0x70
+TUPLE_TYPE: u8: 0x6F
 
 // An instance-type declaration of a type, and of an export.
 DECLARE_TYPE: u8: 0x01
@@ -223,14 +224,40 @@ NO_OPTIONS: u8: 0x00
 // The options of a built-in that copies through the memory 0 and returns
 // `BLOCKED` rather than wait.
 ASYNC_WITH_MEMORY: u8[]: [0x02, 0x06, 0x03, 0x00]
-// The options of a lowered function: none, or UTF-8 strings, the memory 0 and
-// the allocator, the core function 0, for one that `allocates`.
-lowering_options :: fn(f: WitFunction) -> u8[] = if allocates(f) { ALLOCATING_OPTIONS } else {
-    [NO_OPTIONS]
+// The options of a lowered function: async for an async function; UTF-8
+// strings and the allocator, the core function 0, for one that `allocates`; the
+// memory 0 for those and for one whose result comes back through the memory.
+lowering_options :: fn(f: WitFunction) -> u8[] {
+    allocating :: allocates(f)
+    options: u8[][]: []
+    if f.is_async {
+        options.push([ASYNC_OPTION])
+    }
+    if allocating {
+        options.push([UTF8_OPTION])
+    }
+    if f.is_async || allocating || returns_through_memory(f) {
+        options.push(MEMORY_OPTION)
+    }
+    if allocating {
+        options.push(REALLOC_OPTION)
+    }
+    out: u8[]: [u8(options.len())]
+    for o in options {
+        out.push_all(o)
+    }
+    return out
 }
 
-ALLOCATING_OPTIONS: u8[]: [0x03, 0x00, 0x03, 0x00, 0x04, 0x00]
-// `waitable-set.wait` on the memory 0, which no cancellation interrupts.
+ASYNC_OPTION: u8: 0x06
+UTF8_OPTION: u8: 0x00
+MEMORY_OPTION: u8[]: [0x03, 0x00]
+REALLOC_OPTION: u8[]: [0x04, 0x00]
+// The option of a cancellation that returns once the copy or the subtask has
+// stopped.
+NOT_ASYNC: u8: 0x00
+// `waitable-set.wait` and `poll` on the memory 0, which no cancellation
+// interrupts.
 NOT_CANCELLABLE_ON_MEMORY: u8[]: [0x00, 0x00]
 // An import or export name that is a plain name, with no version or URL.
 PLAIN_NAME: u8: 0x00
@@ -295,7 +322,7 @@ instance_types :: fn(scopes: TypeScope[]) -> u8[] {
 }
 
 func_type_of :: fn(scope: TypeScope, f: WitFunction) -> u8[] {
-    out: u8[]: [FUNC_TYPE_SYNC]
+    out: u8[]: [if f.is_async { ASYNC_FUNC_TYPE } else { FUNC_TYPE_SYNC }]
     out.push_count(f.params.len())
     for p in f.params {
         out.push_name(p.name)
@@ -362,6 +389,13 @@ type_index :: fn(scope: TypeScope, t: WitType) -> i64 {
         is WitFuture -> {
             definition.push(FUTURE_TYPE)
             definition.push_optional_type(scope, t.value)
+        }
+        is WitTuple -> {
+            definition.push(TUPLE_TYPE)
+            definition.push_count(t.elements.len())
+            for e in t.elements {
+                definition.push_value_type(scope, e)
+            }
         }
         is WitScalar | WitUnsupported | WitNotLowered -> {
             panic("wasm: no component type to define for `${key}`")
@@ -518,6 +552,11 @@ push_enums_of :: fn(out: WitEnum[], t: WitType | null) -> void {
         is WitList -> out.push_enums_of(t.element)
         is WitStream -> out.push_enums_of(t.element)
         is WitFuture -> out.push_enums_of(t.value)
+        is WitTuple -> {
+            for e in t.elements {
+                out.push_enums_of(e)
+            }
+        }
         is WitScalar | WitUnsupported | WitNotLowered -> {}
     }
 }
@@ -534,27 +573,39 @@ exporting_instance :: fn(scopes: TypeScope[], e: WitEnum) -> i64 {
 }
 
 canonical_opcode :: fn(k: CanonicalKind) -> u8 = match k {
+    .SubtaskCancel      -> 0x06
+    .SubtaskDrop        -> 0x0D
     .StreamNew          -> 0x0E
+    .StreamRead         -> 0x0F
     .StreamWrite        -> 0x10
+    .StreamCancelRead   -> 0x11
+    .StreamDropReadable -> 0x13
     .StreamDropWritable -> 0x14
     .FutureRead         -> 0x16
     .FutureDropReadable -> 0x1A
     .WaitableSetNew     -> 0x1F
     .WaitableSetWait    -> 0x20
+    .WaitableSetPoll    -> 0x21
     .WaitableSetDrop    -> 0x22
     .WaitableJoin       -> 0x23
 }
 
 builtin_options :: fn(k: CanonicalKind) -> u8[] = match k {
     .StreamNew          -> []
+    .StreamRead         -> ASYNC_WITH_MEMORY
     .StreamWrite        -> ASYNC_WITH_MEMORY
+    .StreamCancelRead   -> [NOT_ASYNC]
+    .StreamDropReadable -> []
     .StreamDropWritable -> []
     .FutureRead         -> ASYNC_WITH_MEMORY
     .FutureDropReadable -> []
     .WaitableSetNew     -> []
     .WaitableJoin       -> []
     .WaitableSetWait    -> NOT_CANCELLABLE_ON_MEMORY
+    .WaitableSetPoll    -> NOT_CANCELLABLE_ON_MEMORY
     .WaitableSetDrop    -> []
+    .SubtaskCancel      -> [NOT_ASYNC]
+    .SubtaskDrop        -> []
 }
 
 // ---- instances ------------------------------------------------------------
