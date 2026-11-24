@@ -3,9 +3,9 @@
 // A `CLibrary` names a C library once, a `WasmInterface` a component interface;
 // each `@extern` that comes from one names the constant as its `from`
 // (`@extern(RAYLIB, "InitWindow")`). Only the module of an imported WIT
-// interface declares the functions of a `WasmInterface`, and a `WasmFuture`
-// stands there for the WIT `future` they return, which no other Vader type
-// spells. The compiler evaluates the constant when it builds, so its fields may
+// interface declares the functions of a `WasmInterface`; a `WasmReadable` and a
+// `WasmFuture` stand there for the WIT `stream` and `future` they return, which
+// no other Vader type spells. The compiler evaluates the constant when it builds, so its fields may
 // depend on the target through `VADER_OS` and `VADER_ARCH`. Part of `std/core`:
 // no import names it.
 
@@ -50,6 +50,12 @@ export WasmInterface :: struct {
     package: string
     name: string
     version: string
+}
+
+/// The readable end of a WIT `stream<T>` that a function of an imported
+/// interface returns: the handle the host gave.
+export WasmReadable :: struct<T> {
+    handle: i32
 }
 
 /// What a WIT `future<T>` resolves to, as a function of an imported interface

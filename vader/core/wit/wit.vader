@@ -186,6 +186,8 @@ export WitFunction :: struct {
     params: WitParam[]
     /// What it returns, null for nothing.
     result: WitType | null
+    /// Whether WIT declares it `async`: a call to it may return before it ends.
+    is_async: bool = false
 }
 
 /// A Vader name in the kebab case of WIT: `how_long` and `HowLong` are both
@@ -229,13 +231,20 @@ export enum_case_bits :: fn(case_count: i64) -> i64 {
 
 // ---- text -----------------------------------------------------------------
 
+// What the text of an async function opens with.
+ASYNC_TEXT :: "async"
+
 /// The `.virt` text of `f`.
 ///
 /// @param f  the function type.
 /// @return   one token with neither space nor parenthesis, which
-///           `parse_wit_function` reads back.
+///           `parse_wit_function` reads back: `async` first for an async
+///           function.
 export wit_function_text :: fn(f: WitFunction) -> string {
     sb :: StringBuilder {}
+    if f.is_async {
+        sb.append(ASYNC_TEXT)
+    }
     sb.append("[")
     for i in 0..<f.params.len() {
         if i > 0 {
@@ -315,6 +324,7 @@ write_wit :: fn(sb: StringBuilder, t: WitType) -> void {
 ///
 /// @param f  a function as its interface declares it.
 export without_aliases :: fn(f: WitFunction) -> WitFunction = WitFunction {
+    ...f,
     .params = alias_free_params(f.params),
     .result = optional_alias_free(f.result),
 }
@@ -429,6 +439,7 @@ wit_scalar_named :: fn(name: string) -> WitScalar | null = match name {
 /// @return      the function type, null when the text is not one.
 export parse_wit_function :: fn(text: string) -> WitFunction | null {
     reader :: WitReader { .text = text }
+    is_async :: reader.wit_skip(ASYNC_TEXT)
     if !reader.wit_skip("[") {
         return null
     }
@@ -445,7 +456,7 @@ export parse_wit_function :: fn(text: string) -> WitFunction | null {
         params.push(WitParam { .name = name, .type = t })
     }
     if reader.wit_at_end() {
-        return WitFunction { .params = params, .result = null }
+        return WitFunction { .params = params, .result = null, .is_async = is_async }
     }
     if !reader.wit_skip("->") {
         return null
@@ -454,7 +465,7 @@ export parse_wit_function :: fn(text: string) -> WitFunction | null {
     if !reader.wit_at_end() {
         return null
     }
-    return WitFunction { .params = params, .result = result }
+    return WitFunction { .params = params, .result = result, .is_async = is_async }
 }
 
 WitReader :: struct {
@@ -590,6 +601,13 @@ test_wit_function_text_reads_back :: fn() -> void {
 test_wit_function_of_a_list_reads_back :: fn() -> void {
     read :: parse_wit_function("[]->list<string>") else panic("the text reads back")
     assert_eq(wit_function_text(read), "[]->list<string>")
+}
+
+@test
+test_wit_function_of_an_async_function_reads_back :: fn() -> void {
+    read :: parse_wit_function("async[how-long:u64]") else panic("the text reads back")
+    assert(read.is_async, "an async function")
+    assert_eq(wit_function_text(read), "async[how-long:u64]")
 }
 
 @test

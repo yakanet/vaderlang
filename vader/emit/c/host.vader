@@ -1043,6 +1043,10 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     }
     .TargetCurrentOs -> { return [returning("vader_current_os", [])] }
     .TargetCurrentArch -> { return [returning("vader_current_arch", [])] }
+    // A stream or a future of a component exists in a WASM build only.
+    .WasmStreamRead | .WasmFutureWait -> {
+        return [trap("${imp.mangled_name}: only a WASM build reads a component stream")]
+    }
 
     // Non-intrinsics, and the members an op serves, which no call reaches as an
     // import.

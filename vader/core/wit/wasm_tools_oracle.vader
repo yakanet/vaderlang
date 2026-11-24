@@ -47,7 +47,9 @@ package_lines :: fn(p: WitPackage) -> string[] {
             out.push("${owner}: ${wit_type_text(t)}")
         }
         for f in i.functions {
-            out.push("${owner}: ${f.name} ${kind_text(f)} ${wit_function_text(f.type)}")
+            // The kind says `async` already, as the JSON does.
+            signature :: wit_function_text(WitFunction { ...f.type, .is_async = false })
+            out.push("${owner}: ${f.name} ${kind_text(f)} ${signature}")
         }
     }
     return out
@@ -60,7 +62,7 @@ kind_text :: fn(f: WitNamedFunction) -> string {
         .Static       -> "static"
         .Constructor  -> "constructor"
     }
-    prefix :: if f.is_async { "async-" } else { "" }
+    prefix :: if f.type.is_async { "async-" } else { "" }
     resource :: f.resource else return "${prefix}${kind}"
     return "${prefix}${kind}:${wit_type_text(resource)}"
 }

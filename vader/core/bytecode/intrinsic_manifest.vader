@@ -93,6 +93,10 @@ export IntrinsicId :: enum(MemberName) {
     WaitBlockedReadFor      { .member = "wait_blocked_read_for" },
     WaitBlockedWriteFor     { .member = "wait_blocked_write_for" },
     WaitStop                { .member = "stop_waiting" },
+    // std/core: the stream or the future a component function returns, which
+    // only a WASM build reads
+    WasmStreamRead          { .member = "wasm_stream_read" },
+    WasmFutureWait          { .member = "wasm_future_wait" },
     // std/abort
     AbortPanic              { .member = "panic" },
     // std/target: the OS the process is RUNNING on, not the one it was built
@@ -184,6 +188,8 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     .SchedulerPark | .SchedulerSleepFor | .SchedulerCancel | .SchedulerMutexWait -> true
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
     .WaitBlockedReadFor | .WaitBlockedWriteFor -> true
+    // Wait for the host, then make the array or the value read.
+    .WasmStreamRead | .WasmFutureWait -> true
     // Constants of the runtime's own build.
     .TargetCurrentOs | .TargetCurrentArch -> false
     // Allocate: a view header, an interned string, the rendered text, a copy.
@@ -228,6 +234,7 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     .SchedulerPark | .SchedulerSleepFor | .SchedulerCancel | .SchedulerMutexWait -> true
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
     .WaitBlockedReadFor | .WaitBlockedWriteFor -> true
+    .WasmStreamRead | .WasmFutureWait -> true
     // Constants of the build ; `panic` never returns.
     .TargetCurrentOs | .TargetCurrentArch | .AbortPanic -> false
     // Foreign code is lent a buffer, never the header that holds its length.
@@ -252,6 +259,8 @@ export intrinsic_parks :: fn(id: IntrinsicId) -> bool = match id {
     .SchedulerPark | .SchedulerSleepFor | .SchedulerMutexWait -> true
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
     .WaitBlockedReadFor | .WaitBlockedWriteFor -> true
+    // A wait for the host.
+    .WasmStreamRead | .WasmFutureWait -> true
     // Cancelling another thread returns at once ; cancelling the running one never
     // returns.
     .SchedulerCancel -> false

@@ -52,7 +52,6 @@ export WitNamedFunction :: struct {
     /// itself for a function of the interface, "" for a constructor.
     member: string
     kind: WitFunctionKind
-    is_async: bool
     /// The resource of a method, a static function or a constructor.
     resource: WitResource | null
     type: WitFunction
@@ -261,9 +260,12 @@ function_of :: fn(
         .name = function_name(decl, resource),
         .member = decl.name,
         .kind = decl.kind,
-        .is_async = decl.is_async,
         .resource = resource,
-        .type = WitFunction { .params = params, .result = result },
+        .type = WitFunction {
+            .params = params,
+            .result = result,
+            .is_async = decl.is_async,
+        },
     }
 }
 

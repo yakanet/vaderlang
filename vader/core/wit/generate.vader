@@ -11,7 +11,8 @@
 //
 // Each function is an `@extern` of the interface, a method taking its resource
 // first; a WASM build takes its WIT type from the interface. A stream it takes is
-// a `T[]`, written whole by the call, and a future it returns a `WasmFuture<T>`.
+// a `T[]`, written whole by the call; a stream it returns is a `WasmReadable<T>`,
+// and a future a `WasmFuture<T>`, alone or in a tuple.
 // A function with no Vader form yet is left out, a comment naming it and why.
 // Where the two sides of a returned `result` or `option` would share a run-time
 // tag, the ok side is wrapped in a struct named after the function,
@@ -337,7 +338,7 @@ parameter_text :: fn(g: Generation, f: WitNamedFunction, t: WitType) -> string |
         return no_form(t, "a future as a parameter")
     }
     if t is WitStream {
-        if f.is_async {
+        if f.type.is_async {
             return no_form(t, "a stream as a parameter of an `async func`")
         }
         element :: g.type_text(t.element) else return element
@@ -355,21 +356,37 @@ Returned :: struct {
 
 returned :: fn(g: Generation, f: WitNamedFunction) -> Returned | NoForm {
     t :: f.type.result else return Returned { .text = "void" }
-    if t is WitFuture {
-        value :: g.future_value_text(t) else return value
-        return Returned { .text = "WasmFuture<${value}>" }
-    }
-    if t is WitStream {
-        return no_form(t, "a stream as a result")
-    }
     if t is WitResult {
         return g.returned_result(f, t)
     }
     if t is WitOption {
         return g.returned_union(f, t.value, "null", ["null"])
     }
-    text :: g.type_text(t) else return text
+    text :: g.returned_text(t) else return text
     return Returned { .text = text }
+}
+
+// A value a call returns, as `type_text` writes it, but for a stream and a
+// future, alone or in a tuple: the handles the host gave, which the program reads
+// and waits for after the call.
+returned_text :: fn(g: Generation, t: WitType) -> string | NoForm {
+    if t is WitStream {
+        element :: g.type_text(t.element) else return element
+        return "WasmReadable<${element}>"
+    }
+    if t is WitFuture {
+        value :: g.future_value_text(t) else return value
+        return "WasmFuture<${value}>"
+    }
+    if t is WitTuple {
+        elements: string[]: []
+        for e in t.elements {
+            written :: g.returned_text(e) else return written
+            elements.push(written)
+        }
+        return "[${elements.join(", ")}]"
+    }
+    return g.type_text(t)
 }
 
 future_value_text :: fn(g: Generation, t: WitFuture) -> string | NoForm {
@@ -766,6 +783,19 @@ test_wit_generate_a_stream_parameter_and_a_future_result :: fn() -> void {
         }
         """).split("\n").filter((l) -> l.starts_with("export")).collect().join("\n"),
         "export write :: fn(data: u8[]) -> WasmFuture<u32>",
+    )
+}
+
+@test
+test_wit_generate_a_stream_and_a_future_returned_in_a_tuple :: fn() -> void {
+    assert_eq(
+        generated_for("""
+        package a:b;
+        interface i {
+            read: func() -> tuple<stream<u8>, future<result<_, string>>>;
+        }
+        """).split("\n").filter((l) -> l.starts_with("export")).collect().join("\n"),
+        "export read :: fn() -> [WasmReadable<u8>, WasmFuture<void | string>]",
     )
 }
 

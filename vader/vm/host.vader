@@ -191,6 +191,10 @@ export dispatch_import :: fn(
         message :: "${info.mangled_name}: a thread primitive reached the host dispatch"
         return Trap { .message = message }
     }
+    // A stream or a future of a component exists in a WASM build only.
+    .WasmStreamRead | .WasmFutureWait -> {
+        return Trap { .message = "${info.mangled_name}: only a WASM build reads a component stream" }
+    }
     // Dynamic foreign calls. A `@test` runs ON the VM, so these have to be
     // served here too: the arms forward to the same intrinsics the natively
     // compiled VM calls directly.
@@ -1146,6 +1150,8 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerMutexWait -> null
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop -> null
     .WaitBlockedReadFor | .WaitBlockedWriteFor -> null
+    // Traps, which the evaluation reports.
+    .WasmStreamRead | .WasmFutureWait -> null
     .AbortPanic -> null
     // Served by an op, never called as an import.
     .NotIntrinsic
