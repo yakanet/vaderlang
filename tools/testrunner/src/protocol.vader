@@ -41,8 +41,9 @@ import "std/string"
 import "vader/support/target"
 
 // How the text of a stage compares with its snapshot, or, for a stage that has
-// none, whether its check failed.
-Verdict :: enum { Same, Differ, Missing, Written, Failed }
+// none, whether its check failed. A stage whose build the case does not take is
+// skipped.
+Verdict :: enum { Same, Differ, Missing, Written, Failed, Skipped }
 
 // Whether a stage of this verdict fails the run.
 is_failure :: fn(verdict: Verdict) -> bool =
@@ -54,6 +55,7 @@ verdict_name :: fn(verdict: Verdict) -> string = match verdict {
     .Missing -> "missing"
     .Written -> "written"
     .Failed  -> "failed"
+    .Skipped -> "skipped"
 }
 
 verdict_named :: fn(name: string) -> Verdict | null = match name {
@@ -62,6 +64,7 @@ verdict_named :: fn(name: string) -> Verdict | null = match name {
     "missing" -> .Missing
     "written" -> .Written
     "failed"  -> .Failed
+    "skipped" -> .Skipped
     _         -> null
 }
 

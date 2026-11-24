@@ -67,6 +67,8 @@ Tick :: struct {}
 Tally :: struct {
     same: i64 = 0
     written: string[] = []
+    /// The stages whose build the case does not take.
+    skipped: i64 = 0
     /// The stages that differ from their snapshot, have none, or failed.
     failures: i64 = 0
     crashes: i64 = 0
@@ -155,6 +157,10 @@ note :: fn(tally: Tally, run: CaseRun, case: string, report: StageReport) -> voi
             tally.written.push("${case}/${report.phase}")
             run.passed.push(report.phase)
         }
+        .Skipped                     -> {
+            tally.skipped += 1
+            run.passed.push("${report.phase} (skipped)")
+        }
         .Differ | .Missing | .Failed -> {
             tally.failures += 1
             tally.failing.push(record_line(case, report.phase))
@@ -165,10 +171,10 @@ note :: fn(tally: Tally, run: CaseRun, case: string, report: StageReport) -> voi
 }
 
 failure_label :: fn(result: Verdict) -> string = match result {
-    .Differ          -> "!= snapshot"
-    .Missing         -> "no snapshot"
-    .Failed          -> "failed"
-    .Same | .Written -> verdict_name(result)
+    .Differ                     -> "!= snapshot"
+    .Missing                    -> "no snapshot"
+    .Failed                     -> "failed"
+    .Same | .Written | .Skipped -> verdict_name(result)
 }
 
 // Print the line of `case`, which ended, and below it what failed on it; nothing
@@ -227,13 +233,16 @@ print_tally :: fn(total: Tally, cases: i64, k: i32, took: Duration) -> void {
     if total.written.len() > 0 {
         println(" ${total.written.len()} written")
     }
+    if total.skipped > 0 {
+        println(" ${total.skipped} skipped")
+    }
     if total.crashes > 0 {
         println(" ${total.crashes} crash")
     }
     if total.errors > 0 {
         println(" ${total.errors} error")
     }
-    stages :: total.same + total.written.len() + total.failures + total.crashes
+    stages :: total.same + total.written.len() + total.skipped + total.failures + total.crashes
     println("Ran ${stages} stages across ${cases} cases on ${k} workers. [${took.format()}]")
     times :: phase_times_line(total.phase_micros)
     if times != null {

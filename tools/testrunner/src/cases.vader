@@ -61,6 +61,7 @@ STAGES: Stage[]: [
     },
     VM_STAGE,
     NATIVE_STAGE,
+    WASI_STAGE,
     DIAGNOSTICS_STAGE,
     TESTS_STAGE,
     TARGETS_STAGE,
@@ -88,6 +89,15 @@ VM_STAGE: Stage: Stage {
 NATIVE_PHASE :: "native"
 NATIVE_STAGE: Stage: Stage {
     .phase = NATIVE_PHASE,
+    .dump = null,
+    .snapshot = VM_SNAPSHOT,
+}
+
+// The run of a snippet built for WASI under wasmtime, compared with what such a
+// run keeps of its run on the VM (`wasi_run.vader`).
+WASI_PHASE :: "wasi"
+WASI_STAGE: Stage: Stage {
+    .phase = WASI_PHASE,
     .dump = null,
     .snapshot = VM_SNAPSHOT,
 }
@@ -332,6 +342,9 @@ find_snippets :: fn(found: Discovery, phases: string[]) -> void {
         }
         if phases.contains(NATIVE_PHASE) && runs_natively(dir, config) {
             kept.push(NATIVE_PHASE)
+        }
+        if phases.contains(WASI_PHASE) && exists("${dir}/${VM_SNAPSHOT}") {
+            kept.push(WASI_PHASE)
         }
         if phases.contains(FORMAT_PHASE) {
             kept.push(FORMAT_PHASE)

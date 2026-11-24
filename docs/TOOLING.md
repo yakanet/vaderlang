@@ -54,13 +54,13 @@ Other common options:
 
 The C goes to `c/` beside the binary and the object files to `obj/` (none under `--no-split`), named after it; both stay after the link, even a failed one. Each `CLibrary`'s calls (SPEC §13) get their own C file beside the program's, `<out>-_ffi_<name>.c`, except on standard output (`--out=-`, `vader dump --stage=c`).
 
-**`--run`** then runs the binary on this process's standard streams, with what follows `[path]` as its argv, and exits with its code, or with 1 after reporting a signal (an exception, on Windows). It runs nothing after a failed build, and is refused unless the build makes an executable for this machine.
+**`--run`** then runs the binary on this process's standard streams, with what follows `[path]` as its argv, and exits with its code, or with 1 after reporting a signal (an exception, on Windows). It runs nothing after a failed build, and is refused unless the build makes an executable for this machine. A `--target=wasi-wasm32` build runs under `wasmtime run` (51 or later, on `PATH`), the current folder lent to it as `.` and the environment inherited; a failed run exits with the host's code, 1 under wasmtime.
 
 **Another platform.** `--target=<os>-<arch>` (`-t`) builds for the platform it names (SPEC §17), such as `linux-x86_64`.
 
 - An executable needs a C compiler for it, named by `--cc`, `$CC` or `ctx.cc` in a `build.vader`, and taken to target it. Without one, a file or a `vader.json` project stops.
 - `--emit=c` needs no C compiler.
-- `--target=wasi-wasm32` writes a WebAssembly component, `wasmtime run main.wasm` runs it, and needs no C compiler. The emitter translates part of the language so far, and names what stops a build. `browser-wasm32` is planned.
+- `--target=wasi-wasm32` writes a WebAssembly component, `main.wasm`, which `wasmtime run main.wasm` or `--run` runs, and needs no C compiler. The emitter translates part of the language so far, and names what stops a build. `browser-wasm32` is planned.
 
 `VADER_OPT_REPORT=1` prints on stderr where an optimisation fell back to its general path, without changing the program.
 

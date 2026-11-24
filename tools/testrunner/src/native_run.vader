@@ -28,7 +28,7 @@ check_native :: fn(ctx: WorkerContext, case: Case, dir: string) -> StageReport |
     file :: Path(entry_path(case))
     prepared :: program_of(file, BuildRequest { .verify_bounds = true }) else return prepared
     binary :: build_binary(ctx, case, prepared, file, dir) else return binary
-    actual :: run_binary(binary) else return actual
+    actual :: run_line([binary]) else return actual
     report :: report_of(case, NATIVE_STAGE, actual, false, began)
     detail :: report.detail else return report
     return StageReport { ...report, .detail = "${detail}(the binary is kept: ${binary})\n" }
@@ -73,12 +73,12 @@ ProgramBytes :: struct {
     err: u8[] = []
 }
 
-// Run `binary`, its stdin ended, for at most `PROGRAM_TIMEOUT_SECONDS`: the text
-// its run records, or why it has none.
-run_binary :: fn(binary: string) -> string | CaseFailure {
+// Run the command line `argv`, its stdin ended, for at most
+// `PROGRAM_TIMEOUT_SECONDS`: the text its run records, or why it has none.
+run_line :: fn(argv: string[]) -> string | CaseFailure {
     // Not `spawn`: its child would share the worker's stdin, which carries the
     // runner's requests.
-    child :: spawn_interactive([binary]) else return CaseFailure { .message = child.msg }
+    child :: spawn_interactive(argv) else return CaseFailure { .message = child.msg }
     child.close_input()
     written :: ProgramBytes {}
     // Bound: the task analysis sees `timeout` join its task on a statement of
@@ -87,7 +87,7 @@ run_binary :: fn(binary: string) -> string | CaseFailure {
         else is TimeoutError {
             child.kill()
             return CaseFailure {
-                .message = "`${binary}` ran for more than ${PROGRAM_TIMEOUT_SECONDS} s",
+                .message = "`${argv.join(" ")}` ran for more than ${PROGRAM_TIMEOUT_SECONDS} s",
             }
         }
     return run_text(written.out.bytes_to_string(), written.err.bytes_to_string(), exit_of(child))

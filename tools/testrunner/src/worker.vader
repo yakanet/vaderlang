@@ -114,6 +114,9 @@ check_phase :: fn(
     if phase == NATIVE_PHASE {
         return check_native(ctx, case, dir)
     }
+    if phase == WASI_PHASE {
+        return check_wasi(case, dir)
+    }
     if phase == DIAGNOSTICS_PHASE {
         return check_diagnostics(case, input, ctx.update)
     }

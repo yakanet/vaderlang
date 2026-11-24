@@ -251,6 +251,39 @@ test_a_wasm_build_keeps_apart_two_functions_of_one_name :: fn() -> void {
     assert(!exists("${copies}/system-clock@0.3.0.vader"), "no module whose functions go uncalled")
 }
 
+// `--run` runs a `wasi-wasm32` build under wasmtime: the arguments reach the
+// program, and a failed run is the host's exit code, 1.
+@test
+test_run_runs_a_wasm_build_under_wasmtime :: fn() -> void {
+    if !has_wasmtime() {
+        return
+    }
+    dir :: staged(
+        "wasm_run",
+        """
+        module "main"
+
+        import "std/console"
+
+        main :: fn(args: string[]) -> i32 {
+            println(args[1])
+            return i32(args.len()) - 2
+        }
+        """,
+    )
+    no_cc: [string, string | null][]: [["CC", ""]]
+    once :: vader_in(dir, ["build", "--target=wasi-wasm32", "--run", "main.vader", "hello"], no_cc)
+    assert_eq(once.exit, 0)
+    assert_eq(once.stdout, "hello\n")
+    twice :: vader_in(
+        dir,
+        ["build", "--target=wasi-wasm32", "--run", "main.vader", "a", "b"],
+        no_cc,
+    )
+    assert_eq(twice.exit, 1)
+    assert_eq(twice.stdout, "a\n")
+}
+
 @test
 test_run_refuses_a_build_that_makes_no_program_for_this_host :: fn() -> void {
     dir :: staged("nothing_to_run", program("app", 0))

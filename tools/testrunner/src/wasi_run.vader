@@ -1,0 +1,93 @@
+// tools/testrunner/src/wasi_run: the `wasi` stage of a snippet, its program built
+// for `wasi-wasm32` and run under wasmtime.
+//
+// The run is compared with the `vm.snapshot` of the `vm` stage on what a WASI run
+// keeps of it: stdout, and whether the run failed, since a failed run exits with
+// the host's code. A program the build for WASI does not take is skipped. A
+// snippet whose `_config.json` says why its run differs (`wasi.differs`) passes
+// while it differs and fails when it runs alike, which asks for the key to go.
+
+module "tools/testrunner/src"
+
+import "std/fs"
+import "std/path"
+import "std/string"
+import "std/time"
+import "vader/emit/wasm"
+import "vader/pipeline"
+import "vader/support/target"
+
+// Build the program of `case` for WASI in its folder `dir`, run it under wasmtime
+// and compare the run with its `vm.snapshot`.
+check_wasi :: fn(case: Case, dir: string) -> StageReport | CaseFailure {
+    began :: monotonic()
+    request :: BuildRequest { .target = Target { .os = .Wasi, .arch = .Wasm32 } }
+    prepared :: program_of(Path(entry_path(case)), request) else return skipped(began)
+    bytes :: wasm_binary_of(prepared.module, prepared.entry) else return skipped(began)
+    component :: "${dir}/_main.wasm"
+    written :: write_file(component, bytes)
+        else return CaseFailure { .message = "`${component}`: ${written.message()}" }
+    actual :: run_line(wasmtime_command(component)) else return actual
+    path :: "${case.dir}/${VM_SNAPSHOT}"
+    expected :: read_file_string(path)
+        else return CaseFailure { .message = "`${path}`: ${expected.message()}" }
+    want :: kept_by_wasi(expected)
+    got :: kept_by_wasi(actual)
+    config :: read_config(case.dir)
+    result :: wasi_verdict(want == got, config is SnippetConfig && config.wasi.differs)
+    detail :: if result == .Failed {
+        "it runs as on the VM: drop `wasi.differs` from its `${CONFIG_FILE}`\n"
+    } else {
+        failure_detail(result, want, got, path)
+    }
+    return StageReport {
+        .phase = WASI_PHASE,
+        .result = result,
+        .duration_us = began.since().to_micros(),
+        .detail = detail,
+    }
+}
+
+// The verdict of a run that ran `alike` as on the VM or not, for a snippet
+// `known` to differ.
+wasi_verdict :: fn(alike: bool, known: bool) -> Verdict {
+    if known && alike   { return .Failed }
+    if !known && !alike { return .Differ }
+    return .Same
+}
+
+// The stage of a program the build for WASI does not take.
+skipped :: fn(began: Monotonic) -> StageReport = StageReport {
+    .phase = WASI_PHASE,
+    .result = .Skipped,
+    .duration_us = began.since().to_micros(),
+}
+
+// What a run under WASI keeps of `run`, a text `run_text` records: its stdout,
+// and whether it failed.
+kept_by_wasi :: fn(run: string) -> string {
+    failed :: if run_section(run, EXIT_HEADER).trim() == "0" { "no" } else { "yes" }
+    return "${STDOUT_HEADER}\n${run_section(run, STDOUT_HEADER)}# failed\n${failed}\n"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_kept_by_wasi_drops_the_exit_code :: fn() -> void {
+    assert_eq(
+        kept_by_wasi("# stdout\na\n# stderr\nboom\n# exit\n3\n"),
+        "# stdout\na\n# failed\nyes\n",
+    )
+}
+
+@test
+test_kept_by_wasi_of_a_silent_success :: fn() -> void {
+    assert_eq(kept_by_wasi("# exit\n0\n"), "# stdout\n# failed\nno\n")
+}
+
+@test
+test_wasi_verdict_fails_a_known_difference_that_runs_alike :: fn() -> void {
+    assert(wasi_verdict(true, true) == .Failed, "a known difference that runs alike")
+}

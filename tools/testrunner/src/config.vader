@@ -3,7 +3,8 @@
 // Every key is optional, and a snippet without the file takes every default. The
 // file may name the phases its snapshots cover (`phases`), the modules the
 // module-scoped dumps show (`modules`), where its native run is not checked
-// (`native`) and where and from what its run on the VM is (`vm`). A file with a
+// (`native`), where and from what its run on the VM is (`vm`), and why its run
+// under wasmtime differs from it (`wasi`). A file with a
 // problem is reported and its snippet is not checked: read as the defaults, a
 // mistyped phase would turn a check off in silence, or let `--update` write the
 // snapshots of phases the snippet does not keep.
@@ -25,6 +26,7 @@ SnippetConfig :: struct {
     modules: string[] = []
     native: RunConfig = RunConfig {}
     vm: RunConfig = RunConfig {}
+    wasi: RunConfig = RunConfig {}
 }
 
 // What a `_config.json` says of a run of its snippet.
@@ -37,6 +39,9 @@ RunConfig :: struct {
     /// It runs the image a build links from source (`"from": "build"`): the run
     /// on the VM only.
     from_build: bool = false
+    /// It is known to run otherwise than on the VM (`differs`): the run under
+    /// wasmtime only, which fails once it runs alike.
+    differs: bool = false
 }
 
 // What is wrong with a `_config.json`.
@@ -47,9 +52,10 @@ ConfigProblems :: struct {
 CONFIG_FILE :: "_config.json"
 
 // The keys of a `_config.json`, and those each run takes.
-CONFIG_KEYS: string[]: ["phases", "modules", "native", "vm"]
+CONFIG_KEYS: string[]: ["phases", "modules", "native", "vm", "wasi"]
 NATIVE_KEYS: string[]: ["skip", "skip_on"]
 VM_KEYS: string[]: ["skip", "skip_on", "from"]
+WASI_KEYS: string[]: ["differs"]
 
 // The platforms `skip_on` may name: the names `host_platform` gives.
 PLATFORMS: string[]: ["darwin", "linux", "win32"]
@@ -87,6 +93,7 @@ config_of :: fn(raw: JsonObject, problems: string[]) -> SnippetConfig {
         .modules = listed_modules(raw.entries["modules"], problems),
         .native = run_of("native", raw.entries["native"], NATIVE_KEYS, problems),
         .vm = run_of("vm", raw.entries["vm"], VM_KEYS, problems),
+        .wasi = run_of("wasi", raw.entries["wasi"], WASI_KEYS, problems),
     }
 }
 
@@ -141,7 +148,8 @@ run_of :: fn(
     skip :: value.entries["skip"]
     skip_on :: value.entries["skip_on"]
     from :: value.entries["from"]
-    if skip == null && skip_on == null && from == null {
+    differs :: value.entries["differs"]
+    if skip == null && skip_on == null && from == null && differs == null {
         problems.push("`${side}` says nothing")
     }
     if from != null && string_member(value, "from") != "build" {
@@ -155,10 +163,14 @@ run_of :: fn(
     if skip != null {
         check_reason("${side}.skip", skip, problems)
     }
+    if differs != null {
+        check_reason("${side}.differs", differs, problems)
+    }
     return RunConfig {
         .skipped = skip != null,
         .skipped_on = skipped_platforms(side, skip_on, problems),
         .from_build = from != null,
+        .differs = differs != null,
     }
 }
 
@@ -199,7 +211,7 @@ file_problems :: fn(raw: JsonObject, config: SnippetConfig, dir: string) -> stri
     if exists("${dir}/${VM_SNAPSHOT}") {
         return out
     }
-    for side in ["native", "vm"] {
+    for side in ["native", "vm", "wasi"] {
         if raw.entries[side] != null {
             out.push("`${side}` describes a run, and no `${VM_SNAPSHOT}` records one")
         }
@@ -232,6 +244,15 @@ problems_of :: fn(text: string) -> string[] {
 test_a_config_with_known_keys_has_no_problem :: fn() -> void {
     text :: "{\"phases\": [\"lexer\"], \"modules\": [\"m\"], \"vm\": {\"from\": \"build\"}}"
     assert_eq(problems_of(text).len(), 0)
+}
+
+@test
+test_a_wasi_difference_takes_its_reason :: fn() -> void {
+    assert_eq(problems_of("{\"wasi\": {\"differs\": \"a reason\"}}").len(), 0)
+    assert_eq(
+        problems_of("{\"wasi\": {\"differs\": \" \"}}").join("|"),
+        "`wasi.differs` is its reason, a non-empty string",
+    )
 }
 
 @test

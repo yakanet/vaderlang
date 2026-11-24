@@ -59,6 +59,11 @@ jobs:
       - name: Install X11's development package (raylib links -lX11)
         if: ${{ !cancelled() && runner.os == 'Linux' }}
         run: sudo apt-get update && sudo apt-get install -y libx11-dev
+      - name: Install wasmtime (the `wasi` phase of the tests runs under it)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        uses: bytecodealliance/actions/wasmtime/setup@v1
+        with:
+          version: "51.0.0"
       # The snippets and their snapshots, the diagnostics and target corpora,
       # the runs of the examples, the driven projects, and the `@test` functions
       # of `lib/`, `vader/` and `tools/`, the command line, the language server

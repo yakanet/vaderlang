@@ -21,6 +21,7 @@ import "std/process"
 import "std/string"
 Time :: import "std/time"
 import "cli"
+Semver :: import "semver"
 import "toolchain/project"
 import "vader/support/target"
 import "vader/front/resolver"
@@ -124,7 +125,7 @@ cmd_build :: fn(args: string[]) -> i32 {
         eprintln("vader ${RUN_COMMAND}: `--emit=${emit}` produces no program to run")
         return 2
     }
-    if run && build_target != null && build_target != host_target() {
+    if run && build_target != null && build_target != host_target() && !is_wasm(build_target) {
         eprintln("vader ${RUN_COMMAND}: a program built for `${build_target}` "
             + "does not run on this `${host_target()}` machine")
         return 2
@@ -171,7 +172,7 @@ cmd_build :: fn(args: string[]) -> i32 {
     if code != 0 {
         return code
     }
-    return run_built(binary, parsed.positionals.skip(1).collect())
+    return run_built(binary, parsed.positionals.skip(1).collect(), build_target)
 }
 
 // `code`, the exit code of the build `request` asked for, which began at `began`,
@@ -207,7 +208,7 @@ RUN_COMMAND :: "build --run"
 // narrowed a `vader.json`'s entries.
 binary_to_run :: fn(input: ProjectInput, selected: string, request: BuildRequest) -> Path | i32 {
     match input {
-        is FileInput -> { return output_path(request.out, strip_input_suffix(input.file)) }
+        is FileInput -> { return program_path(request, strip_input_suffix(input.file)) }
         is ManifestProject -> {
             entry :: sole_entry(RUN_COMMAND, input.dir, input.entries) else return 2
             return entry_binary(input.dir, entry.name, request)
@@ -226,23 +227,82 @@ binary_to_run :: fn(input: ProjectInput, selected: string, request: BuildRequest
 
 // The binary a build of the project `dir` writes for its entry `name`.
 entry_binary :: fn(dir: string, name: string, request: BuildRequest) -> Path =
-    output_path(request.out, project_entry_stem(dir, name, request.release, request.target))
+    program_path(request, project_entry_stem(dir, name, request.release, request.target))
 
-// Run the program a build wrote at `binary` with `program_args`, on this
-// process's terminal, and answer its exit code; 1 after saying why it did not
-// run to an exit.
-run_built :: fn(binary: Path, program_args: string[]) -> i32 {
-    exe :: linked_binary(binary.as_string()) else {
-        eprintln("vader ${RUN_COMMAND}: the build left no program at `${binary.to_native()}`")
-        return 1
+// Where the build `request` writes the program of `stem`: the component of a WASM
+// build, else `--out` or the stem, which the linker may give a `.exe`.
+program_path :: fn(request: BuildRequest, stem: Path) -> Path {
+    target :: request.target
+    if target != null && is_wasm(target) {
+        return wasm_path(request.out, stem)
     }
-    argv :: [launchable(exe)]
+    return output_path(request.out, stem)
+}
+
+// Run the program a build for `target` wrote at `binary` with `program_args`, on
+// this process's terminal, and answer its exit code; 1 after saying why it did
+// not run to an exit.
+run_built :: fn(binary: Path, program_args: string[], target: Target | null) -> i32 {
+    argv :: launch_line(binary, target) else return 1
     argv.push_all(program_args)
     outcome :: run_attached(argv) else {
         eprintln("vader ${RUN_COMMAND}: ${outcome.message()}")
         return 1
     }
     return outcome
+}
+
+// The command line that starts the program at `binary`: the program itself, or
+// wasmtime for a WASM build; null after saying why it cannot start.
+launch_line :: fn(binary: Path, target: Target | null) -> string[] | null {
+    if target != null && is_wasm(target) {
+        return wasmtime_line(binary)
+    }
+    exe :: linked_binary(binary.as_string()) else {
+        eprintln("vader ${RUN_COMMAND}: the build left no program at `${binary.to_native()}`")
+        return null
+    }
+    return [launchable(exe)]
+}
+
+// The oldest release of wasmtime that runs WASI 0.3.
+WASMTIME_OLDEST: i32: 51
+
+// `wasmtime run` on the component at `binary` (`wasmtime_command`); null after
+// saying why wasmtime cannot run it.
+wasmtime_line :: fn(binary: Path) -> string[] | null {
+    component :: binary.as_string()
+    if !exists(component) {
+        eprintln("vader ${RUN_COMMAND}: the build left no component at `${binary.to_native()}`")
+        return null
+    }
+    asked :: spawn([WASMTIME, "--version"])
+    if asked is ProcessError || asked.exit != 0 {
+        eprintln(
+            "vader ${RUN_COMMAND}: a `wasi-wasm32` build runs under `${WASMTIME}`, which "
+                + "did not start: install it (https://wasmtime.dev)",
+        )
+        return null
+    }
+    release :: wasmtime_release(asked.stdout)
+    if release == null || release.major < WASMTIME_OLDEST {
+        eprintln(
+            "vader ${RUN_COMMAND}: `${asked.stdout.trim()}` is too old to run WASI 0.3: "
+                + "it takes ${WASMTIME} ${WASMTIME_OLDEST} or later",
+        )
+        return null
+    }
+    return wasmtime_command(component)
+}
+
+// The release `wasmtime --version` printed (`wasmtime 51.0.0 (...)`), null when it
+// reads none.
+wasmtime_release :: fn(printed: string) -> Semver.Version | null {
+    words :: printed.trim().split(" ")
+    if words.len() < 2 {
+        return null
+    }
+    return Semver.parse(words[1]) else null
 }
 
 // `path` as a program to launch. A name without a folder would be looked up on
@@ -608,3 +668,17 @@ ensure_target_dir :: fn(out: Path, target: string) -> i32 {
     return 0
 }
 
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_wasmtime_release_reads_the_version :: fn() -> void {
+    release :: wasmtime_release("wasmtime 51.0.0 (32656dc48 2026-11-20)\n")
+    assert(release != null && release.major == 51, "release 51")
+}
+
+@test
+test_wasmtime_release_of_no_version_is_null :: fn() -> void {
+    assert(wasmtime_release("wasmtime next") == null, "no version")
+}

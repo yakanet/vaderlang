@@ -15,6 +15,11 @@ import "std/iter"
 import "std/string"
 import "std/string_builder"
 
+// The headers of the sections of the text a run records.
+STDOUT_HEADER :: "# stdout"
+STDERR_HEADER :: "# stderr"
+EXIT_HEADER   :: "# exit"
+
 // The exit a run stopped by a trap or a panic records: SIGABRT's, on POSIX.
 STOPPED_EXIT: i32: 134
 
@@ -41,13 +46,28 @@ run_text :: fn(stdout: string, stderr: string, exit: i32) -> string {
     shared :: native_stop(stderr)
     out :: StringBuilder {}
     if stdout != "" {
-        out.append("# stdout\n${stdout}")
+        out.append("${STDOUT_HEADER}\n${stdout}")
     }
     if shared != "" {
-        out.append("# stderr\n${shared}")
+        out.append("${STDERR_HEADER}\n${shared}")
     }
     code :: if has_stop_line(shared) { STOPPED_EXIT } else { exit_status(exit) }
-    out.append("# exit\n${code}\n")
+    out.append("${EXIT_HEADER}\n${code}\n")
+    return out.to_string()
+}
+
+// The lines under `header` in `run`, a text `run_text` records, each ended by its
+// newline: empty for a section the run left out.
+run_section :: fn(run: string, header: string) -> string {
+    out :: StringBuilder {}
+    inside := false
+    for line in run.lines() {
+        if line.starts_with("# ") {
+            inside = line == header
+        } else if inside {
+            out.append("${line}\n")
+        }
+    }
     return out.to_string()
 }
 

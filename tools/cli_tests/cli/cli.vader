@@ -393,6 +393,13 @@ export has_cc :: fn() -> bool {
     return probed is ProcessResult && probed.exit == 0
 }
 
+/// Whether wasmtime runs on this host: a test that runs a `wasi-wasm32` build has
+/// nothing to check without it.
+export has_wasmtime :: fn() -> bool {
+    probed :: run_command(["wasmtime", "--version"])
+    return probed is ProcessResult && probed.exit == 0
+}
+
 // How `build/vader` is built from the sources.
 REBUILD :: "build it with `bash bootstrap/build.sh`"
 

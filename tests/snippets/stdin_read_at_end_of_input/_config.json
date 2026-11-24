@@ -1,0 +1,5 @@
+{
+  "wasi": {
+    "differs": "a read of stdin waits for the reading of a WIT stream"
+  }
+}

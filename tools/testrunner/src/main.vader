@@ -1,5 +1,6 @@
 // tools/testrunner/src/main: check the snippets against their snapshots, the
-// stage dumps, the run on the VM and the native run; the diagnostics corpora and
+// stage dumps, the run on the VM, the native run and the run under wasmtime,
+// skipped where wasmtime does not start; the diagnostics corpora and
 // the target and extern fixtures; the driven projects; the runs of the
 // examples; and the `@test` functions of the modules of `lib/`, `vader/` and
 // `tools/`.
@@ -127,7 +128,7 @@ main :: fn(argv: string[]) -> i32 {
     }
     command :: worker_command(update)
     k :: worker_count(parsed.int_flag("jobs", 0))
-    found :: find_cases(phases)
+    found :: find_cases(runnable_phases(phases))
     record :: read_record()
     failed_only :: parsed.bool_flag("failed")
     if failed_only && record.len() == 0 {
@@ -202,6 +203,16 @@ run_all :: fn(
     total :: reporter.join() else return null
     print_tally(total, count, k, began.since())
     return total
+}
+
+// The phases of `phases` this host has the tools of: without wasmtime, all but
+// the `wasi` phase.
+runnable_phases :: fn(phases: string[]) -> string[] {
+    if !phases.contains(WASI_PHASE) || has_wasmtime() {
+        return phases
+    }
+    println("testrunner: `wasmtime` does not start here: the `${WASI_PHASE}` phase is skipped")
+    return phases.filter((phase) -> phase != WASI_PHASE).collect()
 }
 
 // The phases that run the `vader` the repository builds.
