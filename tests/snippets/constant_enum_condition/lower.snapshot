@@ -3,7 +3,15 @@
 ## snippet
   storage
     const MODE: Mode  inline
+    const NAMED: Mode  inline
+    const OFF_BROWSER: bool  inline
+    const ON_BROWSER: bool  inline
+    const OS: Os  inline
   snippet.MODE: Mode: 0  // snippet$MODE
+  snippet.NAMED: Mode: 0  // snippet$NAMED
+  snippet.OS: Os: 1  // snippet$OS
+  snippet.ON_BROWSER: bool: false  // snippet$ON_BROWSER
+  snippet.OFF_BROWSER: bool: true  // snippet$OFF_BROWSER
   snippet.never_called :: fn(what: string) -> void {  // snippet$never_called
       std.console.println<string>(concat_2("unreachable: ", what))
   }
@@ -13,6 +21,10 @@
       {
           std.console.println<string>("fast")
       }
+      {}
+      {}
+      {}
+      {}
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {

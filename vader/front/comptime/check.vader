@@ -1,8 +1,10 @@
 // vader/front/comptime/check: comptime orchestrator entry point.
 //
-// Drives the tree-walk evaluator over every module's `@comptime const`
-// decls in topological order, accumulating values into
-// `EvaluatedProgram.comptime_decls` keyed by Symbol id.
+// Drives the tree-walk evaluator over every module's `@comptime const` decls in
+// topological order, then over every other constant, accumulating values into
+// `EvaluatedProgram.comptime_decls` keyed by Symbol id. The second walk reaches
+// the whole project, so a constant reading another module's constant, or naming
+// a variant, folds too.
 
 module "vader/front/comptime"
 
@@ -31,17 +33,30 @@ export evaluate_project :: fn(
 ) -> EvaluatedProject {
     project :: new_evaluated_project(typed)
     constants :: ProjectConstants { .typed = typed }
+    decls_by_module :: Map<string, AST.Decl[]> {}
     for [module_id, module_typed] in typed.modules {
         program :: new_evaluated_program(module_typed)
         decls :: lookup_module_decls(loaded, module_id)
         if decls !is null {
+            decls_by_module[module_id] = decls
             evaluate_module_decls(decls, module_typed, program, project, module_id, diags)
+        }
+        for [symbol_id, value] in program.comptime_decls {
+            constants.values[symbol_id] = value
+        }
+        project.modules[module_id] = program
+    }
+    // Once every `@comptime` value is known : a plain constant may read one of
+    // another module.
+    for [module_id, program] in project.modules {
+        decls :: decls_by_module[module_id]
+        if decls !is null {
+            fold_plain_constants(decls, program, constants)
             // After the consts are baked : an `@assert` may reference one, and an
             // unresolved ident would leave it unevaluated.
             evaluate_assert_decls(decls, program, diags)
         }
         evaluate_decorator_uses(program, constants, diags)
-        project.modules[module_id] = program
     }
     evaluate_extern_libraries(constants, project, diags)
     evaluate_extern_interfaces(constants, project, diags)
@@ -111,25 +126,44 @@ evaluate_module_decls :: fn(
             diags.push(result.diag)
         }
     }
-    // Second pass : best-effort fold of plain consts (no `@comptime`).
-    // Successful folds populate `comptime_decls` so the lowerer can inline
-    // scalar use sites. Failures are silently swallowed: these decls don't
-    // promise comptime evaluability.
+}
+
+// Fold every constant of the module written without `@comptime` whose value the
+// tree-walk computes, so the lowerer inlines it at its reads. One it cannot
+// compute is left to the run time, silently: such a constant promises nothing.
+// So is a value holding a struct, which the lowering builds from its source.
+fold_plain_constants :: fn(
+    decls: AST.Decl[], program: EvaluatedProgram, constants: ProjectConstants,
+) -> void {
+    typed :: program.typed
+    context :: ComptimeContext {
+        .typed    = typed,
+        .bindings = program.comptime_decls,
+        .project  = constants,
+    }
     for decl in decls.filter_is<AST.ConstDecl>() {
         if AST.is_comptime_const(decl) {
             continue
         }
         symbol :: symbol_declared_at(typed.resolved, decl.name_span) else continue
-        if program.comptime_decls[symbol.id] !is null {
+        if symbol.id in program.comptime_decls {
             continue
         }
-        result :: evaluate_expr(decl.value, context)
-        if result.value !is null {
-            program.comptime_decls[symbol.id] = result.value
-            program.routes[symbol.id] = .Folded
+        // A constant naming a type is no value of the project: its type is read
+        // in place.
+        result :: evaluate_project_const(symbol, context, decl.span)
+            else evaluate_expr(decl.value, context)
+        value :: result.value else continue
+        if holds_struct(value) {
+            continue
         }
+        program.comptime_decls[symbol.id] = value
+        program.routes[symbol.id] = .Folded
     }
 }
+
+holds_struct :: fn(value: ComptimeValue) -> bool =
+    value is StructValue || value is ArrayValue && value.elements.any_match(holds_struct)
 
 // Build a `VmRequiredDecl` when a deferred `@comptime` decl's RHS is a stageable
 // nullary call `f()` ; returns null for any other shape (the caller keeps the

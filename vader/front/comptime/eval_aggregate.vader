@@ -239,6 +239,11 @@ evaluate_project_const :: fn(
     }
     owner_context :: declaring_context(symbol.module, context) else return null
     declaration :: owner_context.typed.const_decls[symbol.id] else return null
+    // A constant naming a type (`i64 :: Int in ...`) is read as that type, which
+    // `evaluate_ident` resolves: its declaration is no value.
+    if owner_context.typed.decl_types[symbol.id] is TypeMetaType {
+        return null
+    }
     cycle :: cycle_closed_by(project.evaluating, symbol)
     if cycle != null {
         return fail(comptime_error(.DependencyCycle, declaration.span, display_cycle(cycle)))

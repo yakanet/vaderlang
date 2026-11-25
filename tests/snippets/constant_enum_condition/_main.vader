@@ -1,6 +1,8 @@
-// An `if` on an equality between enum constants keeps only the branch it takes:
-// the other is neither lowered nor emitted, nor are the functions only it calls.
-// It is how code that depends on the target is left out of a build.
+// An `if` on a constant known at compile time keeps only the branch it takes: the
+// other is neither lowered nor emitted, nor are the functions only it calls. The
+// constant may be an enum variant however written, or computed from another
+// module's constant (`VADER_OS`). It is how code that depends on the target is
+// left out of a build.
 
 module "snippet"
 
@@ -12,6 +14,10 @@ Mode :: enum {
 }
 
 MODE: Mode: .Fast
+NAMED :: Mode.Fast
+OS :: VADER_OS
+ON_BROWSER :: VADER_OS == .Browser
+OFF_BROWSER :: !ON_BROWSER
 
 // Called only from branches that the constants rule out.
 never_called :: fn(what: string) -> void {
@@ -29,6 +35,18 @@ main :: fn() -> i32 {
         never_called("not fast")
     } else {
         println("fast")
+    }
+    if NAMED == .Slow {
+        never_called("named slow")
+    }
+    if OS == .Browser {
+        never_called("os browser")
+    }
+    if ON_BROWSER {
+        never_called("on browser")
+    }
+    if !OFF_BROWSER {
+        never_called("not off browser")
     }
     return 0
 }
