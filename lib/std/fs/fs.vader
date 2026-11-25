@@ -312,6 +312,10 @@ FILETIME_UNIX_EPOCH_TICKS: i64: 116_444_736_000_000_000
 /// answer (`/tmp` and `/private/tmp` under macOS), which a lexical normalization
 /// (`std/path`) cannot promise.
 ///
+/// WASI has no such call: there the path is joined to the working directory,
+/// which leaves it relative when the host names none, and normalized
+/// lexically; its links are not followed.
+///
 /// @param path  an existing file or directory.
 /// @error       `IOError` when `path` cannot be resolved: `NotFound` when it
 ///              does not exist.

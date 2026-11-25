@@ -19,6 +19,7 @@
 
 module "std/fs"
 
+import "std/env"
 import "std/io"
 import "std/iter"
 import "std/path"
@@ -258,6 +259,15 @@ nanoseconds_of :: fn(instant: WasiFs.Instant | null) -> i64 {
 
 @target(.Wasi)
 exists :: fn(path: string) -> bool = stat_of(path) != null
+
+// WASI has no `realpath`: the path is joined to the working directory, relative
+// when the host names none, and normalized lexically, its links left as they
+// are.
+@target(.Wasi)
+real_path :: fn(path: string) -> string | IOError {
+    reached :: stat_at(path, true) else return reached
+    return string(current_working_directory().to_path().join(path).normalize())
+}
 
 @target(.Wasi)
 is_dir :: fn(path: string) -> bool {

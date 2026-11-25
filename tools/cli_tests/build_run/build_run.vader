@@ -376,8 +376,8 @@ test_a_wasm_build_reads_the_status_of_a_file :: fn() -> void {
 }
 
 // `std/fs` reads under WASI: a path resolves under the preopened directory, a
-// read takes the stream of the file, and a failure of `wasi:filesystem` is an
-// `IOError` of its kind.
+// read takes the stream of the file, a failure of `wasi:filesystem` is an
+// `IOError` of its kind, and `real_path` normalizes a path that exists.
 @test
 test_a_wasm_build_reads_files_through_std_fs :: fn() -> void {
     if !has_wasmtime() {
@@ -404,6 +404,10 @@ test_a_wasm_build_reads_files_through_std_fs :: fn() -> void {
             println("\${exists("main.vader")} \${is_dir(".")} \${is_dir("main.vader")}")
             names :: read_dir(".") else return 1
             println("\${"main.vader" in names}")
+            plain :: real_path("main.vader") else return 2
+            dotted :: real_path("././main.vader") else return 3
+            gone :: real_path("missing")
+            println("\${dotted == plain} \${gone is IOError}")
             return 0
         }
         """,
@@ -411,7 +415,7 @@ test_a_wasm_build_reads_files_through_std_fs :: fn() -> void {
     no_cc: [string, string | null][]: [["CC", ""]]
     run :: vader_in(dir, ["build", "--target=wasi-wasm32", "--run", "main.vader"], no_cc)
     assert_eq(run.exit, 0)
-    assert_eq(run.stdout, "read true\ntrue\ntrue\ntrue true false\ntrue\n")
+    assert_eq(run.stdout, "read true\ntrue\ntrue\ntrue true false\ntrue\ntrue true\n")
 }
 
 // `std/fs` gives every handle back to the host under WASI: the preopened
