@@ -43,6 +43,7 @@ evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
         return vm_required(expr.span, "a value converted through an `Into`")
     }
     context.depth = context.depth + 1
+    context.project.steps += 1
     // @partial: the tree-walk evaluates a subset of Expr kinds; every other
     // variant is intentionally routed to `vm_required`.
     result :: @partial match expr {

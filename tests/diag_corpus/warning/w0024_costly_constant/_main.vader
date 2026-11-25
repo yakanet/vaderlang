@@ -1,0 +1,11 @@
+// A constant written without `@comptime` is computed at every build when the
+// compiler can: one that takes long is worth a warning, the cheap one is not.
+module "snippet"
+
+fib :: fn(n: i64) -> i64 = if n < 2 { n } else { fib(n - 1) + fib(n - 2) }
+
+COSTLY :: fib(20)
+
+CHEAP :: fib(5)
+
+main :: fn() -> i32 = i32(COSTLY + CHEAP)

@@ -156,7 +156,12 @@ fold_plain_constants :: fn(
         if symbol.id in program.comptime_decls {
             continue
         }
+        constants.steps = 0
         result :: evaluate_declared(decl, symbol, context)
+        if constants.steps > COSTLY_CONSTANT_STEPS {
+            diags.push(warning(.CostlyConstant, decl.name_span,
+                "`${decl.name}` takes ${constants.steps} evaluation steps; write it `@comptime` if the computation is meant, or simplify it"))
+        }
         value :: result.value else {
             fault :: fault_of(result)
             if fault != null {
@@ -171,6 +176,11 @@ fold_plain_constants :: fn(
         program.routes[symbol.id] = .Folded
     }
 }
+
+// The evaluation steps past which a plain constant is worth a warning: far above
+// any constant of the compiler or of `lib/`, so only a computation nobody asked
+// the build for crosses it.
+COSTLY_CONSTANT_STEPS: i64: 100_000
 
 holds_struct :: fn(value: ComptimeValue) -> bool =
     value is StructValue || value is ArrayValue && value.elements.any_match(holds_struct)

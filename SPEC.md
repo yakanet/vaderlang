@@ -4174,7 +4174,7 @@ SQUARES: u32[]: @comptime { ... }
 
 A block runs as a function body, where `return` or a trailing expression gives the value. The typed form `NAME: T: @comptime <expr>` gives the value the type `T`.
 
-Without `@comptime`, a constant the compiler can fold, such as one over literals, enum variants and other constants, is computed during the build too. An overflow or a division by zero there is an error. Any other constant is computed at run time, the first time it is read. `@comptime` guarantees that the build computes the value, loops and statements included: any error while computing it stops the build rather than the program.
+Without `@comptime`, a constant the compiler can fold, such as one over literals, enum variants and other constants, is computed during the build too. An overflow or a division by zero there is an error, and the compiler warns when one takes long to compute. Any other constant is computed at run time, the first time it is read. `@comptime` guarantees that the build computes the value, loops and statements included: any error while computing it stops the build rather than the program.
 
 `@comptime` above a declaration is an error.
 

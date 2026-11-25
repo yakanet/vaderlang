@@ -53,6 +53,9 @@ ProjectConstants :: struct {
     /// The constants on a cycle the evaluation met: the `@comptime` one that met
     /// it reports it, the others of the cycle do not again.
     cycles: Set<i32> = Set<i32> {}
+    /// The expressions evaluated since the last reset: what a plain constant
+    /// cost the build.
+    steps: i64 = 0
 }
 
 /// Result of evaluating one expression. Three states :

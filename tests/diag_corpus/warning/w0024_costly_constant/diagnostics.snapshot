@@ -1,0 +1,1 @@
+[7:1] warning[W0024] a constant written without `@comptime` costs every build a long computation: `COSTLY` takes 197017 evaluation steps; write it `@comptime` if the computation is meant, or simplify it
