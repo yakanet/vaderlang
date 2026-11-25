@@ -24,7 +24,7 @@ static inline bool vader_host_std_core$Intrinsic$is_ascii(vader_string_t a0) {
 }
 
 static inline void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 31u, 634u);
+    return (void*) vader_string_bytes_view(a0, 31u, 635u);
 }
 
 static inline vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
@@ -228,3 +228,13 @@ extern bool vader_host_system_windows$get_file_size_ex(void* a0, void* a1);
 extern bool vader_host_system_windows$close_handle(void* a0);
 extern bool vader_host_system_windows$query_performance_counter(void* a0);
 extern bool vader_host_system_windows$query_performance_frequency(void* a0);
+
+void std_console$stderr_is_console$keep(void);
+void std_console$stdout_is_console$keep(void);
+vader_string_t system_windows$from_wide(void* l0, int32_t l1);
+void* system_windows$to_wide(vader_string_t l0);
+
+vader_box_t vader_fn_tramp_std_console$stderr_is_console$keep(void* env);
+extern vader_fn_t vader_fn_static_std_console$stderr_is_console$keep;
+vader_box_t vader_fn_tramp_std_console$stdout_is_console$keep(void* env);
+extern vader_fn_t vader_fn_static_std_console$stdout_is_console$keep;

@@ -36,7 +36,7 @@ static vader_string_t std_tty$escape(bool l0, vader_string_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     if (l0) {
-        t0 = concat_3(18u, l1, 2870u);
+        t0 = concat_3(18u, l1, 2871u);
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_gc_top = gc_frame.prev; return 0u; }
@@ -48,9 +48,9 @@ static bool std_tty$is_tty(uint8_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l0 == INT32_C(0)) {
-        t0 = vader_global_22;
+        t0 = vader_global$std_tty$stdout_is_tty$state;
         if (t0 == INT32_C(2)) {
-            l1 = vader_global_23;
+            l1 = vader_global$std_tty$stdout_is_tty$instance;
         } else {
             l1 = std_tty$stdout_is_tty();
         }
@@ -59,9 +59,9 @@ static bool std_tty$is_tty(uint8_t l0) {
     if (!(l0 == INT32_C(1))) {
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
     }
-    t0 = vader_global_20;
+    t0 = vader_global$std_tty$stderr_is_tty$state;
     if (t0 == INT32_C(2)) {
-        l1 = vader_global_21;
+        l1 = vader_global$std_tty$stderr_is_tty$instance;
     } else {
         l1 = std_tty$stderr_is_tty();
     }
@@ -84,21 +84,21 @@ static bool std_tty$no_color_set(void) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_16;
+    t0 = vader_global$std_tty$no_color_set$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_17;
+        t1 = vader_global$std_tty$no_color_set$instance;
         { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     std_runtime_scheduler$monitor_enter_to_publish();
-    t2 = vader_global_24;
+    t2 = vader_global$std_tty$no_color_set$gate;
     l0 = std_runtime_scheduler$gate_or_new(t2);
-    vader_global_24 = vader_ref_box(l0);
+    vader_global$std_tty$no_color_set$gate = vader_ref_box(l0);
     l1 = (void*) &vader_fn_static_std_tty$no_color_set$keep;
     t1 = std_runtime_scheduler$run_gated(l0, l1);
     if (!(t1)) {
         vader_unreachable("singleton `no_color_set` called while it initialises");
     }
-    t1 = vader_global_17;
+    t1 = vader_global$std_tty$no_color_set$instance;
     { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -107,11 +107,11 @@ void std_tty$no_color_set$keep(void) {
     bool t1;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_16;
+    t0 = vader_global$std_tty$no_color_set$state;
     if (!(t0 == INT32_C(2))) {
         t1 = std_tty$no_color_set$singleton();
-        vader_global_17 = t1;
-        vader_global_16 = INT32_C(2);
+        vader_global$std_tty$no_color_set$instance = t1;
+        vader_global$std_tty$no_color_set$state = INT32_C(2);
         { vader_gc_top = gc_frame.prev; return; }
     }
     { vader_gc_top = gc_frame.prev; return; }
@@ -187,9 +187,9 @@ static bool std_tty$should_colorize(void) {
         l0 = std_tty$is_tty((uint8_t) 1);
     }
     if (l0) {
-        t1 = vader_global_16;
+        t1 = vader_global$std_tty$no_color_set$state;
         if (t1 == INT32_C(2)) {
-            l0 = vader_global_17;
+            l0 = vader_global$std_tty$no_color_set$instance;
         } else {
             l0 = std_tty$no_color_set();
         }
@@ -208,21 +208,21 @@ static bool std_tty$stderr_is_tty(void) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_20;
+    t0 = vader_global$std_tty$stderr_is_tty$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_21;
+        t1 = vader_global$std_tty$stderr_is_tty$instance;
         { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     std_runtime_scheduler$monitor_enter_to_publish();
-    t2 = vader_global_25;
+    t2 = vader_global$std_tty$stderr_is_tty$gate;
     l0 = std_runtime_scheduler$gate_or_new(t2);
-    vader_global_25 = vader_ref_box(l0);
+    vader_global$std_tty$stderr_is_tty$gate = vader_ref_box(l0);
     l1 = (void*) &vader_fn_static_std_tty$stderr_is_tty$keep;
     t1 = std_runtime_scheduler$run_gated(l0, l1);
     if (!(t1)) {
         vader_unreachable("singleton `stderr_is_tty` called while it initialises");
     }
-    t1 = vader_global_21;
+    t1 = vader_global$std_tty$stderr_is_tty$instance;
     { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -231,11 +231,11 @@ void std_tty$stderr_is_tty$keep(void) {
     bool t1;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_20;
+    t0 = vader_global$std_tty$stderr_is_tty$state;
     if (!(t0 == INT32_C(2))) {
         t1 = std_tty$stderr_is_tty$singleton();
-        vader_global_21 = t1;
-        vader_global_20 = INT32_C(2);
+        vader_global$std_tty$stderr_is_tty$instance = t1;
+        vader_global$std_tty$stderr_is_tty$state = INT32_C(2);
         { vader_gc_top = gc_frame.prev; return; }
     }
     { vader_gc_top = gc_frame.prev; return; }
@@ -257,21 +257,21 @@ static bool std_tty$stdout_is_tty(void) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_22;
+    t0 = vader_global$std_tty$stdout_is_tty$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_23;
+        t1 = vader_global$std_tty$stdout_is_tty$instance;
         { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     std_runtime_scheduler$monitor_enter_to_publish();
-    t2 = vader_global_26;
+    t2 = vader_global$std_tty$stdout_is_tty$gate;
     l0 = std_runtime_scheduler$gate_or_new(t2);
-    vader_global_26 = vader_ref_box(l0);
+    vader_global$std_tty$stdout_is_tty$gate = vader_ref_box(l0);
     l1 = (void*) &vader_fn_static_std_tty$stdout_is_tty$keep;
     t1 = std_runtime_scheduler$run_gated(l0, l1);
     if (!(t1)) {
         vader_unreachable("singleton `stdout_is_tty` called while it initialises");
     }
-    t1 = vader_global_23;
+    t1 = vader_global$std_tty$stdout_is_tty$instance;
     { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -280,11 +280,11 @@ void std_tty$stdout_is_tty$keep(void) {
     bool t1;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_22;
+    t0 = vader_global$std_tty$stdout_is_tty$state;
     if (!(t0 == INT32_C(2))) {
         t1 = std_tty$stdout_is_tty$singleton();
-        vader_global_23 = t1;
-        vader_global_22 = INT32_C(2);
+        vader_global$std_tty$stdout_is_tty$instance = t1;
+        vader_global$std_tty$stdout_is_tty$state = INT32_C(2);
         { vader_gc_top = gc_frame.prev; return; }
     }
     { vader_gc_top = gc_frame.prev; return; }
