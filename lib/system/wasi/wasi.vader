@@ -27,3 +27,16 @@ export read :: fn<T>(stream: WasmReadable<T>, max: i64, nanos: i64) -> T[] | nul
 ///
 /// @param future  a future that no wait has taken yet.
 export wait :: fn<T>(future: WasmFuture<T>) -> T = Intrinsic.wasm_future_wait(future)
+
+/// Give `stream` back to the host before its end, which tells its writer no more
+/// is read: a read then finds it ended. A stream read to its end is given back
+/// already.
+///
+/// @param stream  the stream, ended or not.
+export drop :: fn<T>(stream: WasmReadable<T>) -> void = Intrinsic.wasm_stream_drop(stream)
+
+/// Give `future` back to the host without waiting for it: a wait on it then
+/// traps. A future waited for is given back already.
+///
+/// @param future  the future, waited for or not.
+export drop :: fn<T>(future: WasmFuture<T>) -> void = Intrinsic.wasm_future_drop(future)

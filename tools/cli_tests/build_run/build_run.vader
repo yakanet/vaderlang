@@ -414,6 +414,48 @@ test_a_wasm_build_reads_files_through_std_fs :: fn() -> void {
     assert_eq(run.stdout, "read true\ntrue\ntrue\ntrue true false\ntrue\n")
 }
 
+// `std/fs` gives every handle back to the host under WASI: the preopened
+// directories a path resolves under, the descriptor of a closed file, and the
+// stream of a read a seek abandons. The host bounds the handles it keeps, and a
+// program that kept them stops well before its last round.
+@test
+test_a_wasm_build_gives_its_handles_back :: fn() -> void {
+    if !has_wasmtime() {
+        return
+    }
+    dir :: staged(
+        "wasm_handles_given_back",
+        """
+        module "main"
+
+        import "std/console"
+        import "std/fs"
+        import "std/io"
+
+        main :: fn() -> i32 {
+            write_file("probe.txt", "hello, handles") else return 1
+            found: i64 = 0
+            for _ in 0..<20000 {
+                if exists("probe.txt") {
+                    found += 1
+                }
+                f :: open("probe.txt") else return 2
+                buffer: u8[]: [0] * 4
+                _ :: f.read(buffer)
+                _ :: f.seek(0, .Start)
+                f.close() else return 3
+            }
+            println("found \${found}")
+            return 0
+        }
+        """,
+    )
+    no_cc: [string, string | null][]: [["CC", ""]]
+    run :: vader_in(dir, ["build", "--target=wasi-wasm32", "--run", "main.vader"], no_cc)
+    assert_eq(run.exit, 0)
+    assert_eq(run.stdout, "found 20000\n")
+}
+
 @test
 test_run_refuses_a_build_that_makes_no_program_for_this_host :: fn() -> void {
     dir :: staged("nothing_to_run", program("app", 0))

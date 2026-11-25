@@ -10,8 +10,12 @@
 // position. A write sends its bytes whole through `write-via-stream`, or
 // `append-via-stream` for a file open to append, and waits for them.
 //
+// The host hands out a descriptor once per call, a preopened one included: each
+// is given back by `drop` once done with, the descriptor of a file when it
+// closes.
+//
 // WASI has no permission bits: a file is never read-only, and setting it so is
-// refused. A descriptor is never dropped.
+// refused.
 
 module "std/fs"
 
@@ -45,17 +49,24 @@ WasiRead :: struct {
 // The preopened directory `path` is under, and the path under it. The host is
 // asked for the preopened directories at each path, not once: kept in a
 // singleton, the list would be one value for every task, which the task check
-// refuses where the compiler reads files from several tasks (T3128).
+// refuses where the compiler reads files from several tasks (T3128). The others
+// are dropped as they lose, the one returned by the caller.
 resolve :: fn(path: string) -> [WasiFs.Descriptor, string] | IOError {
     preopens :: WasiPreopens.get_directories()
     best: i64 = -1
     best_length: i64 = -1
     for [entry, i] in preopens.indexed() {
         prefix :: preopen_prefix(entry.1)
-        if covers(prefix, path) && prefix.byte_len() >= best_length {
-            best = i
-            best_length = prefix.byte_len()
+        length :: prefix.byte_len()
+        if !covers(prefix, path) || length < best_length {
+            WasiFs.drop(entry.0)
+            continue
         }
+        if best >= 0 {
+            WasiFs.drop(preopens[best].0)
+        }
+        best = i
+        best_length = length
     }
     if best < 0 {
         return IOError { .msg = "no preopened directory holds `${path}`", .kind = .NotFound }
@@ -97,6 +108,7 @@ open_under :: fn(
     access: WasiFs.DescriptorFlags = READ_ONLY,
 ) -> WasiFs.Descriptor | IOError {
     found :: resolve(path) else return found
+    defer WasiFs.drop(found.0)
     opened :: WasiFs.open_at(found.0, WasiFs.PathFlags {}, found.1, flags, access)
         else is WasiFs.ErrorCode { return wasi_io_error(opened, path) }
     return opened
@@ -117,6 +129,7 @@ system_open :: fn(path: string, options: OpenOptions) -> FileHandle | IOError {
     // `open-at` takes a directory for reading alone, which the first read then
     // refuses; a write refuses it already.
     if !access.write && is_directory(opened) {
+        WasiFs.drop(opened)
         return IOError { .msg = "`${path}`: is a directory", .kind = .IsADirectory }
     }
     return WasiFile { .descriptor = opened, .append = options.append }
@@ -204,12 +217,19 @@ system_size :: fn(handle: FileHandle) -> i64 {
 
 @target(.Wasi)
 system_close :: fn(handle: FileHandle) -> void | IOError {
-    wasi_file_of(handle).read = null
+    file :: wasi_file_of(handle)
+    file.moved()
+    WasiFs.drop(file.descriptor)
 }
 
 // The position of `file` moved, or its bytes changed under it: the read under
 // way, which reads on from where it started, is dropped.
 moved :: fn(file: WasiFile) -> void {
+    read :: file.read
+    if read != null {
+        read.bytes.drop()
+        read.done.drop()
+    }
     file.read = null
     file.ended = false
 }
@@ -220,6 +240,7 @@ stat_of :: fn(path: string) -> WasiFs.DescriptorStat | null = stat_at(path, true
 // What `path` names, its links followed when `follow_links` says so.
 stat_at :: fn(path: string, follow_links: bool) -> WasiFs.DescriptorStat | IOError {
     found :: resolve(path) else return found
+    defer WasiFs.drop(found.0)
     flags :: WasiFs.PathFlags { .symlink_follow = follow_links }
     stat :: WasiFs.stat_at(found.0, flags, found.1) else is WasiFs.ErrorCode {
         return wasi_io_error(stat, path)
@@ -272,25 +293,30 @@ mkdir_one :: fn(path: string) -> bool = mkdir_new(path) || is_dir(path) || holds
 
 // Whether `path` is a directory above a preopened one.
 holds_a_preopen :: fn(path: string) -> bool {
+    holds: bool = false
     for entry in WasiPreopens.get_directories() {
+        WasiFs.drop(entry.0)
         prefix :: preopen_prefix(entry.1)
         if prefix != path && covers(path, prefix) {
-            return true
+            holds = true
         }
     }
-    return false
+    return holds
 }
 
 @target(.Wasi)
 mkdir_new :: fn(path: string) -> bool {
     found :: resolve(path) else return false
+    defer WasiFs.drop(found.0)
     return WasiFs.create_directory_at(found.0, found.1) !is WasiFs.ErrorCode
 }
 
 @target(.Wasi)
 system_rename :: fn(from: string, to: string) -> void | IOError {
     source :: resolve(from) else return source
+    defer WasiFs.drop(source.0)
     target :: resolve(to) else return target
+    defer WasiFs.drop(target.0)
     renamed :: WasiFs.rename_at(source.0, source.1, target.0, target.1) else is WasiFs.ErrorCode {
         return wasi_io_error(renamed, from)
     }
@@ -306,6 +332,7 @@ system_remove :: fn(path: string, options: RemoveOptions) -> void | IOError {
         return path.remove_directory(options)
     }
     found :: resolve(path) else return found
+    defer WasiFs.drop(found.0)
     removed :: WasiFs.unlink_file_at(found.0, found.1) else is WasiFs.ErrorCode {
         return wasi_io_error(removed, path)
     }
@@ -314,6 +341,7 @@ system_remove :: fn(path: string, options: RemoveOptions) -> void | IOError {
 @target(.Wasi)
 system_remove_directory :: fn(path: string) -> void | IOError {
     found :: resolve(path) else return found
+    defer WasiFs.drop(found.0)
     removed :: WasiFs.remove_directory_at(found.0, found.1) else is WasiFs.ErrorCode {
         return wasi_io_error(removed, path)
     }
@@ -324,6 +352,7 @@ system_remove_directory :: fn(path: string) -> void | IOError {
 @target(.Wasi)
 list_dir :: fn(path: string) -> ListedEntry[] | IOError {
     opened :: open_under(path, WasiFs.OpenFlags { .directory = true }) else return opened
+    defer WasiFs.drop(opened)
     [entries, done] :: WasiFs.read_directory(opened)
     out: ListedEntry[]: []
     for {

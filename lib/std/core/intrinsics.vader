@@ -192,6 +192,10 @@ export Intrinsic :: trait {
     wasm_stream_read :: fn<T>(stream: WasmReadable<T>, max: i64, nanos: i64) -> T[] | null
     /// What `future` resolves to, waited for, the future dropped.
     wasm_future_wait :: fn<T>(future: WasmFuture<T>) -> T
+    /// Give `stream` back to the host before it ends: a read finds it ended.
+    wasm_stream_drop :: fn<T>(stream: WasmReadable<T>) -> void
+    /// Give `future` back to the host unwaited for: a wait on it traps.
+    wasm_future_drop :: fn<T>(future: WasmFuture<T>) -> void
 
     // ---- threads of the component model --------------------------------
 
