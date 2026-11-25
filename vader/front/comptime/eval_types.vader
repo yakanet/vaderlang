@@ -38,6 +38,9 @@ ProjectConstants :: struct {
     /// The constants being evaluated, the outermost first: one read again while
     /// it is evaluated depends on itself.
     evaluating: Symbol[] = []
+    /// The constants whose value faults (`fault_of`): the first evaluation
+    /// reports it, a later read gives up silently.
+    faulted: Set<i32> = Set<i32> {}
 }
 
 /// Result of evaluating one expression. Three states :
@@ -54,6 +57,23 @@ EvalResult :: struct {
     /// `check.vader` records the decl for the `pipeline/comptime_vm` VM pass and
     /// suppresses `diag` rather than reporting C4001. Set only by `vm_required`.
     vm_required: bool = false
+}
+
+/// The fault the evaluation met: a value the run time would stop on, an overflow
+/// or a division by zero. Null for a value, or for a shape the tree-walk cannot
+/// compute.
+///
+/// @param result  the result of an evaluation.
+fault_of :: fn(result: EvalResult) -> Diagnostic | null {
+    diag :: result.diag else return null
+    if result.vm_required {
+        return null
+    }
+    if diag.code.id == CodeInfo(ComptimeCode.IntegerOverflow).id
+        || diag.code.id == CodeInfo(ComptimeCode.DivisionByZero).id {
+        return diag
+    }
+    return null
 }
 
 /// Build an `EvalResult` carrying a value.

@@ -26,7 +26,8 @@ AST :: import "toolchain/ast"
 /// @param loaded  the loaded project (for source decls per module).
 /// @param typed   the typed project (for typecheck side-tables).
 /// @param diags   diagnostics emitted during evaluation (cycle, assert,
-///                type-mismatch, vm-required).
+///                type-mismatch, vm-required, a plain constant that overflows
+///                or divides by zero).
 /// @return        the evaluated project, ready to feed the dumper.
 export evaluate_project :: fn(
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
@@ -51,7 +52,7 @@ export evaluate_project :: fn(
     for [module_id, program] in project.modules {
         decls :: decls_by_module[module_id]
         if decls !is null {
-            fold_plain_constants(decls, program, constants)
+            fold_plain_constants(decls, program, constants, diags)
             // After the consts are baked : an `@assert` may reference one, and an
             // unresolved ident would leave it unevaluated.
             evaluate_assert_decls(decls, program, diags)
@@ -131,9 +132,13 @@ evaluate_module_decls :: fn(
 // Fold every constant of the module written without `@comptime` whose value the
 // tree-walk computes, so the lowerer inlines it at its reads. One it cannot
 // compute is left to the run time, silently: such a constant promises nothing.
-// So is a value holding a struct, which the lowering builds from its source.
+// So is a value holding a struct, which the lowering builds from its source. A
+// value that overflows or divides by zero is an error instead: every read of the
+// constant would stop the program. It is reported by the first constant whose
+// evaluation meets it, a later one reading the same constant gives up silently.
 fold_plain_constants :: fn(
     decls: AST.Decl[], program: EvaluatedProgram, constants: ProjectConstants,
+    diags: Diagnostic[],
 ) -> void {
     typed :: program.typed
     context :: ComptimeContext {
@@ -153,7 +158,13 @@ fold_plain_constants :: fn(
         // in place.
         result :: evaluate_project_const(symbol, context, decl.span)
             else evaluate_expr(decl.value, context)
-        value :: result.value else continue
+        value :: result.value else {
+            fault :: fault_of(result)
+            if fault != null {
+                diags.push(fault)
+            }
+            continue
+        }
         if holds_struct(value) {
             continue
         }

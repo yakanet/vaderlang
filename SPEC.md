@@ -736,12 +736,12 @@ b +% 10                          // 4 in every mode
 
 LIMIT: u8: 250
 NEXT :: @comptime LIMIT + 10     // error: overflow while folding a constant
-LATER :: LIMIT + 10              // computed at run time: stops the program, or 4 in a release build
+LATER :: LIMIT + 10              // error too: the compiler computes it
 ```
 
 An integer `+`, `-`, `*` or unary `-` whose result leaves its type, at that type's own bounds, stops the program, except in a release build, where it wraps, in two's complement at the type's width (`docs/TOOLING.md` *`vader build`*).
 
-An overflow in a constant the compiler folds is a compile error.
+An overflow or a division by zero in a constant the compiler folds is a compile error.
 
 The **wrapping operators** `+%`, `-%` and `*%` (and `+%=`, `-%=`, `*%=`) wrap in every mode and when a constant folds, at the width of their operands, 8 and 16 bits included. They take integer operands only, and no trait overloads them. There is no wrapping negation.
 
@@ -4174,7 +4174,7 @@ SQUARES: u32[]: @comptime { ... }
 
 A block runs as a function body, where `return` or a trailing expression gives the value. The typed form `NAME: T: @comptime <expr>` gives the value the type `T`.
 
-Without `@comptime`, a constant the compiler can fold, such as one over literals and other constants, is computed during the build too; any other is computed at run time, the first time it is read. `@comptime` guarantees that the build computes the value, loops and statements included: an error while computing it, an overflow included, stops the build rather than the program.
+Without `@comptime`, a constant the compiler can fold, such as one over literals, enum variants and other constants, is computed during the build too. An overflow or a division by zero there is an error. Any other constant is computed at run time, the first time it is read. `@comptime` guarantees that the build computes the value, loops and statements included: any error while computing it stops the build rather than the program.
 
 `@comptime` above a declaration is an error.
 

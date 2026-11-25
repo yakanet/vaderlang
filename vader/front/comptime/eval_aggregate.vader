@@ -237,6 +237,9 @@ evaluate_project_const :: fn(
     if known != null {
         return ok(known)
     }
+    if symbol.id in project.faulted {
+        return vm_required(span, "a constant whose value faults")
+    }
     owner_context :: declaring_context(symbol.module, context) else return null
     declaration :: owner_context.typed.const_decls[symbol.id] else return null
     // A constant naming a type (`i64 :: Int in ...`) is read as that type, which
@@ -253,6 +256,8 @@ evaluate_project_const :: fn(
     project.evaluating.remove_last()
     if result.value != null {
         project.values[symbol.id] = result.value
+    } else if fault_of(result) != null {
+        project.faulted.add(symbol.id)
     }
     return result
 }

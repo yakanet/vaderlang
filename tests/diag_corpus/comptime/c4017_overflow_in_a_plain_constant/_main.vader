@@ -1,0 +1,12 @@
+// A constant written without `@comptime` is folded when the compiler can compute
+// it, so an overflow there is an error too: every read would stop the program.
+// `AFTER` reads `LATER` and fails on the same `+`, reported once.
+module "snippet"
+
+TOP: i32: 0x7FFF_FFFF
+LATER :: TOP + 1
+AFTER :: LATER * 2
+
+main :: fn() -> i32 {
+    return LATER + AFTER
+}
