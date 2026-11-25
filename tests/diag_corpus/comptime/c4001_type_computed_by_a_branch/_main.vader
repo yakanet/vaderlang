@@ -1,10 +1,18 @@
-// C4001: a type the compiler gets only by running code (here a branch) cannot
-// be baked into a constant yet; a type named directly can.
+// C4001: a type the compiler gets only by running statements (here a function
+// that returns from a branch) cannot be baked into a constant yet; a type an
+// expression gives, `if` included, can.
 
 module "snippet"
 
 WIDE :: true
 
-PICKED :: @comptime if WIDE { u64 } else { u16 }
+pick :: fn() -> type {
+    if WIDE {
+        return u64
+    }
+    return u16
+}
+
+PICKED :: @comptime pick()
 
 main :: fn() -> i32 = i32(@size_of(PICKED))

@@ -128,18 +128,3 @@
     fn std.io.io_error_of  // std_io$io_error_of
     fn std.io.last_io_error  // std_io$last_io_error
     struct std.io.IOError  // std_io$IOError
-  system/posix
-    const EADDRINUSE: i32  inline
-    const EADDRNOTAVAIL: i32  inline
-    const EAGAIN: i32  inline
-    const ECONNABORTED: i32  inline
-    const ECONNREFUSED: i32  inline
-    const ECONNRESET: i32  inline
-    const ENOTCONN: i32  inline
-    const ENOTEMPTY: i32  inline
-    const ETIMEDOUT: i32  inline
-    const O_APPEND: i32  inline
-    const O_CLOEXEC: i32  inline
-    const O_CREAT: i32  inline
-    const O_EXCL: i32  inline
-    const O_TRUNC: i32  inline

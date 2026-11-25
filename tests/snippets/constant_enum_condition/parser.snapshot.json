@@ -145,6 +145,44 @@
         "decorators": []
       },
       {
+        "kind": "ConstDecl",
+        "name": "SEPARATOR",
+        "visibility": "private",
+        "type": null,
+        "value": {
+          "kind": "IfExpr",
+          "cond": {
+            "kind": "BinaryExpr",
+            "op": "eq",
+            "left": {
+              "kind": "IdentExpr",
+              "name": "VADER_OS"
+            },
+            "right": {
+              "kind": "DotVariantExpr",
+              "variant": "Windows"
+            }
+          },
+          "then": {
+            "kind": "BlockExpr",
+            "stmts": [],
+            "trailing": {
+              "kind": "CharLitExpr",
+              "value": 92
+            }
+          },
+          "else": {
+            "kind": "BlockExpr",
+            "stmts": [],
+            "trailing": {
+              "kind": "CharLitExpr",
+              "value": 47
+            }
+          }
+        },
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "never_called",
         "visibility": "private",
@@ -361,7 +399,38 @@
                           "parts": [
                             {
                               "kind": "text",
-                              "value": "fast"
+                              "value": "fast "
+                            },
+                            {
+                              "kind": "interpolation",
+                              "expr": {
+                                "kind": "BinaryExpr",
+                                "op": "or",
+                                "left": {
+                                  "kind": "BinaryExpr",
+                                  "op": "eq",
+                                  "left": {
+                                    "kind": "IdentExpr",
+                                    "name": "SEPARATOR"
+                                  },
+                                  "right": {
+                                    "kind": "CharLitExpr",
+                                    "value": 47
+                                  }
+                                },
+                                "right": {
+                                  "kind": "BinaryExpr",
+                                  "op": "eq",
+                                  "left": {
+                                    "kind": "IdentExpr",
+                                    "name": "SEPARATOR"
+                                  },
+                                  "right": {
+                                    "kind": "CharLitExpr",
+                                    "value": 92
+                                  }
+                                }
+                              }
                             }
                           ]
                         },

@@ -1,5 +1,5 @@
-// vader/front/comptime/eval_aggregate: struct literals, enum variants, `match`, and the
-// project's other constants, each evaluated in the module that declares it.
+// vader/front/comptime/eval_aggregate: struct literals, enum variants, `match`, `if`,
+// and the project's other constants, each evaluated in the module that declares it.
 
 module "vader/front/comptime"
 
@@ -10,22 +10,6 @@ import "vader/front/typecheck"
 import "vader/core/types"
 import "toolchain/diagnostics"
 AST :: import "toolchain/ast"
-
-/// Evaluate a struct literal, an enum variant, a field access or a `match`.
-///
-/// @param expr     a struct literal, `.Variant`, a field access or a `match`.
-/// @param context  the evaluator context.
-evaluate_aggregate :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
-    // @partial: the dispatch in `evaluate_expr` routes only these four kinds here.
-    @partial match expr {
-        is AST.StructLitExpr  -> { return evaluate_struct_lit(expr, context) }
-        is AST.DotVariantExpr -> { return evaluate_dot_variant(expr, context) }
-        is AST.FieldExpr      -> { return evaluate_field(expr, context) }
-        is AST.MatchExpr      -> { return evaluate_match(expr, context) }
-        _                     -> {}
-    }
-    return vm_required(expr.span, expr_kind_name(expr))
-}
 
 // A struct literal as a `StructValue` holding every field: the ones it writes,
 // and the defaults of the others, each evaluated in the module of the struct that
@@ -135,6 +119,24 @@ evaluate_match :: fn(expr: AST.MatchExpr, context: ComptimeContext) -> EvalResul
         }
     }
     return vm_required(expr.span, "match with no arm for the value")
+}
+
+// The value of the branch whose condition holds ; the others are not evaluated.
+// A branch with statements before its value falls back to C4001.
+evaluate_if :: fn(expr: AST.IfExpr, context: ComptimeContext) -> EvalResult {
+    condition_result :: evaluate_expr(expr.cond, context)
+    condition :: condition_result.value else return condition_result
+    if condition !is BoolValue {
+        return vm_required(expr.cond.span, "condition that is no bool")
+    }
+    if condition.value {
+        return evaluate_block_value(expr.then_block, expr.then_block.span, context)
+    }
+    branch :: expr.else_branch else return vm_required(expr.span, "if with no else")
+    return match branch {
+        is AST.IfElseIf    -> evaluate_if(branch.branch, context)
+        is AST.IfElseBlock -> evaluate_block_value(branch.block, branch.block.span, context)
+    }
 }
 
 // Whether `pattern` matches `value`, or null for a pattern the tree-walk does not

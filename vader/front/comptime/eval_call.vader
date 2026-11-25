@@ -9,9 +9,9 @@
 // fresh `ComptimeContext` carrying the bindings. A generic callee goes to the VM:
 // the tree-walk does not substitute its type parameters.
 //
-// Out of scope : side effects, `if` / `match` in the body. The body must be a
-// single `return <expr>` statement or a trailing-expr block ; anything else
-// falls back to C4001. Recursion IS bounded: the caller's depth is carried into
+// Out of scope : side effects. The body must be a single `return <expr>`
+// statement or a trailing-expr block, an `if` or a `match` included ; anything
+// else falls back to C4001. Recursion IS bounded: the caller's depth is carried into
 // the callee context so the guard also covers cyclic comptime calls.
 
 module "vader/front/comptime"
@@ -159,16 +159,9 @@ evaluate_fn_body :: fn(
         return fail(comptime_error(.LateBodyAtComptime, call_span, "`${fn_decl.name}`"))
     }
     body :: fn_decl.body else return vm_required(call_span, "CallExpr (callee has no body)")
-    trailing :: body.trailing
-    if trailing !is null {
-        // Sound ONLY with no preceding statements : earlier bindings and early
-        // `return`s would be silently dropped, and a self-contained trailing
-        // would bake a wrong value. `lift_trailing_return` (parser) puts the
-        // final `return <e>` here, so any other statement must route via the VM.
-        if body.stmts.len() == 0 {
-            return evaluate_expr(trailing, context)
-        }
-        return vm_required(call_span, "CallExpr (block has statements before trailing)")
+    // `lift_trailing_return` (parser) puts a final `return <e>` there.
+    if body.trailing != null {
+        return evaluate_block_value(body, call_span, context)
     }
     // Block with statements only: accept a single `return <expr>`.
     if body.stmts.len() == 1 {

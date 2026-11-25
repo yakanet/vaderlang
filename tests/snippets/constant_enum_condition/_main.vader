@@ -19,6 +19,7 @@ OS :: VADER_OS
 ON_BROWSER :: VADER_OS == .Browser
 OFF_BROWSER :: !ON_BROWSER
 CHOSEN :: @comptime Mode.Fast
+SEPARATOR :: if VADER_OS == .Windows { '\\' } else { '/' }
 
 // Called only from branches that the constants rule out.
 never_called :: fn(what: string) -> void {
@@ -35,7 +36,7 @@ main :: fn() -> i32 {
     if MODE != .Fast {
         never_called("not fast")
     } else {
-        println("fast")
+        println("fast ${SEPARATOR == '/' || SEPARATOR == '\\'}")
     }
     if NAMED == .Slow {
         never_called("named slow")

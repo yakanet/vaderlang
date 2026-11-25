@@ -10,6 +10,7 @@ module "vader/front/comptime"
 
 AST :: import "toolchain/ast"
 import "vader/front/typecheck"
+import "toolchain/span"
 
 /// Hard ceiling on the evaluator's nesting depth. A cyclic / non-terminating
 /// comptime expression (e.g. a const whose value resolves back to itself) would
@@ -57,21 +58,36 @@ evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
         is AST.IntrinsicCallExpr -> evaluate_intrinsic_call(expr, context)
         is AST.CallExpr          -> evaluate_call_expr(expr, context)
         is AST.SeqLitExpr        -> evaluate_seq_lit(expr, context)
-        is AST.StructLitExpr     -> evaluate_aggregate(expr, context)
-        is AST.DotVariantExpr    -> evaluate_aggregate(expr, context)
-        is AST.FieldExpr         -> evaluate_aggregate(expr, context)
-        is AST.MatchExpr         -> evaluate_aggregate(expr, context)
+        is AST.StructLitExpr     -> evaluate_struct_lit(expr, context)
+        is AST.DotVariantExpr    -> evaluate_dot_variant(expr, context)
+        is AST.FieldExpr         -> evaluate_field(expr, context)
+        is AST.MatchExpr         -> evaluate_match(expr, context)
+        is AST.IfExpr            -> evaluate_if(expr, context)
         _                        -> vm_required(expr.span, expr_kind_name(expr))
     }
     context.depth = context.depth - 1
     return result
 }
 
+/// The value of a block: its trailing expression, when no statement comes before
+/// it. A statement would bind a name or return early, which evaluating the
+/// trailing expression alone would drop, so such a block falls back to C4001.
+///
+/// @param block    the block.
+/// @param span     where a C4001 points: the call, for a function's body.
+/// @param context  the evaluator context.
+evaluate_block_value :: fn(block: AST.BlockExpr, span: Span, context: ComptimeContext) -> EvalResult {
+    value :: block.trailing else return vm_required(span, "block with no value")
+    if block.stmts.len() > 0 {
+        return vm_required(span, "block with statements before its value")
+    }
+    return evaluate_expr(value, context)
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/collections"
 import "std/testing"
-import "toolchain/span"
 
 @test test_evaluate_int_literal :: fn() -> void {
     expr :: AST.IntLitExpr { .span = empty_span(), .id = 0, .value = 42 }
