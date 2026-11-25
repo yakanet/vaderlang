@@ -1,9 +1,10 @@
 // std/fs/fs_wasi: the files of a WASI program, through `wasi:filesystem`.
 //
 // A WASI program reaches only the directories the host preopens. A path is
-// resolved as wasi-libc resolves it: under the preopened directory whose name
-// prefixes it by whole components, the longest and at a tie the latest, a
-// relative path under `.`.
+// resolved as wasi-libc resolves it: joined to the working directory of the
+// program (`std/env`), then under the preopened directory whose name prefixes it
+// by whole components, the longest and at a tie the latest, a relative path
+// under `.`.
 // A file is the descriptor `open-at` returns, held by its `File` with its
 // position and the read under way: the stream `read-via-stream` opens at the
 // position on the first read, kept until it ends or a write or a seek moves the
@@ -53,13 +54,14 @@ WasiRead :: struct {
 // refuses where the compiler reads files from several tasks (T3128). The others
 // are dropped as they lose, the one returned by the caller.
 resolve :: fn(path: string) -> [WasiFs.Descriptor, string] | IOError {
+    full :: in_working_directory(path)
     preopens :: WasiPreopens.get_directories()
     best: i64 = -1
     best_length: i64 = -1
     for [entry, i] in preopens.indexed() {
         prefix :: preopen_prefix(entry.1)
         length :: prefix.byte_len()
-        if !covers(prefix, path) || length < best_length {
+        if !covers(prefix, full) || length < best_length {
             WasiFs.drop(entry.0)
             continue
         }
@@ -72,10 +74,16 @@ resolve :: fn(path: string) -> [WasiFs.Descriptor, string] | IOError {
     if best < 0 {
         return IOError { .msg = "no preopened directory holds `${path}`", .kind = .NotFound }
     }
-    rest :: path.byte_slice(best_length, path.byte_len()).trim_prefix("/")
+    rest :: full.byte_slice(best_length, full.byte_len()).trim_prefix("/")
     under: string: if rest == "" { "." } else { rest }
     return [preopens[best].0, under]
 }
+
+// `path` joined to the working directory of the program and normalized
+// lexically: a relative path while the host names no working directory and the
+// program moves to none.
+in_working_directory :: fn(path: string) -> string =
+    current_working_directory().to_path().join(path).normalize().as_string()
 
 // The name of a preopened directory as a prefix: `.` and a leading `./` drop.
 preopen_prefix :: fn(name: string) -> string = if name == "." { "" } else { name.trim_prefix("./") }
@@ -266,7 +274,7 @@ exists :: fn(path: string) -> bool = stat_of(path) != null
 @target(.Wasi)
 real_path :: fn(path: string) -> string | IOError {
     reached :: stat_at(path, true) else return reached
-    return string(current_working_directory().to_path().join(path).normalize())
+    return in_working_directory(path)
 }
 
 @target(.Wasi)
@@ -303,11 +311,12 @@ mkdir_one :: fn(path: string) -> bool = mkdir_new(path) || is_dir(path) || holds
 
 // Whether `path` is a directory above a preopened one.
 holds_a_preopen :: fn(path: string) -> bool {
+    full :: in_working_directory(path)
     holds: bool = false
     for entry in WasiPreopens.get_directories() {
         WasiFs.drop(entry.0)
         prefix :: preopen_prefix(entry.1)
-        if prefix != path && covers(path, prefix) {
+        if prefix != full && covers(full, prefix) {
             holds = true
         }
     }
