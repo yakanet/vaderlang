@@ -27,15 +27,15 @@ that. The committed seed may come from an older version of the file.
 
 The seed covers one target per operating system the C backend serves:
 `darwin-arm64`, `linux-x86_64` and `windows-x86_64` (`SEED_TARGETS` in
-`bootstrap/seed.sh`). They are emitted
-together, against one atom table, so a unit that does not depend on the target
+`bootstrap/seed.sh`). They are emitted together, against one atom table, one
+type table and one list of globals, so a unit that does not depend on the target
 comes out byte for byte the same for all three and is stored once:
 
 | Path | Holds |
 |---|---|
 | `bootstrap/seed/bootstrap-<module>.c` | a unit shared by every target |
 | `bootstrap/seed/bootstrap.split.h` | the header every unit includes |
-| `bootstrap/seed/<os>-<arch>/` | the units the targets disagree on (the globals among them), and `bootstrap.imports.h` |
+| `bootstrap/seed/<os>-<arch>/` | the units the targets disagree on, and `bootstrap.imports.h`, which also declares the functions of that target alone |
 
 Where a seed comes from is in git: `git log -1 -- bootstrap/seed` names the
 commit that bumped it, and its parent is the tree the seed was emitted from.

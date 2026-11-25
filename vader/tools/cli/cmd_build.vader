@@ -455,11 +455,15 @@ emit_c_for_targets :: fn(file: Path, out: Path, request: BuildRequest) -> i32 {
     // Keyed ONCE per module, then reused by the union and by every rebase:
     // `bc_type_key` recurses through composite types, so re-deriving it per pass
     // re-walks that graph for every target.
-    type_keys :: mods.map((m) -> type_keys_of(m.module)).collect()
+    modules :: mods.map((m) -> m.module).collect()
+    type_keys :: modules.map((m) -> type_keys_of(m)).collect()
     type_universe :: union_of_type_tables(type_keys)
+    remaps :: type_keys.map((k) -> remap_onto(k, type_universe)).collect()
+    type_table :: universe_type_table(modules, remaps, type_universe)
+    target_only_functions :: functions_some_target_lacks(modules)
     // Every target declares the globals of every target, so the globals unit and
     // the header do not differ by the globals one target alone reaches.
-    globals :: union_of_globals(mods.map((m) -> m.module).collect()) else is GlobalClash {
+    globals :: union_of_globals(modules) else is GlobalClash {
         eprintln("vader build: the targets declare the global `${globals.name}` at two classes")
         return 1
     }
@@ -483,11 +487,12 @@ emit_c_for_targets :: fn(file: Path, out: Path, request: BuildRequest) -> i32 {
         }
         progs.push(
             emit_c_split(
-                rebase_types(mods[i].module, type_keys[i], type_universe),
+                rebase_types(mods[i].module, remaps[i], type_table),
                 CEmitOptions {
                     ...native_c_options(mods[i]),
                     .atom_universe = universe,
                     .global_universe = globals,
+                    .target_only_functions = target_only_functions,
                 },
                 header_name,
             ),

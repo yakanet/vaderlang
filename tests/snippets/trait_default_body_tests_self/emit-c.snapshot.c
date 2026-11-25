@@ -37,35 +37,35 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 7u
 
-static int32_t snippet$Square$Probe$describe(void* l0);
-static vader_string_t snippet$Square$Probe$kind(void* l0);
-static int32_t snippet$Square$Probe$guarded(void* l0);
-static bool snippet$Square$Probe$aliased(void* l0);
-static bool snippet$Square$Probe$same_kind(void* l0, void* l1);
-static bool snippet$Square$Probe$absent(void* l0);
-static int32_t snippet$i32$Probe$describe(int32_t l0);
-static vader_string_t snippet$i32$Probe$kind(int32_t l0);
-static int32_t snippet$i32$Probe$guarded(int32_t l0);
-static bool snippet$i32$Probe$aliased(int32_t l0);
-static bool snippet$i32$Probe$same_kind(int32_t l0, int32_t l1);
-static bool snippet$i32$Probe$absent(int32_t l0);
-static int32_t snippet$f64$Probe$tag(double l0);
-static int32_t snippet$f64$Probe$describe(double l0);
-static vader_string_t snippet$f64$Probe$kind(double l0);
-static int32_t snippet$f64$Probe$guarded(double l0);
-static bool snippet$f64$Probe$aliased(double l0);
-static bool snippet$f64$Probe$absent(double l0);
-static int32_t snippet$main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
-static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool snippet$Square$Probe$absent(void* l0);
+static bool snippet$Square$Probe$aliased(void* l0);
+static int32_t snippet$Square$Probe$describe(void* l0);
+static int32_t snippet$Square$Probe$guarded(void* l0);
+static vader_string_t snippet$Square$Probe$kind(void* l0);
+static bool snippet$Square$Probe$same_kind(void* l0, void* l1);
+static bool snippet$f64$Probe$absent(double l0);
+static bool snippet$f64$Probe$aliased(double l0);
+static int32_t snippet$f64$Probe$describe(double l0);
+static int32_t snippet$f64$Probe$guarded(double l0);
+static vader_string_t snippet$f64$Probe$kind(double l0);
+static int32_t snippet$f64$Probe$tag(double l0);
+static bool snippet$i32$Probe$absent(int32_t l0);
+static bool snippet$i32$Probe$aliased(int32_t l0);
+static int32_t snippet$i32$Probe$describe(int32_t l0);
+static int32_t snippet$i32$Probe$guarded(int32_t l0);
+static vader_string_t snippet$i32$Probe$kind(int32_t l0);
+static bool snippet$i32$Probe$same_kind(int32_t l0, int32_t l1);
+static int32_t snippet$main(void);
 static void std_console$println__bool(bool l0);
 static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
+static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

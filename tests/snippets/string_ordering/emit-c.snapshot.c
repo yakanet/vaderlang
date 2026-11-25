@@ -68,30 +68,30 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 25u
 
-static int32_t snippet$order(vader_box_t l0, vader_box_t l1);
-static int32_t snippet$main(void);
-static bool snippet$less__string(vader_string_t l0, vader_string_t l1);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t concat_4(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3);
+static bool snippet$less__string(vader_string_t l0, vader_string_t l1);
+static int32_t snippet$main(void);
+static int32_t snippet$order(vader_box_t l0, vader_box_t l1);
+static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
+static int32_t std_core$char$Comparable$compare(uint32_t l0, uint32_t l1);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
-static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
-static int32_t std_core$i8$Comparable$compare(int8_t l0, int8_t l1);
 static int32_t std_core$i16$Comparable$compare(int16_t l0, int16_t l1);
 static int32_t std_core$i32$Comparable$compare(int32_t l0, int32_t l1);
 static int32_t std_core$i64$Comparable$compare(int64_t l0, int64_t l1);
-static int32_t std_core$u8$Comparable$compare(uint8_t l0, uint8_t l1);
+static int32_t std_core$i8$Comparable$compare(int8_t l0, int8_t l1);
+static int32_t std_core$string$Comparable$compare(vader_string_t l0, vader_string_t l1);
+static int32_t std_core$three_way(bool l0, bool l1);
 static int32_t std_core$u16$Comparable$compare(uint16_t l0, uint16_t l1);
 static int32_t std_core$u32$Comparable$compare(uint32_t l0, uint32_t l1);
 static int32_t std_core$u64$Comparable$compare(uint64_t l0, uint64_t l1);
-static int32_t std_core$char$Comparable$compare(uint32_t l0, uint32_t l1);
-static int32_t std_core$string$Comparable$compare(vader_string_t l0, vader_string_t l1);
-static int32_t std_core$three_way(bool l0, bool l1);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
-static void std_console$println__string(vader_string_t l0);
+static int32_t std_core$u8$Comparable$compare(uint8_t l0, uint8_t l1);
+static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static void std_testing$assert_lt__string(vader_string_t l0, vader_string_t l1);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);

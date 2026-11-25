@@ -53,32 +53,32 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 15u
 
-static int32_t snippet$main(void);
-static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
-static int64_t std_core$len_1(vader_string_t l0);
+static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
+static int32_t snippet$main(void);
+static bool std_char$is_white_char(uint32_t l0);
+static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
 static int64_t std_core$ascii_prefix(vader_string_t l0);
 static void std_core$decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint32_t* __o0, int64_t* __o1);
-static void* std_core$utf8_encode(uint32_t l0);
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static bool std_core$is_utf8_continuation(uint8_t l0);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
-static void std_console$println__string(vader_string_t l0);
-static vader_string_t std_string$pad_start(vader_string_t l0, int64_t l1, uint32_t l2);
-static vader_string_t std_string$pad_end(vader_string_t l0, int64_t l1, uint32_t l2);
-static bool std_char$is_white_char(uint32_t l0);
-static vader_string_t std_numbers$to_hex(uint64_t l0);
-static vader_string_t std_numbers$to_bin(uint64_t l0);
-static vader_string_t std_numbers$digits_in_base(uint64_t l0, uint64_t l1, bool l2);
+static int64_t std_core$len_1(vader_string_t l0);
+static void* std_core$utf8_encode(uint32_t l0);
+static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static uint32_t std_numbers$digit_char(uint64_t l0, bool l1);
+static vader_string_t std_numbers$digits_in_base(uint64_t l0, uint64_t l1, bool l2);
 static uint32_t std_numbers$hex_digit(uint64_t l0);
-static void std_string__builder$append_char(void* l0, uint32_t l1);
-static void std_string__builder$append(void* l0, vader_string_t l1);
+static vader_string_t std_numbers$to_bin(uint64_t l0);
+static vader_string_t std_numbers$to_hex(uint64_t l0);
+static vader_string_t std_string$pad_end(vader_string_t l0, int64_t l1, uint32_t l2);
+static vader_string_t std_string$pad_start(vader_string_t l0, int64_t l1, uint32_t l2);
 static vader_string_t std_string__builder$StringBuilder$std_core$Display$to_string(void* l0);
+static void std_string__builder$append(void* l0, vader_string_t l1);
+static void std_string__builder$append_char(void* l0, uint32_t l1);
 static int64_t std_string__builder$byte_len(void* l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);

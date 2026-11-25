@@ -67,29 +67,29 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 12u
 
-static int32_t snippet$say(vader_string_t l0, int32_t l1);
-static void* snippet$pool(vader_string_t l0);
-static void* snippet$window(vader_string_t l0);
-static int32_t snippet$main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
-static bool std_core$$array$Contains$contains__i32(void* l0, int32_t l1);
-static uint64_t std_core$i32$Hash$hash(int32_t l0);
+static int32_t snippet$main(void);
+static void* snippet$pool(vader_string_t l0);
+static int32_t snippet$say(vader_string_t l0, int32_t l1);
+static void* snippet$window(vader_string_t l0);
 static bool std_collections$Map$std_core$Contains$contains__i32__bool(void* l0, int32_t l1);
 static bool std_collections$Set$std_core$Contains$contains__i32(void* l0, int32_t l1);
-static int64_t std_collections$first_slot(uint64_t l0, int64_t l1);
-static int64_t std_collections$next_slot(int64_t l0, uint64_t l1, int64_t l2);
-static void std_collections$rehash__i32__bool(void* l0, int64_t l1);
-static void std_collections$grow_index__i32__bool(void* l0);
-static bool std_collections$put__i32__bool(void* l0, int32_t l1, bool l2);
-static bool std_collections$contains_key__i32__bool(void* l0, int32_t l1);
 static bool std_collections$add__i32(void* l0, int32_t l1);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_collections$contains_key__i32__bool(void* l0, int32_t l1);
+static int64_t std_collections$first_slot(uint64_t l0, int64_t l1);
+static void std_collections$grow_index__i32__bool(void* l0);
+static int64_t std_collections$next_slot(int64_t l0, uint64_t l1, int64_t l2);
+static bool std_collections$put__i32__bool(void* l0, int32_t l1, bool l2);
+static void std_collections$rehash__i32__bool(void* l0, int64_t l1);
 static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
+static bool std_core$$array$Contains$contains__i32(void* l0, int32_t l1);
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
+static uint64_t std_core$i32$Hash$hash(int32_t l0);
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

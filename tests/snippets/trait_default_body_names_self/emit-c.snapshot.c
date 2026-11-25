@@ -27,33 +27,33 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 4u
 
-static vader_string_t snippet$Pt$Named$name(void* l0);
-static int32_t snippet$Pt$Probe$tag(void* l0);
-static void* snippet$Pt$Probe$make(void);
-static vader_string_t snippet$Pt$Probe$label(void* l0);
-static int32_t snippet$Pt$Probe$passed(void* l0);
-static int32_t snippet$Pt$Probe$kept(void* l0);
-static int32_t snippet$Pt$Probe$fresh(void* l0);
-static vader_string_t snippet$i32$Named$name(int32_t l0);
-static int32_t snippet$i32$Probe$tag(int32_t l0);
-static int32_t snippet$i32$Probe$make(void);
-static vader_string_t snippet$i32$Probe$label(int32_t l0);
-static int32_t snippet$i32$Probe$passed(int32_t l0);
-static int32_t snippet$i32$Probe$kept(int32_t l0);
-static int32_t snippet$i32$Probe$fresh(int32_t l0);
-static int32_t snippet$main(void);
 static int32_t __lambda_snippet_0(void* l0);
 static int32_t __lambda_snippet_1(int32_t l0);
+static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
+static vader_string_t snippet$Pt$Named$name(void* l0);
+static int32_t snippet$Pt$Probe$fresh(void* l0);
+static int32_t snippet$Pt$Probe$kept(void* l0);
+static vader_string_t snippet$Pt$Probe$label(void* l0);
+static void* snippet$Pt$Probe$make(void);
+static int32_t snippet$Pt$Probe$passed(void* l0);
+static int32_t snippet$Pt$Probe$tag(void* l0);
+static vader_string_t snippet$i32$Named$name(int32_t l0);
+static int32_t snippet$i32$Probe$fresh(int32_t l0);
+static int32_t snippet$i32$Probe$kept(int32_t l0);
+static vader_string_t snippet$i32$Probe$label(int32_t l0);
+static int32_t snippet$i32$Probe$make(void);
+static int32_t snippet$i32$Probe$passed(int32_t l0);
+static int32_t snippet$i32$Probe$tag(int32_t l0);
+static int32_t snippet$main(void);
 static int32_t snippet$plus_hundred__i32(int32_t l0);
 static int32_t snippet$plus_hundred__snippet_Pt(void* l0);
-static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

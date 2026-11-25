@@ -37,14 +37,14 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 7u
 
-static vader_box_t snippet$parse(uint32_t l0);
+static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t snippet$dir_label(uint8_t l0);
 static int32_t snippet$main(void);
-static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static vader_box_t snippet$parse(uint32_t l0);
 static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

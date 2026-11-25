@@ -47,20 +47,20 @@ static int32_t vader_global$snippet$ROOM$state = 0u;
 static int32_t vader_global$snippet$NOTE$state = 0u;
 static vader_gc_frame_t vader_global_frame = { NULL, 0u, 0u, NULL, NULL, 0u, NULL };
 
-static void* snippet$Celsius$std_core$Into$into(void* l0);
-static void* snippet$string$std_core$Into$into(vader_string_t l0);
-static void* __const_snippet$ROOM(void);
 static void* __const_snippet$NOTE(void);
-static int32_t snippet$main(void);
-static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
+static void* __const_snippet$ROOM(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
+static void* snippet$Celsius$std_core$Into$into(void* l0);
+static int32_t snippet$main(void);
+static void* snippet$string$std_core$Into$into(vader_string_t l0);
 static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

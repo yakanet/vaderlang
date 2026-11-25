@@ -36,26 +36,26 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 9u
 
-static int32_t snippet$main(void* l0);
+static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static uint8_t snippet$clamp_to__Int_in_0___23(int64_t l0);
 static uint8_t snippet$clamp_to__Int_in_1___12(int64_t l0);
 static uint8_t snippet$clamp_to__u8(int64_t l0);
+static uint8_t snippet$exactly__Int_in_1___12(int64_t l0);
+static uint8_t snippet$lowest__Int_in_0___23(void* l0);
+static int32_t snippet$main(void* l0);
+static vader_string_t snippet$show__Int_in_1___12(uint8_t l0);
+static int64_t snippet$span_of__Int_in_0___23(uint8_t l0, uint8_t l1);
 static uint8_t snippet$wrap_next__Int_in_0___23(uint8_t l0);
 static uint8_t snippet$wrap_next__Int_in_1___12(uint8_t l0);
 static uint8_t snippet$wrap_next__u8(uint8_t l0);
-static int64_t snippet$span_of__Int_in_0___23(uint8_t l0, uint8_t l1);
-static uint8_t snippet$lowest__Int_in_0___23(void* l0);
-static vader_string_t snippet$show__Int_in_1___12(uint8_t l0);
-static uint8_t snippet$exactly__Int_in_1___12(int64_t l0);
-static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
-static int64_t std_core$write_unsigned(void* l0, int64_t l1, uint64_t l2);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
+static int64_t std_core$write_unsigned(void* l0, int64_t l1, uint64_t l2);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

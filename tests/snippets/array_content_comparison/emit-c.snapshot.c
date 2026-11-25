@@ -43,24 +43,24 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 10u
 
+static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static bool snippet$Point$std_core$Equals$equals(void* l0, void* l1);
 static int32_t snippet$main(void);
-static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
 static bool std_core$$array$Contains$contains__i32(void* l0, int32_t l1);
+static bool std_core$contains_all__i32(void* l0, void* l1);
 static bool std_core$content_equals__f64(void* l0, void* l1);
 static bool std_core$content_equals__i32(void* l0, void* l1);
 static bool std_core$content_equals__snippet_Point(void* l0, void* l1);
-static bool std_core$is_permutation_of__i32(void* l0, void* l1);
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static vader_box_t std_core$first_unmatched__i32(void* l0, void* l1, int32_t l2);
-static bool std_core$contains_all__i32(void* l0, void* l1);
 static bool std_core$is_disjoint__i32(void* l0, void* l1);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
-static void std_console$println__string(vader_string_t l0);
+static bool std_core$is_permutation_of__i32(void* l0, void* l1);
+static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

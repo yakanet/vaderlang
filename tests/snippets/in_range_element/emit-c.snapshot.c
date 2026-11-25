@@ -77,34 +77,34 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 20u
 
-static bool snippet$wide(int64_t l0);
-static bool snippet$byte(uint8_t l0);
-static bool snippet$near(int64_t l0);
-static bool snippet$blank(uint8_t l0);
-static bool snippet$is_digit(uint32_t l0);
-static bool snippet$is_alpha(uint32_t l0);
+static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static bool snippet$Bag$std_core$Contains$contains(void* l0, int64_t l1);
 static bool snippet$DigitSet$std_core$Contains$contains(void* l0, int32_t l1);
+static bool snippet$blank(uint8_t l0);
+static bool snippet$byte(uint8_t l0);
+static bool snippet$has_big__snippet_Bag(void* l0);
 static bool snippet$has_big_value(vader_box_t l0);
+static bool snippet$is_alpha(uint32_t l0);
+static bool snippet$is_digit(uint32_t l0);
 static bool snippet$listed(int64_t l0, int64_t l1);
 static int32_t snippet$main(void);
-static bool snippet$has_big__snippet_Bag(void* l0);
-static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
+static bool snippet$near(int64_t l0);
+static bool snippet$wide(int64_t l0);
+static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
+static bool std_core$$array$Contains$contains__i32(void* l0, int32_t l1);
+static bool std_core$$array$Contains$contains__i64(void* l0, int64_t l1);
+static bool std_core$$array$Contains$contains__u8(void* l0, uint8_t l1);
 static bool std_core$Range$Contains$contains__i64(void* l0, int64_t l1);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
-static bool std_core$$array$Contains$contains__u8(void* l0, uint8_t l1);
-static bool std_core$$array$Contains$contains__i64(void* l0, int64_t l1);
-static bool std_core$$array$Contains$contains__i32(void* l0, int32_t l1);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
-static void std_console$println__string(vader_string_t l0);
-static bool std_string$string$std_core$Contains$contains(vader_string_t l0, vader_string_t l1);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static bool std_string$byte_contains(vader_string_t l0, vader_string_t l1);
 static vader_box_t std_string$first_byte_offset(vader_string_t l0, vader_string_t l1);
 static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t l2);
+static bool std_string$string$std_core$Contains$contains(vader_string_t l0, vader_string_t l1);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

@@ -14,9 +14,9 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 #define VADER_COMPTIME_ATOM_COUNT 1u
 
 static bool snippet$can_go(uint8_t l0);
-static int32_t snippet$points(int32_t l0);
 static int32_t snippet$kind(vader_box_t l0);
 static int32_t snippet$main(void);
+static int32_t snippet$points(int32_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

@@ -67,6 +67,10 @@ export CEmitOptions :: struct {
     /// "this module's own globals". It exists for the seed: a target declares the
     /// globals of every target, so the globals unit and the header agree.
     global_universe: CGlobalSlot[] = []
+    /// The functions, by mangled name, that some target of a seed does not hold:
+    /// their declarations go to the imports header, which each target has its
+    /// own of, so that the shared header is the same for every target.
+    target_only_functions: Set<string> = Set<string> {}
     /// `$VADER_VERIFY_BOUNDS`: an access proven in bounds (`bounds_safe`) keeps
     /// its index check, with a message of its own (`VADER_ARRAY_CHECK_PROVEN`).
     verify_bounds: bool = false
@@ -96,6 +100,12 @@ export EmitCtx :: struct {
     slot_globals: CGlobalSlot[]
     /// The globals the C declares: `slot_globals`, or `opts.global_universe`.
     globals: CGlobalSlot[]
+    /// The functions the shared header declares, sorted by name, so that the
+    /// order does not depend on where the function table puts them.
+    header_fns: i32[]
+    /// The functions of `CEmitOptions.target_only_functions`, which the imports
+    /// header declares, sorted by name.
+    imports_fns: i32[]
     /// BcType index of the `null` primitive (`0` when absent). Tags the
     /// boxed null literal. Cached so per-op const emit stays a field read.
     null_tag: i32
@@ -141,6 +151,8 @@ new_ctx :: fn(m: BytecodeModule, opts: CEmitOptions, internal_fns: bool[] = []) 
     import_may_collect :: imports_may_collect(m.imports)
     layout_siblings :: m.types.len().filled_indexed((i) -> find_layout_siblings(m.types, i32(i)))
     own_globals :: global_slots_of(m)
+    by_name :: sorted_fn_indices(m.functions)
+    held_by_all :: (i: i32) -> !opts.target_only_functions.contains(m.functions[i].name)
     return EmitCtx {
         .module = m,
         .struct_c_names = names,
@@ -148,6 +160,8 @@ new_ctx :: fn(m: BytecodeModule, opts: CEmitOptions, internal_fns: bool[] = []) 
         .atom_table = atom_table_of(m.strings, opts.atom_universe),
         .slot_globals = own_globals,
         .globals = declared_globals(own_globals, opts.global_universe),
+        .header_fns = by_name.filter(held_by_all).collect(),
+        .imports_fns = by_name.filter((i) -> !held_by_all(i)).collect(),
         .null_tag = class_tag_of(m.types, .Null),
         .void_tag = class_tag_of(m.types, .Void),
         .string_tag = string_tag,
@@ -298,11 +312,11 @@ single_unit :: fn(ctx: EmitCtx, entry_mangled: string) -> string {
     printer :: CPrinter {}
     printer.emit_preamble(GENERATED_C_BANNER)
     ctx.emit_type_decls(printer)
-    ctx.emit_forward_decls(printer)
+    ctx.emit_forward_decls(printer, ctx.header_fns)
     // Split builds cross-TU-reference the address-taken fn-value closures
     // (`vader_fn_tramp_N` / `vader_fn_static_N` / `vader_fn_lift_N`), which are
     // synthesised outside `module.functions` and so get no prototype above.
-    ctx.emit_closure_forward_decls(printer)
+    ctx.emit_closure_forward_decls(printer, ctx.header_fns)
     ctx.emit_fn_sig_typedefs(printer)
     ctx.emit_fn_trampolines(printer)
     ctx.emit_type_info_table(printer)
@@ -735,6 +749,26 @@ export union_of_globals :: fn(modules: BytecodeModule[]) -> CGlobalSlot[] | Glob
     return sort(out, (a: CGlobalSlot, b: CGlobalSlot) -> compare_ascending(a.name, b.name))
 }
 
+/// The functions, by mangled name, that some program of `modules` holds and
+/// another does not: the `target_only_functions` of a seed.
+///
+/// @param modules  the program of each target.
+export functions_some_target_lacks :: fn(modules: BytecodeModule[]) -> Set<string> {
+    counts :: Map<string, i32> {}
+    for m in modules {
+        for f in m.functions {
+            counts[f.name] = (counts[f.name] else 0) + 1
+        }
+    }
+    lacking :: Set<string> {}
+    for [name, count] in counts {
+        if i64(count) < modules.len() {
+            lacking.add(name)
+        }
+    }
+    return lacking
+}
+
 // The globals the C declares: `universe` when one is given, else the module's `own`.
 declared_globals :: fn(own: CGlobalSlot[], universe: CGlobalSlot[]) -> CGlobalSlot[] {
     if universe.len() > 0 {
@@ -1086,19 +1120,23 @@ c_type_for_array_kind :: fn(k: ArrayKind) -> string = match k {
     .Boxed -> "vader_box_t"
 }
 
-/// Forward decl for every fn a call site outside its own unit can reach, so
-/// those compile in any declaration order.
+/// Forward decl for every fn of `fns` a call site outside its own unit can reach,
+/// so those compile in any declaration order.
 ///
 /// In a split build the INTERNAL functions are deliberately absent: they are
 /// declared `static` at the top of their own unit instead
 /// (`split.vader::emit_internal_forward_decls`). A `static` definition preceded
 /// by a non-`static` declaration is invalid C, so the two have to agree.
-emit_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
+///
+/// @param ctx      the emit context.
+/// @param printer  receives the declarations.
+/// @param fns      the functions to declare: `ctx.header_fns` or `ctx.imports_fns`.
+emit_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter, fns: i32[]) -> void {
     prototypes: CTopLevel[]: []
-    for i in 0..<ctx.module.functions.len() {
-        storage :: module_function_storage(ctx, i32(i))
+    for i in fns {
+        storage :: module_function_storage(ctx, i)
         if storage == .External || !ctx.split {
-            prototypes.push(CPrototype { .signature = signature_for(ctx, i32(i)) })
+            prototypes.push(CPrototype { .signature = signature_for(ctx, i) })
         }
     }
     printer.print_section(CSection { .items = prototypes })

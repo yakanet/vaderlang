@@ -56,25 +56,25 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_1_buf = {
 };
 static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(6u, 2u, &vader_data_1_buf);
 
-static vader_string_t snippet$kind(vader_string_t l0);
+static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
+static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
+static vader_string_t concat_5(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4);
 static int64_t snippet$count_numeric(void);
 static vader_string_t snippet$first_name(void);
 static vader_string_t snippet$joined(void);
+static vader_string_t snippet$kind(vader_string_t l0);
 static vader_string_t snippet$limit_text(void);
 static int32_t snippet$main(void);
-static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
-static vader_string_t concat_5(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4);
-static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
-static bool std_core$$array$Contains$contains__string(void* l0, vader_string_t l1);
-static vader_string_t std_core$i32$Display$to_string(int32_t l0);
-static vader_string_t std_core$format_signed(int64_t l0);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
+static bool std_core$$array$Contains$contains__string(void* l0, vader_string_t l1);
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
+static vader_string_t std_core$format_signed(int64_t l0);
+static vader_string_t std_core$i32$Display$to_string(int32_t l0);
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

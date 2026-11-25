@@ -40,36 +40,36 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 6u
 
-static int32_t snippet$main(void);
-static int32_t snippet$side_in_loop__i32(int32_t l0);
-static int32_t snippet$side_in_loop__snippet_Square(vader_box_t l0);
+static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static int32_t snippet$int_of__f64(double l0);
 static int32_t snippet$int_of__i32(int32_t l0);
 static int32_t snippet$int_of__snippet_Square(vader_box_t l0);
 static int32_t snippet$int_of__string(vader_string_t l0);
-static int32_t snippet$side_or_zero__i32(int32_t l0);
-static int32_t snippet$side_or_zero__snippet_Square(vader_box_t l0);
-static int32_t snippet$measure__f64(double l0);
-static int32_t snippet$measure__snippet_Circle(vader_box_t l0);
 static bool snippet$is_big_square__i32(int32_t l0);
 static bool snippet$is_big_square__snippet_Square(vader_box_t l0);
 static vader_string_t snippet$label__i32(int32_t l0);
 static vader_string_t snippet$label__string(vader_string_t l0);
+static int32_t snippet$main(void);
+static int32_t snippet$measure__f64(double l0);
+static int32_t snippet$measure__snippet_Circle(vader_box_t l0);
 static int32_t snippet$side_if_positive__i32(int32_t l0, int32_t l1);
 static int32_t snippet$side_if_positive__snippet_Square(vader_box_t l0, int32_t l1);
+static int32_t snippet$side_in_loop__i32(int32_t l0);
+static int32_t snippet$side_in_loop__snippet_Square(vader_box_t l0);
+static int32_t snippet$side_or_zero__i32(int32_t l0);
+static int32_t snippet$side_or_zero__snippet_Square(vader_box_t l0);
 static int32_t snippet$side_unless_negative__i32(int32_t l0, int32_t l1);
 static int32_t snippet$side_unless_negative__snippet_Square(vader_box_t l0, int32_t l1);
-static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
-static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_console$println__bool(bool l0);
 static void std_console$println__i32(int32_t l0);
 static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
+static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

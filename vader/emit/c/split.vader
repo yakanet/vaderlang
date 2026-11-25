@@ -167,8 +167,8 @@ export emit_c_split :: fn(m: BytecodeModule, opts: CEmitOptions, header_name: st
     header.emit_preamble("${GENERATED_C_BANNER} Shared declarations.")
     ctx.emit_struct_typedefs(header)
     ctx.emit_fn_sig_typedefs(header)
-    ctx.emit_forward_decls(header)
-    ctx.emit_closure_forward_decls(header)
+    ctx.emit_forward_decls(header, ctx.header_fns)
+    ctx.emit_closure_forward_decls(header, ctx.header_fns)
     ctx.emit_vtable_forward_decls(header)
     // The shim DEFINITIONS, not prototypes: they stay `static inline` so every
     // unit inlines them instead of calling into unit 0, but they live in their
@@ -182,6 +182,8 @@ export emit_c_split :: fn(m: BytecodeModule, opts: CEmitOptions, header_name: st
         .items = [CInclude { .path = "vader.h" }],
     })
     ctx.emit_import_shims(imports)
+    ctx.emit_forward_decls(imports, ctx.imports_fns)
+    ctx.emit_closure_forward_decls(imports, ctx.imports_fns)
     header.print_item(CInclude { .path = imports_header_name(header_name) })
     header.print_item(atom_count_define(ctx))
     ctx.emit_data_global_externs(header)

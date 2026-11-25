@@ -121,20 +121,20 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 3) vader_data_3_buf = {
 };
 static const vader_array_t vader_data_3 = VADER_STATIC_ARRAY(15u, 3u, &vader_data_3_buf);
 
+static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
+static vader_string_t snippet$HttpStatus$std_core$Display$to_string(uint8_t l0);
 static void* snippet$keywords(void);
 static int32_t snippet$main(void);
-static vader_string_t snippet$HttpStatus$std_core$Display$to_string(uint8_t l0);
-static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
-static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
-static vader_string_t std_core$$array$Display$to_string__string(void* l0);
-static vader_string_t std_core$string$Display$to_string(vader_string_t l0);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
+static vader_string_t std_core$$array$Display$to_string__string(void* l0);
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
+static vader_string_t std_core$string$Display$to_string(vader_string_t l0);
+static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

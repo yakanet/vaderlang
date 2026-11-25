@@ -56,15 +56,15 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_1_buf = {
 static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(16u, 1u, &vader_data_1_buf);
 
 static int32_t snippet$Hello$Greeter$greet(void* l0);
-static int32_t snippet$i32$Doubler$doubled(int32_t l0);
-static int32_t snippet$main(void);
 static int32_t snippet$count__i32(vader_box_t l0);
+static int32_t snippet$i32$Doubler$doubled(int32_t l0);
 static int32_t snippet$invoke__i32(vader_box_t l0);
+static int32_t snippet$main(void);
 static int32_t snippet$twice__i32(vader_box_t l0);
-static vader_box_t std_core$Range$Iterator$next__i32(void* l0);
 static vader_box_t std_core$$array$Into$into__i32(void* l0);
-static int32_t std_core$i32$Step$step(int32_t l0);
+static vader_box_t std_core$Range$Iterator$next__i32(void* l0);
 static vader_box_t std_core$__gen_state_std_core_0$Iterator$next(void* l0);
+static int32_t std_core$i32$Step$step(int32_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

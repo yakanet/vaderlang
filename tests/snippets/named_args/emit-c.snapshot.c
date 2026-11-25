@@ -28,16 +28,16 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 5u
 
-static vader_string_t snippet$greet(vader_string_t l0, vader_string_t l1);
+static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 static int32_t snippet$combine(int32_t l0, int32_t l1, int32_t l2);
+static vader_string_t snippet$greet(vader_string_t l0, vader_string_t l1);
+static int32_t snippet$main(void);
 static int32_t snippet$pick_1(int32_t l0, int32_t l1);
 static int32_t snippet$scale(void* l0, int32_t l1, int32_t l2);
-static int32_t snippet$main(void);
-static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
-static int64_t std_core$len_1(vader_string_t l0);
 static int64_t std_core$ascii_prefix(vader_string_t l0);
 static void std_core$decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint32_t* __o0, int64_t* __o1);
 static bool std_core$is_utf8_continuation(uint8_t l0);
+static int64_t std_core$len_1(vader_string_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

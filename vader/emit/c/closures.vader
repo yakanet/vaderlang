@@ -5,6 +5,7 @@
 module "vader/emit/c"
 
 import "std/abort"
+import "std/iter"
 import "vader/core/bytecode"
 import "vader/emit/c/ast"
 // The opcode union pulls in ~120 names ; the namespace form keeps the
@@ -282,7 +283,11 @@ scan_fn_value_usage :: fn(fns: BcFunction[]) -> FnValueUsage {
 /// split build scatters callers and definitions across TUs -> each needs a
 /// prototype (fns) / `extern` (the static value) in the shared header. The
 /// heads mirror `emit_fn_ref_tramp` / `emit_closure_lift` exactly.
-emit_closure_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
+///
+/// @param ctx      the emit context.
+/// @param printer  receives the declarations.
+/// @param indices  the functions to declare: `ctx.header_fns` or `ctx.imports_fns`.
+emit_closure_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter, indices: i32[]) -> void {
     if !ctx.split {
         return
     }
@@ -292,18 +297,18 @@ emit_closure_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     }
     fns :: ctx.module.functions
     declarations: CTopLevel[]: []
-    for i in 0..<fns.len() {
+    for i in indices {
         if usage.fn_ref_type[i] >= 0 {
-            name :: fn_symbol_name(fns, i32(i))
+            name :: fn_symbol_name(fns, i)
             trampoline :: trampoline_signature(ctx, name, fns[i].signature)
             declarations.push(CPrototype { .signature = trampoline })
             declarations.push(external("vader_fn_t", "vader_fn_static_${name}", null, false))
         }
     }
-    for i in 0..<fns.len() {
+    for i in indices {
         // Mirror `emit_closure_lift`'s guard : a 0-param fn emits no lift.
         if usage.is_closure[i] && fns[i].signature.params.len() > 0 {
-            name :: fn_symbol_name(fns, i32(i))
+            name :: fn_symbol_name(fns, i)
             lift :: lift_signature(ctx, name, fns[i].signature)
             declarations.push(CPrototype { .signature = lift })
         }

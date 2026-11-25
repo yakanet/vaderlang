@@ -16,8 +16,8 @@ struct vader_struct_snippet$Point_t {
 static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
 #define VADER_COMPTIME_ATOM_COUNT 0u
 
-static void* snippet$make(int32_t l0, int32_t l1);
 static int32_t snippet$main(void);
+static void* snippet$make(int32_t l0, int32_t l1);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

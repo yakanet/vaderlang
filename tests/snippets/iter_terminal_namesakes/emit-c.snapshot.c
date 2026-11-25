@@ -43,11 +43,6 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 3u
 
-static int32_t snippet$find(vader_box_t l0, void* l1);
-static bool snippet$any_match(vader_box_t l0, void* l1);
-static void* snippet$collect(vader_box_t l0);
-static int64_t snippet$count(vader_box_t l0);
-static int32_t snippet$main(void);
 static int32_t __lambda_snippet_0(int32_t l0);
 static bool __lambda_snippet_1(int32_t l0);
 static int32_t __lambda_snippet_2(int32_t l0);
@@ -57,15 +52,20 @@ static bool __lambda_snippet_5(int32_t l0);
 static int32_t __lambda_snippet_6(int32_t l0);
 static int32_t __lambda_snippet_7(int32_t l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
-static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
-static vader_box_t std_core$$array$Into$into__i32(void* l0);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool snippet$any_match(vader_box_t l0, void* l1);
+static void* snippet$collect(vader_box_t l0);
+static int64_t snippet$count(vader_box_t l0);
+static int32_t snippet$find(vader_box_t l0, void* l1);
+static int32_t snippet$main(void);
 static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
+static vader_box_t std_core$$array$Into$into__i32(void* l0);
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
+static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static vader_box_t std_iter$map__i32__i32(vader_box_t l0, void* l1);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);

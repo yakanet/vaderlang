@@ -11,7 +11,9 @@
 
 module "vader/emit/bytecode"
 
+import "std/abort"
 import "std/collections"
+import "std/iter"
 import "std/sort"
 import "std/string"
 import "vader/core/bytecode"
@@ -64,48 +66,68 @@ export union_of_type_tables :: fn(per_module: string[][]) -> string[] {
     return out
 }
 
-/// Rebase `m` so its type table IS `universe`, in that order.
+/// The type table of the universe: each key's type, taken from the first module
+/// that holds it, its indices renumbered to the universe.
 ///
-/// Every index-bearing site is rewritten: the table's own cross-references, both
-/// signatures, the ops, the impl table and the vtables. A type the module does
-/// not use still takes its slot: the table is the universe, not a subset, which
-/// is what makes two targets agree on every index.
+/// A rebased module takes from it the types it does not use, so that its table,
+/// and the C that describes it, is the same for every target.
 ///
-/// @param m         the module to rebase.
-/// @param keys      `m`'s own key per type index, from `type_keys_of`. Passed in
-///                  rather than recomputed: `union_of_type_tables` already
-///                  derived it, and `bc_type_key` recurses through arrays,
-///                  unions and fn types, so deriving it twice re-walks the whole
-///                  composite graph once per target.
+/// @param modules   the modules the universe was made from.
+/// @param remaps    each module's `remap_onto`.
 /// @param universe  the shared key order, from `union_of_type_tables`.
-/// @return          the rebased module.
-export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[]) -> BytecodeModule {
-    // key -> slot in the universe.
+/// @return          one type per universe slot.
+export universe_type_table :: fn(
+    modules: BytecodeModule[], remaps: i32[][], universe: string[],
+) -> BcType[] {
+    by_slot :: Map<i32, BcType> {}
+    for k in 0..<modules.len() {
+        remap :: remaps[k]
+        types :: modules[k].types
+        for i in 0..<types.len() {
+            s :: remap[i]
+            if s >= 0 && !by_slot.contains(s) {
+                by_slot[s] = remap_type(types[i], remap)
+            }
+        }
+    }
+    return universe.len().filled_indexed(
+        (i) -> by_slot[i32(i)] else panic("retype: no module holds the type `${universe[i]}`"),
+    )
+}
+
+/// Each type index of a module, renumbered to its slot in `universe`.
+///
+/// @param keys      the module's key per type index, from `type_keys_of`.
+/// @param universe  the shared key order, from `union_of_type_tables`.
+/// @return          the new index of each old one. -1 stays -1: it is the "no
+///                  type" marker, not a slot, and remapping it would point at
+///                  the universe's first entry.
+export remap_onto :: fn(keys: string[], universe: string[]) -> i32[] {
     slot_of :: Map<string, i32> {}
     for i in 0..<universe.len() {
         slot_of[universe[i]] = i32(i)
     }
-    // old index -> new index. -1 stays -1: it is the "no type" marker, not a
-    // slot, and remapping it would point at the universe's first entry.
-    remap: i32[]: []
-    for i in 0..<m.types.len() {
-        remap.push(slot_of[keys[i]] else -1)
-    }
+    return keys.map((k) -> slot_of[k] else -1).collect()
+}
 
-    // The new table, in universe order. A slot this module has no type for is
-    // filled from its own key: a primitive or a ref reconstructs exactly, and
-    // anything else falls back to an opaque ref, which is only ever reached by
-    // code this module does not contain.
-    by_slot :: Map<i32, BcType> {}
+/// Rebase `m` so its type table is the universe's, in that order.
+///
+/// Every index-bearing site is rewritten: the table's own cross-references, both
+/// signatures, the ops, the impl table, the vtables, the globals and the data
+/// pool. A slot keeps the module's own type where it has one: two targets may
+/// give one struct two symbol ids, which the key ignores and the data pool reads.
+///
+/// @param m      the module to rebase.
+/// @param remap  `m`'s `remap_onto`.
+/// @param table  the universe's types, from `universe_type_table`.
+/// @return       the rebased module.
+export rebase_types :: fn(m: BytecodeModule, remap: i32[], table: BcType[]) -> BytecodeModule {
+    types :: table.clone()
     for i in 0..<m.types.len() {
         s :: remap[i]
         if s >= 0 {
-            by_slot[s] = remap_type(m.types[i], remap)
+            types[s] = remap_type(m.types[i], remap)
         }
-    }
-    types: BcType[]: []
-    for i in 0..<universe.len() {
-        types.push(by_slot[i32(i)] else placeholder_for(universe[i]))
     }
 
     fns: BcFunction[]: []
@@ -205,12 +227,3 @@ remap_type :: fn(t: BcType, remap: i32[]) -> BcType = match t {
         BcFn { .params = ps, .return_type = remap_idx(remap, t.return_type) }
     }
 }
-
-// A slot this module has no type for. It exists only so the indices line up:
-// nothing in THIS module reaches it, since a reference to it would be a
-// reference to a type the module does not contain. An opaque ref carries no
-// layout claim, which is the safe thing for a slot that must never be read.
-//
-// Named after its key so a `.virt` dump of a rebased module says WHY the slot
-// is there rather than showing an anonymous `ref`.
-placeholder_for :: fn(key: string) -> BcType = BcRef { .trait_name = "\u{0}unused:${key}" }

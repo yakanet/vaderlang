@@ -103,37 +103,37 @@ static vader_gc_frame_t vader_global_frame = {
     NULL, 1u, 1u, vader_global_box_roots, vader_global_raw_roots, 0u, NULL,
 };
 
-static void* snippet$joiner(void);
-static void snippet$spawn(void* l0);
-static void snippet$yield_now(void);
-static void snippet$worker(vader_string_t l0, int64_t l1);
-static int32_t snippet$main(void);
-static void* snippet$joiner$singleton(void);
-static void snippet$joiner$keep(void);
+static void __defer_std_runtime_scheduler_0(void* l0);
+static void __defer_std_runtime_scheduler_2(void* l0);
+static void __defer_std_runtime_scheduler_4(void* l0);
 static void __lambda_snippet_0(void* l0);
 static void __lambda_snippet_2(void);
 static void __lambda_snippet_3(void);
 static void __lambda_snippet_4(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
-static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static void* snippet$joiner(void);
+static void snippet$joiner$keep(void);
+static void* snippet$joiner$singleton(void);
+static int32_t snippet$main(void);
+static void snippet$spawn(void* l0);
+static void snippet$worker(vader_string_t l0, int64_t l1);
+static void snippet$yield_now(void);
+static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
 static void std_core$drop_last__i64(void* l0);
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static vader_box_t std_core$index_of__i64(void* l0, int64_t l1);
 static bool std_core$remove_value__i64(void* l0, int64_t l1);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
-static void std_console$println__string(vader_string_t l0);
-static void* std_runtime_scheduler$gate_or_new(vader_box_t l0);
-static bool std_runtime_scheduler$run_gated(void* l0, void* l1);
-static void __defer_std_runtime_scheduler_0(void* l0);
-static void __defer_std_runtime_scheduler_2(void* l0);
-static void std_runtime_scheduler$monitor_enter_to_publish(void);
+static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static void std_runtime_scheduler$await_gate(void* l0, int64_t l1);
-static void __defer_std_runtime_scheduler_4(void* l0);
+static void* std_runtime_scheduler$gate_or_new(vader_box_t l0);
 static void std_runtime_scheduler$let_go(void* l0);
+static void std_runtime_scheduler$monitor_enter_to_publish(void);
+static bool std_runtime_scheduler$run_gated(void* l0, void* l1);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 

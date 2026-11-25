@@ -15,9 +15,9 @@ struct vader_struct___lambda_env_snippet_1_t {
 static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
 #define VADER_COMPTIME_ATOM_COUNT 0u
 
+static int32_t __lambda_snippet_0(void* l0, int32_t l1);
 static int32_t snippet$apply(void* l0, int32_t l1);
 static int32_t snippet$main(void);
-static int32_t __lambda_snippet_0(void* l0, int32_t l1);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 typedef vader_box_t (*vader_fn_erased_sig_1_t)(void* env, vader_box_t a0);

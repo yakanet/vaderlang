@@ -55,22 +55,22 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 13u
 
-static int32_t snippet$total(void* l0);
-static int32_t snippet$louder(uint8_t l0, int32_t l1, bool l2);
-static vader_box_t snippet$last_seen(void* l0);
-static void* snippet$Tally$std_core$Add$add(void* l0, int64_t l1);
-static void snippet$window(void* l0, uint32_t l1, uint32_t* __o0, uint8_t* __o1);
-static int32_t snippet$main(void* l0);
-static int64_t snippet$later__i64(int64_t l0, int64_t l1);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
-static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
-static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
-static int64_t std_core$write_unsigned(void* l0, int64_t l1, uint64_t l2);
-static void std_console$write(uint8_t l0, vader_string_t l1);
-static bool std_console$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static void* snippet$Tally$std_core$Add$add(void* l0, int64_t l1);
+static vader_box_t snippet$last_seen(void* l0);
+static int64_t snippet$later__i64(int64_t l0, int64_t l1);
+static int32_t snippet$louder(uint8_t l0, int32_t l1, bool l2);
+static int32_t snippet$main(void* l0);
+static int32_t snippet$total(void* l0);
+static void snippet$window(void* l0, uint32_t l1, uint32_t* __o0, uint8_t* __o1);
 static void std_console$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
+static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
+static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
+static int64_t std_core$write_unsigned(void* l0, int64_t l1, uint64_t l2);
 static uint8_t std_math$min__u8(uint8_t l0, uint8_t l1);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);

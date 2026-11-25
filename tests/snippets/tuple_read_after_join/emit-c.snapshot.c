@@ -8,9 +8,9 @@
 static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
 #define VADER_COMPTIME_ATOM_COUNT 0u
 
+static int32_t snippet$main(void);
 static void snippet$mk(int32_t l0, int32_t* __o0, int32_t* __o1);
 static int32_t snippet$read_after_join(int32_t l0, bool l1);
-static int32_t snippet$main(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
