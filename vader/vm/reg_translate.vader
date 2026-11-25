@@ -428,6 +428,7 @@ string_import_op :: fn(t: Translation, pc: i64, id: bc.IntrinsicId) -> bool = ma
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
         | .WaitBlockedReadFor | .WaitBlockedWriteFor
         | .WasmStreamRead | .WasmFutureWait | .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
+        | .WasmStreamDrop | .WasmFutureDrop
         | .WasmThreadIndex | .WasmThreadExit
         | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
         | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> false

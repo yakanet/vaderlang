@@ -873,6 +873,8 @@ intrinsic_function :: fn(
         .TargetCurrentArch     -> ctx.constant_function("arch", ARCH_WASM32)
         .WasmStreamRead        -> ctx.stream_read_function(imp, function)
         .WasmFutureWait        -> ctx.future_wait_function(imp, function)
+        .WasmStreamDrop        -> ctx.handle_drop_function(imp, function)
+        .WasmFutureDrop        -> ctx.handle_drop_function(imp, function)
         .DeepCopy              -> ctx.deep_copy_function(imp, function)
         .WasmThreadNew         -> ctx.thread_new_function()
         .WasmThreadSuspend     -> ctx.dropping_builtin(.ThreadSuspend)

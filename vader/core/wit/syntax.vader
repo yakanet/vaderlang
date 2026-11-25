@@ -145,8 +145,9 @@ WitMemberDecl :: struct {
 }
 
 /// How a function is called: alone, on a resource value (`self` first), on the
-/// resource itself, or to make one.
-export WitFunctionKind :: enum { Freestanding, Method, Static, Constructor }
+/// resource itself, or to make one. `Drop` gives a resource value back to the
+/// host: no WIT writes it, the component model gives every resource one.
+export WitFunctionKind :: enum { Freestanding, Method, Static, Constructor, Drop }
 
 WitFunctionDecl :: struct {
     name: string

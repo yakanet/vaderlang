@@ -100,6 +100,8 @@
   }
 
 ## lowered in dependencies
+  wasi:filesystem/types@0.3.0
+    struct wasi:filesystem.types@0.3.0.Descriptor  // wasi_0filesystem_types_10_23_20$Descriptor
   std/collections
     fn std.collections.Map<string, bool>.at  // std_collections$Map$std_core$Index$at__string__bool
     fn std.collections.Map<string, bool>.contains  // std_collections$Map$std_core$Contains$contains__string__bool

@@ -192,7 +192,7 @@ export dispatch_import :: fn(
         return Trap { .message = message }
     }
     // A stream or a future of a component exists in a WASM build only.
-    .WasmStreamRead | .WasmFutureWait -> {
+    .WasmStreamRead | .WasmFutureWait | .WasmStreamDrop | .WasmFutureDrop -> {
         return Trap { .message = "${info.mangled_name}: only a WASM build reads a component stream" }
     }
     // The threads of the component model exist in a WASM build only.
@@ -1157,7 +1157,7 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .WaitBlockedReadFor | .WaitBlockedWriteFor -> null
     // Traps, which the evaluation reports.
     .WasmStreamRead | .WasmFutureWait | .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
-        | .WasmThreadIndex | .WasmThreadExit -> null
+        | .WasmThreadIndex | .WasmThreadExit | .WasmStreamDrop | .WasmFutureDrop -> null
     .AbortPanic -> null
     // Served by an op, never called as an import.
     .NotIntrinsic

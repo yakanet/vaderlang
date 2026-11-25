@@ -1044,7 +1044,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .TargetCurrentOs -> { return [returning("vader_current_os", [])] }
     .TargetCurrentArch -> { return [returning("vader_current_arch", [])] }
     // A stream or a future of a component exists in a WASM build only.
-    .WasmStreamRead | .WasmFutureWait -> {
+    .WasmStreamRead | .WasmFutureWait | .WasmStreamDrop | .WasmFutureDrop -> {
         return [trap("${imp.mangled_name}: only a WASM build reads a component stream")]
     }
     // The threads of the component model exist in a WASM build only.

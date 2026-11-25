@@ -454,6 +454,8 @@ member_summary :: fn(id: IntrinsicId) -> MemberSummary = match id {
     .DeepCopy           -> MemberSummary { .params = [none()] }
     .WasmStreamRead     -> MemberSummary { .params = [none(), none(), none()] }
     .WasmFutureWait     -> MemberSummary { .params = [none()] }
+    .WasmStreamDrop     -> MemberSummary { .params = [none()] }
+    .WasmFutureDrop     -> MemberSummary { .params = [none()] }
     // A thread runs a function value, as `spawn_thread` does; the others take
     // scalars.
     .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield

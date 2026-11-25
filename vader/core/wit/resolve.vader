@@ -11,7 +11,8 @@
 // resource name is an `own` handle, a method takes `self: borrow<r>` first, and a
 // function of a resource is named `[method]r.f`, `[static]r.f`,
 // `[constructor]r`. An item behind `@unstable` is left out, as `wasm-tools` does
-// without a feature named.
+// without a feature named. Beyond the JSON, each resource the interface declares
+// has its drop, `[resource-drop]r`, the name a component imports it by.
 
 module "vader/core/wit"
 
@@ -39,7 +40,7 @@ export WitInterface :: struct {
     /// Its named types, those its `use`s bring in first, then those it declares,
     /// in the order written.
     types: WitNamedType[]
-    /// Its functions, then those of its resources.
+    /// Its functions, then those of its resources, each resource's drop last.
     functions: WitNamedFunction[]
 }
 
@@ -48,8 +49,9 @@ export WitNamedFunction :: struct {
     /// Its name as a component imports it: `now`, `[method]descriptor.stat`,
     /// `[static]tcp-socket.create`, `[constructor]pollable`.
     name: string
-    /// Its name in its resource, `stat` for `[method]descriptor.stat`; the name
-    /// itself for a function of the interface, "" for a constructor.
+    /// Its name in its resource, `stat` for `[method]descriptor.stat`, `drop` for
+    /// a drop; the name itself for a function of the interface, "" for a
+    /// constructor.
     member: string
     kind: WitFunctionKind
     /// The resource of a method, a static function or a constructor.
@@ -209,6 +211,7 @@ interface_of :: fn(r: Resolution, scope: InterfaceScope) -> WitInterface | WitEr
                 function :: r.function_of(scope, method, t) else return function
                 methods.push(function)
             }
+            methods.push(drop_of(t))
         }
     }
     for decl in scope.decl.functions.filter((f) -> is_stable(f.gate)) {
@@ -277,9 +280,51 @@ function_name :: fn(decl: WitFunctionDecl, resource: WitResource | null) -> stri
         .Method       -> "[method]${resource.name}.${decl.name}"
         .Static       -> "[static]${resource.name}.${decl.name}"
         .Constructor  -> "[constructor]${resource.name}"
+        .Drop         -> resource_drop_name(resource)
         .Freestanding -> decl.name
     }
 }
+
+// The drop of `resource`: it takes the value and gives its handle back.
+drop_of :: fn(resource: WitResource) -> WitNamedFunction = WitNamedFunction {
+    .name = resource_drop_name(resource),
+    .member = "drop",
+    .kind = .Drop,
+    .resource = resource,
+    .type = WitFunction {
+        .params = [WitParam { .name = "self", .type = WitHandle { .resource = resource } }],
+        .result = null,
+    },
+}
+
+/// The name a component imports the drop of `resource` by:
+/// `[resource-drop]descriptor`.
+///
+/// @param resource  the resource.
+export resource_drop_name :: fn(resource: WitResource) -> string =
+    "${RESOURCE_DROP_PREFIX}${resource.name}"
+
+/// The resource whose drop the function `name` of type `f` is, null for any other
+/// function.
+///
+/// @param name  the function's name as a component imports it.
+/// @param f     its type: a drop takes its resource, owned.
+export dropped_resource :: fn(name: string, f: WitFunction) -> WitResource | null {
+    if !name.starts_with(RESOURCE_DROP_PREFIX) || f.params.len() != 1 {
+        return null
+    }
+    handle :: f.params[0].type
+    if handle !is WitHandle {
+        return null
+    }
+    resource :: handle.resource
+    if resource is WitResource && resource_drop_name(resource) == name {
+        return resource
+    }
+    return null
+}
+
+RESOURCE_DROP_PREFIX: string: "[resource-drop]"
 
 // ---- names ----------------------------------------------------------------
 
@@ -558,7 +603,8 @@ test_wit_resolve_resource_functions :: fn() -> void {
     assert_eq(names.join("\n"), """
         [constructor]file [path:string]->own<resource:a:b/i.file>
         [method]file.size [self:borrow<resource:a:b/i.file>]->u64
-        [static]file.open [path:string]->own<resource:a:b/i.file>""")
+        [static]file.open [path:string]->own<resource:a:b/i.file>
+        [resource-drop]file [self:own<resource:a:b/i.file>]""")
 }
 
 @test
@@ -576,4 +622,21 @@ test_wit_resolve_leaves_unstable_out :: fn() -> void {
         """)
     assert_eq(p.interfaces.len(), 1)
     assert_eq(p.interfaces[0].functions.len(), 1)
+}
+
+@test
+test_wit_resolve_a_drop_names_its_resource :: fn() -> void {
+    p :: read_alone("""
+        package a:b;
+        interface i {
+            resource file {
+                size: func() -> u64;
+            }
+        }
+        """)
+    functions :: p.interfaces[0].functions
+    drop :: functions[1]
+    dropped :: dropped_resource(drop.name, drop.type) else panic("no resource dropped")
+    assert_eq(dropped.name, "file")
+    assert(dropped_resource(functions[0].name, functions[0].type) == null, "a method drops nothing")
 }

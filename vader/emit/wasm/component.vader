@@ -9,13 +9,13 @@
 //   calls and the types they name, an enum exported under its name. A resource
 //   is exported by the interface that owns it, imported before the others, even
 //   when the program calls none of its functions; the component aliases it out
-//   of that instance, and the instances after name it by that alias. A handle
-//   the program receives is not dropped yet;
+//   of that instance, and the instances after name it by that alias, as does
+//   the `resource.drop` of a resource the program drops;
 // - when the core module calls an async function (`canonical.vader`), a module that
 //   only defines a linear memory, instantiated first;
 // - the core module;
 // - each imported function aliased out of its instance and lowered to a core
-//   function;
+//   function, a drop made one by `resource.drop`;
 // - the canonical built-ins the core module calls, on types of their own, an
 //   enum aliased out of the instance that exports it;
 // - the lowered functions gathered into one core instance per interface, the
@@ -46,6 +46,9 @@ export ComponentInterface :: struct {
     /// As WIT writes it: `wasi:clocks/monotonic-clock@0.3.0`.
     name: string
     functions: ComponentFunction[]
+    /// The resources of its own that the program drops: no function of the
+    /// interface, each a core function `resource.drop` makes.
+    drops: WitResource[] = []
 }
 
 /// A program as a component.
@@ -76,6 +79,7 @@ export encode_component :: fn(component: WasmComponent) -> u8[] {
     c :: WasmComponent { ...component, .interfaces = import_order(component.interfaces) }
     interface_count :: i64(c.interfaces.len())
     function_count :: count_functions(c.interfaces)
+    drop_count :: count_drops(c.interfaces)
     has_memory :: c.core.memory_import != null
     allocating :: host_allocates(c.interfaces, c.builtins)
     imported :: out.push_interface_imports(c.interfaces)
@@ -97,7 +101,9 @@ export encode_component :: fn(component: WasmComponent) -> u8[] {
     first_lowered :: allocator_count(allocating)
     if function_count > 0 {
         out.push_component_section(.Alias, function_aliases(c.interfaces, function_count))
-        out.push_component_section(.Canonical, lowered_functions(c.interfaces))
+    }
+    if function_count + drop_count > 0 {
+        out.push_component_section(.Canonical, core_functions(c.interfaces, imported.resources))
     }
     types :: TypeScope { .next = imported.type_count }
     if c.builtins.len() > 0 {
@@ -105,12 +111,15 @@ export encode_component :: fn(component: WasmComponent) -> u8[] {
     }
     // The memory's instance comes first when there is one.
     first_instance :: core_instance_base(has_memory)
-    out.push_component_section(.CoreInstance, core_instances(c, first_instance, first_lowered))
+    out.push_component_section(
+        .CoreInstance,
+        core_instances(c, first_instance, first_lowered, function_count),
+    )
     out.push_run_sections(
         RunIndices {
             .result_type = types.next,
             .main_instance = first_instance + interface_count + core_instance_base(has_memory),
-            .core_run = first_lowered + function_count + i64(c.builtins.len()),
+            .core_run = first_lowered + function_count + drop_count + i64(c.builtins.len()),
             .lifted_run = function_count,
             .run_instance = interface_count,
         },
@@ -322,6 +331,7 @@ ENCLOSING_COMPONENT: u8: 0x01
 
 CANONICAL_LIFT: u8: 0x00
 CANONICAL_LOWER: u8: 0x01
+CANONICAL_RESOURCE_DROP: u8: 0x03
 
 INSTANTIATE: u8: 0x00
 INSTANCE_OF_EXPORTS: u8: 0x01
@@ -330,6 +340,14 @@ count_functions :: fn(interfaces: ComponentInterface[]) -> i64 {
     count: i64 = 0
     for i in interfaces {
         count += i.functions.len()
+    }
+    return count
+}
+
+count_drops :: fn(interfaces: ComponentInterface[]) -> i64 {
+    count: i64 = 0
+    for i in interfaces {
+        count += i.drops.len()
     }
     return count
 }
@@ -357,8 +375,8 @@ TypeScope :: struct {
 }
 
 // The instance type of `interface`: the resources of its own that other
-// interfaces name, exported first, then each function declares its type and
-// exports itself under it. A resource of another interface is the component's
+// interfaces name or the program drops, exported first, then each function
+// declares its type and exports itself under it. A resource of another interface is the component's
 // type `outer` holds for it.
 instance_scope_of :: fn(
     interface: ComponentInterface,
@@ -588,14 +606,16 @@ take_index :: fn(scope: TypeScope) -> i64 {
 ImportedInterfaces :: struct {
     scopes: TypeScope[]
     // The component's types: an instance type per interface, an alias per
-    // resource another interface names.
+    // resource `aliased_resources` gives.
     type_count: i64
+    // The component's type of each aliased resource, by its `wit_type_text`.
+    resources: Map<string, i64>
 }
 
 // Each interface in turn: its instance type, its import as the instance `i`, then
 // the resources of its own that the interfaces after it name, aliased out of it.
 push_interface_imports :: fn(out: u8[], interfaces: ComponentInterface[]) -> ImportedInterfaces {
-    named_elsewhere :: resources_named_elsewhere(interfaces)
+    named_elsewhere :: aliased_resources(interfaces)
     outer: Map<string, i64>: Map<string, i64> {}
     scopes: TypeScope[]: []
     type_count: i64 = 0
@@ -624,7 +644,11 @@ push_interface_imports :: fn(out: u8[], interfaces: ComponentInterface[]) -> Imp
         }
         out.push_component_section(.Alias, aliases)
     }
-    return ImportedInterfaces { .scopes = scopes, .type_count = type_count }
+    return ImportedInterfaces {
+        .scopes = scopes,
+        .type_count = type_count,
+        .resources = outer,
+    }
 }
 
 // The interfaces in the order the component imports them: each one that owns a
@@ -633,7 +657,7 @@ push_interface_imports :: fn(out: u8[], interfaces: ComponentInterface[]) -> Imp
 // core instance, which keeps the instance of interface `i` at index `i`
 // everywhere.
 import_order :: fn(interfaces: ComponentInterface[]) -> ComponentInterface[] {
-    owners: string[]: resources_named_elsewhere(interfaces).keys().collect()
+    owners: string[]: aliased_resources(interfaces).keys().collect()
     ordered: ComponentInterface[]: []
     for owner in owners {
         found :: interfaces.find((i) -> i.name == owner)
@@ -648,29 +672,37 @@ import_order :: fn(interfaces: ComponentInterface[]) -> ComponentInterface[] {
     return ordered
 }
 
-// The resources an interface owns that another one of `interfaces` names, by the
-// name of the owner, each once. A handle names its resource itself, the WIT
-// stage having taken its aliases out.
-resources_named_elsewhere :: fn(interfaces: ComponentInterface[]) -> Map<string, WitResource[]> {
+// The resources the component aliases out of the interface that owns them, by
+// the name of the owner, each once: those another interface of `interfaces`
+// names, and those the program drops. A handle names its resource itself, the
+// WIT stage having taken its aliases out.
+aliased_resources :: fn(interfaces: ComponentInterface[]) -> Map<string, WitResource[]> {
     out :: Map<string, WitResource[]> {}
     for interface in interfaces {
+        for r in interface.drops {
+            out.add_resource(r)
+        }
         for f in interface.functions {
             types :: f.type.params.flat_map((p) -> nested_types_of(p.type)).collect()
             types.push_all(nested_types_of(f.type.result))
             for r in types.filter_is<WitResource>() {
-                owner :: wit_owner_text(r.owner)
-                if owner == interface.name {
-                    continue
+                if wit_owner_text(r.owner) != interface.name {
+                    out.add_resource(r)
                 }
-                known :: out[owner] else []
-                if !known.any_match((k) -> wit_type_text(k) == wit_type_text(r)) {
-                    known.push(r)
-                }
-                out[owner] = known
             }
         }
     }
     return out
+}
+
+// Add `r` under its owner, unless it is there.
+add_resource :: fn(out: Map<string, WitResource[]>, r: WitResource) -> void {
+    owner :: wit_owner_text(r.owner)
+    known :: out[owner] else []
+    if !known.any_match((k) -> wit_type_text(k) == wit_type_text(r)) {
+        known.push(r)
+    }
+    out[owner] = known
 }
 
 // Each imported function out of the instance of its interface, in order: the
@@ -688,11 +720,13 @@ function_aliases :: fn(interfaces: ComponentInterface[], count: i64) -> u8[] {
     return out
 }
 
-// The component function `k` lowered to the core function past the allocator,
-// one that `allocates` through the memory 0 and the allocator, its strings UTF-8.
-lowered_functions :: fn(interfaces: ComponentInterface[]) -> u8[] {
+// The core functions past the allocator: the component function `k` lowered,
+// one that `allocates` through the memory 0 and the allocator, its strings
+// UTF-8; then each drop, `resource.drop` on the component's type `resources`
+// holds for its resource.
+core_functions :: fn(interfaces: ComponentInterface[], resources: Map<string, i64>) -> u8[] {
     out: u8[]: []
-    out.push_count(count_functions(interfaces))
+    out.push_count(count_functions(interfaces) + count_drops(interfaces))
     k: i64 = 0
     for interface in interfaces {
         for f in interface.functions {
@@ -700,6 +734,13 @@ lowered_functions :: fn(interfaces: ComponentInterface[]) -> u8[] {
             out.push_count(k)
             out.push_all(lowering_options(f.type))
             k += 1
+        }
+    }
+    for interface in interfaces {
+        for r in interface.drops {
+            key :: wit_type_text(r)
+            out.push(CANONICAL_RESOURCE_DROP)
+            out.push_count(resources[key] else panic("wasm: `${key}` dropped, not aliased"))
         }
     }
     return out
@@ -907,23 +948,36 @@ BLOCK_SLOT: u8[]: [0x7F, 0x01]
 
 // ---- instances ------------------------------------------------------------
 
-// One core instance per interface, exporting its lowered functions, then one of
-// the memory and the built-ins when there are, then the core module instantiated
-// with them. The interfaces' instances start at `first`, their functions at the
-// core function `first_lowered`, the built-ins past them.
-core_instances :: fn(c: WasmComponent, first: i64, first_lowered: i64) -> u8[] {
+// One core instance per interface, exporting its lowered functions and its
+// drops, then one of the memory and the built-ins when there are, then the core
+// module instantiated with them. The interfaces' instances start at `first`,
+// their `function_count` functions at the core function `first_lowered`, the
+// drops past them, the built-ins past those.
+core_instances :: fn(
+    c: WasmComponent,
+    first: i64,
+    first_lowered: i64,
+    function_count: i64,
+) -> u8[] {
     has_memory :: c.core.memory_import != null
     out: u8[]: []
     out.push_count(c.interfaces.len() + 1 + core_instance_base(has_memory))
     k: i64 = first_lowered
+    d: i64 = first_lowered + function_count
     for interface in c.interfaces {
         out.push(INSTANCE_OF_EXPORTS)
-        out.push_count(interface.functions.len())
+        out.push_count(interface.functions.len() + interface.drops.len())
         for f in interface.functions {
             out.push_name(f.name)
             out.push(CORE_FUNC)
             out.push_count(k)
             k += 1
+        }
+        for r in interface.drops {
+            out.push_name(resource_drop_name(r))
+            out.push(CORE_FUNC)
+            out.push_count(d)
+            d += 1
         }
     }
     if has_memory {
@@ -938,7 +992,7 @@ core_instances :: fn(c: WasmComponent, first: i64, first_lowered: i64) -> u8[] {
         for i in 0..<c.builtins.len() {
             out.push_name(builtin_name(c.builtins[i]))
             out.push(CORE_FUNC)
-            out.push_count(k + i)
+            out.push_count(d + i)
         }
     }
     // The core module past the memory's.
@@ -1061,4 +1115,30 @@ test_instance_type_exports_the_enum_its_function_names :: fn() -> void {
     expected.push_name("write-via-stream")
     expected.push_all([0x01, 0x05])
     assert_bytes(instance_types([instance_scope_of(stdout, [], Map<string, i64> {})]), expected)
+}
+
+// The drop of a resource: its interface exports the resource and declares no
+// function for the drop, the component aliases the resource out of it, and the
+// drop is `resource.drop` on that alias.
+@test
+test_a_dropped_resource_is_aliased_then_dropped :: fn() -> void {
+    owner :: WitOwner {
+        .package = WitPackageName { .namespace = "a", .name = "b" },
+        .interface = "i",
+    }
+    door :: WitResource { .name = "door", .owner = owner }
+    interfaces :: [
+        ComponentInterface {
+            .name = wit_owner_text(owner),
+            .functions = [],
+            .drops = [door],
+        },
+    ]
+    out: u8[]: []
+    imported :: out.push_interface_imports(interfaces)
+    exported: u8[]: [0x01, 0x42, 0x01, 0x04, 0x00]
+    exported.push_name("door")
+    exported.push_all([0x03, 0x01])
+    assert_bytes(instance_types(imported.scopes), exported)
+    assert_bytes(core_functions(interfaces, imported.resources), [0x01, 0x03, 0x01])
 }

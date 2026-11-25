@@ -97,6 +97,8 @@ export IntrinsicId :: enum(MemberName) {
     // only a WASM build reads
     WasmStreamRead          { .member = "wasm_stream_read" },
     WasmFutureWait          { .member = "wasm_future_wait" },
+    WasmStreamDrop          { .member = "wasm_stream_drop" },
+    WasmFutureDrop          { .member = "wasm_future_drop" },
     // std/runtime/scheduler: the cooperative threads of the component model,
     // which the scheduler of a WASM build drives
     WasmThreadNew           { .member = "wasm_thread_new" },
@@ -198,6 +200,8 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     .WaitBlockedReadFor | .WaitBlockedWriteFor -> true
     // Wait for the host, then make the array or the value read.
     .WasmStreamRead | .WasmFutureWait -> true
+    // Give a handle back to the host.
+    .WasmStreamDrop | .WasmFutureDrop -> false
     // Other threads run before these return, or the thread ends.
     .WasmThreadSuspend | .WasmThreadYield | .WasmThreadExit -> true
     // Make a thread, mark one ready, or read the running one's index.
@@ -248,6 +252,7 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     .WaitBlockedReadFor | .WaitBlockedWriteFor -> true
     .WasmStreamRead | .WasmFutureWait | .WasmThreadSuspend | .WasmThreadYield -> true
     // Nothing runs before they return ; the end of a thread never returns.
+    .WasmStreamDrop | .WasmFutureDrop -> false
     .WasmThreadNew | .WasmThreadResumeLater | .WasmThreadIndex | .WasmThreadExit -> false
     // Constants of the build ; `panic` never returns.
     .TargetCurrentOs | .TargetCurrentArch | .AbortPanic -> false
@@ -275,7 +280,9 @@ export intrinsic_parks :: fn(id: IntrinsicId) -> bool = match id {
     .WaitBlockedReadFor | .WaitBlockedWriteFor -> true
     // A wait for the host, or for a wake.
     .WasmStreamRead | .WasmFutureWait | .WasmThreadSuspend -> true
-    // A yield waits for no wake, the end of a thread never returns.
+    // A drop returns at once, a yield waits for no wake, the end of a thread
+    // never returns.
+    .WasmStreamDrop | .WasmFutureDrop -> false
     .WasmThreadNew | .WasmThreadResumeLater | .WasmThreadYield | .WasmThreadIndex
         | .WasmThreadExit -> false
     // Cancelling another thread returns at once ; cancelling the running one never

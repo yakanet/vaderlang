@@ -46,6 +46,7 @@ export member_op :: fn(id: IntrinsicId) -> Op | null = match id {
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
         | .WaitBlockedReadFor | .WaitBlockedWriteFor
         | .WasmStreamRead | .WasmFutureWait | .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
+        | .WasmStreamDrop | .WasmFutureDrop
         | .WasmThreadIndex | .WasmThreadExit
         | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
         | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> null

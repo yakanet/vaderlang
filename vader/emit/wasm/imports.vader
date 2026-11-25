@@ -224,17 +224,22 @@ import_function :: fn(
 // A function of an interface: `wasi:cli/stdout@0.3.0#write-via-stream`.
 function_key :: fn(module: string, name: string) -> string = "${module}#${name}"
 
-// Add `function` to the interface `module`, which does not hold it yet.
+// Add `function` to the interface `module`, which does not hold it yet: among its
+// drops when it is the drop of a resource.
 add_to_interface :: fn(
     imports: ImportedFunctions,
     module: string,
     function: ComponentFunction,
 ) -> void {
-    for interface in imports.interfaces {
-        if interface.name == module {
-            interface.functions.push(function)
-            return
-        }
+    interface :: imports.interfaces.find((i) -> i.name == module) else {
+        added :: ComponentInterface { .name = module, .functions = [] }
+        imports.interfaces.push(added)
+        added
     }
-    imports.interfaces.push(ComponentInterface { .name = module, .functions = [function] })
+    dropped :: dropped_resource(function.name, function.type)
+    if dropped != null {
+        interface.drops.push(dropped)
+    } else {
+        interface.functions.push(function)
+    }
 }

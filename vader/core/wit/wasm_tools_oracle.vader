@@ -46,7 +46,8 @@ package_lines :: fn(p: WitPackage) -> string[] {
         for t in i.types {
             out.push("${owner}: ${wit_type_text(t)}")
         }
-        for f in i.functions {
+        // The JSON lists no drop: the component model gives every resource one.
+        for f in i.functions.filter((f) -> f.kind != .Drop) {
             // The kind says `async` already, as the JSON does.
             signature :: wit_function_text(WitFunction { ...f.type, .is_async = false })
             out.push("${owner}: ${f.name} ${kind_text(f)} ${signature}")
@@ -61,6 +62,7 @@ kind_text :: fn(f: WitNamedFunction) -> string {
         .Method       -> "method"
         .Static       -> "static"
         .Constructor  -> "constructor"
+        .Drop         -> "drop"
     }
     prefix :: if f.type.is_async { "async-" } else { "" }
     resource :: f.resource else return "${prefix}${kind}"

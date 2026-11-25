@@ -186,6 +186,8 @@
   }
 
 ## lowered in dependencies
+  wasi:filesystem/types@0.3.0
+    struct wasi:filesystem.types@0.3.0.Descriptor  // wasi_0filesystem_types_10_23_20$Descriptor
   std/console
     fn std.console.println<string>  // std_console$println__string
     fn std.console.write  // std_console$write

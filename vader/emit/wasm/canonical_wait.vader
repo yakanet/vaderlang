@@ -8,7 +8,9 @@
 // when the deadline comes first, keeping what arrived meanwhile; a deadline
 // already past polls the set instead. Once a stream has ended, or a future was
 // waited for, its handle is dropped and its struct holds 0 in its place: a
-// stream that ended reads as ended again, which the host would trap on.
+// stream that ended reads as ended again, which the host would trap on. The
+// program drops one before that end through `wasm_stream_drop` or
+// `wasm_future_drop`, which leave 0 the same way.
 //
 // The host reads a stream into the chunk of the memory, which is lifted as the
 // list it is (`canonical_lift.vader`).
@@ -83,6 +85,38 @@ handle_helper :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -> Handl
         .layout = layout,
         .handle = frame.local(.I32),
     }
+}
+
+// The helper behind `Intrinsic.wasm_stream_drop` and `wasm_future_drop` of the
+// import `imp`: the stream or the future given back to the host before it ended,
+// its struct left holding 0. One that ended, or was dropped, holds 0 already and
+// is left as it is. When no import returns a handle of its type, the host gave
+// none to give back, and the helper does nothing.
+handle_drop_function :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -> i32 | WasmUnsupported {
+    holder :: imp.signature.param_types[HANDLE_HOLDER]
+    key :: "canonical.handle-drop ${holder}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    if !(holder in ctx.imports.handles) {
+        params :: value_types_of(imp.signature.params, function) else return params
+        return ctx.define_tree_helper(key, HelperFrame { .signature = func_of(params, []) }, [])
+    }
+    h :: handle_helper(ctx, imp, function) else return h
+    drop :: call(ctx.builtin(drop_readable_of(h.handled), h.handled), [local_get(h.handle)])
+    body: WasmExpression[]: [
+        h.read_handle(),
+        when(local_get(h.handle), [drop, h.clear_handle()]),
+    ]
+    return ctx.define_tree_helper(key, h.frame, body)
+}
+
+drop_readable_of :: fn(handled: WitStream | WitFuture) -> CanonicalKind {
+    if handled is WitStream {
+        return .StreamDropReadable
+    }
+    return .FutureDropReadable
 }
 
 // Read the handle into its local.
