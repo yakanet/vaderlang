@@ -20,8 +20,8 @@ Bc :: import "vader/core/bytecode"
 import "std/iter"
 
 // The fields of a thread's record.
-RECORD_ENTRY: i32: 0
-RECORD_DEFERS: i32: 1
+RECORD_ENTRY  :: 0
+RECORD_DEFERS :: 1
 
 // `(entry: eqref) -> i64`: a thread that runs the function value `entry`, which
 // starts suspended; its index.
