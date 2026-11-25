@@ -93,7 +93,7 @@ static bool vader_front_dead__code$brings_a_name(void* l0, void* l1, void* l2) {
                 continue;
             }
             l11 = l5.payload.s;
-            if (l11 != 1246u) {
+            if (l11 != 1247u) {
                 t1 = std_collections$Set$std_core$Contains$contains__string(l2, l11);
                 if (t1) {
                     { vader_gc_top = gc_frame.prev; return true; }
@@ -255,7 +255,7 @@ void vader_front_dead__code$check_dead_code(void* l0, vader_string_t l1, void* l
         if (!(t1)) {
             l8 = ((vader_struct_vader_front_dead__code$DeadDecl_t*) l7)->f_name_span;
             l20 = ((vader_struct_vader_front_dead__code$DeadDecl_t*) l7)->f_name;
-            l21 = concat_3(1311u, l20, 1482u);
+            l21 = concat_3(1312u, l20, 1483u);
             l9 = toolchain_diagnostics$warning((uint8_t) 4, l8, l21);
             vader_array_push_ref((vader_array_t*) l2, l9);
         }
@@ -488,7 +488,7 @@ void vader_front_dead__code$check_unused_imports(void* l0, void* l1, void* l2) {
                                                     l43 = ((vader_struct_toolchain_ast$ImportDecl_t*) t2)->f_span;
                                                     t2 = l32.payload.obj;
                                                     l44 = ((vader_struct_toolchain_ast$ImportDecl_t*) t2)->f_path;
-                                                    l45 = concat_3(1311u, l44, 1311u);
+                                                    l45 = concat_3(1312u, l44, 1312u);
                                                     l46 = toolchain_diagnostics$warning((uint8_t) 3, l43, l45);
                                                     vader_array_push_ref((vader_array_t*) l2, l46);
                                                     l31 = (l31 + INT64_C(1));
@@ -634,7 +634,7 @@ static void* vader_front_dead__code$dead_export_diag(void* l0) {
     vader_gc_top = &gc_frame;
     l1 = ((vader_struct_vader_front_dead__code$DeadExport_t*) l0)->f_name_span;
     l2 = ((vader_struct_vader_front_dead__code$DeadExport_t*) l0)->f_name;
-    l2 = concat_3(1311u, l2, 1482u);
+    l2 = concat_3(1312u, l2, 1483u);
     t0 = toolchain_diagnostics$warning((uint8_t) 9, l1, l2);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -997,8 +997,8 @@ static bool vader_front_dead__code$is_root_decl(uint8_t l0, void* l1, vader_stri
     if (l4) {
         return true;
     }
-    if (l3 == 2127u) {
-        l4 = l2 == 2127u;
+    if (l3 == 2128u) {
+        l4 = l2 == 2128u;
     } else {
         l4 = false;
     }

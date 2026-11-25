@@ -467,7 +467,7 @@ void* vader_lower_dce$prune_unreachable_fns(void* l0, void* l1) {
             t1 = vader_array_box_slots(_a37_slotarr->buf)[vader_array_offset(_a37_slotarr) + (size_t) l22];
             l15 = t1.payload.s;
             l16 = ((vader_struct_vader_lower_ir$LoweredVtableEntry_t*) l12)->f_method_name;
-            l18 = concat_3(l15, 3788u, l16);
+            l18 = concat_3(l15, 3792u, l16);
             l20 = (void*) &vader_fn_static___lambda_vader_lower_dce_2;
             t0 = std_collections$get_or_put_with__string__vader_lower_ir_LoweredVtableEntry__(l9, l18, l20);
             vader_array_push_ref((vader_array_t*) t0, l12);

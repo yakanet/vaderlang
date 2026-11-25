@@ -29,7 +29,7 @@ void* vader_pipeline_check$DeadCode$toolchain_stage$Stage$describe(void* l0) {
     vader_gc_top = &gc_frame;
     vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
     vader_obj_header_init(_a0_obj, 2088u);
-    _a0_obj->f_name = 2315u;
+    _a0_obj->f_name = 2316u;
     _a0_obj->f_purpose = (uint8_t) 0;
     _a0_obj->f_needs = (uint8_t) 1;
     _a0_obj->f_per = (uint8_t) 1;
@@ -78,7 +78,7 @@ void* vader_pipeline_check$DeepCopies$toolchain_stage$Stage$describe(void* l0) {
     vader_gc_top = &gc_frame;
     vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
     vader_obj_header_init(_a0_obj, 2088u);
-    _a0_obj->f_name = 2324u;
+    _a0_obj->f_name = 2325u;
     _a0_obj->f_purpose = (uint8_t) 0;
     _a0_obj->f_needs = (uint8_t) 1;
     _a0_obj->f_per = (uint8_t) 0;
@@ -120,7 +120,7 @@ void* vader_pipeline_check$Frozen$toolchain_stage$Stage$describe(void* l0) {
     vader_gc_top = &gc_frame;
     vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
     vader_obj_header_init(_a0_obj, 2088u);
-    _a0_obj->f_name = 2569u;
+    _a0_obj->f_name = 2571u;
     _a0_obj->f_purpose = (uint8_t) 0;
     _a0_obj->f_needs = (uint8_t) 1;
     _a0_obj->f_per = (uint8_t) 0;
@@ -154,7 +154,7 @@ void* vader_pipeline_check$TaskFaults$toolchain_stage$Stage$describe(void* l0) {
     vader_gc_top = &gc_frame;
     vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
     vader_obj_header_init(_a0_obj, 2088u);
-    _a0_obj->f_name = 3289u;
+    _a0_obj->f_name = 3291u;
     _a0_obj->f_purpose = (uint8_t) 0;
     _a0_obj->f_needs = (uint8_t) 1;
     _a0_obj->f_per = (uint8_t) 0;
@@ -188,7 +188,7 @@ void* vader_pipeline_check$UnusedExports$toolchain_stage$Stage$describe(void* l0
     vader_gc_top = &gc_frame;
     vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
     vader_obj_header_init(_a0_obj, 2088u);
-    _a0_obj->f_name = 3497u;
+    _a0_obj->f_name = 3499u;
     _a0_obj->f_purpose = (uint8_t) 1;
     _a0_obj->f_needs = (uint8_t) 0;
     _a0_obj->f_per = (uint8_t) 0;
@@ -214,7 +214,7 @@ void* vader_pipeline_check$UnusedImports$toolchain_stage$Stage$describe(void* l0
     vader_gc_top = &gc_frame;
     vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
     vader_obj_header_init(_a0_obj, 2088u);
-    _a0_obj->f_name = 3498u;
+    _a0_obj->f_name = 3500u;
     _a0_obj->f_purpose = (uint8_t) 0;
     _a0_obj->f_needs = (uint8_t) 1;
     _a0_obj->f_per = (uint8_t) 0;
@@ -251,7 +251,7 @@ void* vader_pipeline_check$Widening$toolchain_stage$Stage$describe(void* l0) {
     vader_gc_top = &gc_frame;
     vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
     vader_obj_header_init(_a0_obj, 2088u);
-    _a0_obj->f_name = 3737u;
+    _a0_obj->f_name = 3741u;
     _a0_obj->f_purpose = (uint8_t) 0;
     _a0_obj->f_needs = (uint8_t) 1;
     _a0_obj->f_per = (uint8_t) 0;
@@ -500,7 +500,7 @@ static void* vader_pipeline_check$keys_per(uint8_t l0, void* l1) {
     };
     vader_gc_top = &gc_frame;
     if (l0 == INT32_C(0)) {
-        t0 = (void*) &vader_data_36;
+        t0 = (void*) &vader_data_37;
         vader_array_t* _a0_slotarr = ((vader_array_t*) t0);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         t0 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) INT64_C(0));
@@ -583,7 +583,7 @@ static vader_box_t vader_pipeline_check$parsed_body(void* l0, void* l1, void* l2
         l11 = (l11 + INT64_C(1));
     }
     l5 = ((vader_struct_toolchain_ast$FnDecl_t*) ((vader_struct_vader_front_resolver$LateFn_t*) l1)->f_decl)->f_name;
-    l5 = concat_5(1311u, l5, 1473u, l3, 1670u);
+    l5 = concat_5(1312u, l5, 1474u, l3, 1671u);
     l7 = ((vader_struct_toolchain_ast$FnDecl_t*) ((vader_struct_vader_front_resolver$LateFn_t*) l1)->f_decl)->f_name_span;
     l7 = toolchain_diagnostics$hook_error((uint8_t) 3, l7, l5);
     vader_array_push_ref((vader_array_t*) l4, l7);
@@ -616,7 +616,7 @@ static void* vader_pipeline_check$plan_checks(void* l0, void* l1) {
     if (l3.tag == 1277u) {
         t0 = l4.payload.obj;
         l5 = ((vader_struct_toolchain_stage$PlanError_t*) t0)->f_message;
-        t1 = concat_2(2238u, l5);
+        t1 = concat_2(2239u, l5);
         vader_host_std_core$Intrinsic$panic(t1);
         vader_unreachable("a no-return call returned");
     } else {
@@ -811,7 +811,7 @@ static void vader_pipeline_check$provide_module_bodies(void* l0, void* l1, void*
     l6 = std_collections$Map$std_core$Index$at__string__Any(l4, l5);
     if (l6.tag == 0u) {
         l5 = ((vader_struct_vader_pipeline_check$ModuleBodies_t*) l0)->f_module_id;
-        t0 = concat_3(2815u, l5, 1614u);
+        t0 = concat_3(2817u, l5, 1615u);
         vader_host_std_core$Intrinsic$panic(t0);
         vader_unreachable("a no-return call returned");
     } else {
@@ -821,7 +821,7 @@ static void vader_pipeline_check$provide_module_bodies(void* l0, void* l1, void*
         l6 = std_collections$Map$std_core$Index$at__string__Any(l7, l5);
         if (l6.tag == 0u) {
             l5 = ((vader_struct_vader_pipeline_check$ModuleBodies_t*) l0)->f_module_id;
-            t0 = concat_3(2815u, l5, 1615u);
+            t0 = concat_3(2817u, l5, 1616u);
             vader_host_std_core$Intrinsic$panic(t0);
             vader_unreachable("a no-return call returned");
         } else {

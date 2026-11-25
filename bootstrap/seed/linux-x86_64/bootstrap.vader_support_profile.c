@@ -356,7 +356,7 @@ static vader_string_t vader_support_profile$open_name(vader_box_t l0) {
         t1 = vader_support_profile$phase_name(t0);
         return t1;
     }
-    return 2992u;
+    return 2994u;
 }
 
 static vader_string_t vader_support_profile$painted_name(int64_t l0, vader_string_t l1) {
@@ -381,38 +381,38 @@ static vader_string_t vader_support_profile$painted_name(int64_t l0, vader_strin
 static vader_string_t vader_support_profile$phase_name(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        l1 = 2832u;
+        l1 = 2834u;
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 3414u;
+        l1 = 3416u;
     } else if (l0 == INT32_C(2)) {
-        l1 = 2262u;
+        l1 = 2263u;
     } else if (l0 == INT32_C(3)) {
-        l1 = 2854u;
+        l1 = 2856u;
     } else if (l0 == INT32_C(4)) {
-        l1 = 3079u;
+        l1 = 3081u;
     } else if (l0 == INT32_C(5)) {
-        l1 = 2226u;
-    } else if (l0 == INT32_C(6)) {
         l1 = 2227u;
+    } else if (l0 == INT32_C(6)) {
+        l1 = 2228u;
     } else if (l0 == INT32_C(7)) {
-        l1 = 2419u;
+        l1 = 2420u;
     } else if (l0 == INT32_C(8)) {
-        l1 = 2145u;
+        l1 = 2146u;
     } else if (l0 == INT32_C(9)) {
-        l1 = 2162u;
+        l1 = 2163u;
     } else if (l0 == INT32_C(10)) {
-        l1 = 2223u;
+        l1 = 2224u;
     } else if (l0 == INT32_C(11)) {
-        l1 = 2826u;
+        l1 = 2828u;
     } else if (l0 == INT32_C(12)) {
-        l1 = 3676u;
+        l1 = 3678u;
     } else {
         if (!(l0 == INT32_C(13))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 3090u;
+        l1 = 3092u;
     }
     return l1;
 }
@@ -489,7 +489,7 @@ static void vader_support_profile$print_step(void* l0) {
             l1 = vader_chk_add(i64, l1, l5);
             l4 = (l4 + INT64_C(1));
         }
-        l2 = (void*) &vader_data_27;
+        l2 = (void*) &vader_data_28;
         l6 = ((vader_struct_vader_support_profile$BuildLog_t*) l0)->f_step;
         vader_array_t* _a1_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
@@ -554,7 +554,7 @@ static void vader_support_profile$print_step(void* l0) {
                 l1 = vader_chk_add(i64, l1, l14);
                 l4 = (l4 + INT64_C(1));
             }
-            vader_support_profile$print_line(INT64_C(1), 3200u, 0u, l1);
+            vader_support_profile$print_line(INT64_C(1), 3202u, 0u, l1);
             l1 = vader_array_length(((vader_array_t*) l2));
             l3 = INT64_C(0);
             while ((l3 < l1)) {
@@ -901,14 +901,14 @@ static vader_string_t vader_support_profile$stage_detail(void* l0) {
     if ((t0 > INT64_C(0))) {
         t0 = ((vader_struct_vader_support_profile$StageTime_t*) l0)->f_sources_ns;
         l2 = vader_support_profile$display_duration(t0);
-        l2 = concat_2(3194u, l2);
+        l2 = concat_2(3196u, l2);
         vader_array_push_scalar((vader_array_t*) l1, vader_box_string(629u, l2));
     }
     t0 = ((vader_struct_vader_support_profile$StageTime_t*) l0)->f_bodies_ns;
     if ((t0 > INT64_C(0))) {
         t0 = ((vader_struct_vader_support_profile$StageTime_t*) l0)->f_bodies_ns;
         l2 = vader_support_profile$display_duration(t0);
-        l2 = concat_2(2087u, l2);
+        l2 = concat_2(2088u, l2);
         vader_array_push_scalar((vader_array_t*) l1, vader_box_string(629u, l2));
         l2 = 444u;
         t1 = std_string$join(l1, l2);

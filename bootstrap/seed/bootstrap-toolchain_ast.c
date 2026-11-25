@@ -472,13 +472,13 @@ vader_string_t toolchain_ast$binary_op_symbol(uint8_t l0) {
     } else if (l0 == INT32_C(7)) {
         l1 = 360u;
     } else if (l0 == INT32_C(8)) {
-        l1 = 3788u;
+        l1 = 3792u;
     } else if (l0 == INT32_C(9)) {
-        l1 = 1245u;
+        l1 = 1246u;
     } else if (l0 == INT32_C(10)) {
         l1 = 361u;
     } else if (l0 == INT32_C(11)) {
-        l1 = 3789u;
+        l1 = 3793u;
     } else if (l0 == INT32_C(12)) {
         l1 = 631u;
     } else if (l0 == INT32_C(13)) {
@@ -492,9 +492,9 @@ vader_string_t toolchain_ast$binary_op_symbol(uint8_t l0) {
     } else if (l0 == INT32_C(17)) {
         l1 = 638u;
     } else if (l0 == INT32_C(18)) {
-        l1 = 2770u;
+        l1 = 2772u;
     } else if (l0 == INT32_C(19)) {
-        l1 = 2703u;
+        l1 = 2705u;
     } else if (l0 == INT32_C(20)) {
         l1 = 318u;
     } else if (l0 == INT32_C(21)) {
@@ -541,7 +541,7 @@ static vader_string_t toolchain_ast$c_header_of(void* l0) {
         { vader_gc_top = gc_frame.prev; return 0u; }
     }
     t0 = l1.payload.obj;
-    t1 = toolchain_ast$string_field(t0, 2628u, INT64_C(0));
+    t1 = toolchain_ast$string_field(t0, 2630u, INT64_C(0));
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -561,7 +561,7 @@ vader_string_t toolchain_ast$c_struct_spelling(void* l0, vader_string_t l1) {
         { vader_gc_top = gc_frame.prev; return 0u; }
     }
     t0 = l2.payload.obj;
-    l2 = toolchain_ast$argument_named(t0, 2938u, INT64_C(0));
+    l2 = toolchain_ast$argument_named(t0, 2940u, INT64_C(0));
     if (l2.tag == 0u) {
         { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -589,7 +589,7 @@ vader_string_t toolchain_ast$c_type_of(void* l0) {
         { vader_gc_top = gc_frame.prev; return 0u; }
     }
     t0 = l1.payload.obj;
-    t1 = toolchain_ast$string_field(t0, 2938u, INT64_C(0));
+    t1 = toolchain_ast$string_field(t0, 2940u, INT64_C(0));
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -630,57 +630,57 @@ void* toolchain_ast$collect_bitor_variants(vader_box_t l0) {
 
 vader_box_t toolchain_ast$compiler_decorator_named(vader_string_t l0) {
     vader_box_t l1;
-    if (l0 == 1951u) {
+    if (l0 == 1952u) {
         l1 = vader_box_i32(634u, INT32_C(0));
         return l1;
     }
-    if (l0 == 1957u) {
+    if (l0 == 1958u) {
         l1 = vader_box_i32(634u, INT32_C(1));
-    } else if (l0 == 2056u) {
+    } else if (l0 == 2057u) {
         l1 = vader_box_i32(634u, INT32_C(2));
-    } else if (l0 == 2165u) {
+    } else if (l0 == 2166u) {
         l1 = vader_box_i32(634u, INT32_C(3));
-    } else if (l0 == 2167u) {
+    } else if (l0 == 2168u) {
         l1 = vader_box_i32(634u, INT32_C(4));
-    } else if (l0 == 2176u) {
-        l1 = vader_box_i32(634u, INT32_C(5));
     } else if (l0 == 2177u) {
-        l1 = vader_box_i32(634u, INT32_C(6));
+        l1 = vader_box_i32(634u, INT32_C(5));
     } else if (l0 == 2178u) {
-        l1 = vader_box_i32(634u, INT32_C(7));
+        l1 = vader_box_i32(634u, INT32_C(6));
     } else if (l0 == 2179u) {
-        l1 = vader_box_i32(634u, INT32_C(8));
+        l1 = vader_box_i32(634u, INT32_C(7));
     } else if (l0 == 2180u) {
+        l1 = vader_box_i32(634u, INT32_C(8));
+    } else if (l0 == 2181u) {
         l1 = vader_box_i32(634u, INT32_C(9));
-    } else if (l0 == 2262u) {
+    } else if (l0 == 2263u) {
         l1 = vader_box_i32(634u, INT32_C(10));
-    } else if (l0 == 2335u) {
+    } else if (l0 == 2336u) {
         l1 = vader_box_i32(634u, INT32_C(11));
-    } else if (l0 == 2346u) {
+    } else if (l0 == 2347u) {
         l1 = vader_box_i32(634u, INT32_C(12));
-    } else if (l0 == 2393u) {
+    } else if (l0 == 2394u) {
         l1 = vader_box_i32(634u, INT32_C(13));
-    } else if (l0 == 2475u) {
+    } else if (l0 == 2477u) {
         l1 = vader_box_i32(634u, INT32_C(14));
-    } else if (l0 == 2739u) {
+    } else if (l0 == 2741u) {
         l1 = vader_box_i32(634u, INT32_C(15));
-    } else if (l0 == 2743u) {
+    } else if (l0 == 2745u) {
         l1 = vader_box_i32(634u, INT32_C(16));
-    } else if (l0 == 2874u) {
+    } else if (l0 == 2876u) {
         l1 = vader_box_i32(634u, INT32_C(17));
-    } else if (l0 == 2988u) {
+    } else if (l0 == 2990u) {
         l1 = vader_box_i32(634u, INT32_C(18));
-    } else if (l0 == 3061u) {
+    } else if (l0 == 3063u) {
         l1 = vader_box_i32(634u, INT32_C(19));
-    } else if (l0 == 3143u) {
+    } else if (l0 == 3145u) {
         l1 = vader_box_i32(634u, INT32_C(20));
-    } else if (l0 == 3178u) {
+    } else if (l0 == 3180u) {
         l1 = vader_box_i32(634u, INT32_C(21));
-    } else if (l0 == 3283u) {
+    } else if (l0 == 3285u) {
         l1 = vader_box_i32(634u, INT32_C(22));
-    } else if (l0 == 3294u) {
+    } else if (l0 == 3296u) {
         l1 = vader_box_i32(634u, INT32_C(23));
-    } else if (l0 == 3479u) {
+    } else if (l0 == 3481u) {
         l1 = vader_box_i32(634u, INT32_C(24));
     } else {
         l1 = vader_box_obj(0u, NULL);
@@ -922,8 +922,8 @@ void* toolchain_ast$extern_arguments(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    l1 = toolchain_ast$argument_named(l0, 2566u, INT64_C(0));
-    l2 = toolchain_ast$argument_named(l0, 3272u, INT64_C(1));
+    l1 = toolchain_ast$argument_named(l0, 2568u, INT64_C(0));
+    l2 = toolchain_ast$argument_named(l0, 3274u, INT64_C(1));
     vader_struct_toolchain_ast$ExternArguments_t* _a0_obj = (vader_struct_toolchain_ast$ExternArguments_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_ast$ExternArguments_t));
     vader_obj_header_init(_a0_obj, 1153u);
     _a0_obj->f_from = l1;
@@ -2886,7 +2886,7 @@ vader_string_t toolchain_ast$unary_op_symbol(uint8_t l0) {
         if (!(l0 == INT32_C(2))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 3796u;
+        l1 = 3800u;
     }
     return l1;
 }

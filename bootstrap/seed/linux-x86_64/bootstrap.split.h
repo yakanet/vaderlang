@@ -4613,6 +4613,8 @@ struct vader_struct_std_fs$OpenOptions_t {
 struct vader_struct_std_fs$WasiFile_t {
     vader_obj_header_t header;
     void* f_descriptor;
+    int64_t f_position;
+    bool f_append;
     vader_box_t f_read;
     bool f_ended;
 };
@@ -10625,6 +10627,7 @@ struct vader_struct_vader_pipeline$CfgBytecode_t {
     void* f_generated;
     void* f_module;
     bool f_verify_bounds;
+    vader_string_t f_exit_threads;
 };
 struct vader_struct_vader_pipeline$EvaluatedPipeline_t {
     vader_obj_header_t header;
@@ -11317,6 +11320,11 @@ vader_string_t vader_core_mangle$mangle_last_segment(vader_string_t l0);
 vader_string_t vader_core_mangle$uniq(void* l0, vader_string_t l1);
 vader_string_t vader_core_mangle$field_default_mangle(vader_string_t l0, vader_string_t l1);
 vader_string_t vader_core_mangle$trait_member_mangle(vader_string_t l0, vader_string_t l1, vader_string_t l2);
+bool vader_core_symbol$is_compiler_decorator_symbol(void* l0);
+void* vader_core_symbol$make(void* l0, uint8_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, uint8_t l5, vader_box_t l6);
+bool vader_core_symbol$is_type_kind(uint8_t l0);
+bool vader_core_symbol$is_frozen_const(void* l0);
+bool vader_core_symbol$is_local_binding(uint8_t l0);
 void* vader_front_resolver$with_called_interfaces(void* l0, void* l1);
 bool __lambda_vader_front_resolver_0(void* l0, void* l1);
 void vader_front_resolver$link_generated_origins(void* l0, void* l1);
@@ -11325,6 +11333,7 @@ void* vader_front_resolver$generated_code(void* l0);
 void* vader_front_resolver$load_project(vader_string_t l0, void* l1, vader_box_t l2, vader_box_t l3, bool l4, bool l5, bool l6);
 bool vader_front_resolver$is_generated_file(vader_string_t l0);
 bool vader_front_resolver$is_wit_module_file(vader_string_t l0);
+vader_box_t vader_front_resolver$find_scheduler_module_id(void* l0);
 bool vader_front_resolver$is_generated_by(vader_string_t l0, vader_string_t l1);
 void* vader_front_resolver$build_core_seed(void* l0);
 void* vader_front_resolver$module_index_by_name(void* l0);
@@ -11361,7 +11370,6 @@ void* vader_front_resolver$resolve_module(void* l0, vader_string_t l1, void* l2)
 bool __lambda_vader_front_resolver_20(void* l0, void* l1);
 void* vader_front_resolver$decorators_above_module(void* l0);
 void* __lambda_vader_front_resolver_21(void* l0);
-vader_box_t vader_front_resolver$find_scheduler_module_id(void* l0);
 vader_string_t vader_front_resolver$late_body_file(void* l0, vader_string_t l1);
 vader_string_t vader_front_resolver$late_body_source(void* l0, vader_string_t l1, vader_string_t l2);
 vader_box_t vader_front_resolver$decl_symbol(void* l0, vader_box_t l1);
@@ -11550,7 +11558,7 @@ bool vader_front_typecheck$serves_a_trait(void* l0, vader_string_t l1, vader_str
 void* vader_front_typecheck$all_roles(void);
 void* __lambda_vader_front_typecheck_85(void);
 void* __lambda_vader_front_typecheck_86(void);
-void* vader_lower$begin_lowering(void* l0, void* l1, void* l2, void* l3, bool l4);
+void* vader_lower$begin_lowering(void* l0, void* l1, void* l2, void* l3, bool l4, void* l5);
 void* vader_lower$finish_lowering(void* l0, void* l1);
 void __lambda_vader_lower_0(void* l0, vader_box_t l1);
 void* __lambda_vader_lower_2(void);
@@ -12112,11 +12120,6 @@ vader_string_t std_tty$cyan(vader_string_t l0);
 void std_tty$no_color_set$keep(void);
 void std_tty$stderr_is_tty$keep(void);
 void std_tty$stdout_is_tty$keep(void);
-bool vader_core_symbol$is_compiler_decorator_symbol(void* l0);
-void* vader_core_symbol$make(void* l0, uint8_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, uint8_t l5, vader_box_t l6);
-bool vader_core_symbol$is_type_kind(uint8_t l0);
-bool vader_core_symbol$is_frozen_const(void* l0);
-bool vader_core_symbol$is_local_binding(uint8_t l0);
 bool toolchain_ast$is_compiler(void* l0, uint8_t l1);
 vader_box_t toolchain_ast$compiler_decorator_of(void* l0);
 vader_box_t toolchain_ast$compiler_decorator_named(vader_string_t l0);
@@ -13165,7 +13168,7 @@ vader_box_t toolchain_stage$BuildFiles$list_folder$$dispatch(vader_box_t recv, v
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3796u
+#define VADER_COMPTIME_ATOM_COUNT 3800u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;

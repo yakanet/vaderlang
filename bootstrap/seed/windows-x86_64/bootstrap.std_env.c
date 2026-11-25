@@ -165,6 +165,6 @@ vader_box_t std_env$set_current_working_directory(vader_string_t l0) {
     if (!(t1 == INT32_C(0))) {
         { vader_box_t __vret = vader_box_obj(630u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = std_io$last_io_error(2198u);
+    t0 = std_io$last_io_error(2199u);
     { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
