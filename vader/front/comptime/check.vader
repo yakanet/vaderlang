@@ -40,10 +40,7 @@ export evaluate_project :: fn(
         decls :: lookup_module_decls(loaded, module_id)
         if decls !is null {
             decls_by_module[module_id] = decls
-            evaluate_module_decls(decls, module_typed, program, project, module_id, diags)
-        }
-        for [symbol_id, value] in program.comptime_decls {
-            constants.values[symbol_id] = value
+            evaluate_module_decls(decls, program, project, module_id, constants, diags)
         }
         project.modules[module_id] = program
     }
@@ -55,7 +52,7 @@ export evaluate_project :: fn(
             fold_plain_constants(decls, program, constants, diags)
             // After the consts are baked : an `@assert` may reference one, and an
             // unresolved ident would leave it unevaluated.
-            evaluate_assert_decls(decls, program, diags)
+            evaluate_assert_decls(decls, program, constants, diags)
         }
         evaluate_decorator_uses(program, constants, diags)
     }
@@ -78,24 +75,26 @@ lookup_module_decls :: fn(loaded: LoadedProject, module_id: string) -> AST.Decl[
 }
 
 evaluate_module_decls :: fn(
-    decls: AST.Decl[], typed: TypedProgram, program: EvaluatedProgram,
-    project: EvaluatedProject, module_id: string, diags: Diagnostic[],
+    decls: AST.Decl[], program: EvaluatedProgram, project: EvaluatedProject,
+    module_id: string, constants: ProjectConstants, diags: Diagnostic[],
 ) -> void {
+    typed :: program.typed
     order :: sort_comptime_decls(decls, typed)
     for diagnostic in order.cycle_diags { diags.push(diagnostic) }
-    context :: ComptimeContext {
-        .typed    = typed,
-        .bindings = program.comptime_decls,
-    }
+    context :: module_context(program, constants)
     for decl in order.order {
-        result :: evaluate_expr(decl.value, context)
+        symbol :: symbol_declared_at(typed.resolved, decl.name_span)
+        // On a cycle another `@comptime` constant met, which reported it.
+        if symbol != null && symbol.id in constants.cycles {
+            continue
+        }
+        result :: evaluate_declared(decl, symbol, context)
         // The tree-walk gave up on a VM-evaluable shape (loop / mutation /
         // statement-bodied callee). Record the decl for the VM stage
         // (`pipeline/comptime_vm`, run once `evaluated` is complete) and suppress
         // the C4001, unless the RHS isn't a stageable nullary call, in which
         // case the diagnostic stands.
         if result.vm_required {
-            symbol :: symbol_declared_at(typed.resolved, decl.name_span)
             if symbol != null {
                 // The VM holds a type as an index into the bytecode's type
                 // table, where an enum shares its integer's slot and a distinct
@@ -116,17 +115,24 @@ evaluate_module_decls :: fn(
             continue
         }
         value :: result.value
-        if value !is null {
-            symbol :: symbol_declared_at(typed.resolved, decl.name_span)
-            if symbol != null {
-                program.comptime_decls[symbol.id] = value
-                program.routes[symbol.id] = .Marked
-            }
+        if value !is null && symbol != null {
+            program.comptime_decls[symbol.id] = value
+            program.routes[symbol.id] = .Marked
         }
         if result.diag !is null {
             diags.push(result.diag)
         }
     }
+}
+
+// Evaluate the value of `decl` through the project's constants, so a cycle is
+// found from it and its value is kept for the constants that read it. A constant
+// naming a type is no value of the project: its type is read in place.
+evaluate_declared :: fn(decl: AST.ConstDecl, symbol: Symbol | null, context: ComptimeContext) -> EvalResult {
+    if symbol == null {
+        return evaluate_expr(decl.value, context)
+    }
+    return evaluate_project_const(symbol, context, decl.span) else evaluate_expr(decl.value, context)
 }
 
 // Fold every constant of the module written without `@comptime` whose value the
@@ -141,11 +147,7 @@ fold_plain_constants :: fn(
     diags: Diagnostic[],
 ) -> void {
     typed :: program.typed
-    context :: ComptimeContext {
-        .typed    = typed,
-        .bindings = program.comptime_decls,
-        .project  = constants,
-    }
+    context :: module_context(program, constants)
     for decl in decls.filter_is<AST.ConstDecl>() {
         if AST.is_comptime_const(decl) {
             continue
@@ -154,10 +156,7 @@ fold_plain_constants :: fn(
         if symbol.id in program.comptime_decls {
             continue
         }
-        // A constant naming a type is no value of the project: its type is read
-        // in place.
-        result :: evaluate_project_const(symbol, context, decl.span)
-            else evaluate_expr(decl.value, context)
+        result :: evaluate_declared(decl, symbol, context)
         value :: result.value else {
             fault :: fault_of(result)
             if fault != null {

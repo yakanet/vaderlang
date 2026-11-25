@@ -23,11 +23,20 @@ ComptimeContext :: struct {
     /// `evaluate_expr` ; shared across operand recursion so it tracks the live
     /// level.
     depth:    i64 = 0
-    /// The whole project, for an evaluation that reads constants of any module
-    /// and the aggregate forms (struct literals, enum variants, `match`); null
-    /// keeps it to the module's own `bindings` and to scalars. The passes that
-    /// bake constants for the lowerer leave it null (`eval_aggregate.vader`).
-    project:  ProjectConstants | null = null
+    /// The whole project: its constants of any module, and the declarations of
+    /// the functions and the types an evaluation reaches.
+    project:  ProjectConstants
+}
+
+/// The context that evaluates the declarations of `program`: its own baked
+/// constants first, then the project's.
+///
+/// @param program    the module, its `@comptime` values baked so far.
+/// @param constants  the project's constants.
+module_context :: fn(program: EvaluatedProgram, constants: ProjectConstants) = ComptimeContext {
+    .typed    = program.typed,
+    .bindings = program.comptime_decls,
+    .project  = constants,
 }
 
 /// The module-level constants of the whole project, evaluated on demand.
@@ -41,6 +50,9 @@ ProjectConstants :: struct {
     /// The constants whose value faults (`fault_of`): the first evaluation
     /// reports it, a later read gives up silently.
     faulted: Set<i32> = Set<i32> {}
+    /// The constants on a cycle the evaluation met: the `@comptime` one that met
+    /// it reports it, the others of the cycle do not again.
+    cycles: Set<i32> = Set<i32> {}
 }
 
 /// Result of evaluating one expression. Three states :

@@ -18,6 +18,7 @@ NAMED :: Mode.Fast
 OS :: VADER_OS
 ON_BROWSER :: VADER_OS == .Browser
 OFF_BROWSER :: !ON_BROWSER
+CHOSEN :: @comptime Mode.Fast
 
 // Called only from branches that the constants rule out.
 never_called :: fn(what: string) -> void {
@@ -47,6 +48,9 @@ main :: fn() -> i32 {
     }
     if !OFF_BROWSER {
         never_called("not off browser")
+    }
+    if CHOSEN == .Slow {
+        never_called("chosen slow")
     }
     return 0
 }

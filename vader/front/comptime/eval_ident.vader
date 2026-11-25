@@ -27,8 +27,7 @@ evaluate_ident :: fn(expr: AST.IdentExpr, context: ComptimeContext) -> EvalResul
     // Path 1 : already-evaluated `@comptime const`.
     bound :: context.bindings[symbol.id]
     if !(bound is null) { return ok(bound) }
-    // Path 1b : any module-level constant of the project, when the evaluation
-    // reaches the project.
+    // Path 1b : any module-level constant of the project.
     constant :: evaluate_project_const(symbol, context, expr.span)
     if constant != null {
         return constant

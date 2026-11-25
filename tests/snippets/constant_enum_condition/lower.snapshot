@@ -2,6 +2,7 @@
 
 ## snippet
   storage
+    const CHOSEN: Mode  inline
     const MODE: Mode  inline
     const NAMED: Mode  inline
     const OFF_BROWSER: bool  inline
@@ -12,6 +13,10 @@
   snippet.OS: Os: 1  // snippet$OS
   snippet.ON_BROWSER: bool: false  // snippet$ON_BROWSER
   snippet.OFF_BROWSER: bool: true  // snippet$OFF_BROWSER
+  snippet.__comptime_CHOSEN :: fn() -> Mode {  // snippet$__comptime_CHOSEN
+      Mode(0)
+  }
+  snippet.CHOSEN: Mode: 0  // snippet$CHOSEN
   snippet.never_called :: fn(what: string) -> void {  // snippet$never_called
       std.console.println<string>(concat_2("unreachable: ", what))
   }
@@ -21,6 +26,7 @@
       {
           std.console.println<string>("fast")
       }
+      {}
       {}
       {}
       {}

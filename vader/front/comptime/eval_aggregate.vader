@@ -1,11 +1,5 @@
 // vader/front/comptime/eval_aggregate: struct literals, enum variants, `match`, and the
-// project's other constants, for an evaluation that reaches the project.
-//
-// The passes that bake constants evaluate without the project, so a struct literal
-// there is left to the lowering, which builds it from its source ; a `@comptime`
-// value whose function builds one runs on the comptime VM instead. The evaluation
-// of a constant an `@extern` names reaches the project, since nothing lowers that
-// value.
+// project's other constants, each evaluated in the module that declares it.
 
 module "vader/front/comptime"
 
@@ -17,15 +11,11 @@ import "vader/core/types"
 import "toolchain/diagnostics"
 AST :: import "toolchain/ast"
 
-/// Evaluate one of the forms only an evaluation reaching the project reads;
-/// C4001 otherwise.
+/// Evaluate a struct literal, an enum variant, a field access or a `match`.
 ///
 /// @param expr     a struct literal, `.Variant`, a field access or a `match`.
 /// @param context  the evaluator context.
 evaluate_aggregate :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
-    if context.project == null {
-        return vm_required(expr.span, expr_kind_name(expr))
-    }
     // @partial: the dispatch in `evaluate_expr` routes only these four kinds here.
     @partial match expr {
         is AST.StructLitExpr  -> { return evaluate_struct_lit(expr, context) }
@@ -186,9 +176,6 @@ pattern_holds :: fn(pattern: AST.Pattern, value: ComptimeValue) -> bool | null {
 /// @param context  the evaluator context of the interpolation.
 /// @return         a `StringValue`, or C4001.
 display_enum :: fn(value: EnumValue, part: AST.Expr, context: ComptimeContext) -> EvalResult {
-    if context.project == null {
-        return vm_required(part.span, "enum interpolated outside a project")
-    }
     callee :: sites_of(context.typed.call_sites, .Display)[part.id]
     if callee !is DirectFn {
         return vm_required(part.span, "enum without a `Display` member")
@@ -204,25 +191,25 @@ display_enum :: fn(value: EnumValue, part: AST.Expr, context: ComptimeContext) -
     return result
 }
 
-// The names of the constants from the one `symbol` names up to the last being
-// evaluated, then `symbol` again ; null when `symbol` is not being evaluated.
-cycle_closed_by :: fn(evaluating: Symbol[], symbol: Symbol) -> string[] | null {
-    names: string[]: []
+// What a constant whose fault is reported already evaluates to: no value, and no
+// diagnostic to report it again.
+ALREADY_REPORTED :: EvalResult { .value = null, .diag = null }
+
+// The constants from the one `symbol` names up to the last being evaluated: the
+// cycle `symbol` closes, empty when `symbol` is not being evaluated.
+cycle_closed_by :: fn(evaluating: Symbol[], symbol: Symbol) -> Symbol[] {
+    members: Symbol[]: []
     for s in evaluating {
-        if names.len() > 0 || s.id == symbol.id {
-            names.push(s.name)
+        if members.len() > 0 || s.id == symbol.id {
+            members.push(s)
         }
     }
-    if names.len() == 0 {
-        return null
-    }
-    names.push(symbol.name)
-    return names
+    return members
 }
 
 /// A module-level constant of the project, evaluated in its own module on its
-/// first read and kept for the next ones; null when `symbol` is no such constant
-/// or the context reaches no project.
+/// first read and kept for the next ones; null when `symbol` is no such constant,
+/// or a constant naming a type.
 ///
 /// @param symbol   the constant read.
 /// @param context  the evaluator context of the reader.
@@ -232,13 +219,13 @@ evaluate_project_const :: fn(
     context: ComptimeContext,
     span: Span,
 ) -> EvalResult | null {
-    project :: context.project else return null
+    project :: context.project
     known :: project.values[symbol.id]
     if known != null {
         return ok(known)
     }
     if symbol.id in project.faulted {
-        return vm_required(span, "a constant whose value faults")
+        return ALREADY_REPORTED
     }
     owner_context :: declaring_context(symbol.module, context) else return null
     declaration :: owner_context.typed.const_decls[symbol.id] else return null
@@ -248,8 +235,14 @@ evaluate_project_const :: fn(
         return null
     }
     cycle :: cycle_closed_by(project.evaluating, symbol)
-    if cycle != null {
-        return fail(comptime_error(.DependencyCycle, declaration.span, display_cycle(cycle)))
+    if cycle.len() > 0 {
+        names: string[]: []
+        for member in cycle {
+            project.cycles.add(member.id)
+            names.push(member.name)
+        }
+        names.push(symbol.name)
+        return fail(comptime_error(.DependencyCycle, declaration.span, display_cycle(names)))
     }
     project.evaluating.push(symbol)
     result :: evaluate_expr(declaration.value, owner_context)

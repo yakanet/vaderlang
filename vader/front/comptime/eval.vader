@@ -127,5 +127,6 @@ empty_context :: fn() -> ComptimeContext {
     return ComptimeContext {
         .typed    = empty_typed_program(),
         .bindings = Map<i32, ComptimeValue> {},
+        .project  = ProjectConstants { .typed = new_typed_project(FreshReads {}) },
     }
 }

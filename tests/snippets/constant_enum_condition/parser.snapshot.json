@@ -109,6 +109,43 @@
       },
       {
         "kind": "FnDecl",
+        "name": "__comptime_CHOSEN",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "FieldExpr",
+            "target": {
+              "kind": "IdentExpr",
+              "name": "Mode"
+            },
+            "field": "Fast"
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "CHOSEN",
+        "visibility": "private",
+        "type": null,
+        "value": {
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "__comptime_CHOSEN"
+          },
+          "args": []
+        },
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
         "name": "never_called",
         "visibility": "private",
         "typeParams": [],
@@ -492,6 +529,51 @@
                             {
                               "kind": "text",
                               "value": "not off browser"
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                },
+                "else": null
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "IfExpr",
+                "cond": {
+                  "kind": "BinaryExpr",
+                  "op": "eq",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "CHOSEN"
+                  },
+                  "right": {
+                    "kind": "DotVariantExpr",
+                    "variant": "Slow"
+                  }
+                },
+                "then": {
+                  "kind": "BlockExpr",
+                  "stmts": [],
+                  "trailing": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "never_called"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "chosen slow"
                             }
                           ]
                         },

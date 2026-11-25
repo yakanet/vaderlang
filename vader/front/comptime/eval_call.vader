@@ -95,14 +95,13 @@ converted_integer :: fn(value: ComptimeValue, target: string) -> ComptimeValue |
 }
 
 // The context that evaluates the body of `decl`: the caller's own when `decl` is
-// declared beside the caller, else that of its module when the evaluation
-// reaches the project. Null otherwise.
+// declared beside the caller, else that of its module. Null when no module of the
+// project declares it.
 context_declaring :: fn(decl: AST.FnDecl, context: ComptimeContext) -> ComptimeContext | null {
     if decl_symbol(context.typed.resolved, decl) != null {
         return context
     }
-    project :: context.project else return null
-    for [module, typed] in project.typed.modules {
+    for [module, typed] in context.project.typed.modules {
         if decl_symbol(typed.resolved, decl) != null {
             return declaring_context(module, context)
         }
@@ -112,11 +111,9 @@ context_declaring :: fn(decl: AST.FnDecl, context: ComptimeContext) -> ComptimeC
 
 // The context that evaluates code declared in `module` (a function body, a
 // constant, a field default): that module, where its names are resolved, with
-// no local binding. Null when the evaluation does not reach the project or the
-// module is unknown.
+// no local binding. Null when the module is unknown.
 declaring_context :: fn(module: string, context: ComptimeContext) -> ComptimeContext | null {
-    project :: context.project else return null
-    owner :: project.typed.modules[module] else return null
+    owner :: context.project.typed.modules[module] else return null
     return ComptimeContext {
         ...context,
         .typed = owner,
