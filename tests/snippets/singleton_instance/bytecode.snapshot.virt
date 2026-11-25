@@ -21,17 +21,17 @@ string 6 "true"
 string 7 "false"
 string 8 "\n"
 data 0 structs 2 1 1 i32 0a000000
-global 0 6 counter.state
-global 1 2 counter.instance
-global 2 6 log.state
-global 3 3 log.instance
-global 4 6 start.state
-global 5 2 start.instance
-global 6 6 greeting.state
-global 7 4 greeting.instance
-global 8 6 probed.state
-global 9 5 probed.instance
-global 10 6 announce.state
+global 0 6 snippet counter.state
+global 1 2 snippet counter.instance
+global 2 6 snippet log.state
+global 3 3 snippet log.instance
+global 4 6 snippet start.state
+global 5 2 snippet start.instance
+global 6 6 snippet greeting.state
+global 7 4 snippet greeting.instance
+global 8 6 snippet probed.state
+global 9 5 snippet probed.instance
+global 10 6 snippet announce.state
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=4 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=4 param_c_out= param_by_address= (string) -> ref
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=6,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64

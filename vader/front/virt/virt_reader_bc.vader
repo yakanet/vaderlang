@@ -362,15 +362,19 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
 
 // ---- module-level directive parsers ---------------------------------------
 
-// Parse `global N <type> <name>` into `globals`, in slot order.
+// Parse `global N <type> <module> <name>` into `globals`, in slot order.
 parse_global_decl_bc :: fn(cleaned: string, globals: BcGlobal[]) -> void | DirectiveError {
     words :: cleaned.split(" ")
-    if words.len() != 4 {
-        return DirectiveError { .reason = "expected `global <index> <type> <name>`" }
+    if words.len() != 5 {
+        return DirectiveError { .reason = "expected `global <index> <type> <module> <name>`" }
     }
     type_id :: parse_int_in_base(words[2], 10)
         else return DirectiveError { .reason = "global type index \"${words[2]}\" is not a number" }
-    globals.push(BcGlobal { .name = words[3], .type_id = i32(type_id) })
+    globals.push(BcGlobal {
+        .name = words[4],
+        .module = words[3],
+        .type_id = i32(type_id),
+    })
 }
 
 parse_module_name :: fn(cleaned: string) -> string {

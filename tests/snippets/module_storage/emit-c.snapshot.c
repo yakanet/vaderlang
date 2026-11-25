@@ -183,16 +183,17 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_7_buf = {
     },
 };
 static const vader_array_t vader_data_7 = VADER_STATIC_ARRAY(19u, 2u, &vader_data_7_buf);
-static int32_t vader_global_0 = 0u;
-static void* vader_global_1 = 0u;
-static int32_t vader_global_2 = 0u;
-static void* vader_global_3 = 0u;
-static int32_t vader_global_4 = 0u;
-static void* vader_global_5 = 0u;
-static int32_t vader_global_6 = 0u;
-static void* vader_global_7 = 0u;
+static int32_t vader_global$snippet$counts$state = 0u;
+static void* vader_global$snippet$counts$instance = 0u;
+static int32_t vader_global$snippet$slots$state = 0u;
+static void* vader_global$snippet$slots$instance = 0u;
+static int32_t vader_global$snippet$flags$state = 0u;
+static void* vader_global$snippet$flags$instance = 0u;
+static int32_t vader_global$snippet$queue$state = 0u;
+static void* vader_global$snippet$queue$instance = 0u;
 static void** vader_global_raw_roots[] = {
-    &vader_global_1, &vader_global_3, &vader_global_5, &vader_global_7,
+    &vader_global$snippet$counts$instance, &vader_global$snippet$slots$instance,
+    &vader_global$snippet$flags$instance, &vader_global$snippet$queue$instance,
 };
 static vader_gc_frame_t vader_global_frame = {
     NULL, 0u, 4u, NULL, vader_global_raw_roots, 0u, NULL,
@@ -334,18 +335,18 @@ static void* snippet$counts(void) {
     void** gc_raw_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$counts$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_1;
+        t1 = vader_global$snippet$counts$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$counts$state;
     if (!(t0 == INT32_C(1))) {
-        vader_global_0 = INT32_C(1);
+        vader_global$snippet$counts$state = INT32_C(1);
         t1 = snippet$counts$singleton();
-        vader_global_1 = t1;
-        vader_global_0 = INT32_C(2);
-        t1 = vader_global_1;
+        vader_global$snippet$counts$instance = t1;
+        vader_global$snippet$counts$state = INT32_C(2);
+        t1 = vader_global$snippet$counts$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_unreachable("singleton `counts` called while it initialises");
@@ -358,18 +359,18 @@ static void* snippet$slots(void) {
     void** gc_raw_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_2;
+    t0 = vader_global$snippet$slots$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_3;
+        t1 = vader_global$snippet$slots$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_2;
+    t0 = vader_global$snippet$slots$state;
     if (!(t0 == INT32_C(1))) {
-        vader_global_2 = INT32_C(1);
+        vader_global$snippet$slots$state = INT32_C(1);
         t1 = snippet$slots$singleton();
-        vader_global_3 = t1;
-        vader_global_2 = INT32_C(2);
-        t1 = vader_global_3;
+        vader_global$snippet$slots$instance = t1;
+        vader_global$snippet$slots$state = INT32_C(2);
+        t1 = vader_global$snippet$slots$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_unreachable("singleton `slots` called while it initialises");
@@ -382,18 +383,18 @@ static void* snippet$flags(void) {
     void** gc_raw_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_4;
+    t0 = vader_global$snippet$flags$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_5;
+        t1 = vader_global$snippet$flags$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_4;
+    t0 = vader_global$snippet$flags$state;
     if (!(t0 == INT32_C(1))) {
-        vader_global_4 = INT32_C(1);
+        vader_global$snippet$flags$state = INT32_C(1);
         t1 = snippet$flags$singleton();
-        vader_global_5 = t1;
-        vader_global_4 = INT32_C(2);
-        t1 = vader_global_5;
+        vader_global$snippet$flags$instance = t1;
+        vader_global$snippet$flags$state = INT32_C(2);
+        t1 = vader_global$snippet$flags$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_unreachable("singleton `flags` called while it initialises");
@@ -406,18 +407,18 @@ static void* snippet$queue(void) {
     void** gc_raw_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_6;
+    t0 = vader_global$snippet$queue$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_7;
+        t1 = vader_global$snippet$queue$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_6;
+    t0 = vader_global$snippet$queue$state;
     if (!(t0 == INT32_C(1))) {
-        vader_global_6 = INT32_C(1);
+        vader_global$snippet$queue$state = INT32_C(1);
         t1 = snippet$queue$singleton();
-        vader_global_7 = t1;
-        vader_global_6 = INT32_C(2);
-        t1 = vader_global_7;
+        vader_global$snippet$queue$instance = t1;
+        vader_global$snippet$queue$state = INT32_C(2);
+        t1 = vader_global$snippet$queue$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_unreachable("singleton `queue` called while it initialises");
@@ -431,9 +432,9 @@ static void snippet$bump(int64_t l0) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$counts$state;
     if (t0 == INT32_C(2)) {
-        l1 = vader_global_1;
+        l1 = vader_global$snippet$counts$instance;
     } else {
         l1 = snippet$counts();
     }
@@ -630,9 +631,9 @@ static int32_t snippet$main(void) {
     l2 = (void*) vader_buffer_new((size_t) INT64_C(69));
     l1 = INT64_C(0);
     l1 = std_core$write_string_at(l2, l1, 8u);
-    t5 = vader_global_0;
+    t5 = vader_global$snippet$counts$state;
     if (t5 == INT32_C(2)) {
-        l10 = vader_global_1;
+        l10 = vader_global$snippet$counts$instance;
     } else {
         l10 = snippet$counts();
     }
@@ -643,9 +644,9 @@ static int32_t snippet$main(void) {
     l7 = ((int64_t) (int32_t) t5);
     l1 = std_core$write_int(l2, l1, l7);
     l1 = std_core$write_string_at(l2, l1, 9u);
-    t5 = vader_global_0;
+    t5 = vader_global$snippet$counts$state;
     if (t5 == INT32_C(2)) {
-        l10 = vader_global_1;
+        l10 = vader_global$snippet$counts$instance;
     } else {
         l10 = snippet$counts();
     }
@@ -656,9 +657,9 @@ static int32_t snippet$main(void) {
     l7 = ((int64_t) (int32_t) t5);
     l1 = std_core$write_int(l2, l1, l7);
     l1 = std_core$write_string_at(l2, l1, 9u);
-    t5 = vader_global_0;
+    t5 = vader_global$snippet$counts$state;
     if (t5 == INT32_C(2)) {
-        l10 = vader_global_1;
+        l10 = vader_global$snippet$counts$instance;
     } else {
         l10 = snippet$counts();
     }
@@ -670,9 +671,9 @@ static int32_t snippet$main(void) {
     l1 = std_core$write_int(l2, l1, l7);
     t0 = std_core$finish_buffer(l2, l1);
     std_console$println__string(t0);
-    t5 = vader_global_2;
+    t5 = vader_global$snippet$slots$state;
     if (t5 == INT32_C(2)) {
-        l2 = vader_global_3;
+        l2 = vader_global$snippet$slots$instance;
     } else {
         l2 = snippet$slots();
     }
@@ -694,9 +695,9 @@ static int32_t snippet$main(void) {
     l4 = INT32_C(0);
     l11 = INT32_C(0);
     while ((l11 < INT32_C(24))) {
-        t5 = vader_global_2;
+        t5 = vader_global$snippet$slots$state;
         if (t5 == INT32_C(2)) {
-            l2 = vader_global_3;
+            l2 = vader_global$snippet$slots$instance;
         } else {
             l2 = snippet$slots();
         }
@@ -716,9 +717,9 @@ static int32_t snippet$main(void) {
         }
         l11 = (l11 + INT32_C(1));
     }
-    t5 = vader_global_2;
+    t5 = vader_global$snippet$slots$state;
     if (t5 == INT32_C(2)) {
-        l2 = vader_global_3;
+        l2 = vader_global$snippet$slots$instance;
     } else {
         l2 = snippet$slots();
     }
@@ -727,9 +728,9 @@ static int32_t snippet$main(void) {
     VADER_ARRAY_CHECK_INDEX(_a18_slotarr, INT32_C(0))
     t2 = vader_array_box_slots(_a18_slotarr->buf)[vader_array_offset(_a18_slotarr) + (size_t) INT32_C(0)];
     l0 = t2.payload.s;
-    t5 = vader_global_2;
+    t5 = vader_global$snippet$slots$state;
     if (t5 == INT32_C(2)) {
-        l2 = vader_global_3;
+        l2 = vader_global$snippet$slots$instance;
     } else {
         l2 = snippet$slots();
     }
@@ -756,9 +757,9 @@ static int32_t snippet$main(void) {
     l1 = std_core$write_bool(l2, l1, l3);
     t0 = std_core$finish_buffer(l2, l1);
     std_console$println__string(t0);
-    t5 = vader_global_4;
+    t5 = vader_global$snippet$flags$state;
     if (t5 == INT32_C(2)) {
-        l2 = vader_global_5;
+        l2 = vader_global$snippet$flags$instance;
     } else {
         l2 = snippet$flags();
     }
@@ -769,9 +770,9 @@ static int32_t snippet$main(void) {
     l2 = (void*) vader_buffer_new((size_t) INT64_C(42));
     l1 = INT64_C(0);
     l1 = std_core$write_string_at(l2, l1, 15u);
-    t5 = vader_global_4;
+    t5 = vader_global$snippet$flags$state;
     if (t5 == INT32_C(2)) {
-        l10 = vader_global_5;
+        l10 = vader_global$snippet$flags$instance;
     } else {
         l10 = snippet$flags();
     }
@@ -782,9 +783,9 @@ static int32_t snippet$main(void) {
     l3 = t7;
     l1 = std_core$write_bool(l2, l1, l3);
     l1 = std_core$write_string_at(l2, l1, 9u);
-    t5 = vader_global_4;
+    t5 = vader_global$snippet$flags$state;
     if (t5 == INT32_C(2)) {
-        l10 = vader_global_5;
+        l10 = vader_global$snippet$flags$instance;
     } else {
         l10 = snippet$flags();
     }
@@ -795,9 +796,9 @@ static int32_t snippet$main(void) {
     l3 = t7;
     l1 = std_core$write_bool(l2, l1, l3);
     l1 = std_core$write_string_at(l2, l1, 16u);
-    t5 = vader_global_4;
+    t5 = vader_global$snippet$flags$state;
     if (t5 == INT32_C(2)) {
-        l10 = vader_global_5;
+        l10 = vader_global$snippet$flags$instance;
     } else {
         l10 = snippet$flags();
     }
@@ -805,9 +806,9 @@ static int32_t snippet$main(void) {
     l1 = std_core$write_int(l2, l1, l7);
     t0 = std_core$finish_buffer(l2, l1);
     std_console$println__string(t0);
-    t5 = vader_global_0;
+    t5 = vader_global$snippet$counts$state;
     if (t5 == INT32_C(2)) {
-        l2 = vader_global_1;
+        l2 = vader_global$snippet$counts$instance;
     } else {
         l2 = snippet$counts();
     }
@@ -821,9 +822,9 @@ static int32_t snippet$main(void) {
     l4 = INT32_C(0);
     l11 = INT32_C(0);
     while ((l11 < INT32_C(40))) {
-        t5 = vader_global_0;
+        t5 = vader_global$snippet$counts$state;
         if (t5 == INT32_C(2)) {
-            l2 = vader_global_1;
+            l2 = vader_global$snippet$counts$instance;
         } else {
             l2 = snippet$counts();
         }
@@ -844,9 +845,9 @@ static int32_t snippet$main(void) {
     l7 = ((int64_t) (int32_t) l4);
     l1 = std_core$write_int(l2, l1, l7);
     l1 = std_core$write_string_at(l2, l1, 18u);
-    t5 = vader_global_0;
+    t5 = vader_global$snippet$counts$state;
     if (t5 == INT32_C(2)) {
-        l10 = vader_global_1;
+        l10 = vader_global$snippet$counts$instance;
     } else {
         l10 = snippet$counts();
     }
@@ -854,9 +855,9 @@ static int32_t snippet$main(void) {
     l1 = std_core$write_int(l2, l1, l7);
     t0 = std_core$finish_buffer(l2, l1);
     std_console$println__string(t0);
-    t5 = vader_global_6;
+    t5 = vader_global$snippet$queue$state;
     if (t5 == INT32_C(2)) {
-        l2 = vader_global_7;
+        l2 = vader_global$snippet$queue$instance;
     } else {
         l2 = snippet$queue();
     }
@@ -904,9 +905,9 @@ static int32_t snippet$main(void) {
     }
     vader_host_std_core$Intrinsic$collect();
     l4 = INT32_C(0);
-    t5 = vader_global_6;
+    t5 = vader_global$snippet$queue$state;
     if (t5 == INT32_C(2)) {
-        l2 = vader_global_7;
+        l2 = vader_global$snippet$queue$instance;
     } else {
         l2 = snippet$queue();
     }
@@ -920,9 +921,9 @@ static int32_t snippet$main(void) {
     }
     l11 = INT32_C(0);
     while ((l11 < INT32_C(8))) {
-        t5 = vader_global_6;
+        t5 = vader_global$snippet$queue$state;
         if (t5 == INT32_C(2)) {
-            l2 = vader_global_7;
+            l2 = vader_global$snippet$queue$instance;
         } else {
             l2 = snippet$queue();
         }
@@ -949,18 +950,18 @@ static int32_t snippet$main(void) {
     l7 = ((int64_t) (int32_t) l4);
     l1 = std_core$write_int(l2, l1, l7);
     l1 = std_core$write_string_at(l2, l1, 24u);
-    t5 = vader_global_6;
+    t5 = vader_global$snippet$queue$state;
     if (t5 == INT32_C(2)) {
-        l10 = vader_global_7;
+        l10 = vader_global$snippet$queue$instance;
     } else {
         l10 = snippet$queue();
     }
     l7 = vader_array_length(((vader_array_t*) l10));
     l1 = std_core$write_int(l2, l1, l7);
     l1 = std_core$write_string_at(l2, l1, 6u);
-    t5 = vader_global_6;
+    t5 = vader_global$snippet$queue$state;
     if (t5 == INT32_C(2)) {
-        l10 = vader_global_7;
+        l10 = vader_global$snippet$queue$instance;
     } else {
         l10 = snippet$queue();
     }

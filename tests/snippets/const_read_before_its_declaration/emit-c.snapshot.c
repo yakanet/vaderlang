@@ -39,8 +39,8 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
     },
 };
 static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(4u, 1u, &vader_data_0_buf);
-static int32_t vader_global_0 = 0u;
-static int32_t vader_global_1 = 0u;
+static int32_t vader_global$snippet$MADE$state = 0u;
+static int32_t vader_global$snippet$BUILT$state = 0u;
 static vader_gc_frame_t vader_global_frame = { NULL, 0u, 0u, NULL, NULL, 0u, NULL };
 
 static int32_t snippet$main(void);
@@ -224,11 +224,11 @@ static void* __const_snippet$MADE(void) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$MADE$state;
     if (!(t0 == INT32_C(1))) {
-        vader_global_0 = INT32_C(1);
+        vader_global$snippet$MADE$state = INT32_C(1);
         l0 = snippet$make(INT32_C(4));
-        vader_global_0 = INT32_C(0);
+        vader_global$snippet$MADE$state = INT32_C(0);
         { void* __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_unreachable("constant `MADE` read while its value is computed");
@@ -253,11 +253,11 @@ static void* __const_snippet$BUILT(void) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_1;
+    t0 = vader_global$snippet$BUILT$state;
     if (!(t0 == INT32_C(1))) {
-        vader_global_1 = INT32_C(1);
+        vader_global$snippet$BUILT$state = INT32_C(1);
         l0 = snippet$build();
-        vader_global_1 = INT32_C(0);
+        vader_global$snippet$BUILT$state = INT32_C(0);
         { void* __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_unreachable("constant `BUILT` read while its value is computed");

@@ -30,7 +30,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
-static int32_t vader_global_0 = 0u;
+static int32_t vader_global$snippet$FOUND$state = 0u;
 static vader_gc_frame_t vader_global_frame = { NULL, 0u, 0u, NULL, NULL, 0u, NULL };
 
 static void snippet$first_on_diagonal(int32_t* __o0, int32_t* __o1, int32_t* __o2);
@@ -133,11 +133,11 @@ static vader_box_t __const_snippet$FOUND(void) {
     void** gc_raw_roots[1] = { &t3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$FOUND$state;
     if (t0 == INT32_C(1)) {
         vader_unreachable("constant `FOUND` read while its value is computed");
     } else {
-        vader_global_0 = INT32_C(1);
+        vader_global$snippet$FOUND$state = INT32_C(1);
         snippet$first_on_diagonal(&t0, &t1, &t2);
         l2 = t2;
         l1 = t1;
@@ -151,7 +151,7 @@ static vader_box_t __const_snippet$FOUND(void) {
             t3 = (void*) _a0_obj;
             l0 = vader_ref_box(t3);
         }
-        vader_global_0 = INT32_C(0);
+        vader_global$snippet$FOUND$state = INT32_C(0);
         { vader_box_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_gc_top = gc_frame.prev;

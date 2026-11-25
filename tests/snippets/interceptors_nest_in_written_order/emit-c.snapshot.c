@@ -157,16 +157,17 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_1_buf = {
     },
 };
 static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(32u, 1u, &vader_data_1_buf);
-static int32_t vader_global_0 = 0u;
-static void* vader_global_1 = 0u;
-static int32_t vader_global_2 = 0u;
-static void* vader_global_3 = 0u;
-static int32_t vader_global_4 = 0u;
-static void* vader_global_5 = 0u;
-static int32_t vader_global_6 = 0u;
-static void* vader_global_7 = 0u;
+static int32_t vader_global$snippet$fib$$layer$state = 0u;
+static void* vader_global$snippet$fib$$layer$instance = 0u;
+static int32_t vader_global$snippet$fib$$layer2$state = 0u;
+static void* vader_global$snippet$fib$$layer2$instance = 0u;
+static int32_t vader_global$snippet$add$$layer$state = 0u;
+static void* vader_global$snippet$add$$layer$instance = 0u;
+static int32_t vader_global$snippet$add$$layer2$state = 0u;
+static void* vader_global$snippet$add$$layer2$instance = 0u;
 static void** vader_global_raw_roots[] = {
-    &vader_global_1, &vader_global_3, &vader_global_5, &vader_global_7,
+    &vader_global$snippet$fib$$layer$instance, &vader_global$snippet$fib$$layer2$instance,
+    &vader_global$snippet$add$$layer$instance, &vader_global$snippet$add$$layer2$instance,
 };
 static vader_gc_frame_t vader_global_frame = {
     NULL, 0u, 4u, NULL, vader_global_raw_roots, 0u, NULL,
@@ -450,18 +451,18 @@ static void* snippet$fib$$layer(void) {
     void** gc_raw_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$fib$$layer$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_1;
+        t1 = vader_global$snippet$fib$$layer$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$fib$$layer$state;
     if (!(t0 == INT32_C(1))) {
-        vader_global_0 = INT32_C(1);
+        vader_global$snippet$fib$$layer$state = INT32_C(1);
         t1 = snippet$fib$$layer$singleton();
-        vader_global_1 = t1;
-        vader_global_0 = INT32_C(2);
-        t1 = vader_global_1;
+        vader_global$snippet$fib$$layer$instance = t1;
+        vader_global$snippet$fib$$layer$state = INT32_C(2);
+        t1 = vader_global$snippet$fib$$layer$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_unreachable("singleton `fib$$layer` called while it initialises");
@@ -477,9 +478,9 @@ static int64_t snippet$fib(int64_t l0) {
     void** gc_raw_roots[3] = { &l1, &l2, &l3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$fib$$layer$state;
     if (t0 == INT32_C(2)) {
-        l1 = vader_global_1;
+        l1 = vader_global$snippet$fib$$layer$instance;
     } else {
         l1 = snippet$fib$$layer();
     }
@@ -496,18 +497,18 @@ static void* snippet$fib$$layer2(void) {
     void** gc_raw_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_2;
+    t0 = vader_global$snippet$fib$$layer2$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_3;
+        t1 = vader_global$snippet$fib$$layer2$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_2;
+    t0 = vader_global$snippet$fib$$layer2$state;
     if (!(t0 == INT32_C(1))) {
-        vader_global_2 = INT32_C(1);
+        vader_global$snippet$fib$$layer2$state = INT32_C(1);
         t1 = snippet$fib$$layer2$singleton();
-        vader_global_3 = t1;
-        vader_global_2 = INT32_C(2);
-        t1 = vader_global_3;
+        vader_global$snippet$fib$$layer2$instance = t1;
+        vader_global$snippet$fib$$layer2$state = INT32_C(2);
+        t1 = vader_global$snippet$fib$$layer2$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_unreachable("singleton `fib$$layer2` called while it initialises");
@@ -523,9 +524,9 @@ static int64_t snippet$fib$$proceed2(int64_t l0) {
     void** gc_raw_roots[3] = { &l1, &l2, &l3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_2;
+    t0 = vader_global$snippet$fib$$layer2$state;
     if (t0 == INT32_C(2)) {
-        l1 = vader_global_3;
+        l1 = vader_global$snippet$fib$$layer2$instance;
     } else {
         l1 = snippet$fib$$layer2();
     }
@@ -542,18 +543,18 @@ static void* snippet$add$$layer(void) {
     void** gc_raw_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_4;
+    t0 = vader_global$snippet$add$$layer$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_5;
+        t1 = vader_global$snippet$add$$layer$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_4;
+    t0 = vader_global$snippet$add$$layer$state;
     if (!(t0 == INT32_C(1))) {
-        vader_global_4 = INT32_C(1);
+        vader_global$snippet$add$$layer$state = INT32_C(1);
         t1 = snippet$add$$layer$singleton();
-        vader_global_5 = t1;
-        vader_global_4 = INT32_C(2);
-        t1 = vader_global_5;
+        vader_global$snippet$add$$layer$instance = t1;
+        vader_global$snippet$add$$layer$state = INT32_C(2);
+        t1 = vader_global$snippet$add$$layer$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_unreachable("singleton `add$$layer` called while it initialises");
@@ -569,9 +570,9 @@ static int32_t snippet$add(int32_t l0, int32_t l1) {
     void** gc_raw_roots[4] = { &l2, &l3, &l4, &l5 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_4;
+    t0 = vader_global$snippet$add$$layer$state;
     if (t0 == INT32_C(2)) {
-        l2 = vader_global_5;
+        l2 = vader_global$snippet$add$$layer$instance;
     } else {
         l2 = snippet$add$$layer();
     }
@@ -593,18 +594,18 @@ static void* snippet$add$$layer2(void) {
     void** gc_raw_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_6;
+    t0 = vader_global$snippet$add$$layer2$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_7;
+        t1 = vader_global$snippet$add$$layer2$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_6;
+    t0 = vader_global$snippet$add$$layer2$state;
     if (!(t0 == INT32_C(1))) {
-        vader_global_6 = INT32_C(1);
+        vader_global$snippet$add$$layer2$state = INT32_C(1);
         t1 = snippet$add$$layer2$singleton();
-        vader_global_7 = t1;
-        vader_global_6 = INT32_C(2);
-        t1 = vader_global_7;
+        vader_global$snippet$add$$layer2$instance = t1;
+        vader_global$snippet$add$$layer2$state = INT32_C(2);
+        t1 = vader_global$snippet$add$$layer2$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_unreachable("singleton `add$$layer2` called while it initialises");
@@ -620,9 +621,9 @@ static int32_t snippet$add$$proceed2(int32_t l0, int32_t l1) {
     void** gc_raw_roots[4] = { &l2, &l3, &l4, &l5 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_6;
+    t0 = vader_global$snippet$add$$layer2$state;
     if (t0 == INT32_C(2)) {
-        l2 = vader_global_7;
+        l2 = vader_global$snippet$add$$layer2$instance;
     } else {
         l2 = snippet$add$$layer2();
     }

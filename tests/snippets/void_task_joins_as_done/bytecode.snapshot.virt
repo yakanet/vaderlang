@@ -55,9 +55,9 @@ data 1 structs 3 0 1
 data 2 agg 1 struct 22 0
 data 3 agg 1 struct 25 0
 data 4 agg 1 struct 38 0
-global 0 6 started.state
-global 1 15 started.instance
-global 2 36 started.gate
+global 0 6 std/task started.state
+global 1 15 std/task started.instance
+global 2 36 std/task started.gate
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=5 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=11 param_types=5 param_c_out= param_by_address= (string) -> ref
 import 2 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=8 param_types=14,8 param_c_out= param_by_address= (ref,i64) -> i64

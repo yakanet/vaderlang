@@ -68,7 +68,7 @@ static const VADER_ARRAY_STATIC_BUF(int32_t, 4) vader_data_0_buf = {
     },
 };
 static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(9u, 4u, &vader_data_0_buf);
-static int32_t vader_global_0 = 0u;
+static int32_t vader_global$snippet$NAMED_PLAIN$state = 0u;
 static vader_gc_frame_t vader_global_frame = { NULL, 0u, 0u, NULL, NULL, 0u, NULL };
 
 static vader_string_t snippet$pick(int32_t l0);
@@ -176,11 +176,11 @@ static bool snippet$same(vader_box_t l0, vader_box_t l1) {
 static vader_string_t __const_snippet$NAMED_PLAIN(void) {
     vader_string_t l0;
     int32_t t0;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$NAMED_PLAIN$state;
     if (!(t0 == INT32_C(1))) {
-        vader_global_0 = INT32_C(1);
+        vader_global$snippet$NAMED_PLAIN$state = INT32_C(1);
         l0 = snippet$name_of__i32(INT32_C(1));
-        vader_global_0 = INT32_C(0);
+        vader_global$snippet$NAMED_PLAIN$state = INT32_C(0);
         return l0;
     }
     vader_unreachable("constant `NAMED_PLAIN` read while its value is computed");

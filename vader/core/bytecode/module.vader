@@ -412,8 +412,11 @@ export function_named :: fn(m: BytecodeModule, mangled: string) -> i32 | null {
 /// A global slot of a module: storage that outlives every call, written only by
 /// code the compiler generates (`@singleton`).
 export BcGlobal :: struct {
-    /// The slot's name in dumps (`f.instance`).
+    /// The slot's name in its module (`f.instance`): with `module`, it names the
+    /// slot apart from every other, whatever the target.
     name: string
+    /// The module whose singleton, or guarded constant, owns the slot.
+    module: string
     type_id: i32
 }
 

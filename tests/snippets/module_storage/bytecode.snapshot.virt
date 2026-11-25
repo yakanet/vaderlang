@@ -68,14 +68,14 @@ data 4 str "a\\b" "x"
 data 5 structs 9 2 2 strref 34 i32 01000000 strref 35 i32 02000000
 data 6 structs 9 2 1 strref 36 i32 00000000
 data 7 structs 11 3 2 strref 37 array 12 1 u8 01 strref 38 strref 39 array 12 2 u8 00 u8 01 strref 40
-global 0 3 counts.state
-global 1 2 counts.instance
-global 2 3 slots.state
-global 3 4 slots.instance
-global 4 3 flags.state
-global 5 6 flags.instance
-global 6 3 queue.state
-global 7 8 queue.instance
+global 0 3 snippet counts.state
+global 1 2 snippet counts.instance
+global 2 3 snippet slots.state
+global 3 4 snippet slots.instance
+global 4 3 snippet flags.state
+global 5 6 snippet flags.instance
+global 6 3 snippet queue.state
+global 7 8 snippet queue.instance
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=10 param_types=5 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=12 param_types=5 param_c_out= param_by_address= (string) -> ref
 import 2 collect std_core$Intrinsic$collect intrinsic=collect result_type=1 () -> void

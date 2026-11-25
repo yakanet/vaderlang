@@ -24,8 +24,8 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
-static int32_t vader_global_0 = 0u;
-static int32_t vader_global_1 = 0u;
+static int32_t vader_global$snippet$CACHED$state = 0u;
+static int32_t vader_global$snippet$LOOP$state = 0u;
 static vader_gc_frame_t vader_global_frame = { NULL, 0u, 0u, NULL, NULL, 0u, NULL };
 
 static int32_t __const_snippet$CACHED(void);
@@ -109,11 +109,11 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
 static int32_t __const_snippet$CACHED(void) {
     int32_t l0;
     int32_t t0;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$CACHED$state;
     if (!(t0 == INT32_C(1))) {
-        vader_global_0 = INT32_C(1);
+        vader_global$snippet$CACHED$state = INT32_C(1);
         l0 = snippet$build(false);
-        vader_global_0 = INT32_C(0);
+        vader_global$snippet$CACHED$state = INT32_C(0);
         return l0;
     }
     vader_unreachable("constant `CACHED` read while its value is computed");
@@ -131,11 +131,11 @@ static int32_t snippet$build(bool l0) {
 static int32_t __const_snippet$LOOP(void) {
     int32_t l0;
     int32_t t0;
-    t0 = vader_global_1;
+    t0 = vader_global$snippet$LOOP$state;
     if (!(t0 == INT32_C(1))) {
-        vader_global_1 = INT32_C(1);
+        vader_global$snippet$LOOP$state = INT32_C(1);
         l0 = snippet$next();
-        vader_global_1 = INT32_C(0);
+        vader_global$snippet$LOOP$state = INT32_C(0);
         return l0;
     }
     vader_unreachable("constant `LOOP` read while its value is computed");

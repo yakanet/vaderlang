@@ -413,19 +413,19 @@ emit_data_const_op :: fn(s: FnState, op: Bc.DataConst) -> void {
     push_object(s, address_of(verbatim("vader_data_${op.pool_index}")))
 }
 
-// `global.get N`: the value of `vader_global_N`, read into a temporary: a later
-// `global.set` must not change what was read.
+// `global.get N`: the value of the C global of slot N, read into a temporary: a
+// later `global.set` must not change what was read.
 emit_global_get :: fn(s: FnState, op: Bc.GlobalGet) -> void {
-    val :: global_slot_val(s.ctx.module, op.index)
-    push_into_temporary(s, verbatim("vader_global_${op.index}"), val)
+    g :: s.ctx.slot_globals[op.index]
+    push_into_temporary(s, verbatim(g.name), g.val)
 }
 
-// `global.set N`: the popped value into `vader_global_N`. The global is a root of
-// the permanent frame, scanned at every collection, so no write barrier.
+// `global.set N`: the popped value into the C global of slot N. The global is a
+// root of the permanent frame, scanned at every collection, so no write barrier.
 emit_global_set :: fn(s: FnState, op: Bc.GlobalSet) -> void {
     v :: pop(s)
-    target :: verbatim("vader_global_${op.index}")
-    assign(s, target, coerced_as(s, v, global_slot_val(s.ctx.module, op.index)))
+    g :: s.ctx.slot_globals[op.index]
+    assign(s, verbatim(g.name), coerced_as(s, v, g.val))
 }
 
 // ---- strings --------------------------------------------------------------

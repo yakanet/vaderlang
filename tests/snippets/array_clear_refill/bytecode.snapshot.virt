@@ -21,8 +21,8 @@ string 7 " left="
 string 8 "view="
 string 9 " src="
 string 10 "\n"
-global 0 4 seen.state
-global 1 2 seen.instance
+global 0 4 snippet seen.state
+global 1 2 snippet seen.instance
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=6 param_types=3 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=7 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=4,7,6 param_c_out= param_by_address= (i32,ref,i64) -> i64

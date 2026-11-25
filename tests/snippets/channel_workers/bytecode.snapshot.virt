@@ -113,9 +113,9 @@ data 7 agg 1 struct 47 0
 data 8 agg 1 struct 52 0
 data 9 structs 22 0 1
 data 10 agg 1 struct 64 0
-global 0 5 started.state
-global 1 39 started.instance
-global 2 62 started.gate
+global 0 5 std/task started.state
+global 1 39 std/task started.instance
+global 2 62 std/task started.gate
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=4 param_types=3 param_c_out= param_by_address= (string) -> i64
 import 1 byte_at std_core$Intrinsic$byte_at intrinsic=byte_at result_type=20 param_types=3,4 param_c_out= param_by_address= (string,i64) -> u8
 import 2 byte_slice std_core$Intrinsic$byte_slice intrinsic=byte_slice result_type=3 param_types=3,4,4 param_c_out= param_by_address= (string,i64,i64) -> string

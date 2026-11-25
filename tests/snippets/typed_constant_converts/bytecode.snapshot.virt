@@ -16,8 +16,8 @@ string 2 ">"
 string 3 "from a file"
 string 4 "\n"
 string 5 "path contains a NUL byte"
-global 0 5 ROOM.state
-global 1 5 NOTE.state
+global 0 5 snippet ROOM.state
+global 1 5 snippet NOTE.state
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=4 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=4 param_c_out= param_by_address= (string) -> ref
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=5,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64

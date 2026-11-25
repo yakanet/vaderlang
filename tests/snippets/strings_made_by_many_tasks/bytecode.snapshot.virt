@@ -44,9 +44,9 @@ string 5 "\n"
 data 0 agg 1 struct 20 0
 data 1 structs 13 0 1
 data 2 agg 1 struct 29 0
-global 0 4 started.state
-global 1 14 started.instance
-global 2 27 started.gate
+global 0 4 std/task started.state
+global 1 14 std/task started.instance
+global 2 27 std/task started.gate
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=6 param_types=3 param_c_out= param_by_address= (string) -> i64
 import 1 byte_slice std_core$Intrinsic$byte_slice intrinsic=byte_slice result_type=3 param_types=3,6,6 param_c_out= param_by_address= (string,i64,i64) -> string
 import 2 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=10 param_types=3 param_c_out= param_by_address= (string) -> ref

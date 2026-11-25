@@ -45,14 +45,14 @@ string 9 " of "
 string 10 "\n"
 data 0 structs 19 0 1
 data 1 structs 20 0 1
-global 0 3 fib$$layer.state
-global 1 4 fib$$layer.instance
-global 2 3 fib$$layer2.state
-global 3 5 fib$$layer2.instance
-global 4 3 add$$layer.state
-global 5 6 add$$layer.instance
-global 6 3 add$$layer2.state
-global 7 7 add$$layer2.instance
+global 0 3 snippet fib$$layer.state
+global 1 4 snippet fib$$layer.instance
+global 2 3 snippet fib$$layer2.state
+global 3 5 snippet fib$$layer2.instance
+global 4 3 snippet add$$layer.state
+global 5 6 snippet add$$layer.instance
+global 6 3 snippet add$$layer2.state
+global 7 7 snippet add$$layer2.instance
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=2 param_types=18 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=26 param_types=18 param_c_out= param_by_address= (string) -> ref
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=2 param_types=3,26,2 param_c_out= param_by_address= (i32,ref,i64) -> i64

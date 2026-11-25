@@ -65,12 +65,12 @@ data 3 u64 hex"000000000000001000000000000000140000000000000019000000000000401f0
 data 4 agg 1 struct 30 0
 data 5 structs 7 0 1
 data 6 agg 1 struct 39 0
-global 0 2 selfish.state
-global 1 2 selfish.instance
-global 2 37 selfish.gate
-global 3 2 started.state
-global 4 25 started.instance
-global 5 37 started.gate
+global 0 2 snippet selfish.state
+global 1 2 snippet selfish.instance
+global 2 37 snippet selfish.gate
+global 3 2 std/task started.state
+global 4 25 std/task started.instance
+global 5 37 std/task started.gate
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=3 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=17 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 2 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=5 param_types=23,5 param_c_out= param_by_address= (ref,i64) -> i64

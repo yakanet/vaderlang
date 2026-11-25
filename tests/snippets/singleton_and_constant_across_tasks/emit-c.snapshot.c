@@ -1010,31 +1010,38 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_8_buf = {
     },
 };
 static const vader_array_t vader_data_8 = VADER_STATIC_ARRAY(57u, 1u, &vader_data_8_buf);
-static int32_t vader_global_0 = 0u;
-static vader_string_t vader_global_1 = 0u;
-static vader_box_t vader_global_2 = { 0u };
-static int32_t vader_global_3 = 0u;
-static void* vader_global_4 = 0u;
-static vader_box_t vader_global_5 = { 0u };
-static int32_t vader_global_6 = 0u;
-static vader_string_t vader_global_7 = 0u;
-static vader_box_t vader_global_8 = { 0u };
-static int32_t vader_global_9 = 0u;
-static void* vader_global_10 = 0u;
-static vader_box_t vader_global_11 = { 0u };
-static int32_t vader_global_12 = 0u;
-static void* vader_global_13 = 0u;
-static vader_box_t vader_global_14 = { 0u };
-static int32_t vader_global_15 = 0u;
-static vader_box_t vader_global_16 = { 0u };
-static int32_t vader_global_17 = 0u;
-static vader_box_t vader_global_18 = { 0u };
+static int32_t vader_global$snippet$config$state = 0u;
+static vader_string_t vader_global$snippet$config$instance = 0u;
+static vader_box_t vader_global$snippet$config$gate = { 0u };
+static int32_t vader_global$snippet$pool_entered$state = 0u;
+static void* vader_global$snippet$pool_entered$instance = 0u;
+static vader_box_t vader_global$snippet$pool_entered$gate = { 0u };
+static int32_t vader_global$snippet$pool$state = 0u;
+static vader_string_t vader_global$snippet$pool$instance = 0u;
+static vader_box_t vader_global$snippet$pool$gate = { 0u };
+static int32_t vader_global$snippet$warmup$state = 0u;
+static void* vader_global$snippet$warmup$instance = 0u;
+static vader_box_t vader_global$snippet$warmup$gate = { 0u };
+static int32_t vader_global$std_task$started$state = 0u;
+static void* vader_global$std_task$started$instance = 0u;
+static vader_box_t vader_global$std_task$started$gate = { 0u };
+static int32_t vader_global$snippet$ANSWER$value = 0u;
+static vader_box_t vader_global$snippet$ANSWER$gate = { 0u };
+static int32_t vader_global$snippet$LOOP$value = 0u;
+static vader_box_t vader_global$snippet$LOOP$gate = { 0u };
 static vader_box_t* vader_global_box_roots[] = {
-    &vader_global_2, &vader_global_5, &vader_global_8, &vader_global_11, &vader_global_14,
-    &vader_global_16, &vader_global_18,
+    &vader_global$snippet$config$gate, &vader_global$snippet$pool_entered$gate,
+    &vader_global$snippet$pool$gate, &vader_global$snippet$warmup$gate,
+    &vader_global$std_task$started$gate, &vader_global$snippet$ANSWER$gate,
+    &vader_global$snippet$LOOP$gate,
 };
-static void** vader_global_raw_roots[] = { &vader_global_4, &vader_global_10, &vader_global_13 };
-static vader_string_t* vader_global_atom_roots[] = { &vader_global_1, &vader_global_7 };
+static void** vader_global_raw_roots[] = {
+    &vader_global$snippet$pool_entered$instance, &vader_global$snippet$warmup$instance,
+    &vader_global$std_task$started$instance,
+};
+static vader_string_t* vader_global_atom_roots[] = {
+    &vader_global$snippet$config$instance, &vader_global$snippet$pool$instance,
+};
 static vader_gc_frame_t vader_global_frame = {
     NULL, 7u, 3u, vader_global_box_roots, vader_global_raw_roots, 0u, NULL, 2u,
     vader_global_atom_roots,
@@ -1670,21 +1677,21 @@ static vader_string_t snippet$config(void) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$config$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_1;
+        t1 = vader_global$snippet$config$instance;
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     std_runtime_scheduler$monitor_enter_to_publish();
-    t2 = vader_global_2;
+    t2 = vader_global$snippet$config$gate;
     l0 = std_runtime_scheduler$gate_or_new(t2);
-    vader_global_2 = vader_ref_box(l0);
+    vader_global$snippet$config$gate = vader_ref_box(l0);
     l1 = (void*) &vader_fn_static_snippet$config$keep;
     t3 = std_runtime_scheduler$run_gated(l0, l1);
     if (!(t3)) {
         vader_unreachable("singleton `config` called while it initialises");
     }
-    t1 = vader_global_1;
+    t1 = vader_global$snippet$config$instance;
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1699,21 +1706,21 @@ static void* snippet$pool_entered(void) {
     void** gc_raw_roots[3] = { &l0, &l1, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_3;
+    t0 = vader_global$snippet$pool_entered$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_4;
+        t1 = vader_global$snippet$pool_entered$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     std_runtime_scheduler$monitor_enter_to_publish();
-    t2 = vader_global_5;
+    t2 = vader_global$snippet$pool_entered$gate;
     l0 = std_runtime_scheduler$gate_or_new(t2);
-    vader_global_5 = vader_ref_box(l0);
+    vader_global$snippet$pool_entered$gate = vader_ref_box(l0);
     l1 = (void*) &vader_fn_static_snippet$pool_entered$keep;
     t3 = std_runtime_scheduler$run_gated(l0, l1);
     if (!(t3)) {
         vader_unreachable("singleton `pool_entered` called while it initialises");
     }
-    t1 = vader_global_4;
+    t1 = vader_global$snippet$pool_entered$instance;
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1731,21 +1738,21 @@ static vader_string_t snippet$pool(void) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_6;
+    t0 = vader_global$snippet$pool$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_7;
+        t1 = vader_global$snippet$pool$instance;
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     std_runtime_scheduler$monitor_enter_to_publish();
-    t2 = vader_global_8;
+    t2 = vader_global$snippet$pool$gate;
     l0 = std_runtime_scheduler$gate_or_new(t2);
-    vader_global_8 = vader_ref_box(l0);
+    vader_global$snippet$pool$gate = vader_ref_box(l0);
     l1 = (void*) &vader_fn_static_snippet$pool$keep;
     t3 = std_runtime_scheduler$run_gated(l0, l1);
     if (!(t3)) {
         vader_unreachable("singleton `pool` called while it initialises");
     }
-    t1 = vader_global_7;
+    t1 = vader_global$snippet$pool$instance;
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1754,7 +1761,7 @@ static void __compute_snippet$ANSWER(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
     t0 = snippet$compute_answer();
-    vader_global_15 = t0;
+    vader_global$snippet$ANSWER$value = t0;
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -1769,15 +1776,15 @@ static int32_t __const_snippet$ANSWER(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     std_runtime_scheduler$monitor_enter_to_publish();
-    t0 = vader_global_16;
+    t0 = vader_global$snippet$ANSWER$gate;
     l0 = std_runtime_scheduler$gate_or_new(t0);
-    vader_global_16 = vader_ref_box(l0);
+    vader_global$snippet$ANSWER$gate = vader_ref_box(l0);
     l1 = (void*) &vader_fn_static___compute_snippet$ANSWER;
     t1 = std_runtime_scheduler$run_gated(l0, l1);
     if (!(t1)) {
         vader_unreachable("constant `ANSWER` read while its value is computed");
     }
-    t2 = vader_global_15;
+    t2 = vader_global$snippet$ANSWER$value;
     { int32_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1808,21 +1815,21 @@ static void* snippet$warmup(void) {
     void** gc_raw_roots[3] = { &l0, &l1, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_9;
+    t0 = vader_global$snippet$warmup$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_10;
+        t1 = vader_global$snippet$warmup$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     std_runtime_scheduler$monitor_enter_to_publish();
-    t2 = vader_global_11;
+    t2 = vader_global$snippet$warmup$gate;
     l0 = std_runtime_scheduler$gate_or_new(t2);
-    vader_global_11 = vader_ref_box(l0);
+    vader_global$snippet$warmup$gate = vader_ref_box(l0);
     l1 = (void*) &vader_fn_static_snippet$warmup$keep;
     t3 = std_runtime_scheduler$run_gated(l0, l1);
     if (!(t3)) {
         vader_unreachable("singleton `warmup` called while it initialises");
     }
-    t1 = vader_global_10;
+    t1 = vader_global$snippet$warmup$instance;
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1836,7 +1843,7 @@ static void __compute_snippet$LOOP(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
     t0 = snippet$next();
-    vader_global_17 = t0;
+    vader_global$snippet$LOOP$value = t0;
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -1851,15 +1858,15 @@ static int32_t __const_snippet$LOOP(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     std_runtime_scheduler$monitor_enter_to_publish();
-    t0 = vader_global_18;
+    t0 = vader_global$snippet$LOOP$gate;
     l0 = std_runtime_scheduler$gate_or_new(t0);
-    vader_global_18 = vader_ref_box(l0);
+    vader_global$snippet$LOOP$gate = vader_ref_box(l0);
     l1 = (void*) &vader_fn_static___compute_snippet$LOOP;
     t1 = std_runtime_scheduler$run_gated(l0, l1);
     if (!(t1)) {
         vader_unreachable("constant `LOOP` read while its value is computed");
     }
-    t2 = vader_global_17;
+    t2 = vader_global$snippet$LOOP$value;
     { int32_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1909,9 +1916,9 @@ static int32_t snippet$main(void* l0) {
     l3 = std_core$Display$to_string$$dispatch(t1);
     t1 = std_task$join__string(l2);
     l4 = std_core$Display$to_string$$dispatch(t1);
-    t2 = vader_global_0;
+    t2 = vader_global$snippet$config$state;
     if (t2 == INT32_C(2)) {
-        l5 = vader_global_1;
+        l5 = vader_global$snippet$config$instance;
     } else {
         l5 = snippet$config();
     }
@@ -1920,9 +1927,9 @@ static int32_t snippet$main(void* l0) {
     t0 = (void*) &vader_fn_static___lambda_snippet_2;
     l1 = std_task$launch__string(t0);
     for (;;) {
-        t2 = vader_global_3;
+        t2 = vader_global$snippet$pool_entered$state;
         if (t2 == INT32_C(2)) {
-            l2 = vader_global_4;
+            l2 = vader_global$snippet$pool_entered$instance;
         } else {
             l2 = snippet$pool_entered();
         }
@@ -1953,9 +1960,9 @@ static int32_t snippet$main(void* l0) {
             t6 = std_task$launch__i32(t0);
             t1 = std_task$join__i32(t6);
             l10 = std_core$Display$to_string$$dispatch(t1);
-            t2 = vader_global_9;
+            t2 = vader_global$snippet$warmup$state;
             if (t2 == INT32_C(2)) {
-                l11 = vader_global_10;
+                l11 = vader_global$snippet$warmup$instance;
             } else {
                 l11 = snippet$warmup();
             }
@@ -2008,11 +2015,11 @@ static void snippet$config$keep(void) {
     vader_string_t* gc_atom_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$config$state;
     if (!(t0 == INT32_C(2))) {
         t1 = snippet$config$singleton();
-        vader_global_1 = t1;
-        vader_global_0 = INT32_C(2);
+        vader_global$snippet$config$instance = t1;
+        vader_global$snippet$config$state = INT32_C(2);
         { vader_gc_top = gc_frame.prev; return; }
     }
     { vader_gc_top = gc_frame.prev; return; }
@@ -2036,11 +2043,11 @@ static void snippet$pool_entered$keep(void) {
     void** gc_raw_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_3;
+    t0 = vader_global$snippet$pool_entered$state;
     if (!(t0 == INT32_C(2))) {
         t1 = snippet$pool_entered$singleton();
-        vader_global_4 = t1;
-        vader_global_3 = INT32_C(2);
+        vader_global$snippet$pool_entered$instance = t1;
+        vader_global$snippet$pool_entered$state = INT32_C(2);
         { vader_gc_top = gc_frame.prev; return; }
     }
     { vader_gc_top = gc_frame.prev; return; }
@@ -2054,9 +2061,9 @@ static vader_string_t snippet$pool$singleton(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     std_console$println__string(8u);
-    t0 = vader_global_3;
+    t0 = vader_global$snippet$pool_entered$state;
     if (t0 == INT32_C(2)) {
-        l0 = vader_global_4;
+        l0 = vader_global$snippet$pool_entered$instance;
     } else {
         l0 = snippet$pool_entered();
     }
@@ -2073,11 +2080,11 @@ static void snippet$pool$keep(void) {
     vader_string_t* gc_atom_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_6;
+    t0 = vader_global$snippet$pool$state;
     if (!(t0 == INT32_C(2))) {
         t1 = snippet$pool$singleton();
-        vader_global_7 = t1;
-        vader_global_6 = INT32_C(2);
+        vader_global$snippet$pool$instance = t1;
+        vader_global$snippet$pool$state = INT32_C(2);
         { vader_gc_top = gc_frame.prev; return; }
     }
     { vader_gc_top = gc_frame.prev; return; }
@@ -2100,11 +2107,11 @@ static void snippet$warmup$keep(void) {
     void** gc_raw_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_9;
+    t0 = vader_global$snippet$warmup$state;
     if (!(t0 == INT32_C(2))) {
         t1 = snippet$warmup$singleton();
-        vader_global_10 = t1;
-        vader_global_9 = INT32_C(2);
+        vader_global$snippet$warmup$instance = t1;
+        vader_global$snippet$warmup$state = INT32_C(2);
         { vader_gc_top = gc_frame.prev; return; }
     }
     { vader_gc_top = gc_frame.prev; return; }
@@ -2116,9 +2123,9 @@ static vader_string_t __lambda_snippet_0(void) {
     vader_string_t* gc_atom_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$config$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_1;
+        t1 = vader_global$snippet$config$instance;
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     t1 = snippet$config();
@@ -2131,9 +2138,9 @@ static vader_string_t __lambda_snippet_1(void) {
     vader_string_t* gc_atom_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$config$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_1;
+        t1 = vader_global$snippet$config$instance;
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     t1 = snippet$config();
@@ -2146,9 +2153,9 @@ static vader_string_t __lambda_snippet_2(void) {
     vader_string_t* gc_atom_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_6;
+    t0 = vader_global$snippet$pool$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_7;
+        t1 = vader_global$snippet$pool$instance;
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     t1 = snippet$pool();
@@ -2161,9 +2168,9 @@ static vader_string_t __lambda_snippet_3(void) {
     vader_string_t* gc_atom_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_6;
+    t0 = vader_global$snippet$pool$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_7;
+        t1 = vader_global$snippet$pool$instance;
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     t1 = snippet$pool();
@@ -2178,9 +2185,9 @@ static int32_t __lambda_snippet_4(void) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_9;
+    t0 = vader_global$snippet$warmup$state;
     if (t0 == INT32_C(2)) {
-        l0 = vader_global_10;
+        l0 = vader_global$snippet$warmup$instance;
     } else {
         l0 = snippet$warmup();
     }
@@ -3945,21 +3952,21 @@ static void* std_task$started(void) {
     void** gc_raw_roots[3] = { &l0, &l1, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_12;
+    t0 = vader_global$std_task$started$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_13;
+        t1 = vader_global$std_task$started$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     std_runtime_scheduler$monitor_enter_to_publish();
-    t2 = vader_global_14;
+    t2 = vader_global$std_task$started$gate;
     l0 = std_runtime_scheduler$gate_or_new(t2);
-    vader_global_14 = vader_ref_box(l0);
+    vader_global$std_task$started$gate = vader_ref_box(l0);
     l1 = (void*) &vader_fn_static_std_task$started$keep;
     t3 = std_runtime_scheduler$run_gated(l0, l1);
     if (!(t3)) {
         vader_unreachable("singleton `started` called while it initialises");
     }
-    t1 = vader_global_13;
+    t1 = vader_global$std_task$started$instance;
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -3981,11 +3988,11 @@ static void std_task$started$keep(void) {
     void** gc_raw_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_12;
+    t0 = vader_global$std_task$started$state;
     if (!(t0 == INT32_C(2))) {
         t1 = std_task$started$singleton();
-        vader_global_13 = t1;
-        vader_global_12 = INT32_C(2);
+        vader_global$std_task$started$instance = t1;
+        vader_global$std_task$started$state = INT32_C(2);
         { vader_gc_top = gc_frame.prev; return; }
     }
     { vader_gc_top = gc_frame.prev; return; }
@@ -3999,9 +4006,9 @@ static int64_t std_task$start_thread(void* l0) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_12;
+    t0 = vader_global$std_task$started$state;
     if (t0 == INT32_C(2)) {
-        l1 = vader_global_13;
+        l1 = vader_global$std_task$started$instance;
     } else {
         l1 = std_task$started();
     }
@@ -4024,9 +4031,9 @@ static void* std_task$launch__i32(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     std_runtime_scheduler$monitor_enter_to_publish();
-    t0 = vader_global_12;
+    t0 = vader_global$std_task$started$state;
     if (t0 == INT32_C(2)) {
-        l1 = vader_global_13;
+        l1 = vader_global$std_task$started$instance;
     } else {
         l1 = std_task$started();
     }
@@ -4083,9 +4090,9 @@ static void* std_task$launch__string(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     std_runtime_scheduler$monitor_enter_to_publish();
-    t0 = vader_global_12;
+    t0 = vader_global$std_task$started$state;
     if (t0 == INT32_C(2)) {
-        l1 = vader_global_13;
+        l1 = vader_global$std_task$started$instance;
     } else {
         l1 = std_task$started();
     }

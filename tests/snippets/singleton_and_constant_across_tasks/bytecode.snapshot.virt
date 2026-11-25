@@ -89,25 +89,25 @@ data 5 agg 1 struct 39 0
 data 6 structs 10 0 1
 data 7 agg 1 struct 41 0
 data 8 agg 1 struct 49 0
-global 0 4 config.state
-global 1 2 config.instance
-global 2 47 config.gate
-global 3 4 pool_entered.state
-global 4 3 pool_entered.instance
-global 5 47 pool_entered.gate
-global 6 4 pool.state
-global 7 2 pool.instance
-global 8 47 pool.gate
-global 9 4 warmup.state
-global 10 5 warmup.instance
-global 11 47 warmup.gate
-global 12 4 started.state
-global 13 28 started.instance
-global 14 47 started.gate
-global 15 4 ANSWER.value
-global 16 47 ANSWER.gate
-global 17 4 LOOP.value
-global 18 47 LOOP.gate
+global 0 4 snippet config.state
+global 1 2 snippet config.instance
+global 2 47 snippet config.gate
+global 3 4 snippet pool_entered.state
+global 4 3 snippet pool_entered.instance
+global 5 47 snippet pool_entered.gate
+global 6 4 snippet pool.state
+global 7 2 snippet pool.instance
+global 8 47 snippet pool.gate
+global 9 4 snippet warmup.state
+global 10 5 snippet warmup.instance
+global 11 47 snippet warmup.gate
+global 12 4 std/task started.state
+global 13 28 std/task started.instance
+global 14 47 std/task started.gate
+global 15 4 snippet ANSWER.value
+global 16 47 snippet ANSWER.gate
+global 17 4 snippet LOOP.value
+global 18 47 snippet LOOP.gate
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=8 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=20 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 2 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=8 param_types=26,8 param_c_out= param_by_address= (ref,i64) -> i64

@@ -43,8 +43,8 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
-static int32_t vader_global_0 = 0u;
-static int32_t vader_global_1 = 0u;
+static int32_t vader_global$snippet$ROOM$state = 0u;
+static int32_t vader_global$snippet$NOTE$state = 0u;
 static vader_gc_frame_t vader_global_frame = { NULL, 0u, 0u, NULL, NULL, 0u, NULL };
 
 static void* snippet$Celsius$std_core$Into$into(void* l0);
@@ -182,15 +182,15 @@ static void* __const_snippet$ROOM(void) {
     void** gc_raw_roots[2] = { &l0, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$ROOM$state;
     if (!(t0 == INT32_C(1))) {
-        vader_global_0 = INT32_C(1);
+        vader_global$snippet$ROOM$state = INT32_C(1);
         vader_struct_snippet$Celsius_t* _a0_obj = (vader_struct_snippet$Celsius_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Celsius_t));
         vader_obj_header_init(_a0_obj, 2u);
         _a0_obj->f_degrees = INT32_C(21);
         t1 = (void*) _a0_obj;
         l0 = snippet$Celsius$std_core$Into$into(t1);
-        vader_global_0 = INT32_C(0);
+        vader_global$snippet$ROOM$state = INT32_C(0);
         { void* __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_unreachable("constant `ROOM` read while its value is computed");
@@ -203,11 +203,11 @@ static void* __const_snippet$NOTE(void) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_1;
+    t0 = vader_global$snippet$NOTE$state;
     if (!(t0 == INT32_C(1))) {
-        vader_global_1 = INT32_C(1);
+        vader_global$snippet$NOTE$state = INT32_C(1);
         l0 = snippet$string$std_core$Into$into(4u);
-        vader_global_1 = INT32_C(0);
+        vader_global$snippet$NOTE$state = INT32_C(0);
         { void* __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_unreachable("constant `NOTE` read while its value is computed");

@@ -69,9 +69,9 @@ data 3 u64 hex"000000000000001000000000000000140000000000000019000000000000401f0
 data 4 agg 1 struct 32 0
 data 5 structs 9 0 1
 data 6 agg 1 struct 43 0
-global 0 2 started.state
-global 1 27 started.instance
-global 2 41 started.gate
+global 0 2 std/task started.state
+global 1 27 std/task started.instance
+global 2 41 std/task started.gate
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=4 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=19 param_types=4 param_c_out= param_by_address= (string) -> ref
 import 2 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=7 param_types=25,7 param_c_out= param_by_address= (ref,i64) -> i64

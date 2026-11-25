@@ -29,8 +29,10 @@ module "vader/emit/c"
 import "std/abort"
 import "std/collections"
 import "std/iter"
+import "std/sort"
 import "std/string"
 import "vader/core/bytecode"
+import "vader/core/mangle"
 import "vader/emit/c/ast"
 
 /// Options threaded through the emit.
@@ -61,6 +63,10 @@ export CEmitOptions :: struct {
     /// by renumbering alone. Emitting every target against one universe makes the
     /// ids agree, so the C then differs only where the code does.
     atom_universe: string[] = []
+    /// The globals the C declares, sorted by name. Empty (the default) means
+    /// "this module's own globals". It exists for the seed: a target declares the
+    /// globals of every target, so the globals unit and the header agree.
+    global_universe: CGlobalSlot[] = []
     /// `$VADER_VERIFY_BOUNDS`: an access proven in bounds (`bounds_safe`) keeps
     /// its index check, with a message of its own (`VADER_ARRAY_CHECK_PROVEN`).
     verify_bounds: bool = false
@@ -86,6 +92,10 @@ export EmitCtx :: struct {
     /// The literals the emitted table holds, in id order (id k is at index
     /// k - 1). The module's own non-empty literals, or `opts.atom_universe`.
     atom_table: string[]
+    /// The module's own globals, by slot: what a `global.get` reads.
+    slot_globals: CGlobalSlot[]
+    /// The globals the C declares: `slot_globals`, or `opts.global_universe`.
+    globals: CGlobalSlot[]
     /// BcType index of the `null` primitive (`0` when absent). Tags the
     /// boxed null literal. Cached so per-op const emit stays a field read.
     null_tag: i32
@@ -130,11 +140,14 @@ new_ctx :: fn(m: BytecodeModule, opts: CEmitOptions, internal_fns: bool[] = []) 
     string_tag :: string_primitive_tag(m.types)
     import_may_collect :: imports_may_collect(m.imports)
     layout_siblings :: m.types.len().filled_indexed((i) -> find_layout_siblings(m.types, i32(i)))
+    own_globals :: global_slots_of(m)
     return EmitCtx {
         .module = m,
         .struct_c_names = names,
         .atom_ids = compute_atom_ids(m.strings, opts.atom_universe),
         .atom_table = atom_table_of(m.strings, opts.atom_universe),
+        .slot_globals = own_globals,
+        .globals = declared_globals(own_globals, opts.global_universe),
         .null_tag = class_tag_of(m.types, .Null),
         .void_tag = class_tag_of(m.types, .Void),
         .string_tag = string_tag,
@@ -522,7 +535,7 @@ struct_definition :: fn(types: BcType[], names: string[], s: BcStruct, type_inde
 /// element buffer ; string arrays bake a `vader_box_t` slot buffer holding the
 /// elements' atom ids.
 emit_data_pool :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
-    if ctx.module.data_pool.len() == 0 && ctx.module.globals.len() == 0 {
+    if ctx.module.data_pool.len() == 0 && ctx.globals.len() == 0 {
         return
     }
     items: CTopLevel[]: []
@@ -631,12 +644,12 @@ object_header :: fn(tag: CExpression) -> CExpression = call("VADER_STATIC_HEADER
 // the defer stack are it), so each slot is listed by what it holds, as a function's
 // locals are: a boxed value, a raw reference, an atom id.
 emit_global_roots :: fn(ctx: EmitCtx, items: CTopLevel[]) -> void {
-    if ctx.module.globals.len() == 0 {
+    if ctx.globals.len() == 0 {
         return
     }
-    boxes :: global_slot_addresses(ctx.module, .Any)
-    raws :: global_slot_addresses(ctx.module, .Ref)
-    atoms :: global_slot_addresses(ctx.module, .String)
+    boxes :: global_slot_addresses(ctx.globals, .Any)
+    raws :: global_slot_addresses(ctx.globals, .Ref)
+    atoms :: global_slot_addresses(ctx.globals, .String)
     fields: CExpression[]: [
         NULL_POINTER,
         unsigned(boxes.len()),
@@ -662,22 +675,85 @@ emit_global_roots :: fn(ctx: EmitCtx, items: CTopLevel[]) -> void {
     })
 }
 
-// One C global per global slot of the module, `vader_global_N`, at its type's
-// zero value: the null box for a boxed value, `0` for anything else.
+/// A global slot as the C declares it: its name and the class of what it holds.
+export CGlobalSlot :: struct {
+    name: string
+    val: ValType
+}
+
+/// The C name of the global `g`, `vader_global$<module>$<name>`, the `.` of its
+/// name written `$`. It names the slot apart from every other global whatever
+/// the program holds besides, so every target reads it under the same name.
+///
+/// @param g  the global, which `module` and `name` identify.
+/// @example
+///   # import "vader/core/bytecode"
+///   global_c_name(BcGlobal { .name = "log.state", .module = "std/tty", .type_id = 0 })
+///   // "vader_global$std_tty$log$state"
+export global_c_name :: fn(g: BcGlobal) -> string =
+    "vader_global\$${mangle_module_id(g.module)}\$${g.name.replace_all(".", "\$")}"
+
+/// The globals of `module`, in slot order, as the C declares them.
+///
+/// @param module  the program whose `globals` are read.
+export global_slots_of :: fn(module: BytecodeModule) -> CGlobalSlot[] =
+    module.globals.map(
+        (g) -> CGlobalSlot {
+            .name = global_c_name(g),
+            .val = val_type_of_field(module.types, g.type_id),
+        },
+    ).collect()
+
+/// A global two programs hold under one name with two classes: no single C
+/// declaration serves both.
+export GlobalClash :: struct {
+    /// The C name of the global.
+    name: string
+}
+
+/// The globals of every program of `modules`, each once, sorted by name: the
+/// `global_universe` of a seed. Sorted so that the union depends on the set of
+/// programs, not on their order.
+///
+/// @param modules  the program of each target.
+/// @return         the union.
+/// @error          `GlobalClash` when two programs hold a global at two classes.
+export union_of_globals :: fn(modules: BytecodeModule[]) -> CGlobalSlot[] | GlobalClash {
+    seen :: Map<string, ValType> {}
+    out: CGlobalSlot[]: []
+    for m in modules {
+        for g in global_slots_of(m) {
+            known :: seen[g.name]
+            if known == null {
+                seen[g.name] = g.val
+                out.push(g)
+            } else if known != g.val {
+                return GlobalClash { .name = g.name }
+            }
+        }
+    }
+    return sort(out, (a: CGlobalSlot, b: CGlobalSlot) -> compare_ascending(a.name, b.name))
+}
+
+// The globals the C declares: `universe` when one is given, else the module's `own`.
+declared_globals :: fn(own: CGlobalSlot[], universe: CGlobalSlot[]) -> CGlobalSlot[] {
+    if universe.len() > 0 {
+        return universe
+    }
+    return own
+}
+
+// One C global per declared global, at its type's zero value: the null box for
+// a boxed value, `0` for anything else.
 emit_global_slots :: fn(ctx: EmitCtx, items: CTopLevel[]) -> void {
-    for i in 0..<ctx.module.globals.len() {
-        val :: global_slot_val(ctx.module, i32(i))
+    for g in ctx.globals {
         items.push(CGlobal {
             .storage = global_storage(ctx.split),
-            .type = c_type_for_val_bare(val),
-            .declarator = CDeclarator { .name = "vader_global_${i}", .value = zero_of(val) },
+            .type = c_type_for_val_bare(g.val),
+            .declarator = CDeclarator { .name = g.name, .value = zero_of(g.val) },
         })
     }
 }
-
-// The value class of global slot `index` of `module`.
-global_slot_val :: fn(module: BytecodeModule, index: i32) -> ValType =
-    val_type_of_field(module.types, module.globals[index].type_id)
 
 // The zero a global of class `val` starts at.
 zero_of :: fn(val: ValType) -> CExpression {
@@ -687,16 +763,9 @@ zero_of :: fn(val: ValType) -> CExpression {
     return ZERO
 }
 
-// The address of every global slot of class `val`.
-global_slot_addresses :: fn(module: BytecodeModule, val: ValType) -> CExpression[] {
-    addresses: CExpression[]: []
-    for i in 0..<module.globals.len() {
-        if global_slot_val(module, i32(i)) == val {
-            addresses.push(address_of(verbatim("vader_global_${i}")))
-        }
-    }
-    return addresses
-}
+// The address of every global of class `val`.
+global_slot_addresses :: fn(globals: CGlobalSlot[], val: ValType) -> CExpression[] =
+    globals.filter((g) -> g.val == val).map((g) -> address_of(verbatim(g.name))).collect()
 
 // A root array of the permanent frame: a `type` array named `name` listing
 // `addresses`, emitted into `items`, or `NULL` when there is none to list.
@@ -1428,7 +1497,7 @@ main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[] {
     // Before any Vader code runs, so the very first collection already sees them.
     // The frame becomes the BASE of the chain: every later frame links onto it and
     // nothing ever pops below it.
-    if ctx.module.globals.len() > 0 {
+    if ctx.globals.len() > 0 {
         body.push(
             CAssign {
                 .target = verbatim("vader_gc_top"),
@@ -1504,4 +1573,77 @@ string_primitive_tag :: fn(types: BcType[]) -> i32 {
 string_array_tag :: fn(types: BcType[], str_idx: i32) -> i32 {
     if str_idx < 0 { return -1 }
     return array_tag(types, str_idx)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// A program holding `globals`, over a table of two classes: `0` an `i64`, `1` a box.
+program_of_globals :: fn(globals: BcGlobal[]) -> BytecodeModule = BytecodeModule {
+    .name = "p",
+    .types = [BcScalar { .val = .I64 }, BcScalar { .val = .Any }],
+    .strings = [],
+    .data_pool = [],
+    .functions = [],
+    .imports = [],
+    .exports = [],
+    .impl_table = [],
+    .vtables = [],
+    .globals = globals,
+}
+
+@test
+test_global_c_name_spells_module_and_slot :: fn() -> void {
+    g :: BcGlobal {
+        .name = "log.state",
+        .module = "std/string_builder",
+        .type_id = 0,
+    }
+    assert_eq(global_c_name(g), "vader_global\$std_string__builder\$log\$state")
+}
+
+@test
+test_global_c_name_tells_two_modules_apart :: fn() -> void {
+    a :: BcGlobal {
+        .name = "log.state",
+        .module = "a",
+        .type_id = 0,
+    }
+    b :: BcGlobal { ...a, .module = "b" }
+    assert(global_c_name(a) != global_c_name(b), "one name per module")
+}
+
+@test
+test_union_of_globals_holds_each_once_sorted :: fn() -> void {
+    shared :: BcGlobal {
+        .name = "z.state",
+        .module = "m",
+        .type_id = 0,
+    }
+    only_one :: BcGlobal { ...shared, .name = "a.instance", .type_id = 1 }
+    union :: union_of_globals(
+        [
+            program_of_globals([shared]),
+            program_of_globals([shared, only_one]),
+        ],
+    ) else is GlobalClash {
+        panic("no clash expected, got `${union.name}`")
+    }
+    assert_eq(
+        union.map((g) -> g.name).collect().join(" "),
+        "vader_global\$m\$a\$instance vader_global\$m\$z\$state",
+    )
+}
+
+@test
+test_union_of_globals_refuses_one_name_at_two_classes :: fn() -> void {
+    g :: BcGlobal {
+        .name = "x.value",
+        .module = "m",
+        .type_id = 0,
+    }
+    boxed :: BcGlobal { ...g, .type_id = 1 }
+    union :: union_of_globals([program_of_globals([g]), program_of_globals([boxed])])
+    assert(union is GlobalClash, "two classes under one name")
 }

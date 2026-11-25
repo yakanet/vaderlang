@@ -360,7 +360,11 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     for s in cfg.strings { string_index_map.push(intern_string(s, ctx)) }
     data_pool := convert_data_pool(ctx, cfg.data_pool)
     for slot in cfg.globals {
-        ctx.globals.push(BcGlobal { .name = slot.name, .type_id = intern_type(slot.type, ctx) })
+        ctx.globals.push(BcGlobal {
+            .name = slot.name,
+            .module = slot.module_name,
+            .type_id = intern_type(slot.type, ctx),
+        })
     }
     // Pass 2: emit fn bodies from the CFG.
     for [_, m] in cfg.modules {

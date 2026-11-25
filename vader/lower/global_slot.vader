@@ -10,6 +10,7 @@
 
 module "vader/lower"
 
+import "std/abort"
 import "toolchain/span"
 import "vader/core/types"
 import "vader/lower/ir"
@@ -23,11 +24,15 @@ STARTED: i64: 1
 new_global :: fn(
     project_ctx: LowerProjectCtx, module: string, name: string, type: Type, span: Span,
 ) -> LoweredGlobalGet {
+    program :: project_ctx.evaluated.modules[module]
+        else panic("lower: no module `${module}` for the global `${name}`")
+    module_name :: program.typed.resolved.display_path
     slot :: project_ctx.globals.len()
     project_ctx.globals.push(GlobalSlot {
         .name = name,
         .type = type,
         .module = module,
+        .module_name = module_name,
     })
     return LoweredGlobalGet {
         .span = span,

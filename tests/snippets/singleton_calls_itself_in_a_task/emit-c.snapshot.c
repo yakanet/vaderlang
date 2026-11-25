@@ -920,14 +920,16 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_6_buf = {
     },
 };
 static const vader_array_t vader_data_6 = VADER_STATIC_ARRAY(45u, 1u, &vader_data_6_buf);
-static int32_t vader_global_0 = 0u;
-static int32_t vader_global_1 = 0u;
-static vader_box_t vader_global_2 = { 0u };
-static int32_t vader_global_3 = 0u;
-static void* vader_global_4 = 0u;
-static vader_box_t vader_global_5 = { 0u };
-static vader_box_t* vader_global_box_roots[] = { &vader_global_2, &vader_global_5 };
-static void** vader_global_raw_roots[] = { &vader_global_4 };
+static int32_t vader_global$snippet$selfish$state = 0u;
+static int32_t vader_global$snippet$selfish$instance = 0u;
+static vader_box_t vader_global$snippet$selfish$gate = { 0u };
+static int32_t vader_global$std_task$started$state = 0u;
+static void* vader_global$std_task$started$instance = 0u;
+static vader_box_t vader_global$std_task$started$gate = { 0u };
+static vader_box_t* vader_global_box_roots[] = {
+    &vader_global$snippet$selfish$gate, &vader_global$std_task$started$gate,
+};
+static void** vader_global_raw_roots[] = { &vader_global$std_task$started$instance };
 static vader_gc_frame_t vader_global_frame = {
     NULL, 2u, 1u, vader_global_box_roots, vader_global_raw_roots, 0u, NULL,
 };
@@ -1330,21 +1332,21 @@ static int32_t snippet$selfish(void) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$selfish$state;
     if (t0 == INT32_C(2)) {
-        t0 = vader_global_1;
+        t0 = vader_global$snippet$selfish$instance;
         { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     std_runtime_scheduler$monitor_enter_to_publish();
-    t1 = vader_global_2;
+    t1 = vader_global$snippet$selfish$gate;
     l0 = std_runtime_scheduler$gate_or_new(t1);
-    vader_global_2 = vader_ref_box(l0);
+    vader_global$snippet$selfish$gate = vader_ref_box(l0);
     l1 = (void*) &vader_fn_static_snippet$selfish$keep;
     t2 = std_runtime_scheduler$run_gated(l0, l1);
     if (!(t2)) {
         vader_unreachable("singleton `selfish` called while it initialises");
     }
-    t0 = vader_global_1;
+    t0 = vader_global$snippet$selfish$instance;
     { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1377,9 +1379,9 @@ static int32_t snippet$selfish$singleton(void) {
     std_console$println__string(1u);
     t0 = std_time$millis(INT64_C(1));
     std_task$sleep(t0);
-    t1 = vader_global_0;
+    t1 = vader_global$snippet$selfish$state;
     if (t1 == INT32_C(2)) {
-        l0 = vader_global_1;
+        l0 = vader_global$snippet$selfish$instance;
         l1 = INT32_C(1);
         t1 = vader_chk_add(i32, l0, l1);
         { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -1394,11 +1396,11 @@ static void snippet$selfish$keep(void) {
     int32_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$selfish$state;
     if (!(t0 == INT32_C(2))) {
         t0 = snippet$selfish$singleton();
-        vader_global_1 = t0;
-        vader_global_0 = INT32_C(2);
+        vader_global$snippet$selfish$instance = t0;
+        vader_global$snippet$selfish$state = INT32_C(2);
         { vader_gc_top = gc_frame.prev; return; }
     }
     { vader_gc_top = gc_frame.prev; return; }
@@ -1408,9 +1410,9 @@ static int32_t __lambda_snippet_0(void) {
     int32_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_0;
+    t0 = vader_global$snippet$selfish$state;
     if (t0 == INT32_C(2)) {
-        t0 = vader_global_1;
+        t0 = vader_global$snippet$selfish$instance;
         { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     t0 = snippet$selfish();
@@ -3075,21 +3077,21 @@ static void* std_task$started(void) {
     void** gc_raw_roots[3] = { &l0, &l1, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_3;
+    t0 = vader_global$std_task$started$state;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_4;
+        t1 = vader_global$std_task$started$instance;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     std_runtime_scheduler$monitor_enter_to_publish();
-    t2 = vader_global_5;
+    t2 = vader_global$std_task$started$gate;
     l0 = std_runtime_scheduler$gate_or_new(t2);
-    vader_global_5 = vader_ref_box(l0);
+    vader_global$std_task$started$gate = vader_ref_box(l0);
     l1 = (void*) &vader_fn_static_std_task$started$keep;
     t3 = std_runtime_scheduler$run_gated(l0, l1);
     if (!(t3)) {
         vader_unreachable("singleton `started` called while it initialises");
     }
-    t1 = vader_global_4;
+    t1 = vader_global$std_task$started$instance;
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -3111,11 +3113,11 @@ static void std_task$started$keep(void) {
     void** gc_raw_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_3;
+    t0 = vader_global$std_task$started$state;
     if (!(t0 == INT32_C(2))) {
         t1 = std_task$started$singleton();
-        vader_global_4 = t1;
-        vader_global_3 = INT32_C(2);
+        vader_global$std_task$started$instance = t1;
+        vader_global$std_task$started$state = INT32_C(2);
         { vader_gc_top = gc_frame.prev; return; }
     }
     { vader_gc_top = gc_frame.prev; return; }
@@ -3129,9 +3131,9 @@ static int64_t std_task$start_thread(void* l0) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_3;
+    t0 = vader_global$std_task$started$state;
     if (t0 == INT32_C(2)) {
-        l1 = vader_global_4;
+        l1 = vader_global$std_task$started$instance;
     } else {
         l1 = std_task$started();
     }
@@ -3154,9 +3156,9 @@ static void* std_task$launch__i32(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     std_runtime_scheduler$monitor_enter_to_publish();
-    t0 = vader_global_3;
+    t0 = vader_global$std_task$started$state;
     if (t0 == INT32_C(2)) {
-        l1 = vader_global_4;
+        l1 = vader_global$std_task$started$instance;
     } else {
         l1 = std_task$started();
     }

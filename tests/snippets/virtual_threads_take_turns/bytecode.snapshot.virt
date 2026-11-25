@@ -30,9 +30,9 @@ string 6 "true"
 string 7 "false"
 string 8 "\n"
 data 0 agg 1 struct 17 0
-global 0 6 joiner.state
-global 1 2 joiner.instance
-global 2 15 joiner.gate
+global 0 6 snippet joiner.state
+global 1 2 snippet joiner.instance
+global 2 15 snippet joiner.gate
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=4 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=13 param_types=4 param_c_out= param_by_address= (string) -> ref
 import 2 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=5 param_types=3,5 param_c_out= param_by_address= (ref,i64) -> i64

@@ -41,6 +41,9 @@ export GlobalSlot :: struct {
     type: Type
     /// The module whose singleton, or guarded constant, owns the slot.
     module: string
+    /// Its declared name (`module "..."`): unlike `module`, a folder, it is the
+    /// same on every machine.
+    module_name: string
 }
 
 /// Where `inline_consts` stores a module constant.

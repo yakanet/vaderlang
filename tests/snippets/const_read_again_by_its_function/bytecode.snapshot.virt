@@ -12,8 +12,8 @@ type 9 scalar u8
 string 0 " "
 string 1 "cycle"
 string 2 "\n"
-global 0 2 CACHED.state
-global 1 2 LOOP.state
+global 0 2 snippet CACHED.state
+global 1 2 snippet LOOP.state
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=5 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=5 param_c_out= param_by_address= (string) -> ref
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64

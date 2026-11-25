@@ -32,7 +32,7 @@ string 17 "]"
 string 18 "0"
 string 19 "\n"
 data 0 i32 hex"00000000000000000000000000000000"
-global 0 2 NAMED_PLAIN.state
+global 0 2 snippet NAMED_PLAIN.state
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=3 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=10 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,10,5 param_c_out= param_by_address= (i32,ref,i64) -> i64

@@ -78,11 +78,11 @@ dump_bytecode_impl :: fn(module: BytecodeModule, entry_mangled: string, annotate
     return "${sb}"
 }
 
-// Global slots, one line each: `global N <type_id> <name>`. Round-trips through
+// Global slots, one line each: `global N <type_id> <module> <name>`. Round-trips through
 // `virt_reader_bc`.
 write_globals :: fn(sb: StringBuilder, globals: BcGlobal[]) -> void {
     for i in 0..<globals.len() {
-        sb.append("global ${i} ${globals[i].type_id} ${globals[i].name}\n")
+        sb.append("global ${i} ${globals[i].type_id} ${globals[i].module} ${globals[i].name}\n")
     }
 }
 

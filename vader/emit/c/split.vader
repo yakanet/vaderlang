@@ -343,13 +343,12 @@ emit_data_global_externs :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     for i in 0..<ctx.module.data_pool.len() {
         declarations.push(external("vader_array_t", "vader_data_${i}", null, true))
     }
-    for i in 0..<ctx.module.globals.len() {
-        c_type :: c_type_for_val_bare(global_slot_val(ctx.module, i32(i)))
-        declarations.push(external(c_type, "vader_global_${i}", null, false))
+    for g in ctx.globals {
+        declarations.push(external(c_type_for_val_bare(g.val), g.name, null, false))
     }
     // The permanent GC frame rooting the global slots. Defined beside the data pool,
     // installed by `main`, which is in another unit.
-    if ctx.module.globals.len() > 0 {
+    if ctx.globals.len() > 0 {
         declarations.push(external("vader_gc_frame_t", "vader_global_frame", null, false))
     }
     declarations.push(external("vader_atom_entry_t", "vader_atom_comptime_table", UNSIZED, true))

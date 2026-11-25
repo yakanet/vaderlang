@@ -66,9 +66,9 @@ data 0 structs 5 0 1
 data 1 agg 1 struct 29 0
 data 2 structs 19 0 1
 data 3 agg 1 struct 40 0
-global 0 2 started.state
-global 1 20 started.instance
-global 2 38 started.gate
+global 0 2 std/task started.state
+global 1 20 std/task started.instance
+global 2 38 std/task started.gate
 import 0 extern :strlen snippet$relayed_length headers=<string.h> result_type=6 param_types=7 param_c_out= param_by_address= blocking (string) -> i64
 import 1 extern :memset snippet$relayed_fill headers=<string.h> result_type=1 param_types=8,2,6 param_c_out=1,0,0 param_by_address= blocking (ref,i32,i64) -> void
 import 2 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=6 param_types=7 param_c_out= param_by_address= (string) -> i64
