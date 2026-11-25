@@ -6628,7 +6628,6 @@ fn 80 json$decode_unicode_escape (ref,ref) -> bool
   local $call_26 i64
   local $field_28 string
   local $cast_52 u32
-  local $cast_56 char
   local.get 0   ; arg 0
   call 81   ; json$read_hex4
   local.tee 2   ; __fallback_0
@@ -6727,11 +6726,8 @@ fn 80 json$decode_unicode_escape (ref,ref) -> bool
         end $L4
       end $L3
     end $L2
-    i32.const 65533
-    i32.to_char
-    local.set 10   ; $cast_56
     local.get 1   ; arg 1
-    local.get 10   ; $cast_56
+    char.const 65533
     call 95   ; std_string__builder$append_char
     return.lit bool.const true
   end $L1

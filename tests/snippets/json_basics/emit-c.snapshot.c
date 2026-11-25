@@ -5494,7 +5494,7 @@ static bool json$decode_unicode_escape(void* l0, void* l1) {
 	vader_box_t l2 = vader_box_null();
 	uint32_t l3, l9;
 	bool l4;
-	uint32_t l5, l10;
+	uint32_t l5;
 	int64_t l6, l7;
 	vader_string_t l8 = 0;
 	int32_t t0, t1;
@@ -5556,8 +5556,7 @@ static bool json$decode_unicode_escape(void* l0, void* l1) {
 				}
 			}
 		}
-		l10 = ((uint32_t) 65533);
-		std_string__builder$append_char(l1, l10);
+		std_string__builder$append_char(l1, 65533u);
 		{ vader_gc_top = gc_frame.prev; return true; }
 	}
 	if ((l3 > INT32_C(55295))) {

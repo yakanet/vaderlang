@@ -335,60 +335,6 @@ lookup_const_baked_value :: fn(ctx: FnLowerCtx, symbol: Symbol) -> ComptimeValue
     return ctx.project.comptime_value_by_symbol_id[symbol.id]
 }
 
-// Fold a reference to an UNBAKED module-level const to its value. The
-// comptime const-bake runs entry-only (`populate_comptime_value_index` reads
-// `evaluated.modules[*].comptime_decls`), so a const declared in an IMPORTED
-// module (`MANIFEST_FILENAME :: "vader.json"` referenced from its own module's
-// `find_project_root`, say) never lands in `comptime_value_by_symbol_id`.
-// The scalar-const fold in `lower_ident` then misses and the bare const ident
-// reaches `midir/build.vader::build_ident`, which has no const case -> it emits
-// `unreachable`, truncating the function. Recover by lowering the const decl's
-// value directly via `lower_const_value` (whose own bake-miss path lowers the
-// RHS), keyed off the const's OWNING module so cross-module refs work too.
-// Caller gates on `resolved.kind == Const` (the hot-path read of every
-// local / param shouldn't pay the module lookups below). Returns null when the
-// decl can't be located or its RHS isn't foldable (caller keeps its path).
-try_fold_unbaked_const :: fn(ctx: FnLowerCtx, resolved: Symbol, type: Type) -> LoweredExpr | null {
-    owner_typed :: ctx.project.evaluated.typed.modules[resolved.module] else return null
-    const_decl :: owner_typed.const_decls[resolved.id] else return null
-    // Only fold a LITERAL-RHS const. A computed RHS (`B + 1`) may depend on
-    // other unbaked consts, so folding it here would (a) bypass comptime
-    // cycle detection: a `A :: @comptime B + 1 ; B :: A + 1` must still
-    // surface C4009, and (b) risk recursion through this same path. Those
-    // consts keep their existing route ; the comptime evaluator owns their
-    // value and diagnostics. A literal RHS has neither hazard and matches the
-    // scalar-only shape of the baked-value fold above.
-    if !is_scalar_literal_expr(const_decl.value) { return null }
-    entry :: stub_entry(const_decl, owner_typed)
-    fn_ctx :: new_fn_lower_ctx(ctx.project, entry, owner_typed, new_substitution(), type)
-    return lower_const_value(const_decl, owner_typed, ctx.project, fn_ctx, type)
-}
-
-// True when `e` is a scalar literal (int / float / bool / null / char /
-// string / `.Variant`). Gates `try_fold_unbaked_const` to RHS shapes that fold without
-// touching other consts. Shape predicate (`_ -> false`), mirroring
-// `tools/fmt/printer.vader::is_bitor_chain`: a non-literal Expr is correctly false.
-// @partial: only the literal-shaped Expr forms are scalar literals; every other Expr is not.
-is_scalar_literal_expr :: fn(e: Expr) -> bool = @partial match e {
-    is IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr -> true
-    // `.Darwin`: a variant names its value alone, as `VADER_OS` is written.
-    is DotVariantExpr -> true
-    // `i64(0)` / `i32(N)`: a primitive numeric conversion of a scalar
-    // literal parses as a CallExpr. It folds just as safely (the arg is a
-    // literal, so no dependency on another unbaked const), so a const like
-    // `UNASSIGNED_NODE_ID :: i64(0)` resolves at its use sites in imported
-    // bodies instead of degrading to an unresolved ident.
-    is CallExpr -> is_numeric_conversion_of_literal(e)
-    _           -> false
-}
-
-is_numeric_conversion_of_literal :: fn(c: CallExpr) -> bool {
-    if !(c.callee is IdentExpr) { return false }
-    if !is_scalar_type_name(c.callee.name) { return false }
-    if c.args.len() != 1 { return false }
-    return is_scalar_literal_expr(c.args[0].value)
-}
-
 /// Materialise a `ComptimeValue` as a `LoweredExpr` literal. Compound
 /// values (arrays, structs) recurse field-by-field.
 ///

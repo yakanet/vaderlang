@@ -242,9 +242,8 @@ resolve_namespace_member :: fn(ctx: FnLowerCtx, namespace_symbol: Symbol, name: 
 }
 
 // Fold a const symbol to its lowered value : a comptime-baked scalar inlines
-// directly ; an imported const the entry-only bake missed recovers via
-// `try_fold_unbaked_const`. Returns null for a non-const symbol, or a const
-// whose value isn't a foldable scalar: the caller keeps a real reference.
+// directly. Returns null for a non-const symbol, or a const whose value isn't a
+// foldable scalar: the caller keeps a real reference.
 // Shared by `lower_ident` (every ident) and `try_lower_namespace_const`.
 fold_const_symbol :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) -> LoweredExpr | null {
     folded :: fold_const_value(ctx, sym, type, span) else return null
@@ -260,17 +259,12 @@ fold_const_symbol :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) ->
     return folded
 }
 
-// The value `sym` folds to : its comptime-baked scalar, or its literal RHS when the
-// bake missed. Null when it does not fold.
+// The value `sym` folds to : its comptime-baked scalar. Null when it does not
+// fold.
 fold_const_value :: fn(
     ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span,
 ) -> LoweredExpr | null {
-    baked :: lookup_const_baked_value(ctx, sym) else {
-        // Bake missed. Gate on Const kind so the common baked-miss (every
-        // local / param read) skips `try_fold_unbaked_const`'s module lookups.
-        if sym.kind == .Const { return try_fold_unbaked_const(ctx, sym, type) }
-        return null
-    }
+    baked :: lookup_const_baked_value(ctx, sym) else return null
     // An ARRAY const is never inlined at the use site (which would `array.new` +
     // refill on every read). Returning null leaves a bare const reference that
     // `inline_consts` routes to the data pool: one shared entry, a cheap

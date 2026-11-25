@@ -17,10 +17,12 @@
 module "vader/front/comptime"
 
 import "std/collections"
+import "std/iter"
 import "toolchain/diagnostics"
 import "vader/core/types"
 import "vader/front/resolver"
 import "vader/front/typecheck"
+import "vader/support/integer"
 AST :: import "toolchain/ast"
 import "toolchain/span"
 
@@ -35,14 +37,15 @@ evaluate_call_expr :: fn(
         return vm_required(expr.span, "CallExpr (non-ident callee)")
     }
     callee :: expr.callee
-    // A primitive integer cast written as a call (`i64(16)`) keeps its argument's
-    // value, wrapped to the target width.
-    if expr.args.len() == 1 && is_int_name(callee.name) {
+    // A primitive conversion written as a call keeps its argument's value: an
+    // integer cast (`i64(16)`) wraps it to the target width, `char(0xFFFD)` holds
+    // the codepoint it names.
+    if expr.args.len() == 1 && (is_int_name(callee.name) || callee.name == "char") {
         arg_result :: evaluate_expr(expr.args[0].value, context)
         value :: arg_result.value else return arg_result
-        if value is IntValue {
-            wrapped :: wrap_to_width(value.value, callee.name)
-            return ok(IntValue { .value = wrapped, .type_name = callee.name })
+        converted :: converted_integer(value, callee.name)
+        if converted != null {
+            return ok(converted)
         }
     }
     recorded :: sites_of(context.typed.call_sites, .Call)[expr.id]
@@ -73,6 +76,22 @@ evaluate_call_expr :: fn(
         arguments.push(value)
     }
     return evaluate_with_arguments(fn_decl, arguments, bindings, call_context, expr.span)
+}
+
+// `value` converted to the integer type or `char` named `target`. Null for a value
+// that is no integer, or for one naming no `char`: the run time converts it.
+converted_integer :: fn(value: ComptimeValue, target: string) -> ComptimeValue | null {
+    if value !is IntValue {
+        return null
+    }
+    code :: value.value
+    if target != "char" {
+        return IntValue { .value = wrap_to_width(code, target), .type_name = target }
+    }
+    if CHAR_VALUES.any_match((run) -> holds_value(run, code)) {
+        return CharValue { .value = u32(code) }
+    }
+    return null
 }
 
 // The context that evaluates the body of `decl`: the caller's own when `decl` is
