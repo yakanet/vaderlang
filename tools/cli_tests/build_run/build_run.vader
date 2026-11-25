@@ -13,6 +13,7 @@ import "std/env"
 import "std/fs"
 import "std/path"
 import "std/string"
+import "std/time"
 import "tools/cli_tests/cli"
 
 // A program that prints `says`, each of its arguments on a line, a line on its
@@ -416,6 +417,17 @@ test_a_wasm_build_reads_files_through_std_fs :: fn() -> void {
     run :: vader_in(dir, ["build", "--target=wasi-wasm32", "--run", "main.vader"], no_cc)
     assert_eq(run.exit, 0)
     assert_eq(run.stdout, "read true\ntrue\ntrue\ntrue true false\ntrue\ntrue true\n")
+}
+
+// The compiler builds for `wasi-wasm32`: the task check runs on the bodies `std`
+// selects for that target, which hold state the host's bodies leave to the
+// system (the working directory, the environment).
+@test
+test_the_compiler_builds_for_wasi :: fn() -> void {
+    out :: "${scratch_dir("compiler_for_wasi")}/vader.wasm"
+    args :: ["build", "--target=wasi-wasm32", "--out=${out}", "vader/tools/cli/main.vader"]
+    built :: vader_in(toolchain_home(), args, [], 120.seconds())
+    assert(built.exit == 0, built.stdout + built.stderr)
 }
 
 // `std/fs` gives every handle back to the host under WASI: the preopened
