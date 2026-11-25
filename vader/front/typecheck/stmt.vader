@@ -130,7 +130,7 @@ check_stmt :: fn(
 /// `Iterator<T>`. A function that `yield`s must honour it with an
 /// `Iterator<T>` return.
 generator_element_type :: fn(fn_decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]) -> Type | null {
-    element :: core_trait_arg(return_type, ITERATOR_TRAIT_KEY)
+    element :: core_trait_arg(return_type, TRAIT_ITERATOR)
     if element != null {
         return element
     }

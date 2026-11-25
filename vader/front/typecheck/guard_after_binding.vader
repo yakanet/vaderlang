@@ -113,7 +113,7 @@ is_ident_named :: fn(e: AST.Expr, name: string) = e is AST.IdentExpr && e.name =
 // Whether a value of `t` is a failure an `else` is written for.
 is_failure :: fn(t: Type, typed: TypedProgram) -> bool {
     if t is TraitType {
-        return is_core_trait(t, ERROR_TRAIT_KEY)
+        return is_core_trait(t, TRAIT_ERROR)
     }
     return is_null_type(t) || is_known_error(t, typed)
 }

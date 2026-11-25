@@ -267,7 +267,7 @@ index_impl_metadata :: fn(
     // A type that is an `Iterator` itself is walked through its own `next`, whatever
     // it converts into.
     if trait_key == INTO_TRAIT_KEY && trait_args.len() == 1 {
-        elem :: core_trait_arg(trait_args[0], ITERATOR_TRAIT_KEY)
+        elem :: core_trait_arg(trait_args[0], TRAIT_ITERATOR)
         if elem != null && !has_iterator_impl(tables, key) {
             tables.iter_element_types[key] = elem
         }

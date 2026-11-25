@@ -128,6 +128,6 @@ generator_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concrete_
     if typed.generator_states.is_empty() { return null }
     decl :: recorded_decl(typed, c) else return null
     state :: generator_state_of(decl, typed) else return null
-    elem :: core_trait_arg(concrete_ret, ITERATOR_TRAIT_KEY) else return mk_struct(state.symbol, [])
+    elem :: core_trait_arg(concrete_ret, TRAIT_ITERATOR) else return mk_struct(state.symbol, [])
     return mk_struct(state.symbol, [elem])
 }

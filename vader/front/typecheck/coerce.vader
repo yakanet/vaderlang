@@ -59,7 +59,7 @@ try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
     if got !is ArrayType {
         return false
     }
-    element :: core_trait_arg(expected, ITERATOR_TRAIT_KEY) else return false
+    element :: core_trait_arg(expected, TRAIT_ITERATOR) else return false
     // An erased parameter (`erase_type_params`) accepts any element ; anything
     // else, a type parameter included, must be the array's own.
     return element is UnresolvedType || equals_type(got.element, element)

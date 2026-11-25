@@ -296,7 +296,7 @@ build_step_call :: fn(
     step_union: Type,
     span: Span,
 ) -> LoweredExpr {
-    if iter_type is TraitType && is_core_trait(iter_type, ITERATOR_TRAIT_KEY) {
+    if iter_type is TraitType && is_core_trait(iter_type, TRAIT_ITERATOR) {
         trait_key :: ITERATOR_TRAIT_KEY
         dispatched :: virtual_call(ctx, trait_key, METHOD_NEXT, iter_ref, [], step_union, span)
         return observed_step(ctx, node, dispatched)

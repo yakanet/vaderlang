@@ -250,7 +250,7 @@ export for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             // in that body, and it is what LSP hover and the typecheck snapshots
             // read. Concretising it is the LOWERER's job, per instance: the entry's
             // `Substitution` binds `T`, and `resolve_element_type` applies it.
-            return core_trait_arg(iter_ty, ITERATOR_TRAIT_KEY) else TY_UNRESOLVED
+            return core_trait_arg(iter_ty, TRAIT_ITERATOR) else TY_UNRESOLVED
         }
         _                   -> { return TY_UNRESOLVED }
     }
@@ -285,7 +285,7 @@ several_iterators_trait :: fn(iter_ty: Type, typed: TypedProgram) -> string | nu
     into :: INTO_TRAIT_KEY
     n := 0
     for args in struct_trait_arg_lists(iter_ty, into, typed) {
-        if args.len() == 1 && core_trait_arg(args[0], ITERATOR_TRAIT_KEY) != null {
+        if args.len() == 1 && core_trait_arg(args[0], TRAIT_ITERATOR) != null {
             n += 1
         }
     }

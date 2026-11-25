@@ -476,7 +476,7 @@ first_member_callee :: fn(
 /// @param source  the converted value's type.
 /// @param target  the slot's type.
 converts_array_to_iterator :: fn(source: Type, target: Type) -> bool =
-    source is ArrayType && core_trait_arg(target, ITERATOR_TRAIT_KEY) != null
+    source is ArrayType && core_trait_arg(target, TRAIT_ITERATOR) != null
 
 /// The `into` a conversion of `source` into `target` runs: an array into an
 /// `Iterator` through the impl toward the target's base, nothing for the same type
@@ -533,7 +533,7 @@ step_callee :: fn(typed: TypedProgram, iter: AST.Expr, iter_ty: Type) -> Callee 
         return first_member_callee(typed, iter_ty, iterator, METHOD_NEXT)
     }
     for m in trait_members(typed, iter_ty, INTO_TRAIT_KEY, METHOD_INTO) {
-        if m.trait_args.len() == 1 && core_trait_arg(m.trait_args[0], ITERATOR_TRAIT_KEY) != null {
+        if m.trait_args.len() == 1 && core_trait_arg(m.trait_args[0], TRAIT_ITERATOR) != null {
             record_site(typed, iter, .IterInto, member_callee(m.decl, iter_ty))
             // The `Iterator` trait value the conversion hands back steps at run time.
             return TraitMember { .trait_key = iterator, .member = METHOD_NEXT }

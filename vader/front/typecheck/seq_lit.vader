@@ -172,7 +172,7 @@ infer_against_array :: fn(
 // `E[]`, so its elements, an empty literal's included, take `E`, a type parameter
 // as a `T[]` slot's. Null for any other trait, and for an erased element.
 iterator_slot_element :: fn(slot: TraitType) -> Type | null {
-    element :: core_trait_arg(slot, ITERATOR_TRAIT_KEY) else return null
+    element :: core_trait_arg(slot, TRAIT_ITERATOR) else return null
     if element is UnresolvedType {
         return null
     }

@@ -392,7 +392,7 @@ has_display :: fn(t: Type, typed: TypedProgram) -> bool = match t {
     // A range renders as its integer.
     is RangeType     -> true
     is TypeParamType -> param_trait_args(t, DISPLAY_TRAIT_KEY, typed) != null
-    is TraitType     -> is_core_trait(t, DISPLAY_TRAIT_KEY)
+    is TraitType     -> is_core_trait(t, TRAIT_DISPLAY)
     is FreeIntType | FreeFloatType | FreeCharType | NeverType -> true
     // A trait's own body is checked once per implementor, with `Self` resolved.
     is SelfType -> true
