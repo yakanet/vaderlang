@@ -245,7 +245,7 @@ static vader_box_t std_task$join__Any(void* l0) {
 		l1 = vader_host_std_core$Intrinsic$current_thread();
 		l2 = ((vader_struct_std_task$Task__Any_t*) l0)->f_waiters;
 		vader_struct_std_task$Waiter_t* _a2_obj = (vader_struct_std_task$Waiter_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Waiter_t));
-		vader_obj_header_init(_a2_obj, 1126u);
+		vader_obj_header_init(_a2_obj, 1127u);
 		_a2_obj->f_thread = l1;
 		_a2_obj->f_group = vader_box_obj(0u, NULL);
 		_a2_obj->f_index = INT64_C(0);
@@ -298,10 +298,10 @@ void* std_task$launch__vader_front_resolver_ParsedFile____(void* l0) {
 	l2 = vader_chk_add(i64, t1, INT64_C(1));
 	vader_array_t* _a0_arr = vader_array_new(35u, 0u, 0u, 641u);
 	l1 = (void*) _a0_arr;
-	vader_array_t* _a1_arr = vader_array_new(61u, 0u, 13u, 1126u);
+	vader_array_t* _a1_arr = vader_array_new(61u, 0u, 13u, 1127u);
 	l3 = (void*) _a1_arr;
 	vader_struct_std_task$Task__Any_t* _a2_obj = (vader_struct_std_task$Task__Any_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Task__Any_t));
-	vader_obj_header_init(_a2_obj, 1124u);
+	vader_obj_header_init(_a2_obj, 1125u);
 	_a2_obj->f_number = l2;
 	_a2_obj->f_thread = INT64_C(-1);
 	_a2_obj->f_ended = false;
@@ -495,7 +495,7 @@ static void* std_task$started$singleton(void) {
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
 	vader_struct_std_task$Started_t* _a0_obj = (vader_struct_std_task$Started_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Started_t));
-	vader_obj_header_init(_a0_obj, 1123u);
+	vader_obj_header_init(_a0_obj, 1124u);
 	_a0_obj->f_count = INT64_C(0);
 	t0 = (void*) _a0_obj;
 	{ void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -603,7 +603,7 @@ vader_box_t std_task$try_join_all__vader_front_resolver_ParsedFile____(void* l0)
 		t0 = vader_array_ref_load_obj(_a6_slotarr->buf, vader_array_offset(_a6_slotarr) + (size_t) l4);
 		l5 = std_task$outcome__vader_front_resolver_ParsedFile____(t0);
 		l6 = l5;
-		if ((l5.tag == 645u) || (l5.tag == 1113u) || (l5.tag == 1499u) || (l5.tag == 892u) || (l5.tag == 1097u) || (l5.tag == 1119u) || (l5.tag == 1510u) || (l5.tag == 1264u) || (l5.tag == 1282u) || (l5.tag == 2161u) || (l5.tag == 2158u) || (l5.tag == 1713u)) {
+		if ((l5.tag == 645u) || (l5.tag == 1114u) || (l5.tag == 1500u) || (l5.tag == 893u) || (l5.tag == 1098u) || (l5.tag == 1120u) || (l5.tag == 1511u) || (l5.tag == 1265u) || (l5.tag == 1283u) || (l5.tag == 2162u) || (l5.tag == 2159u) || (l5.tag == 1714u)) {
 			l7 = l6;
 			vader_defer_pop_exec(3u);
 			{ vader_box_t __vret = l7; vader_gc_top = gc_frame.prev; return __vret; }
@@ -645,7 +645,7 @@ static void* std_task$watch__vader_front_resolver_ParsedFile____(void* l0) {
 	vader_array_t* _a0_arr = vader_array_new(30u, 0u, 8u, 634u);
 	t0 = (void*) _a0_arr;
 	vader_struct_std_task$Group_t* _a1_obj = (vader_struct_std_task$Group_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Group_t));
-	vader_obj_header_init(_a1_obj, 1122u);
+	vader_obj_header_init(_a1_obj, 1123u);
 	_a1_obj->f_ended = t0;
 	_a1_obj->f_taken = INT64_C(0);
 	l1 = (void*) _a1_obj;
@@ -662,7 +662,7 @@ static void* std_task$watch__vader_front_resolver_ParsedFile____(void* l0) {
 		} else {
 			l6 = ((vader_struct_std_task$Task__vader_front_resolver_ParsedFile_____t*) l5)->f_waiters;
 			vader_struct_std_task$Waiter_t* _a3_obj = (vader_struct_std_task$Waiter_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Waiter_t));
-			vader_obj_header_init(_a3_obj, 1126u);
+			vader_obj_header_init(_a3_obj, 1127u);
 			_a3_obj->f_thread = l2;
 			_a3_obj->f_group = vader_ref_box(l1);
 			_a3_obj->f_index = l3;

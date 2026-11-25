@@ -68,6 +68,7 @@ typedef struct vader_struct___lambda_env_vader_emit_c_8_t vader_struct___lambda_
 typedef struct vader_struct___lambda_env_vader_emit_c_ast_1_t vader_struct___lambda_env_vader_emit_c_ast_1_t;
 typedef struct vader_struct___lambda_env_vader_front_comptime_1_t vader_struct___lambda_env_vader_front_comptime_1_t;
 typedef struct vader_struct___lambda_env_vader_front_comptime_11_t vader_struct___lambda_env_vader_front_comptime_11_t;
+typedef struct vader_struct___lambda_env_vader_front_comptime_13_t vader_struct___lambda_env_vader_front_comptime_13_t;
 typedef struct vader_struct___lambda_env_vader_front_comptime_3_t vader_struct___lambda_env_vader_front_comptime_3_t;
 typedef struct vader_struct___lambda_env_vader_front_comptime_6_t vader_struct___lambda_env_vader_front_comptime_6_t;
 typedef struct vader_struct___lambda_env_vader_front_comptime_9_t vader_struct___lambda_env_vader_front_comptime_9_t;
@@ -1800,6 +1801,10 @@ struct vader_struct___lambda_env_vader_front_comptime_11_t {
 	void* f_cap_1;
 	void* f_cap_2;
 	void* f_cap_3;
+};
+struct vader_struct___lambda_env_vader_front_comptime_13_t {
+	vader_obj_header_t header;
+	int64_t f_cap_0;
 };
 struct vader_struct___lambda_env_vader_front_comptime_3_t {
 	vader_obj_header_t header;
@@ -7566,7 +7571,7 @@ struct vader_struct_vader_front_comptime$ComptimeContext_t {
 	void* f_typed;
 	void* f_bindings;
 	int64_t f_depth;
-	vader_box_t f_project;
+	void* f_project;
 };
 struct vader_struct_vader_front_comptime$ComptimeOrder_t {
 	vader_obj_header_t header;
@@ -7641,6 +7646,9 @@ struct vader_struct_vader_front_comptime$ProjectConstants_t {
 	void* f_typed;
 	void* f_values;
 	void* f_evaluating;
+	void* f_faulted;
+	void* f_cycles;
+	int64_t f_steps;
 };
 struct vader_struct_vader_front_comptime$StringValue_t {
 	vader_obj_header_t header;
@@ -12024,7 +12032,6 @@ bool vader_core_types$is_machine_range(void* l0);
 bool vader_core_types$is_null_type(vader_box_t l0);
 bool vader_core_types$is_numeric_name(vader_string_t l0);
 bool vader_core_types$is_refinement(vader_box_t l0);
-bool vader_core_types$is_scalar_type_name(vader_string_t l0);
 bool vader_core_types$is_stored_as_integer(vader_box_t l0);
 bool vader_core_types$is_structural(vader_box_t l0);
 bool vader_core_types$is_task_shared(void* l0, vader_box_t l1);
@@ -12881,7 +12888,7 @@ vader_box_t toolchain_stage$BuildFiles$list_folder$$dispatch(vader_box_t recv, v
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3794u
+#define VADER_COMPTIME_ATOM_COUNT 3800u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
