@@ -4,6 +4,4 @@
 
 module "snippet"
 
-main :: fn() -> i32 {
-    return 42
-}
+main :: fn() -> i32 = 42

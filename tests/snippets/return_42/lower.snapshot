@@ -2,5 +2,5 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      return 42
+      42
   }

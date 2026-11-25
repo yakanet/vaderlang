@@ -18,18 +18,14 @@
         },
         "body": {
           "kind": "BlockExpr",
-          "stmts": [
-            {
-              "kind": "ReturnStmt",
-              "value": {
-                "kind": "IntLitExpr",
-                "value": "42n"
-              }
-            }
-          ],
-          "trailing": null
+          "stmts": [],
+          "trailing": {
+            "kind": "IntLitExpr",
+            "value": "42n"
+          }
         },
-        "decorators": []
+        "decorators": [],
+        "isExpressionBodied": true
       }
     ]
   },
