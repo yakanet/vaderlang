@@ -16,70 +16,70 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[5] = {
-    [2] = { .slot_size = 4 },
-    [3] = { .slot_size = 1 },
-    [4] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
-    },
+	[2] = { .slot_size = 4 },
+	[3] = { .slot_size = 1 },
+	[4] = {
+		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
+	},
 };
 const size_t vader_type_info_count = 5;
 
 static int32_t snippet$main(void) {
-    int32_t l0, l1;
-    void* t0 = NULL;
-    bool t1;
-    int32_t t2, t3;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    l0 = INT32_C(1);
-    if ((l0 < INT32_C(2)) == true) {
-        l1 = INT32_C(1);
-    } else {
-        l1 = INT32_C(0);
-    }
-    vader_array_t* _a0_arr = vader_array_new(4u, 3u, 7u, 2u);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 2u] = (int32_t) INT32_C(3);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 1u] = (int32_t) INT32_C(2);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (int32_t) INT32_C(1);
-    t0 = (void*) _a0_arr;
-    t1 = std_core$$array$Contains$contains__i32(t0, l0);
-    if (t1 == true) {
-        l0 = INT32_C(2);
-    } else {
-        l0 = INT32_C(0);
-    }
-    t2 = vader_chk_add(i32, l1, l0);
-    t3 = vader_chk_add(i32, t2, INT32_C(4));
-    { int32_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
+	int32_t l0, l1;
+	void* t0 = NULL;
+	bool t1;
+	int32_t t2, t3;
+	void** gc_raw_roots[1] = { &t0 };
+	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+	vader_gc_top = &gc_frame;
+	l0 = INT32_C(1);
+	if ((l0 < INT32_C(2)) == true) {
+		l1 = INT32_C(1);
+	} else {
+		l1 = INT32_C(0);
+	}
+	vader_array_t* _a0_arr = vader_array_new(4u, 3u, 7u, 2u);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 2u] = (int32_t) INT32_C(3);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 1u] = (int32_t) INT32_C(2);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (int32_t) INT32_C(1);
+	t0 = (void*) _a0_arr;
+	t1 = std_core$$array$Contains$contains__i32(t0, l0);
+	if (t1 == true) {
+		l0 = INT32_C(2);
+	} else {
+		l0 = INT32_C(0);
+	}
+	t2 = vader_chk_add(i32, l1, l0);
+	t3 = vader_chk_add(i32, t2, INT32_C(4));
+	{ int32_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static bool std_core$$array$Contains$contains__i32(void* l0, int32_t l1) {
-    void* l2;
-    int64_t l3, l4;
-    int32_t t0;
-    l2 = l0;
-    l3 = vader_array_length(((vader_array_t*) l2));
-    l4 = INT64_C(0);
-    while ((l4 < l3)) {
-        vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
-        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
-        t0 = ((int32_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) l4];
-        if (t0 == l1) {
-            return true;
-        }
-        l4 = (l4 + INT64_C(1));
-    }
-    return false;
+	void* l2;
+	int64_t l3, l4;
+	int32_t t0;
+	l2 = l0;
+	l3 = vader_array_length(((vader_array_t*) l2));
+	l4 = INT64_C(0);
+	while ((l4 < l3)) {
+		vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
+		VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+		VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
+		t0 = ((int32_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) l4];
+		if (t0 == l1) {
+			return true;
+		}
+		l4 = (l4 + INT64_C(1));
+	}
+	return false;
 }
 
 int main(int argc, char** argv) {
-    vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
-    atexit(vader_atom_shutdown);
-    atexit(vader_gc_shutdown);
-    (void) argc;
-    (void) argv;
-    return vader_scheduler_exit((int) snippet$main());
+	vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
+	atexit(vader_atom_shutdown);
+	atexit(vader_gc_shutdown);
+	(void) argc;
+	(void) argv;
+	return vader_scheduler_exit((int) snippet$main());
 }

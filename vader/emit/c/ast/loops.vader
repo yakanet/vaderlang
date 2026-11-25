@@ -359,7 +359,7 @@ loop_scope :: fn(body: CStatement[]) -> CStatement = CScope {
 // `root` after the pass, printed.
 structured :: fn(root: CBlock) -> string {
     structure_loops(root)
-    printer :: CPrinter {}
+    printer :: CPrinter { .layout = SPACED }
     printer.print_block(root, 0)
     return printer.printed_text()
 }

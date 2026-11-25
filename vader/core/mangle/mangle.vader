@@ -299,15 +299,19 @@ export LiftedKind :: enum {
 /// @param is_env     the environment struct rather than the function.
 /// @param module_id  the module it is lifted in.
 /// @param seq        its rank among the lifted names of that module.
-export lifted_mangle :: fn(kind: LiftedKind, is_env: bool, module_id: string, seq: i64) -> string {
-    prefix :: match kind {
-        .Lambda    -> if is_env { "__lambda_env_" } else { "__lambda_" }
-        .Defer     -> if is_env { "__defer_env_" } else { "__defer_" }
-        .Generator -> if is_env { "__gen_state_" } else { "__gen_" }
-        .Method    -> if is_env { "__method_env_" } else { "__method_" }
-    }
-    return "${prefix}${mangle_module_id(module_id)}_${seq}"
+export lifted_mangle :: fn(kind: LiftedKind, is_env: bool, module_id: string, seq: i64) -> string =
+    "${lifted_prefix(kind, is_env)}${mangle_module_id(module_id)}_${seq}"
+
+// What opens the name of a lifted function of `kind`, or of its environment.
+lifted_prefix :: fn(kind: LiftedKind, is_env: bool) -> string = match kind {
+    .Lambda    -> if is_env { "__lambda_env_" } else { "__lambda_" }
+    .Defer     -> if is_env { "__defer_env_" } else { "__defer_" }
+    .Generator -> if is_env { "__gen_state_" } else { "__gen_" }
+    .Method    -> if is_env { "__method_env_" } else { "__method_" }
 }
+
+// Every kind of lifted function.
+LIFTED_KINDS: LiftedKind[]: [.Lambda, .Defer, .Generator, .Method]
 
 /// The name of the state struct of the generator function `fn_name`, its
 /// overload suffix after: `$genstate_count`. The leading `$` keeps it from any
@@ -345,6 +349,29 @@ export mangle_module_part :: fn(mangled: string) -> string {
     return mangled.byte_slice(0, at)
 }
 
+/// The module fragment of a function `lifted_mangle` names: `__lambda_snippet_0`
+/// gives `snippet`. Any other name gives `""`.
+///
+/// @param mangled  a mangled function name.
+export lifted_module_part :: fn(mangled: string) -> string {
+    if !mangled.starts_with("__") {
+        return ""
+    }
+    for kind in LIFTED_KINDS {
+        // The environment's prefix extends the function's: tested first.
+        if mangled.starts_with(lifted_prefix(kind, true)) {
+            return ""
+        }
+        prefix :: lifted_prefix(kind, false)
+        if mangled.starts_with(prefix) {
+            rest :: mangled.byte_slice(prefix.byte_len(), mangled.byte_len())
+            at :: rest.last_index_of('_') else return ""
+            return rest.byte_slice(0, at)
+        }
+    }
+    return ""
+}
+
 /// The last segment of a mangled name: what comes after its last `$`, the whole
 /// name when it has none. `snippet$main` gives `main`, `std_core$Display` gives
 /// `Display`. A name the compiler derives or writes keeps its base:
@@ -366,6 +393,25 @@ export mangle_last_segment :: fn(mangled: string) -> string {
 
 import "std/testing"
 import "vader/core/symbol"
+
+@test
+test_lifted_module_part_reads_the_module_of_a_lifted_function :: fn() -> void {
+    assert_eq(
+        lifted_module_part(lifted_mangle(.Lambda, false, "std/string_builder", 12)),
+        "std_string__builder",
+    )
+    assert_eq(
+        lifted_module_part(lifted_mangle(.Defer, false, "wasi:cli/stdout@0.3.0", 0)),
+        "wasi_0cli_stdout_10_23_20",
+    )
+}
+
+@test
+test_lifted_module_part_of_any_other_name_is_empty :: fn() -> void {
+    assert_eq(lifted_module_part("std_core\$concat"), "")
+    assert_eq(lifted_module_part("concat_3"), "")
+    assert_eq(lifted_module_part(lifted_mangle(.Lambda, true, "snippet", 0)), "")
+}
 
 @test
 test_mangle_module_id_doubles_underscores :: fn() -> void {

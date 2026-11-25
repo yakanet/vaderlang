@@ -220,21 +220,26 @@ emit_virtual_call :: fn(s: FnState, op: Bc.VirtualCall) -> void {
 /// (`vader_box_t` per arg + return) so one `code` pointer is castable at any
 /// `call.indirect` site. Gated on the ops actually appearing: a fn-typed
 /// field can exist with no fn-value op.
-emit_fn_trampolines :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
-    usage :: scan_fn_value_usage(ctx.module.functions)
+///
+/// @param ctx      the emit context.
+/// @param printer  receives the wrappers.
+/// @param usage    the module's `scan_fn_value_usage`.
+/// @param fns      the functions whose wrappers this unit holds.
+emit_fn_trampolines :: fn(
+    ctx: EmitCtx, printer: CPrinter, usage: FnValueUsage, fns: i32[],
+) -> void {
     if !usage.any {
         return
     }
-    n :: ctx.module.functions.len()
     wrappers: CTopLevel[]: []
-    for i in 0..<n {
+    for i in fns {
         if usage.fn_ref_type[i] >= 0 {
-            emit_fn_ref_tramp(ctx, wrappers, i32(i), usage.fn_ref_type[i])
+            emit_fn_ref_tramp(ctx, wrappers, i, usage.fn_ref_type[i])
         }
     }
-    for i in 0..<n {
+    for i in fns {
         if usage.is_closure[i] {
-            emit_closure_lift(ctx, wrappers, i32(i))
+            emit_closure_lift(ctx, wrappers, i)
         }
     }
     printer.print_section(CSection { .items = wrappers })

@@ -7,9 +7,9 @@
 typedef struct vader_struct_std_core$Field_t vader_struct_std_core$Field_t;
 
 struct vader_struct_std_core$Field_t {
-    vader_obj_header_t header;
-    vader_string_t f_name;
-    vader_box_t f_type;
+	vader_obj_header_t header;
+	vader_string_t f_name;
+	vader_box_t f_type;
 };
 
 /* Compile-time atom table. */
@@ -24,47 +24,47 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[7] = {
-    [2] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
-    },
-    [3] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Field_t),
-        .slot_size = 8,
-        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_std_core$Field_t, f_type) },
-        .ptr_count = 1,
-        .string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_core$Field_t, f_name) },
-        .string_count = 1,
-    },
-    [4] = { .slot_size = 4 },
-    [5] = { .slot_size = 4 },
-    [6] = { .slot_size = 16 },
+	[2] = {
+		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+	},
+	[3] = {
+		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Field_t),
+		.slot_size = 8,
+		.ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_std_core$Field_t, f_type) },
+		.ptr_count = 1,
+		.string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_core$Field_t, f_name) },
+		.string_count = 1,
+	},
+	[4] = { .slot_size = 4 },
+	[5] = { .slot_size = 4 },
+	[6] = { .slot_size = 16 },
 };
 const size_t vader_type_info_count = 7;
 
 static int32_t snippet$count_fields(void* l0) {
-    int64_t t0;
-    t0 = vader_array_length(((vader_array_t*) l0));
-    return ((int32_t) (int64_t) t0);
+	int64_t t0;
+	t0 = vader_array_length(((vader_array_t*) l0));
+	return ((int32_t) (int64_t) t0);
 }
 
 static int32_t snippet$main(void) {
-    void* t0 = NULL;
-    int32_t t1;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(2u, 0u, 13u, 3u);
-    t0 = (void*) _a0_arr;
-    t1 = snippet$count_fields(t0);
-    { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+	void* t0 = NULL;
+	int32_t t1;
+	void** gc_raw_roots[1] = { &t0 };
+	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+	vader_gc_top = &gc_frame;
+	vader_array_t* _a0_arr = vader_array_new(2u, 0u, 13u, 3u);
+	t0 = (void*) _a0_arr;
+	t1 = snippet$count_fields(t0);
+	{ int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 int main(int argc, char** argv) {
-    vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
-    atexit(vader_atom_shutdown);
-    atexit(vader_gc_shutdown);
-    (void) argc;
-    (void) argv;
-    return vader_scheduler_exit((int) snippet$main());
+	vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
+	atexit(vader_atom_shutdown);
+	atexit(vader_gc_shutdown);
+	(void) argc;
+	(void) argv;
+	return vader_scheduler_exit((int) snippet$main());
 }

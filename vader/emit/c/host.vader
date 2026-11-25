@@ -92,7 +92,7 @@ synthesises_prototype :: fn(imp: BcImport) = imp.is_extern && imp.c_headers.len(
 /// @return      the unit's C source.
 emit_foreign_unit :: fn(ctx: EmitCtx, unit: string) -> string {
     imports :: imports_of_unit(ctx.module, unit)
-    printer :: CPrinter {}
+    printer :: CPrinter { .layout = ctx.layout }
     printer.emit_preamble("${GENERATED_C_BANNER} ${foreign_unit_banner(imports)}")
     emit_mirrored_struct_typedefs(ctx.module.types, ctx.struct_c_names, printer)
     emit_import_group(ctx, printer, imports)

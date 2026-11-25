@@ -15,102 +15,102 @@ static int32_t snippet$main(void);
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 const vader_type_info_t vader_type_info_table[4] = {
-    [2] = { .slot_size = 4 },
-    [3] = { .slot_size = 4 },
+	[2] = { .slot_size = 4 },
+	[3] = { .slot_size = 4 },
 };
 const size_t vader_type_info_count = 4;
 
 static int32_t snippet$classify(uint32_t l0) {
-    int32_t l1;
-    bool l2;
-    if ((l0 >= 48u)) {
-        l2 = (l0 <= 57u);
-    } else {
-        l2 = false;
-    }
-    if (l2) {
-        l1 = INT32_C(1);
-        return l1;
-    }
-    if ((l0 >= 97u)) {
-        l2 = (l0 <= 122u);
-    } else {
-        l2 = false;
-    }
-    if (l2) {
-        l1 = INT32_C(2);
-    } else {
-        if ((l0 >= 65u)) {
-            l2 = (l0 <= 90u);
-        } else {
-            l2 = false;
-        }
-        if (l2) {
-            l1 = INT32_C(3);
-        } else {
-            l1 = INT32_C(0);
-        }
-    }
-    return l1;
+	int32_t l1;
+	bool l2;
+	if ((l0 >= 48u)) {
+		l2 = (l0 <= 57u);
+	} else {
+		l2 = false;
+	}
+	if (l2) {
+		l1 = INT32_C(1);
+		return l1;
+	}
+	if ((l0 >= 97u)) {
+		l2 = (l0 <= 122u);
+	} else {
+		l2 = false;
+	}
+	if (l2) {
+		l1 = INT32_C(2);
+	} else {
+		if ((l0 >= 65u)) {
+			l2 = (l0 <= 90u);
+		} else {
+			l2 = false;
+		}
+		if (l2) {
+			l1 = INT32_C(3);
+		} else {
+			l1 = INT32_C(0);
+		}
+	}
+	return l1;
 }
 
 static int32_t snippet$bucket(int32_t l0) {
-    int32_t l1;
-    bool l2;
-    if ((l0 >= INT32_C(0))) {
-        l2 = (l0 < INT32_C(10));
-    } else {
-        l2 = false;
-    }
-    if (l2) {
-        l1 = INT32_C(1);
-        return l1;
-    }
-    if ((l0 >= INT32_C(10))) {
-        l2 = (l0 <= INT32_C(99));
-    } else {
-        l2 = false;
-    }
-    if (l2) {
-        l1 = INT32_C(2);
-    } else {
-        l1 = INT32_C(3);
-    }
-    return l1;
+	int32_t l1;
+	bool l2;
+	if ((l0 >= INT32_C(0))) {
+		l2 = (l0 < INT32_C(10));
+	} else {
+		l2 = false;
+	}
+	if (l2) {
+		l1 = INT32_C(1);
+		return l1;
+	}
+	if ((l0 >= INT32_C(10))) {
+		l2 = (l0 <= INT32_C(99));
+	} else {
+		l2 = false;
+	}
+	if (l2) {
+		l1 = INT32_C(2);
+	} else {
+		l1 = INT32_C(3);
+	}
+	return l1;
 }
 
 static int32_t snippet$main(void) {
-    int32_t l0, l1, l2;
-    int32_t t0;
-    l0 = snippet$classify(53u);
-    t0 = snippet$classify(113u);
-    l1 = vader_chk_mul(i32, t0, INT32_C(10));
-    l0 = vader_chk_add(i32, l0, l1);
-    t0 = snippet$classify(81u);
-    l1 = vader_chk_mul(i32, t0, INT32_C(100));
-    l0 = vader_chk_add(i32, l0, l1);
-    t0 = snippet$classify(43u);
-    l1 = vader_chk_mul(i32, t0, INT32_C(1000));
-    l0 = vader_chk_add(i32, l0, l1);
-    l1 = snippet$bucket(INT32_C(9));
-    t0 = snippet$bucket(INT32_C(10));
-    l2 = vader_chk_mul(i32, t0, INT32_C(10));
-    l1 = vader_chk_add(i32, l1, l2);
-    t0 = snippet$bucket(INT32_C(99));
-    l2 = vader_chk_mul(i32, t0, INT32_C(100));
-    l1 = vader_chk_add(i32, l1, l2);
-    t0 = snippet$bucket(INT32_C(100));
-    l2 = vader_chk_mul(i32, t0, INT32_C(1000));
-    l1 = vader_chk_add(i32, l1, l2);
-    t0 = vader_chk_add(i32, l0, l1);
-    return t0;
+	int32_t l0, l1, l2;
+	int32_t t0;
+	l0 = snippet$classify(53u);
+	t0 = snippet$classify(113u);
+	l1 = vader_chk_mul(i32, t0, INT32_C(10));
+	l0 = vader_chk_add(i32, l0, l1);
+	t0 = snippet$classify(81u);
+	l1 = vader_chk_mul(i32, t0, INT32_C(100));
+	l0 = vader_chk_add(i32, l0, l1);
+	t0 = snippet$classify(43u);
+	l1 = vader_chk_mul(i32, t0, INT32_C(1000));
+	l0 = vader_chk_add(i32, l0, l1);
+	l1 = snippet$bucket(INT32_C(9));
+	t0 = snippet$bucket(INT32_C(10));
+	l2 = vader_chk_mul(i32, t0, INT32_C(10));
+	l1 = vader_chk_add(i32, l1, l2);
+	t0 = snippet$bucket(INT32_C(99));
+	l2 = vader_chk_mul(i32, t0, INT32_C(100));
+	l1 = vader_chk_add(i32, l1, l2);
+	t0 = snippet$bucket(INT32_C(100));
+	l2 = vader_chk_mul(i32, t0, INT32_C(1000));
+	l1 = vader_chk_add(i32, l1, l2);
+	t0 = vader_chk_add(i32, l0, l1);
+	return t0;
 }
 
 int main(int argc, char** argv) {
-    vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
-    atexit(vader_atom_shutdown);
-    atexit(vader_gc_shutdown);
-    (void) argc;
-    (void) argv;
-    return vader_scheduler_exit((int) snippet$main());
+	vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
+	atexit(vader_atom_shutdown);
+	atexit(vader_gc_shutdown);
+	(void) argc;
+	(void) argv;
+	return vader_scheduler_exit((int) snippet$main());
 }

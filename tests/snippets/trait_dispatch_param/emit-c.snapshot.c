@@ -15,35 +15,35 @@ static uint64_t std_core$i32$Hash$hash(int32_t l0);
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 const vader_type_info_t vader_type_info_table[4] = {
-    [2] = { .slot_size = 4 },
-    [3] = { .slot_size = 8 },
+	[2] = { .slot_size = 4 },
+	[3] = { .slot_size = 8 },
 };
 const size_t vader_type_info_count = 4;
 
 static int32_t snippet$main(void) {
-    uint64_t t0;
-    t0 = snippet$hash_twice__i32(INT32_C(7));
-    return ((int32_t) (uint64_t) t0);
+	uint64_t t0;
+	t0 = snippet$hash_twice__i32(INT32_C(7));
+	return ((int32_t) (uint64_t) t0);
 }
 
 static uint64_t snippet$hash_twice__i32(int32_t l0) {
-    uint64_t l1, l2;
-    int64_t t0;
-    l1 = std_core$i32$Hash$hash(l0);
-    l2 = std_core$i32$Hash$hash(l0);
-    t0 = vader_chk_add(u64, l1, l2);
-    return (uint64_t) (int64_t) t0;
+	uint64_t l1, l2;
+	int64_t t0;
+	l1 = std_core$i32$Hash$hash(l0);
+	l2 = std_core$i32$Hash$hash(l0);
+	t0 = vader_chk_add(u64, l1, l2);
+	return (uint64_t) (int64_t) t0;
 }
 
 static uint64_t std_core$i32$Hash$hash(int32_t l0) {
-    return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
+	return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
 }
 
 int main(int argc, char** argv) {
-    vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
-    atexit(vader_atom_shutdown);
-    atexit(vader_gc_shutdown);
-    (void) argc;
-    (void) argv;
-    return vader_scheduler_exit((int) snippet$main());
+	vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
+	atexit(vader_atom_shutdown);
+	atexit(vader_gc_shutdown);
+	(void) argc;
+	(void) argv;
+	return vader_scheduler_exit((int) snippet$main());
 }

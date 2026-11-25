@@ -71,6 +71,8 @@ export CEmitOptions :: struct {
     /// their declarations go to the imports header, which each target has its
     /// own of, so that the shared header is the same for every target.
     target_only_functions: Set<string> = Set<string> {}
+    /// How the C is laid out: indentation, line ends, line width.
+    layout: CPrintLayout = CPrintLayout {}
     /// `$VADER_VERIFY_BOUNDS`: an access proven in bounds (`bounds_safe`) keeps
     /// its index check, with a message of its own (`VADER_ARRAY_CHECK_PROVEN`).
     verify_bounds: bool = false
@@ -100,6 +102,8 @@ export EmitCtx :: struct {
     slot_globals: CGlobalSlot[]
     /// The globals the C declares: `slot_globals`, or `opts.global_universe`.
     globals: CGlobalSlot[]
+    /// Mirrors `CEmitOptions.layout`: every printer of the program takes it.
+    layout: CPrintLayout
     /// The functions the shared header declares, sorted by name, so that the
     /// order does not depend on where the function table puts them.
     header_fns: i32[]
@@ -160,6 +164,7 @@ new_ctx :: fn(m: BytecodeModule, opts: CEmitOptions, internal_fns: bool[] = []) 
         .atom_table = atom_table_of(m.strings, opts.atom_universe),
         .slot_globals = own_globals,
         .globals = declared_globals(own_globals, opts.global_universe),
+        .layout = opts.layout,
         .header_fns = by_name.filter(held_by_all).collect(),
         .imports_fns = by_name.filter((i) -> !held_by_all(i)).collect(),
         .null_tag = class_tag_of(m.types, .Null),
@@ -309,7 +314,7 @@ export emit_c :: fn(m: BytecodeModule, opts: CEmitOptions) -> string =
 // The C source of the whole program in one unit, but for the `CLibrary` shims
 // when `ctx.library_units` sends them to units of their own.
 single_unit :: fn(ctx: EmitCtx, entry_mangled: string) -> string {
-    printer :: CPrinter {}
+    printer :: CPrinter { .layout = ctx.layout }
     printer.emit_preamble(GENERATED_C_BANNER)
     ctx.emit_type_decls(printer)
     ctx.emit_forward_decls(printer, ctx.header_fns)
@@ -318,7 +323,8 @@ single_unit :: fn(ctx: EmitCtx, entry_mangled: string) -> string {
     // synthesised outside `module.functions` and so get no prototype above.
     ctx.emit_closure_forward_decls(printer, ctx.header_fns)
     ctx.emit_fn_sig_typedefs(printer)
-    ctx.emit_fn_trampolines(printer)
+    every_fn :: ctx.module.functions.len().filled_indexed((i) -> i32(i))
+    ctx.emit_fn_trampolines(printer, scan_fn_value_usage(ctx.module.functions), every_fn)
     ctx.emit_type_info_table(printer)
     ctx.emit_import_shims(printer)
     ctx.emit_vtable_forward_decls(printer)

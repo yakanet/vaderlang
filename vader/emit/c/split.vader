@@ -43,7 +43,7 @@ import "vader/support/text"
 
 /// A program emitted as several C translation units. `header` is the shared
 /// `.h`, `globals` the data-globals `.c`, and `units` the function `.c` bodies:
-/// one per source module, plus `unit_names[0] == GLUE_UNIT` for the trampolines,
+/// one per source module, plus `unit_names[0] == GLUE_UNIT` for the
 /// dispatchers and `main`, then the foreign units (`foreign_units`).
 export CProgram :: struct {
     header:  string
@@ -163,7 +163,7 @@ export emit_c_split :: fn(m: BytecodeModule, opts: CEmitOptions, header_name: st
     )
 
     // ---- shared header : every cross-TU declaration -----------------------
-    header :: CPrinter {}
+    header :: CPrinter { .layout = ctx.layout }
     header.emit_preamble("${GENERATED_C_BANNER} Shared declarations.")
     ctx.emit_struct_typedefs(header)
     ctx.emit_fn_sig_typedefs(header)
@@ -176,7 +176,7 @@ export emit_c_split :: fn(m: BytecodeModule, opts: CEmitOptions, header_name: st
     // this file a target can change, and keeping them inline in the shared one
     // forced a whole 6000-line copy per target the moment a binding diverged.
     // The shims of the foreign units are only declared there (`foreign_unit_of`).
-    imports :: CPrinter {}
+    imports :: CPrinter { .layout = ctx.layout }
     imports.print_section(CSection {
         .comment = ["${GENERATED_C_BANNER} Foreign imports."],
         .items = [CInclude { .path = "vader.h" }],
@@ -189,7 +189,7 @@ export emit_c_split :: fn(m: BytecodeModule, opts: CEmitOptions, header_name: st
     ctx.emit_data_global_externs(header)
 
     // ---- globals TU : the data-global definitions -------------------------
-    globals :: including(header_name)
+    globals :: including(header_name, ctx.layout)
     // Re-emits `#define VADER_COMPTIME_ATOM_COUNT` too. Both sides count
     // `ctx.atom_table`, so the redefinition is identical by construction (and
     // stays silent) rather than by the two pools happening to match.
@@ -199,15 +199,18 @@ export emit_c_split :: fn(m: BytecodeModule, opts: CEmitOptions, header_name: st
 
     // ---- function TUs : one per MODULE, plus unit 0 for the fixed code ----
     names :: unit_names_of(m.functions, buckets)
+    usage :: scan_fn_value_usage(m.functions)
     units: string[]: []
     for k in 0..<buckets.len() {
-        unit :: including(header_name)
+        unit :: including(header_name, ctx.layout)
         // Prototypes for this unit's OWN internal functions: the shared header
         // carries only the external ones, and a `static` definition needs a
         // `static` declaration ahead of any mutually-recursive use.
         ctx.emit_internal_forward_decls(buckets[k], unit)
+        // In the unit of the function they wrap: one only a target holds then
+        // changes that unit alone.
+        ctx.emit_fn_trampolines(unit, usage, buckets[k])
         if k == 0 {
-            ctx.emit_fn_trampolines(unit)
             ctx.emit_vtable_dispatchers(unit)
         }
         for idx in buckets[k] {
@@ -230,8 +233,8 @@ export emit_c_split :: fn(m: BytecodeModule, opts: CEmitOptions, header_name: st
 }
 
 // A printer opening a unit that reads the shared header.
-including :: fn(header_name: string) -> CPrinter {
-    printer :: CPrinter {}
+including :: fn(header_name: string, layout: CPrintLayout) -> CPrinter {
+    printer :: CPrinter { .layout = layout }
     printer.print_item(CInclude { .path = header_name })
     return printer
 }
@@ -270,7 +273,7 @@ emit_internal_forward_decls :: fn(ctx: EmitCtx, bucket: i32[], printer: CPrinter
 ///   - an entry of the export table: a host names it;
 ///   - the entry point: `emit_main` calls it from unit 0;
 ///   - a vtable target: the vtable arrays live in the globals TU;
-///   - taken as a fn-value: `emit_fn_trampolines` wraps it from unit 0;
+///   - taken as a fn-value: `emit_fn_trampolines` wraps it;
 ///   - called by a function in another unit.
 ///
 /// @param m              the module being emitted.
@@ -384,15 +387,25 @@ partition_functions :: fn(fns: BcFunction[]) -> i32[][] {
     // to straddle a module.
     of_module :: Map<string, i32[]> {}
     for idx in sorted_fn_indices(fns) {
-        // A name with no module (a lifted `__lambda_...`) lands under `""`, one
-        // more module rather than a special case.
-        of_module.get_or_put_with(mangle_module_part(fns[idx].name), () -> []).push(idx)
+        of_module.get_or_put_with(unit_module_of(fns[idx].name), () -> []).push(idx)
     }
     buckets: i32[][]: [[]]
     for m in sorted_module_stems(of_module) {
         buckets.push(of_module[m] else [])
     }
     return buckets
+}
+
+// The module whose unit holds the function `mangled`: its own, or the one it was
+// lifted in (`lifted_module_part`), so that a lambda shares the unit of the code
+// that calls it. A name with neither (`concat_3`) lands under `""`, one more
+// module rather than a special case.
+unit_module_of :: fn(mangled: string) -> string {
+    own :: mangle_module_part(mangled)
+    if own != "" {
+        return own
+    }
+    return lifted_module_part(mangled)
 }
 
 // The module stems, sorted: the deterministic unit order.
@@ -418,7 +431,7 @@ sorted_module_stems :: fn(of_module: Map<string, i32[]>) -> string[] {
 unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
     out: string[]: [GLUE_UNIT]
     for k in 1..<buckets.len() {
-        stem :: mangle_module_part(fns[buckets[k][0]].name)
+        stem :: unit_module_of(fns[buckets[k][0]].name)
         // A stem names a MODULE, so every byte of it is an identifier byte. An
         // EMPTY stem is ordinary (a bare name like `main` has no `$`) and
         // becomes `_root` below. A stem that is non-empty but not an identifier

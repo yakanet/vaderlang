@@ -7,9 +7,9 @@
 typedef struct vader_struct_snippet$Point_t vader_struct_snippet$Point_t;
 
 struct vader_struct_snippet$Point_t {
-    vader_obj_header_t header;
-    int32_t f_x;
-    int32_t f_y;
+	vader_obj_header_t header;
+	int32_t f_x;
+	int32_t f_y;
 };
 
 /* Compile-time atom table. */
@@ -22,46 +22,46 @@ static void* snippet$make(int32_t l0, int32_t l1);
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 const vader_type_info_t vader_type_info_table[4] = {
-    [2] = { .slot_size = 4 },
-    [3] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Point_t),
-        .slot_size = 8,
-    },
+	[2] = { .slot_size = 4 },
+	[3] = {
+		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Point_t),
+		.slot_size = 8,
+	},
 };
 const size_t vader_type_info_count = 4;
 
 static void* snippet$make(int32_t l0, int32_t l1) {
-    void* t0 = NULL;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    vader_struct_snippet$Point_t* _a0_obj = (vader_struct_snippet$Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Point_t));
-    vader_obj_header_init(_a0_obj, 3u);
-    _a0_obj->f_x = l0;
-    _a0_obj->f_y = l1;
-    t0 = (void*) _a0_obj;
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+	void* t0 = NULL;
+	void** gc_raw_roots[1] = { &t0 };
+	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+	vader_gc_top = &gc_frame;
+	vader_struct_snippet$Point_t* _a0_obj = (vader_struct_snippet$Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Point_t));
+	vader_obj_header_init(_a0_obj, 3u);
+	_a0_obj->f_x = l0;
+	_a0_obj->f_y = l1;
+	t0 = (void*) _a0_obj;
+	{ void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int32_t snippet$main(void) {
-    void* l0 = NULL;
-    int32_t l1, l2;
-    int32_t t0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    l0 = snippet$make(INT32_C(3), INT32_C(4));
-    l1 = ((vader_struct_snippet$Point_t*) l0)->f_x;
-    l2 = ((vader_struct_snippet$Point_t*) l0)->f_y;
-    t0 = vader_chk_add(i32, l1, l2);
-    { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+	void* l0 = NULL;
+	int32_t l1, l2;
+	int32_t t0;
+	void** gc_raw_roots[1] = { &l0 };
+	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+	vader_gc_top = &gc_frame;
+	l0 = snippet$make(INT32_C(3), INT32_C(4));
+	l1 = ((vader_struct_snippet$Point_t*) l0)->f_x;
+	l2 = ((vader_struct_snippet$Point_t*) l0)->f_y;
+	t0 = vader_chk_add(i32, l1, l2);
+	{ int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 int main(int argc, char** argv) {
-    vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
-    atexit(vader_atom_shutdown);
-    atexit(vader_gc_shutdown);
-    (void) argc;
-    (void) argv;
-    return vader_scheduler_exit((int) snippet$main());
+	vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
+	atexit(vader_atom_shutdown);
+	atexit(vader_gc_shutdown);
+	(void) argc;
+	(void) argv;
+	return vader_scheduler_exit((int) snippet$main());
 }

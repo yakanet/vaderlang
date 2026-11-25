@@ -18,34 +18,34 @@ const vader_type_info_t vader_type_info_table[3] = { [2] = { .slot_size = 4 } };
 const size_t vader_type_info_count = 3;
 
 static int32_t snippet$main(void) {
-    int32_t l0, l1, l2;
-    int32_t t0, t1;
-    l0 = snippet$double__i32(INT32_C(7));
-    l1 = snippet$triple__i32(INT32_C(8));
-    l2 = snippet$double__i32(INT32_C(2));
-    t0 = vader_chk_add(i32, l0, l1);
-    t1 = vader_chk_add(i32, t0, l2);
-    return t1;
+	int32_t l0, l1, l2;
+	int32_t t0, t1;
+	l0 = snippet$double__i32(INT32_C(7));
+	l1 = snippet$triple__i32(INT32_C(8));
+	l2 = snippet$double__i32(INT32_C(2));
+	t0 = vader_chk_add(i32, l0, l1);
+	t1 = vader_chk_add(i32, t0, l2);
+	return t1;
 }
 
 static int32_t snippet$double__i32(int32_t l0) {
-    int32_t t0;
-    t0 = vader_chk_add(i32, l0, l0);
-    return t0;
+	int32_t t0;
+	t0 = vader_chk_add(i32, l0, l0);
+	return t0;
 }
 
 static int32_t snippet$triple__i32(int32_t l0) {
-    int32_t t0, t1;
-    t0 = vader_chk_add(i32, l0, l0);
-    t1 = vader_chk_add(i32, t0, l0);
-    return t1;
+	int32_t t0, t1;
+	t0 = vader_chk_add(i32, l0, l0);
+	t1 = vader_chk_add(i32, t0, l0);
+	return t1;
 }
 
 int main(int argc, char** argv) {
-    vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
-    atexit(vader_atom_shutdown);
-    atexit(vader_gc_shutdown);
-    (void) argc;
-    (void) argv;
-    return vader_scheduler_exit((int) snippet$main());
+	vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
+	atexit(vader_atom_shutdown);
+	atexit(vader_gc_shutdown);
+	(void) argc;
+	(void) argv;
+	return vader_scheduler_exit((int) snippet$main());
 }

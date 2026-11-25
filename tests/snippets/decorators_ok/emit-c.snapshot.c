@@ -8,7 +8,7 @@
 static const char vader_atom_blob[] = "env" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
+	{ 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
 };
 
 #define VADER_COMPTIME_ATOM_COUNT 1u
@@ -21,14 +21,14 @@ const vader_type_info_t vader_type_info_table[3] = { [2] = { .slot_size = 4 } };
 const size_t vader_type_info_count = 3;
 
 static int32_t snippet$main(void) {
-    return INT32_C(0);
+	return INT32_C(0);
 }
 
 int main(int argc, char** argv) {
-    vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
-    atexit(vader_atom_shutdown);
-    atexit(vader_gc_shutdown);
-    (void) argc;
-    (void) argv;
-    return vader_scheduler_exit((int) snippet$main());
+	vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
+	atexit(vader_atom_shutdown);
+	atexit(vader_gc_shutdown);
+	(void) argc;
+	(void) argv;
+	return vader_scheduler_exit((int) snippet$main());
 }

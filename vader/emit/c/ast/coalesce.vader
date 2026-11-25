@@ -355,7 +355,7 @@ use :: fn(value: CExpression) -> CStatement = CExpressionStatement {
 }
 
 printed :: fn(block: CBlock) -> string {
-    printer :: CPrinter {}
+    printer :: CPrinter { .layout = SPACED }
     printer.print_block(block, 0)
     return printer.printed_text()
 }

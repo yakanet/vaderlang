@@ -7,15 +7,15 @@
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
 
 struct vader_struct_std_core$Buffer_t {
-    vader_obj_header_t header;
+	vader_obj_header_t header;
 };
 
 /* Compile-time atom table. */
 static const char vader_atom_blob[] = " " "\0" "\n" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[2] },
+	{ 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
+	{ 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[2] },
 };
 
 #define VADER_COMPTIME_ATOM_COUNT 2u
@@ -24,109 +24,109 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const VADER_ARRAY_STATIC_BUF(int32_t, 300) vader_data_0_buf = {
-    VADER_STATIC_BUF_HEADER(3u, 7u, 300u),
-    .slots = {
-        (int32_t) UINT64_C(0), (int32_t) UINT64_C(1), (int32_t) UINT64_C(4), (int32_t) UINT64_C(9),
-        (int32_t) UINT64_C(16), (int32_t) UINT64_C(25), (int32_t) UINT64_C(36),
-        (int32_t) UINT64_C(49), (int32_t) UINT64_C(64), (int32_t) UINT64_C(81),
-        (int32_t) UINT64_C(100), (int32_t) UINT64_C(121), (int32_t) UINT64_C(144),
-        (int32_t) UINT64_C(169), (int32_t) UINT64_C(196), (int32_t) UINT64_C(225),
-        (int32_t) UINT64_C(256), (int32_t) UINT64_C(289), (int32_t) UINT64_C(324),
-        (int32_t) UINT64_C(361), (int32_t) UINT64_C(400), (int32_t) UINT64_C(441),
-        (int32_t) UINT64_C(484), (int32_t) UINT64_C(529), (int32_t) UINT64_C(576),
-        (int32_t) UINT64_C(625), (int32_t) UINT64_C(676), (int32_t) UINT64_C(729),
-        (int32_t) UINT64_C(784), (int32_t) UINT64_C(841), (int32_t) UINT64_C(900),
-        (int32_t) UINT64_C(961), (int32_t) UINT64_C(1024), (int32_t) UINT64_C(1089),
-        (int32_t) UINT64_C(1156), (int32_t) UINT64_C(1225), (int32_t) UINT64_C(1296),
-        (int32_t) UINT64_C(1369), (int32_t) UINT64_C(1444), (int32_t) UINT64_C(1521),
-        (int32_t) UINT64_C(1600), (int32_t) UINT64_C(1681), (int32_t) UINT64_C(1764),
-        (int32_t) UINT64_C(1849), (int32_t) UINT64_C(1936), (int32_t) UINT64_C(2025),
-        (int32_t) UINT64_C(2116), (int32_t) UINT64_C(2209), (int32_t) UINT64_C(2304),
-        (int32_t) UINT64_C(2401), (int32_t) UINT64_C(2500), (int32_t) UINT64_C(2601),
-        (int32_t) UINT64_C(2704), (int32_t) UINT64_C(2809), (int32_t) UINT64_C(2916),
-        (int32_t) UINT64_C(3025), (int32_t) UINT64_C(3136), (int32_t) UINT64_C(3249),
-        (int32_t) UINT64_C(3364), (int32_t) UINT64_C(3481), (int32_t) UINT64_C(3600),
-        (int32_t) UINT64_C(3721), (int32_t) UINT64_C(3844), (int32_t) UINT64_C(3969),
-        (int32_t) UINT64_C(4096), (int32_t) UINT64_C(4225), (int32_t) UINT64_C(4356),
-        (int32_t) UINT64_C(4489), (int32_t) UINT64_C(4624), (int32_t) UINT64_C(4761),
-        (int32_t) UINT64_C(4900), (int32_t) UINT64_C(5041), (int32_t) UINT64_C(5184),
-        (int32_t) UINT64_C(5329), (int32_t) UINT64_C(5476), (int32_t) UINT64_C(5625),
-        (int32_t) UINT64_C(5776), (int32_t) UINT64_C(5929), (int32_t) UINT64_C(6084),
-        (int32_t) UINT64_C(6241), (int32_t) UINT64_C(6400), (int32_t) UINT64_C(6561),
-        (int32_t) UINT64_C(6724), (int32_t) UINT64_C(6889), (int32_t) UINT64_C(7056),
-        (int32_t) UINT64_C(7225), (int32_t) UINT64_C(7396), (int32_t) UINT64_C(7569),
-        (int32_t) UINT64_C(7744), (int32_t) UINT64_C(7921), (int32_t) UINT64_C(8100),
-        (int32_t) UINT64_C(8281), (int32_t) UINT64_C(8464), (int32_t) UINT64_C(8649),
-        (int32_t) UINT64_C(8836), (int32_t) UINT64_C(9025), (int32_t) UINT64_C(9216),
-        (int32_t) UINT64_C(9409), (int32_t) UINT64_C(9604), (int32_t) UINT64_C(9801),
-        (int32_t) UINT64_C(10000), (int32_t) UINT64_C(10201), (int32_t) UINT64_C(10404),
-        (int32_t) UINT64_C(10609), (int32_t) UINT64_C(10816), (int32_t) UINT64_C(11025),
-        (int32_t) UINT64_C(11236), (int32_t) UINT64_C(11449), (int32_t) UINT64_C(11664),
-        (int32_t) UINT64_C(11881), (int32_t) UINT64_C(12100), (int32_t) UINT64_C(12321),
-        (int32_t) UINT64_C(12544), (int32_t) UINT64_C(12769), (int32_t) UINT64_C(12996),
-        (int32_t) UINT64_C(13225), (int32_t) UINT64_C(13456), (int32_t) UINT64_C(13689),
-        (int32_t) UINT64_C(13924), (int32_t) UINT64_C(14161), (int32_t) UINT64_C(14400),
-        (int32_t) UINT64_C(14641), (int32_t) UINT64_C(14884), (int32_t) UINT64_C(15129),
-        (int32_t) UINT64_C(15376), (int32_t) UINT64_C(15625), (int32_t) UINT64_C(15876),
-        (int32_t) UINT64_C(16129), (int32_t) UINT64_C(16384), (int32_t) UINT64_C(16641),
-        (int32_t) UINT64_C(16900), (int32_t) UINT64_C(17161), (int32_t) UINT64_C(17424),
-        (int32_t) UINT64_C(17689), (int32_t) UINT64_C(17956), (int32_t) UINT64_C(18225),
-        (int32_t) UINT64_C(18496), (int32_t) UINT64_C(18769), (int32_t) UINT64_C(19044),
-        (int32_t) UINT64_C(19321), (int32_t) UINT64_C(19600), (int32_t) UINT64_C(19881),
-        (int32_t) UINT64_C(20164), (int32_t) UINT64_C(20449), (int32_t) UINT64_C(20736),
-        (int32_t) UINT64_C(21025), (int32_t) UINT64_C(21316), (int32_t) UINT64_C(21609),
-        (int32_t) UINT64_C(21904), (int32_t) UINT64_C(22201), (int32_t) UINT64_C(22500),
-        (int32_t) UINT64_C(22801), (int32_t) UINT64_C(23104), (int32_t) UINT64_C(23409),
-        (int32_t) UINT64_C(23716), (int32_t) UINT64_C(24025), (int32_t) UINT64_C(24336),
-        (int32_t) UINT64_C(24649), (int32_t) UINT64_C(24964), (int32_t) UINT64_C(25281),
-        (int32_t) UINT64_C(25600), (int32_t) UINT64_C(25921), (int32_t) UINT64_C(26244),
-        (int32_t) UINT64_C(26569), (int32_t) UINT64_C(26896), (int32_t) UINT64_C(27225),
-        (int32_t) UINT64_C(27556), (int32_t) UINT64_C(27889), (int32_t) UINT64_C(28224),
-        (int32_t) UINT64_C(28561), (int32_t) UINT64_C(28900), (int32_t) UINT64_C(29241),
-        (int32_t) UINT64_C(29584), (int32_t) UINT64_C(29929), (int32_t) UINT64_C(30276),
-        (int32_t) UINT64_C(30625), (int32_t) UINT64_C(30976), (int32_t) UINT64_C(31329),
-        (int32_t) UINT64_C(31684), (int32_t) UINT64_C(32041), (int32_t) UINT64_C(32400),
-        (int32_t) UINT64_C(32761), (int32_t) UINT64_C(33124), (int32_t) UINT64_C(33489),
-        (int32_t) UINT64_C(33856), (int32_t) UINT64_C(34225), (int32_t) UINT64_C(34596),
-        (int32_t) UINT64_C(34969), (int32_t) UINT64_C(35344), (int32_t) UINT64_C(35721),
-        (int32_t) UINT64_C(36100), (int32_t) UINT64_C(36481), (int32_t) UINT64_C(36864),
-        (int32_t) UINT64_C(37249), (int32_t) UINT64_C(37636), (int32_t) UINT64_C(38025),
-        (int32_t) UINT64_C(38416), (int32_t) UINT64_C(38809), (int32_t) UINT64_C(39204),
-        (int32_t) UINT64_C(39601), (int32_t) UINT64_C(40000), (int32_t) UINT64_C(40401),
-        (int32_t) UINT64_C(40804), (int32_t) UINT64_C(41209), (int32_t) UINT64_C(41616),
-        (int32_t) UINT64_C(42025), (int32_t) UINT64_C(42436), (int32_t) UINT64_C(42849),
-        (int32_t) UINT64_C(43264), (int32_t) UINT64_C(43681), (int32_t) UINT64_C(44100),
-        (int32_t) UINT64_C(44521), (int32_t) UINT64_C(44944), (int32_t) UINT64_C(45369),
-        (int32_t) UINT64_C(45796), (int32_t) UINT64_C(46225), (int32_t) UINT64_C(46656),
-        (int32_t) UINT64_C(47089), (int32_t) UINT64_C(47524), (int32_t) UINT64_C(47961),
-        (int32_t) UINT64_C(48400), (int32_t) UINT64_C(48841), (int32_t) UINT64_C(49284),
-        (int32_t) UINT64_C(49729), (int32_t) UINT64_C(50176), (int32_t) UINT64_C(50625),
-        (int32_t) UINT64_C(51076), (int32_t) UINT64_C(51529), (int32_t) UINT64_C(51984),
-        (int32_t) UINT64_C(52441), (int32_t) UINT64_C(52900), (int32_t) UINT64_C(53361),
-        (int32_t) UINT64_C(53824), (int32_t) UINT64_C(54289), (int32_t) UINT64_C(54756),
-        (int32_t) UINT64_C(55225), (int32_t) UINT64_C(55696), (int32_t) UINT64_C(56169),
-        (int32_t) UINT64_C(56644), (int32_t) UINT64_C(57121), (int32_t) UINT64_C(57600),
-        (int32_t) UINT64_C(58081), (int32_t) UINT64_C(58564), (int32_t) UINT64_C(59049),
-        (int32_t) UINT64_C(59536), (int32_t) UINT64_C(60025), (int32_t) UINT64_C(60516),
-        (int32_t) UINT64_C(61009), (int32_t) UINT64_C(61504), (int32_t) UINT64_C(62001),
-        (int32_t) UINT64_C(62500), (int32_t) UINT64_C(63001), (int32_t) UINT64_C(63504),
-        (int32_t) UINT64_C(64009), (int32_t) UINT64_C(64516), (int32_t) UINT64_C(65025),
-        (int32_t) UINT64_C(65536), (int32_t) UINT64_C(66049), (int32_t) UINT64_C(66564),
-        (int32_t) UINT64_C(67081), (int32_t) UINT64_C(67600), (int32_t) UINT64_C(68121),
-        (int32_t) UINT64_C(68644), (int32_t) UINT64_C(69169), (int32_t) UINT64_C(69696),
-        (int32_t) UINT64_C(70225), (int32_t) UINT64_C(70756), (int32_t) UINT64_C(71289),
-        (int32_t) UINT64_C(71824), (int32_t) UINT64_C(72361), (int32_t) UINT64_C(72900),
-        (int32_t) UINT64_C(73441), (int32_t) UINT64_C(73984), (int32_t) UINT64_C(74529),
-        (int32_t) UINT64_C(75076), (int32_t) UINT64_C(75625), (int32_t) UINT64_C(76176),
-        (int32_t) UINT64_C(76729), (int32_t) UINT64_C(77284), (int32_t) UINT64_C(77841),
-        (int32_t) UINT64_C(78400), (int32_t) UINT64_C(78961), (int32_t) UINT64_C(79524),
-        (int32_t) UINT64_C(80089), (int32_t) UINT64_C(80656), (int32_t) UINT64_C(81225),
-        (int32_t) UINT64_C(81796), (int32_t) UINT64_C(82369), (int32_t) UINT64_C(82944),
-        (int32_t) UINT64_C(83521), (int32_t) UINT64_C(84100), (int32_t) UINT64_C(84681),
-        (int32_t) UINT64_C(85264), (int32_t) UINT64_C(85849), (int32_t) UINT64_C(86436),
-        (int32_t) UINT64_C(87025), (int32_t) UINT64_C(87616), (int32_t) UINT64_C(88209),
-        (int32_t) UINT64_C(88804), (int32_t) UINT64_C(89401),
-    },
+	VADER_STATIC_BUF_HEADER(3u, 7u, 300u),
+	.slots = {
+		(int32_t) UINT64_C(0), (int32_t) UINT64_C(1), (int32_t) UINT64_C(4), (int32_t) UINT64_C(9),
+		(int32_t) UINT64_C(16), (int32_t) UINT64_C(25), (int32_t) UINT64_C(36),
+		(int32_t) UINT64_C(49), (int32_t) UINT64_C(64), (int32_t) UINT64_C(81),
+		(int32_t) UINT64_C(100), (int32_t) UINT64_C(121), (int32_t) UINT64_C(144),
+		(int32_t) UINT64_C(169), (int32_t) UINT64_C(196), (int32_t) UINT64_C(225),
+		(int32_t) UINT64_C(256), (int32_t) UINT64_C(289), (int32_t) UINT64_C(324),
+		(int32_t) UINT64_C(361), (int32_t) UINT64_C(400), (int32_t) UINT64_C(441),
+		(int32_t) UINT64_C(484), (int32_t) UINT64_C(529), (int32_t) UINT64_C(576),
+		(int32_t) UINT64_C(625), (int32_t) UINT64_C(676), (int32_t) UINT64_C(729),
+		(int32_t) UINT64_C(784), (int32_t) UINT64_C(841), (int32_t) UINT64_C(900),
+		(int32_t) UINT64_C(961), (int32_t) UINT64_C(1024), (int32_t) UINT64_C(1089),
+		(int32_t) UINT64_C(1156), (int32_t) UINT64_C(1225), (int32_t) UINT64_C(1296),
+		(int32_t) UINT64_C(1369), (int32_t) UINT64_C(1444), (int32_t) UINT64_C(1521),
+		(int32_t) UINT64_C(1600), (int32_t) UINT64_C(1681), (int32_t) UINT64_C(1764),
+		(int32_t) UINT64_C(1849), (int32_t) UINT64_C(1936), (int32_t) UINT64_C(2025),
+		(int32_t) UINT64_C(2116), (int32_t) UINT64_C(2209), (int32_t) UINT64_C(2304),
+		(int32_t) UINT64_C(2401), (int32_t) UINT64_C(2500), (int32_t) UINT64_C(2601),
+		(int32_t) UINT64_C(2704), (int32_t) UINT64_C(2809), (int32_t) UINT64_C(2916),
+		(int32_t) UINT64_C(3025), (int32_t) UINT64_C(3136), (int32_t) UINT64_C(3249),
+		(int32_t) UINT64_C(3364), (int32_t) UINT64_C(3481), (int32_t) UINT64_C(3600),
+		(int32_t) UINT64_C(3721), (int32_t) UINT64_C(3844), (int32_t) UINT64_C(3969),
+		(int32_t) UINT64_C(4096), (int32_t) UINT64_C(4225), (int32_t) UINT64_C(4356),
+		(int32_t) UINT64_C(4489), (int32_t) UINT64_C(4624), (int32_t) UINT64_C(4761),
+		(int32_t) UINT64_C(4900), (int32_t) UINT64_C(5041), (int32_t) UINT64_C(5184),
+		(int32_t) UINT64_C(5329), (int32_t) UINT64_C(5476), (int32_t) UINT64_C(5625),
+		(int32_t) UINT64_C(5776), (int32_t) UINT64_C(5929), (int32_t) UINT64_C(6084),
+		(int32_t) UINT64_C(6241), (int32_t) UINT64_C(6400), (int32_t) UINT64_C(6561),
+		(int32_t) UINT64_C(6724), (int32_t) UINT64_C(6889), (int32_t) UINT64_C(7056),
+		(int32_t) UINT64_C(7225), (int32_t) UINT64_C(7396), (int32_t) UINT64_C(7569),
+		(int32_t) UINT64_C(7744), (int32_t) UINT64_C(7921), (int32_t) UINT64_C(8100),
+		(int32_t) UINT64_C(8281), (int32_t) UINT64_C(8464), (int32_t) UINT64_C(8649),
+		(int32_t) UINT64_C(8836), (int32_t) UINT64_C(9025), (int32_t) UINT64_C(9216),
+		(int32_t) UINT64_C(9409), (int32_t) UINT64_C(9604), (int32_t) UINT64_C(9801),
+		(int32_t) UINT64_C(10000), (int32_t) UINT64_C(10201), (int32_t) UINT64_C(10404),
+		(int32_t) UINT64_C(10609), (int32_t) UINT64_C(10816), (int32_t) UINT64_C(11025),
+		(int32_t) UINT64_C(11236), (int32_t) UINT64_C(11449), (int32_t) UINT64_C(11664),
+		(int32_t) UINT64_C(11881), (int32_t) UINT64_C(12100), (int32_t) UINT64_C(12321),
+		(int32_t) UINT64_C(12544), (int32_t) UINT64_C(12769), (int32_t) UINT64_C(12996),
+		(int32_t) UINT64_C(13225), (int32_t) UINT64_C(13456), (int32_t) UINT64_C(13689),
+		(int32_t) UINT64_C(13924), (int32_t) UINT64_C(14161), (int32_t) UINT64_C(14400),
+		(int32_t) UINT64_C(14641), (int32_t) UINT64_C(14884), (int32_t) UINT64_C(15129),
+		(int32_t) UINT64_C(15376), (int32_t) UINT64_C(15625), (int32_t) UINT64_C(15876),
+		(int32_t) UINT64_C(16129), (int32_t) UINT64_C(16384), (int32_t) UINT64_C(16641),
+		(int32_t) UINT64_C(16900), (int32_t) UINT64_C(17161), (int32_t) UINT64_C(17424),
+		(int32_t) UINT64_C(17689), (int32_t) UINT64_C(17956), (int32_t) UINT64_C(18225),
+		(int32_t) UINT64_C(18496), (int32_t) UINT64_C(18769), (int32_t) UINT64_C(19044),
+		(int32_t) UINT64_C(19321), (int32_t) UINT64_C(19600), (int32_t) UINT64_C(19881),
+		(int32_t) UINT64_C(20164), (int32_t) UINT64_C(20449), (int32_t) UINT64_C(20736),
+		(int32_t) UINT64_C(21025), (int32_t) UINT64_C(21316), (int32_t) UINT64_C(21609),
+		(int32_t) UINT64_C(21904), (int32_t) UINT64_C(22201), (int32_t) UINT64_C(22500),
+		(int32_t) UINT64_C(22801), (int32_t) UINT64_C(23104), (int32_t) UINT64_C(23409),
+		(int32_t) UINT64_C(23716), (int32_t) UINT64_C(24025), (int32_t) UINT64_C(24336),
+		(int32_t) UINT64_C(24649), (int32_t) UINT64_C(24964), (int32_t) UINT64_C(25281),
+		(int32_t) UINT64_C(25600), (int32_t) UINT64_C(25921), (int32_t) UINT64_C(26244),
+		(int32_t) UINT64_C(26569), (int32_t) UINT64_C(26896), (int32_t) UINT64_C(27225),
+		(int32_t) UINT64_C(27556), (int32_t) UINT64_C(27889), (int32_t) UINT64_C(28224),
+		(int32_t) UINT64_C(28561), (int32_t) UINT64_C(28900), (int32_t) UINT64_C(29241),
+		(int32_t) UINT64_C(29584), (int32_t) UINT64_C(29929), (int32_t) UINT64_C(30276),
+		(int32_t) UINT64_C(30625), (int32_t) UINT64_C(30976), (int32_t) UINT64_C(31329),
+		(int32_t) UINT64_C(31684), (int32_t) UINT64_C(32041), (int32_t) UINT64_C(32400),
+		(int32_t) UINT64_C(32761), (int32_t) UINT64_C(33124), (int32_t) UINT64_C(33489),
+		(int32_t) UINT64_C(33856), (int32_t) UINT64_C(34225), (int32_t) UINT64_C(34596),
+		(int32_t) UINT64_C(34969), (int32_t) UINT64_C(35344), (int32_t) UINT64_C(35721),
+		(int32_t) UINT64_C(36100), (int32_t) UINT64_C(36481), (int32_t) UINT64_C(36864),
+		(int32_t) UINT64_C(37249), (int32_t) UINT64_C(37636), (int32_t) UINT64_C(38025),
+		(int32_t) UINT64_C(38416), (int32_t) UINT64_C(38809), (int32_t) UINT64_C(39204),
+		(int32_t) UINT64_C(39601), (int32_t) UINT64_C(40000), (int32_t) UINT64_C(40401),
+		(int32_t) UINT64_C(40804), (int32_t) UINT64_C(41209), (int32_t) UINT64_C(41616),
+		(int32_t) UINT64_C(42025), (int32_t) UINT64_C(42436), (int32_t) UINT64_C(42849),
+		(int32_t) UINT64_C(43264), (int32_t) UINT64_C(43681), (int32_t) UINT64_C(44100),
+		(int32_t) UINT64_C(44521), (int32_t) UINT64_C(44944), (int32_t) UINT64_C(45369),
+		(int32_t) UINT64_C(45796), (int32_t) UINT64_C(46225), (int32_t) UINT64_C(46656),
+		(int32_t) UINT64_C(47089), (int32_t) UINT64_C(47524), (int32_t) UINT64_C(47961),
+		(int32_t) UINT64_C(48400), (int32_t) UINT64_C(48841), (int32_t) UINT64_C(49284),
+		(int32_t) UINT64_C(49729), (int32_t) UINT64_C(50176), (int32_t) UINT64_C(50625),
+		(int32_t) UINT64_C(51076), (int32_t) UINT64_C(51529), (int32_t) UINT64_C(51984),
+		(int32_t) UINT64_C(52441), (int32_t) UINT64_C(52900), (int32_t) UINT64_C(53361),
+		(int32_t) UINT64_C(53824), (int32_t) UINT64_C(54289), (int32_t) UINT64_C(54756),
+		(int32_t) UINT64_C(55225), (int32_t) UINT64_C(55696), (int32_t) UINT64_C(56169),
+		(int32_t) UINT64_C(56644), (int32_t) UINT64_C(57121), (int32_t) UINT64_C(57600),
+		(int32_t) UINT64_C(58081), (int32_t) UINT64_C(58564), (int32_t) UINT64_C(59049),
+		(int32_t) UINT64_C(59536), (int32_t) UINT64_C(60025), (int32_t) UINT64_C(60516),
+		(int32_t) UINT64_C(61009), (int32_t) UINT64_C(61504), (int32_t) UINT64_C(62001),
+		(int32_t) UINT64_C(62500), (int32_t) UINT64_C(63001), (int32_t) UINT64_C(63504),
+		(int32_t) UINT64_C(64009), (int32_t) UINT64_C(64516), (int32_t) UINT64_C(65025),
+		(int32_t) UINT64_C(65536), (int32_t) UINT64_C(66049), (int32_t) UINT64_C(66564),
+		(int32_t) UINT64_C(67081), (int32_t) UINT64_C(67600), (int32_t) UINT64_C(68121),
+		(int32_t) UINT64_C(68644), (int32_t) UINT64_C(69169), (int32_t) UINT64_C(69696),
+		(int32_t) UINT64_C(70225), (int32_t) UINT64_C(70756), (int32_t) UINT64_C(71289),
+		(int32_t) UINT64_C(71824), (int32_t) UINT64_C(72361), (int32_t) UINT64_C(72900),
+		(int32_t) UINT64_C(73441), (int32_t) UINT64_C(73984), (int32_t) UINT64_C(74529),
+		(int32_t) UINT64_C(75076), (int32_t) UINT64_C(75625), (int32_t) UINT64_C(76176),
+		(int32_t) UINT64_C(76729), (int32_t) UINT64_C(77284), (int32_t) UINT64_C(77841),
+		(int32_t) UINT64_C(78400), (int32_t) UINT64_C(78961), (int32_t) UINT64_C(79524),
+		(int32_t) UINT64_C(80089), (int32_t) UINT64_C(80656), (int32_t) UINT64_C(81225),
+		(int32_t) UINT64_C(81796), (int32_t) UINT64_C(82369), (int32_t) UINT64_C(82944),
+		(int32_t) UINT64_C(83521), (int32_t) UINT64_C(84100), (int32_t) UINT64_C(84681),
+		(int32_t) UINT64_C(85264), (int32_t) UINT64_C(85849), (int32_t) UINT64_C(86436),
+		(int32_t) UINT64_C(87025), (int32_t) UINT64_C(87616), (int32_t) UINT64_C(88209),
+		(int32_t) UINT64_C(88804), (int32_t) UINT64_C(89401),
+	},
 };
 static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(2u, 300u, &vader_data_0_buf);
 
@@ -146,23 +146,23 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[10] = {
-    [2] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
-    },
-    [3] = { .slot_size = 4 },
-    [4] = { .slot_size = 4 },
-    [5] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
-        .slot_size = 8,
-    },
-    [6] = { .slot_size = 8 },
-    [7] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
-    },
-    [8] = { .slot_size = 1 },
-    [9] = { .slot_size = 1 },
+	[2] = {
+		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+	},
+	[3] = { .slot_size = 4 },
+	[4] = { .slot_size = 4 },
+	[5] = {
+		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
+		.slot_size = 8,
+	},
+	[6] = { .slot_size = 8 },
+	[7] = {
+		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
+	},
+	[8] = { .slot_size = 1 },
+	[9] = { .slot_size = 1 },
 };
 const size_t vader_type_info_count = 10;
 
@@ -174,565 +174,565 @@ const size_t vader_type_info_count = 10;
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
-    return vader_string_byte_len(a0);
+	return vader_string_byte_len(a0);
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 7u, 8u);
+	return (void*) vader_string_bytes_view(a0, 7u, 8u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
-    vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
-    VADER_FOREIGN_ENTER("write");
-    int64_t r = write(a0, s1.ptr, a2);
-    VADER_FOREIGN_LEAVE();
-    return r;
+	vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
+	VADER_FOREIGN_ENTER("write");
+	int64_t r = write(a0, s1.ptr, a2);
+	VADER_FOREIGN_LEAVE();
+	return r;
 }
 
 static int32_t vader_host_system_posix$sys_last_errno(void) {
-    VADER_FOREIGN_ENTER("vader_last_errno");
-    int32_t r = vader_last_errno();
-    VADER_FOREIGN_LEAVE();
-    return r;
+	VADER_FOREIGN_ENTER("vader_last_errno");
+	int32_t r = vader_last_errno();
+	VADER_FOREIGN_LEAVE();
+	return r;
 }
 
 static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
-    VADER_FOREIGN_ENTER("vader_end_on_broken_pipe");
-    vader_end_on_broken_pipe();
-    VADER_FOREIGN_LEAVE();
-    return;
+	VADER_FOREIGN_ENTER("vader_end_on_broken_pipe");
+	vader_end_on_broken_pipe();
+	VADER_FOREIGN_LEAVE();
+	return;
 }
 
 #pragma GCC diagnostic pop
 
 static void* __const_snippet$TABLE(void) {
-    void* t0 = NULL;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(2u, 300u, 7u, 3u);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 299u] = (int32_t) INT32_C(89401);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 298u] = (int32_t) INT32_C(88804);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 297u] = (int32_t) INT32_C(88209);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 296u] = (int32_t) INT32_C(87616);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 295u] = (int32_t) INT32_C(87025);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 294u] = (int32_t) INT32_C(86436);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 293u] = (int32_t) INT32_C(85849);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 292u] = (int32_t) INT32_C(85264);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 291u] = (int32_t) INT32_C(84681);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 290u] = (int32_t) INT32_C(84100);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 289u] = (int32_t) INT32_C(83521);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 288u] = (int32_t) INT32_C(82944);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 287u] = (int32_t) INT32_C(82369);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 286u] = (int32_t) INT32_C(81796);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 285u] = (int32_t) INT32_C(81225);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 284u] = (int32_t) INT32_C(80656);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 283u] = (int32_t) INT32_C(80089);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 282u] = (int32_t) INT32_C(79524);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 281u] = (int32_t) INT32_C(78961);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 280u] = (int32_t) INT32_C(78400);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 279u] = (int32_t) INT32_C(77841);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 278u] = (int32_t) INT32_C(77284);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 277u] = (int32_t) INT32_C(76729);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 276u] = (int32_t) INT32_C(76176);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 275u] = (int32_t) INT32_C(75625);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 274u] = (int32_t) INT32_C(75076);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 273u] = (int32_t) INT32_C(74529);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 272u] = (int32_t) INT32_C(73984);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 271u] = (int32_t) INT32_C(73441);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 270u] = (int32_t) INT32_C(72900);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 269u] = (int32_t) INT32_C(72361);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 268u] = (int32_t) INT32_C(71824);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 267u] = (int32_t) INT32_C(71289);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 266u] = (int32_t) INT32_C(70756);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 265u] = (int32_t) INT32_C(70225);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 264u] = (int32_t) INT32_C(69696);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 263u] = (int32_t) INT32_C(69169);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 262u] = (int32_t) INT32_C(68644);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 261u] = (int32_t) INT32_C(68121);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 260u] = (int32_t) INT32_C(67600);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 259u] = (int32_t) INT32_C(67081);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 258u] = (int32_t) INT32_C(66564);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 257u] = (int32_t) INT32_C(66049);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 256u] = (int32_t) INT32_C(65536);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 255u] = (int32_t) INT32_C(65025);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 254u] = (int32_t) INT32_C(64516);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 253u] = (int32_t) INT32_C(64009);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 252u] = (int32_t) INT32_C(63504);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 251u] = (int32_t) INT32_C(63001);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 250u] = (int32_t) INT32_C(62500);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 249u] = (int32_t) INT32_C(62001);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 248u] = (int32_t) INT32_C(61504);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 247u] = (int32_t) INT32_C(61009);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 246u] = (int32_t) INT32_C(60516);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 245u] = (int32_t) INT32_C(60025);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 244u] = (int32_t) INT32_C(59536);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 243u] = (int32_t) INT32_C(59049);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 242u] = (int32_t) INT32_C(58564);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 241u] = (int32_t) INT32_C(58081);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 240u] = (int32_t) INT32_C(57600);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 239u] = (int32_t) INT32_C(57121);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 238u] = (int32_t) INT32_C(56644);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 237u] = (int32_t) INT32_C(56169);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 236u] = (int32_t) INT32_C(55696);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 235u] = (int32_t) INT32_C(55225);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 234u] = (int32_t) INT32_C(54756);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 233u] = (int32_t) INT32_C(54289);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 232u] = (int32_t) INT32_C(53824);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 231u] = (int32_t) INT32_C(53361);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 230u] = (int32_t) INT32_C(52900);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 229u] = (int32_t) INT32_C(52441);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 228u] = (int32_t) INT32_C(51984);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 227u] = (int32_t) INT32_C(51529);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 226u] = (int32_t) INT32_C(51076);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 225u] = (int32_t) INT32_C(50625);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 224u] = (int32_t) INT32_C(50176);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 223u] = (int32_t) INT32_C(49729);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 222u] = (int32_t) INT32_C(49284);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 221u] = (int32_t) INT32_C(48841);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 220u] = (int32_t) INT32_C(48400);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 219u] = (int32_t) INT32_C(47961);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 218u] = (int32_t) INT32_C(47524);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 217u] = (int32_t) INT32_C(47089);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 216u] = (int32_t) INT32_C(46656);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 215u] = (int32_t) INT32_C(46225);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 214u] = (int32_t) INT32_C(45796);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 213u] = (int32_t) INT32_C(45369);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 212u] = (int32_t) INT32_C(44944);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 211u] = (int32_t) INT32_C(44521);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 210u] = (int32_t) INT32_C(44100);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 209u] = (int32_t) INT32_C(43681);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 208u] = (int32_t) INT32_C(43264);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 207u] = (int32_t) INT32_C(42849);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 206u] = (int32_t) INT32_C(42436);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 205u] = (int32_t) INT32_C(42025);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 204u] = (int32_t) INT32_C(41616);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 203u] = (int32_t) INT32_C(41209);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 202u] = (int32_t) INT32_C(40804);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 201u] = (int32_t) INT32_C(40401);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 200u] = (int32_t) INT32_C(40000);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 199u] = (int32_t) INT32_C(39601);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 198u] = (int32_t) INT32_C(39204);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 197u] = (int32_t) INT32_C(38809);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 196u] = (int32_t) INT32_C(38416);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 195u] = (int32_t) INT32_C(38025);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 194u] = (int32_t) INT32_C(37636);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 193u] = (int32_t) INT32_C(37249);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 192u] = (int32_t) INT32_C(36864);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 191u] = (int32_t) INT32_C(36481);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 190u] = (int32_t) INT32_C(36100);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 189u] = (int32_t) INT32_C(35721);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 188u] = (int32_t) INT32_C(35344);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 187u] = (int32_t) INT32_C(34969);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 186u] = (int32_t) INT32_C(34596);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 185u] = (int32_t) INT32_C(34225);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 184u] = (int32_t) INT32_C(33856);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 183u] = (int32_t) INT32_C(33489);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 182u] = (int32_t) INT32_C(33124);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 181u] = (int32_t) INT32_C(32761);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 180u] = (int32_t) INT32_C(32400);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 179u] = (int32_t) INT32_C(32041);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 178u] = (int32_t) INT32_C(31684);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 177u] = (int32_t) INT32_C(31329);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 176u] = (int32_t) INT32_C(30976);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 175u] = (int32_t) INT32_C(30625);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 174u] = (int32_t) INT32_C(30276);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 173u] = (int32_t) INT32_C(29929);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 172u] = (int32_t) INT32_C(29584);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 171u] = (int32_t) INT32_C(29241);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 170u] = (int32_t) INT32_C(28900);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 169u] = (int32_t) INT32_C(28561);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 168u] = (int32_t) INT32_C(28224);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 167u] = (int32_t) INT32_C(27889);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 166u] = (int32_t) INT32_C(27556);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 165u] = (int32_t) INT32_C(27225);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 164u] = (int32_t) INT32_C(26896);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 163u] = (int32_t) INT32_C(26569);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 162u] = (int32_t) INT32_C(26244);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 161u] = (int32_t) INT32_C(25921);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 160u] = (int32_t) INT32_C(25600);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 159u] = (int32_t) INT32_C(25281);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 158u] = (int32_t) INT32_C(24964);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 157u] = (int32_t) INT32_C(24649);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 156u] = (int32_t) INT32_C(24336);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 155u] = (int32_t) INT32_C(24025);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 154u] = (int32_t) INT32_C(23716);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 153u] = (int32_t) INT32_C(23409);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 152u] = (int32_t) INT32_C(23104);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 151u] = (int32_t) INT32_C(22801);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 150u] = (int32_t) INT32_C(22500);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 149u] = (int32_t) INT32_C(22201);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 148u] = (int32_t) INT32_C(21904);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 147u] = (int32_t) INT32_C(21609);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 146u] = (int32_t) INT32_C(21316);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 145u] = (int32_t) INT32_C(21025);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 144u] = (int32_t) INT32_C(20736);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 143u] = (int32_t) INT32_C(20449);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 142u] = (int32_t) INT32_C(20164);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 141u] = (int32_t) INT32_C(19881);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 140u] = (int32_t) INT32_C(19600);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 139u] = (int32_t) INT32_C(19321);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 138u] = (int32_t) INT32_C(19044);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 137u] = (int32_t) INT32_C(18769);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 136u] = (int32_t) INT32_C(18496);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 135u] = (int32_t) INT32_C(18225);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 134u] = (int32_t) INT32_C(17956);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 133u] = (int32_t) INT32_C(17689);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 132u] = (int32_t) INT32_C(17424);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 131u] = (int32_t) INT32_C(17161);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 130u] = (int32_t) INT32_C(16900);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 129u] = (int32_t) INT32_C(16641);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 128u] = (int32_t) INT32_C(16384);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 127u] = (int32_t) INT32_C(16129);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 126u] = (int32_t) INT32_C(15876);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 125u] = (int32_t) INT32_C(15625);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 124u] = (int32_t) INT32_C(15376);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 123u] = (int32_t) INT32_C(15129);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 122u] = (int32_t) INT32_C(14884);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 121u] = (int32_t) INT32_C(14641);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 120u] = (int32_t) INT32_C(14400);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 119u] = (int32_t) INT32_C(14161);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 118u] = (int32_t) INT32_C(13924);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 117u] = (int32_t) INT32_C(13689);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 116u] = (int32_t) INT32_C(13456);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 115u] = (int32_t) INT32_C(13225);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 114u] = (int32_t) INT32_C(12996);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 113u] = (int32_t) INT32_C(12769);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 112u] = (int32_t) INT32_C(12544);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 111u] = (int32_t) INT32_C(12321);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 110u] = (int32_t) INT32_C(12100);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 109u] = (int32_t) INT32_C(11881);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 108u] = (int32_t) INT32_C(11664);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 107u] = (int32_t) INT32_C(11449);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 106u] = (int32_t) INT32_C(11236);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 105u] = (int32_t) INT32_C(11025);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 104u] = (int32_t) INT32_C(10816);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 103u] = (int32_t) INT32_C(10609);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 102u] = (int32_t) INT32_C(10404);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 101u] = (int32_t) INT32_C(10201);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 100u] = (int32_t) INT32_C(10000);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 99u] = (int32_t) INT32_C(9801);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 98u] = (int32_t) INT32_C(9604);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 97u] = (int32_t) INT32_C(9409);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 96u] = (int32_t) INT32_C(9216);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 95u] = (int32_t) INT32_C(9025);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 94u] = (int32_t) INT32_C(8836);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 93u] = (int32_t) INT32_C(8649);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 92u] = (int32_t) INT32_C(8464);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 91u] = (int32_t) INT32_C(8281);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 90u] = (int32_t) INT32_C(8100);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 89u] = (int32_t) INT32_C(7921);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 88u] = (int32_t) INT32_C(7744);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 87u] = (int32_t) INT32_C(7569);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 86u] = (int32_t) INT32_C(7396);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 85u] = (int32_t) INT32_C(7225);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 84u] = (int32_t) INT32_C(7056);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 83u] = (int32_t) INT32_C(6889);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 82u] = (int32_t) INT32_C(6724);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 81u] = (int32_t) INT32_C(6561);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 80u] = (int32_t) INT32_C(6400);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 79u] = (int32_t) INT32_C(6241);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 78u] = (int32_t) INT32_C(6084);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 77u] = (int32_t) INT32_C(5929);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 76u] = (int32_t) INT32_C(5776);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 75u] = (int32_t) INT32_C(5625);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 74u] = (int32_t) INT32_C(5476);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 73u] = (int32_t) INT32_C(5329);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 72u] = (int32_t) INT32_C(5184);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 71u] = (int32_t) INT32_C(5041);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 70u] = (int32_t) INT32_C(4900);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 69u] = (int32_t) INT32_C(4761);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 68u] = (int32_t) INT32_C(4624);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 67u] = (int32_t) INT32_C(4489);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 66u] = (int32_t) INT32_C(4356);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 65u] = (int32_t) INT32_C(4225);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 64u] = (int32_t) INT32_C(4096);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 63u] = (int32_t) INT32_C(3969);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 62u] = (int32_t) INT32_C(3844);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 61u] = (int32_t) INT32_C(3721);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 60u] = (int32_t) INT32_C(3600);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 59u] = (int32_t) INT32_C(3481);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 58u] = (int32_t) INT32_C(3364);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 57u] = (int32_t) INT32_C(3249);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 56u] = (int32_t) INT32_C(3136);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 55u] = (int32_t) INT32_C(3025);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 54u] = (int32_t) INT32_C(2916);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 53u] = (int32_t) INT32_C(2809);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 52u] = (int32_t) INT32_C(2704);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 51u] = (int32_t) INT32_C(2601);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 50u] = (int32_t) INT32_C(2500);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 49u] = (int32_t) INT32_C(2401);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 48u] = (int32_t) INT32_C(2304);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 47u] = (int32_t) INT32_C(2209);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 46u] = (int32_t) INT32_C(2116);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 45u] = (int32_t) INT32_C(2025);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 44u] = (int32_t) INT32_C(1936);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 43u] = (int32_t) INT32_C(1849);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 42u] = (int32_t) INT32_C(1764);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 41u] = (int32_t) INT32_C(1681);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 40u] = (int32_t) INT32_C(1600);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 39u] = (int32_t) INT32_C(1521);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 38u] = (int32_t) INT32_C(1444);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 37u] = (int32_t) INT32_C(1369);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 36u] = (int32_t) INT32_C(1296);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 35u] = (int32_t) INT32_C(1225);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 34u] = (int32_t) INT32_C(1156);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 33u] = (int32_t) INT32_C(1089);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 32u] = (int32_t) INT32_C(1024);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 31u] = (int32_t) INT32_C(961);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 30u] = (int32_t) INT32_C(900);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 29u] = (int32_t) INT32_C(841);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 28u] = (int32_t) INT32_C(784);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 27u] = (int32_t) INT32_C(729);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 26u] = (int32_t) INT32_C(676);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 25u] = (int32_t) INT32_C(625);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 24u] = (int32_t) INT32_C(576);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 23u] = (int32_t) INT32_C(529);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 22u] = (int32_t) INT32_C(484);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 21u] = (int32_t) INT32_C(441);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 20u] = (int32_t) INT32_C(400);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 19u] = (int32_t) INT32_C(361);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 18u] = (int32_t) INT32_C(324);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 17u] = (int32_t) INT32_C(289);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 16u] = (int32_t) INT32_C(256);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 15u] = (int32_t) INT32_C(225);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 14u] = (int32_t) INT32_C(196);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 13u] = (int32_t) INT32_C(169);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 12u] = (int32_t) INT32_C(144);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 11u] = (int32_t) INT32_C(121);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 10u] = (int32_t) INT32_C(100);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 9u] = (int32_t) INT32_C(81);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 8u] = (int32_t) INT32_C(64);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 7u] = (int32_t) INT32_C(49);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 6u] = (int32_t) INT32_C(36);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 5u] = (int32_t) INT32_C(25);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 4u] = (int32_t) INT32_C(16);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 3u] = (int32_t) INT32_C(9);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 2u] = (int32_t) INT32_C(4);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 1u] = (int32_t) INT32_C(1);
-    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (int32_t) INT32_C(0);
-    t0 = (void*) _a0_arr;
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+	void* t0 = NULL;
+	void** gc_raw_roots[1] = { &t0 };
+	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+	vader_gc_top = &gc_frame;
+	vader_array_t* _a0_arr = vader_array_new(2u, 300u, 7u, 3u);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 299u] = (int32_t) INT32_C(89401);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 298u] = (int32_t) INT32_C(88804);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 297u] = (int32_t) INT32_C(88209);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 296u] = (int32_t) INT32_C(87616);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 295u] = (int32_t) INT32_C(87025);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 294u] = (int32_t) INT32_C(86436);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 293u] = (int32_t) INT32_C(85849);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 292u] = (int32_t) INT32_C(85264);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 291u] = (int32_t) INT32_C(84681);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 290u] = (int32_t) INT32_C(84100);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 289u] = (int32_t) INT32_C(83521);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 288u] = (int32_t) INT32_C(82944);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 287u] = (int32_t) INT32_C(82369);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 286u] = (int32_t) INT32_C(81796);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 285u] = (int32_t) INT32_C(81225);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 284u] = (int32_t) INT32_C(80656);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 283u] = (int32_t) INT32_C(80089);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 282u] = (int32_t) INT32_C(79524);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 281u] = (int32_t) INT32_C(78961);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 280u] = (int32_t) INT32_C(78400);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 279u] = (int32_t) INT32_C(77841);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 278u] = (int32_t) INT32_C(77284);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 277u] = (int32_t) INT32_C(76729);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 276u] = (int32_t) INT32_C(76176);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 275u] = (int32_t) INT32_C(75625);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 274u] = (int32_t) INT32_C(75076);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 273u] = (int32_t) INT32_C(74529);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 272u] = (int32_t) INT32_C(73984);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 271u] = (int32_t) INT32_C(73441);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 270u] = (int32_t) INT32_C(72900);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 269u] = (int32_t) INT32_C(72361);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 268u] = (int32_t) INT32_C(71824);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 267u] = (int32_t) INT32_C(71289);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 266u] = (int32_t) INT32_C(70756);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 265u] = (int32_t) INT32_C(70225);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 264u] = (int32_t) INT32_C(69696);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 263u] = (int32_t) INT32_C(69169);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 262u] = (int32_t) INT32_C(68644);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 261u] = (int32_t) INT32_C(68121);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 260u] = (int32_t) INT32_C(67600);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 259u] = (int32_t) INT32_C(67081);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 258u] = (int32_t) INT32_C(66564);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 257u] = (int32_t) INT32_C(66049);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 256u] = (int32_t) INT32_C(65536);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 255u] = (int32_t) INT32_C(65025);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 254u] = (int32_t) INT32_C(64516);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 253u] = (int32_t) INT32_C(64009);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 252u] = (int32_t) INT32_C(63504);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 251u] = (int32_t) INT32_C(63001);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 250u] = (int32_t) INT32_C(62500);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 249u] = (int32_t) INT32_C(62001);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 248u] = (int32_t) INT32_C(61504);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 247u] = (int32_t) INT32_C(61009);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 246u] = (int32_t) INT32_C(60516);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 245u] = (int32_t) INT32_C(60025);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 244u] = (int32_t) INT32_C(59536);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 243u] = (int32_t) INT32_C(59049);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 242u] = (int32_t) INT32_C(58564);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 241u] = (int32_t) INT32_C(58081);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 240u] = (int32_t) INT32_C(57600);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 239u] = (int32_t) INT32_C(57121);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 238u] = (int32_t) INT32_C(56644);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 237u] = (int32_t) INT32_C(56169);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 236u] = (int32_t) INT32_C(55696);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 235u] = (int32_t) INT32_C(55225);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 234u] = (int32_t) INT32_C(54756);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 233u] = (int32_t) INT32_C(54289);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 232u] = (int32_t) INT32_C(53824);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 231u] = (int32_t) INT32_C(53361);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 230u] = (int32_t) INT32_C(52900);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 229u] = (int32_t) INT32_C(52441);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 228u] = (int32_t) INT32_C(51984);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 227u] = (int32_t) INT32_C(51529);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 226u] = (int32_t) INT32_C(51076);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 225u] = (int32_t) INT32_C(50625);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 224u] = (int32_t) INT32_C(50176);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 223u] = (int32_t) INT32_C(49729);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 222u] = (int32_t) INT32_C(49284);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 221u] = (int32_t) INT32_C(48841);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 220u] = (int32_t) INT32_C(48400);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 219u] = (int32_t) INT32_C(47961);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 218u] = (int32_t) INT32_C(47524);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 217u] = (int32_t) INT32_C(47089);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 216u] = (int32_t) INT32_C(46656);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 215u] = (int32_t) INT32_C(46225);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 214u] = (int32_t) INT32_C(45796);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 213u] = (int32_t) INT32_C(45369);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 212u] = (int32_t) INT32_C(44944);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 211u] = (int32_t) INT32_C(44521);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 210u] = (int32_t) INT32_C(44100);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 209u] = (int32_t) INT32_C(43681);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 208u] = (int32_t) INT32_C(43264);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 207u] = (int32_t) INT32_C(42849);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 206u] = (int32_t) INT32_C(42436);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 205u] = (int32_t) INT32_C(42025);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 204u] = (int32_t) INT32_C(41616);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 203u] = (int32_t) INT32_C(41209);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 202u] = (int32_t) INT32_C(40804);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 201u] = (int32_t) INT32_C(40401);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 200u] = (int32_t) INT32_C(40000);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 199u] = (int32_t) INT32_C(39601);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 198u] = (int32_t) INT32_C(39204);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 197u] = (int32_t) INT32_C(38809);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 196u] = (int32_t) INT32_C(38416);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 195u] = (int32_t) INT32_C(38025);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 194u] = (int32_t) INT32_C(37636);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 193u] = (int32_t) INT32_C(37249);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 192u] = (int32_t) INT32_C(36864);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 191u] = (int32_t) INT32_C(36481);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 190u] = (int32_t) INT32_C(36100);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 189u] = (int32_t) INT32_C(35721);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 188u] = (int32_t) INT32_C(35344);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 187u] = (int32_t) INT32_C(34969);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 186u] = (int32_t) INT32_C(34596);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 185u] = (int32_t) INT32_C(34225);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 184u] = (int32_t) INT32_C(33856);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 183u] = (int32_t) INT32_C(33489);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 182u] = (int32_t) INT32_C(33124);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 181u] = (int32_t) INT32_C(32761);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 180u] = (int32_t) INT32_C(32400);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 179u] = (int32_t) INT32_C(32041);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 178u] = (int32_t) INT32_C(31684);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 177u] = (int32_t) INT32_C(31329);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 176u] = (int32_t) INT32_C(30976);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 175u] = (int32_t) INT32_C(30625);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 174u] = (int32_t) INT32_C(30276);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 173u] = (int32_t) INT32_C(29929);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 172u] = (int32_t) INT32_C(29584);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 171u] = (int32_t) INT32_C(29241);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 170u] = (int32_t) INT32_C(28900);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 169u] = (int32_t) INT32_C(28561);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 168u] = (int32_t) INT32_C(28224);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 167u] = (int32_t) INT32_C(27889);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 166u] = (int32_t) INT32_C(27556);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 165u] = (int32_t) INT32_C(27225);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 164u] = (int32_t) INT32_C(26896);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 163u] = (int32_t) INT32_C(26569);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 162u] = (int32_t) INT32_C(26244);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 161u] = (int32_t) INT32_C(25921);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 160u] = (int32_t) INT32_C(25600);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 159u] = (int32_t) INT32_C(25281);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 158u] = (int32_t) INT32_C(24964);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 157u] = (int32_t) INT32_C(24649);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 156u] = (int32_t) INT32_C(24336);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 155u] = (int32_t) INT32_C(24025);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 154u] = (int32_t) INT32_C(23716);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 153u] = (int32_t) INT32_C(23409);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 152u] = (int32_t) INT32_C(23104);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 151u] = (int32_t) INT32_C(22801);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 150u] = (int32_t) INT32_C(22500);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 149u] = (int32_t) INT32_C(22201);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 148u] = (int32_t) INT32_C(21904);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 147u] = (int32_t) INT32_C(21609);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 146u] = (int32_t) INT32_C(21316);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 145u] = (int32_t) INT32_C(21025);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 144u] = (int32_t) INT32_C(20736);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 143u] = (int32_t) INT32_C(20449);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 142u] = (int32_t) INT32_C(20164);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 141u] = (int32_t) INT32_C(19881);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 140u] = (int32_t) INT32_C(19600);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 139u] = (int32_t) INT32_C(19321);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 138u] = (int32_t) INT32_C(19044);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 137u] = (int32_t) INT32_C(18769);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 136u] = (int32_t) INT32_C(18496);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 135u] = (int32_t) INT32_C(18225);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 134u] = (int32_t) INT32_C(17956);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 133u] = (int32_t) INT32_C(17689);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 132u] = (int32_t) INT32_C(17424);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 131u] = (int32_t) INT32_C(17161);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 130u] = (int32_t) INT32_C(16900);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 129u] = (int32_t) INT32_C(16641);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 128u] = (int32_t) INT32_C(16384);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 127u] = (int32_t) INT32_C(16129);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 126u] = (int32_t) INT32_C(15876);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 125u] = (int32_t) INT32_C(15625);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 124u] = (int32_t) INT32_C(15376);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 123u] = (int32_t) INT32_C(15129);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 122u] = (int32_t) INT32_C(14884);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 121u] = (int32_t) INT32_C(14641);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 120u] = (int32_t) INT32_C(14400);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 119u] = (int32_t) INT32_C(14161);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 118u] = (int32_t) INT32_C(13924);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 117u] = (int32_t) INT32_C(13689);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 116u] = (int32_t) INT32_C(13456);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 115u] = (int32_t) INT32_C(13225);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 114u] = (int32_t) INT32_C(12996);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 113u] = (int32_t) INT32_C(12769);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 112u] = (int32_t) INT32_C(12544);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 111u] = (int32_t) INT32_C(12321);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 110u] = (int32_t) INT32_C(12100);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 109u] = (int32_t) INT32_C(11881);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 108u] = (int32_t) INT32_C(11664);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 107u] = (int32_t) INT32_C(11449);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 106u] = (int32_t) INT32_C(11236);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 105u] = (int32_t) INT32_C(11025);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 104u] = (int32_t) INT32_C(10816);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 103u] = (int32_t) INT32_C(10609);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 102u] = (int32_t) INT32_C(10404);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 101u] = (int32_t) INT32_C(10201);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 100u] = (int32_t) INT32_C(10000);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 99u] = (int32_t) INT32_C(9801);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 98u] = (int32_t) INT32_C(9604);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 97u] = (int32_t) INT32_C(9409);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 96u] = (int32_t) INT32_C(9216);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 95u] = (int32_t) INT32_C(9025);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 94u] = (int32_t) INT32_C(8836);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 93u] = (int32_t) INT32_C(8649);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 92u] = (int32_t) INT32_C(8464);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 91u] = (int32_t) INT32_C(8281);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 90u] = (int32_t) INT32_C(8100);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 89u] = (int32_t) INT32_C(7921);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 88u] = (int32_t) INT32_C(7744);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 87u] = (int32_t) INT32_C(7569);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 86u] = (int32_t) INT32_C(7396);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 85u] = (int32_t) INT32_C(7225);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 84u] = (int32_t) INT32_C(7056);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 83u] = (int32_t) INT32_C(6889);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 82u] = (int32_t) INT32_C(6724);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 81u] = (int32_t) INT32_C(6561);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 80u] = (int32_t) INT32_C(6400);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 79u] = (int32_t) INT32_C(6241);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 78u] = (int32_t) INT32_C(6084);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 77u] = (int32_t) INT32_C(5929);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 76u] = (int32_t) INT32_C(5776);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 75u] = (int32_t) INT32_C(5625);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 74u] = (int32_t) INT32_C(5476);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 73u] = (int32_t) INT32_C(5329);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 72u] = (int32_t) INT32_C(5184);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 71u] = (int32_t) INT32_C(5041);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 70u] = (int32_t) INT32_C(4900);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 69u] = (int32_t) INT32_C(4761);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 68u] = (int32_t) INT32_C(4624);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 67u] = (int32_t) INT32_C(4489);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 66u] = (int32_t) INT32_C(4356);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 65u] = (int32_t) INT32_C(4225);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 64u] = (int32_t) INT32_C(4096);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 63u] = (int32_t) INT32_C(3969);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 62u] = (int32_t) INT32_C(3844);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 61u] = (int32_t) INT32_C(3721);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 60u] = (int32_t) INT32_C(3600);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 59u] = (int32_t) INT32_C(3481);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 58u] = (int32_t) INT32_C(3364);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 57u] = (int32_t) INT32_C(3249);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 56u] = (int32_t) INT32_C(3136);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 55u] = (int32_t) INT32_C(3025);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 54u] = (int32_t) INT32_C(2916);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 53u] = (int32_t) INT32_C(2809);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 52u] = (int32_t) INT32_C(2704);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 51u] = (int32_t) INT32_C(2601);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 50u] = (int32_t) INT32_C(2500);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 49u] = (int32_t) INT32_C(2401);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 48u] = (int32_t) INT32_C(2304);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 47u] = (int32_t) INT32_C(2209);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 46u] = (int32_t) INT32_C(2116);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 45u] = (int32_t) INT32_C(2025);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 44u] = (int32_t) INT32_C(1936);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 43u] = (int32_t) INT32_C(1849);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 42u] = (int32_t) INT32_C(1764);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 41u] = (int32_t) INT32_C(1681);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 40u] = (int32_t) INT32_C(1600);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 39u] = (int32_t) INT32_C(1521);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 38u] = (int32_t) INT32_C(1444);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 37u] = (int32_t) INT32_C(1369);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 36u] = (int32_t) INT32_C(1296);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 35u] = (int32_t) INT32_C(1225);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 34u] = (int32_t) INT32_C(1156);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 33u] = (int32_t) INT32_C(1089);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 32u] = (int32_t) INT32_C(1024);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 31u] = (int32_t) INT32_C(961);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 30u] = (int32_t) INT32_C(900);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 29u] = (int32_t) INT32_C(841);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 28u] = (int32_t) INT32_C(784);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 27u] = (int32_t) INT32_C(729);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 26u] = (int32_t) INT32_C(676);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 25u] = (int32_t) INT32_C(625);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 24u] = (int32_t) INT32_C(576);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 23u] = (int32_t) INT32_C(529);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 22u] = (int32_t) INT32_C(484);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 21u] = (int32_t) INT32_C(441);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 20u] = (int32_t) INT32_C(400);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 19u] = (int32_t) INT32_C(361);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 18u] = (int32_t) INT32_C(324);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 17u] = (int32_t) INT32_C(289);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 16u] = (int32_t) INT32_C(256);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 15u] = (int32_t) INT32_C(225);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 14u] = (int32_t) INT32_C(196);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 13u] = (int32_t) INT32_C(169);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 12u] = (int32_t) INT32_C(144);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 11u] = (int32_t) INT32_C(121);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 10u] = (int32_t) INT32_C(100);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 9u] = (int32_t) INT32_C(81);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 8u] = (int32_t) INT32_C(64);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 7u] = (int32_t) INT32_C(49);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 6u] = (int32_t) INT32_C(36);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 5u] = (int32_t) INT32_C(25);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 4u] = (int32_t) INT32_C(16);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 3u] = (int32_t) INT32_C(9);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 2u] = (int32_t) INT32_C(4);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 1u] = (int32_t) INT32_C(1);
+	((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (int32_t) INT32_C(0);
+	t0 = (void*) _a0_arr;
+	{ void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int32_t snippet$main(void) {
-    void* l0 = NULL;
-    void* l1 = NULL;
-    int64_t l2, l3;
-    int32_t t0;
-    void* t1 = NULL;
-    vader_string_t t2 = 0;
-    void** gc_raw_roots[3] = { &l0, &l1, &t1 };
-    vader_string_t* gc_atom_roots[1] = { &t2 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
-    l0 = __const_snippet$TABLE();
-    vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
-    VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-    VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(0))
-    ((int32_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) INT32_C(0)] = (int32_t) INT32_C(-1);
-    l1 = (void*) vader_buffer_new((size_t) INT64_C(83));
-    l2 = INT64_C(0);
-    l3 = vader_array_length(((vader_array_t*) l0));
-    l2 = std_core$write_int(l1, l2, l3);
-    l2 = std_core$write_string_at(l1, l2, 1u);
-    vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
-    VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
-    VADER_ARRAY_CHECK_INDEX(_a1_slotarr, INT32_C(0))
-    t0 = ((int32_t*) _a1_slotarr->buf->slots)[vader_array_offset(_a1_slotarr) + (size_t) INT32_C(0)];
-    l3 = ((int64_t) (int32_t) t0);
-    l2 = std_core$write_int(l1, l2, l3);
-    l2 = std_core$write_string_at(l1, l2, 1u);
-    vader_array_t* _a2_slotarr = ((vader_array_t*) l0);
-    VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
-    VADER_ARRAY_CHECK_INDEX(_a2_slotarr, INT32_C(299))
-    t0 = ((int32_t*) _a2_slotarr->buf->slots)[vader_array_offset(_a2_slotarr) + (size_t) INT32_C(299)];
-    l3 = ((int64_t) (int32_t) t0);
-    l2 = std_core$write_int(l1, l2, l3);
-    l2 = std_core$write_string_at(l1, l2, 1u);
-    t1 = (void*) &vader_data_0;
-    vader_array_t* _a3_slotarr = ((vader_array_t*) t1);
-    VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
-    VADER_ARRAY_CHECK_INDEX(_a3_slotarr, INT32_C(0))
-    t0 = ((int32_t*) _a3_slotarr->buf->slots)[vader_array_offset(_a3_slotarr) + (size_t) INT32_C(0)];
-    l3 = ((int64_t) (int32_t) t0);
-    l2 = std_core$write_int(l1, l2, l3);
-    t2 = std_core$finish_buffer(l1, l2);
-    std_console$println__string(t2);
-    { vader_gc_top = gc_frame.prev; return INT32_C(0); }
+	void* l0 = NULL;
+	void* l1 = NULL;
+	int64_t l2, l3;
+	int32_t t0;
+	void* t1 = NULL;
+	vader_string_t t2 = 0;
+	void** gc_raw_roots[3] = { &l0, &l1, &t1 };
+	vader_string_t* gc_atom_roots[1] = { &t2 };
+	vader_gc_frame_t gc_frame = {
+		vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+	};
+	vader_gc_top = &gc_frame;
+	l0 = __const_snippet$TABLE();
+	vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
+	VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+	VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(0))
+	((int32_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) INT32_C(0)] = (int32_t) INT32_C(-1);
+	l1 = (void*) vader_buffer_new((size_t) INT64_C(83));
+	l2 = INT64_C(0);
+	l3 = vader_array_length(((vader_array_t*) l0));
+	l2 = std_core$write_int(l1, l2, l3);
+	l2 = std_core$write_string_at(l1, l2, 1u);
+	vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
+	VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+	VADER_ARRAY_CHECK_INDEX(_a1_slotarr, INT32_C(0))
+	t0 = ((int32_t*) _a1_slotarr->buf->slots)[vader_array_offset(_a1_slotarr) + (size_t) INT32_C(0)];
+	l3 = ((int64_t) (int32_t) t0);
+	l2 = std_core$write_int(l1, l2, l3);
+	l2 = std_core$write_string_at(l1, l2, 1u);
+	vader_array_t* _a2_slotarr = ((vader_array_t*) l0);
+	VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+	VADER_ARRAY_CHECK_INDEX(_a2_slotarr, INT32_C(299))
+	t0 = ((int32_t*) _a2_slotarr->buf->slots)[vader_array_offset(_a2_slotarr) + (size_t) INT32_C(299)];
+	l3 = ((int64_t) (int32_t) t0);
+	l2 = std_core$write_int(l1, l2, l3);
+	l2 = std_core$write_string_at(l1, l2, 1u);
+	t1 = (void*) &vader_data_0;
+	vader_array_t* _a3_slotarr = ((vader_array_t*) t1);
+	VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
+	VADER_ARRAY_CHECK_INDEX(_a3_slotarr, INT32_C(0))
+	t0 = ((int32_t*) _a3_slotarr->buf->slots)[vader_array_offset(_a3_slotarr) + (size_t) INT32_C(0)];
+	l3 = ((int64_t) (int32_t) t0);
+	l2 = std_core$write_int(l1, l2, l3);
+	t2 = std_core$finish_buffer(l1, l2);
+	std_console$println__string(t2);
+	{ vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
-    int64_t l2, l3;
-    void* l4 = NULL;
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l4 };
-    vader_string_t* gc_atom_roots[3] = { &l0, &l1, &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
-    l2 = vader_host_std_core$Intrinsic$byte_len(l0);
-    l3 = vader_host_std_core$Intrinsic$byte_len(l1);
-    l3 = (l2 + l3);
-    l4 = (void*) vader_buffer_new((size_t) l3);
-    vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
-    vader_buffer_write_string((vader_buffer_t*) l4, (size_t) l2, l1);
-    t0 = vader_buffer_intern_string((vader_buffer_t*) l4, (size_t) l3);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+	int64_t l2, l3;
+	void* l4 = NULL;
+	vader_string_t t0 = 0;
+	void** gc_raw_roots[1] = { &l4 };
+	vader_string_t* gc_atom_roots[3] = { &l0, &l1, &t0 };
+	vader_gc_frame_t gc_frame = {
+		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
+	};
+	vader_gc_top = &gc_frame;
+	l2 = vader_host_std_core$Intrinsic$byte_len(l0);
+	l3 = vader_host_std_core$Intrinsic$byte_len(l1);
+	l3 = (l2 + l3);
+	l4 = (void*) vader_buffer_new((size_t) l3);
+	vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
+	vader_buffer_write_string((vader_buffer_t*) l4, (size_t) l2, l1);
+	t0 = vader_buffer_intern_string((vader_buffer_t*) l4, (size_t) l3);
+	{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1) {
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
-    t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+	vader_string_t t0 = 0;
+	void** gc_raw_roots[1] = { &l0 };
+	vader_string_t* gc_atom_roots[1] = { &t0 };
+	vader_gc_frame_t gc_frame = {
+		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+	};
+	vader_gc_top = &gc_frame;
+	t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
+	{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2) {
-    int64_t l3;
-    int64_t t0;
-    vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-    l3 = vader_host_std_core$Intrinsic$byte_len(l2);
-    t0 = vader_chk_add(i64, l1, l3);
-    return t0;
+	int64_t l3;
+	int64_t t0;
+	vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
+	l3 = vader_host_std_core$Intrinsic$byte_len(l2);
+	t0 = vader_chk_add(i64, l1, l3);
+	return t0;
 }
 
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2) {
-    bool l3;
-    int64_t l4, l5;
-    uint8_t l6, l7;
-    int64_t t0, t1;
-    int32_t t2;
-    if (l2 == INT64_C(0)) {
-        vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(48));
-        t0 = vader_chk_add(i64, l1, INT64_C(1));
-        return t0;
-    }
-    l3 = (l2 < INT64_C(0));
-    if ((l2 > INT64_C(0))) {
-        l2 = vader_chk_neg(i64, l2);
-    }
-    l4 = INT64_C(0);
-    l5 = l2;
-    while (l5 != INT64_C(0)) {
-        l4 = vader_chk_add(i64, l4, INT64_C(1));
-        l5 = vader_div_i64(l5, INT64_C(10));
-    }
-    if (l3) {
-        l5 = vader_chk_add(i64, l4, INT64_C(1));
-    } else {
-        l5 = l4;
-    }
-    l4 = vader_chk_add(i64, l1, l5);
-    while (l2 != INT64_C(0)) {
-        l4 = vader_chk_sub(i64, l4, INT64_C(1));
-        t0 = vader_mod_i64(l2, INT64_C(10));
-        t1 = vader_chk_neg(i64, t0);
-        t2 = (((int32_t) (int64_t) t1) & INT32_C(255));
-        l6 = (uint8_t) (int32_t) t2;
-        t2 = vader_chk_add(u8, INT32_C(48), l6);
-        l7 = (uint8_t) (int32_t) t2;
-        vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l4, (uint8_t) l7);
-        l2 = vader_div_i64(l2, INT64_C(10));
-    }
-    if (l3) {
-        vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(45));
-        t0 = vader_chk_add(i64, l1, l5);
-        return t0;
-    }
-    t0 = vader_chk_add(i64, l1, l5);
-    return t0;
+	bool l3;
+	int64_t l4, l5;
+	uint8_t l6, l7;
+	int64_t t0, t1;
+	int32_t t2;
+	if (l2 == INT64_C(0)) {
+		vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(48));
+		t0 = vader_chk_add(i64, l1, INT64_C(1));
+		return t0;
+	}
+	l3 = (l2 < INT64_C(0));
+	if ((l2 > INT64_C(0))) {
+		l2 = vader_chk_neg(i64, l2);
+	}
+	l4 = INT64_C(0);
+	l5 = l2;
+	while (l5 != INT64_C(0)) {
+		l4 = vader_chk_add(i64, l4, INT64_C(1));
+		l5 = vader_div_i64(l5, INT64_C(10));
+	}
+	if (l3) {
+		l5 = vader_chk_add(i64, l4, INT64_C(1));
+	} else {
+		l5 = l4;
+	}
+	l4 = vader_chk_add(i64, l1, l5);
+	while (l2 != INT64_C(0)) {
+		l4 = vader_chk_sub(i64, l4, INT64_C(1));
+		t0 = vader_mod_i64(l2, INT64_C(10));
+		t1 = vader_chk_neg(i64, t0);
+		t2 = (((int32_t) (int64_t) t1) & INT32_C(255));
+		l6 = (uint8_t) (int32_t) t2;
+		t2 = vader_chk_add(u8, INT32_C(48), l6);
+		l7 = (uint8_t) (int32_t) t2;
+		vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l4, (uint8_t) l7);
+		l2 = vader_div_i64(l2, INT64_C(10));
+	}
+	if (l3) {
+		vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(45));
+		t0 = vader_chk_add(i64, l1, l5);
+		return t0;
+	}
+	t0 = vader_chk_add(i64, l1, l5);
+	return t0;
 }
 
 static void std_console$write(uint8_t l0, vader_string_t l1) {
-    void* l2 = NULL;
-    void* l6 = NULL;
-    int64_t l3, l4, l5, l7, l9;
-    int32_t l8;
-    bool t0;
-    void** gc_raw_roots[2] = { &l2, &l6 };
-    vader_string_t* gc_atom_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
-    t0 = std_console$write_text(l0, l1);
-    if (t0) {
-        { vader_gc_top = gc_frame.prev; return; }
-    }
-    l2 = vader_host_std_core$Intrinsic$bytes(l1);
-    l3 = INT64_C(0);
-    for (;;) {
-        l4 = vader_array_length(((vader_array_t*) l2));
-        if (!((l3 >= l4))) {
-            l5 = vader_array_length(((vader_array_t*) l2));
-            vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
-            l6 = (void*) _a0_arr;
-            l7 = vader_array_length(((vader_array_t*) l6));
-            l8 = std_console$write_bytes(l0, l6, l7);
-            if ((l8 <= INT32_C(0))) {
-                { vader_gc_top = gc_frame.prev; return; }
-            }
-            l9 = ((int64_t) (int32_t) l8);
-            l3 = vader_chk_add(i64, l3, l9);
-            continue;
-        }
-        break;
-    }
-    { vader_gc_top = gc_frame.prev; return; }
+	void* l2 = NULL;
+	void* l6 = NULL;
+	int64_t l3, l4, l5, l7, l9;
+	int32_t l8;
+	bool t0;
+	void** gc_raw_roots[2] = { &l2, &l6 };
+	vader_string_t* gc_atom_roots[1] = { &l1 };
+	vader_gc_frame_t gc_frame = {
+		vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+	};
+	vader_gc_top = &gc_frame;
+	t0 = std_console$write_text(l0, l1);
+	if (t0) {
+		{ vader_gc_top = gc_frame.prev; return; }
+	}
+	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l3 = INT64_C(0);
+	for (;;) {
+		l4 = vader_array_length(((vader_array_t*) l2));
+		if (!((l3 >= l4))) {
+			l5 = vader_array_length(((vader_array_t*) l2));
+			vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
+			l6 = (void*) _a0_arr;
+			l7 = vader_array_length(((vader_array_t*) l6));
+			l8 = std_console$write_bytes(l0, l6, l7);
+			if ((l8 <= INT32_C(0))) {
+				{ vader_gc_top = gc_frame.prev; return; }
+			}
+			l9 = ((int64_t) (int32_t) l8);
+			l3 = vader_chk_add(i64, l3, l9);
+			continue;
+		}
+		break;
+	}
+	{ vader_gc_top = gc_frame.prev; return; }
 }
 
 static bool std_console$write_text(uint8_t l0, vader_string_t l1) {
-    return false;
+	return false;
 }
 
 static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2) {
-    int32_t l3;
-    int64_t l4;
-    int32_t t0;
-    void** gc_raw_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    if (l0 == INT32_C(0)) {
-        l3 = INT32_C(1);
-    } else {
-        l3 = INT32_C(2);
-    }
-    l4 = vader_host_system_posix$sys_write(l3, l1, l2);
-    if ((l4 < INT64_C(0))) {
-        t0 = vader_host_system_posix$sys_last_errno();
-        if (t0 == INT32_C(32)) {
-            vader_host_system_posix$sys_end_on_broken_pipe();
-            { int32_t __vret = ((int32_t) (int64_t) l4); vader_gc_top = gc_frame.prev; return __vret; }
-        }
-        { int32_t __vret = ((int32_t) (int64_t) l4); vader_gc_top = gc_frame.prev; return __vret; }
-    }
-    { int32_t __vret = ((int32_t) (int64_t) l4); vader_gc_top = gc_frame.prev; return __vret; }
+	int32_t l3;
+	int64_t l4;
+	int32_t t0;
+	void** gc_raw_roots[1] = { &l1 };
+	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+	vader_gc_top = &gc_frame;
+	if (l0 == INT32_C(0)) {
+		l3 = INT32_C(1);
+	} else {
+		l3 = INT32_C(2);
+	}
+	l4 = vader_host_system_posix$sys_write(l3, l1, l2);
+	if ((l4 < INT64_C(0))) {
+		t0 = vader_host_system_posix$sys_last_errno();
+		if (t0 == INT32_C(32)) {
+			vader_host_system_posix$sys_end_on_broken_pipe();
+			{ int32_t __vret = ((int32_t) (int64_t) l4); vader_gc_top = gc_frame.prev; return __vret; }
+		}
+		{ int32_t __vret = ((int32_t) (int64_t) l4); vader_gc_top = gc_frame.prev; return __vret; }
+	}
+	{ int32_t __vret = ((int32_t) (int64_t) l4); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void std_console$println__string(vader_string_t l0) {
-    vader_string_t l1 = 0;
-    vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
-    l1 = concat_2(l0, 2u);
-    std_console$write((uint8_t) 0, l1);
-    { vader_gc_top = gc_frame.prev; return; }
+	vader_string_t l1 = 0;
+	vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
+	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
+	vader_gc_top = &gc_frame;
+	l1 = concat_2(l0, 2u);
+	std_console$write((uint8_t) 0, l1);
+	{ vader_gc_top = gc_frame.prev; return; }
 }
 
 int main(int argc, char** argv) {
-    vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
-    atexit(vader_atom_shutdown);
-    atexit(vader_gc_shutdown);
-    (void) argc;
-    (void) argv;
-    return vader_scheduler_exit((int) snippet$main());
+	vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
+	atexit(vader_atom_shutdown);
+	atexit(vader_gc_shutdown);
+	(void) argc;
+	(void) argv;
+	return vader_scheduler_exit((int) snippet$main());
 }

@@ -15,54 +15,54 @@ static int32_t snippet$read_after_join(int32_t l0, bool l1);
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 const vader_type_info_t vader_type_info_table[4] = {
-    [2] = { .slot_size = 4 },
-    [3] = { .slot_size = 1 },
+	[2] = { .slot_size = 4 },
+	[3] = { .slot_size = 1 },
 };
 const size_t vader_type_info_count = 4;
 
 static void snippet$mk(int32_t l0, int32_t* __o0, int32_t* __o1) {
-    int32_t l1;
-    l1 = vader_chk_mul(i32, l0, INT32_C(2));
-    *__o1 = l1; *__o0 = l0; return;
+	int32_t l1;
+	l1 = vader_chk_mul(i32, l0, INT32_C(2));
+	*__o1 = l1; *__o0 = l0; return;
 }
 
 static int32_t snippet$read_after_join(int32_t l0, bool l1) {
-    int32_t l2, l3, l4;
-    int32_t t0, t1;
-    snippet$mk(l0, &t0, &t1);
-    l4 = t1;
-    l3 = t0;
-    l2 = INT32_C(0);
-    if (l1) {
-        l2 = INT32_C(1);
-    } else {
-        l2 = INT32_C(2);
-    }
-    l2 = vader_chk_add(i32, l2, l3);
-    l3 = l4;
-    t0 = vader_chk_add(i32, l2, l3);
-    return t0;
+	int32_t l2, l3, l4;
+	int32_t t0, t1;
+	snippet$mk(l0, &t0, &t1);
+	l4 = t1;
+	l3 = t0;
+	l2 = INT32_C(0);
+	if (l1) {
+		l2 = INT32_C(1);
+	} else {
+		l2 = INT32_C(2);
+	}
+	l2 = vader_chk_add(i32, l2, l3);
+	l3 = l4;
+	t0 = vader_chk_add(i32, l2, l3);
+	return t0;
 }
 
 static int32_t snippet$main(void) {
-    int32_t l0, l1, l3;
-    bool l2;
-    l0 = INT32_C(0);
-    l1 = INT32_C(0);
-    while ((l1 < INT32_C(3))) {
-        l2 = l1 == INT32_C(1);
-        l3 = snippet$read_after_join(l1, l2);
-        l0 = vader_chk_add(i32, l0, l3);
-        l1 = (l1 + INT32_C(1));
-    }
-    return l0;
+	int32_t l0, l1, l3;
+	bool l2;
+	l0 = INT32_C(0);
+	l1 = INT32_C(0);
+	while ((l1 < INT32_C(3))) {
+		l2 = l1 == INT32_C(1);
+		l3 = snippet$read_after_join(l1, l2);
+		l0 = vader_chk_add(i32, l0, l3);
+		l1 = (l1 + INT32_C(1));
+	}
+	return l0;
 }
 
 int main(int argc, char** argv) {
-    vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
-    atexit(vader_atom_shutdown);
-    atexit(vader_gc_shutdown);
-    (void) argc;
-    (void) argv;
-    return vader_scheduler_exit((int) snippet$main());
+	vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
+	atexit(vader_atom_shutdown);
+	atexit(vader_gc_shutdown);
+	(void) argc;
+	(void) argv;
+	return vader_scheduler_exit((int) snippet$main());
 }

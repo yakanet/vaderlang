@@ -16,66 +16,66 @@ static int32_t snippet$main(void);
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 const vader_type_info_t vader_type_info_table[4] = {
-    [2] = { .slot_size = 1 },
-    [3] = { .slot_size = 4 },
+	[2] = { .slot_size = 1 },
+	[3] = { .slot_size = 4 },
 };
 const size_t vader_type_info_count = 4;
 
 static bool snippet$f(bool l0, bool l1) {
-    if (l0) {
-        return !(true);
-    }
-    return !(l1);
+	if (l0) {
+		return !(true);
+	}
+	return !(l1);
 }
 
 static bool snippet$g(int32_t l0) {
-    if (l0 == INT32_C(0)) {
-        return !(true);
-    }
-    return !(l0 == INT32_C(1));
+	if (l0 == INT32_C(0)) {
+		return !(true);
+	}
+	return !(l0 == INT32_C(1));
 }
 
 static bool snippet$h(bool l0, bool l1) {
-    if (l0) {
-        return !(l1);
-    }
-    return !(false);
+	if (l0) {
+		return !(l1);
+	}
+	return !(false);
 }
 
 static int32_t snippet$main(void) {
-    int32_t l0, l1, l2;
-    bool t0;
-    int32_t t1, t2;
-    t0 = snippet$f(false, false);
-    if (t0) {
-        l0 = INT32_C(1);
-    } else {
-        l0 = INT32_C(0);
-    }
-    t0 = snippet$g(INT32_C(5));
-    if (t0) {
-        l1 = INT32_C(2);
-    } else {
-        l1 = INT32_C(0);
-    }
-    t0 = snippet$h(true, false);
-    if (t0) {
-        l2 = INT32_C(4);
-        t1 = vader_chk_add(i32, l0, l1);
-        t2 = vader_chk_add(i32, t1, l2);
-        return t2;
-    }
-    l2 = INT32_C(0);
-    t1 = vader_chk_add(i32, l0, l1);
-    t2 = vader_chk_add(i32, t1, l2);
-    return t2;
+	int32_t l0, l1, l2;
+	bool t0;
+	int32_t t1, t2;
+	t0 = snippet$f(false, false);
+	if (t0) {
+		l0 = INT32_C(1);
+	} else {
+		l0 = INT32_C(0);
+	}
+	t0 = snippet$g(INT32_C(5));
+	if (t0) {
+		l1 = INT32_C(2);
+	} else {
+		l1 = INT32_C(0);
+	}
+	t0 = snippet$h(true, false);
+	if (t0) {
+		l2 = INT32_C(4);
+		t1 = vader_chk_add(i32, l0, l1);
+		t2 = vader_chk_add(i32, t1, l2);
+		return t2;
+	}
+	l2 = INT32_C(0);
+	t1 = vader_chk_add(i32, l0, l1);
+	t2 = vader_chk_add(i32, t1, l2);
+	return t2;
 }
 
 int main(int argc, char** argv) {
-    vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
-    atexit(vader_atom_shutdown);
-    atexit(vader_gc_shutdown);
-    (void) argc;
-    (void) argv;
-    return vader_scheduler_exit((int) snippet$main());
+	vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
+	atexit(vader_atom_shutdown);
+	atexit(vader_gc_shutdown);
+	(void) argc;
+	(void) argv;
+	return vader_scheduler_exit((int) snippet$main());
 }
