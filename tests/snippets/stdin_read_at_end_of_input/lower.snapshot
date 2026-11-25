@@ -26,8 +26,6 @@
   }
 
 ## lowered in dependencies
-  std/target/baked
-    const VADER_OS: Os  inline
   std/console
     const END_OF_INPUT: IOError  data pool #0, element 0
     fn std.console.println<bool>  // std_console$println__bool

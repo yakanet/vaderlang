@@ -69,8 +69,6 @@
   }
 
 ## lowered in dependencies
-  std/target/baked
-    const VADER_OS: Os  inline
   wasi:filesystem/types@0.3.0
     struct wasi:filesystem.types@0.3.0.Descriptor  // wasi_0filesystem_types_10_23_20$Descriptor
     struct wasi:filesystem.types@0.3.0.ErrorCodeOther  // wasi_0filesystem_types_10_23_20$ErrorCodeOther

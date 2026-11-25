@@ -1172,56 +1172,25 @@ static void* std_fs$invalid_options(vader_string_t l0) {
 }
 
 static int32_t std_fs$open_flags(void* l0) {
-	int32_t l1, l2, l3;
+	int32_t l1;
 	bool t0;
-	if (INT32_C(1) == INT32_C(2)) {
-		l1 = INT32_C(16777216);
-	} else {
-		l1 = INT32_C(524288);
-	}
-	l2 = std_fs$access_mode(l0);
-	l1 = (l1 | l2);
+	l1 = std_fs$access_mode(l0);
+	l1 = (INT32_C(524288) | l1);
 	t0 = ((vader_struct_std_fs$OpenOptions_t*) l0)->f_append;
 	if (t0) {
-		if (INT32_C(1) == INT32_C(2)) {
-			l2 = INT32_C(8);
-		} else {
-			l2 = INT32_C(1024);
-		}
-		l1 = (l1 | l2);
+		l1 = (l1 | INT32_C(1024));
 	}
 	t0 = ((vader_struct_std_fs$OpenOptions_t*) l0)->f_create;
 	if (t0) {
-		if (INT32_C(1) == INT32_C(2)) {
-			l2 = INT32_C(512);
-		} else {
-			l2 = INT32_C(64);
-		}
-		l1 = (l1 | l2);
+		l1 = (l1 | INT32_C(64));
 	}
 	t0 = ((vader_struct_std_fs$OpenOptions_t*) l0)->f_truncate;
 	if (t0) {
-		if (INT32_C(1) == INT32_C(2)) {
-			l2 = INT32_C(1024);
-		} else {
-			l2 = INT32_C(512);
-		}
-		l1 = (l1 | l2);
+		l1 = (l1 | INT32_C(512));
 	}
 	t0 = ((vader_struct_std_fs$OpenOptions_t*) l0)->f_create_new;
 	if (t0) {
-		if (INT32_C(1) == INT32_C(2)) {
-			l2 = INT32_C(512);
-		} else {
-			l2 = INT32_C(64);
-		}
-		l2 = (l1 | l2);
-		if (INT32_C(1) == INT32_C(2)) {
-			l3 = INT32_C(2048);
-		} else {
-			l3 = INT32_C(128);
-		}
-		l1 = (l2 | l3);
+		l1 = ((l1 | INT32_C(64)) | INT32_C(128));
 		return l1;
 	}
 	return l1;
@@ -1407,7 +1376,6 @@ static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2) 
 }
 
 static uint8_t std_io$errno_kind(int32_t l0) {
-	int32_t l1;
 	if (l0 == INT32_C(2)) {
 		return (uint8_t) 1;
 	}
@@ -1429,12 +1397,7 @@ static uint8_t std_io$errno_kind(int32_t l0) {
 	if (l0 == INT32_C(21)) {
 		return (uint8_t) 6;
 	}
-	if (INT32_C(1) == INT32_C(2)) {
-		l1 = INT32_C(35);
-	} else {
-		l1 = INT32_C(11);
-	}
-	if (l0 == l1) {
+	if (l0 == INT32_C(11)) {
 		return (uint8_t) 7;
 	}
 	if (l0 == INT32_C(32)) {
@@ -1446,71 +1409,31 @@ static uint8_t std_io$errno_kind(int32_t l0) {
 	if (l0 == INT32_C(22)) {
 		return (uint8_t) 10;
 	}
-	if (INT32_C(1) == INT32_C(2)) {
-		l1 = INT32_C(66);
-	} else {
-		l1 = INT32_C(39);
-	}
-	if (l0 == l1) {
+	if (l0 == INT32_C(39)) {
 		return (uint8_t) 11;
 	}
 	if (l0 == INT32_C(9)) {
 		return (uint8_t) 12;
 	}
-	if (INT32_C(1) == INT32_C(2)) {
-		l1 = INT32_C(61);
-	} else {
-		l1 = INT32_C(111);
-	}
-	if (l0 == l1) {
+	if (l0 == INT32_C(111)) {
 		return (uint8_t) 14;
 	}
-	if (INT32_C(1) == INT32_C(2)) {
-		l1 = INT32_C(54);
-	} else {
-		l1 = INT32_C(104);
-	}
-	if (l0 == l1) {
+	if (l0 == INT32_C(104)) {
 		return (uint8_t) 15;
 	}
-	if (INT32_C(1) == INT32_C(2)) {
-		l1 = INT32_C(53);
-	} else {
-		l1 = INT32_C(103);
-	}
-	if (l0 == l1) {
+	if (l0 == INT32_C(103)) {
 		return (uint8_t) 15;
 	}
-	if (INT32_C(1) == INT32_C(2)) {
-		l1 = INT32_C(48);
-	} else {
-		l1 = INT32_C(98);
-	}
-	if (l0 == l1) {
+	if (l0 == INT32_C(98)) {
 		return (uint8_t) 16;
 	}
-	if (INT32_C(1) == INT32_C(2)) {
-		l1 = INT32_C(49);
-	} else {
-		l1 = INT32_C(99);
-	}
-	if (l0 == l1) {
+	if (l0 == INT32_C(99)) {
 		return (uint8_t) 17;
 	}
-	if (INT32_C(1) == INT32_C(2)) {
-		l1 = INT32_C(57);
-	} else {
-		l1 = INT32_C(107);
-	}
-	if (l0 == l1) {
+	if (l0 == INT32_C(107)) {
 		return (uint8_t) 18;
 	}
-	if (INT32_C(1) == INT32_C(2)) {
-		l1 = INT32_C(60);
-	} else {
-		l1 = INT32_C(110);
-	}
-	if (l0 == l1) {
+	if (l0 == INT32_C(110)) {
 		return (uint8_t) 19;
 	}
 	if (l0 == INT32_C(24)) {

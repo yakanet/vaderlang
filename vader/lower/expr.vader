@@ -365,12 +365,14 @@ try_fold_unbaked_const :: fn(ctx: FnLowerCtx, resolved: Symbol, type: Type) -> L
 }
 
 // True when `e` is a scalar literal (int / float / bool / null / char /
-// string). Gates `try_fold_unbaked_const` to RHS shapes that fold without
+// string / `.Variant`). Gates `try_fold_unbaked_const` to RHS shapes that fold without
 // touching other consts. Shape predicate (`_ -> false`), mirroring
 // `tools/fmt/printer.vader::is_bitor_chain`: a non-literal Expr is correctly false.
 // @partial: only the literal-shaped Expr forms are scalar literals; every other Expr is not.
 is_scalar_literal_expr :: fn(e: Expr) -> bool = @partial match e {
     is IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr -> true
+    // `.Darwin`: a variant names its value alone, as `VADER_OS` is written.
+    is DotVariantExpr -> true
     // `i64(0)` / `i32(N)`: a primitive numeric conversion of a scalar
     // literal parses as a CallExpr. It folds just as safely (the arg is a
     // literal, so no dependency on another unbaked const), so a const like

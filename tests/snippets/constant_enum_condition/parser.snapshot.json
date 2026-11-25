@@ -1,0 +1,293 @@
+{
+  "ast": {
+    "kind": "Program",
+    "module": {
+      "kind": "ModuleDecl",
+      "name": "snippet"
+    },
+    "decls": [
+      {
+        "kind": "ImportDecl",
+        "path": "std/console",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "EnumDecl",
+        "name": "Mode",
+        "visibility": "private",
+        "header": [],
+        "variants": [
+          {
+            "name": "Fast",
+            "value": null,
+            "data": null
+          },
+          {
+            "name": "Slow",
+            "value": null,
+            "data": null
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "MODE",
+        "visibility": "private",
+        "type": {
+          "kind": "IdentExpr",
+          "name": "Mode"
+        },
+        "value": {
+          "kind": "DotVariantExpr",
+          "variant": "Fast"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "never_called",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [
+          {
+            "name": "what",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            "defaultValue": null,
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "void"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "println"
+            },
+            "args": [
+              {
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "unreachable: "
+                    },
+                    {
+                      "kind": "interpolation",
+                      "expr": {
+                        "kind": "IdentExpr",
+                        "name": "what"
+                      }
+                    }
+                  ]
+                },
+                "spread": false
+              }
+            ]
+          }
+        },
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "main",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "IfExpr",
+                "cond": {
+                  "kind": "BinaryExpr",
+                  "op": "eq",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "VADER_OS"
+                  },
+                  "right": {
+                    "kind": "DotVariantExpr",
+                    "variant": "Browser"
+                  }
+                },
+                "then": {
+                  "kind": "BlockExpr",
+                  "stmts": [],
+                  "trailing": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "never_called"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "browser"
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                },
+                "else": null
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "IfExpr",
+                "cond": {
+                  "kind": "BinaryExpr",
+                  "op": "eq",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "MODE"
+                  },
+                  "right": {
+                    "kind": "DotVariantExpr",
+                    "variant": "Slow"
+                  }
+                },
+                "then": {
+                  "kind": "BlockExpr",
+                  "stmts": [],
+                  "trailing": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "never_called"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "slow"
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                },
+                "else": null
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "IfExpr",
+                "cond": {
+                  "kind": "BinaryExpr",
+                  "op": "neq",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "MODE"
+                  },
+                  "right": {
+                    "kind": "DotVariantExpr",
+                    "variant": "Fast"
+                  }
+                },
+                "then": {
+                  "kind": "BlockExpr",
+                  "stmts": [],
+                  "trailing": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "never_called"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "not fast"
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                },
+                "else": {
+                  "kind": "BlockExpr",
+                  "stmts": [],
+                  "trailing": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "println"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "fast"
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "0n"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

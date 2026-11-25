@@ -61,8 +61,6 @@
   }
 
 ## lowered in dependencies
-  std/target/baked
-    const VADER_OS: Os  inline
   std/console
     fn std.console.println<string>  // std_console$println__string
     fn std.console.write  // std_console$write

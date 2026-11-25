@@ -256,6 +256,10 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     }
     left :: lower_expr(ctx, binary.left)
     right :: lower_expr(ctx, binary.right)
+    settled :: settled_equality(binary, left, right)
+    if settled != null {
+        return settled
+    }
     return LoweredBinary {
         .span = binary.span,
         .type = type,
@@ -263,6 +267,38 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         .left = left,
         .right = right,
     }
+}
+
+// `==` / `!=` between two literals, as the literal it is before the program runs:
+// `VADER_OS == .Windows` once `VADER_OS` folds, so that the `if` it guards drops
+// its dead branch. Null for anything else.
+settled_equality :: fn(
+    binary: BinaryExpr, left: LoweredExpr, right: LoweredExpr,
+) -> LoweredExpr | null {
+    if binary.op != .Eq && binary.op != .Neq {
+        return null
+    }
+    equal :: literals_equal(left, right) else return null
+    return LoweredBoolLit {
+        .span = binary.span,
+        .type = TY_BOOL,
+        .value = equal == (binary.op == .Eq),
+    }
+}
+
+// Whether two literals of one kind are equal ; null unless both are integer
+// (enum variants included), `bool` or `char` literals.
+literals_equal :: fn(left: LoweredExpr, right: LoweredExpr) -> bool | null {
+    if left is LoweredIntLit && right is LoweredIntLit {
+        return left.value == right.value
+    }
+    if left is LoweredBoolLit && right is LoweredBoolLit {
+        return left.value == right.value
+    }
+    if left is LoweredCharLit && right is LoweredCharLit {
+        return left.value == right.value
+    }
+    return null
 }
 
 // `a && b` / `a || b`. A side known before the program runs (a settled type test,

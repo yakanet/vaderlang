@@ -1,0 +1,34 @@
+// An `if` on an equality between enum constants keeps only the branch it takes:
+// the other is neither lowered nor emitted, nor are the functions only it calls.
+// It is how code that depends on the target is left out of a build.
+
+module "snippet"
+
+import "std/console"
+
+Mode :: enum {
+    Fast,
+    Slow,
+}
+
+MODE: Mode: .Fast
+
+// Called only from branches that the constants rule out.
+never_called :: fn(what: string) -> void {
+    println("unreachable: ${what}")
+}
+
+main :: fn() -> i32 {
+    if VADER_OS == .Browser {
+        never_called("browser")
+    }
+    if MODE == .Slow {
+        never_called("slow")
+    }
+    if MODE != .Fast {
+        never_called("not fast")
+    } else {
+        println("fast")
+    }
+    return 0
+}

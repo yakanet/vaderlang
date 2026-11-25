@@ -46,11 +46,11 @@
       value
   }
   snippet.__comptime_GUARDED :: fn() -> bool {  // snippet$__comptime_GUARDED
-      (0 != 0) && ((10 / 0) > 1)
+      false
   }
   snippet.GUARDED: bool: false  // snippet$GUARDED
   snippet.__comptime_EITHER :: fn() -> bool {  // snippet$__comptime_EITHER
-      (0 == 0) || ((10 / 0) > 1)
+      true
   }
   snippet.EITHER: bool: true  // snippet$EITHER
   snippet.__comptime_SHOWN :: fn() -> string {  // snippet$__comptime_SHOWN
