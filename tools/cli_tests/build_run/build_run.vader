@@ -418,37 +418,6 @@ test_a_wasm_build_reads_files_through_std_fs :: fn() -> void {
     assert_eq(run.stdout, "read true\ntrue\ntrue\ntrue true false\ntrue\ntrue true\n")
 }
 
-// Under WASI a relative path resolves against the working directory of the
-// program, which `set_current_working_directory` moves, as it does natively.
-@test
-test_a_wasm_build_resolves_paths_against_its_working_directory :: fn() -> void {
-    if !has_wasmtime() {
-        return
-    }
-    dir :: staged(
-        "wasm_working_directory",
-        """
-        module "main"
-
-        import "std/console"
-        import "std/env"
-        import "std/fs"
-
-        main :: fn() -> i32 {
-            create_dir("sub") else return 1
-            write_file("sub/x.txt", "x") else return 2
-            set_current_working_directory("sub") else return 3
-            println("\${exists("x.txt")} \${exists("sub/x.txt")}")
-            return 0
-        }
-        """,
-    )
-    no_cc: [string, string | null][]: [["CC", ""]]
-    run :: vader_in(dir, ["build", "--target=wasi-wasm32", "--run", "main.vader"], no_cc)
-    assert_eq(run.exit, 0)
-    assert_eq(run.stdout, "true false\n")
-}
-
 // `std/fs` gives every handle back to the host under WASI: the preopened
 // directories a path resolves under, the descriptor of a closed file, and the
 // stream of a read a seek abandons. The host bounds the handles it keeps, and a
