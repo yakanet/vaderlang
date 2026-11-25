@@ -208,12 +208,18 @@ write_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: BuildReques
     return 0
 }
 
-// Write the `.wasm` module of a program built for a WASM target.
+// Write the `.wasm` component of a program built for a WASM target, its core
+// module optimized under `--release`.
 write_wasm :: fn(b: CfgBytecode, stem: Path, request: BuildRequest) -> i32 {
-    bytes :: Wasm.wasm_binary_of(b.module, b.entry, b.exit_threads) else {
-        eprintln("vader build: ${bytes.reason}")
+    component :: Wasm.wasm_component_of(b.module, b.entry, b.exit_threads) else {
+        eprintln("vader build: ${component.reason}")
         return 1
     }
+    core :: core_module_bytes(component.core, request.release) else {
+        eprintln("vader build: ${core.message}")
+        return 1
+    }
+    bytes :: Wasm.encode_component(component, core)
     out :: wasm_path(request.out, stem)
     if write_out(out, bytes) != 0 {
         return 1
@@ -221,6 +227,15 @@ write_wasm :: fn(b: CfgBytecode, stem: Path, request: BuildRequest) -> i32 {
     Prof.end_program(out.filename())
     eprintln("vader build: wrote ${out.to_native()}")
     return 0
+}
+
+// The bytes of the core module `core`, optimized by wasm-opt for a release.
+core_module_bytes :: fn(core: Wasm.WasmModule, release: bool) -> u8[] | WasmToolProblem {
+    bytes :: Wasm.encode_module(core)
+    if !release {
+        return bytes
+    }
+    return optimize_core_module(bytes)
 }
 
 /// Where a WASM build writes the component of `stem`.

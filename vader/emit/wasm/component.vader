@@ -69,11 +69,14 @@ export RUN_INTERFACE: string: "wasi:cli/run@0.3.0"
 /// The core export the component lifts as `run`.
 export RUN_EXPORT: string: "run"
 
-/// Write `c` in the binary format of the component model.
+/// Write `component` in the binary format of the component model.
 ///
-/// @param c  the component.
-/// @return   the bytes of a `.wasm` file holding a component.
-export encode_component :: fn(component: WasmComponent) -> u8[] {
+/// @param component  the component.
+/// @param core       the bytes of its core module: `encode_module(component.core)`,
+///                   or a module optimized from it, which keeps its imports and
+///                   its exports.
+/// @return           the bytes of a `.wasm` file holding a component.
+export encode_component :: fn(component: WasmComponent, core: u8[]) -> u8[] {
     out: u8[]: [0x00, 0x61, 0x73, 0x6D, 0x0D, 0x00, 0x01, 0x00]
     // Every index below follows the order of `c.interfaces`, never `component`'s.
     c :: WasmComponent { ...component, .interfaces = import_order(component.interfaces) }
@@ -96,7 +99,7 @@ export encode_component :: fn(component: WasmComponent) -> u8[] {
     if c.core.table_import {
         out.push_table_sections(c.builtins.any_match((b) -> b.kind == .ThreadNewIndirect))
     }
-    out.push_component_section(.CoreModule, encode_module(c.core))
+    out.push_component_section(.CoreModule, core)
     // The allocator, when there is one, is the first core function.
     first_lowered :: allocator_count(allocating)
     if function_count > 0 {
@@ -1080,7 +1083,7 @@ test_encode_component_importing_a_clock :: fn() -> void {
     expected.push_all([0x0B, 0x18, 0x01, 0x00, 0x12])
     expected.push_all(RUN_INTERFACE.bytes())
     expected.push_all([0x05, 0x01, 0x00])
-    assert_bytes(encode_component(component), expected)
+    assert_bytes(encode_component(component, encode_module(component.core)), expected)
 }
 
 // `wasi:cli/stdout@0.3.0` as the program calls it: each type defined before the

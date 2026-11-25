@@ -21,7 +21,6 @@ import "std/process"
 import "std/string"
 Time :: import "std/time"
 import "cli"
-Semver :: import "semver"
 import "toolchain/project"
 import "vader/support/target"
 import "vader/front/resolver"
@@ -129,6 +128,13 @@ cmd_build :: fn(args: string[]) -> i32 {
         eprintln("vader ${RUN_COMMAND}: a program built for `${build_target}` "
             + "does not run on this `${host_target()}` machine")
         return 2
+    }
+    if build_target != null && is_wasm(build_target) && emit == "executable" {
+        missing :: missing_wasm_tool(run, parsed.bool_flag("release"))
+        if missing != null {
+            eprintln("vader build: ${missing.message}")
+            return 2
+        }
     }
 
     request :: BuildRequest {
@@ -265,44 +271,34 @@ launch_line :: fn(binary: Path, target: Target | null) -> string[] | null {
     return [launchable(exe)]
 }
 
-// The oldest release of wasmtime that runs WASI 0.3.
-WASMTIME_OLDEST: i32: 51
-
 // `wasmtime run` on the component at `binary` (`wasmtime_command`); null after
-// saying why wasmtime cannot run it.
+// saying the build left none. `cmd_build` checked wasmtime before compiling.
 wasmtime_line :: fn(binary: Path) -> string[] | null {
     component :: binary.as_string()
     if !exists(component) {
         eprintln("vader ${RUN_COMMAND}: the build left no component at `${binary.to_native()}`")
         return null
     }
-    asked :: spawn([WASMTIME_EXECUTABLE, "--version"])
-    if asked is ProcessError || asked.exit != 0 {
-        eprintln(
-            "vader ${RUN_COMMAND}: a `wasi-wasm32` build runs under `${WASMTIME_EXECUTABLE}`, which "
-                + "did not start: install it (https://wasmtime.dev)",
-        )
-        return null
-    }
-    release :: wasmtime_release(asked.stdout)
-    if release == null || release.major < WASMTIME_OLDEST {
-        eprintln(
-            "vader ${RUN_COMMAND}: `${asked.stdout.trim()}` is too old to run WASI 0.3: "
-                + "it takes ${WASMTIME_EXECUTABLE} ${WASMTIME_OLDEST} or later",
-        )
-        return null
-    }
     return wasmtime_command(component)
 }
 
-// The release `wasmtime --version` printed (`wasmtime 51.0.0 (...)`), null when it
-// reads none.
-wasmtime_release :: fn(printed: string) -> Semver.Version | null {
-    words :: printed.trim().split(" ")
-    if words.len() < 2 {
-        return null
+// The first tool a WASM build would run and cannot: wasm-opt under `--release`,
+// wasmtime under `--run`. Asked before compiling, which the missing tool would
+// otherwise waste.
+missing_wasm_tool :: fn(run: bool, release: bool) -> WasmToolProblem | null {
+    if release {
+        optimizer :: wasm_tool_release(WASM_OPT)
+        if optimizer is WasmToolProblem {
+            return optimizer
+        }
     }
-    return Semver.parse(words[1]) else null
+    if run {
+        runner :: wasm_tool_release(WASMTIME)
+        if runner is WasmToolProblem {
+            return runner
+        }
+    }
+    return null
 }
 
 // `path` as a program to launch. A name without a folder would be looked up on
@@ -461,6 +457,12 @@ emit_c_for_targets :: fn(file: Path, out: Path, request: BuildRequest) -> i32 {
     // re-walks that graph for every target.
     type_keys :: mods.map((m) -> type_keys_of(m.module)).collect()
     type_universe :: union_of_type_tables(type_keys)
+    // Every target declares the globals of every target, so the globals unit and
+    // the header do not differ by the globals one target alone reaches.
+    globals :: union_of_globals(mods.map((m) -> m.module).collect()) else is GlobalClash {
+        eprintln("vader build: the targets declare the global `${globals.name}` at two classes")
+        return 1
+    }
     // ONE header name for every target. It holds the struct typedefs, the
     // prototypes and the atom count (all identical once the universe is shared)
     // so per-target copies would differ in nothing but their own `#include`
@@ -485,6 +487,7 @@ emit_c_for_targets :: fn(file: Path, out: Path, request: BuildRequest) -> i32 {
                 CEmitOptions {
                     ...native_c_options(mods[i]),
                     .atom_universe = universe,
+                    .global_universe = globals,
                 },
                 header_name,
             ),
@@ -666,19 +669,4 @@ ensure_target_dir :: fn(out: Path, target: string) -> i32 {
         return 1
     }
     return 0
-}
-
-// ---- tests ----------------------------------------------------------------
-
-import "std/testing"
-
-@test
-test_wasmtime_release_reads_the_version :: fn() -> void {
-    release :: wasmtime_release("wasmtime 51.0.0 (32656dc48 2026-11-20)\n")
-    assert(release != null && release.major == 51, "release 51")
-}
-
-@test
-test_wasmtime_release_of_no_version_is_null :: fn() -> void {
-    assert(wasmtime_release("wasmtime next") == null, "no version")
 }

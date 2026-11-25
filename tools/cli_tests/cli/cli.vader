@@ -400,6 +400,13 @@ export has_wasmtime :: fn() -> bool {
     return probed is ProcessResult && probed.exit == 0
 }
 
+/// Whether wasm-opt runs on this host: a test of a `wasi-wasm32` build under
+/// `--release` has nothing to check without it.
+export has_wasm_opt :: fn() -> bool {
+    probed :: run_command(["wasm-opt", "--version"])
+    return probed is ProcessResult && probed.exit == 0
+}
+
 // How `build/vader` is built from the sources.
 REBUILD :: "build it with `bash bootstrap/build.sh`"
 

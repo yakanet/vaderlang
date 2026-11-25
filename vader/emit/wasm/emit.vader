@@ -48,7 +48,7 @@ export wasm_binary_of :: fn(
     exit_mangled: string = "",
 ) -> u8[] | WasmUnsupported {
     component :: wasm_component_of(m, entry_mangled, exit_mangled) else return component
-    return encode_component(component)
+    return encode_component(component, encode_module(component.core))
 }
 
 /// Translate a program to a component.
@@ -1176,7 +1176,13 @@ test_a_bytecode_global_takes_the_first_global :: fn() -> void {
     ]
     program :: straight(body)
     program.types = [Bc.BcScalar { .val = .I64 }]
-    program.globals = [Bc.BcGlobal { .name = "count", .type_id = 0 }]
+    program.globals = [
+        Bc.BcGlobal {
+            .name = "count",
+            .module = "m",
+            .type_id = 0,
+        },
+    ]
     wasm :: wasm_module_of(program, "") else panic(wasm.reason)
     assert(wasm.globals.len() == 1 && wasm.globals[0] == .I64, "one `i64` global")
     read :: wasm.functions[0].body[0]

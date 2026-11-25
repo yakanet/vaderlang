@@ -60,7 +60,7 @@ The C goes to `c/` beside the binary and the object files to `obj/` (none under 
 
 - An executable needs a C compiler for it, named by `--cc`, `$CC` or `ctx.cc` in a `build.vader`, and taken to target it. Without one, a file or a `vader.json` project stops.
 - `--emit=c` needs no C compiler.
-- `--target=wasi-wasm32` writes a WebAssembly component, `main.wasm`, which `wasmtime run main.wasm` or `--run` runs, and needs no C compiler. The emitter translates part of the language so far, and names what stops a build. `browser-wasm32` is planned.
+- `--target=wasi-wasm32` writes a WebAssembly component, `main.wasm`, which `wasmtime run main.wasm` or `--run` runs, and needs no C compiler. Under `--release`, `wasm-opt` (133 or later, on `PATH`) optimizes its core module at `-O2`. A build that needs wasmtime or wasm-opt and cannot start it, or finds it too old, stops before compiling. The emitter translates part of the language so far, and names what stops a build. `browser-wasm32` is planned.
 
 `VADER_OPT_REPORT=1` prints on stderr where an optimisation fell back to its general path, without changing the program.
 
@@ -202,7 +202,7 @@ x: f64
 
 `vader info [path]` describes a project folder without building: its entries, search roots and assets, and which of `vader.json` and `build.vader` declares them. Each path is shown absolute, marked `missing` when nothing is there, and a search root says whose modules its folder holds, `toolchain` or `project`; the output folder of each profile follows, then the source stages its `build.vader` plugs, in the order a load runs them, the compiler's own left out: each with the decorators it reads and writes, and `gives bodies` for one with a body stage of its name. `--json` prints them in the shape of a `vader.json`, with the `name` and `version` a `vader.json` gives, plus `kind` (`manifest` or `driver`), `root`, and `resolved`: each entry, search root and asset with its absolute `path` and `status` (`found` or `missing`), a found root with its `origin`, and the `output` folder of each profile; and `stages`, each with its `name`, the decorators it reads (`given`) and writes (`generates`), each a `decorator` and the `module` that declares it, none for the compiler's, and `bodies`, true for a stage with a body stage of its name. Under `--no-driver-build`, a driven project whose driver is not compiled exits with 3.
 
-`vader doctor` checks the toolchain (*Toolchain*), the C compiler `--cc` names and the environment (`$CC`, the runtime's variables of [`RUNTIME.md`](RUNTIME.md)), saying where it looked; the project is `vader info`'s. It exits with 1 on a failed check, 0 on a warning. `--json` prints `{ "ok": ..., "checks": [...] }`, each check with its `name`, `status`, `summary` and `detail`.
+`vader doctor` checks the toolchain (*Toolchain*), the C compiler `--cc` names, the wasmtime and wasm-opt a WebAssembly build runs (a warning when one is missing) and the environment (`$CC`, the runtime's variables of [`RUNTIME.md`](RUNTIME.md)), saying where it looked; the project is `vader info`'s. It exits with 1 on a failed check, 0 on a warning. `--json` prints `{ "ok": ..., "checks": [...] }`, each check with its `name`, `status`, `summary` and `detail`.
 
 ### REPL *(planned)*
 

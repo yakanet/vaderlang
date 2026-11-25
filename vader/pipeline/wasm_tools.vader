@@ -1,0 +1,153 @@
+// vader/pipeline/wasm_tools: the programs a WASM build hands work to.
+//
+// A `wasi-wasm32` build writes its component alone. Two tools come in on
+// request: wasmtime runs the component (`vader run`, `vader build --run`), and
+// wasm-opt optimizes it under `--release`. wasm-opt reads core modules, not
+// components, so it runs on the core module before the component is written
+// around it (`output.vader`). `vader doctor` reports both.
+
+module "vader/pipeline"
+
+import "std/env"
+import "std/fs"
+import "std/path"
+import "std/process"
+import "std/string"
+
+/// A program a WASM build runs, and the oldest release of it that does the job.
+export WasmTool :: struct {
+    executable: string
+    /// The major number of the oldest release that does the job.
+    oldest:     i32
+    /// What a build asks of it, worded to follow the tool's name.
+    purpose:    string
+    /// Where to get it.
+    site:       string
+}
+
+/// wasmtime, which runs a component: WASI 0.3 starts at its release 51.
+export WASMTIME :: WasmTool {
+    .executable = WASMTIME_EXECUTABLE,
+    .oldest = 51,
+    .purpose = "runs a `wasi-wasm32` build",
+    .site = "https://wasmtime.dev",
+}
+
+/// wasm-opt, which optimizes the core module of a `--release` build. Release 133
+/// is the oldest known to read every feature `WASM_OPT_FEATURES` names.
+export WASM_OPT :: WasmTool {
+    .executable = "wasm-opt",
+    .oldest = 133,
+    .purpose = "optimizes a `wasi-wasm32` build under `--release`",
+    .site = "https://github.com/WebAssembly/binaryen",
+}
+
+/// Why a tool cannot do its part of a build.
+export WasmToolProblem :: struct {
+    /// Worded to follow the command's name: `vader build: <message>`.
+    message: string
+}
+
+WasmToolProblem implements Error -> self.message
+
+/// Ask `tool` which release it is, and check it is recent enough.
+///
+/// @param tool  the tool a build is about to run.
+/// @return      the first line its `--version` printed.
+/// @error       `WasmToolProblem` when the tool does not start, or names no
+///              release, or one older than `tool.oldest`.
+export wasm_tool_release :: fn(tool: WasmTool) -> string | WasmToolProblem {
+    asked :: spawn([tool.executable, "--version"])
+    if asked is ProcessError || asked.exit != 0 {
+        return WasmToolProblem {
+            .message = "`${tool.executable}` ${tool.purpose}, and it did not start: "
+                + "install it (${tool.site})",
+        }
+    }
+    printed :: asked.stdout.trim().split("\n")[0]
+    major :: release_major(printed)
+    if major == null || major < tool.oldest {
+        return WasmToolProblem {
+            .message = "`${printed}` is too old: it takes "
+                + "${tool.executable} ${tool.oldest} or later",
+        }
+    }
+    return printed
+}
+
+// The major number of the first word of `printed` that opens with one:
+// `wasmtime 51.0.0 (...)` and `wasm-opt version 133` alike; null when none does.
+release_major :: fn(printed: string) -> i32 | null {
+    for word in printed.split(" ") {
+        major :: parse_int(word.split(".")[0]) else continue
+        return major
+    }
+    return null
+}
+
+/// The features wasm-opt is told the core module uses: those the emitter writes.
+/// `--all-features` would let it write some that wasmtime does not read.
+WASM_OPT_FEATURES: string[]: [
+    "--enable-gc",
+    "--enable-reference-types",
+    "--enable-exception-handling",
+    "--enable-multivalue",
+    "--enable-bulk-memory",
+    "--enable-sign-ext",
+    "--enable-mutable-globals",
+    "--enable-nontrapping-float-to-int",
+]
+
+/// Optimize a core module with wasm-opt at `-O2`.
+///
+/// @param core  the bytes of the core module.
+/// @return      the bytes of the optimized module, with the same imports and
+///              exports.
+/// @error       `WasmToolProblem` when wasm-opt does not run, or fails on the
+///              module.
+export optimize_core_module :: fn(core: u8[]) -> u8[] | WasmToolProblem {
+    work :: create_unique_dir(temp_dir(), "vader-wasm-opt.") else {
+        return WasmToolProblem { .message = "no folder for wasm-opt to work in: ${work.message()}" }
+    }
+    defer remove(work, RemoveOptions { .recursive = true })
+    input :: work.to_path().join("core.wasm").as_string()
+    output :: work.to_path().join("optimized.wasm").as_string()
+    written :: write_file(input, core) else {
+        return WasmToolProblem { .message = "cannot write `${input}`: ${written.message()}" }
+    }
+    argv :: [WASM_OPT.executable, "-O2"] + WASM_OPT_FEATURES + [input, "-o", output]
+    ran :: spawn(argv) else {
+        return WasmToolProblem {
+            .message = "`${WASM_OPT.executable}` did not start: ${ran.message()}",
+        }
+    }
+    if ran.exit != 0 {
+        return WasmToolProblem {
+            .message = "`${WASM_OPT.executable}` failed (exit ${ran.exit}):\n${ran.stderr}",
+        }
+    }
+    // An optimized module is smaller than its input: the margin is for one that is not.
+    optimized :: read_file_bytes(output, READ_LIMIT_DEFAULT + core.len()) else {
+        return WasmToolProblem { .message = "cannot read `${output}`: ${optimized.message()}" }
+    }
+    return optimized
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_release_major_of_wasmtime :: fn() -> void {
+    assert(release_major("wasmtime 51.0.0 (32656dc48 2026-11-20)") == 51, "release 51")
+}
+
+@test
+test_release_major_of_wasm_opt :: fn() -> void {
+    assert(release_major("wasm-opt version 133") == 133, "release 133")
+}
+
+@test
+test_release_major_of_no_version_is_null :: fn() -> void {
+    assert(release_major("wasmtime next") == null, "no version")
+}

@@ -72,7 +72,7 @@ check_fail :: fn(name: string, summary: string, detail: string) = Check {
 ///
 /// Takes no positional argument: it inspects the environment, not a file. The
 /// checks run in the order they are reported, and every one of them is cheap:
-/// filesystem probes plus a single `cc --version` spawn.
+/// filesystem probes plus the `--version` of `cc`, wasmtime and wasm-opt.
 ///
 /// @param args  the action's zone; `--json` and `--cc` are the only flags read.
 /// @return      1 when any check failed (or an argument was rejected), else 0.
@@ -112,6 +112,8 @@ collect_checks :: fn(cc: string) -> Check[] {
         check_toolchain_home(home, home_lib),
         check_library_root(exe_dir, home_lib),
         check_runtime_headers(),
+        check_wasm_tool(WASMTIME),
+        check_wasm_tool(WASM_OPT),
     ]
     out.push_all(check_environment())
     return out
@@ -275,6 +277,15 @@ check_runtime_headers :: fn() -> Check {
         "not found: a native build cannot compile the runtime",
         "looked for `${RUNTIME_HEADER}` under ${root.to_native()}",
     )
+}
+
+// A tool a WASM build hands work to (`wasm_tools.vader`). Only such a build
+// needs it, so one missing or too old is a warning.
+check_wasm_tool :: fn(tool: WasmTool) -> Check {
+    location :: resolve_program(tool.executable) else ""
+    release :: wasm_tool_release(tool)
+        else return check_warn(tool.executable, release.message, location.to_native())
+    return check_ok(tool.executable, release, location.to_native())
 }
 
 // Header proving a candidate directory is the C runtime: the same marker

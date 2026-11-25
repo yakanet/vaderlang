@@ -472,6 +472,31 @@ test_a_wasm_build_gives_its_handles_back :: fn() -> void {
     assert_eq(run.stdout, "found 20000\n")
 }
 
+// `--release` hands the core module of a `wasi-wasm32` build to wasm-opt, and the
+// component around the optimized module still runs.
+@test
+test_a_wasm_release_build_runs_optimized :: fn() -> void {
+    if !has_wasmtime() || !has_wasm_opt() {
+        return
+    }
+    dir :: staged("wasm_release", program("optimized", 0))
+    no_cc: [string, string | null][]: [["CC", ""]]
+    args :: ["build", "--target=wasi-wasm32", "--release", "--run", "main.vader"]
+    run :: vader_in(dir, args, no_cc)
+    assert(run.exit == 0, run.stdout + run.stderr)
+    assert_eq(run.stdout, "optimized\n")
+}
+
+// A tool a WASM build needs and cannot start stops it before it compiles.
+@test
+test_a_wasm_release_build_needs_wasm_opt :: fn() -> void {
+    dir :: staged("wasm_release_no_tool", program("app", 0))
+    no_tools: [string, string | null][]: [["CC", ""], ["PATH", dir]]
+    built :: vader_in(dir, ["build", "--target=wasi-wasm32", "--release", "main.vader"], no_tools)
+    assert_eq(built.exit, 2)
+    assert("`wasm-opt` optimizes a `wasi-wasm32` build" in built.stderr, built.stderr)
+}
+
 @test
 test_run_refuses_a_build_that_makes_no_program_for_this_host :: fn() -> void {
     dir :: staged("nothing_to_run", program("app", 0))
