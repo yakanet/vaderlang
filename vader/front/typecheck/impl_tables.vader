@@ -530,11 +530,11 @@ unmet_bound_detail :: fn(
 satisfies_bound :: fn(arg: Type, trait_key: string, typed: TypedProgram) -> bool = match arg {
     is TypeParamType -> bound_names_trait(arg, trait_key, typed)
     is UnionType     -> (all_satisfy_bound(arg.variants, trait_key, typed)
-        && (trait_key != core_trait_key(TRAIT_EQUALS) || untagged_beside_variant(arg) == null))
+        && (trait_key != EQUALS_TRAIT_KEY || untagged_beside_variant(arg) == null))
     is TraitType     -> trait_key_of(arg.symbol) == trait_key || struct_implements_trait(arg, trait_key, typed)
     is DistinctType  -> (struct_implements_trait(arg, trait_key, typed)
         || satisfies_bound(arg.backing, trait_key, typed))
-    is ArrayType     -> trait_key != core_trait_key(TRAIT_DISPLAY) && struct_implements_trait(arg, trait_key, typed)
+    is ArrayType     -> trait_key != DISPLAY_TRAIT_KEY && struct_implements_trait(arg, trait_key, typed)
     is AnyType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType | NeverType
         | SelfType | InferVar -> true
     // A range is its integer to every impl (`impl_base_key`).
@@ -755,7 +755,7 @@ resolve_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedProgram)
     // A `generator`'s `<fn>$State<E>` implements `Iterator<E>`: its trait args ARE
     // its own type args (the concrete element carried per instance). The synthetic
     // struct has no `struct_decl`, so the generic-substitution path below can't apply.
-    if trait_key == core_trait_key(TRAIT_ITERATOR) {
+    if trait_key == ITERATOR_TRAIT_KEY {
         if is_gen_state_struct(t) {
             if t is StructType { return t.args }
         }

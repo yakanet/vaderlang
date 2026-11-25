@@ -167,7 +167,7 @@ opaque_iter_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
     t :: ctx.types.expr_type(expr)
     if !(t is StructType) { return null }
     if is_gen_state_struct(t) { return null }
-    if !struct_implements_trait(t, core_trait_key(TRAIT_ITERATOR), ctx.typed) { return null }
+    if !struct_implements_trait(t, ITERATOR_TRAIT_KEY, ctx.typed) { return null }
     elem :: opaque_iter_element(ctx, t) else return null
     return mk_opaque_iter_chain(expr, elem, expr.span)
 }

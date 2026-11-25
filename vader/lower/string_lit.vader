@@ -391,7 +391,7 @@ render_part :: fn(
     }
     // A member dispatched at run time ; a value no writer takes (one that never
     // exists) renders through the vtable too.
-    display :: core_trait_key(TRAIT_DISPLAY)
+    display :: DISPLAY_TRAIT_KEY
     return virtual_call(ctx, display, METHOD_TO_STRING, value, [], TY_STRING, span)
 }
 
@@ -413,7 +413,7 @@ writes_part :: fn(ctx: FnLowerCtx, callee: Callee | null, shown: Type) -> bool {
 // `bool`, a `string`, or a distinct over one with no `Display` of its own.
 writes_itself :: fn(ctx: FnLowerCtx, t: Type) -> bool {
     if t is DistinctType {
-        own :: ctx.project.impls.impls_of(impl_base_key(t), core_trait_key(TRAIT_DISPLAY))
+        own :: ctx.project.impls.impls_of(impl_base_key(t), DISPLAY_TRAIT_KEY)
         return own.len() == 0 && writes_itself(ctx, t.backing)
     }
     return classify_kind(t) != .Display

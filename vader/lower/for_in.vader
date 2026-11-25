@@ -296,8 +296,8 @@ build_step_call :: fn(
     step_union: Type,
     span: Span,
 ) -> LoweredExpr {
-    if iter_type is TraitType && is_core_trait(iter_type, TRAIT_ITERATOR) {
-        trait_key :: core_trait_key(TRAIT_ITERATOR)
+    if iter_type is TraitType && is_core_trait(iter_type, ITERATOR_TRAIT_KEY) {
+        trait_key :: ITERATOR_TRAIT_KEY
         dispatched :: virtual_call(ctx, trait_key, METHOD_NEXT, iter_ref, [], step_union, span)
         return observed_step(ctx, node, dispatched)
     }
@@ -331,7 +331,7 @@ observed_step :: fn(ctx: FnLowerCtx, node: AST.Expr | null, made: LoweredExpr) -
 // account (`node` null), its impl of `Iterator`.
 step_member :: fn(ctx: FnLowerCtx, node: AST.Expr | null, iter_type: Type) -> UfcsMember | null {
     if node == null {
-        return resolve_impl_member(ctx, iter_type, core_trait_key(TRAIT_ITERATOR), METHOD_NEXT)
+        return resolve_impl_member(ctx, iter_type, ITERATOR_TRAIT_KEY, METHOD_NEXT)
     }
     next :: recorded_target(ctx, node, .IterNext, iter_type)
     if next is UfcsMember {

@@ -33,7 +33,7 @@ import "vader/lower/ir"
 /// @param project      the lowered project ; its modules gain the guard fns.
 /// @param project_ctx  mints the guards' symbol ids.
 guard_equals_slots :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) -> void {
-    equals_key :: core_trait_key(TRAIT_EQUALS)
+    equals_key :: EQUALS_TRAIT_KEY
     // A primitive's impl may be lowered twice under one mangle ; it gets one guard.
     guarded :: Set<string> {}
     for [_, m] in project.modules {

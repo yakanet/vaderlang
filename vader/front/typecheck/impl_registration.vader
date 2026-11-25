@@ -146,7 +146,7 @@ record_impl_members :: fn(
     index_impl_metadata(tables, for_ty, trait_key, trait_args)
     record_struct_trait_args(tables, for_ty, trait_key, trait_args)
     trait_decl :: owner.trait_decls[trait_sym.id]
-    is_into :: trait_key == core_trait_key(TRAIT_INTO) && trait_args.len() == 1
+    is_into :: trait_key == INTO_TRAIT_KEY && trait_args.len() == 1
     side :: impl_side_key(for_ty)
     trait_type :: TraitType { .symbol = trait_sym, .args = written }
     if written.len() == 1 {
@@ -261,22 +261,22 @@ index_impl_metadata :: fn(
     trait_args: Type[],
 ) -> void {
     key :: impl_side_key(for_ty)
-    if trait_key == core_trait_key(TRAIT_ITERATOR) && trait_args.len() == 1 {
+    if trait_key == ITERATOR_TRAIT_KEY && trait_args.len() == 1 {
         tables.iter_element_types[key] = trait_args[0]
     }
     // A type that is an `Iterator` itself is walked through its own `next`, whatever
     // it converts into.
-    if trait_key == core_trait_key(TRAIT_INTO) && trait_args.len() == 1 {
-        elem :: core_trait_arg(trait_args[0], TRAIT_ITERATOR)
+    if trait_key == INTO_TRAIT_KEY && trait_args.len() == 1 {
+        elem :: core_trait_arg(trait_args[0], ITERATOR_TRAIT_KEY)
         if elem != null && !has_iterator_impl(tables, key) {
             tables.iter_element_types[key] = elem
         }
     }
-    if trait_key == core_trait_key(TRAIT_INDEX) && trait_args.len() == 2 {
+    if trait_key == INDEX_TRAIT_KEY && trait_args.len() == 2 {
         tables.index_key_types[key] = trait_args[0]
         tables.index_target_types[key] = trait_args[1]
     }
-    if trait_key == core_trait_key(TRAIT_INDEX_SET) && trait_args.len() == 2 {
+    if trait_key == INDEX_SET_TRAIT_KEY && trait_args.len() == 2 {
         tables.index_set_key_types[key] = trait_args[0]
         tables.index_set_value_types[key] = trait_args[1]
     }
@@ -284,7 +284,7 @@ index_impl_metadata :: fn(
 
 has_iterator_impl :: fn(tables: ImplTables, key: string) -> bool {
     traits :: tables.struct_implemented_traits[key] else return false
-    return core_trait_key(TRAIT_ITERATOR) in traits
+    return ITERATOR_TRAIT_KEY in traits
 }
 
 // Append `trait_key` to `m[key]`'s bucket unless already present.

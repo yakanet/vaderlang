@@ -143,7 +143,7 @@ destructure_element_types :: fn(value_ty: Type, count: i64) -> Type[] | null {
 // (`dispatched_index_args`) or of its own impl. Null when the receiver is
 // unresolved or the write is refused: reported.
 index_write_slot :: fn(ix: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type | null {
-    set_trait :: core_trait_key(TRAIT_INDEX_SET)
+    set_trait :: INDEX_SET_TRAIT_KEY
     receiver_ty :: check_expr(ix.target, null, typed, diags)
     // Each route below files what it runs.
     record_site(typed, ix, .IndexWrite, UNSETTLED_CALLEE)

@@ -53,7 +53,7 @@ export CalleeIndex :: struct {
     /// what such a call returns hands one out at each step (`spread_views`).
     handing_nodes: Set<i32> = Set<i32> {}
     /// The `trait_key` of `Iterator`, whose `next` hands out a part of its receiver.
-    iterator_key: string = core_trait_key(TRAIT_ITERATOR)
+    iterator_key: string = ITERATOR_TRAIT_KEY
     /// Per node of a `next`, the nodes whose body builds an iterator it serves: they
     /// are walked again once that `next` is found to return a view.
     built_by: Map<i32, Set<i32>> = Map<i32, Set<i32>> {}
@@ -341,9 +341,6 @@ function_key :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) ->
     }
     return "${typed.resolved.display_path}.${decl.name}"
 }
-
-// The `trait_key` of `std/core`'s `Intrinsic`.
-INTRINSIC_TRAIT_KEY :: @comptime core_trait_key(TRAIT_INTRINSIC)
 
 // Whether a value of type `t` may reach something a function could change
 // (`is_value_only_type`) ; true when the type is not known.

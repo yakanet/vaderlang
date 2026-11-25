@@ -242,7 +242,7 @@ bare_else_failures :: fn(t: Type, typed: TypedProgram) -> Type[] {
 // whose impl says so. A type parameter, a trait value or `any` may hold one or
 // not, which only a written `else is Error` tests.
 is_known_error :: fn(t: Type, typed: TypedProgram) -> bool =
-    t is StructType | EnumType && struct_implements_trait(t, core_trait_key(TRAIT_ERROR), typed)
+    t is StructType | EnumType && struct_implements_trait(t, ERROR_TRAIT_KEY, typed)
 
 // The result once a clause gives `got` : unchanged when it fits what no clause
 // handled, that value's type when every value went to a clause, widened by a
@@ -752,7 +752,7 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, 
     // matched through the `"[]"` base key (`impl_base_key`): no array special-case
     // needed (it used to be required because the element-specific `[string]` key
     // never matched the generic blanket).
-    candidates :: trait_members(typed, right, core_trait_key(TRAIT_CONTAINS), METHOD_CONTAINS)
+    candidates :: trait_members(typed, right, CONTAINS_TRAIT_KEY, METHOD_CONTAINS)
     if candidates.len() > 0 {
         // Several `Contains` impls (`Contains<i32>`, `Contains<string>`) : the
         // element picks one.
@@ -760,7 +760,7 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, 
         // The impl may bound its argument : `T[] implements<T: Equals> Contains<T>`
         // holds for no element type outside the bound.
         reject_unmet_impl_bounds(
-            right, core_trait_key(TRAIT_CONTAINS), .OperatorTraitNotImplemented, e.span,
+            right, CONTAINS_TRAIT_KEY, .OperatorTraitNotImplemented, e.span,
             typed, diags,
         )
         check_contains_element(e, left, right, chosen, typed, diags)
@@ -793,7 +793,7 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, 
 // through `Contains` at run time (`dispatched_member`), its trait's ; null when `c`
 // has several or none.
 contained_element :: fn(c: Type, span: Span, typed: TypedProgram) -> Type | null {
-    key :: core_trait_key(TRAIT_CONTAINS)
+    key :: CONTAINS_TRAIT_KEY
     candidates :: trait_members(typed, c, key, METHOD_CONTAINS)
     if candidates.len() == 1 {
         return contains_value(c, candidates[0], typed)
@@ -1104,7 +1104,7 @@ part_without_equality :: fn(t: Type, typed: TypedProgram) -> Type | null = match
     is TupleType -> first_without_equality(t.elements, typed)
     is TraitType | FnType -> t
     is StructType | ArrayType | TypeParamType | InferVar ->
-        if satisfies_bound(t, core_trait_key(TRAIT_EQUALS), typed) { null } else { t }
+        if satisfies_bound(t, EQUALS_TRAIT_KEY, typed) { null } else { t }
     is DistinctType -> distinct_part_without_equality(t, typed)
     is PrimitiveType | EnumType | RangeType | AnyType | UnresolvedType | NeverType | SelfType
         | TypeMetaType | FreeIntType | FreeFloatType | FreeCharType -> null
@@ -1114,7 +1114,7 @@ part_without_equality :: fn(t: Type, typed: TypedProgram) -> Type | null = match
 // backing has no `==`, the distinct is what the operand was written as, so it is
 // the one named: `Row`, not the `i32[]` behind it.
 distinct_part_without_equality :: fn(t: DistinctType, typed: TypedProgram) -> Type | null {
-    if struct_implements_trait(t, core_trait_key(TRAIT_EQUALS), typed) {
+    if struct_implements_trait(t, EQUALS_TRAIT_KEY, typed) {
         return null
     }
     part :: part_without_equality(t.backing, typed) else return null

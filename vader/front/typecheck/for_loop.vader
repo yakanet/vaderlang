@@ -124,7 +124,7 @@ in_for_element :: fn(
         record_for_sites(typed, w.iter, iter_ty)
     }
     reject_unmet_impl_bounds(
-        iter_ty, core_trait_key(TRAIT_ITERATOR), .TraitNotSatisfied, w.iter.span,
+        iter_ty, ITERATOR_TRAIT_KEY, .TraitNotSatisfied, w.iter.span,
         typed, diags,
     )
     if elem is UnresolvedType && is_known_non_iterable(iter_ty) {
@@ -250,7 +250,7 @@ export for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             // in that body, and it is what LSP hover and the typecheck snapshots
             // read. Concretising it is the LOWERER's job, per instance: the entry's
             // `Substitution` binds `T`, and `resolve_element_type` applies it.
-            return core_trait_arg(iter_ty, TRAIT_ITERATOR) else TY_UNRESOLVED
+            return core_trait_arg(iter_ty, ITERATOR_TRAIT_KEY) else TY_UNRESOLVED
         }
         _                   -> { return TY_UNRESOLVED }
     }
@@ -275,17 +275,17 @@ is_known_non_iterable :: fn(t: Type) -> bool {
 // or, for a struct that is no `Iterator` itself, the `Into` toward one
 // (`Into<Iterator<i32>>` beside `Into<Iterator<string>>`). Null when one serves.
 several_iterators_trait :: fn(iter_ty: Type, typed: TypedProgram) -> string | null {
-    iterator :: core_trait_key(TRAIT_ITERATOR)
+    iterator :: ITERATOR_TRAIT_KEY
     if implements_more_than_once(iter_ty, iterator, typed) {
         return iterator
     }
     if iter_ty !is StructType || struct_implements_trait(iter_ty, iterator, typed) {
         return null
     }
-    into :: core_trait_key(TRAIT_INTO)
+    into :: INTO_TRAIT_KEY
     n := 0
     for args in struct_trait_arg_lists(iter_ty, into, typed) {
-        if args.len() == 1 && core_trait_arg(args[0], TRAIT_ITERATOR) != null {
+        if args.len() == 1 && core_trait_arg(args[0], ITERATOR_TRAIT_KEY) != null {
             n += 1
         }
     }

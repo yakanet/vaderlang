@@ -221,7 +221,7 @@ settled_bound_member :: fn(
         }
     }
     own :: resolve_impl_member(ctx, receiver, callee.trait_key, callee.member, callee.own_args)
-    if own != null || receiver !is EnumType || callee.trait_key != core_trait_key(TRAIT_HASH) {
+    if own != null || receiver !is EnumType || callee.trait_key != HASH_TRAIT_KEY {
         return own
     }
     // An enum's built-in `Hash` is its stored integer's ; its built-in `Equals` is
@@ -255,7 +255,7 @@ runs_builtin_equals :: fn(callee: Callee | null) -> bool {
     if callee is Builtin {
         return true
     }
-    return callee is BoundMember && callee.trait_key == core_trait_key(TRAIT_EQUALS)
+    return callee is BoundMember && callee.trait_key == EQUALS_TRAIT_KEY
 }
 
 /// The type arguments the typecheck recorded for the site `role` plays at `node`, at

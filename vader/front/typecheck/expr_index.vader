@@ -15,7 +15,7 @@ infer_index :: fn(e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) ->
     target :: check_expr(e.target, null, typed, diags)
     // Each route below files what it runs.
     record_site(typed, e, .IndexRead, UNSETTLED_CALLEE)
-    index_trait :: core_trait_key(TRAIT_INDEX)
+    index_trait :: INDEX_TRAIT_KEY
     dispatched :: dispatched_index_args(e, target, index_trait, typed, diags)
     // Pin a free-literal index key to the key type K so `m[9000000000]` on a
     // `Map<i64, _>` doesn't default to i32 and silently truncate. `null` for
@@ -255,7 +255,7 @@ index_key_expected :: fn(
     if members.len() > 1 {
         return range_literal_key(index, members, target, typed)
     }
-    keys :: if trait_key == core_trait_key(TRAIT_INDEX_SET) {
+    keys :: if trait_key == INDEX_SET_TRAIT_KEY {
         typed.impl_tables.index_set_key_types
     } else {
         typed.impl_tables.index_key_types
@@ -287,11 +287,11 @@ range_literal_key :: fn(
 // The member `x[i]` calls through `trait_key` : `at` for `Index`, `set_at` for
 // `IndexSet`.
 index_method :: fn(trait_key: string) -> string =
-    if trait_key == core_trait_key(TRAIT_INDEX_SET) { METHOD_SET_AT } else { METHOD_AT }
+    if trait_key == INDEX_SET_TRAIT_KEY { METHOD_SET_AT } else { METHOD_AT }
 
 // The role `x[i]` plays through `trait_key`.
 index_role :: fn(trait_key: string) -> CallRole =
-    if trait_key == core_trait_key(TRAIT_INDEX_SET) { .IndexWrite } else { .IndexRead }
+    if trait_key == INDEX_SET_TRAIT_KEY { .IndexWrite } else { .IndexRead }
 
 /// The member several impls of `trait_key` on `receiver` offer that the key `key_ty`
 /// picks (`Index<i32, Row>` beside `Index<Point, Cell>`), its signature on
@@ -360,7 +360,7 @@ index_write_type :: fn(receiver: Type, typed: TypedProgram) -> Type | null {
     if arr != null {
         return arr.element
     }
-    dispatched :: trait_dispatch_args(receiver, core_trait_key(TRAIT_INDEX_SET), typed)
+    dispatched :: trait_dispatch_args(receiver, INDEX_SET_TRAIT_KEY, typed)
     if dispatched != null {
         return dispatched[1]
     }
@@ -371,7 +371,7 @@ index_write_type :: fn(receiver: Type, typed: TypedProgram) -> Type | null {
 // array-backed distinct (`Ids :: i32[]`) that does not implement `IndexSet` of
 // its own (`index_route`). Null when the write goes through an `IndexSet` impl.
 stored_array :: fn(t: Type, typed: TypedProgram) -> ArrayType | null {
-    if index_route(t, core_trait_key(TRAIT_INDEX_SET), typed) != .Array {
+    if index_route(t, INDEX_SET_TRAIT_KEY, typed) != .Array {
         return null
     }
     return array_backing(t)

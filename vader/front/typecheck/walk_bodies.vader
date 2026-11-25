@@ -207,7 +207,7 @@ declare_and_check_impl :: fn(
     trait_type :: impl_trait_instance(id, typed.resolved, []) else return
     trait_sym :: trait_type.symbol
     trait_key :: trait_key_of(trait_sym)
-    if trait_key == core_trait_key(TRAIT_INTO) {
+    if trait_key == INTO_TRAIT_KEY {
         if trait_type.args.len() == 1 {
             target_ty :: trait_type.args[0]
             if equals_type(for_ty, target_ty) {

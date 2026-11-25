@@ -191,13 +191,32 @@ export trait_key_of :: fn(trait_sym: Symbol) -> string = qualified_symbol_name(t
 /// @param name  a `TRAIT_*` constant.
 export core_trait_key :: fn(name: string) -> string = declaration_mangle(CORE_MODULE, name)
 
-/// Whether `t` is the `std/core` trait `name`, told by its declaration rather
-/// than its spelling: a user trait named `Iterator` is not the core one.
+/// The `trait_key` of each `std/core` trait the compiler dispatches on, computed
+/// once by the build rather than at every lookup.
+export ADD_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_ADD)
+export COMPARABLE_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_COMPARABLE)
+export CONTAINS_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_CONTAINS)
+export DISPLAY_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_DISPLAY)
+export DIV_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_DIV)
+export EQUALS_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_EQUALS)
+export ERROR_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_ERROR)
+export HASH_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_HASH)
+export INDEX_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_INDEX)
+export INDEX_SET_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_INDEX_SET)
+export INTO_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_INTO)
+export INTRINSIC_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_INTRINSIC)
+export ITERATOR_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_ITERATOR)
+export MUL_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_MUL)
+export REM_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_REM)
+export SUB_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_SUB)
+
+/// Whether `t` is the `std/core` trait whose key is `key`, told by its
+/// declaration rather than its spelling: a user trait named `Iterator` is not the
+/// core one.
 ///
-/// @param t     a trait type.
-/// @param name  a `TRAIT_*` constant.
-export is_core_trait :: fn(t: TraitType, name: string) -> bool =
-    trait_key_of(t.symbol) == core_trait_key(name)
+/// @param t    a trait type.
+/// @param key  a `*_TRAIT_KEY` constant.
+export is_core_trait :: fn(t: TraitType, key: string) -> bool = trait_key_of(t.symbol) == key
 
 /// Whether `t` is the `std/core` struct `name`, told by its declaration rather
 /// than its spelling: a struct of the program named `Range` is not the core one.
@@ -231,14 +250,14 @@ export is_extern_source :: fn(t: Type) -> bool {
     return is_c_library(t) || is_wasm_interface(t)
 }
 
-/// The argument of `t` when it is the one-argument `std/core` trait `name`:
-/// `E` for `Iterator<E>`.
+/// The argument of `t` when it is the one-argument `std/core` trait whose key is
+/// `key`: `E` for `Iterator<E>`.
 ///
-/// @param t     the type to read.
-/// @param name  a `TRAIT_*` constant.
-/// @return      null for any other type.
-export core_trait_arg :: fn(t: Type, name: string) -> Type | null {
-    if t is TraitType && is_core_trait(t, name) && t.args.len() > 0 {
+/// @param t    the type to read.
+/// @param key  a `*_TRAIT_KEY` constant.
+/// @return     null for any other type.
+export core_trait_arg :: fn(t: Type, key: string) -> Type | null {
+    if t is TraitType && is_core_trait(t, key) && t.args.len() > 0 {
         return t.args[0]
     }
     return null
@@ -254,7 +273,7 @@ export core_trait_arg :: fn(t: Type, name: string) -> Type | null {
 /// @param trait_key  the trait asked for.
 export has_builtin_impl :: fn(t: Type, trait_key: string) -> bool =
     t is EnumType &&
-        (trait_key == core_trait_key(TRAIT_EQUALS) || trait_key == core_trait_key(TRAIT_HASH))
+        (trait_key == EQUALS_TRAIT_KEY || trait_key == HASH_TRAIT_KEY)
 
 /// The trait name inside a `trait_key`: what a message shows the user.
 ///

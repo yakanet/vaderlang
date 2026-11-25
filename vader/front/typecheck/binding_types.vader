@@ -118,7 +118,7 @@ into_tuple_target :: fn(declared: Type, arity: i64, typed: TypedProgram) -> Type
     }
     // Among its `Into` impls (`Into<[string, i32]>` beside `Into<Label>`), the one
     // toward a tuple of that arity.
-    for into_args in struct_trait_arg_lists(declared, core_trait_key(TRAIT_INTO), typed) {
+    for into_args in struct_trait_arg_lists(declared, INTO_TRAIT_KEY, typed) {
         if into_args.len() != 1 {
             continue
         }

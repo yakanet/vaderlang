@@ -71,7 +71,7 @@ emit_let_binding_leaves :: fn(
 // `self.<field>` reads (the zero-alloc inline case) and null otherwise. Mirror of
 // the typer's `into_tuple_target`, which picks the first `Into` of that arity too.
 into_tuple_fields :: fn(ctx: FnLowerCtx, target_type: Type, arity: i64) -> string[] | null {
-    for entry in ctx.project.impls.impls_for(target_type, core_trait_key(TRAIT_INTO)) {
+    for entry in ctx.project.impls.impls_for(target_type, INTO_TRAIT_KEY) {
         for m in entry.decl.members {
             if m.name != METHOD_INTO { continue }
             names :: seq_self_field_names(m)

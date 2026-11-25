@@ -476,7 +476,7 @@ first_member_callee :: fn(
 /// @param source  the converted value's type.
 /// @param target  the slot's type.
 converts_array_to_iterator :: fn(source: Type, target: Type) -> bool =
-    source is ArrayType && core_trait_arg(target, TRAIT_ITERATOR) != null
+    source is ArrayType && core_trait_arg(target, ITERATOR_TRAIT_KEY) != null
 
 /// The `into` a conversion of `source` into `target` runs: an array into an
 /// `Iterator` through the impl toward the target's base, nothing for the same type
@@ -520,7 +520,7 @@ step_callee :: fn(typed: TypedProgram, iter: AST.Expr, iter_ty: Type) -> Callee 
     if array_backing(iter_ty) != null || counts_in_place(typed, iter) {
         return BUILTIN_CALLEE
     }
-    iterator :: core_trait_key(TRAIT_ITERATOR)
+    iterator :: ITERATOR_TRAIT_KEY
     if iter_ty is TypeParamType | SelfType | TraitType {
         return dispatched_callee(iter_ty, iterator, METHOD_NEXT)
     }
@@ -532,8 +532,8 @@ step_callee :: fn(typed: TypedProgram, iter: AST.Expr, iter_ty: Type) -> Callee 
     if struct_implements_trait(iter_ty, iterator, typed) {
         return first_member_callee(typed, iter_ty, iterator, METHOD_NEXT)
     }
-    for m in trait_members(typed, iter_ty, core_trait_key(TRAIT_INTO), METHOD_INTO) {
-        if m.trait_args.len() == 1 && core_trait_arg(m.trait_args[0], TRAIT_ITERATOR) != null {
+    for m in trait_members(typed, iter_ty, INTO_TRAIT_KEY, METHOD_INTO) {
+        if m.trait_args.len() == 1 && core_trait_arg(m.trait_args[0], ITERATOR_TRAIT_KEY) != null {
             record_site(typed, iter, .IterInto, member_callee(m.decl, iter_ty))
             // The `Iterator` trait value the conversion hands back steps at run time.
             return TraitMember { .trait_key = iterator, .member = METHOD_NEXT }
@@ -581,10 +581,10 @@ display_callee :: fn(typed: TypedProgram, t: Type) -> Callee = match t {
 }
 
 dispatched_display :: fn(t: Type) -> Callee =
-    dispatched_callee(t, core_trait_key(TRAIT_DISPLAY), METHOD_TO_STRING)
+    dispatched_callee(t, DISPLAY_TRAIT_KEY, METHOD_TO_STRING)
 
 display_member :: fn(typed: TypedProgram, t: Type) -> Callee =
-    first_member_callee(typed, t, core_trait_key(TRAIT_DISPLAY), METHOD_TO_STRING)
+    first_member_callee(typed, t, DISPLAY_TRAIT_KEY, METHOD_TO_STRING)
 
 // The interpolation writes a `bool` or a `string` itself ; any other primitive
 // renders through its `Display`.
@@ -597,7 +597,7 @@ primitive_display :: fn(typed: TypedProgram, t: PrimitiveType) -> Callee {
 
 // A distinct renders through its own `Display`, else as its backing does.
 distinct_display :: fn(typed: TypedProgram, t: DistinctType) -> Callee {
-    if struct_implements_trait(t, core_trait_key(TRAIT_DISPLAY), typed) {
+    if struct_implements_trait(t, DISPLAY_TRAIT_KEY, typed) {
         return display_member(typed, t)
     }
     return display_callee(typed, t.backing)
@@ -618,7 +618,7 @@ equality_callee :: fn(left: Type, right: Type, typed: TypedProgram) -> Callee {
     if right is DistinctType && left !is DistinctType | UnionType {
         return equality_callee(right, left, typed)
     }
-    equals_key :: core_trait_key(TRAIT_EQUALS)
+    equals_key :: EQUALS_TRAIT_KEY
     return match left {
         is UnionType -> parts_equality(shared_variants(left, right), typed)
         is TupleType -> parts_equality(left.elements, typed)
@@ -635,7 +635,7 @@ equality_callee :: fn(left: Type, right: Type, typed: TypedProgram) -> Callee {
 
 // A distinct compares through its own `Equals`, else through its backing's rule.
 distinct_equality :: fn(t: DistinctType, typed: TypedProgram) -> Callee {
-    equals_key :: core_trait_key(TRAIT_EQUALS)
+    equals_key :: EQUALS_TRAIT_KEY
     if struct_implements_trait(t, equals_key, typed) {
         return first_member_callee(typed, t, equals_key, METHOD_EQUALS)
     }

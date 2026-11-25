@@ -79,7 +79,7 @@ own_equals_on_right :: fn(ctx: FnLowerCtx, left: Type, right: Type) -> bool {
     if right !is DistinctType || left is DistinctType | UnionType {
         return false
     }
-    return resolve_impl_member(ctx, right, core_trait_key(TRAIT_EQUALS), METHOD_EQUALS) != null
+    return resolve_impl_member(ctx, right, EQUALS_TRAIT_KEY, METHOD_EQUALS) != null
 }
 
 // Whether `t` is a distinct over a struct or an array, which the bare `==` would
@@ -143,7 +143,7 @@ value_eq :: fn(
 equals_call :: fn(
     ctx: FnLowerCtx, left: LoweredExpr, t: Type, right: LoweredExpr, span: Span,
 ) -> LoweredExpr | null {
-    equals_key :: core_trait_key(TRAIT_EQUALS)
+    equals_key :: EQUALS_TRAIT_KEY
     member :: resolve_impl_member(ctx, t, equals_key, METHOD_EQUALS) else return null
     return build_member_call_or_inline(ctx, member, [left, right], TY_BOOL, span)
 }
@@ -151,7 +151,7 @@ equals_call :: fn(
 virtual_equals :: fn(
     ctx: FnLowerCtx, left: LoweredExpr, right: LoweredExpr, span: Span,
 ) -> LoweredExpr {
-    equals :: core_trait_key(TRAIT_EQUALS)
+    equals :: EQUALS_TRAIT_KEY
     return virtual_call(ctx, equals, METHOD_EQUALS, left, [right], TY_BOOL, span)
 }
 

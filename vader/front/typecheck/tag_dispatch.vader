@@ -111,7 +111,7 @@ tag_member :: fn(
     }
     // An `Equals` slot checks its other operand's type before the impl runs
     // (`guard_equals`) : another type answers `false`.
-    guarded :: member.trait_key == core_trait_key(TRAIT_EQUALS)
+    guarded :: member.trait_key == EQUALS_TRAIT_KEY
     // A struct is a tagged reference in a container as in a box ; any other
     // implementor a trait value may hold is not.
     references :: owner is UnionType && owner.variants.all_match((v) -> v is StructType)

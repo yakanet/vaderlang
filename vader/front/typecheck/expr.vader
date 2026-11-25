@@ -374,7 +374,7 @@ check_interpolated_part :: fn(
         is EnumType      -> ("`${type.symbol.name}` does not implement it ; add `@displayable` to "
             + "render its variant names, or implement `Display`")
         _                -> ("`${display_type(type)}` does not implement it"
-            + unmet_impl_bound_note(type, core_trait_key(TRAIT_DISPLAY), typed))
+            + unmet_impl_bound_note(type, DISPLAY_TRAIT_KEY, typed))
     }
     diags.push(typecheck_error(.InterpolationRequiresDisplay, part.span, detail))
     return ERRONEOUS_CALLEE
@@ -384,15 +384,15 @@ check_interpolated_part :: fn(
 // distinct's backing, the elements of an array, every variant of a union, a
 // type parameter's bound.
 has_display :: fn(t: Type, typed: TypedProgram) -> bool = match t {
-    is PrimitiveType | StructType | EnumType -> struct_implements_trait(t, core_trait_key(TRAIT_DISPLAY), typed)
-    is DistinctType  -> (struct_implements_trait(t, core_trait_key(TRAIT_DISPLAY), typed)
+    is PrimitiveType | StructType | EnumType -> struct_implements_trait(t, DISPLAY_TRAIT_KEY, typed)
+    is DistinctType  -> (struct_implements_trait(t, DISPLAY_TRAIT_KEY, typed)
         || has_display(t.backing, typed))
     is ArrayType     -> has_display(t.element, typed)
     is UnionType     -> all_display(t.variants, typed)
     // A range renders as its integer.
     is RangeType     -> true
-    is TypeParamType -> param_trait_args(t, core_trait_key(TRAIT_DISPLAY), typed) != null
-    is TraitType     -> is_core_trait(t, TRAIT_DISPLAY)
+    is TypeParamType -> param_trait_args(t, DISPLAY_TRAIT_KEY, typed) != null
+    is TraitType     -> is_core_trait(t, DISPLAY_TRAIT_KEY)
     is FreeIntType | FreeFloatType | FreeCharType | NeverType -> true
     // A trait's own body is checked once per implementor, with `Self` resolved.
     is SelfType -> true
@@ -419,7 +419,7 @@ boxed_without_identity :: fn(t: Type, typed: TypedProgram) -> Symbol | null {
     if t !is UnionType {
         return null
     }
-    return variant_without_identity(t, core_trait_key(TRAIT_DISPLAY), typed)
+    return variant_without_identity(t, DISPLAY_TRAIT_KEY, typed)
 }
 
 // ---- tests ----------------------------------------------------------------

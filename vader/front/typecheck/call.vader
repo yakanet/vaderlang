@@ -1191,7 +1191,7 @@ check_typeparam_bounds :: fn(
             detail := unmet_bound_detail(bound.name, owner, wanted, reason) +
                 unmet_impl_bound_note(bound_ty, key, typed)
             // `satisfies_bound` refuses an array any `Display` : say why.
-            if bound_ty is ArrayType && key == core_trait_key(TRAIT_DISPLAY) {
+            if bound_ty is ArrayType && key == DISPLAY_TRAIT_KEY {
                 detail = ("an array renders only when interpolated directly, not through type "
                     + "parameter `${bound.name}` of `${owner}`")
             }

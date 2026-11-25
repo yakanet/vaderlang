@@ -237,7 +237,7 @@ lower_assign_target :: fn(ctx: FnLowerCtx, target: Expr) -> LoweredExpr {
     // that has one (`index_route`).
     if target is IndexExpr {
         receiver :: ctx.types.expr_type(target.target)
-        if index_route(receiver, core_trait_key(TRAIT_INDEX_SET), ctx.typed) == .Array {
+        if index_route(receiver, INDEX_SET_TRAIT_KEY, ctx.typed) == .Array {
             observe_no_call(ctx, target, .IndexWrite, "element")
             return LoweredIndex {
                 .span = target.span, .type = ctx.types.expr_type(target),
