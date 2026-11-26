@@ -26,6 +26,11 @@ export member_op :: fn(id: IntrinsicId) -> Op | null = match id {
     .BufferInternString -> BufferToString {}
     .BufferWriteString  -> BufferWriteString {}
     .StringCompare      -> StringCompare {}
+    .ByteLen            -> StringByteLen {}
+    .ByteAt             -> StringByteAt {}
+    .ByteSlice          -> StringByteSlice {}
+    .IsAscii            -> StringIsAscii {}
+    .StringHash         -> StringHash {}
     .F64ToBits          -> F64ToBits {}
     .BitsToF64          -> BitsToF64 {}
     .F32ToBits          -> F32ToBits {}
@@ -34,8 +39,7 @@ export member_op :: fn(id: IntrinsicId) -> Op | null = match id {
     .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast
         | .ArrayClear -> null
     // Served by a host.
-    .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .Bytes | .BytesToString
-        | .StringHash | .DeepCopy
+    .NotIntrinsic | .Bytes | .BytesToString | .DeepCopy
         | .RuntimeCollect | .RuntimeCountAllocations | .RuntimeStatistic
         | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
         | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
@@ -98,9 +102,11 @@ import "std/testing"
     assert(member_op(.F32ToBits) is F32ToBits, "f32_to_bits")
     assert(member_op(.BitsToF32) is BitsToF32, "bits_to_f32")
     assert(member_op(.NewByteBuffer) is BufferNew, "new_byte_buffer")
+    assert(member_op(.ByteLen) is StringByteLen, "byte_len")
+    assert(member_op(.ByteSlice) is StringByteSlice, "byte_slice")
 }
 
 @test test_a_member_a_host_serves_has_no_op :: fn() -> void {
-    assert(member_op(.ByteLen) == null, "byte_len")
+    assert(member_op(.Bytes) == null, "bytes")
     assert(member_op(.NotIntrinsic) == null, "no member")
 }

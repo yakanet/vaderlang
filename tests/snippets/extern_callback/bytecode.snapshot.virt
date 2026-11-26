@@ -15,12 +15,11 @@ string 1 "argument in a slot, GC inside: "
 string 2 "\n"
 import 0 extern call_twice snippet$call_twice result_type=2 param_types=4 param_c_out= param_by_address= (ref) -> i32
 import 1 extern apply_twice snippet$apply_twice result_type=2 param_types=2,4,2 param_c_out= param_by_address= (i32,ref,i32) -> i32
-import 2 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=6 param_types=3 param_c_out= param_by_address= (string) -> i64
-import 3 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=7 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 4 collect std_core$Intrinsic$collect intrinsic=collect result_type=1 () -> void
-import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=2,7,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 6 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 7 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+import 2 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=7 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 3 collect std_core$Intrinsic$collect intrinsic=collect result_type=1 () -> void
+import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=2,7,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 5 std_core$ByteAccess
 export main 2
 
@@ -32,7 +31,7 @@ fn 0 snippet$double_it (i32) -> i32
 end
 
 fn 1 snippet$bump (i32) -> i32
-  call.import 4   ; std_core$Intrinsic$collect
+  call.import 3   ; std_core$Intrinsic$collect
   local.get 0   ; arg 0
   i32.const 1
   i32.checked_add
@@ -127,10 +126,10 @@ fn 3 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -165,7 +164,7 @@ fn 5 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -303,7 +302,7 @@ fn 7 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 3   ; std_core$Intrinsic$bytes
+  call.import 2   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -369,16 +368,16 @@ fn 9 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 5   ; system_posix$sys_write
+  call.import 4   ; system_posix$sys_write
   local.tee 4   ; written
   i64.const 0
   i64.lt
   if $L1 void
-    call.import 6   ; system_posix$sys_last_errno
+    call.import 5   ; system_posix$sys_last_errno
     i32.const 32
     i32.eq
     if $L2 void
-      call.import 7   ; system_posix$sys_end_on_broken_pipe
+      call.import 6   ; system_posix$sys_end_on_broken_pipe
       local.get 4   ; written
       i64.to_i32
       return

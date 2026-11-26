@@ -779,10 +779,6 @@ const size_t vader_type_info_count = 13;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
-	return vader_string_byte_len(a0);
-}
-
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 9u, 10u);
 }
@@ -858,22 +854,22 @@ static vader_string_t concat_9(vader_string_t l0, vader_string_t l1, vader_strin
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 10u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l9 = vader_host_std_core$Intrinsic$byte_len(l0);
-	l10 = vader_host_std_core$Intrinsic$byte_len(l1);
+	l9 = (int64_t) vader_string_byte_len(l0);
+	l10 = (int64_t) vader_string_byte_len(l1);
 	l10 = (l9 + l10);
-	l11 = vader_host_std_core$Intrinsic$byte_len(l2);
+	l11 = (int64_t) vader_string_byte_len(l2);
 	l11 = (l10 + l11);
-	l12 = vader_host_std_core$Intrinsic$byte_len(l3);
+	l12 = (int64_t) vader_string_byte_len(l3);
 	l12 = (l11 + l12);
-	l13 = vader_host_std_core$Intrinsic$byte_len(l4);
+	l13 = (int64_t) vader_string_byte_len(l4);
 	l13 = (l12 + l13);
-	l14 = vader_host_std_core$Intrinsic$byte_len(l5);
+	l14 = (int64_t) vader_string_byte_len(l5);
 	l14 = (l13 + l14);
-	l15 = vader_host_std_core$Intrinsic$byte_len(l6);
+	l15 = (int64_t) vader_string_byte_len(l6);
 	l15 = (l14 + l15);
-	l16 = vader_host_std_core$Intrinsic$byte_len(l7);
+	l16 = (int64_t) vader_string_byte_len(l7);
 	l16 = (l15 + l16);
-	l17 = vader_host_std_core$Intrinsic$byte_len(l8);
+	l17 = (int64_t) vader_string_byte_len(l8);
 	l17 = (l16 + l17);
 	l18 = (void*) vader_buffer_new((size_t) l17);
 	vader_buffer_write_string((vader_buffer_t*) l18, (size_t) INT64_C(0), l0);
@@ -899,8 +895,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l2 = vader_host_std_core$Intrinsic$byte_len(l0);
-	l3 = vader_host_std_core$Intrinsic$byte_len(l1);
+	l2 = (int64_t) vader_string_byte_len(l0);
+	l3 = (int64_t) vader_string_byte_len(l1);
 	l3 = (l2 + l3);
 	l4 = (void*) vader_buffer_new((size_t) l3);
 	vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);

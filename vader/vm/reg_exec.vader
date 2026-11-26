@@ -1401,28 +1401,12 @@ test_array_element_write_out_of_bounds_traps :: fn() -> void {
 }
 
 // A module whose `main` runs `body` with the string constant 0, "héllo" (68 C3 A9 6C
-// 6C 6F), and the imports `byte_len` 0, `byte_at` 1, `byte_slice` 2, `is_ascii` 3 and
-// `string_hash` 4.
+// 6C 6F).
 string_module :: fn(body: string[]) -> bc.BytecodeModule | null {
     header :: [
         "module demo",
         "type 0 scalar i32",
-        "type 1 scalar u8",
-        "type 2 scalar i64",
-        "type 3 scalar string",
-        "type 4 scalar bool",
-        "type 5 scalar u64",
         "string 0 \"héllo\"",
-        r"import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=2"
-            + " param_types=3 param_c_out=0 param_by_address= (string) -> i64",
-        r"import 1 byte_at std_core$Intrinsic$byte_at intrinsic=byte_at result_type=1"
-            + " param_types=3,2 param_c_out=0,0 param_by_address= (string,i64) -> u8",
-        r"import 2 byte_slice std_core$Intrinsic$byte_slice intrinsic=byte_slice result_type=3"
-            + " param_types=3,2,2 param_c_out=0,0,0 param_by_address= (string,i64,i64) -> string",
-        r"import 3 is_ascii std_core$Intrinsic$is_ascii intrinsic=is_ascii result_type=4"
-            + " param_types=3 param_c_out=0 param_by_address= (string) -> bool",
-        r"import 4 string_hash std_core$Intrinsic$string_hash intrinsic=string_hash result_type=5"
-            + " param_types=3 param_c_out=0 param_by_address= (string) -> u64",
         "fn 0 main () -> i32",
     ]
     return main_module(header, body)
@@ -1431,11 +1415,11 @@ string_module :: fn(body: string[]) -> bc.BytecodeModule | null {
 // A module whose `main` returns the byte length of "héllo" plus its byte at `index`.
 string_byte_module :: fn(index: i32) -> bc.BytecodeModule | null = string_module([
     "string.const 0",
-    "call.import 0",
+    "string.byte_len",
     "i64.to_i32",
     "string.const 0",
     "i64.const ${index}",
-    "call.import 1",
+    "string.byte_at",
     "u8.to_i32",
     "i32.checked_add",
     "return",
@@ -1550,8 +1534,8 @@ slice_length_module :: fn(start: i32, end: i32) -> bc.BytecodeModule | null = st
     "string.const 0",
     "i64.const ${start}",
     "i64.const ${end}",
-    "call.import 2",
-    "call.import 0",
+    "string.byte_slice",
+    "string.byte_len",
     "i64.to_i32",
     "return",
 ])
@@ -1563,9 +1547,9 @@ test_string_byte_slice_runs_in_registers :: fn() -> void {
         "string.const 0",
         "i64.const 1",
         "i64.const 3",
-        "call.import 2",
+        "string.byte_slice",
         "i64.const 1",
-        "call.import 1",
+        "string.byte_at",
         "u8.to_i32",
         "return",
     ]) else return
@@ -1588,11 +1572,11 @@ test_string_is_ascii_runs_in_registers :: fn() -> void {
         "string.const 0",
         "i64.const 3",
         "i64.const 6",
-        "call.import 2",
-        "call.import 3",
+        "string.byte_slice",
+        "string.is_ascii",
         r"if $L0 void",
         "  string.const 0",
-        "  call.import 3",
+        "  string.is_ascii",
         r"  if $L1 void",
         "    i32.const 2",
         "    return",
@@ -1612,7 +1596,7 @@ test_string_hash_runs_in_place :: fn() -> void {
     // The low bits of the hash, as the native `hash` computes them.
     module :: string_module([
         "string.const 0",
-        "call.import 4",
+        "string.hash",
         "i64.const 65535",
         "i64.bitand",
         "i64.to_i32",

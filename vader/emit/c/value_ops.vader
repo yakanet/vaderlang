@@ -470,3 +470,32 @@ emit_string_compare :: fn(s: FnState) -> void {
     arguments :: [operand_as(s, left, .String), operand_as(s, right, .String)]
     push_expr(s, .I32, call("vader_string_compare", arguments))
 }
+
+// `string.byte_len`, `string.is_ascii`, `string.hash`: a read of the atom on top
+// of the stack, by the runtime function `function`, whose C result is `c_type`.
+emit_string_read :: fn(s: FnState, function: string, val: ValType, c_type: string) -> void {
+    string :: pop(s)
+    push_expr(s, val, cast(c_type, call(function, [operand_as(s, string, .String)])))
+}
+
+// `string.byte_at`: the byte at an index, which the runtime checks against the
+// atom's length.
+emit_string_byte_at :: fn(s: FnState) -> void {
+    index :: pop(s)
+    string :: pop(s)
+    arguments :: [operand_as(s, string, .String), cast("size_t", operand_as(s, index, .I64))]
+    push_expr(s, .U8, call("vader_string_byte_at", arguments))
+}
+
+// `string.byte_slice`: the atom of the bytes `start..<end`, each bound clamped.
+emit_string_byte_slice :: fn(s: FnState) -> void {
+    end :: pop(s)
+    start :: pop(s)
+    string :: pop(s)
+    arguments :: [
+        operand_as(s, string, .String),
+        operand_as(s, start, .I64),
+        operand_as(s, end, .I64),
+    ]
+    push_expr(s, .String, call("vader_string_byte_slice", arguments))
+}

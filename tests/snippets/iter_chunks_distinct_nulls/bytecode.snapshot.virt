@@ -61,12 +61,10 @@ string 18 "0"
 string 19 "\n"
 string 20 ""
 data 0 structs 16 0 1
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=3 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=21 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 2 string_hash std_core$Intrinsic$string_hash intrinsic=string_hash result_type=13 param_types=3 param_c_out= param_by_address= (string) -> u64
-import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,21,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+import 0 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=21 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,21,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 6 std_core$Into
 impl 8 std_core$Into
 impl 10 std_core$Into
@@ -139,7 +137,7 @@ fn 0 snippet$main () -> i32
       local.get 1   ; i
       local.set 4   ; i
       local.get 5   ; __p_1
-      call.import 0   ; std_core$Intrinsic$byte_len
+      string.byte_len
       local.set 6   ; $call_22
       i64.const 29
       local.get 6   ; $call_22
@@ -494,10 +492,10 @@ fn 1 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -532,7 +530,7 @@ fn 3 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -711,7 +709,7 @@ fn 8 std_core$$array$Display$to_string__i32 (ref) -> string
       load_slot_i32
       call 9   ; std_core$i32$Display$to_string
       local.tee 6   ; part
-      call.import 0   ; std_core$Intrinsic$byte_len
+      string.byte_len
       local.set 7   ; $call_16
       local.get 2   ; size
       local.get 7   ; $call_16
@@ -1290,7 +1288,7 @@ fn 15 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 1   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -1356,16 +1354,16 @@ fn 17 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 3   ; system_posix$sys_write
+  call.import 1   ; system_posix$sys_write
   local.tee 4   ; written
   i64.const 0
   i64.lt
   if $L1 void
-    call.import 4   ; system_posix$sys_last_errno
+    call.import 2   ; system_posix$sys_last_errno
     i32.const 32
     i32.eq
     if $L2 void
-      call.import 5   ; system_posix$sys_end_on_broken_pipe
+      call.import 3   ; system_posix$sys_end_on_broken_pipe
       local.get 4   ; written
       i64.to_i32
       return
@@ -2402,7 +2400,7 @@ fn 28 std_collections$rehash__string__bool (ref,i64) -> void
       local.get 4   ; e
       array.get 8   ; string[]
       ref.cast 3   ; string
-      call.import 2   ; std_core$Intrinsic$string_hash
+      string.hash
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 25   ; std_collections$first_slot
@@ -2723,7 +2721,7 @@ fn 32 std_collections$put__string__bool (ref,string,bool) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call.import 2   ; std_core$Intrinsic$string_hash
+    string.hash
     local.set 5   ; perturb
     local.field 0 31 3   ; arg 0 std_collections$Map__string__bool.mask
     ref.cast 5   ; i64

@@ -608,6 +608,11 @@ push_op :: fn(
         }
         is Bc.BufferToString -> { out.push(Call { .function_index = ctx.buffer_to_string() }) }
         is Bc.StringCompare -> { out.push(Call { .function_index = ctx.string_compare() }) }
+        is Bc.StringByteLen -> { out.push(Call { .function_index = ctx.string_byte_len() }) }
+        is Bc.StringByteAt -> { out.push(Call { .function_index = ctx.string_byte_at() }) }
+        is Bc.StringByteSlice -> { out.push(Call { .function_index = ctx.string_byte_slice() }) }
+        is Bc.StringIsAscii -> { out.push(Call { .function_index = ctx.string_is_ascii() }) }
+        is Bc.StringHash -> { out.push(Call { .function_index = ctx.string_hash() }) }
         is Bc.LoadU8 -> { out.push(Call { .function_index = ctx.buffer_load_u8() }) }
         is Bc.StoreU8 -> { out.push(Call { .function_index = ctx.buffer_store_u8() }) }
         is Bc.MemoryCopy -> { out.push(Call { .function_index = ctx.buffer_memory_copy() }) }
@@ -816,8 +821,8 @@ fixed_answer_of :: fn(id: Bc.IntrinsicId) -> FixedAnswer | null = match id {
         | .SchedulerTaskEnded | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMutexWait
         | .WaitStop | .WaitFor | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall
         | .FfiCallFrame -> .Trap
-    // A function of its own serves these (`intrinsic_function`), and an op or an
-    // array node the others: none asks for a fixed answer.
+    // A function of its own serves some of these (`intrinsic_function`), an op or
+    // an array node the others: none asks for a fixed answer.
     .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .Bytes | .BytesToString
         | .StringHash | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
         | .DeepCopy | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast
@@ -868,13 +873,8 @@ intrinsic_function :: fn(
     // @partial: the others take a fixed answer, which `fixed_answer_of` decides
     // for each member.
     return @partial match imp.intrinsic {
-        .ByteLen               -> ctx.string_byte_len()
-        .ByteAt                -> ctx.string_byte_at()
-        .ByteSlice             -> ctx.string_byte_slice()
-        .IsAscii               -> ctx.string_is_ascii()
         .BytesToString         -> ctx.bytes_to_string()
         .Bytes                 -> ctx.string_bytes(imp.signature.result_types[0])
-        .StringHash            -> ctx.string_hash()
         .AbortPanic            -> ctx.panic_function()
         .TargetCurrentOs       -> ctx.constant_function("os", OS_WASI)
         .TargetCurrentArch     -> ctx.constant_function("arch", ARCH_WASM32)

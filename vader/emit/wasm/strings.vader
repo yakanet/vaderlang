@@ -980,28 +980,12 @@ byte_len_program :: fn() -> Bc.BytecodeModule {
     program :: straight(
         [
             Bc.StringConst { .index = 0 },
-            Bc.CallImport { .index = 0 },
+            Bc.StringByteLen {},
             Bc.Drop {},
             Bc.ReturnLit { .value = Bc.I32Const { .value = 0 } },
         ],
     )
     program.strings = ["ab"]
-    signature :: Bc.BcSignature {
-        .params = [.String],
-        .results = [.I64],
-        .param_types = [0],
-        .result_types = [0],
-        .param_names = ["s"],
-    }
-    program.imports.push(
-        Bc.BcImport {
-            .extern_name = "byte_len",
-            .mangled_name = "std_core\$Intrinsic\$byte_len",
-            .signature = signature,
-            .is_extern = false,
-            .intrinsic = .ByteLen,
-        },
-    )
     return program
 }
 

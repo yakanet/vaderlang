@@ -78,7 +78,7 @@ export stack_effect :: fn(module: BytecodeModule, f: BcFunction, op: Op) -> Stac
         is StructGet | UnionFieldGet | ArrayLen | RefCast | Retag | Convert
             | SizeOfType | ArrayRemoveLast | BufferNew | I32Neg | I32BitNot
             | I64Neg | I64BitNot | F64Neg | BoolNot | F64ToBits | BitsToF64
-            | F32ToBits | BitsToF32 -> effect(1, 1)
+            | F32ToBits | BitsToF32 | StringByteLen | StringIsAscii | StringHash -> effect(1, 1)
         is I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne
             | I32Lt | I32Le | I32Gt | I32Ge | I32BitAnd | I32BitOr | I32BitXor
             | I32Shl | I32Shr | I32ShrU | U32Div | U32Mod | U32Lt | U32Le
@@ -88,14 +88,14 @@ export stack_effect :: fn(module: BytecodeModule, f: BcFunction, op: Op) -> Stac
             | I64ShrU | I64BitAnd | I64BitOr | I64BitXor | F64Add | F64Sub
             | F64Mul | F64Div | F64Eq | F64Ne | F64Lt | F64Le | F64Gt
             | F64Ge | BoolEq | BoolNe | BoolAnd | BoolOr | StringEq | StringNe
-            | StringCompare
+            | StringCompare | StringByteAt
             | RefEq | RefNe | ArrayGet | ArrayRepeat | LoadU8 | LoadI32
             | LoadI64 | LoadF64 | LoadSlotI32 | LoadSlotI64 | LoadSlotF64
             | BufferToString -> effect(2, 1)
         is StructSet | UnionFieldSet | ArrayPush | ArrayPushAll -> effect(2, 0)
         is ArraySet | StoreU8 | StoreI32 | StoreI64 | StoreF64 | StoreSlotI32
             | StoreSlotI64 | StoreSlotF64 | BufferWriteString -> effect(3, 0)
-        is ArraySlice -> effect(3, 1)
+        is ArraySlice | StringByteSlice -> effect(3, 1)
         is ArrayCopy | MemoryCopy -> effect(5, 0)
         is Drop | ArrayClear | DeferPush -> effect(1, 0)
         is Block | Loop | End | DeferPopExec -> effect(0, 0)

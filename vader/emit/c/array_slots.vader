@@ -91,6 +91,7 @@ is_cache_safe :: fn(op: Bc.Op) -> bool {
     if op is Bc.U32Lt | Bc.U32Le | Bc.U32Gt | Bc.U32Ge | Bc.U64Lt | Bc.U64Le | Bc.U64Gt | Bc.U64Ge                             { return true }
     if op is Bc.BoolEq | Bc.BoolNe                     { return true }
     if op is Bc.StringEq | Bc.StringNe | Bc.StringCompare | Bc.RefEq | Bc.RefNe                                                { return true }
+    if op is Bc.StringByteLen | Bc.StringByteAt | Bc.StringByteSlice | Bc.StringIsAscii | Bc.StringHash                        { return true }
     if op is Bc.BoolAnd | Bc.BoolOr | Bc.BoolNot                                                                               { return true }
     if op is Bc.Convert | Bc.BitsToF32 | Bc.BitsToF64 | Bc.F32ToBits | Bc.F64ToBits | Bc.RefCast | Bc.Retag { return true }
     if op is Bc.Drop                                                                                                           { return true }

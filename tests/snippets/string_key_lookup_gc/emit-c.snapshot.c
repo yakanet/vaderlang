@@ -147,20 +147,8 @@ const size_t vader_type_info_count = 17;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
-	return vader_string_byte_len(a0);
-}
-
-static uint8_t vader_host_std_core$Intrinsic$byte_at(vader_string_t a0, int64_t a1) {
-	return vader_string_byte_at(a0, a1);
-}
-
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 8u, 7u);
-}
-
-static uint64_t vader_host_std_core$Intrinsic$string_hash(vader_string_t a0) {
-	return vader_string_hash(a0);
 }
 
 static void vader_host_std_core$Intrinsic$collect(void) {
@@ -211,12 +199,11 @@ static int32_t snippet$main(void) {
 	int32_t t1, t2;
 	vader_box_t t3 = vader_box_null();
 	bool t4;
-	uint8_t t5;
-	int64_t t6;
-	vader_string_t t7 = 0;
+	int64_t t5;
+	vader_string_t t6 = 0;
 	vader_box_t* gc_roots[2] = { &l15, &t3 };
 	void** gc_raw_roots[6] = { &l0, &l1, &l2, &l7, &l10, &t0 };
-	vader_string_t* gc_atom_roots[3] = { &l6, &l13, &t7 };
+	vader_string_t* gc_atom_roots[3] = { &l6, &l13, &t6 };
 	vader_gc_frame_t gc_frame = {
 		vader_gc_top, 2u, 6u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
 	};
@@ -299,8 +286,7 @@ static int32_t snippet$main(void) {
 			l13 = t3.payload.s;
 			t4 = std_collections$Set$std_core$Contains$contains__string(l0, l13);
 			if (t4) {
-				t5 = vader_host_std_core$Intrinsic$byte_at(l13, INT64_C(1));
-				l14 = ((int32_t) (uint8_t) t5);
+				l14 = ((int32_t) (uint8_t) vader_string_byte_at(l13, (size_t) INT64_C(1)));
 				l3 = vader_chk_add(i32, l3, l14);
 				l15 = std_collections$Map$std_core$Index$at__string__i32(l1, l13);
 				if (l15.tag == 0u) {
@@ -324,11 +310,11 @@ static int32_t snippet$main(void) {
 	l5 = std_collections$len__string__i32(l1);
 	l4 = std_core$write_int(l0, l4, l5);
 	l4 = std_core$write_string_at(l0, l4, 4u);
-	t6 = std_runtime$collections();
-	l18 = (t6 > INT64_C(0));
+	t5 = std_runtime$collections();
+	l18 = (t5 > INT64_C(0));
 	l4 = std_core$write_bool(l0, l4, l18);
-	t7 = std_core$finish_buffer(l0, l4);
-	std_console$println__string(t7);
+	t6 = std_core$finish_buffer(l0, l4);
+	std_console$println__string(t6);
 	{ vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
@@ -342,8 +328,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l2 = vader_host_std_core$Intrinsic$byte_len(l0);
-	l3 = vader_host_std_core$Intrinsic$byte_len(l1);
+	l2 = (int64_t) vader_string_byte_len(l0);
+	l3 = (int64_t) vader_string_byte_len(l1);
 	l3 = (l2 + l3);
 	l4 = (void*) vader_buffer_new((size_t) l3);
 	vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
@@ -368,7 +354,7 @@ static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2)
 	int64_t l3;
 	int64_t t0;
 	vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-	l3 = vader_host_std_core$Intrinsic$byte_len(l2);
+	l3 = (int64_t) vader_string_byte_len(l2);
 	t0 = vader_chk_add(i64, l1, l3);
 	return t0;
 }
@@ -526,7 +512,7 @@ static void std_collections$rehash__string__bool(void* l0, int64_t l1) {
 		VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
 		t0 = vader_array_box_slots(_a1_slotarr->buf)[vader_array_offset(_a1_slotarr) + (size_t) l4];
 		t1 = t0.payload.s;
-		l6 = vader_host_std_core$Intrinsic$string_hash(t1);
+		l6 = (uint64_t) vader_string_hash(t1);
 		l7 = std_collections$first_slot(l6, l2);
 		for (;;) {
 			vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -620,7 +606,7 @@ static void std_collections$rehash__string__i32(void* l0, int64_t l1) {
 		VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
 		t0 = vader_array_box_slots(_a1_slotarr->buf)[vader_array_offset(_a1_slotarr) + (size_t) l4];
 		t1 = t0.payload.s;
-		l6 = vader_host_std_core$Intrinsic$string_hash(t1);
+		l6 = (uint64_t) vader_string_hash(t1);
 		l7 = std_collections$first_slot(l6, l2);
 		for (;;) {
 			vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -713,7 +699,7 @@ static bool std_collections$put__string__bool(void* l0, vader_string_t l1, bool 
 	l4 = INT64_C(-1);
 	t0 = vader_array_length(((vader_array_t*) ((vader_struct_std_collections$Map__string__bool_t*) l0)->f_index));
 	if ((t0 > INT64_C(0))) {
-		l5 = vader_host_std_core$Intrinsic$string_hash(l1);
+		l5 = (uint64_t) vader_string_hash(l1);
 		l6 = ((vader_struct_std_collections$Map__string__bool_t*) l0)->f_mask;
 		l6 = std_collections$first_slot(l5, l6);
 		for (;;) {
@@ -816,7 +802,7 @@ static bool std_collections$put__string__i32(void* l0, vader_string_t l1, int32_
 	l4 = INT64_C(-1);
 	t0 = vader_array_length(((vader_array_t*) ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_index));
 	if ((t0 > INT64_C(0))) {
-		l5 = vader_host_std_core$Intrinsic$string_hash(l1);
+		l5 = (uint64_t) vader_string_hash(l1);
 		l6 = ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_mask;
 		l6 = std_collections$first_slot(l5, l6);
 		for (;;) {
@@ -912,7 +898,7 @@ static vader_box_t std_collections$get__string__i32(void* l0, vader_string_t l1)
 	if (t0 == INT64_C(0)) {
 		return vader_box_obj(0u, NULL);
 	}
-	l2 = vader_host_std_core$Intrinsic$string_hash(l1);
+	l2 = (uint64_t) vader_string_hash(l1);
 	l3 = ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_mask;
 	l3 = std_collections$first_slot(l2, l3);
 	for (;;) {
@@ -957,7 +943,7 @@ static bool std_collections$contains_key__string__bool(void* l0, vader_string_t 
 	if (t0 == INT64_C(0)) {
 		return false;
 	}
-	l2 = vader_host_std_core$Intrinsic$string_hash(l1);
+	l2 = (uint64_t) vader_string_hash(l1);
 	l3 = ((vader_struct_std_collections$Map__string__bool_t*) l0)->f_mask;
 	l3 = std_collections$first_slot(l2, l3);
 	for (;;) {

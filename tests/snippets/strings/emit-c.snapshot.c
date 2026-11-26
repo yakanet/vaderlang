@@ -70,10 +70,6 @@ const size_t vader_type_info_count = 9;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
-	return vader_string_byte_len(a0);
-}
-
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 6u, 7u);
 }
@@ -115,16 +111,16 @@ static int32_t snippet$main(void) {
 	std_console$println__string(1u);
 	l0 = (void*) vader_buffer_new((size_t) INT64_C(83));
 	l1 = INT64_C(0);
-	l2 = vader_host_std_core$Intrinsic$byte_len(2u);
+	l2 = (int64_t) vader_string_byte_len(2u);
 	l1 = std_core$write_int(l0, l1, l2);
 	l1 = std_core$write_string_at(l0, l1, 3u);
-	l2 = vader_host_std_core$Intrinsic$byte_len(4u);
+	l2 = (int64_t) vader_string_byte_len(4u);
 	l1 = std_core$write_int(l0, l1, l2);
 	l1 = std_core$write_string_at(l0, l1, 3u);
-	l2 = vader_host_std_core$Intrinsic$byte_len(5u);
+	l2 = (int64_t) vader_string_byte_len(5u);
 	l1 = std_core$write_int(l0, l1, l2);
 	l1 = std_core$write_string_at(l0, l1, 3u);
-	l2 = vader_host_std_core$Intrinsic$byte_len(6u);
+	l2 = (int64_t) vader_string_byte_len(6u);
 	l1 = std_core$write_int(l0, l1, l2);
 	t0 = std_core$finish_buffer(l0, l1);
 	std_console$println__string(t0);
@@ -141,8 +137,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l2 = vader_host_std_core$Intrinsic$byte_len(l0);
-	l3 = vader_host_std_core$Intrinsic$byte_len(l1);
+	l2 = (int64_t) vader_string_byte_len(l0);
+	l3 = (int64_t) vader_string_byte_len(l1);
 	l3 = (l2 + l3);
 	l4 = (void*) vader_buffer_new((size_t) l3);
 	vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
@@ -167,7 +163,7 @@ static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2)
 	int64_t l3;
 	int64_t t0;
 	vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-	l3 = vader_host_std_core$Intrinsic$byte_len(l2);
+	l3 = (int64_t) vader_string_byte_len(l2);
 	t0 = vader_chk_add(i64, l1, l3);
 	return t0;
 }

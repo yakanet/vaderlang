@@ -20,12 +20,10 @@ string 2 "book"
 string 3 " "
 string 4 "crate of "
 string 5 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=3 param_types=5 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 2 string_hash std_core$Intrinsic$string_hash intrinsic=string_hash result_type=11 param_types=5 param_c_out= param_by_address= (string) -> u64
-import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=6,9,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=6 () -> i32
-import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+import 0 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=5 param_c_out= param_by_address= (string) -> ref
+import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=6,9,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=6 () -> i32
+import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 7 snippet$Labelled
 impl 2 std_core$IndexSet
 impl 2 std_core$Index
@@ -206,17 +204,17 @@ fn 4 concat_3 (string,string,string) -> string
   local $call_8 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 4   ; $call_5
   local.get 3   ; c0
   local.get 4   ; $call_5
   i64.add
   local.set 4   ; $call_5
   local.get 2   ; arg 2
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 5   ; $call_8
   local.get 4   ; $call_5
   local.get 5   ; $call_8
@@ -246,10 +244,10 @@ fn 5 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -284,7 +282,7 @@ fn 7 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -499,7 +497,7 @@ fn 12 std_collections$rehash__string__i32 (ref,i64) -> void
       local.get 4   ; e
       array.get 13   ; string[]
       ref.cast 5   ; string
-      call.import 2   ; std_core$Intrinsic$string_hash
+      string.hash
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 10   ; std_collections$first_slot
@@ -612,7 +610,7 @@ fn 14 std_collections$put__string__i32 (ref,string,i32) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call.import 2   ; std_core$Intrinsic$string_hash
+    string.hash
     local.set 5   ; perturb
     local.field 0 2 3   ; arg 0 std_collections$Map__string__i32.mask
     ref.cast 3   ; i64
@@ -791,7 +789,7 @@ fn 16 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 1   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -857,16 +855,16 @@ fn 18 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 3   ; system_posix$sys_write
+  call.import 1   ; system_posix$sys_write
   local.tee 4   ; written
   i64.const 0
   i64.lt
   if $L1 void
-    call.import 4   ; system_posix$sys_last_errno
+    call.import 2   ; system_posix$sys_last_errno
     i32.const 32
     i32.eq
     if $L2 void
-      call.import 5   ; system_posix$sys_end_on_broken_pipe
+      call.import 3   ; system_posix$sys_end_on_broken_pipe
       local.get 4   ; written
       i64.to_i32
       return

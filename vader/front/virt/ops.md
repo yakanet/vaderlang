@@ -436,6 +436,23 @@ Pop two strings, push an `i32` that is negative, zero or positive as the first o
 before, with or after the second. Byte-wise (codepoint order in UTF-8) and a proper
 prefix orders first.
 
+### `string.byte_len`
+Pop a string, push its length in bytes as an `i64`.
+
+### `string.byte_at`
+Pop a string and an `i64` index, push the byte there as a `u8`. An index outside the
+string stops the program.
+
+### `string.byte_slice`
+Pop a string, a start and an end, both `i64`, push the string of the bytes
+`start..<end`, each bound clamped into the string. Nothing is copied.
+
+### `string.is_ascii`
+Pop a string, push whether every byte of it is ASCII.
+
+### `string.hash`
+Pop a string, push its hash as a `u64`, the one cached on the string.
+
 ### `ref.eq`
 Pop two references, push whether they are the same object.
 

@@ -258,16 +258,8 @@ const size_t vader_type_info_count = 18;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
-	return vader_string_byte_len(a0);
-}
-
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 9u, 10u);
-}
-
-static uint64_t vader_host_std_core$Intrinsic$string_hash(vader_string_t a0) {
-	return vader_string_hash(a0);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -313,7 +305,7 @@ static void snippet$show(vader_string_t l0, vader_box_t l1) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
 	l2 = l0;
-	l3 = vader_host_std_core$Intrinsic$byte_len(l2);
+	l3 = (int64_t) vader_string_byte_len(l2);
 	l4 = (void*) vader_buffer_new((size_t) (INT64_C(21) + l3));
 	l3 = INT64_C(0);
 	l3 = std_core$write_string_at(l4, l3, l2);
@@ -538,7 +530,7 @@ static int32_t snippet$main(void) {
 		l11 = ((int32_t*) _a20_slotarr->buf->slots)[vader_array_offset(_a20_slotarr) + (size_t) l3];
 		l10 = l9;
 		l12 = l11;
-		l13 = vader_host_std_core$Intrinsic$byte_len(l10);
+		l13 = (int64_t) vader_string_byte_len(l10);
 		l0 = (void*) vader_buffer_new((size_t) (INT64_C(38) + l13));
 		l14 = INT64_C(0);
 		l14 = std_core$write_string_at(l0, l14, 35u);
@@ -635,8 +627,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l2 = vader_host_std_core$Intrinsic$byte_len(l0);
-	l3 = vader_host_std_core$Intrinsic$byte_len(l1);
+	l2 = (int64_t) vader_string_byte_len(l0);
+	l3 = (int64_t) vader_string_byte_len(l1);
 	l3 = (l2 + l3);
 	l4 = (void*) vader_buffer_new((size_t) l3);
 	vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
@@ -655,10 +647,10 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l3 = vader_host_std_core$Intrinsic$byte_len(l0);
-	l4 = vader_host_std_core$Intrinsic$byte_len(l1);
+	l3 = (int64_t) vader_string_byte_len(l0);
+	l4 = (int64_t) vader_string_byte_len(l1);
 	l4 = (l3 + l4);
-	l5 = vader_host_std_core$Intrinsic$byte_len(l2);
+	l5 = (int64_t) vader_string_byte_len(l2);
 	l5 = (l4 + l5);
 	l6 = (void*) vader_buffer_new((size_t) l5);
 	vader_buffer_write_string((vader_buffer_t*) l6, (size_t) INT64_C(0), l0);
@@ -684,7 +676,7 @@ static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2)
 	int64_t l3;
 	int64_t t0;
 	vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-	l3 = vader_host_std_core$Intrinsic$byte_len(l2);
+	l3 = (int64_t) vader_string_byte_len(l2);
 	t0 = vader_chk_add(i64, l1, l3);
 	return t0;
 }
@@ -1043,7 +1035,7 @@ static void std_collections$rehash__string__i32(void* l0, int64_t l1) {
 		VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
 		t0 = vader_array_box_slots(_a1_slotarr->buf)[vader_array_offset(_a1_slotarr) + (size_t) l4];
 		t1 = t0.payload.s;
-		l6 = vader_host_std_core$Intrinsic$string_hash(t1);
+		l6 = (uint64_t) vader_string_hash(t1);
 		l7 = std_collections$first_slot(l6, l2);
 		for (;;) {
 			vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -1351,7 +1343,7 @@ static bool std_collections$put__string__i32(void* l0, vader_string_t l1, int32_
 	l4 = INT64_C(-1);
 	t0 = vader_array_length(((vader_array_t*) ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_index));
 	if ((t0 > INT64_C(0))) {
-		l5 = vader_host_std_core$Intrinsic$string_hash(l1);
+		l5 = (uint64_t) vader_string_hash(l1);
 		l6 = ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_mask;
 		l6 = std_collections$first_slot(l5, l6);
 		for (;;) {
@@ -1490,7 +1482,7 @@ static vader_box_t std_collections$get__string__i32(void* l0, vader_string_t l1)
 	if (t0 == INT64_C(0)) {
 		return vader_box_obj(0u, NULL);
 	}
-	l2 = vader_host_std_core$Intrinsic$string_hash(l1);
+	l2 = (uint64_t) vader_string_hash(l1);
 	l3 = ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_mask;
 	l3 = std_collections$first_slot(l2, l3);
 	for (;;) {
@@ -1613,7 +1605,7 @@ static bool std_collections$contains_key__string__i32(void* l0, vader_string_t l
 	if (t0 == INT64_C(0)) {
 		return false;
 	}
-	l2 = vader_host_std_core$Intrinsic$string_hash(l1);
+	l2 = (uint64_t) vader_string_hash(l1);
 	l3 = ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_mask;
 	l3 = std_collections$first_slot(l2, l3);
 	for (;;) {

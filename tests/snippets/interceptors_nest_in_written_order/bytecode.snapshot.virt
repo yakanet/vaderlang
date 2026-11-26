@@ -53,11 +53,10 @@ global 4 3 snippet add$$layer.state
 global 5 6 snippet add$$layer.instance
 global 6 3 snippet add$$layer2.state
 global 7 7 snippet add$$layer2.instance
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=2 param_types=18 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=26 param_types=18 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=2 param_types=3,26,2 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
-import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+import 0 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=26 param_types=18 param_c_out= param_by_address= (string) -> ref
+import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=2 param_types=3,26,2 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
+import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 25 std_core$ByteAccess
 export main 1
 
@@ -469,7 +468,7 @@ fn 18 snippet$traced__Any__i32 (ref,ref,any,ref) -> i32
   local.field 1 10 0   ; arg 1 std_core$Site__snippet_Traced.function
   ref.cast 18   ; string
   local.tee 4   ; $field_5
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 6   ; $call_12
   i64.const 38
   local.get 6   ; $call_12
@@ -529,7 +528,7 @@ fn 19 snippet$traced__i64__i64 (ref,ref,i64,ref) -> i64
   local.field 1 10 0   ; arg 1 std_core$Site__snippet_Traced.function
   ref.cast 18   ; string
   local.tee 4   ; $field_5
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 6   ; $call_12
   i64.const 38
   local.get 6   ; $call_12
@@ -585,7 +584,7 @@ fn 20 snippet$counted__Any__i32 (ref,ref,any,ref) -> i32
   local.field 1 16 0   ; arg 1 std_core$Site__snippet_Counted.function
   ref.cast 18   ; string
   local.tee 5   ; __p_1
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 6   ; $call_12
   i64.const 38
   local.get 6   ; $call_12
@@ -643,7 +642,7 @@ fn 21 snippet$counted__i64__i64 (ref,ref,i64,ref) -> i64
   local.field 1 16 0   ; arg 1 std_core$Site__snippet_Counted.function
   ref.cast 18   ; string
   local.tee 5   ; __p_1
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 6   ; $call_12
   i64.const 38
   local.get 6   ; $call_12
@@ -688,10 +687,10 @@ fn 22 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -726,7 +725,7 @@ fn 24 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -864,7 +863,7 @@ fn 26 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 1   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -930,16 +929,16 @@ fn 28 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 2   ; system_posix$sys_write
+  call.import 1   ; system_posix$sys_write
   local.tee 4   ; written
   i64.const 0
   i64.lt
   if $L1 void
-    call.import 3   ; system_posix$sys_last_errno
+    call.import 2   ; system_posix$sys_last_errno
     i32.const 32
     i32.eq
     if $L2 void
-      call.import 4   ; system_posix$sys_end_on_broken_pipe
+      call.import 3   ; system_posix$sys_end_on_broken_pipe
       local.get 4   ; written
       i64.to_i32
       return

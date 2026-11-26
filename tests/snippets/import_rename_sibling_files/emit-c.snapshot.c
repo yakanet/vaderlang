@@ -71,18 +71,6 @@ const size_t vader_type_info_count = 9;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
-	return vader_string_byte_len(a0);
-}
-
-static uint8_t vader_host_std_core$Intrinsic$byte_at(vader_string_t a0, int64_t a1) {
-	return vader_string_byte_at(a0, a1);
-}
-
-static vader_string_t vader_host_std_core$Intrinsic$byte_slice(vader_string_t a0, int64_t a1, int64_t a2) {
-	return vader_string_byte_slice(a0, a1, a2);
-}
-
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 6u, 5u);
 }
@@ -171,8 +159,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l2 = vader_host_std_core$Intrinsic$byte_len(l0);
-	l3 = vader_host_std_core$Intrinsic$byte_len(l1);
+	l2 = (int64_t) vader_string_byte_len(l0);
+	l3 = (int64_t) vader_string_byte_len(l1);
 	l3 = (l2 + l3);
 	l4 = (void*) vader_buffer_new((size_t) l3);
 	vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
@@ -259,30 +247,25 @@ static void std_console$println__string(vader_string_t l0) {
 
 static vader_string_t std_string$trim(vader_string_t l0) {
 	int64_t l1, l2, l3;
-	uint8_t t0;
-	bool t1;
-	vader_string_t t2;
-	l1 = vader_host_std_core$Intrinsic$byte_len(l0);
+	bool t0;
+	l1 = (int64_t) vader_string_byte_len(l0);
 	l2 = INT64_C(0);
 	while ((l2 < l1)) {
-		t0 = vader_host_std_core$Intrinsic$byte_at(l0, l2);
-		t1 = std_ascii$is_white_byte(t0);
-		if (!(t1)) {
+		t0 = std_ascii$is_white_byte(vader_string_byte_at(l0, (size_t) l2));
+		if (!(t0)) {
 			break;
 		}
 		l2 = vader_chk_add(i64, l2, INT64_C(1));
 	}
 	while ((l1 > l2)) {
 		l3 = vader_chk_sub(i64, l1, INT64_C(1));
-		t0 = vader_host_std_core$Intrinsic$byte_at(l0, l3);
-		t1 = std_ascii$is_white_byte(t0);
-		if (!(t1)) {
+		t0 = std_ascii$is_white_byte(vader_string_byte_at(l0, (size_t) l3));
+		if (!(t0)) {
 			break;
 		}
 		l1 = vader_chk_sub(i64, l1, INT64_C(1));
 	}
-	t2 = vader_host_std_core$Intrinsic$byte_slice(l0, l2, l1);
-	return t2;
+	return vader_string_byte_slice(l0, l2, l1);
 }
 
 static bool std_ascii$is_white_byte(uint8_t l0) {

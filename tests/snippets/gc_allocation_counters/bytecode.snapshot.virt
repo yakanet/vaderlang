@@ -14,13 +14,12 @@ string 2 "length: "
 string 3 "true"
 string 4 "false"
 string 5 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=3 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=7 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 2 collector_statistic std_core$Intrinsic$collector_statistic intrinsic=collector_statistic result_type=5 param_types=2 param_c_out= param_by_address= (i32) -> i64
-import 3 count_allocations std_core$Intrinsic$count_allocations intrinsic=count_allocations result_type=1 () -> void
-import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,7,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+import 0 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=7 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 1 collector_statistic std_core$Intrinsic$collector_statistic intrinsic=collector_statistic result_type=5 param_types=2 param_c_out= param_by_address= (i32) -> i64
+import 2 count_allocations std_core$Intrinsic$count_allocations intrinsic=count_allocations result_type=1 () -> void
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,7,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 4 std_core$ByteAccess
 export main 0
 
@@ -31,7 +30,7 @@ fn 0 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 i64
   local $gt_17 bool
-  call.import 3   ; std_core$Intrinsic$count_allocations
+  call.import 2   ; std_core$Intrinsic$count_allocations
   call 10   ; std_runtime$allocations
   local.set 0   ; allocations_before
   call 11   ; std_runtime$allocated_bytes
@@ -119,10 +118,10 @@ fn 1 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -157,7 +156,7 @@ fn 3 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -312,7 +311,7 @@ fn 6 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 1   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -378,16 +377,16 @@ fn 8 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 4   ; system_posix$sys_write
+  call.import 3   ; system_posix$sys_write
   local.tee 4   ; written
   i64.const 0
   i64.lt
   if $L1 void
-    call.import 5   ; system_posix$sys_last_errno
+    call.import 4   ; system_posix$sys_last_errno
     i32.const 32
     i32.eq
     if $L2 void
-      call.import 6   ; system_posix$sys_end_on_broken_pipe
+      call.import 5   ; system_posix$sys_end_on_broken_pipe
       local.get 4   ; written
       i64.to_i32
       return
@@ -415,12 +414,12 @@ end
 
 fn 10 std_runtime$allocations () -> i64
   i32.const 4
-  call.import 2   ; std_core$Intrinsic$collector_statistic
+  call.import 1   ; std_core$Intrinsic$collector_statistic
   return
 end
 
 fn 11 std_runtime$allocated_bytes () -> i64
   i32.const 3
-  call.import 2   ; std_core$Intrinsic$collector_statistic
+  call.import 1   ; std_core$Intrinsic$collector_statistic
   return
 end

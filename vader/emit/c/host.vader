@@ -947,11 +947,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     // std/abort: implemented by the runtime.
     .AbortPanic -> { return [perform("vader_panic", [a0])] }
 
-    // std/string internals + std/core string intrinsics.
-    .ByteLen -> { return [returning("vader_string_byte_len", [a0])] }
-    .ByteAt -> { return [returning("vader_string_byte_at", [a0, a1])] }
-    .ByteSlice -> { return [returning("vader_string_byte_slice", [a0, a1, argument(2)])] }
-    .IsAscii -> { return [returning("vader_string_is_ascii", [a0])] }
+    // std/core strings: a view or a string the runtime allocates.
     .Bytes -> {
         u8 :: class_index(types, .U8)
         if u8 < 0 { return [trap("bytes: no u8 type")] }
@@ -962,8 +958,6 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     }
     // `bytes_to_string` is backed by the runtime symbol `vader_string_as_string`.
     .BytesToString -> { return [returning("vader_string_as_string", [cast("vader_array_t*", a0)])] }
-    // `string implements Hash` reads the hash cached on the atom (O(1)).
-    .StringHash -> { return [returning("vader_string_hash", [a0])] }
     // std/core: one host per type copied.
     .DeepCopy -> { return [deep_copy_return(imp.signature.params[0])] }
 
@@ -1044,7 +1038,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
 
     // Non-intrinsics, and the members an op serves, which no call reaches as an
     // import.
-    .NotIntrinsic
+    .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash
         | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
         | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast | .ArrayClear
         | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy

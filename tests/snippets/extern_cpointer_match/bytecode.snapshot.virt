@@ -93,26 +93,23 @@ data 0 structs 17 3 1 strref 49 u8 0a i32 00000000
 data 1 structs 17 3 1 strref 50 u8 0c i32 00000000
 import 0 extern fopen snippet$c_fopen headers=<stdio.h> result_type=4 param_types=3,3 param_c_out= param_by_address= (string,string) -> any
 import 1 extern fclose snippet$c_fclose headers=<stdio.h> result_type=2 param_types=5 param_c_out= param_by_address= (pointer) -> i32
-import 2 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=9 param_types=3 param_c_out= param_by_address= (string) -> i64
-import 3 byte_at std_core$Intrinsic$byte_at intrinsic=byte_at result_type=7 param_types=3,9 param_c_out= param_by_address= (string,i64) -> u8
-import 4 byte_slice std_core$Intrinsic$byte_slice intrinsic=byte_slice result_type=3 param_types=3,9,9 param_c_out= param_by_address= (string,i64,i64) -> string
-import 5 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=6 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 6 current_os std_core$Intrinsic$current_os intrinsic=current_os result_type=7 () -> u8
-import 7 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=2,6,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 8 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=4 param_types=3 param_c_out= param_by_address= (string) -> any
-import 9 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=5 param_c_out= param_by_address= (pointer) -> i32
-import 10 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 11 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
-import 12 extern :vader_path_stat system_posix$sys_path_stat headers=vader.h result_type=2 param_types=3,2,25 param_c_out=0,0,1 param_by_address= (string,i32,ref) -> i32
-import 13 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=4 param_types=5 param_c_out= param_by_address= (pointer) -> any
-import 14 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=3 param_types=5 param_c_out= param_by_address= (pointer) -> string
-import 15 extern :vader_dirent_kind system_posix$dirent_kind headers=vader.h result_type=2 param_types=5 param_c_out= param_by_address= (pointer) -> i32
-import 16 extern :close system_posix$sys_close headers=<unistd.h> result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
-import 17 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=2 param_types=3 param_c_out= param_by_address= (string) -> i32
-import 18 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=2 param_types=3 param_c_out= param_by_address= (string) -> i32
-import 19 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=3,2,2 param_c_out= param_by_address= (string,i32,i32) -> i32
-import 20 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
-import 21 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=14 param_types=3 param_c_out= param_by_address= (string) -> any
+import 2 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=6 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 3 current_os std_core$Intrinsic$current_os intrinsic=current_os result_type=7 () -> u8
+import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=2,6,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 5 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=4 param_types=3 param_c_out= param_by_address= (string) -> any
+import 6 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=5 param_c_out= param_by_address= (pointer) -> i32
+import 7 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 8 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+import 9 extern :vader_path_stat system_posix$sys_path_stat headers=vader.h result_type=2 param_types=3,2,25 param_c_out=0,0,1 param_by_address= (string,i32,ref) -> i32
+import 10 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=4 param_types=5 param_c_out= param_by_address= (pointer) -> any
+import 11 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=3 param_types=5 param_c_out= param_by_address= (pointer) -> string
+import 12 extern :vader_dirent_kind system_posix$dirent_kind headers=vader.h result_type=2 param_types=5 param_c_out= param_by_address= (pointer) -> i32
+import 13 extern :close system_posix$sys_close headers=<unistd.h> result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
+import 14 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=2 param_types=3 param_c_out= param_by_address= (string) -> i32
+import 15 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=2 param_types=3 param_c_out= param_by_address= (string) -> i32
+import 16 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=3,2,2 param_c_out= param_by_address= (string,i32,i32) -> i32
+import 17 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=2 param_types=2 param_c_out= param_by_address= (i32) -> i32
+import 18 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=14 param_types=3 param_c_out= param_by_address= (string) -> any
 impl 20 std_io$Writer
 impl 10 std_core$ByteAccess
 impl 17 std_core$Error
@@ -212,10 +209,10 @@ fn 1 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -242,17 +239,17 @@ fn 2 concat_3 (string,string,string) -> string
   local $call_8 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; c0
   local.get 1   ; arg 1
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 4   ; $call_5
   local.get 3   ; c0
   local.get 4   ; $call_5
   i64.add
   local.set 4   ; $call_5
   local.get 2   ; arg 2
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 5   ; $call_8
   local.get 4   ; $call_5
   local.get 5   ; $call_8
@@ -327,7 +324,7 @@ fn 4 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 5   ; std_core$Intrinsic$bytes
+  call.import 2   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -393,16 +390,16 @@ fn 6 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 7   ; system_posix$sys_write
+  call.import 4   ; system_posix$sys_write
   local.tee 4   ; written
   i64.const 0
   i64.lt
   if $L1 void
-    call.import 10   ; system_posix$sys_last_errno
+    call.import 7   ; system_posix$sys_last_errno
     i32.const 32
     i32.eq
     if $L2 void
-      call.import 11   ; system_posix$sys_end_on_broken_pipe
+      call.import 8   ; system_posix$sys_end_on_broken_pipe
       local.get 4   ; written
       i64.to_i32
       return
@@ -464,7 +461,7 @@ end
 
 fn 10 std_env$get_env (string) -> any
   local.get 0   ; arg 0
-  call.import 21   ; system_libc$sys_getenv
+  call.import 18   ; system_libc$sys_getenv
   return
 end
 
@@ -576,7 +573,7 @@ end
 
 fn 15 std_fs$has_nul (string) -> bool
   local.get 0   ; arg 0
-  call.import 5   ; std_core$Intrinsic$bytes
+  call.import 2   ; std_core$Intrinsic$bytes
   i32.const 0
   call 3   ; std_core$index_of__u8
   type_check 0   ; null
@@ -609,7 +606,7 @@ fn 16 std_fs$system_remove (string,ref) -> any
   if $L1 void
   else
     local.get 0   ; arg 0
-    call.import 17   ; system_posix$sys_unlink
+    call.import 14   ; system_posix$sys_unlink
     i32.const 0
     i32.eq
     string.const 13   ; "cannot remove file"
@@ -658,7 +655,7 @@ end
 fn 18 std_fs$system_close (any) -> any
   local.get 0   ; arg 0
   call 24   ; std_fs$fd_of
-  call.import 16   ; system_posix$sys_close
+  call.import 13   ; system_posix$sys_close
   i32.const 0
   i32.ne
   if $L0 void
@@ -686,7 +683,7 @@ fn 19 std_fs$stat_cells (string,bool) -> any
   local.get 0   ; arg 0
   local.get 3   ; $call_8
   local.get 2   ; cells
-  call.import 12   ; system_posix$sys_path_stat
+  call.import 9   ; system_posix$sys_path_stat
   i32.const 0
   i32.ne
   if $L0 void
@@ -880,7 +877,7 @@ fn 23 std_fs$system_open (string,ref) -> any
   local.get 0   ; arg 0
   local.get 2   ; $call_2
   i32.const 438
-  call.import 19   ; system_posix$sys_open
+  call.import 16   ; system_posix$sys_open
   local.tee 2   ; $call_2
   i32.const 0
   i32.lt
@@ -895,12 +892,12 @@ fn 23 std_fs$system_open (string,ref) -> any
   i32.eq
   if $L1 void
     local.get 2   ; $call_2
-    call.import 20   ; system_posix$sys_fd_kind
+    call.import 17   ; system_posix$sys_fd_kind
     i32.const 2
     i32.eq
     if $L2 void
       local.get 2   ; $call_2
-      call.import 16   ; system_posix$sys_close
+      call.import 13   ; system_posix$sys_close
       drop
       i32.const 21
       call 31   ; std_fs$is_a_directory
@@ -1001,7 +998,7 @@ end
 
 fn 27 std_fs$system_remove_directory (string) -> any
   local.get 0   ; arg 0
-  call.import 18   ; system_posix$sys_rmdir
+  call.import 15   ; system_posix$sys_rmdir
   i32.const 0
   i32.eq
   string.const 22   ; "cannot remove directory"
@@ -1113,7 +1110,7 @@ fn 32 std_fs$list_dir (string) -> any
   local kind u8
   local $struct_26 ref
   local.get 0   ; arg 0
-  call.import 8   ; system_posix$sys_opendir
+  call.import 5   ; system_posix$sys_opendir
   local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
@@ -1131,7 +1128,7 @@ fn 32 std_fs$list_dir (string) -> any
   local.set 3   ; out
   loop $L1 void
     local.get 1   ; d
-    call.import 13   ; system_posix$sys_readdir
+    call.import 10   ; system_posix$sys_readdir
     local.tee 2   ; __fallback_0
     type_check 0   ; null
     if $L2 void
@@ -1139,7 +1136,7 @@ fn 32 std_fs$list_dir (string) -> any
       local.get 2   ; __fallback_0
       ref.cast 5   ; pointer
       local.tee 4   ; p
-      call.import 14   ; system_posix$dirent_name
+      call.import 11   ; system_posix$dirent_name
       local.tee 5   ; name
       string.const 26   ; "."
       string.ne
@@ -1155,7 +1152,7 @@ fn 32 std_fs$list_dir (string) -> any
         br $L1
       end $L4
       local.get 4   ; p
-      call.import 15   ; system_posix$dirent_kind
+      call.import 12   ; system_posix$dirent_kind
       local.set 6   ; $call_23
       local.get 0   ; arg 0
       local.get 5   ; name
@@ -1180,7 +1177,7 @@ end
 fn 33 __defer_std_fs_0 (ref) -> void
   local.field 0 32 0   ; arg 0 __defer_env_std_fs_1.cap_0
   ref.cast 5   ; pointer
-  call.import 9   ; system_posix$sys_closedir
+  call.import 6   ; system_posix$sys_closedir
   drop
   return
 end
@@ -1305,13 +1302,13 @@ fn 36 std_fs$system_write (any,ref) -> any
     local.get 2   ; $call_2
     local.get 1   ; arg 1
     local.get 3   ; $len_3
-    call.import 7   ; system_posix$sys_write
+    call.import 4   ; system_posix$sys_write
     local.tee 4   ; n
     i64.const 0
     i64.ge
     if $L1 void
     else
-      call.import 10   ; system_posix$sys_last_errno
+      call.import 7   ; system_posix$sys_last_errno
       i32.const 4
       i32.ne
       if $L2 void
@@ -1341,7 +1338,7 @@ fn 37 std_io$failure_unless (bool,string) -> any
 end
 
 fn 38 std_io$last_io_error (string) -> ref
-  call.import 10   ; system_posix$sys_last_errno
+  call.import 7   ; system_posix$sys_last_errno
   local.get 0   ; arg 0
   call 39   ; std_io$io_error_of
   return
@@ -1687,7 +1684,7 @@ fn 43 std_io$bytes_of (any) -> ref
   if $L0 void
     local.get 0   ; arg 0
     ref.cast 3   ; string
-    call.import 5   ; std_core$Intrinsic$bytes
+    call.import 2   ; std_core$Intrinsic$bytes
     return
   end $L0
   local.get 0   ; arg 0
@@ -1705,7 +1702,7 @@ fn 44 std_path$to_path (string) -> string
     local.get 0   ; arg 0
     return
   end $L0
-  call.import 6   ; std_core$Intrinsic$current_os
+  call.import 3   ; std_core$Intrinsic$current_os
   local.set 1   ; $call_4
   local.get 0   ; arg 0
   local.get 1   ; $call_4
@@ -1723,7 +1720,7 @@ fn 46 std_path$without_trailing_separators (string,u8) -> string
   local $sub_checked_7 i64
   local $sub_checked_16 i64
   local.get 0   ; arg 0
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.tee 2   ; n
   i64.const 0
   i64.eq
@@ -1737,7 +1734,7 @@ fn 46 std_path$without_trailing_separators (string,u8) -> string
   local.set 3   ; $sub_checked_7
   local.get 0   ; arg 0
   local.get 3   ; $sub_checked_7
-  call.import 3   ; std_core$Intrinsic$byte_at
+  string.byte_at
   i32.const 47
   i32.ne
   if $L1 void
@@ -1760,7 +1757,7 @@ fn 46 std_path$without_trailing_separators (string,u8) -> string
         local.set 4   ; $sub_checked_16
         local.get 0   ; arg 0
         local.get 4   ; $sub_checked_16
-        call.import 3   ; std_core$Intrinsic$byte_at
+        string.byte_at
         i32.const 47
         i32.eq
         if $L5 void
@@ -1778,7 +1775,7 @@ fn 46 std_path$without_trailing_separators (string,u8) -> string
   local.get 0   ; arg 0
   i64.const 0
   local.get 2   ; n
-  call.import 4   ; std_core$Intrinsic$byte_slice
+  string.byte_slice
   return
 end
 
@@ -1790,7 +1787,7 @@ fn 47 std_path$root_length (string,u8) -> i64
   call 48   ; std_path$prefix_length
   local.set 2   ; prefix
   local.get 0   ; arg 0
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_4
   local.get 2   ; prefix
   local.get 3   ; $call_4
@@ -1798,7 +1795,7 @@ fn 47 std_path$root_length (string,u8) -> i64
   if $L0 void
     local.get 0   ; arg 0
     local.get 2   ; prefix
-    call.import 3   ; std_core$Intrinsic$byte_at
+    string.byte_at
     i32.const 47
     i32.eq
     if $L1 void
@@ -1825,19 +1822,19 @@ fn 48 std_path$prefix_length (string,u8) -> i64
     return.lit i64.const 0
   end $L0
   local.get 0   ; arg 0
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.tee 2   ; n
   i64.const 2
   i64.ge
   if $L1 void
     local.get 0   ; arg 0
     i64.const 0
-    call.import 3   ; std_core$Intrinsic$byte_at
+    string.byte_at
     call 49   ; std_path$is_ascii_letter
     if $L2 void
       local.get 0   ; arg 0
       i64.const 1
-      call.import 3   ; std_core$Intrinsic$byte_at
+      string.byte_at
       i32.const 58
       i32.eq
       if $L3 void
@@ -1853,7 +1850,7 @@ fn 48 std_path$prefix_length (string,u8) -> i64
   end $L4
   local.get 0   ; arg 0
   i64.const 0
-  call.import 3   ; std_core$Intrinsic$byte_at
+  string.byte_at
   i32.const 47
   i32.ne
   if $L5 void
@@ -1861,7 +1858,7 @@ fn 48 std_path$prefix_length (string,u8) -> i64
   end $L5
   local.get 0   ; arg 0
   i64.const 1
-  call.import 3   ; std_core$Intrinsic$byte_at
+  string.byte_at
   i32.const 47
   i32.ne
   if $L6 void
@@ -1869,7 +1866,7 @@ fn 48 std_path$prefix_length (string,u8) -> i64
   end $L6
   local.get 0   ; arg 0
   i64.const 2
-  call.import 3   ; std_core$Intrinsic$byte_at
+  string.byte_at
   i32.const 47
   i32.eq
   if $L7 void
@@ -1943,7 +1940,7 @@ fn 50 std_path$next_separator (string,i64) -> any
   local.get 1   ; arg 1
   local.set 2   ; i
   local.get 0   ; arg 0
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; __for_hi_0
   loop $L0 void
     local.get 2   ; i
@@ -1952,7 +1949,7 @@ fn 50 std_path$next_separator (string,i64) -> any
     if $L1 void
       local.get 0   ; arg 0
       local.get 2   ; i
-      call.import 3   ; std_core$Intrinsic$byte_at
+      string.byte_at
       i32.const 47
       i32.eq
       if $L2 void
@@ -1974,10 +1971,10 @@ fn 51 std_string$ends_with (string,string) -> bool
   local $call_2 i64
   local $call_3 i64
   local.get 1   ; arg 1
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 2   ; $call_2
   local.get 0   ; arg 0
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_3
   local.get 2   ; $call_2
   local.get 3   ; $call_3
@@ -1985,10 +1982,10 @@ fn 51 std_string$ends_with (string,string) -> bool
   if $L0 void
   else
     local.get 0   ; arg 0
-    call.import 2   ; std_core$Intrinsic$byte_len
+    string.byte_len
     local.set 2   ; $call_2
     local.get 1   ; arg 1
-    call.import 2   ; std_core$Intrinsic$byte_len
+    string.byte_len
     local.set 3   ; $call_3
     local.get 2   ; $call_2
     local.get 3   ; $call_3
@@ -2010,10 +2007,10 @@ fn 52 std_string$matches_at (string,i64,string) -> bool
   local $call_15 u8
   local $call_16 u8
   local.get 2   ; arg 2
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; m
   local.get 0   ; arg 0
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 4   ; $call_5
   local.get 1   ; arg 1
   local.get 4   ; $call_5
@@ -2022,7 +2019,7 @@ fn 52 std_string$matches_at (string,i64,string) -> bool
     return.lit bool.const false
   end $L0
   local.get 0   ; arg 0
-  call.import 2   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.get 1   ; arg 1
   i64.checked_sub
   local.set 4   ; $call_5
@@ -2045,11 +2042,11 @@ fn 52 std_string$matches_at (string,i64,string) -> bool
       local.set 5   ; $add_checked_14
       local.get 0   ; arg 0
       local.get 5   ; $add_checked_14
-      call.import 3   ; std_core$Intrinsic$byte_at
+      string.byte_at
       local.set 6   ; $call_15
       local.get 2   ; arg 2
       local.get 4   ; $call_5
-      call.import 3   ; std_core$Intrinsic$byte_at
+      string.byte_at
       local.set 7   ; $call_16
       local.get 6   ; $call_15
       local.get 7   ; $call_16

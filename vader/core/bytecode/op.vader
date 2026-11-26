@@ -173,6 +173,11 @@ export Op :: Unreachable
     | CheckedArith
     | CheckedNeg
     | VoidConst
+    | StringByteLen
+    | StringByteAt
+    | StringByteSlice
+    | StringIsAscii
+    | StringHash
 
 /// Trap unconditionally: the bytecode reached a point the compiler proved
 /// (or asserted, via `@unreachable match`) can never execute. Carries a
@@ -659,6 +664,18 @@ export StringNe :: struct {}
 /// is codepoint order ; a proper prefix orders first. Backs `string implements
 /// Comparable`.
 export StringCompare :: struct {}
+/// Pop a string ; push its length in bytes as an `I64Val`.
+export StringByteLen :: struct {}
+/// Pop a string and an `i64` index ; push the byte there as a `u8`. An index
+/// outside the string stops the program.
+export StringByteAt :: struct {}
+/// Pop a string, a start and an end, both `i64` ; push the string of the bytes
+/// in `start..<end`, each bound clamped into the string. Nothing is copied.
+export StringByteSlice :: struct {}
+/// Pop a string ; push `BoolVal`, whether every byte of it is ASCII.
+export StringIsAscii :: struct {}
+/// Pop a string ; push its hash as a `u64`, the one cached on the string.
+export StringHash :: struct {}
 /// Pop two references ; push `BoolVal` for identity equality: `===` on two
 /// objects, and `==` on two boxes. `vm/value.vader::value_ref_eq` compares a boxed
 /// scalar by value and a heap value by identity.

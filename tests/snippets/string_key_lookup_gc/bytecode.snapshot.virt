@@ -23,15 +23,12 @@ string 3 " collections>0 "
 string 4 "true"
 string 5 "false"
 string 6 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=3 param_c_out= param_by_address= (string) -> i64
-import 1 byte_at std_core$Intrinsic$byte_at intrinsic=byte_at result_type=7 param_types=3,5 param_c_out= param_by_address= (string,i64) -> u8
-import 2 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 3 string_hash std_core$Intrinsic$string_hash intrinsic=string_hash result_type=9 param_types=3 param_c_out= param_by_address= (string) -> u64
-import 4 collect std_core$Intrinsic$collect intrinsic=collect result_type=1 () -> void
-import 5 collector_statistic std_core$Intrinsic$collector_statistic intrinsic=collector_statistic result_type=5 param_types=2 param_c_out= param_by_address= (i32) -> i64
-import 6 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,8,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 7 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 8 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+import 0 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 1 collect std_core$Intrinsic$collect intrinsic=collect result_type=1 () -> void
+import 2 collector_statistic std_core$Intrinsic$collector_statistic intrinsic=collector_statistic result_type=5 param_types=2 param_c_out= param_by_address= (i32) -> i64
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,8,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 10 std_core$Contains
 impl 11 std_core$Contains
 impl 12 std_core$Index
@@ -193,7 +190,7 @@ fn 0 snippet$main () -> i32
           br $L4
         end $L5
       end $L4
-      call.import 4   ; std_core$Intrinsic$collect
+      call.import 1   ; std_core$Intrinsic$collect
       local.get 2   ; $arr_2
       local.tee 10   ; __for_arr_4
       array.len
@@ -216,7 +213,7 @@ fn 0 snippet$main () -> i32
           if $L8 void
             local.get 13   ; w
             i64.const 1
-            call.import 1   ; std_core$Intrinsic$byte_at
+            string.byte_at
             u8.to_i32
             local.set 14   ; $cast_77
             local.get 3   ; i
@@ -316,10 +313,10 @@ fn 1 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -354,7 +351,7 @@ fn 3 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -607,7 +604,7 @@ fn 12 std_collections$rehash__string__bool (ref,i64) -> void
       local.get 4   ; e
       array.get 14   ; string[]
       ref.cast 3   ; string
-      call.import 3   ; std_core$Intrinsic$string_hash
+      string.hash
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 10   ; std_collections$first_slot
@@ -724,7 +721,7 @@ fn 13 std_collections$rehash__string__i32 (ref,i64) -> void
       local.get 4   ; e
       array.get 14   ; string[]
       ref.cast 3   ; string
-      call.import 3   ; std_core$Intrinsic$string_hash
+      string.hash
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 10   ; std_collections$first_slot
@@ -870,7 +867,7 @@ fn 16 std_collections$put__string__bool (ref,string,bool) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call.import 3   ; std_core$Intrinsic$string_hash
+    string.hash
     local.set 5   ; perturb
     local.field 0 10 3   ; arg 0 std_collections$Map__string__bool.mask
     ref.cast 5   ; i64
@@ -1046,7 +1043,7 @@ fn 17 std_collections$put__string__i32 (ref,string,i32) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call.import 3   ; std_core$Intrinsic$string_hash
+    string.hash
     local.set 5   ; perturb
     local.field 0 12 3   ; arg 0 std_collections$Map__string__i32.mask
     ref.cast 5   ; i64
@@ -1217,7 +1214,7 @@ fn 18 std_collections$get__string__i32 (ref,string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call.import 3   ; std_core$Intrinsic$string_hash
+  string.hash
   local.set 2   ; perturb
   local.field 0 12 3   ; arg 0 std_collections$Map__string__i32.mask
   ref.cast 5   ; i64
@@ -1290,7 +1287,7 @@ fn 19 std_collections$contains_key__string__bool (ref,string) -> bool
     return.lit bool.const false
   end $L0
   local.get 1   ; arg 1
-  call.import 3   ; std_core$Intrinsic$string_hash
+  string.hash
   local.set 2   ; perturb
   local.field 0 10 3   ; arg 0 std_collections$Map__string__bool.mask
   ref.cast 5   ; i64
@@ -1375,7 +1372,7 @@ fn 22 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 2   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -1441,16 +1438,16 @@ fn 24 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 6   ; system_posix$sys_write
+  call.import 3   ; system_posix$sys_write
   local.tee 4   ; written
   i64.const 0
   i64.lt
   if $L1 void
-    call.import 7   ; system_posix$sys_last_errno
+    call.import 4   ; system_posix$sys_last_errno
     i32.const 32
     i32.eq
     if $L2 void
-      call.import 8   ; system_posix$sys_end_on_broken_pipe
+      call.import 5   ; system_posix$sys_end_on_broken_pipe
       local.get 4   ; written
       i64.to_i32
       return
@@ -1478,6 +1475,6 @@ end
 
 fn 26 std_runtime$collections () -> i64
   i32.const 0
-  call.import 5   ; std_core$Intrinsic$collector_statistic
+  call.import 2   ; std_core$Intrinsic$collector_statistic
   return
 end

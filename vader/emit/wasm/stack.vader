@@ -91,11 +91,12 @@ pushed_types :: fn(
             | Bc.F64Eq | Bc.F64Ne | Bc.F64Lt | Bc.F64Le | Bc.F64Gt | Bc.F64Ge | Bc.BoolEq
             | Bc.BoolNe | Bc.BoolAnd | Bc.BoolOr | Bc.BoolNot | Bc.StringEq | Bc.StringNe
             | Bc.StringCompare | Bc.RefEq | Bc.RefNe | Bc.TypeCheck
-            | Bc.BufferToString -> [.I32]
+            | Bc.BufferToString | Bc.StringByteAt | Bc.StringByteSlice | Bc.StringIsAscii -> [.I32]
         is Bc.I64Const | Bc.ArrayLen | Bc.SizeOfType | Bc.LoadI64 | Bc.LoadSlotI64 | Bc.F64ToBits
             | Bc.I64Add | Bc.I64Sub | Bc.I64Mul | Bc.I64Div | Bc.I64Mod | Bc.I64Neg
             | Bc.I64BitNot | Bc.I64BitAnd | Bc.I64BitOr | Bc.I64BitXor | Bc.I64Shl | Bc.I64Shr
-            | Bc.I64ShrU | Bc.U64Div | Bc.U64Mod | Bc.FnAddr -> [.I64]
+            | Bc.I64ShrU | Bc.U64Div | Bc.U64Mod | Bc.FnAddr | Bc.StringByteLen
+            | Bc.StringHash -> [.I64]
         is Bc.F64Const | Bc.LoadF64 | Bc.LoadSlotF64 | Bc.BitsToF64 | Bc.BitsToF32 | Bc.F64Add
             | Bc.F64Sub | Bc.F64Mul | Bc.F64Div | Bc.F64Neg -> [.F64]
             is Bc.NullConst | Bc.VoidConst | Bc.DataConst | Bc.TypeConst | Bc.FnRef

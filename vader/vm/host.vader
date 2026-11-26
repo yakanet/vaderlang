@@ -149,10 +149,6 @@ export dispatch_import :: fn(
     }
     match id {
     // ---- std/string family ----------------------------------------------
-    .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash -> {
-        // Run as register ops of their own (`string_import_op`): translation leaves
-        // them no `call.import`, so one reaching here is unbound.
-    }
     // Served by `serve_import` (`reg_exec.vader`), which holds the type table.
     .DeepCopy -> {}
     .BytesToString -> {
@@ -247,7 +243,7 @@ export dispatch_import :: fn(
     // Non-intrinsics, and the members an op serves, which no call reaches as an
     // import. Kept as an arm rather than a wildcard so a new `IntrinsicId` variant
     // still trips T3013 here.
-    .NotIntrinsic
+    .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash
         | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
         | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast | .ArrayClear
         | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
@@ -1146,7 +1142,6 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     // seed unreproducible across platforms.
     .TargetCurrentOs | .TargetCurrentArch -> BUILD_MACHINE_REASON
     // Pure : the baked value depends only on the args, never external state.
-    .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash -> null
     .Bytes | .BytesToString | .DeepCopy -> null
     .RuntimeCollect | .RuntimeCountAllocations | .RuntimeStatistic -> null
     // A comptime evaluation treats threads as `vader run` does.
@@ -1163,6 +1158,7 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .AbortPanic -> null
     // Served by an op, never called as an import.
     .NotIntrinsic
+        | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash
         | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
         | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast | .ArrayClear
         | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy

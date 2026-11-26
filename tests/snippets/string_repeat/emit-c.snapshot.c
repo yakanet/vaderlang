@@ -74,10 +74,6 @@ const size_t vader_type_info_count = 9;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
-	return vader_string_byte_len(a0);
-}
-
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 6u, 7u);
 }
@@ -142,18 +138,18 @@ static vader_string_t concat_7(vader_string_t l0, vader_string_t l1, vader_strin
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 8u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l7 = vader_host_std_core$Intrinsic$byte_len(l0);
-	l8 = vader_host_std_core$Intrinsic$byte_len(l1);
+	l7 = (int64_t) vader_string_byte_len(l0);
+	l8 = (int64_t) vader_string_byte_len(l1);
 	l8 = (l7 + l8);
-	l9 = vader_host_std_core$Intrinsic$byte_len(l2);
+	l9 = (int64_t) vader_string_byte_len(l2);
 	l9 = (l8 + l9);
-	l10 = vader_host_std_core$Intrinsic$byte_len(l3);
+	l10 = (int64_t) vader_string_byte_len(l3);
 	l10 = (l9 + l10);
-	l11 = vader_host_std_core$Intrinsic$byte_len(l4);
+	l11 = (int64_t) vader_string_byte_len(l4);
 	l11 = (l10 + l11);
-	l12 = vader_host_std_core$Intrinsic$byte_len(l5);
+	l12 = (int64_t) vader_string_byte_len(l5);
 	l12 = (l11 + l12);
-	l13 = vader_host_std_core$Intrinsic$byte_len(l6);
+	l13 = (int64_t) vader_string_byte_len(l6);
 	l13 = (l12 + l13);
 	l14 = (void*) vader_buffer_new((size_t) l13);
 	vader_buffer_write_string((vader_buffer_t*) l14, (size_t) INT64_C(0), l0);
@@ -177,8 +173,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l2 = vader_host_std_core$Intrinsic$byte_len(l0);
-	l3 = vader_host_std_core$Intrinsic$byte_len(l1);
+	l2 = (int64_t) vader_string_byte_len(l0);
+	l3 = (int64_t) vader_string_byte_len(l1);
 	l3 = (l2 + l3);
 	l4 = (void*) vader_buffer_new((size_t) l3);
 	vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
@@ -202,17 +198,15 @@ static vader_string_t std_core$string$Mul$mul(vader_string_t l0, int64_t l1) {
 	if ((l1 <= INT64_C(0))) {
 		l2 = true;
 	} else {
-		t0 = vader_host_std_core$Intrinsic$byte_len(l0);
-		l2 = t0 == INT64_C(0);
+		l2 = (int64_t) vader_string_byte_len(l0) == INT64_C(0);
 	}
 	if (l2) {
 		{ vader_gc_top = gc_frame.prev; return 0u; }
 	}
-	t0 = vader_host_std_core$Intrinsic$byte_len(l0);
-	l3 = vader_chk_mul(i64, t0, l1);
+	l3 = vader_chk_mul(i64, (int64_t) vader_string_byte_len(l0), l1);
 	l4 = (void*) vader_buffer_new((size_t) l3);
 	vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
-	l5 = vader_host_std_core$Intrinsic$byte_len(l0);
+	l5 = (int64_t) vader_string_byte_len(l0);
 	for (;;) {
 		t0 = vader_chk_mul(i64, l5, INT64_C(2));
 		if ((t0 <= l3)) {

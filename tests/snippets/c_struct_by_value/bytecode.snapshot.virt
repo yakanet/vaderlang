@@ -49,11 +49,10 @@ import 4 extern box2_grow snippet$box2_grow headers=helper.h result_type=8 param
 import 5 extern box2_area snippet$box2_area headers=helper.h result_type=7 param_types=8 param_c_out= param_by_address= (ref) -> f32
 import 6 extern texture_load snippet$texture_load headers=helper.h result_type=10 param_types=9 param_c_out= param_by_address= (u32) -> ref
 import 7 extern texture_checksum snippet$texture_checksum headers=helper.h result_type=2 param_types=10 param_c_out= param_by_address= (ref) -> i32
-import 8 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=13 param_types=3 param_c_out= param_by_address= (string) -> i64
-import 9 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=17 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 10 extern :write system_posix$sys_write headers=<unistd.h> result_type=13 param_types=2,17,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 11 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
-import 12 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+import 8 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=17 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 9 extern :write system_posix$sys_write headers=<unistd.h> result_type=13 param_types=2,17,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 10 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 11 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 12 std_core$ByteAccess
 export main 0
 
@@ -462,7 +461,7 @@ fn 0 snippet$main () -> i32
   local.get 13   ; total
   call 9   ; std_core$f64$Display$to_string
   local.tee 7   ; $call_67
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $cast_12
   i64.const 44
   local.get 3   ; $cast_12
@@ -505,24 +504,24 @@ fn 1 concat_4 (string,string,string,string) -> string
   local $call_12 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 4   ; c0
   local.get 1   ; arg 1
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 5   ; $call_6
   local.get 4   ; c0
   local.get 5   ; $call_6
   i64.add
   local.set 5   ; $call_6
   local.get 2   ; arg 2
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 6   ; $call_9
   local.get 5   ; $call_6
   local.get 6   ; $call_9
   i64.add
   local.set 6   ; $call_9
   local.get 3   ; arg 3
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 7   ; $call_12
   local.get 6   ; $call_9
   local.get 7   ; $call_12
@@ -562,52 +561,52 @@ fn 2 concat_8 (string,string,string,string,string,string,string,string) -> strin
   local $call_28 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 8   ; c0
   local.get 1   ; arg 1
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 9   ; $call_10
   local.get 8   ; c0
   local.get 9   ; $call_10
   i64.add
   local.set 9   ; $call_10
   local.get 2   ; arg 2
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 10   ; $call_13
   local.get 9   ; $call_10
   local.get 10   ; $call_13
   i64.add
   local.set 10   ; $call_13
   local.get 3   ; arg 3
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 11   ; $call_16
   local.get 10   ; $call_13
   local.get 11   ; $call_16
   i64.add
   local.set 11   ; $call_16
   local.get 4   ; arg 4
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 12   ; $call_19
   local.get 11   ; $call_16
   local.get 12   ; $call_19
   i64.add
   local.set 12   ; $call_19
   local.get 5   ; arg 5
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 13   ; $call_22
   local.get 12   ; $call_19
   local.get 13   ; $call_22
   i64.add
   local.set 13   ; $call_22
   local.get 6   ; arg 6
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 14   ; $call_25
   local.get 13   ; $call_22
   local.get 14   ; $call_25
   i64.add
   local.set 14   ; $call_25
   local.get 7   ; arg 7
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 15   ; $call_28
   local.get 14   ; $call_25
   local.get 15   ; $call_28
@@ -657,10 +656,10 @@ fn 3 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -695,7 +694,7 @@ fn 5 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 8   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -2380,7 +2379,7 @@ fn 36 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 9   ; std_core$Intrinsic$bytes
+  call.import 8   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -2446,16 +2445,16 @@ fn 38 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 10   ; system_posix$sys_write
+  call.import 9   ; system_posix$sys_write
   local.tee 4   ; written
   i64.const 0
   i64.lt
   if $L1 void
-    call.import 11   ; system_posix$sys_last_errno
+    call.import 10   ; system_posix$sys_last_errno
     i32.const 32
     i32.eq
     if $L2 void
-      call.import 12   ; system_posix$sys_end_on_broken_pipe
+      call.import 11   ; system_posix$sys_end_on_broken_pipe
       local.get 4   ; written
       i64.to_i32
       return

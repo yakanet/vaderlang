@@ -76,13 +76,12 @@ global 4 3 snippet flags.state
 global 5 6 snippet flags.instance
 global 6 3 snippet queue.state
 global 7 8 snippet queue.instance
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=10 param_types=5 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=12 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 2 collect std_core$Intrinsic$collect intrinsic=collect result_type=1 () -> void
-import 3 collector_statistic std_core$Intrinsic$collector_statistic intrinsic=collector_statistic result_type=10 param_types=3 param_c_out= param_by_address= (i32) -> i64
-import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=3,12,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
-import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+import 0 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=12 param_types=5 param_c_out= param_by_address= (string) -> ref
+import 1 collect std_core$Intrinsic$collect intrinsic=collect result_type=1 () -> void
+import 2 collector_statistic std_core$Intrinsic$collector_statistic intrinsic=collector_statistic result_type=10 param_types=3 param_c_out= param_by_address= (i32) -> i64
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=3,12,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
+import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 14 std_core$ByteAccess
 export main 5
 
@@ -231,7 +230,7 @@ fn 5 snippet$main () -> i32
   local $struct_453 ref
   string.const 0   ; "hello"
   local.tee 0   ; __p_0
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 1   ; $call_3
   i64.const 27
   local.get 1   ; $call_3
@@ -291,17 +290,17 @@ fn 5 snippet$main () -> i32
   ref.cast 5   ; string
   local.set 5   ; __p_6
   local.get 0   ; __p_0
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 1   ; $call_3
   local.get 4   ; __p_5
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 6   ; $call_39
   local.get 1   ; $call_3
   local.get 6   ; $call_39
   i64.add
   local.set 1   ; $call_3
   local.get 5   ; __p_6
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 6   ; $call_39
   local.get 1   ; $call_3
   local.get 6   ; $call_39
@@ -362,7 +361,7 @@ fn 5 snippet$main () -> i32
   drop
   string.const 2   ; "seven"
   local.tee 0   ; __p_0
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 1   ; $call_3
   i64.const 20
   local.get 1   ; $call_3
@@ -517,7 +516,7 @@ fn 5 snippet$main () -> i32
   struct.get 11 2   ; snippet$Rule.result
   ref.cast 5   ; string
   local.tee 0   ; __p_0
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 6   ; $call_39
   i64.const 50
   local.get 6   ; $call_39
@@ -703,7 +702,7 @@ fn 5 snippet$main () -> i32
       br $L4
     end $L5
   end $L4
-  call.import 2   ; std_core$Intrinsic$collect
+  call.import 1   ; std_core$Intrinsic$collect
   i32.const 0
   local.set 3   ; __p_4
   i32.const 0
@@ -797,10 +796,10 @@ fn 5 snippet$main () -> i32
   ref.cast 5   ; string
   local.set 4   ; __p_5
   local.get 0   ; __p_0
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 1   ; $call_3
   local.get 4   ; __p_5
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 6   ; $call_39
   local.get 1   ; $call_3
   local.get 6   ; $call_39
@@ -989,7 +988,7 @@ fn 5 snippet$main () -> i32
       br $L17
     end $L18
   end $L17
-  call.import 2   ; std_core$Intrinsic$collect
+  call.import 1   ; std_core$Intrinsic$collect
   i32.const 0
   local.set 3   ; __p_4
   i32.const 0
@@ -1175,7 +1174,7 @@ fn 5 snippet$main () -> i32
       br $L25
     end $L26
   end $L25
-  call.import 2   ; std_core$Intrinsic$collect
+  call.import 1   ; std_core$Intrinsic$collect
   i32.const 0
   local.set 3   ; __p_4
   global.get 6   ; queue.state
@@ -1425,10 +1424,10 @@ fn 10 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -1463,7 +1462,7 @@ fn 12 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -1618,7 +1617,7 @@ fn 15 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 1   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -1684,16 +1683,16 @@ fn 17 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 4   ; system_posix$sys_write
+  call.import 3   ; system_posix$sys_write
   local.tee 4   ; written
   i64.const 0
   i64.lt
   if $L1 void
-    call.import 5   ; system_posix$sys_last_errno
+    call.import 4   ; system_posix$sys_last_errno
     i32.const 32
     i32.eq
     if $L2 void
-      call.import 6   ; system_posix$sys_end_on_broken_pipe
+      call.import 5   ; system_posix$sys_end_on_broken_pipe
       local.get 4   ; written
       i64.to_i32
       return
@@ -1721,6 +1720,6 @@ end
 
 fn 19 std_runtime$collections () -> i64
   i32.const 0
-  call.import 3   ; std_core$Intrinsic$collector_statistic
+  call.import 2   ; std_core$Intrinsic$collector_statistic
   return
 end

@@ -107,7 +107,7 @@ prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | Verify
     for imp in bc_mod.imports {
         import_ids.push(imp.intrinsic)
     }
-    reg :: translate_module(bc_mod, import_ids, facts, debug) else is VerifyError { return reg }
+    reg :: translate_module(bc_mod, facts, debug) else is VerifyError { return reg }
     by_name :: Map<string, i32> {}
     for i in 0..<bc_mod.functions.len() {
         by_name[bc_mod.functions[i].name] = i32(i)

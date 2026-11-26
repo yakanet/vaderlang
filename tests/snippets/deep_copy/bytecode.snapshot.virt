@@ -33,16 +33,15 @@ string 13 "true"
 string 14 "false"
 string 15 "\n"
 data 0 i32 hex"0a000000140000001e000000"
-import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=10 param_types=4 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=13 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 2 deep_copy std_core$Intrinsic$deep_copy__snippet_Shape intrinsic=deep_copy result_type=6 param_types=6 param_c_out= param_by_address= (ref) -> ref
-import 3 deep_copy std_core$Intrinsic$deep_copy__snippet_Node intrinsic=deep_copy result_type=2 param_types=2 param_c_out= param_by_address= (ref) -> ref
-import 4 deep_copy std_core$Intrinsic$deep_copy__i32__ intrinsic=deep_copy result_type=15 param_types=15 param_c_out= param_by_address= (ref) -> ref
-import 5 deep_copy std_core$Intrinsic$deep_copy__u8__ intrinsic=deep_copy result_type=13 param_types=13 param_c_out= param_by_address= (ref) -> ref
-import 6 deep_copy std_core$Intrinsic$deep_copy__snippet_Point___string intrinsic=deep_copy result_type=16 param_types=16 param_c_out= param_by_address= (any) -> any
-import 7 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=3,13,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 8 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
-import 9 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
+import 0 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=13 param_types=4 param_c_out= param_by_address= (string) -> ref
+import 1 deep_copy std_core$Intrinsic$deep_copy__snippet_Shape intrinsic=deep_copy result_type=6 param_types=6 param_c_out= param_by_address= (ref) -> ref
+import 2 deep_copy std_core$Intrinsic$deep_copy__snippet_Node intrinsic=deep_copy result_type=2 param_types=2 param_c_out= param_by_address= (ref) -> ref
+import 3 deep_copy std_core$Intrinsic$deep_copy__i32__ intrinsic=deep_copy result_type=15 param_types=15 param_c_out= param_by_address= (ref) -> ref
+import 4 deep_copy std_core$Intrinsic$deep_copy__u8__ intrinsic=deep_copy result_type=13 param_types=13 param_c_out= param_by_address= (ref) -> ref
+import 5 deep_copy std_core$Intrinsic$deep_copy__snippet_Point___string intrinsic=deep_copy result_type=16 param_types=16 param_c_out= param_by_address= (any) -> any
+import 6 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=3,13,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 7 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
+import 8 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 9 std_core$ByteAccess
 export main 1
 
@@ -94,7 +93,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; p
   struct.new 6   ; snippet$Shape
   local.tee 0   ; p
-  call.import 2   ; std_core$Intrinsic$deep_copy__snippet_Shape
+  call.import 1   ; std_core$Intrinsic$deep_copy__snippet_Shape
   local.set 1   ; $struct_7
   local.field 1 6 1   ; $struct_7 snippet$Shape.corners
   i32.const 0
@@ -181,7 +180,7 @@ fn 1 snippet$main () -> i32
   local.field 1 6 0   ; $struct_7 snippet$Shape.name
   ref.cast 4   ; string
   local.tee 8   ; __p_5
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; __off_1
   i64.const 68
   local.get 3   ; __off_1
@@ -320,14 +319,14 @@ fn 1 snippet$main () -> i32
   local.get 1   ; $struct_7
   struct.set 2 1   ; snippet$Node.next
   local.get 0   ; p
-  call.import 3   ; std_core$Intrinsic$deep_copy__snippet_Node
+  call.import 2   ; std_core$Intrinsic$deep_copy__snippet_Node
   local.tee 2   ; __buf_0
   call 0   ; snippet$follow
   local.set 9   ; $field_92
   local.field 9 2 0   ; $field_92 snippet$Node.label
   ref.cast 4   ; string
   local.tee 8   ; __p_5
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; __off_1
   i64.const 24
   local.get 3   ; __off_1
@@ -402,7 +401,7 @@ fn 1 snippet$main () -> i32
   i64.const 1
   i64.const 3
   array.slice 15   ; i32[]
-  call.import 4   ; std_core$Intrinsic$deep_copy__i32__
+  call.import 3   ; std_core$Intrinsic$deep_copy__i32__
   local.tee 1   ; $struct_7
   i32.const 0
   i32.const 99
@@ -475,7 +474,7 @@ fn 1 snippet$main () -> i32
   call 3   ; std_core$finish_buffer
   call 11   ; std_console$println__string
   data.const 0 15   ; pool[0] i32[]
-  call.import 4   ; std_core$Intrinsic$deep_copy__i32__
+  call.import 3   ; std_core$Intrinsic$deep_copy__i32__
   local.tee 0   ; p
   i32.const 40
   array.push 3   ; i32
@@ -549,8 +548,8 @@ fn 1 snippet$main () -> i32
   call 3   ; std_core$finish_buffer
   call 11   ; std_console$println__string
   string.const 10   ; "hey"
-  call.import 1   ; std_core$Intrinsic$bytes
-  call.import 5   ; std_core$Intrinsic$deep_copy__u8__
+  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 4   ; std_core$Intrinsic$deep_copy__u8__
   local.tee 0   ; p
   i32.const 33
   array.push 14   ; u8
@@ -596,7 +595,7 @@ fn 1 snippet$main () -> i32
   i32.const 6
   struct.new 5   ; snippet$Point
   local.tee 13   ; v
-  call.import 6   ; std_core$Intrinsic$deep_copy__snippet_Point___string
+  call.import 5   ; std_core$Intrinsic$deep_copy__snippet_Point___string
   local.tee 14   ; cv
   type_check 5   ; snippet$Point
   if $L0 void
@@ -643,10 +642,10 @@ fn 2 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -681,7 +680,7 @@ fn 4 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$Intrinsic$byte_len
+  string.byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -916,7 +915,7 @@ fn 8 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 1   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -982,16 +981,16 @@ fn 10 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 7   ; system_posix$sys_write
+  call.import 6   ; system_posix$sys_write
   local.tee 4   ; written
   i64.const 0
   i64.lt
   if $L1 void
-    call.import 8   ; system_posix$sys_last_errno
+    call.import 7   ; system_posix$sys_last_errno
     i32.const 32
     i32.eq
     if $L2 void
-      call.import 9   ; system_posix$sys_end_on_broken_pipe
+      call.import 8   ; system_posix$sys_end_on_broken_pipe
       local.get 4   ; written
       i64.to_i32
       return

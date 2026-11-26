@@ -387,6 +387,10 @@ pushed_tags :: fn(ctx: TagContext, op: bc.Op, state: u8[], top: u8) -> u8 = matc
      | bc.BoolOr | bc.BoolNot | bc.StringEq | bc.StringNe | bc.RefEq | bc.RefNe -> TAGS_BOOL
     is bc.CharConst -> TAGS_CHAR
     is bc.NullConst -> TAGS_NULL
+    is bc.StringByteLen | bc.StringHash -> tags_of_val(.I64)
+    is bc.StringByteAt -> tags_of_val(.U8)
+    is bc.StringIsAscii -> TAGS_BOOL
+    is bc.StringByteSlice -> TAGS_REF
     is bc.CheckedArith | bc.CheckedNeg -> integer_tags(op.kind)
     is bc.StringConst | bc.VoidConst | bc.DataConst | bc.TypeConst | bc.FnRef | bc.FnAddr
      | bc.MakeClosure | bc.StructNew | bc.ArrayNew | bc.ArrayReserve | bc.ArrayRepeat | bc.ArraySlice
@@ -472,7 +476,9 @@ accepted_tags :: fn(op: bc.Op, back: i64) -> u8 | null = match op {
      | bc.LoadF64 | bc.StoreU8 | bc.StoreI32 | bc.StoreI64 | bc.StoreF64 | bc.MemoryCopy
      | bc.BufferToString | bc.BufferWriteString | bc.F64ToBits | bc.BitsToF64 | bc.F32ToBits
      | bc.BitsToF32 | bc.ArrayReserve | bc.ArrayRepeat | bc.ArrayPushAll | bc.ArrayCopy
-     | bc.ArrayRemoveLast | bc.ArrayClear | bc.FnAddr | bc.GlobalGet | bc.GlobalSet -> null
+     | bc.ArrayRemoveLast | bc.ArrayClear | bc.FnAddr | bc.GlobalGet | bc.GlobalSet
+     | bc.StringByteLen | bc.StringByteAt | bc.StringByteSlice | bc.StringIsAscii
+     | bc.StringHash -> null
 }
 
 // The tag a value of the integer class `kind` sits under.

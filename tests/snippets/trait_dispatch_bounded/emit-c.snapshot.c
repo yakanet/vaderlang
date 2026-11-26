@@ -94,16 +94,8 @@ const size_t vader_type_info_count = 12;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
-	return vader_string_byte_len(a0);
-}
-
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 10u, 11u);
-}
-
-static uint64_t vader_host_std_core$Intrinsic$string_hash(vader_string_t a0) {
-	return vader_string_hash(a0);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -257,8 +249,8 @@ static int32_t snippet$count_matching__string(void* l0, vader_string_t l1) {
 		VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
 		t0 = vader_array_box_slots(_a0_slotarr->buf)[vader_array_offset(_a0_slotarr) + (size_t) l5];
 		l6 = t0.payload.s;
-		l7 = vader_host_std_core$Intrinsic$string_hash(l6);
-		l8 = vader_host_std_core$Intrinsic$string_hash(l1);
+		l7 = (uint64_t) vader_string_hash(l6);
+		l8 = (uint64_t) vader_string_hash(l1);
 		if (l7 == l8) {
 			if (l6 == l1) {
 				l2 = vader_chk_add(i32, l2, INT32_C(1));
@@ -283,8 +275,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l2 = vader_host_std_core$Intrinsic$byte_len(l0);
-	l3 = vader_host_std_core$Intrinsic$byte_len(l1);
+	l2 = (int64_t) vader_string_byte_len(l0);
+	l3 = (int64_t) vader_string_byte_len(l1);
 	l3 = (l2 + l3);
 	l4 = (void*) vader_buffer_new((size_t) l3);
 	vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
@@ -309,7 +301,7 @@ static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2)
 	int64_t l3;
 	int64_t t0;
 	vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-	l3 = vader_host_std_core$Intrinsic$byte_len(l2);
+	l3 = (int64_t) vader_string_byte_len(l2);
 	t0 = vader_chk_add(i64, l1, l3);
 	return t0;
 }

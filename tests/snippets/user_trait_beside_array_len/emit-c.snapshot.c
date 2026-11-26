@@ -93,16 +93,8 @@ const size_t vader_type_info_count = 13;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
-	return vader_string_byte_len(a0);
-}
-
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 7u, 8u);
-}
-
-static uint64_t vader_host_std_core$Intrinsic$string_hash(vader_string_t a0) {
-	return vader_string_hash(a0);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -200,8 +192,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l2 = vader_host_std_core$Intrinsic$byte_len(l0);
-	l3 = vader_host_std_core$Intrinsic$byte_len(l1);
+	l2 = (int64_t) vader_string_byte_len(l0);
+	l3 = (int64_t) vader_string_byte_len(l1);
 	l3 = (l2 + l3);
 	l4 = (void*) vader_buffer_new((size_t) l3);
 	vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
@@ -347,7 +339,7 @@ static void std_collections$rehash__string__i32(void* l0, int64_t l1) {
 		VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
 		t0 = vader_array_box_slots(_a1_slotarr->buf)[vader_array_offset(_a1_slotarr) + (size_t) l4];
 		t1 = t0.payload.s;
-		l6 = vader_host_std_core$Intrinsic$string_hash(t1);
+		l6 = (uint64_t) vader_string_hash(t1);
 		l7 = std_collections$first_slot(l6, l2);
 		for (;;) {
 			vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -419,7 +411,7 @@ static bool std_collections$put__string__i32(void* l0, vader_string_t l1, int32_
 	l4 = INT64_C(-1);
 	t0 = vader_array_length(((vader_array_t*) ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_index));
 	if ((t0 > INT64_C(0))) {
-		l5 = vader_host_std_core$Intrinsic$string_hash(l1);
+		l5 = (uint64_t) vader_string_hash(l1);
 		l6 = ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_mask;
 		l6 = std_collections$first_slot(l5, l6);
 		for (;;) {
