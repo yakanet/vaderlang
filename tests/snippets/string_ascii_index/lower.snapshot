@@ -22,8 +22,8 @@
       snippet.show("ASCII slice of an accented string", std_core$Intrinsic$byte_slice(mixed, i64(3), i64(7)))
       snippet.show("slice ending inside a codepoint", std_core$Intrinsic$byte_slice(mixed, i64(3), i64(9)))
       snippet.show("ASCII slice of that slice", std_core$Intrinsic$byte_slice(std_core$Intrinsic$byte_slice(mixed, i64(3), i64(9)), i64(1), i64(4)))
-      snippet.show("bytes", std_core$Intrinsic$bytes_to_string([u8(97), u8(98), u8(99)] :u8[]))
-      snippet.show("malformed bytes", std_core$Intrinsic$bytes_to_string([u8(97), u8(255)] :u8[]))
+      snippet.show("bytes", std_core$Runtime$bytes_to_string([u8(97), u8(98), u8(99)] :u8[]))
+      snippet.show("malformed bytes", std_core$Runtime$bytes_to_string([u8(97), u8(255)] :u8[]))
       {
           round: i32 = 0
           for round < 3 {
@@ -53,7 +53,7 @@
                       i = i +% 1
                   }
               }
-              std_core$Intrinsic$collect()
+              std_core$Runtime$collect()
               snippet.show({
                   __buf_4: Buffer = std_core$Intrinsic$new_byte_buffer(i64(42))
                   __off_5: i64 = 0

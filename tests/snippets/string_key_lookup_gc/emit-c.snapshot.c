@@ -101,11 +101,11 @@ const vader_type_info_t vader_type_info_table[17] = {
 	[5] = { .slot_size = 8 },
 	[6] = { .slot_size = 1 },
 	[7] = { .slot_size = 1 },
-	[8] = {
+	[8] = { .slot_size = 8 },
+	[9] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
 		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
 	},
-	[9] = { .slot_size = 8 },
 	[10] = {
 		.kind = VADER_TYPE_KIND_STRUCT,
 		.size = sizeof(vader_struct_std_collections$Map__string__bool_t), .slot_size = 8,
@@ -147,15 +147,15 @@ const size_t vader_type_info_count = 17;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 8u, 7u);
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
+	return (void*) vader_string_bytes_view(a0, 9u, 7u);
 }
 
-static void vader_host_std_core$Intrinsic$collect(void) {
+static void vader_host_std_core$Runtime$collect(void) {
 	vader_gc_collect();
 }
 
-static int64_t vader_host_std_core$Intrinsic$collector_statistic(int32_t a0) {
+static int64_t vader_host_std_core$Runtime$collector_statistic(int32_t a0) {
 	return vader_gc_statistic(a0);
 }
 
@@ -274,7 +274,7 @@ static int32_t snippet$main(void) {
 			vader_array_push_scalar((vader_array_t*) l2, vader_box_string(3u, l6));
 			l9 = (l9 + INT32_C(1));
 		}
-		vader_host_std_core$Intrinsic$collect();
+		vader_host_std_core$Runtime$collect();
 		l10 = l2;
 		l11 = vader_array_length(((vader_array_t*) l10));
 		l12 = INT64_C(0);
@@ -1001,7 +1001,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));
@@ -1065,7 +1065,7 @@ static int64_t std_runtime$collections(void) {
 	int64_t t0;
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
 	vader_gc_top = &gc_frame;
-	t0 = vader_host_std_core$Intrinsic$collector_statistic(INT32_C(0));
+	t0 = vader_host_std_core$Runtime$collector_statistic(INT32_C(0));
 	{ int64_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 

@@ -1528,66 +1528,66 @@ const size_t vader_type_info_count = 72;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 28u, 20u);
 }
 
-static int64_t vader_host_std_core$Intrinsic$spawn_thread(void* a0, int64_t a1) {
+static int64_t vader_host_std_core$Runtime$spawn_thread(void* a0, int64_t a1) {
 	return vader_scheduler_spawn_numbered(a0, a1);
 }
 
-static void vader_host_std_core$Intrinsic$park(void) {
+static void vader_host_std_core$Runtime$park(void) {
 	vader_scheduler_park();
 }
 
-static void vader_host_std_core$Intrinsic$wake(int64_t a0) {
+static void vader_host_std_core$Runtime$wake(int64_t a0) {
 	vader_scheduler_wake(a0);
 }
 
-static int64_t vader_host_std_core$Intrinsic$current_thread(void) {
+static int64_t vader_host_std_core$Runtime$current_thread(void) {
 	return vader_scheduler_current();
 }
 
-static bool vader_host_std_core$Intrinsic$is_cancelled(void) {
+static bool vader_host_std_core$Runtime$is_cancelled(void) {
 	return vader_scheduler_is_cancelled();
 }
 
-static void vader_host_std_core$Intrinsic$task_ended(void) {
+static void vader_host_std_core$Runtime$task_ended(void) {
 	vader_scheduler_task_ended();
 }
 
-static void vader_host_std_core$Intrinsic$monitor_enter(bool a0) {
+static void vader_host_std_core$Runtime$monitor_enter(bool a0) {
 	vader_scheduler_monitor_enter(a0);
 }
 
-static void vader_host_std_core$Intrinsic$monitor_give__string__(void* a0) {
+static void vader_host_std_core$Runtime$monitor_give__string__(void* a0) {
 	vader_scheduler_monitor_give_ref(a0);
 }
 
-static void vader_host_std_core$Intrinsic$monitor_exit(void) {
+static void vader_host_std_core$Runtime$monitor_exit(void) {
 	vader_scheduler_monitor_exit();
 }
 
-static void vader_host_std_core$Intrinsic$publish__i64(int64_t a0) {
+static void vader_host_std_core$Runtime$publish__i64(int64_t a0) {
 }
 
-static void vader_host_std_core$Intrinsic$mutex_lock__std_runtime_scheduler_Mutex(void* a0) {
+static void vader_host_std_core$Runtime$mutex_lock__std_runtime_scheduler_Mutex(void* a0) {
 	vader_scheduler_mutex_lock(a0);
 }
 
-static void vader_host_std_core$Intrinsic$mutex_unlock__std_runtime_scheduler_Mutex(void* a0) {
+static void vader_host_std_core$Runtime$mutex_unlock__std_runtime_scheduler_Mutex(void* a0) {
 	vader_scheduler_mutex_unlock(a0);
 }
 
-static void vader_host_std_core$Intrinsic$mutex_wait__std_runtime_scheduler_Mutex(void* a0) {
+static void vader_host_std_core$Runtime$mutex_wait__std_runtime_scheduler_Mutex(void* a0) {
 	vader_scheduler_mutex_wait(a0);
 }
 
-static void vader_host_std_core$Intrinsic$panic(vader_string_t a0) {
+static void vader_host_std_core$Runtime$panic(vader_string_t a0) {
 	vader_panic(a0);
 }
 
-static vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
+static vader_string_t vader_host_std_core$Runtime$bytes_to_string(void* a0) {
 	return vader_string_as_string((vader_array_t*) a0);
 }
 
@@ -2414,7 +2414,7 @@ static vader_string_t std_core$char$Display$to_string(uint32_t l0) {
 	};
 	vader_gc_top = &gc_frame;
 	t0 = std_core$utf8_encode(l0);
-	t1 = vader_host_std_core$Intrinsic$bytes_to_string(t0);
+	t1 = vader_host_std_core$Runtime$bytes_to_string(t0);
 	{ vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -3384,7 +3384,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));
@@ -3807,7 +3807,7 @@ static int64_t std_task$fetch_add(void* l0, int64_t l1) {
 	t0 = ((vader_struct_std_task$AtomicInt_t*) l0)->f_value;
 	l3 = vader_chk_add(i64, t0, l1);
 	((vader_struct_std_task$AtomicInt_t*) l0)->f_value = l3;
-	vader_host_std_core$Intrinsic$monitor_exit();
+	vader_host_std_core$Runtime$monitor_exit();
 	{ int64_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -3818,7 +3818,7 @@ static int64_t std_task$load(void* l0) {
 	vader_gc_top = &gc_frame;
 	std_runtime_scheduler$monitor_enter();
 	l1 = ((vader_struct_std_task$AtomicInt_t*) l0)->f_value;
-	vader_host_std_core$Intrinsic$monitor_exit();
+	vader_host_std_core$Runtime$monitor_exit();
 	{ int64_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -3897,7 +3897,7 @@ static int64_t std_task$start_thread(void* l0) {
 	l2 = vader_chk_add(i64, t1, INT64_C(1));
 	((vader_struct_std_task$Started_t*) l1)->f_count = l2;
 	l2 = ((vader_struct_std_task$Started_t*) l1)->f_count;
-	t1 = vader_host_std_core$Intrinsic$spawn_thread(l0, l2);
+	t1 = vader_host_std_core$Runtime$spawn_thread(l0, l2);
 	{ int64_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -3917,8 +3917,8 @@ static void std_task$send__i64(void* l0, int64_t l1) {
 		vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	vader_host_std_core$Intrinsic$publish__i64(l1);
-	vader_host_std_core$Intrinsic$mutex_lock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+	vader_host_std_core$Runtime$publish__i64(l1);
+	vader_host_std_core$Runtime$mutex_lock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
 	t0 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_capacity;
 	if ((t0 < INT64_C(1))) {
 		l2 = (void*) vader_buffer_new((size_t) INT64_C(80));
@@ -3927,7 +3927,7 @@ static void std_task$send__i64(void* l0, int64_t l1) {
 		l4 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_capacity;
 		l3 = std_core$write_int(l2, l3, l4);
 		t1 = std_core$finish_buffer(l2, l3);
-		vader_host_std_core$Intrinsic$panic(t1);
+		vader_host_std_core$Runtime$panic(t1);
 		vader_unreachable("a no-return call returned");
 	} else {
 		l3 = std_collections$len__i64(((vader_struct_std_task$Channel__i64_t*) l0)->f_messages);
@@ -3943,7 +3943,7 @@ static void std_task$send__i64(void* l0, int64_t l1) {
 			std_task$put__i64(l0, l1);
 			{ vader_gc_top = gc_frame.prev; return; }
 		}
-		vader_host_std_core$Intrinsic$panic(26u);
+		vader_host_std_core$Runtime$panic(26u);
 		vader_unreachable("a no-return call returned");
 	}
 	vader_gc_top = gc_frame.prev;
@@ -3956,7 +3956,7 @@ static vader_box_t std_task$receive__i64(void* l0) {
 	void** gc_raw_roots[2] = { &l0, &t2 };
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
-	vader_host_std_core$Intrinsic$mutex_lock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+	vader_host_std_core$Runtime$mutex_lock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
 	t0 = std_collections$is_empty__i64(((vader_struct_std_task$Channel__i64_t*) l0)->f_messages);
 	if (t0) {
 		t0 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_closed;
@@ -3969,7 +3969,7 @@ static vader_box_t std_task$receive__i64(void* l0) {
 		t1 = std_task$taken__i64(l0);
 		{ vader_box_t __vret = vader_box_i64(4u, t1); vader_gc_top = gc_frame.prev; return __vret; }
 	}
-	vader_host_std_core$Intrinsic$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+	vader_host_std_core$Runtime$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
 	t2 = (void*) &vader_data_2;
 	vader_array_t* _a0_slotarr = ((vader_array_t*) t2);
 	VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
@@ -3987,11 +3987,11 @@ static int64_t std_task$taken__i64(void* l0) {
 	std_task$wake_sender__i64(l0);
 	t0 = std_collections$is_empty__i64(((vader_struct_std_task$Channel__i64_t*) l0)->f_messages);
 	if (t0) {
-		vader_host_std_core$Intrinsic$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+		vader_host_std_core$Runtime$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
 		{ int64_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	std_task$wake_receiver__i64(l0);
-	vader_host_std_core$Intrinsic$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+	vader_host_std_core$Runtime$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
 	{ int64_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -4006,10 +4006,10 @@ static void std_task$put__i64(void* l0, int64_t l1) {
 	l3 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_capacity;
 	if ((l2 < l3)) {
 		std_task$wake_sender__i64(l0);
-		vader_host_std_core$Intrinsic$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+		vader_host_std_core$Runtime$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	vader_host_std_core$Intrinsic$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+	vader_host_std_core$Runtime$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
 	{ vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -4020,7 +4020,7 @@ static void std_task$close__i64(void* l0) {
 	void** gc_raw_roots[2] = { &l0, &l1 };
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
-	vader_host_std_core$Intrinsic$mutex_lock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+	vader_host_std_core$Runtime$mutex_lock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
 	((vader_struct_std_task$Channel__i64_t*) l0)->f_closed = true;
 	l1 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_receivers;
 	l2 = vader_array_length(((vader_array_t*) l1));
@@ -4030,7 +4030,7 @@ static void std_task$close__i64(void* l0) {
 		VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
 		VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
 		t0 = ((int64_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) l3];
-		vader_host_std_core$Intrinsic$wake(t0);
+		vader_host_std_core$Runtime$wake(t0);
 		l3 = (l3 + INT64_C(1));
 	}
 	l1 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_senders;
@@ -4041,10 +4041,10 @@ static void std_task$close__i64(void* l0) {
 		VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
 		VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l3)
 		t0 = ((int64_t*) _a1_slotarr->buf->slots)[vader_array_offset(_a1_slotarr) + (size_t) l3];
-		vader_host_std_core$Intrinsic$wake(t0);
+		vader_host_std_core$Runtime$wake(t0);
 		l3 = (l3 + INT64_C(1));
 	}
-	vader_host_std_core$Intrinsic$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+	vader_host_std_core$Runtime$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
 	{ vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -4055,7 +4055,7 @@ static void std_task$await_room__i64(void* l0) {
 	void** gc_raw_roots[2] = { &l0, &t0 };
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
-	l1 = vader_host_std_core$Intrinsic$current_thread();
+	l1 = vader_host_std_core$Runtime$current_thread();
 	vader_array_push_i64((vader_array_t*) ((vader_struct_std_task$Channel__i64_t*) l0)->f_senders, l1);
 	vader_struct___defer_env_std_task_7_t* _a0_obj = (vader_struct___defer_env_std_task_7_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_task_7_t));
 	vader_obj_header_init(_a0_obj, 39u);
@@ -4074,7 +4074,7 @@ static void std_task$await_room__i64(void* l0) {
 		if ((l2 >= l3)) {
 			t1 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_closed;
 			if (t1) break;
-			vader_host_std_core$Intrinsic$mutex_wait__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+			vader_host_std_core$Runtime$mutex_wait__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
 			((vader_struct_std_task$Channel__i64_t*) l0)->f_sender_woken = false;
 			continue;
 		}
@@ -4101,7 +4101,7 @@ static void std_task$await_message__i64(void* l0) {
 	void** gc_raw_roots[2] = { &l0, &t0 };
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
-	l1 = vader_host_std_core$Intrinsic$current_thread();
+	l1 = vader_host_std_core$Runtime$current_thread();
 	vader_array_push_i64((vader_array_t*) ((vader_struct_std_task$Channel__i64_t*) l0)->f_receivers, l1);
 	vader_struct___defer_env_std_task_15_t* _a0_obj = (vader_struct___defer_env_std_task_15_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_task_15_t));
 	vader_obj_header_init(_a0_obj, 40u);
@@ -4119,7 +4119,7 @@ static void std_task$await_message__i64(void* l0) {
 		if (t1) {
 			t1 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_closed;
 			if (t1) break;
-			vader_host_std_core$Intrinsic$mutex_wait__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+			vader_host_std_core$Runtime$mutex_wait__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
 			((vader_struct_std_task$Channel__i64_t*) l0)->f_receiver_woken = false;
 			continue;
 		}
@@ -4151,10 +4151,10 @@ static void std_task$gave_up_sending__i64(void* l0, int64_t l1) {
 	l3 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_capacity;
 	if ((l2 < l3)) {
 		std_task$wake_sender__i64(l0);
-		vader_host_std_core$Intrinsic$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+		vader_host_std_core$Runtime$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
 		return;
 	}
-	vader_host_std_core$Intrinsic$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+	vader_host_std_core$Runtime$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
 	return;
 }
 
@@ -4167,11 +4167,11 @@ static void std_task$gave_up_receiving__i64(void* l0, int64_t l1) {
 	((vader_struct_std_task$Channel__i64_t*) l0)->f_receiver_woken = false;
 	t0 = std_collections$is_empty__i64(((vader_struct_std_task$Channel__i64_t*) l0)->f_messages);
 	if (t0) {
-		vader_host_std_core$Intrinsic$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+		vader_host_std_core$Runtime$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
 		return;
 	}
 	std_task$wake_receiver__i64(l0);
-	vader_host_std_core$Intrinsic$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
+	vader_host_std_core$Runtime$mutex_unlock__std_runtime_scheduler_Mutex(((vader_struct_std_task$Channel__i64_t*) l0)->f_mutex);
 	return;
 }
 
@@ -4189,7 +4189,7 @@ static void std_task$wake_sender__i64(void* l0) {
 		VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
 		VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(0))
 		t1 = ((int64_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) INT32_C(0)];
-		vader_host_std_core$Intrinsic$wake(t1);
+		vader_host_std_core$Runtime$wake(t1);
 		return;
 	}
 	return;
@@ -4209,7 +4209,7 @@ static void std_task$wake_receiver__i64(void* l0) {
 		VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
 		VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(0))
 		t1 = ((int64_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) INT32_C(0)];
-		vader_host_std_core$Intrinsic$wake(t1);
+		vader_host_std_core$Runtime$wake(t1);
 		return;
 	}
 	return;
@@ -4220,12 +4220,12 @@ static void* std_task$shared__string__(void* l0) {
 	void** gc_raw_roots[2] = { &l0, &l1 };
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
-	vader_host_std_core$Intrinsic$monitor_give__string__(l0);
+	vader_host_std_core$Runtime$monitor_give__string__(l0);
 	vader_struct_std_task$Shared__string___t* _a0_obj = (vader_struct_std_task$Shared__string___t*) vader_gc_alloc(sizeof(vader_struct_std_task$Shared__string___t));
 	vader_obj_header_init(_a0_obj, 16u);
 	_a0_obj->f_value = l0;
 	l1 = (void*) _a0_obj;
-	vader_host_std_core$Intrinsic$monitor_exit();
+	vader_host_std_core$Runtime$monitor_exit();
 	{ void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -4259,7 +4259,7 @@ static vader_string_t std_task$locked__string____string(void* l0, void* l1) {
 }
 
 static void __defer_std_task_4(void* l0) {
-	vader_host_std_core$Intrinsic$monitor_exit();
+	vader_host_std_core$Runtime$monitor_exit();
 	return;
 }
 
@@ -4286,7 +4286,7 @@ static void std_task$locked__string____void(void* l0, void* l1) {
 }
 
 static void __defer_std_task_0(void* l0) {
-	vader_host_std_core$Intrinsic$monitor_exit();
+	vader_host_std_core$Runtime$monitor_exit();
 	return;
 }
 
@@ -4333,7 +4333,7 @@ static void* std_task$launch__i64(void* l0) {
 	t2 = (void*) _a4_closure;
 	l2 = std_task$start_thread(t2);
 	((vader_struct_std_task$Task__i64_t*) l1)->f_thread = l2;
-	vader_host_std_core$Intrinsic$monitor_exit();
+	vader_host_std_core$Runtime$monitor_exit();
 	{ void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -4369,7 +4369,7 @@ static void std_task$run__i64(void* l0, void* l1) {
 	_a1_closure->env = t0;
 	t0 = (void*) _a1_closure;
 	vader_defer_push(vader_ref_box(t0));
-	t1 = vader_host_std_core$Intrinsic$is_cancelled();
+	t1 = vader_host_std_core$Runtime$is_cancelled();
 	if (!(t1)) {
 		l2 = ((vader_struct_std_task$Task__i64_t*) l0)->f_result;
 		vader_fn_t* _a2_fnobj = (vader_fn_t*) l1;
@@ -4401,7 +4401,7 @@ static void std_task$end__i64(void* l0) {
 	vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 5u, gc_roots, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
 	std_runtime_scheduler$monitor_enter_to_publish();
-	vader_host_std_core$Intrinsic$task_ended();
+	vader_host_std_core$Runtime$task_ended();
 	((vader_struct_std_task$Task__i64_t*) l0)->f_ended = true;
 	l1 = ((vader_struct_std_task$Task__i64_t*) l0)->f_waiters;
 	l2 = vader_array_length(((vader_array_t*) l1));
@@ -4419,10 +4419,10 @@ static void std_task$end__i64(void* l0) {
 			vader_array_push_i64((vader_array_t*) l6, l7);
 		}
 		t1 = ((vader_struct_std_task$Waiter_t*) l4)->f_thread;
-		vader_host_std_core$Intrinsic$wake(t1);
+		vader_host_std_core$Runtime$wake(t1);
 		l3 = (l3 + INT64_C(1));
 	}
-	vader_host_std_core$Intrinsic$monitor_exit();
+	vader_host_std_core$Runtime$monitor_exit();
 	{ vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -4450,7 +4450,7 @@ static vader_box_t std_task$join__i64(void* l0) {
 	vader_defer_push(vader_ref_box(t0));
 	t1 = ((vader_struct_std_task$Task__i64_t*) l0)->f_ended;
 	if (!(t1)) {
-		l1 = vader_host_std_core$Intrinsic$current_thread();
+		l1 = vader_host_std_core$Runtime$current_thread();
 		l2 = ((vader_struct_std_task$Task__i64_t*) l0)->f_waiters;
 		vader_struct_std_task$Waiter_t* _a2_obj = (vader_struct_std_task$Waiter_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Waiter_t));
 		vader_obj_header_init(_a2_obj, 55u);
@@ -4473,7 +4473,7 @@ static vader_box_t std_task$join__i64(void* l0) {
 		for (;;) {
 			t1 = ((vader_struct_std_task$Task__i64_t*) l0)->f_ended;
 			if (!(t1)) {
-				vader_host_std_core$Intrinsic$park();
+				vader_host_std_core$Runtime$park();
 				continue;
 			}
 			break;
@@ -4486,7 +4486,7 @@ static vader_box_t std_task$join__i64(void* l0) {
 }
 
 static void __defer_std_task_10(void* l0) {
-	vader_host_std_core$Intrinsic$monitor_exit();
+	vader_host_std_core$Runtime$monitor_exit();
 	return;
 }
 
@@ -4650,7 +4650,7 @@ static int64_t std_collections$remove_first__i64(void* l0) {
 	vader_gc_top = &gc_frame;
 	t0 = ((vader_struct_std_collections$Queue__i64_t*) l0)->f_size;
 	if (t0 == INT64_C(0)) {
-		vader_host_std_core$Intrinsic$panic(27u);
+		vader_host_std_core$Runtime$panic(27u);
 		vader_unreachable("a no-return call returned");
 	} else {
 		l1 = ((vader_struct_std_collections$Queue__i64_t*) l0)->f_items;
@@ -4766,14 +4766,14 @@ static int64_t std_string__builder$byte_len(void* l0) {
 static void std_runtime_scheduler$monitor_enter_to_publish(void) {
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
 	vader_gc_top = &gc_frame;
-	vader_host_std_core$Intrinsic$monitor_enter(true);
+	vader_host_std_core$Runtime$monitor_enter(true);
 	{ vader_gc_top = gc_frame.prev; return; }
 }
 
 static void std_runtime_scheduler$monitor_enter(void) {
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
 	vader_gc_top = &gc_frame;
-	vader_host_std_core$Intrinsic$monitor_enter(false);
+	vader_host_std_core$Runtime$monitor_enter(false);
 	{ vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -4819,7 +4819,7 @@ static bool std_runtime_scheduler$run_gated(void* l0, void* l1) {
 	_a1_closure->env = t0;
 	t0 = (void*) _a1_closure;
 	vader_defer_push(vader_ref_box(t0));
-	l2 = vader_host_std_core$Intrinsic$current_thread();
+	l2 = vader_host_std_core$Runtime$current_thread();
 	t1 = ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_held;
 	if (t1) {
 		t2 = ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_owner;
@@ -4851,7 +4851,7 @@ static bool std_runtime_scheduler$run_gated(void* l0, void* l1) {
 }
 
 static void __defer_std_runtime_scheduler_0(void* l0) {
-	vader_host_std_core$Intrinsic$monitor_exit();
+	vader_host_std_core$Runtime$monitor_exit();
 	return;
 }
 
@@ -4881,7 +4881,7 @@ static void std_runtime_scheduler$await_gate(void* l0, int64_t l1) {
 	for (;;) {
 		t1 = ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_held;
 		if (t1) {
-			vader_host_std_core$Intrinsic$park();
+			vader_host_std_core$Runtime$park();
 			continue;
 		}
 		break;
@@ -4912,7 +4912,7 @@ static void std_runtime_scheduler$let_go(void* l0) {
 		VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
 		VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
 		t0 = ((int64_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) l3];
-		vader_host_std_core$Intrinsic$wake(t0);
+		vader_host_std_core$Runtime$wake(t0);
 		l3 = (l3 + INT64_C(1));
 	}
 	return;

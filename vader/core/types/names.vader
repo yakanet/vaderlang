@@ -173,7 +173,7 @@ export TRAIT_ERROR: string: @type_name(Error)
 /// `Intrinsic`, the operations the toolchain implements.
 export TRAIT_INTRINSIC: string: @type_name(Intrinsic)
 /// `Runtime`, the services each backend serves with a state of its own.
-export TRAIT_RUNTIME: string: "Runtime"
+export TRAIT_RUNTIME: string: @type_name(Runtime)
 
 /// `impl_base_key` of a nominal declaration: the symbol ids are unique across
 /// every kind, so the id alone names it.

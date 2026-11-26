@@ -17,8 +17,8 @@ string 3 ", "
 string 4 "open "
 string 5 " hours"
 string 6 "\n"
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=8 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 1 panic std_core$Intrinsic$panic service=panic result_type=1 param_types=4 param_c_out= param_by_address= (string) -> void
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=8 param_types=4 param_c_out= param_by_address= (string) -> ref
+import 1 panic std_core$Runtime$panic service=panic result_type=1 param_types=4 param_c_out= param_by_address= (string) -> void
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=5,8,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=5 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
@@ -89,7 +89,7 @@ fn 0 snippet$span_until (u8,i64) -> i64
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 5   ; std_core$finish_buffer
-  call.import 1   ; std_core$Intrinsic$panic
+  call.import 1   ; std_core$Runtime$panic
   unreachable "a no-return call returned"
 end
 
@@ -596,7 +596,7 @@ fn 9 snippet_clock$require_hour (i64) -> void
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
   call 5   ; std_core$finish_buffer
-  call.import 1   ; std_core$Intrinsic$panic
+  call.import 1   ; std_core$Runtime$panic
   unreachable "a no-return call returned"
 end
 
@@ -616,7 +616,7 @@ fn 10 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent

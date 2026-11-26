@@ -14,8 +14,8 @@ type 11 ref std_core$Iterator
 type 12 struct std_core$__gen_state_std_core_0 { s0:9,s1:8,s2:8,state:2 }
 type 13 struct std_core$__gen_state_std_core_1 { s0:10,s1:8,s2:8,state:2 }
 type 14 union 6,3
-type 15 array 16
-type 16 scalar u8
+type 15 scalar u8
+type 16 array 15
 type 17 scalar bool
 type 18 array 6
 string 0 "sentinel "
@@ -29,8 +29,8 @@ string 7 " "
 string 8 "s"
 string 9 "\n"
 data 0 structs 6 0 1
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=15 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=2,15,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=16 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=2,16,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 9 std_core$Into
@@ -804,7 +804,7 @@ fn 10 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -823,7 +823,7 @@ fn 10 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 15   ; u8[]
+      array.slice 16   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

@@ -56,11 +56,11 @@ const vader_type_info_t vader_type_info_table[9] = {
 	},
 	[5] = { .slot_size = 8 },
 	[6] = { .slot_size = 1 },
-	[7] = {
+	[7] = { .slot_size = 1 },
+	[8] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
 	},
-	[8] = { .slot_size = 1 },
 };
 const size_t vader_type_info_count = 9;
 
@@ -71,15 +71,15 @@ const size_t vader_type_info_count = 9;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 7u, 8u);
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
+	return (void*) vader_string_bytes_view(a0, 8u, 7u);
 }
 
-static int64_t vader_host_std_core$Intrinsic$collector_statistic(int32_t a0) {
+static int64_t vader_host_std_core$Runtime$collector_statistic(int32_t a0) {
 	return vader_gc_statistic(a0);
 }
 
-static void vader_host_std_core$Intrinsic$count_allocations(void) {
+static void vader_host_std_core$Runtime$count_allocations(void) {
 	vader_gc_count_allocations();
 }
 
@@ -121,10 +121,10 @@ static int32_t snippet$main(void) {
 		vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	vader_host_std_core$Intrinsic$count_allocations();
+	vader_host_std_core$Runtime$count_allocations();
 	l0 = std_runtime$allocations();
 	l1 = std_runtime$allocated_bytes();
-	vader_array_t* _a0_arr = vader_array_new(7u, 1u, 1u, 8u);
+	vader_array_t* _a0_arr = vader_array_new(8u, 1u, 1u, 7u);
 	((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint8_t) INT32_C(0);
 	t0 = (void*) _a0_arr;
 	vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) INT64_C(100000));
@@ -270,7 +270,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));
@@ -334,7 +334,7 @@ static int64_t std_runtime$allocations(void) {
 	int64_t t0;
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
 	vader_gc_top = &gc_frame;
-	t0 = vader_host_std_core$Intrinsic$collector_statistic(INT32_C(4));
+	t0 = vader_host_std_core$Runtime$collector_statistic(INT32_C(4));
 	{ int64_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -342,7 +342,7 @@ static int64_t std_runtime$allocated_bytes(void) {
 	int64_t t0;
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
 	vader_gc_top = &gc_frame;
-	t0 = vader_host_std_core$Intrinsic$collector_statistic(INT32_C(3));
+	t0 = vader_host_std_core$Runtime$collector_statistic(INT32_C(3));
 	{ int64_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 

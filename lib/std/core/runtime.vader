@@ -1,0 +1,195 @@
+// std/core/runtime: the services the toolchain serves for the standard library.
+//
+// Each backend implements `Runtime` with a state the program does not see: the
+// VM when it interprets the program, the native runtime when it is compiled,
+// the WASM emitter when it targets WASI. No Vader type implements it. Its
+// members are called on the trait itself, `Runtime.park()`, and the standard
+// library wraps the ones a program calls in functions of its own (`park`). What
+// they are is unstable: a program calls the standard library, not these.
+//
+// What may happen during a call to each, which the compiler must account for, is
+// the toolchain's to say (`vader/core/bytecode/runtime_service.vader`).
+
+module "std/core"
+
+import "std/target"
+
+/// What a wait on a descriptor waits for. The runtime reads its ordinal.
+export Readiness :: enum(i32) {
+    /// Something to read, or the end.
+    Readable,
+    /// Room to write.
+    Writable,
+}
+
+/// A statistic of the collector. The runtime reads its ordinal.
+export CollectorStatistic :: enum(i32) {
+    /// The number of collections run since the process started.
+    Collections,
+    /// The bytes in use, old and young generations.
+    BytesUsed,
+    /// The bytes copied by every collection since the process started.
+    BytesCopied,
+    /// The bytes requested from the collector since the process started.
+    AllocatedBytes,
+    /// The number of allocations made through the collector.
+    Allocations,
+}
+
+/// The services the toolchain serves: each backend serves every member, or
+/// refuses the program that calls one it has no form for.
+export Runtime :: trait {
+    // ---- strings and values ---------------------------------------------
+
+    /// The bytes of `s`, a view that aliases the interned string.
+    bytes :: fn(s: string) -> u8[]
+    /// The string that holds the bytes `bs`.
+    bytes_to_string :: fn(bs: u8[]) -> string
+    /// A copy of `value` that shares nothing it can write, walked by the layout
+    /// of each type it reaches: one host per type copied.
+    deep_copy :: fn<T>(value: T) -> T
+
+    // ---- the collector --------------------------------------------------
+
+    /// Run a full collection.
+    collect :: fn() -> void
+    /// The statistic `which` names.
+    collector_statistic :: fn(which: CollectorStatistic) -> i64
+    /// Count every allocation from now on.
+    count_allocations :: fn() -> void
+
+    // ---- threads --------------------------------------------------------
+
+    /// Start a thread running `entry`, which a report names `task #number`,
+    /// and hand back its handle.
+    spawn_thread :: fn(entry: fn() -> void, number: i64) -> i64
+    /// Suspend the running thread until another wakes it.
+    park :: fn() -> void
+    /// Make the thread `thread` ready to run.
+    wake :: fn(thread: i64) -> void
+    /// Suspend the running thread for `nanos` nanoseconds.
+    sleep_for :: fn(nanos: i64) -> void
+    /// Cancel the thread `thread`.
+    cancel_thread :: fn(thread: i64) -> void
+    /// The handle of the running thread.
+    current_thread :: fn() -> i64
+    /// Whether the running thread was cancelled.
+    is_cancelled :: fn() -> bool
+    /// Whether the thread `thread` is leaving.
+    is_leaving :: fn(thread: i64) -> bool
+    /// The running thread's task has ended.
+    task_ended :: fn() -> void
+    /// Wake the parked threads once `fd` has something to read.
+    watch_readable :: fn(fd: i64) -> void
+    /// Wake the parked threads once the child `child` has ended.
+    watch_exit :: fn(child: i64) -> void
+    /// Take the monitor over the state tasks share, for the running thread ;
+    /// `publishes` when the holder stores in that state values it made before.
+    monitor_enter :: fn(publishes: bool) -> void
+    /// Take the monitor as `monitor_enter` does, to store `value` in that state:
+    /// publishes only when `value` reaches what the holder made before.
+    monitor_give :: fn<T>(value: T) -> void
+    /// Let go of the monitor once.
+    monitor_exit :: fn() -> void
+    /// Make `value`, and what it reaches, readable from every system thread.
+    publish :: fn<T>(value: T) -> void
+    /// Take `mutex`, a `Mutex` of `std/runtime/scheduler`, which `std/core`
+    /// cannot name.
+    mutex_lock :: fn<T>(mutex: T) -> void
+    /// Let go of `mutex`.
+    mutex_unlock :: fn<T>(mutex: T) -> void
+    /// Let go of `mutex`, park, then take it back.
+    mutex_wait :: fn<T>(mutex: T) -> void
+
+    // ---- waits on a descriptor ------------------------------------------
+
+    /// Park until `fd` is as `readiness` says, `nanos` at most when not
+    /// negative, without asking `fd` first when `blocked`: its read or write
+    /// just found it would block. False once `nanos` have passed.
+    wait_for :: fn(fd: i64, readiness: Readiness, nanos: i64, blocked: bool) -> bool
+    /// Forget what the threads parked on `fd` wait for.
+    stop_waiting :: fn(fd: i64) -> void
+
+    // ---- the process ----------------------------------------------------
+
+    /// Stop the program with `msg`.
+    panic :: fn(msg: string) -> void
+    /// The OS the process runs on.
+    current_os :: fn() -> Os
+    /// The architecture the process runs on.
+    current_arch :: fn() -> Arch
+
+    // ---- component streams and futures ---------------------------------
+
+    /// Up to `max` items of `stream`, `nanos` at most of waiting for them, a
+    /// negative `nanos` without deadline ; empty when none came in time, null
+    /// once its writer is gone.
+    wasm_stream_read :: fn<T>(stream: WasmReadable<T>, max: i64, nanos: i64) -> T[] | null
+    /// What `future` resolves to, waited for, the future dropped.
+    wasm_future_wait :: fn<T>(future: WasmFuture<T>) -> T
+    /// Give `stream` back to the host before it ends: a read finds it ended.
+    wasm_stream_drop :: fn<T>(stream: WasmReadable<T>) -> void
+    /// Give `future` back to the host unwaited for: a wait on it traps.
+    wasm_future_drop :: fn<T>(future: WasmFuture<T>) -> void
+
+    // ---- threads of the component model --------------------------------
+
+    /// A thread of the component model that runs `entry`, suspended until a
+    /// `wasm_thread_resume_later` names it; its index.
+    wasm_thread_new :: fn(entry: fn() -> void) -> i64
+    /// Suspend the running thread until a `wasm_thread_resume_later` names it.
+    wasm_thread_suspend :: fn() -> void
+    /// Make the suspended thread `thread` ready to run again.
+    wasm_thread_resume_later :: fn(thread: i64) -> void
+    /// Let the threads that are ready run, then go on.
+    wasm_thread_yield :: fn() -> void
+    /// The index of the running thread.
+    wasm_thread_index :: fn() -> i64
+    /// Run the running thread's pending defers, the last pushed first, then end
+    /// it: it never returns.
+    wasm_thread_exit :: fn() -> void
+
+    // ---- foreign calls from the VM --------------------------------------
+    //
+    // The VM's answer to `@extern`: the native backend resolves one through the
+    // linker, the VM loads the library, resolves the symbol and calls through a
+    // trampoline. Addresses ride an `i64`, `0` the null one: nothing dereferences
+    // or offsets one, it only travels from `ffi_symbol` to a call.
+
+    /// Open a shared library by bare name (`"sqlite3"`, not `"libsqlite3.so"`),
+    /// which the host decorates per platform ; an empty name yields the running
+    /// process, where a libc symbol lives. 0 when the library is not found.
+    ffi_open :: fn(name: string) -> i64
+    /// Open a shared library by its path, as the platform's loader takes it: the
+    /// adapters `vader run` builds for the `@extern`s no trampoline covers. 0 when
+    /// it cannot be opened.
+    ffi_open_path :: fn(path: string) -> i64
+    /// The address of `symbol`, the exact linker name, in `lib` ; 0 when absent.
+    ffi_symbol :: fn(lib: i64, symbol: string) -> i64
+    /// One foreign call to `fn_ptr`, described by data rather than by its shape.
+    ///
+    /// `desc` is one byte per slot: `desc[0]` classifies the result, `desc[1+i]`
+    /// each argument: word, double, or an offset into `frame`. `frame` holds the
+    /// argument slots, eight bytes each, followed by whatever an offset slot points
+    /// into ; the result is written back over its first eight bytes. A shape
+    /// covered in `runtime/c/rt/ffi.c` is also taught to `adapter_reason`
+    /// (`vader/vm/adapters.vader`).
+    ///
+    /// `nfixed` is how many of the callee's parameters are fixed when it is
+    /// variadic, `-1` when it is not. Only the real prototype knows, so
+    /// `@c_variadic` declares it: a variadic callee called through a non-variadic
+    /// cast reads its variadic arguments from the wrong place on darwin-arm64,
+    /// silently.
+    ///
+    /// The interned string for a `string`-returning callee, the empty string
+    /// otherwise: an atom id cannot travel through the frame.
+    ffi_call :: fn(fn_ptr: i64, desc: u8[], frame: u8[], nfixed: i64) -> string
+    /// One call to a generated adapter, a C function of the frame alone that reads
+    /// each argument from its slot and writes the result back
+    /// (`runtime/c/vader_adapter.h`). `cc` compiled it against the real prototype,
+    /// so any signature crosses: a struct by value, an `f32`, mixed classes. The
+    /// slots are laid out as for `ffi_call`, and each address slot is resolved
+    /// before the call. The interned string for a `string` result, the empty
+    /// string otherwise.
+    ffi_call_frame :: fn(fn_ptr: i64, desc: u8[], frame: u8[]) -> string
+}

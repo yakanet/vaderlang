@@ -17,8 +17,8 @@ type 14 struct std_core$Site__snippet_counter_Counted { function:11,module:11,lo
 type 15 struct snippet$Log___i32__i32___i32 {  }
 type 16 struct snippet$Log___Any__Any___i32 {  }
 type 17 struct std_core$Buffer {  }
-type 18 array 19
-type 19 scalar u8
+type 18 scalar u8
+type 19 array 18
 type 20 struct std_core$Site__Any { function:11,module:11,location:11,marker:9 }
 type 21 scalar bool
 type 22 fn (2) -> 2
@@ -42,8 +42,8 @@ global 0 3 snippet fib$$layer.state
 global 1 4 snippet fib$$layer.instance
 global 2 3 snippet add$$layer.state
 global 3 5 snippet add$$layer.instance
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=18 param_types=11 param_c_out= param_by_address= (string) -> ref
-import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=2 param_types=3,18,2 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=19 param_types=11 param_c_out= param_by_address= (string) -> ref
+import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=2 param_types=3,19,2 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 17 std_core$ByteAccess
@@ -591,7 +591,7 @@ fn 16 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -610,7 +610,7 @@ fn 16 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 18   ; u8[]
+      array.slice 19   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

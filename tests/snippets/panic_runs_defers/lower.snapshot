@@ -10,7 +10,7 @@
           __off_2 = std.core.write_int(__buf_1, __off_2, amount)
           std.core.finish_buffer(__buf_1, __off_2)
       } :string)
-      __block_3: never = std_core$Intrinsic$panic("card declined")
+      __block_3: never = std_core$Runtime$panic("card declined")
       @defer_run(1)
       __block_3
   }

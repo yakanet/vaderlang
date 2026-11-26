@@ -142,7 +142,7 @@
           __off_19 = std.core.write_bool(__buf_18, __off_19, !std.core.i32[].contains(primes, 4))
           std.core.finish_buffer(__buf_18, __off_19)
       } :string)
-      vowels: u8[] = std_core$Intrinsic$bytes("aeiou")
+      vowels: u8[] = std_core$Runtime$bytes("aeiou")
       std.console.println<string>({
           __buf_20: Buffer = std_core$Intrinsic$new_byte_buffer(i64(23))
           __off_21: i64 = 0

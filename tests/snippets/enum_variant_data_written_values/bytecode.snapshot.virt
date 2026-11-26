@@ -41,7 +41,7 @@ data 0 structs 5 3 3 i32 c8000000 strref 19 bool 00 i32 94010000 strref 20 bool 
 data 1 u16 hex"c8009401f701"
 data 2 structs 5 3 3 i32 00000000 strref 19 bool 00 i32 00000000 strref 20 bool 00 i32 00000000 strref 21 bool 00
 data 3 structs 5 3 3 i32 00000000 strref 22 bool 00 i32 00000000 strref 23 bool 00 i32 00000000 strref 24 bool 00
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=9 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=9 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=4,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=4 () -> i32
 import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
@@ -830,7 +830,7 @@ fn 9 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent

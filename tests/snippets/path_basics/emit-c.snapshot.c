@@ -208,11 +208,11 @@ const size_t vader_type_info_count = 14;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 11u, 8u);
 }
 
-static uint8_t vader_host_std_core$Intrinsic$current_os(void) {
+static uint8_t vader_host_std_core$Runtime$current_os(void) {
 	return vader_current_os();
 }
 
@@ -626,7 +626,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));
@@ -698,7 +698,7 @@ static vader_string_t std_path$to_path(vader_string_t l0) {
 	if (!(t0)) {
 		return l0;
 	}
-	l1 = vader_host_std_core$Intrinsic$current_os();
+	l1 = vader_host_std_core$Runtime$current_os();
 	t1 = std_path$without_trailing_separators(l0, l1);
 	return t1;
 }
@@ -708,7 +708,7 @@ static vader_string_t std_path$filename(vader_string_t l0) {
 	uint8_t l2;
 	vader_string_t t0;
 	l1 = l0;
-	l2 = vader_host_std_core$Intrinsic$current_os();
+	l2 = vader_host_std_core$Runtime$current_os();
 	t0 = std_path$filename_on(l1, l2);
 	return t0;
 }
@@ -747,7 +747,7 @@ static vader_string_t std_path$parent(vader_string_t l0) {
 	uint8_t l2;
 	vader_string_t t0;
 	l1 = l0;
-	l2 = vader_host_std_core$Intrinsic$current_os();
+	l2 = vader_host_std_core$Runtime$current_os();
 	t0 = std_path$parent_on(l1, l2);
 	return t0;
 }
@@ -757,7 +757,7 @@ static vader_string_t std_path$root(vader_string_t l0) {
 	uint8_t l2;
 	int64_t l3;
 	l1 = l0;
-	l2 = vader_host_std_core$Intrinsic$current_os();
+	l2 = vader_host_std_core$Runtime$current_os();
 	l3 = std_path$root_length(l1, l2);
 	return vader_string_byte_slice(l1, INT64_C(0), l3);
 }
@@ -770,7 +770,7 @@ static vader_string_t std_path$join(vader_string_t l0, vader_string_t l1) {
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 4u, gc_atom_roots };
 	vader_gc_top = &gc_frame;
 	l2 = l0;
-	l3 = vader_host_std_core$Intrinsic$current_os();
+	l3 = vader_host_std_core$Runtime$current_os();
 	t0 = std_path$join_on(l2, l1, l3);
 	{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -834,7 +834,7 @@ static vader_string_t std_path$normalize(vader_string_t l0) {
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 3u, gc_atom_roots };
 	vader_gc_top = &gc_frame;
 	l1 = l0;
-	l2 = vader_host_std_core$Intrinsic$current_os();
+	l2 = vader_host_std_core$Runtime$current_os();
 	t0 = std_path$normalize_on(l1, l2);
 	{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }

@@ -55,11 +55,11 @@ const vader_type_info_t vader_type_info_table[10] = {
 	},
 	[5] = { .slot_size = 8 },
 	[6] = { .slot_size = 8 },
-	[7] = {
+	[7] = { .slot_size = 1 },
+	[8] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
 	},
-	[8] = { .slot_size = 1 },
 	[9] = { .slot_size = 1 },
 };
 const size_t vader_type_info_count = 10;
@@ -71,8 +71,8 @@ const size_t vader_type_info_count = 10;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 7u, 8u);
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
+	return (void*) vader_string_bytes_view(a0, 8u, 7u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -116,11 +116,11 @@ static int32_t snippet$main(void) {
 		vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l0 = vader_host_std_core$Intrinsic$bytes(1u);
+	l0 = vader_host_std_core$Runtime$bytes(1u);
 	vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
 	VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
 	VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(1))
-	t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) INT32_C(1), 8u);
+	t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) INT32_C(1), 7u);
 	t1 = ((uint8_t) t0.payload.i);
 	if (t1 == INT32_C(47)) {
 		std_console$println__string(2u);
@@ -128,13 +128,13 @@ static int32_t snippet$main(void) {
 	vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
 	VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
 	VADER_ARRAY_CHECK_INDEX(_a1_slotarr, INT32_C(2))
-	t0 = vader_array_read_u8(_a1_slotarr, vader_array_offset(_a1_slotarr) + (size_t) INT32_C(2), 8u);
+	t0 = vader_array_read_u8(_a1_slotarr, vader_array_offset(_a1_slotarr) + (size_t) INT32_C(2), 7u);
 	t1 = ((uint8_t) t0.payload.i);
 	if ((t1 >= INT32_C(48))) {
 		vader_array_t* _a2_slotarr = ((vader_array_t*) l0);
 		VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
 		VADER_ARRAY_CHECK_INDEX(_a2_slotarr, INT32_C(2))
-		t0 = vader_array_read_u8(_a2_slotarr, vader_array_offset(_a2_slotarr) + (size_t) INT32_C(2), 8u);
+		t0 = vader_array_read_u8(_a2_slotarr, vader_array_offset(_a2_slotarr) + (size_t) INT32_C(2), 7u);
 		t1 = ((uint8_t) t0.payload.i);
 		if ((t1 <= INT32_C(57))) {
 			std_console$println__string(3u);
@@ -146,7 +146,7 @@ static int32_t snippet$main(void) {
 	vader_array_t* _a3_slotarr = ((vader_array_t*) l0);
 	VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
 	VADER_ARRAY_CHECK_INDEX(_a3_slotarr, INT32_C(2))
-	t0 = vader_array_read_u8(_a3_slotarr, vader_array_offset(_a3_slotarr) + (size_t) INT32_C(2), 8u);
+	t0 = vader_array_read_u8(_a3_slotarr, vader_array_offset(_a3_slotarr) + (size_t) INT32_C(2), 7u);
 	t1 = ((uint8_t) t0.payload.i);
 	t2 = vader_chk_sub(u8, t1, INT32_C(48));
 	l1 = (uint8_t) (int32_t) t2;
@@ -255,7 +255,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));

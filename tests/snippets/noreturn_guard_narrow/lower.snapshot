@@ -4,14 +4,14 @@
   snippet.Box :: struct { v: i32 }  // snippet$Box
   snippet.unwrap :: fn(b: Box | null) -> i32 {  // snippet$unwrap
       if b is null {
-          std_core$Intrinsic$panic("nil box")
+          std_core$Runtime$panic("nil box")
       }
       return Box(b).v
   }
   snippet.unwrap_logged :: fn(b: Box | null) -> i32 {  // snippet$unwrap_logged
       if b is null {
           std.console.println<string>("nil box")
-          std_core$Intrinsic$panic("nil box")
+          std_core$Runtime$panic("nil box")
       }
       return Box(b).v
   }

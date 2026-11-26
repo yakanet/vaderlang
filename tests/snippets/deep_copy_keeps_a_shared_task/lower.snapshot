@@ -4,7 +4,7 @@
   snippet.Holder :: struct { task: Task<i32>, rows: i32[][] }  // snippet$Holder
   snippet.main :: fn() -> i32 {  // snippet$main
       h: Holder = Holder { .task = std.task.launch<i32>(__lambda_snippet_0), .rows = [[1, 2] :i32[], [3] :i32[]] :i32[][] }
-      ch: Holder = std_core$Intrinsic$deep_copy__snippet_Holder(h)
+      ch: Holder = std_core$Runtime$deep_copy__snippet_Holder(h)
       @array.push(ch.rows[0], 9)
       std.console.println<string>({
           __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(46))

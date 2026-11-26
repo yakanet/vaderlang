@@ -5,7 +5,7 @@
       x * 2
   }
   snippet.bump :: fn(x: i32) -> i32 {  // snippet$bump
-      std_core$Intrinsic$collect()
+      std_core$Runtime$collect()
       return x + 1
   }
   snippet.call_twice :: fn(f: fn(i32) -> i32) -> i32  // snippet$call_twice

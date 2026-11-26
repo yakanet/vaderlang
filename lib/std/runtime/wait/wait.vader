@@ -34,11 +34,11 @@ module "std/runtime/wait"
 /// @return           `false` once `nanos` have passed with `fd` still not
 ///                   ready.
 export wait_for :: fn(fd: i64, readiness: Readiness, nanos: i64, blocked: bool) -> bool =
-    Intrinsic.wait_for(fd, readiness, nanos, blocked)
+    Runtime.wait_for(fd, readiness, nanos, blocked)
 
 /// End the waits of the threads parked on descriptor `fd`: each returns as if
 /// `fd` were ready, and asks what it waited for again. Called before `fd` is
 /// closed, since the system hands its number out again.
 ///
 /// @param fd  a descriptor of the process, about to be closed.
-export stop_waiting :: fn(fd: i64) -> void = Intrinsic.stop_waiting(fd)
+export stop_waiting :: fn(fd: i64) -> void = Runtime.stop_waiting(fd)

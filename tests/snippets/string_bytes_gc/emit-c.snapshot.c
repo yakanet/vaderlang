@@ -68,11 +68,11 @@ const size_t vader_type_info_count = 10;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 3u, 4u);
 }
 
-static void vader_host_std_core$Intrinsic$collect(void) {
+static void vader_host_std_core$Runtime$collect(void) {
 	vader_gc_collect();
 }
 
@@ -117,7 +117,7 @@ static void* snippet$view_of(int32_t l0) {
 	l3 = ((int64_t) (int32_t) l0);
 	l2 = std_core$write_int(l1, l2, l3);
 	t0 = std_core$finish_buffer(l1, l2);
-	t1 = vader_host_std_core$Intrinsic$bytes(t0);
+	t1 = vader_host_std_core$Runtime$bytes(t0);
 	{ void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -172,8 +172,8 @@ static int32_t snippet$main(void) {
 	l5 = snippet$fold(l1);
 	l6 = snippet$fold(l2);
 	l7 = snippet$fold(l3);
-	vader_host_std_core$Intrinsic$collect();
-	vader_host_std_core$Intrinsic$collect();
+	vader_host_std_core$Runtime$collect();
+	vader_host_std_core$Runtime$collect();
 	t0 = snippet$fold(l0);
 	if (t0 != l4) {
 		l8 = true;
@@ -347,7 +347,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));

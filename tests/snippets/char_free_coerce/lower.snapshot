@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      bs: u8[] = std_core$Intrinsic$bytes("a/9")
+      bs: u8[] = std_core$Runtime$bytes("a/9")
       if bs[1] == u8(47) {
           std.console.println<string>("slash")
       }

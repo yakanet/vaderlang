@@ -353,15 +353,15 @@ const size_t vader_type_info_count = 31;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 7u, 8u);
 }
 
-static vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
+static vader_string_t vader_host_std_core$Runtime$bytes_to_string(void* a0) {
 	return vader_string_as_string((vader_array_t*) a0);
 }
 
-static void vader_host_std_core$Intrinsic$panic(vader_string_t a0) {
+static void vader_host_std_core$Runtime$panic(vader_string_t a0) {
 	vader_panic(a0);
 }
 
@@ -684,7 +684,7 @@ static vader_string_t snippet$bytes_text(vader_box_t l0) {
 		{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	t1 = l0.payload.obj;
-	t0 = vader_host_std_core$Intrinsic$bytes_to_string(t1);
+	t0 = vader_host_std_core$Runtime$bytes_to_string(t1);
 	{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -871,7 +871,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));
@@ -957,7 +957,7 @@ static vader_box_t std_io$read_line(void* l0, int64_t l1) {
 		l4 = vader_chk_sub(i64, l4, l5);
 		vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l3, (int64_t) INT64_C(0), (int64_t) l4);
 		t0 = (void*) _a0_arr;
-		t1 = vader_host_std_core$Intrinsic$bytes_to_string(t0);
+		t1 = vader_host_std_core$Runtime$bytes_to_string(t0);
 		{ vader_box_t __vret = vader_box_string(5u, t1); vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	t0 = l2.payload.obj;
@@ -1727,7 +1727,7 @@ static void* std_io$bytes_of(vader_box_t l0) {
 	vader_gc_top = &gc_frame;
 	if (l0.tag == 5u) {
 		t0 = l0.payload.s;
-		t1 = vader_host_std_core$Intrinsic$bytes(t0);
+		t1 = vader_host_std_core$Runtime$bytes(t0);
 		{ void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	t1 = l0.payload.obj;
@@ -1748,7 +1748,7 @@ static void std_testing$assert_succeeds(vader_box_t l0) {
 	}
 	l1 = std_core$Error$message$$dispatch(l0);
 	t0 = concat_2(61u, l1);
-	vader_host_std_core$Intrinsic$panic(t0);
+	vader_host_std_core$Runtime$panic(t0);
 	vader_unreachable("a no-return call returned");
 	vader_gc_top = gc_frame.prev;
 }

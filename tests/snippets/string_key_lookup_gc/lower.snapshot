@@ -55,7 +55,7 @@
                       i = i +% 1
                   }
               }
-              std_core$Intrinsic$collect()
+              std_core$Runtime$collect()
               {
                   __for_arr_4: string[] = words
                   __for_len_5: i64 = @array.len(__for_arr_4)

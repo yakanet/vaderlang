@@ -83,11 +83,11 @@ const size_t vader_type_info_count = 13;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 12u, 5u);
 }
 
-static vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
+static vader_string_t vader_host_std_core$Runtime$bytes_to_string(void* a0) {
 	return vader_string_as_string((vader_array_t*) a0);
 }
 
@@ -143,7 +143,7 @@ static int32_t snippet$main(void) {
 	((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 1u] = (uint8_t) INT32_C(169);
 	((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint8_t) INT32_C(97);
 	t0 = (void*) _a0_arr;
-	l0 = vader_host_std_core$Intrinsic$bytes_to_string(t0);
+	l0 = vader_host_std_core$Runtime$bytes_to_string(t0);
 	t1 = std_core$len_1(l0);
 	std_console$println__i64(t1);
 	l1 = INT64_C(0);
@@ -617,7 +617,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));

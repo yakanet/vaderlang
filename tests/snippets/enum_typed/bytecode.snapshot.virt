@@ -29,7 +29,7 @@ string 14 "implicit u16 values: "
 string 15 "signed i8: "
 string 16 "conversions: "
 string 17 "\n"
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=9 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=9 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=5,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=5 () -> i32
 import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
@@ -716,7 +716,7 @@ fn 8 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent

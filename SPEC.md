@@ -1976,7 +1976,7 @@ sum :: fn<T: Add & Zero>(xs: T[]) -> T {
 
 A value of the trait reaches only its instance members, even in a trait that also has static ones. These are errors:
 
-- a static member called on a value, or on the trait itself (`Zero.zero()`), except a member of `Intrinsic` (§15 *The `Intrinsic` trait*);
+- a static member called on a value, or on the trait itself (`Zero.zero()`), except a member of `Intrinsic` or `Runtime` (§15 *The `Intrinsic` and `Runtime` traits*);
 - an instance member called on a type;
 - a static member named without being called (`f :: i64.zero`).
 
@@ -2507,7 +2507,7 @@ all :: pieces("abc").collect()                   // error: `collect` keeps each 
 
 The compiler reads from a function's body what it does with each parameter: which parts it assigns, grows or shrinks, keeps past the call or returns. Calls are followed over the whole program: a write at the end of a call chain counts at the call that lends a frozen value.
 
-A member of `Intrinsic` is described by the compiler, an `@extern` by its `@c_out` parameters (§13), and a function value may do anything. The same reading decides whether an array argument may widen its element (§4 *Variance*).
+A member of `Intrinsic` or `Runtime` is described by the compiler, an `@extern` by its `@c_out` parameters (§13), and a function value may do anything. The same reading decides whether an array argument may widen its element (§4 *Variance*).
 
 ### No mutability marker
 
@@ -4401,12 +4401,18 @@ Contains :: trait<T> {
 }
 ```
 
-### The `Intrinsic` trait
+### The `Intrinsic` and `Runtime` traits
 
-`std/core` declares the trait `Intrinsic`, whose members are operations the toolchain performs (`byte_len`, `park`, `current_os`). The toolchain that runs the program implements it, the interpreter or the native runtime, so a program does not: `X implements Intrinsic` is an error. Its members are static and are called on the trait itself, the only trait whose members are:
+`std/core` declares two traits the toolchain implements, so a program does not: `X implements Intrinsic` is an error, and so is `X implements Runtime`.
+
+- `Intrinsic` holds the operations the compiler performs itself (`byte_len`, `array_push`, `f64_to_bits`).
+- `Runtime` holds the services the interpreter or the native runtime provides (`park`, `collect`, `current_os`).
+
+Their members are static and are called on the trait itself, the only traits whose members are:
 
 ```vader
 export byte_len :: fn(s: string) -> i64 = Intrinsic.byte_len(s)
+export park :: fn() -> void = Runtime.park()
 ```
 
 They are unstable: a program calls the standard library functions that wrap them.

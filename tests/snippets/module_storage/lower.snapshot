@@ -184,7 +184,7 @@
               i = i +% 1
           }
       }
-      std_core$Intrinsic$collect()
+      std_core$Runtime$collect()
       lost: i32 = 0
       {
           i: i32 = 0
@@ -238,7 +238,7 @@
               i = i +% 1
           }
       }
-      std_core$Intrinsic$collect()
+      std_core$Runtime$collect()
       grown: i32 = 0
       {
           i: i32 = 0
@@ -289,7 +289,7 @@
               i = i +% 1
           }
       }
-      std_core$Intrinsic$collect()
+      std_core$Runtime$collect()
       queue_ok: i32 = 0
       if (if @global(6) == 2 { @global(7) } else { snippet.queue() } :Spec[])[0].name == "replaced-2" {
           queue_ok = queue_ok + 1

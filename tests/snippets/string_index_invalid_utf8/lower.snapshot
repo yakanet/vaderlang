@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      s: string = std_core$Intrinsic$bytes_to_string([u8(97), u8(169), u8(98), u8(99), u8(100), u8(226), u8(130)] :u8[])
+      s: string = std_core$Runtime$bytes_to_string([u8(97), u8(169), u8(98), u8(99), u8(100), u8(226), u8(130)] :u8[])
       std.console.println<i64>(std.core.len(s))
       {
           i: i64 = 0

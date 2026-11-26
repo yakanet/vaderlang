@@ -954,11 +954,11 @@ const size_t vader_type_info_count = 25;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 8u, 9u);
 }
 
-static vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
+static vader_string_t vader_host_std_core$Runtime$bytes_to_string(void* a0) {
 	return vader_string_as_string((vader_array_t*) a0);
 }
 
@@ -2098,7 +2098,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));
@@ -2545,7 +2545,7 @@ static void* std_numbers$round_at(void* l0, int64_t l1) {
 	};
 	vader_gc_top = &gc_frame;
 	t0 = ((vader_struct_std_numbers$DecimalDigits_t*) l0)->f_digits;
-	l2 = vader_host_std_core$Intrinsic$bytes(t0);
+	l2 = vader_host_std_core$Runtime$bytes(t0);
 	l3 = vader_array_length(((vader_array_t*) l2));
 	if ((l1 >= l3)) {
 		{ void* __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -2678,7 +2678,7 @@ static int64_t std_numbers$exponent_value(vader_string_t l0) {
 		vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l1 = vader_host_std_core$Intrinsic$bytes(l0);
+	l1 = vader_host_std_core$Runtime$bytes(l0);
 	l2 = INT64_C(0);
 	l3 = INT64_C(1);
 	l4 = vader_array_length(((vader_array_t*) l1));
@@ -2866,7 +2866,7 @@ static void* std_numbers$trimmed(vader_string_t l0, int64_t l1) {
 		vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l2 = vader_host_std_core$Intrinsic$bytes(l0);
+	l2 = vader_host_std_core$Runtime$bytes(l0);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));
@@ -3168,7 +3168,7 @@ static void std_string__builder$append_char(void* l0, uint32_t l1) {
 	vader_gc_top = &gc_frame;
 	l2 = ((vader_struct_std_string__builder$StringBuilder_t*) l0)->f_parts;
 	t0 = std_core$utf8_encode(l1);
-	l3 = vader_host_std_core$Intrinsic$bytes_to_string(t0);
+	l3 = vader_host_std_core$Runtime$bytes_to_string(t0);
 	vader_array_push_scalar((vader_array_t*) l2, vader_box_string(3u, l3));
 	{ vader_gc_top = gc_frame.prev; return; }
 }

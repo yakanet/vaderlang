@@ -196,7 +196,7 @@
   __lambda_snippet_4 :: fn() -> i32 {
       {
           __fallback_0: Cancelled | i32 = std.task.join<i32>(if @global(9) == 2 { @global(10) } else { snippet.warmup() } :Task<i32>)
-          if __fallback_0 is Cancelled { std_core$Intrinsic$panic("the task was cancelled") } else { i32(__fallback_0) } :i32
+          if __fallback_0 is Cancelled { std_core$Runtime$panic("the task was cancelled") } else { i32(__fallback_0) } :i32
       } :i32
   }
   concat_5 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string) -> string {

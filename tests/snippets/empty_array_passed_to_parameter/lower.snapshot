@@ -35,14 +35,14 @@
           __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               w: u8[] = __for_arr_0[__for_i_2]
-              std.console.println<string>(std_core$Intrinsic$bytes_to_string(w))
+              std.console.println<string>(std_core$Runtime$bytes_to_string(w))
           } @step {
               __for_i_2 = __for_i_2 +% i64(1)
           }
       }
       direct: u8[] = [] :u8[]
       snippet.append_word(direct, 12)
-      std.console.println<string>(std_core$Intrinsic$bytes_to_string(direct))
+      std.console.println<string>(std_core$Runtime$bytes_to_string(direct))
       shorts: u16[] = [] :u16[]
       snippet.fill<u16>(shorts, u16(7), 20)
       std.console.println<string>({

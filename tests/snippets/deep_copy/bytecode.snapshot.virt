@@ -12,8 +12,8 @@ type 9 struct std_core$Buffer {  }
 type 10 scalar i64
 type 11 scalar u64
 type 12 scalar bool
-type 13 array 14
-type 14 scalar u8
+type 13 scalar u8
+type 14 array 13
 type 15 array 3
 type 16 union 5,4
 string 0 "tri"
@@ -33,13 +33,13 @@ string 13 "true"
 string 14 "false"
 string 15 "\n"
 data 0 i32 hex"0a000000140000001e000000"
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=13 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 1 deep_copy std_core$Intrinsic$deep_copy__snippet_Shape service=deep_copy result_type=6 param_types=6 param_c_out= param_by_address= (ref) -> ref
-import 2 deep_copy std_core$Intrinsic$deep_copy__snippet_Node service=deep_copy result_type=2 param_types=2 param_c_out= param_by_address= (ref) -> ref
-import 3 deep_copy std_core$Intrinsic$deep_copy__i32__ service=deep_copy result_type=15 param_types=15 param_c_out= param_by_address= (ref) -> ref
-import 4 deep_copy std_core$Intrinsic$deep_copy__u8__ service=deep_copy result_type=13 param_types=13 param_c_out= param_by_address= (ref) -> ref
-import 5 deep_copy std_core$Intrinsic$deep_copy__snippet_Point___string service=deep_copy result_type=16 param_types=16 param_c_out= param_by_address= (any) -> any
-import 6 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=3,13,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=14 param_types=4 param_c_out= param_by_address= (string) -> ref
+import 1 deep_copy std_core$Runtime$deep_copy__snippet_Shape service=deep_copy result_type=6 param_types=6 param_c_out= param_by_address= (ref) -> ref
+import 2 deep_copy std_core$Runtime$deep_copy__snippet_Node service=deep_copy result_type=2 param_types=2 param_c_out= param_by_address= (ref) -> ref
+import 3 deep_copy std_core$Runtime$deep_copy__i32__ service=deep_copy result_type=15 param_types=15 param_c_out= param_by_address= (ref) -> ref
+import 4 deep_copy std_core$Runtime$deep_copy__u8__ service=deep_copy result_type=14 param_types=14 param_c_out= param_by_address= (ref) -> ref
+import 5 deep_copy std_core$Runtime$deep_copy__snippet_Point___string service=deep_copy result_type=16 param_types=16 param_c_out= param_by_address= (any) -> any
+import 6 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=3,14,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 7 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 8 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 9 std_core$ByteAccess
@@ -93,7 +93,7 @@ fn 1 snippet$main () -> i32
   local.get 0   ; p
   struct.new 6   ; snippet$Shape
   local.tee 0   ; p
-  call.import 1   ; std_core$Intrinsic$deep_copy__snippet_Shape
+  call.import 1   ; std_core$Runtime$deep_copy__snippet_Shape
   local.set 1   ; $struct_7
   local.field 1 6 1   ; $struct_7 snippet$Shape.corners
   i32.const 0
@@ -319,7 +319,7 @@ fn 1 snippet$main () -> i32
   local.get 1   ; $struct_7
   struct.set 2 1   ; snippet$Node.next
   local.get 0   ; p
-  call.import 2   ; std_core$Intrinsic$deep_copy__snippet_Node
+  call.import 2   ; std_core$Runtime$deep_copy__snippet_Node
   local.tee 2   ; __buf_0
   call 0   ; snippet$follow
   local.set 9   ; $field_92
@@ -401,7 +401,7 @@ fn 1 snippet$main () -> i32
   i64.const 1
   i64.const 3
   array.slice 15   ; i32[]
-  call.import 3   ; std_core$Intrinsic$deep_copy__i32__
+  call.import 3   ; std_core$Runtime$deep_copy__i32__
   local.tee 1   ; $struct_7
   i32.const 0
   i32.const 99
@@ -474,7 +474,7 @@ fn 1 snippet$main () -> i32
   call 3   ; std_core$finish_buffer
   call 11   ; std_console$println__string
   data.const 0 15   ; pool[0] i32[]
-  call.import 3   ; std_core$Intrinsic$deep_copy__i32__
+  call.import 3   ; std_core$Runtime$deep_copy__i32__
   local.tee 0   ; p
   i32.const 40
   array.push 3   ; i32
@@ -548,11 +548,11 @@ fn 1 snippet$main () -> i32
   call 3   ; std_core$finish_buffer
   call 11   ; std_console$println__string
   string.const 10   ; "hey"
-  call.import 0   ; std_core$Intrinsic$bytes
-  call.import 4   ; std_core$Intrinsic$deep_copy__u8__
+  call.import 0   ; std_core$Runtime$bytes
+  call.import 4   ; std_core$Runtime$deep_copy__u8__
   local.tee 0   ; p
   i32.const 33
-  array.push 14   ; u8
+  array.push 13   ; u8
   i64.const 47
   buffer.new
   local.set 1   ; $struct_7
@@ -578,8 +578,8 @@ fn 1 snippet$main () -> i32
   local.set 3   ; __off_1
   local.get 0   ; p
   i32.const 3
-  array.get 13   ; u8[]
-  ref.cast 14   ; u8
+  array.get 14   ; u8[]
+  ref.cast 13   ; u8
   u8.to_i64
   local.set 12   ; $cast_242
   local.get 1   ; $struct_7
@@ -595,7 +595,7 @@ fn 1 snippet$main () -> i32
   i32.const 6
   struct.new 5   ; snippet$Point
   local.tee 13   ; v
-  call.import 5   ; std_core$Intrinsic$deep_copy__snippet_Point___string
+  call.import 5   ; std_core$Runtime$deep_copy__snippet_Point___string
   local.tee 14   ; cv
   type_check 5   ; snippet$Point
   if $L0 void
@@ -915,7 +915,7 @@ fn 8 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -934,7 +934,7 @@ fn 8 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 13   ; u8[]
+      array.slice 14   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

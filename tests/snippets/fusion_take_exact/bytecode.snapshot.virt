@@ -13,8 +13,8 @@ type 10 scalar string
 type 11 ref _
 type 12 struct std_core$Buffer {  }
 type 13 struct std_core$__gen_state_std_core_0 { s0:4,s1:2,s2:2,state:3 }
-type 14 array 15
-type 15 scalar u8
+type 14 scalar u8
+type 15 array 14
 type 16 scalar bool
 type 17 fn (3) -> 4
 type 18 struct std_iter$__gen_state_std_iter_2 { s0:5,s1:17,s2:5,s3:8,s4:3,s5:4,s6:2,s7:2,s8:3,state:3 }
@@ -41,8 +41,8 @@ string 9 "  got "
 string 10 "generator.take(2), lazy:"
 string 11 "\n"
 data 0 structs 9 0 1
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=14 param_types=10 param_c_out= param_by_address= (string) -> ref
-import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=2 param_types=3,14,2 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=15 param_types=10 param_c_out= param_by_address= (string) -> ref
+import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=2 param_types=3,15,2 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 7 std_core$Iterator
@@ -1070,7 +1070,7 @@ fn 15 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -1089,7 +1089,7 @@ fn 15 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 14   ; u8[]
+      array.slice 15   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

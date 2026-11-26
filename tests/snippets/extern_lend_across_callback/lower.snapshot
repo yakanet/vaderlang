@@ -3,7 +3,7 @@
 ## snippet
   snippet.Div :: struct { quot: i32, rem: i32 }  // snippet$Div
   snippet.churn :: fn(x: i32) -> void {  // snippet$churn
-      std_core$Intrinsic$collect()
+      std_core$Runtime$collect()
   }
   snippet.lend_set_cb :: fn(cb: fn(i32) -> void) -> void  // snippet$lend_set_cb
   snippet.lend_fill_array :: fn(q: i32[], n: i64) -> void  // snippet$lend_fill_array

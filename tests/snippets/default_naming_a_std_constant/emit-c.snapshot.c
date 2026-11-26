@@ -443,15 +443,15 @@ const size_t vader_type_info_count = 44;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 10u, 7u);
 }
 
-static vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
+static vader_string_t vader_host_std_core$Runtime$bytes_to_string(void* a0) {
 	return vader_string_as_string((vader_array_t*) a0);
 }
 
-static uint8_t vader_host_std_core$Intrinsic$current_os(void) {
+static uint8_t vader_host_std_core$Runtime$current_os(void) {
 	return vader_current_os();
 }
 
@@ -1009,7 +1009,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));
@@ -1192,7 +1192,7 @@ static vader_box_t std_fs$read_file_string(vader_string_t l0, int64_t l1) {
 		{ vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	t0 = l2.payload.obj;
-	t1 = vader_host_std_core$Intrinsic$bytes_to_string(t0);
+	t1 = vader_host_std_core$Runtime$bytes_to_string(t0);
 	{ vader_box_t __vret = vader_box_string(4u, t1); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1245,7 +1245,7 @@ static bool std_fs$has_nul(vader_string_t l0) {
 		vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	t0 = vader_host_std_core$Intrinsic$bytes(l0);
+	t0 = vader_host_std_core$Runtime$bytes(l0);
 	t1 = std_core$index_of__u8(t0, (uint8_t) 0);
 	{ bool __vret = !(t1.tag == 0u); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -2245,7 +2245,7 @@ static void* std_io$bytes_of(vader_box_t l0) {
 	vader_gc_top = &gc_frame;
 	if (l0.tag == 4u) {
 		t0 = l0.payload.s;
-		t1 = vader_host_std_core$Intrinsic$bytes(t0);
+		t1 = vader_host_std_core$Runtime$bytes(t0);
 		{ void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	t1 = l0.payload.obj;
@@ -2260,7 +2260,7 @@ static vader_string_t std_path$to_path(vader_string_t l0) {
 	if (!(t0)) {
 		return l0;
 	}
-	l1 = vader_host_std_core$Intrinsic$current_os();
+	l1 = vader_host_std_core$Runtime$current_os();
 	t1 = std_path$without_trailing_separators(l0, l1);
 	return t1;
 }

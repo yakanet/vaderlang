@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      std_core$Intrinsic$count_allocations()
+      std_core$Runtime$count_allocations()
       allocations_before: i64 = std.runtime.allocations()
       bytes_before: i64 = std.runtime.allocated_bytes()
       buffer: u8[] = @array.repeat([u8(0)] :u8[], 100000)

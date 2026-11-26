@@ -85,8 +85,8 @@ string 59 "NotConnected"
 string 60 "TimedOut"
 string 61 "NoDescriptor"
 string 62 "assert_succeeds failed: "
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=4 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 1 panic std_core$Intrinsic$panic service=panic result_type=1 param_types=3 param_c_out= param_by_address= (string) -> void
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=4 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 1 panic std_core$Runtime$panic service=panic result_type=1 param_types=3 param_c_out= param_by_address= (string) -> void
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,4,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
@@ -359,7 +359,7 @@ fn 5 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -473,7 +473,7 @@ fn 9 std_env$set_env (string,string) -> any
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   i32.const 0
   call 3   ; std_core$index_of__u8
   type_check 0   ; null
@@ -590,7 +590,7 @@ fn 13 std_env$is_variable_name (string) -> bool
   string.ne
   if $L0 void
     local.get 0   ; arg 0
-    call.import 0   ; std_core$Intrinsic$bytes
+    call.import 0   ; std_core$Runtime$bytes
     i32.const 61
     call 3   ; std_core$index_of__u8
     type_check 0   ; null
@@ -602,7 +602,7 @@ fn 13 std_env$is_variable_name (string) -> bool
   local.get 1   ; and_res
   if $L1 void
     local.get 0   ; arg 0
-    call.import 0   ; std_core$Intrinsic$bytes
+    call.import 0   ; std_core$Runtime$bytes
     i32.const 0
     call 3   ; std_core$index_of__u8
     type_check 0   ; null
@@ -1214,7 +1214,7 @@ fn 27 std_testing$assert_succeeds (any) -> void
   string.const 62   ; "assert_succeeds failed: "
   local.get 1   ; $vcall_4
   call 1   ; concat_2
-  call.import 1   ; std_core$Intrinsic$panic
+  call.import 1   ; std_core$Runtime$panic
   unreachable "a no-return call returned"
 end
 

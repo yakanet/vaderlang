@@ -93,9 +93,9 @@ string 59 "NoDescriptor"
 string 60 "assert_succeeds failed: "
 string 61 "the stream failed"
 data 0 structs 4 3 1 strref 61 u8 00 i32 00000000
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=7 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 1 bytes_to_string std_core$Intrinsic$bytes_to_string service=bytes_to_string result_type=5 param_types=7 param_c_out= param_by_address= (ref) -> string
-import 2 panic std_core$Intrinsic$panic service=panic result_type=1 param_types=5 param_c_out= param_by_address= (string) -> void
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=7 param_types=5 param_c_out= param_by_address= (string) -> ref
+import 1 bytes_to_string std_core$Runtime$bytes_to_string service=bytes_to_string result_type=5 param_types=7 param_c_out= param_by_address= (ref) -> string
+import 2 panic std_core$Runtime$panic service=panic result_type=1 param_types=5 param_c_out= param_by_address= (string) -> void
 import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=11 param_types=2,7,11 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
@@ -526,7 +526,7 @@ fn 2 snippet$bytes_text (any) -> string
   end $L0
   local.get 0   ; arg 0
   ref.cast 7   ; u8[]
-  call.import 1   ; std_core$Intrinsic$bytes_to_string
+  call.import 1   ; std_core$Runtime$bytes_to_string
   return
 end
 
@@ -824,7 +824,7 @@ fn 11 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -962,7 +962,7 @@ fn 15 std_io$read_line (ref,i64) -> any
     i64.const 0
     local.get 4   ; $len_14
     array.slice 7   ; u8[]
-    call.import 1   ; std_core$Intrinsic$bytes_to_string
+    call.import 1   ; std_core$Runtime$bytes_to_string
     retag 5   ; string
     return
   end $L1
@@ -2335,7 +2335,7 @@ fn 35 std_io$bytes_of (any) -> ref
   if $L0 void
     local.get 0   ; arg 0
     ref.cast 5   ; string
-    call.import 0   ; std_core$Intrinsic$bytes
+    call.import 0   ; std_core$Runtime$bytes
     return
   end $L0
   local.get 0   ; arg 0
@@ -2357,7 +2357,7 @@ fn 36 std_testing$assert_succeeds (any) -> void
   string.const 60   ; "assert_succeeds failed: "
   local.get 1   ; $vcall_4
   call 4   ; concat_2
-  call.import 2   ; std_core$Intrinsic$panic
+  call.import 2   ; std_core$Runtime$panic
   unreachable "a no-return call returned"
 end
 

@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.churn :: fn(x: i32) -> void {  // snippet$churn
-      std_core$Intrinsic$collect()
+      std_core$Runtime$collect()
   }
   snippet.slice_set_cb :: fn(cb: fn(i32) -> void) -> void  // snippet$slice_set_cb
   snippet.slice_fill :: fn(q: i32[], n: i64) -> void  // snippet$slice_fill

@@ -18,8 +18,8 @@
 // The byte primitives (`new_byte_buffer` / `write_string` / `intern_string`) live
 // in `std/core` (the prelude) and are reached with no import : the allocation is
 // a free fn, the others members of the `Buffer` impl, each a call to a member of
-// `Intrinsic`. `bytes` /
-// `bytes_to_string` / `utf8_encode` are likewise ambient std/core primitives. So
+// `Intrinsic`. `bytes` / `bytes_to_string` / `utf8_encode` are likewise ambient
+// std/core primitives. So
 // the builder itself imports nothing; only its tests import `std/testing`.
 
 module "std/string_builder"

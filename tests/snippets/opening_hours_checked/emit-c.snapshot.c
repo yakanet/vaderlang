@@ -80,11 +80,11 @@ const size_t vader_type_info_count = 11;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 8u, 2u);
 }
 
-static void vader_host_std_core$Intrinsic$panic(vader_string_t a0) {
+static void vader_host_std_core$Runtime$panic(vader_string_t a0) {
 	vader_panic(a0);
 }
 
@@ -143,7 +143,7 @@ static int64_t snippet$span_until(uint8_t l0, int64_t l1) {
 	l4 = std_core$write_string_at(l3, l4, 1u);
 	l4 = std_core$write_int(l3, l4, l1);
 	t1 = std_core$finish_buffer(l3, l4);
-	vader_host_std_core$Intrinsic$panic(t1);
+	vader_host_std_core$Runtime$panic(t1);
 	vader_unreachable("a no-return call returned");
 	vader_gc_top = gc_frame.prev;
 }
@@ -406,7 +406,7 @@ static void snippet_clock$require_hour(int64_t l0) {
 	l3 = std_core$write_string_at(l2, l3, 1u);
 	l3 = std_core$write_int(l2, l3, l0);
 	t0 = std_core$finish_buffer(l2, l3);
-	vader_host_std_core$Intrinsic$panic(t0);
+	vader_host_std_core$Runtime$panic(t0);
 	vader_unreachable("a no-return call returned");
 	vader_gc_top = gc_frame.prev;
 }
@@ -427,7 +427,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));

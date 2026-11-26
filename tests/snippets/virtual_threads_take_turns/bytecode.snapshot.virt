@@ -12,8 +12,8 @@ type 9 struct std_core$Buffer {  }
 type 10 scalar bool
 type 11 array 5
 type 12 union 5,0
-type 13 array 14
-type 14 scalar u8
+type 13 scalar u8
+type 14 array 13
 type 15 union 16,0
 type 16 struct std_runtime_scheduler$InitGate { held:10,owner:5,waiters:11 }
 type 17 struct __defer_env_std_runtime_scheduler_1 {  }
@@ -33,14 +33,14 @@ data 0 agg 1 struct 17 0
 global 0 6 snippet joiner.state
 global 1 2 snippet joiner.instance
 global 2 15 snippet joiner.gate
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=13 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 1 spawn_thread std_core$Intrinsic$spawn_thread service=spawn_thread result_type=5 param_types=3,5 param_c_out= param_by_address= (ref,i64) -> i64
-import 2 park std_core$Intrinsic$park service=park result_type=1 () -> void
-import 3 wake std_core$Intrinsic$wake service=wake result_type=1 param_types=5 param_c_out= param_by_address= (i64) -> void
-import 4 current_thread std_core$Intrinsic$current_thread service=current_thread result_type=5 () -> i64
-import 5 monitor_enter std_core$Intrinsic$monitor_enter service=monitor_enter result_type=1 param_types=10 param_c_out= param_by_address= (bool) -> void
-import 6 monitor_exit std_core$Intrinsic$monitor_exit service=monitor_exit result_type=1 () -> void
-import 7 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=6,13,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=14 param_types=4 param_c_out= param_by_address= (string) -> ref
+import 1 spawn_thread std_core$Runtime$spawn_thread service=spawn_thread result_type=5 param_types=3,5 param_c_out= param_by_address= (ref,i64) -> i64
+import 2 park std_core$Runtime$park service=park result_type=1 () -> void
+import 3 wake std_core$Runtime$wake service=wake result_type=1 param_types=5 param_c_out= param_by_address= (i64) -> void
+import 4 current_thread std_core$Runtime$current_thread service=current_thread result_type=5 () -> i64
+import 5 monitor_enter std_core$Runtime$monitor_enter service=monitor_enter result_type=1 param_types=10 param_c_out= param_by_address= (bool) -> void
+import 6 monitor_exit std_core$Runtime$monitor_exit service=monitor_exit result_type=1 () -> void
+import 7 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=6,14,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 8 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=6 () -> i32
 import 9 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 9 std_core$ByteAccess
@@ -114,15 +114,15 @@ fn 1 snippet$spawn (ref) -> void
   local.set 2   ; $add_checked_9
   local.get 3   ; $closure_14
   local.get 2   ; $add_checked_9
-  call.import 1   ; std_core$Intrinsic$spawn_thread
+  call.import 1   ; std_core$Runtime$spawn_thread
   drop
   return
 end
 
 fn 2 snippet$yield_now () -> void
-  call.import 4   ; std_core$Intrinsic$current_thread
-  call.import 3   ; std_core$Intrinsic$wake
-  call.import 2   ; std_core$Intrinsic$park
+  call.import 4   ; std_core$Runtime$current_thread
+  call.import 3   ; std_core$Runtime$wake
+  call.import 2   ; std_core$Runtime$park
   return
 end
 
@@ -190,7 +190,7 @@ fn 4 snippet$main () -> i32
   local __buf_1 ref
   local __off_2 i64
   local $eq_29 bool
-  call.import 4   ; std_core$Intrinsic$current_thread
+  call.import 4   ; std_core$Runtime$current_thread
   local.set 0   ; main_thread
   global.get 0   ; joiner.state
   i32.const 2
@@ -240,7 +240,7 @@ fn 4 snippet$main () -> i32
       string.const 2   ; "main is back: "
       call 13   ; std_core$write_string_at
       local.set 3   ; __off_2
-      call.import 4   ; std_core$Intrinsic$current_thread
+      call.import 4   ; std_core$Runtime$current_thread
       local.get 0   ; main_thread
       i64.eq
       local.set 4   ; $eq_29
@@ -255,7 +255,7 @@ fn 4 snippet$main () -> i32
       call 22   ; std_console$println__string
       return.lit i32.const 0
     end $L3
-    call.import 2   ; std_core$Intrinsic$park
+    call.import 2   ; std_core$Runtime$park
     br $L1
   end $L1
 end
@@ -308,7 +308,7 @@ fn 7 __lambda_snippet_0 (ref) -> void
     local.field 0 7 1   ; arg 0 __lambda_env_snippet_1.cap_1
     struct.get 2 2   ; snippet$Joiner.main_thread
     ref.cast 5   ; i64
-    call.import 3   ; std_core$Intrinsic$wake
+    call.import 3   ; std_core$Runtime$wake
     return
   end $L0
   return
@@ -344,7 +344,7 @@ fn 10 __lambda_snippet_4 (ref) -> void
   string.const 5   ; "c runs on a thread of its own: "
   call 13   ; std_core$write_string_at
   local.set 2   ; __off_1
-  call.import 4   ; std_core$Intrinsic$current_thread
+  call.import 4   ; std_core$Runtime$current_thread
   local.set 3   ; $call_8
   local.field 0 8 0   ; arg 0 __lambda_env_snippet_5.cap_0
   ref.cast 5   ; i64
@@ -640,7 +640,7 @@ fn 19 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -659,7 +659,7 @@ fn 19 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 13   ; u8[]
+      array.slice 14   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12
@@ -768,7 +768,7 @@ fn 24 std_runtime_scheduler$run_gated (ref,ref) -> bool
   array.get 20 safe   ; __defer_env_std_runtime_scheduler_1[]
   make_closure 25 3   ; __defer_std_runtime_scheduler_0 fn
   defer.push
-  call.import 4   ; std_core$Intrinsic$current_thread
+  call.import 4   ; std_core$Runtime$current_thread
   local.set 2   ; me
   local.field 0 16 0   ; arg 0 std_runtime_scheduler$InitGate.held
   ref.cast 10   ; bool
@@ -806,7 +806,7 @@ fn 24 std_runtime_scheduler$run_gated (ref,ref) -> bool
 end
 
 fn 25 __defer_std_runtime_scheduler_0 (ref) -> void
-  call.import 6   ; std_core$Intrinsic$monitor_exit
+  call.import 6   ; std_core$Runtime$monitor_exit
   return
 end
 
@@ -818,7 +818,7 @@ end
 
 fn 27 std_runtime_scheduler$monitor_enter_to_publish () -> void
   bool.const true
-  call.import 5   ; std_core$Intrinsic$monitor_enter
+  call.import 5   ; std_core$Runtime$monitor_enter
   return
 end
 
@@ -835,7 +835,7 @@ fn 28 std_runtime_scheduler$await_gate (ref,i64) -> void
     local.field 0 16 0   ; arg 0 std_runtime_scheduler$InitGate.held
     ref.cast 10   ; bool
     if $L1 void
-      call.import 2   ; std_core$Intrinsic$park
+      call.import 2   ; std_core$Runtime$park
       br $L0
     end $L1
   end $L0
@@ -880,7 +880,7 @@ fn 30 std_runtime_scheduler$let_go (ref) -> void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
       load_slot_i64
-      call.import 3   ; std_core$Intrinsic$wake
+      call.import 3   ; std_core$Runtime$wake
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add

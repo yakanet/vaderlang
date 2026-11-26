@@ -17,7 +17,7 @@ module "std/abort"
 ///
 /// @param msg  the failure message surfaced to the host.
 @no_return
-export panic :: fn(msg: string) -> void = Intrinsic.panic(msg)
+export panic :: fn(msg: string) -> void = Runtime.panic(msg)
 
 /// Placeholder for a code path that isn't implemented yet. Panics with
 /// `not yet implemented: ${msg}`. Use in place of a silent degraded default

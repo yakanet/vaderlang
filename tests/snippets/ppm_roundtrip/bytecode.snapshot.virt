@@ -106,8 +106,8 @@ string 64 "path contains a NUL byte"
 string 65 "file is closed"
 data 0 structs 16 3 1 strref 64 u8 0a i32 00000000
 data 1 structs 16 3 1 strref 65 u8 0c i32 00000000
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=7 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 1 current_os std_core$Intrinsic$current_os service=current_os result_type=8 () -> u8
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=7 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 1 current_os std_core$Runtime$current_os service=current_os result_type=8 () -> u8
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,7,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
@@ -669,7 +669,7 @@ fn 8 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -1347,7 +1347,7 @@ end
 
 fn 29 std_fs$has_nul (string) -> bool
   local.get 0   ; arg 0
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   i32.const 0
   call 7   ; std_core$index_of__u8
   type_check 0   ; null
@@ -1708,7 +1708,7 @@ fn 36 images_ppm$encode (ref) -> any
     array.reserve 7   ; u8[]
     local.set 8   ; __buf_4
     local.get 7   ; header
-    call.import 0   ; std_core$Intrinsic$bytes
+    call.import 0   ; std_core$Runtime$bytes
     local.set 11   ; $call_82
     local.get 8   ; __buf_4
     local.get 11   ; $call_82
@@ -2707,7 +2707,7 @@ fn 50 std_io$bytes_of (any) -> ref
   if $L0 void
     local.get 0   ; arg 0
     ref.cast 3   ; string
-    call.import 0   ; std_core$Intrinsic$bytes
+    call.import 0   ; std_core$Runtime$bytes
     return
   end $L0
   local.get 0   ; arg 0
@@ -2725,7 +2725,7 @@ fn 51 std_path$to_path (string) -> string
     local.get 0   ; arg 0
     return
   end $L0
-  call.import 1   ; std_core$Intrinsic$current_os
+  call.import 1   ; std_core$Runtime$current_os
   local.set 1   ; $call_4
   local.get 0   ; arg 0
   local.get 1   ; $call_4

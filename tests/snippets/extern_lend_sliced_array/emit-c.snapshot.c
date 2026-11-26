@@ -55,11 +55,11 @@ const vader_type_info_t vader_type_info_table[12] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
 		.slot_size = 8,
 	},
-	[8] = {
+	[8] = { .slot_size = 1 },
+	[9] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
 	},
-	[9] = { .slot_size = 1 },
 	[10] = { .slot_size = 1 },
 	[11] = { .slot_size = 8 },
 };
@@ -91,11 +91,11 @@ static void vader_host_snippet$slice_fill(void* a0, int64_t a1) {
 	return;
 }
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 8u, 9u);
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
+	return (void*) vader_string_bytes_view(a0, 9u, 8u);
 }
 
-static void vader_host_std_core$Intrinsic$collect(void) {
+static void vader_host_std_core$Runtime$collect(void) {
 	vader_gc_collect();
 }
 
@@ -126,7 +126,7 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
 static void snippet$churn(int32_t l0) {
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
 	vader_gc_top = &gc_frame;
-	vader_host_std_core$Intrinsic$collect();
+	vader_host_std_core$Runtime$collect();
 	{ vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -343,7 +343,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));

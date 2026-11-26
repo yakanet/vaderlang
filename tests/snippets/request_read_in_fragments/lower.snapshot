@@ -140,7 +140,7 @@
   }
   snippet.bytes_text :: fn(bytes: IOError | null | u8[]) -> string {  // snippet$bytes_text
       if bytes is u8[] {
-          return std_core$Intrinsic$bytes_to_string(u8[](bytes))
+          return std_core$Runtime$bytes_to_string(u8[](bytes))
       }
       return snippet.outcome((IOError | null)(bytes))
   }

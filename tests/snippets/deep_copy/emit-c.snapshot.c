@@ -130,11 +130,11 @@ const vader_type_info_t vader_type_info_table[17] = {
 	[10] = { .slot_size = 8 },
 	[11] = { .slot_size = 8 },
 	[12] = { .slot_size = 1 },
-	[13] = {
+	[13] = { .slot_size = 1 },
+	[14] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 14u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 13u,
 	},
-	[14] = { .slot_size = 1 },
 	[15] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
 		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
@@ -150,27 +150,27 @@ const size_t vader_type_info_count = 17;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 13u, 14u);
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
+	return (void*) vader_string_bytes_view(a0, 14u, 13u);
 }
 
-static void* vader_host_std_core$Intrinsic$deep_copy__snippet_Shape(void* a0) {
+static void* vader_host_std_core$Runtime$deep_copy__snippet_Shape(void* a0) {
 	return vader_deep_copy_ref(a0);
 }
 
-static void* vader_host_std_core$Intrinsic$deep_copy__snippet_Node(void* a0) {
+static void* vader_host_std_core$Runtime$deep_copy__snippet_Node(void* a0) {
 	return vader_deep_copy_ref(a0);
 }
 
-static void* vader_host_std_core$Intrinsic$deep_copy__i32__(void* a0) {
+static void* vader_host_std_core$Runtime$deep_copy__i32__(void* a0) {
 	return vader_deep_copy_ref(a0);
 }
 
-static void* vader_host_std_core$Intrinsic$deep_copy__u8__(void* a0) {
+static void* vader_host_std_core$Runtime$deep_copy__u8__(void* a0) {
 	return vader_deep_copy_ref(a0);
 }
 
-static vader_box_t vader_host_std_core$Intrinsic$deep_copy__snippet_Point___string(vader_box_t a0) {
+static vader_box_t vader_host_std_core$Runtime$deep_copy__snippet_Point___string(vader_box_t a0) {
 	return vader_deep_copy_box(a0);
 }
 
@@ -255,7 +255,7 @@ static int32_t snippet$main(void) {
 	_a3_obj->f_origin = l0;
 	_a3_obj->f_alias = l0;
 	l0 = (void*) _a3_obj;
-	l1 = vader_host_std_core$Intrinsic$deep_copy__snippet_Shape(l0);
+	l1 = vader_host_std_core$Runtime$deep_copy__snippet_Shape(l0);
 	vader_array_t* _a4_slotarr = ((vader_array_t*) ((vader_struct_snippet$Shape_t*) l1)->f_corners);
 	VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
 	VADER_ARRAY_CHECK_INDEX(_a4_slotarr, INT32_C(0))
@@ -346,7 +346,7 @@ static int32_t snippet$main(void) {
 	l1 = (void*) _a10_obj;
 	((vader_struct_snippet$Node_t*) l0)->f_next = vader_ref_box(l1);
 	VADER_WRITE_BARRIER((vader_struct_snippet$Node_t*) l0);
-	l2 = vader_host_std_core$Intrinsic$deep_copy__snippet_Node(l0);
+	l2 = vader_host_std_core$Runtime$deep_copy__snippet_Node(l0);
 	l9 = snippet$follow(l2);
 	l8 = ((vader_struct_snippet$Node_t*) l9)->f_label;
 	l3 = (int64_t) vader_string_byte_len(l8);
@@ -374,7 +374,7 @@ static int32_t snippet$main(void) {
 	l0 = (void*) _a11_arr;
 	vader_array_t* _a12_arr = vader_array_slice((vader_array_t*) l0, (int64_t) INT64_C(1), (int64_t) INT64_C(3));
 	t0 = (void*) _a12_arr;
-	l1 = vader_host_std_core$Intrinsic$deep_copy__i32__(t0);
+	l1 = vader_host_std_core$Runtime$deep_copy__i32__(t0);
 	vader_array_t* _a13_slotarr = ((vader_array_t*) l1);
 	VADER_ARRAY_RESOLVE_BUF(_a13_slotarr)
 	VADER_ARRAY_CHECK_INDEX(_a13_slotarr, INT32_C(0))
@@ -408,7 +408,7 @@ static int32_t snippet$main(void) {
 	t2 = std_core$finish_buffer(l2, l3);
 	std_console$println__string(t2);
 	t0 = (void*) &vader_data_0;
-	l0 = vader_host_std_core$Intrinsic$deep_copy__i32__(t0);
+	l0 = vader_host_std_core$Runtime$deep_copy__i32__(t0);
 	vader_array_push_i32((vader_array_t*) l0, INT32_C(40));
 	vader_array_t* _a17_slotarr = ((vader_array_t*) l0);
 	VADER_ARRAY_RESOLVE_BUF(_a17_slotarr)
@@ -440,8 +440,8 @@ static int32_t snippet$main(void) {
 	l3 = std_core$write_int(l1, l3, l4);
 	t2 = std_core$finish_buffer(l1, l3);
 	std_console$println__string(t2);
-	t0 = vader_host_std_core$Intrinsic$bytes(11u);
-	l0 = vader_host_std_core$Intrinsic$deep_copy__u8__(t0);
+	t0 = vader_host_std_core$Runtime$bytes(11u);
+	l0 = vader_host_std_core$Runtime$deep_copy__u8__(t0);
 	vader_array_push_u8((vader_array_t*) l0, INT32_C(33));
 	l1 = (void*) vader_buffer_new((size_t) INT64_C(47));
 	l3 = INT64_C(0);
@@ -452,7 +452,7 @@ static int32_t snippet$main(void) {
 	vader_array_t* _a20_slotarr = ((vader_array_t*) l0);
 	VADER_ARRAY_RESOLVE_BUF(_a20_slotarr)
 	VADER_ARRAY_CHECK_INDEX(_a20_slotarr, INT32_C(3))
-	t3 = vader_array_read_u8(_a20_slotarr, vader_array_offset(_a20_slotarr) + (size_t) INT32_C(3), 14u);
+	t3 = vader_array_read_u8(_a20_slotarr, vader_array_offset(_a20_slotarr) + (size_t) INT32_C(3), 13u);
 	t4 = ((uint8_t) t3.payload.i);
 	t5 = ((int64_t) (uint8_t) t4);
 	l12 = (uint64_t) (int64_t) t5;
@@ -465,7 +465,7 @@ static int32_t snippet$main(void) {
 	_a21_obj->f_y = INT32_C(6);
 	t0 = (void*) _a21_obj;
 	l13 = vader_ref_box(t0);
-	l14 = vader_host_std_core$Intrinsic$deep_copy__snippet_Point___string(l13);
+	l14 = vader_host_std_core$Runtime$deep_copy__snippet_Point___string(l13);
 	if (l14.tag == 5u) {
 		t0 = l14.payload.obj;
 		((vader_struct_snippet$Point_t*) t0)->f_x = INT32_C(50);
@@ -632,7 +632,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));

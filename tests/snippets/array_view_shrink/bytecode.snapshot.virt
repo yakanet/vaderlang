@@ -8,8 +8,8 @@ type 5 scalar string
 type 6 struct std_core$Buffer {  }
 type 7 scalar i64
 type 8 array 2
-type 9 array 10
-type 10 scalar u8
+type 9 scalar u8
+type 10 array 9
 type 11 scalar bool
 type 12 array 5
 string 0 " "
@@ -25,9 +25,9 @@ string 9 ", "
 string 10 "]"
 string 11 "0"
 string 12 "\n"
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=9 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 1 collect std_core$Intrinsic$collect service=collect result_type=1 () -> void
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=10 param_types=5 param_c_out= param_by_address= (string) -> ref
+import 1 collect std_core$Runtime$collect service=collect result_type=1 () -> void
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,10,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 8 std_core$Display
@@ -83,7 +83,7 @@ fn 1 snippet$collect_and_churn () -> void
   local junk ref
   local _ i32
   local $struct_8 ref
-  call.import 1   ; std_core$Intrinsic$collect
+  call.import 1   ; std_core$Runtime$collect
   i64.const 100000
   array.reserve 3   ; snippet$Node[]
   local.set 0   ; junk
@@ -107,7 +107,7 @@ fn 1 snippet$collect_and_churn () -> void
       br $L0
     end $L1
   end $L0
-  call.import 1   ; std_core$Intrinsic$collect
+  call.import 1   ; std_core$Runtime$collect
   return
 end
 
@@ -748,7 +748,7 @@ fn 13 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -767,7 +767,7 @@ fn 13 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 9   ; u8[]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

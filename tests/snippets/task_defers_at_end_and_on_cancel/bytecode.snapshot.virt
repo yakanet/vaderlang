@@ -80,18 +80,18 @@ data 6 agg 1 struct 41 0
 global 0 3 std/task started.state
 global 1 26 std/task started.instance
 global 2 39 std/task started.gate
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=21 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 1 spawn_thread std_core$Intrinsic$spawn_thread service=spawn_thread result_type=9 param_types=24,9 param_c_out= param_by_address= (ref,i64) -> i64
-import 2 park std_core$Intrinsic$park service=park result_type=1 () -> void
-import 3 wake std_core$Intrinsic$wake service=wake result_type=1 param_types=9 param_c_out= param_by_address= (i64) -> void
-import 4 sleep_for std_core$Intrinsic$sleep_for service=sleep_for result_type=1 param_types=9 param_c_out= param_by_address= (i64) -> void
-import 5 cancel_thread std_core$Intrinsic$cancel_thread service=cancel_thread result_type=1 param_types=9 param_c_out= param_by_address= (i64) -> void
-import 6 current_thread std_core$Intrinsic$current_thread service=current_thread result_type=9 () -> i64
-import 7 is_cancelled std_core$Intrinsic$is_cancelled service=is_cancelled result_type=17 () -> bool
-import 8 task_ended std_core$Intrinsic$task_ended service=task_ended result_type=1 () -> void
-import 9 monitor_enter std_core$Intrinsic$monitor_enter service=monitor_enter result_type=1 param_types=17 param_c_out= param_by_address= (bool) -> void
-import 10 monitor_exit std_core$Intrinsic$monitor_exit service=monitor_exit result_type=1 () -> void
-import 11 bytes_to_string std_core$Intrinsic$bytes_to_string service=bytes_to_string result_type=2 param_types=21 param_c_out= param_by_address= (ref) -> string
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=21 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 1 spawn_thread std_core$Runtime$spawn_thread service=spawn_thread result_type=9 param_types=24,9 param_c_out= param_by_address= (ref,i64) -> i64
+import 2 park std_core$Runtime$park service=park result_type=1 () -> void
+import 3 wake std_core$Runtime$wake service=wake result_type=1 param_types=9 param_c_out= param_by_address= (i64) -> void
+import 4 sleep_for std_core$Runtime$sleep_for service=sleep_for result_type=1 param_types=9 param_c_out= param_by_address= (i64) -> void
+import 5 cancel_thread std_core$Runtime$cancel_thread service=cancel_thread result_type=1 param_types=9 param_c_out= param_by_address= (i64) -> void
+import 6 current_thread std_core$Runtime$current_thread service=current_thread result_type=9 () -> i64
+import 7 is_cancelled std_core$Runtime$is_cancelled service=is_cancelled result_type=17 () -> bool
+import 8 task_ended std_core$Runtime$task_ended service=task_ended result_type=1 () -> void
+import 9 monitor_enter std_core$Runtime$monitor_enter service=monitor_enter result_type=1 param_types=17 param_c_out= param_by_address= (bool) -> void
+import 10 monitor_exit std_core$Runtime$monitor_exit service=monitor_exit result_type=1 () -> void
+import 11 bytes_to_string std_core$Runtime$bytes_to_string service=bytes_to_string result_type=2 param_types=21 param_c_out= param_by_address= (ref) -> string
 import 12 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=3,21,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 13 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 14 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
@@ -547,7 +547,7 @@ end
 fn 24 std_core$char$Display$to_string (char) -> string
   local.get 0   ; arg 0
   call 31   ; std_core$utf8_encode
-  call.import 11   ; std_core$Intrinsic$bytes_to_string
+  call.import 11   ; std_core$Runtime$bytes_to_string
   return
 end
 
@@ -2473,7 +2473,7 @@ fn 61 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -2604,7 +2604,7 @@ end
 
 fn 66 std_task$sleep (i64) -> void
   local.get 0   ; arg 0
-  call.import 4   ; std_core$Intrinsic$sleep_for
+  call.import 4   ; std_core$Runtime$sleep_for
   return
 end
 
@@ -2683,7 +2683,7 @@ fn 70 std_task$start_thread (ref) -> i64
   local.set 2   ; $add_checked_9
   local.get 0   ; arg 0
   local.get 2   ; $add_checked_9
-  call.import 1   ; std_core$Intrinsic$spawn_thread
+  call.import 1   ; std_core$Runtime$spawn_thread
   return
 end
 
@@ -2726,7 +2726,7 @@ fn 71 std_task$launch__i32 (ref) -> ref
   local.get 1   ; if_res
   local.get 2   ; $add_checked_9
   struct.set 25 1   ; std_task$Task__i32.thread
-  call.import 10   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Runtime$monitor_exit
   local.get 1   ; if_res
   return
 end
@@ -2751,7 +2751,7 @@ fn 73 std_task$run__i32 (ref,ref) -> void
   struct.new 29   ; __defer_env_std_task_9
   make_closure 74 24   ; __defer_std_task_8 fn
   defer.push
-  call.import 7   ; std_core$Intrinsic$is_cancelled
+  call.import 7   ; std_core$Runtime$is_cancelled
   if $L0 void
   else
     local.field 0 25 3   ; arg 0 std_task$Task__i32.result
@@ -2784,7 +2784,7 @@ fn 75 std_task$end__i32 (ref) -> void
   local $field_15 ref
   local $field_16 i64
   call 84   ; std_runtime_scheduler$monitor_enter_to_publish
-  call.import 8   ; std_core$Intrinsic$task_ended
+  call.import 8   ; std_core$Runtime$task_ended
   local.get 0   ; arg 0
   bool.const true
   struct.set 25 2   ; std_task$Task__i32.ended
@@ -2821,7 +2821,7 @@ fn 75 std_task$end__i32 (ref) -> void
       end $L2
       local.field 4 36 0   ; waiter std_task$Waiter.thread
       ref.cast 9   ; i64
-      call.import 3   ; std_core$Intrinsic$wake
+      call.import 3   ; std_core$Runtime$wake
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add
@@ -2829,7 +2829,7 @@ fn 75 std_task$end__i32 (ref) -> void
       br $L0
     end $L1
   end $L0
-  call.import 10   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Runtime$monitor_exit
   return
 end
 
@@ -2848,7 +2848,7 @@ fn 76 std_task$join__i32 (ref) -> any
   ref.cast 17   ; bool
   if $L0 void
   else
-    call.import 6   ; std_core$Intrinsic$current_thread
+    call.import 6   ; std_core$Runtime$current_thread
     local.set 1   ; me
     local.field 0 25 4   ; arg 0 std_task$Task__i32.waiters
     local.set 2   ; $field_8
@@ -2870,7 +2870,7 @@ fn 76 std_task$join__i32 (ref) -> any
       ref.cast 17   ; bool
       if $L2 void
       else
-        call.import 2   ; std_core$Intrinsic$park
+        call.import 2   ; std_core$Runtime$park
         br $L1
       end $L2
     end $L1
@@ -2885,7 +2885,7 @@ fn 76 std_task$join__i32 (ref) -> any
 end
 
 fn 77 __defer_std_task_2 (ref) -> void
-  call.import 10   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Runtime$monitor_exit
   return
 end
 
@@ -2935,7 +2935,7 @@ fn 80 std_task$cancel__i32 (ref) -> void
   else
     local.field 0 25 1   ; arg 0 std_task$Task__i32.thread
     ref.cast 9   ; i64
-    call.import 5   ; std_core$Intrinsic$cancel_thread
+    call.import 5   ; std_core$Runtime$cancel_thread
     defer.pop_exec 1
     return
   end $L0
@@ -2944,7 +2944,7 @@ fn 80 std_task$cancel__i32 (ref) -> void
 end
 
 fn 81 __defer_std_task_6 (ref) -> void
-  call.import 10   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Runtime$monitor_exit
   return
 end
 
@@ -3011,13 +3011,13 @@ end
 
 fn 84 std_runtime_scheduler$monitor_enter_to_publish () -> void
   bool.const true
-  call.import 9   ; std_core$Intrinsic$monitor_enter
+  call.import 9   ; std_core$Runtime$monitor_enter
   return
 end
 
 fn 85 std_runtime_scheduler$monitor_enter () -> void
   bool.const false
-  call.import 9   ; std_core$Intrinsic$monitor_enter
+  call.import 9   ; std_core$Runtime$monitor_enter
   return
 end
 
@@ -3048,7 +3048,7 @@ fn 87 std_runtime_scheduler$run_gated (ref,ref) -> bool
   array.get 50 safe   ; __defer_env_std_runtime_scheduler_1[]
   make_closure 88 24   ; __defer_std_runtime_scheduler_0 fn
   defer.push
-  call.import 6   ; std_core$Intrinsic$current_thread
+  call.import 6   ; std_core$Runtime$current_thread
   local.set 2   ; me
   local.field 0 40 0   ; arg 0 std_runtime_scheduler$InitGate.held
   ref.cast 17   ; bool
@@ -3086,7 +3086,7 @@ fn 87 std_runtime_scheduler$run_gated (ref,ref) -> bool
 end
 
 fn 88 __defer_std_runtime_scheduler_0 (ref) -> void
-  call.import 10   ; std_core$Intrinsic$monitor_exit
+  call.import 10   ; std_core$Runtime$monitor_exit
   return
 end
 
@@ -3109,7 +3109,7 @@ fn 90 std_runtime_scheduler$await_gate (ref,i64) -> void
     local.field 0 40 0   ; arg 0 std_runtime_scheduler$InitGate.held
     ref.cast 17   ; bool
     if $L1 void
-      call.import 2   ; std_core$Intrinsic$park
+      call.import 2   ; std_core$Runtime$park
       br $L0
     end $L1
   end $L0
@@ -3154,7 +3154,7 @@ fn 92 std_runtime_scheduler$let_go (ref) -> void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
       load_slot_i64
-      call.import 3   ; std_core$Intrinsic$wake
+      call.import 3   ; std_core$Runtime$wake
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add

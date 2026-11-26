@@ -5,7 +5,7 @@
       std.console.println<string>("-- ascii --")
       sum: u32 = u32(0)
       {
-          __for_arr_0: u8[] = std_core$Intrinsic$bytes("vader")
+          __for_arr_0: u8[] = std_core$Runtime$bytes("vader")
           __for_len_1: i64 = @array.len(__for_arr_0)
           __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
@@ -24,7 +24,7 @@
       } :string)
       std.console.println<string>("-- multibyte --")
       {
-          __for_arr_5: u8[] = std_core$Intrinsic$bytes("你")
+          __for_arr_5: u8[] = std_core$Runtime$bytes("你")
           __for_len_6: i64 = @array.len(__for_arr_5)
           __for_i_7: i64 = 0
           for __for_i_7 < __for_len_6 {
@@ -40,7 +40,7 @@
           }
       }
       bom: string = "﻿data"
-      bb: u8[] = std_core$Intrinsic$bytes(bom)
+      bb: u8[] = std_core$Runtime$bytes(bom)
       std.console.println<string>("-- bom --")
       std.console.println<string>({
           __buf_10: Buffer = std_core$Intrinsic$new_byte_buffer(i64(71))
@@ -59,12 +59,12 @@
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "after bom: ")
           __off_13 = std.core.write_unsigned(__buf_12, __off_13, bb[3])
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "=")
-          __off_13 = std.core.write_unsigned(__buf_12, __off_13, std_core$Intrinsic$bytes("d")[0])
+          __off_13 = std.core.write_unsigned(__buf_12, __off_13, std_core$Runtime$bytes("d")[0])
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       std.console.println<string>("-- empty --")
       {
-          __for_arr_14: u8[] = std_core$Intrinsic$bytes("")
+          __for_arr_14: u8[] = std_core$Runtime$bytes("")
           __for_len_15: i64 = @array.len(__for_arr_14)
           __for_i_16: i64 = 0
           for __for_i_16 < __for_len_15 {
@@ -78,11 +78,11 @@
           __buf_17: Buffer = std_core$Intrinsic$new_byte_buffer(i64(31))
           __off_18: i64 = 0
           __off_18 = std.core.write_string_at(__buf_17, __off_18, "done bytes=")
-          __off_18 = std.core.write_int(__buf_17, __off_18, @array.len(std_core$Intrinsic$bytes("")))
+          __off_18 = std.core.write_int(__buf_17, __off_18, @array.len(std_core$Runtime$bytes("")))
           std.core.finish_buffer(__buf_17, __off_18)
       } :string)
       std.console.println<string>("-- u8[] surface --")
-      bs: u8[] = std_core$Intrinsic$bytes("abc")
+      bs: u8[] = std_core$Runtime$bytes("abc")
       std.console.println<string>({
           __buf_19: Buffer = std_core$Intrinsic$new_byte_buffer(i64(105))
           __off_20: i64 = 0
@@ -97,7 +97,7 @@
           std.core.finish_buffer(__buf_19, __off_20)
       } :string)
       std.console.println<string>("-- slice --")
-      sl: u8[] = std_core$Intrinsic$bytes("abcde")[i64(1)..<i64(4)]
+      sl: u8[] = std_core$Runtime$bytes("abcde")[i64(1)..<i64(4)]
       std.console.println<string>({
           __buf_21: Buffer = std_core$Intrinsic$new_byte_buffer(i64(102))
           __off_22: i64 = 0

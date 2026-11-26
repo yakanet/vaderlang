@@ -12,7 +12,7 @@ type 9 scalar bool
 string 0 "hi"
 string 1 " "
 string 2 "\n"
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=4 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=4 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=7,4,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=7 () -> i32
 import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
@@ -31,7 +31,7 @@ fn 0 snippet$byte_count (any) -> i64
   end $L0
   local.get 0   ; arg 0
   ref.cast 3   ; string
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   array.len
   return
 end
@@ -67,7 +67,7 @@ fn 1 snippet$main () -> i32
   call 4   ; std_core$write_string_at
   local.set 2   ; __off_1
   string.const 0   ; "hi"
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   call 0   ; snippet$byte_count
   local.set 3   ; $call_12
   local.get 1   ; __buf_0
@@ -276,7 +276,7 @@ fn 6 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent

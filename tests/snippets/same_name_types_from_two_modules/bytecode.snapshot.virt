@@ -14,8 +14,8 @@ type 11 struct snippet$Box__snippet_shapes__a_Point { v:7 }
 type 12 struct snippet$Box__snippet_shapes__b_Point { v:7 }
 type 13 struct std_core$Buffer {  }
 type 14 scalar i64
-type 15 array 16
-type 16 scalar u8
+type 15 scalar u8
+type 16 array 15
 string 0 "a point at "
 string 1 "a point named "
 string 2 " "
@@ -23,8 +23,8 @@ string 3 "true"
 string 4 "false"
 string 5 "\n"
 string 6 "b"
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=15 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=14 param_types=6,15,14 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=16 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=14 param_types=6,16,14 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=6 () -> i32
 import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 2 snippet$Describe
@@ -444,7 +444,7 @@ fn 12 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -463,7 +463,7 @@ fn 12 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 15   ; u8[]
+      array.slice 16   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

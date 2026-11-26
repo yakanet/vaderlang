@@ -8,8 +8,8 @@ type 5 struct std_string$ParseError { msg:6 }
 type 6 scalar string
 type 7 scalar i32
 type 8 scalar i64
-type 9 array 4
-type 10 struct std_core$Buffer {  }
+type 9 struct std_core$Buffer {  }
+type 10 array 4
 type 11 scalar bool
 string 0 "unknown"
 string 1 "N"
@@ -18,12 +18,12 @@ string 3 "S"
 string 4 "W"
 string 5 "err"
 string 6 "\n"
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=9 param_types=6 param_c_out= param_by_address= (string) -> ref
-import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=7,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=10 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=7,10,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=7 () -> i32
 import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 5 std_core$Error
-impl 10 std_core$ByteAccess
+impl 9 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$parse (char) -> any
@@ -197,7 +197,7 @@ fn 4 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -216,7 +216,7 @@ fn 4 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 9   ; u8[]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

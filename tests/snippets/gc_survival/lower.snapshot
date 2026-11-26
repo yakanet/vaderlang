@@ -35,7 +35,7 @@
   snippet.chain_survives :: fn() -> i32 {  // snippet$chain_survives
       head: Node = snippet.build_chain(200)
       before: i64 = std.runtime.collections()
-      std_core$Intrinsic$collect()
+      std_core$Runtime$collect()
       after: i64 = std.runtime.collections()
       diff: i64 = after - before
       if diff != i64(1) {
@@ -74,9 +74,9 @@
   snippet.chain_survives_three_collections :: fn() -> i32 {  // snippet$chain_survives_three_collections
       head: Node = snippet.build_chain(50)
       c1: i64 = std.runtime.collections()
-      std_core$Intrinsic$collect()
-      std_core$Intrinsic$collect()
-      std_core$Intrinsic$collect()
+      std_core$Runtime$collect()
+      std_core$Runtime$collect()
+      std_core$Runtime$collect()
       c2: i64 = std.runtime.collections()
       diff: i64 = c2 - c1
       if diff != i64(3) {
@@ -123,7 +123,7 @@
           }
       }
       before: i64 = std.runtime.collections()
-      std_core$Intrinsic$collect()
+      std_core$Runtime$collect()
       after: i64 = std.runtime.collections()
       diff: i64 = after - before
       if diff != i64(1) {

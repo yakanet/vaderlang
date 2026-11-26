@@ -3,7 +3,7 @@
 ## snippet
   snippet.byte_count :: fn(x: string | u8[]) -> i64 {  // snippet$byte_count
       if x is string {
-          return @array.len(std_core$Intrinsic$bytes(string(x)))
+          return @array.len(std_core$Runtime$bytes(string(x)))
       }
       return @array.len(u8[](x))
   }
@@ -14,7 +14,7 @@
           __off_1: i64 = 0
           __off_1 = std.core.write_int(__buf_0, __off_1, snippet.byte_count("hi"))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.byte_count(std_core$Intrinsic$bytes("hi")))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.byte_count(std_core$Runtime$bytes("hi")))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
           __off_1 = std.core.write_int(__buf_0, __off_1, snippet.byte_count(a))
           std.core.finish_buffer(__buf_0, __off_1)

@@ -45,7 +45,7 @@
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "chars mixed: codepoints=")
           __off_7 = std.core.write_int(__buf_6, __off_7, n)
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " bytes=")
-          __off_7 = std.core.write_int(__buf_6, __off_7, @array.len(std_core$Intrinsic$bytes("héllo")))
+          __off_7 = std.core.write_int(__buf_6, __off_7, @array.len(std_core$Runtime$bytes("héllo")))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       {
@@ -66,7 +66,7 @@
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "len ascii  cp=")
           __off_11 = std.core.write_int(__buf_10, __off_11, std.core.len("vader"))
           __off_11 = std.core.write_string_at(__buf_10, __off_11, " bytes=")
-          __off_11 = std.core.write_int(__buf_10, __off_11, @array.len(std_core$Intrinsic$bytes("vader")))
+          __off_11 = std.core.write_int(__buf_10, __off_11, @array.len(std_core$Runtime$bytes("vader")))
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       std.console.println<string>({
@@ -75,7 +75,7 @@
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "len mixed  cp=")
           __off_13 = std.core.write_int(__buf_12, __off_13, std.core.len("héllo"))
           __off_13 = std.core.write_string_at(__buf_12, __off_13, " bytes=")
-          __off_13 = std.core.write_int(__buf_12, __off_13, @array.len(std_core$Intrinsic$bytes("héllo")))
+          __off_13 = std.core.write_int(__buf_12, __off_13, @array.len(std_core$Runtime$bytes("héllo")))
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       std.console.println<string>({
@@ -84,7 +84,7 @@
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "len cjk    cp=")
           __off_15 = std.core.write_int(__buf_14, __off_15, std.core.len("你好嗎？"))
           __off_15 = std.core.write_string_at(__buf_14, __off_15, " bytes=")
-          __off_15 = std.core.write_int(__buf_14, __off_15, @array.len(std_core$Intrinsic$bytes("你好嗎？")))
+          __off_15 = std.core.write_int(__buf_14, __off_15, @array.len(std_core$Runtime$bytes("你好嗎？")))
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       std.console.println<string>({
@@ -93,7 +93,7 @@
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "len emoji  cp=")
           __off_17 = std.core.write_int(__buf_16, __off_17, std.core.len("a😀b"))
           __off_17 = std.core.write_string_at(__buf_16, __off_17, " bytes=")
-          __off_17 = std.core.write_int(__buf_16, __off_17, @array.len(std_core$Intrinsic$bytes("a😀b")))
+          __off_17 = std.core.write_int(__buf_16, __off_17, @array.len(std_core$Runtime$bytes("a😀b")))
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
       std.console.println<string>({
@@ -102,11 +102,11 @@
           __off_19 = std.core.write_string_at(__buf_18, __off_19, "len empty  cp=")
           __off_19 = std.core.write_int(__buf_18, __off_19, std.core.len(""))
           __off_19 = std.core.write_string_at(__buf_18, __off_19, " bytes=")
-          __off_19 = std.core.write_int(__buf_18, __off_19, @array.len(std_core$Intrinsic$bytes("")))
+          __off_19 = std.core.write_int(__buf_18, __off_19, @array.len(std_core$Runtime$bytes("")))
           std.core.finish_buffer(__buf_18, __off_19)
       } :string)
       s: string = "你好"
-      byte_count: i64 = @array.len(std_core$Intrinsic$bytes(s))
+      byte_count: i64 = @array.len(std_core$Runtime$bytes(s))
       i: i64 = 0
       for i < byte_count {
           __tup_20: [char, i64] = std.core.codepoint_at_byte(s, i)

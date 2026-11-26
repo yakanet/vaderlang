@@ -990,11 +990,11 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
         return [returning("vader_scheduler_wait", [a0, a1, argument(2), argument(3)])]
     }
 
-    // Dynamic foreign calls (vader/vm/ffi.vader). The call shims take the
+    // Dynamic foreign calls (`Runtime.ffi_*`). The call shims take the
     // argument slots through `vader_array_bytes`, which already owns the
     // three-case array lend. Addresses ride an `i64` (see the note in
-    // `vader/vm/ffi.vader`), so each shim converts through `intptr_t` at the
-    // boundary.
+    // `lib/std/core/runtime.vader`), so each shim converts through `intptr_t` at
+    // the boundary.
     .FfiOpen -> { return library_open_shim("vader_ffi_open", a0) }
     .FfiOpenPath -> { return library_open_shim("vader_ffi_open_path", a0) }
     .FfiSymbol -> {

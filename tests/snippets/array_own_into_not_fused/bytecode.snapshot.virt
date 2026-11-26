@@ -20,8 +20,8 @@ type 17 struct snippet$$genstate_shifted { s0:6,s1:6,s2:19,s3:19,s4:7,state:9 }
 type 18 union 7,13
 type 19 scalar i64
 type 20 struct std_core$Buffer {  }
-type 21 array 22
-type 22 scalar u8
+type 21 scalar u8
+type 22 array 21
 type 23 scalar bool
 type 24 array 13
 type 25 ref $genstate_scaled
@@ -33,8 +33,8 @@ string 2 "L"
 string 3 "\n"
 data 0 structs 3 1 2 i32 04000000 i32 05000000
 data 1 structs 13 0 1
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=21 param_types=10 param_c_out= param_by_address= (string) -> ref
-import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=19 param_types=9,21,19 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=22 param_types=10 param_c_out= param_by_address= (string) -> ref
+import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=19 param_types=9,22,19 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=9 () -> i32
 import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 11 std_core$Iterator
@@ -947,7 +947,7 @@ fn 18 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -966,7 +966,7 @@ fn 18 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 21   ; u8[]
+      array.slice 22   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

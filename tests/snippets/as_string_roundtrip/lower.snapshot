@@ -2,10 +2,10 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.console.println<string>(std_core$Intrinsic$bytes_to_string(std_core$Intrinsic$bytes("vader")))
-      std.console.println<string>(std_core$Intrinsic$bytes_to_string(std_core$Intrinsic$bytes("héllo café 你好")))
-      std.console.println<string>(std_core$Intrinsic$bytes_to_string(std_core$Intrinsic$bytes("abcde")[i64(1)..<i64(4)]))
-      e: string = std_core$Intrinsic$bytes_to_string(std_core$Intrinsic$bytes(""))
+      std.console.println<string>(std_core$Runtime$bytes_to_string(std_core$Runtime$bytes("vader")))
+      std.console.println<string>(std_core$Runtime$bytes_to_string(std_core$Runtime$bytes("héllo café 你好")))
+      std.console.println<string>(std_core$Runtime$bytes_to_string(std_core$Runtime$bytes("abcde")[i64(1)..<i64(4)]))
+      e: string = std_core$Runtime$bytes_to_string(std_core$Runtime$bytes(""))
       std.console.println<string>(concat_3("[", e, "]"))
       return 0
   }

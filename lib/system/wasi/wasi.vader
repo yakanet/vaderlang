@@ -21,22 +21,22 @@ module "system/wasi"
 ///   [bytes, done] :: WasiStdin.read_via_stream()
 ///   chunk :: bytes.read(4096, -1)   // up to 4096 bytes, null at the end
 export read :: fn<T>(stream: WasmReadable<T>, max: i64, nanos: i64) -> T[] | null =
-    Intrinsic.wasm_stream_read(stream, max, nanos)
+    Runtime.wasm_stream_read(stream, max, nanos)
 
 /// What `future` resolves to, waiting for it: a future is waited for once.
 ///
 /// @param future  a future that no wait has taken yet.
-export wait :: fn<T>(future: WasmFuture<T>) -> T = Intrinsic.wasm_future_wait(future)
+export wait :: fn<T>(future: WasmFuture<T>) -> T = Runtime.wasm_future_wait(future)
 
 /// Give `stream` back to the host before its end, which tells its writer no more
 /// is read: a read then finds it ended. A stream read to its end is given back
 /// already.
 ///
 /// @param stream  the stream, ended or not.
-export drop :: fn<T>(stream: WasmReadable<T>) -> void = Intrinsic.wasm_stream_drop(stream)
+export drop :: fn<T>(stream: WasmReadable<T>) -> void = Runtime.wasm_stream_drop(stream)
 
 /// Give `future` back to the host without waiting for it: a wait on it then
 /// traps. A future waited for is given back already.
 ///
 /// @param future  the future, waited for or not.
-export drop :: fn<T>(future: WasmFuture<T>) -> void = Intrinsic.wasm_future_drop(future)
+export drop :: fn<T>(future: WasmFuture<T>) -> void = Runtime.wasm_future_drop(future)

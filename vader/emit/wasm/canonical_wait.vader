@@ -52,7 +52,7 @@ drop_subtask :: fn(ctx: ModuleCtx, subtask: i32) -> WasmExpression =
 
 // ---- handles ----------------------------------------------------------------
 
-// The helper of an `Intrinsic` member on a handle, being written: the stream or
+// The helper of a `Runtime` member on a handle, being written: the stream or
 // the future it stands for, its frame, the type its handle is read through, and
 // the local the handle is read into.
 HandleHelper :: struct {
@@ -87,7 +87,7 @@ handle_helper :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -> Handl
     }
 }
 
-// The helper behind `Intrinsic.wasm_stream_drop` and `wasm_future_drop` of the
+// The helper behind `Runtime.wasm_stream_drop` and `wasm_future_drop` of the
 // import `imp`: the stream or the future given back to the host before it ended,
 // its struct left holding 0. One that ended, or was dropped, holds 0 already and
 // is left as it is. When no import returns a handle of its type, the host gave
@@ -132,11 +132,11 @@ wrong_handle :: fn(function: string) -> WasmUnsupported =
 
 // ---- streams ----------------------------------------------------------------
 
-// The other parameters of `Intrinsic.wasm_stream_read`.
+// The other parameters of `Runtime.wasm_stream_read`.
 MAX: i32: 1
 NANOS: i32: 2
 
-// The helper behind `Intrinsic.wasm_stream_read` of the import `imp`: up to `max`
+// The helper behind `Runtime.wasm_stream_read` of the import `imp`: up to `max`
 // items of the stream, `nanos` at most of waiting, a negative `nanos` without
 // deadline; an empty array when none came in time, null once the stream ended.
 stream_read_function :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -> i32 | WasmUnsupported {
@@ -289,7 +289,7 @@ define_copy_wait :: fn(ctx: ModuleCtx, key: string, stream: WitStream) -> i32 {
 
 // ---- futures ----------------------------------------------------------------
 
-// The helper behind `Intrinsic.wasm_future_wait` of the import `imp`: the value
+// The helper behind `Runtime.wasm_future_wait` of the import `imp`: the value
 // the future resolves to, read once the host has written it, the future dropped.
 future_wait_function :: fn(ctx: ModuleCtx, imp: Bc.BcImport, function: string) -> i32 | WasmUnsupported {
     key :: "canonical.future-wait ${imp.signature.param_types[HANDLE_HOLDER]}"

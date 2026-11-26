@@ -7,8 +7,8 @@ type 4 struct __defer_env_snippet_3 {  }
 type 5 scalar string
 type 6 struct std_core$Buffer {  }
 type 7 scalar i64
-type 8 array 9
-type 9 scalar u8
+type 8 scalar u8
+type 9 array 8
 type 10 scalar bool
 type 11 fn () -> 1
 type 12 array 4
@@ -19,9 +19,9 @@ string 3 "refund "
 string 4 "release hold"
 string 5 "\n"
 data 0 agg 1 struct 4 0
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=8 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 1 panic std_core$Intrinsic$panic service=panic result_type=1 param_types=5 param_c_out= param_by_address= (string) -> void
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=9 param_types=5 param_c_out= param_by_address= (string) -> ref
+import 1 panic std_core$Runtime$panic service=panic result_type=1 param_types=5 param_c_out= param_by_address= (string) -> void
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 6 std_core$ByteAccess
@@ -58,7 +58,7 @@ fn 0 snippet$charge (i32) -> void
   call 6   ; std_core$finish_buffer
   call 12   ; std_console$println__string
   string.const 1   ; "card declined"
-  call.import 1   ; std_core$Intrinsic$panic
+  call.import 1   ; std_core$Runtime$panic
   unreachable "a no-return call returned"
 end
 
@@ -298,7 +298,7 @@ fn 9 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -317,7 +317,7 @@ fn 9 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 8   ; u8[]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

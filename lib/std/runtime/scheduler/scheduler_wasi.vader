@@ -1,7 +1,7 @@
 // std/runtime/scheduler/scheduler_wasi: the scheduler of a WASI program, over
 // the threads of the component model.
 //
-// The host runs the threads (`Intrinsic.wasm_thread_*`): a thread that
+// The host runs the threads (`Runtime.wasm_thread_*`): a thread that
 // suspends lets the threads made ready before it run, in that order; a wait on
 // the host blocks the thread that waits alone; with no thread able to run, the
 // host stops the program on a deadlock. What is left here is what the scheduler
@@ -71,7 +71,7 @@ wasi_scheduler :: fn() -> WasiScheduler {
     main :: WasiThread {
         .handle = MAIN_THREAD,
         .number = 0,
-        .index = Intrinsic.wasm_thread_index(),
+        .index = Runtime.wasm_thread_index(),
     }
     return WasiScheduler { .threads = [main] }
 }
@@ -91,8 +91,8 @@ spawn_thread :: fn(entry: fn() -> void, number: i64) -> i64 {
     s.threads.push(thread)
     launcher.children += 1
     handle :: thread.handle
-    thread.index = Intrinsic.wasm_thread_new(() -> run_thread(handle, entry))
-    Intrinsic.wasm_thread_resume_later(thread.index)
+    thread.index = Runtime.wasm_thread_new(() -> run_thread(handle, entry))
+    Runtime.wasm_thread_resume_later(thread.index)
     return handle
 }
 
@@ -111,10 +111,10 @@ park :: fn() -> void {
     me :: running(wasi_scheduler())
     unwind_if_cancelled(me)
     if me.ready {
-        Intrinsic.wasm_thread_yield()
+        Runtime.wasm_thread_yield()
     } else {
         me.suspended = true
-        Intrinsic.wasm_thread_suspend()
+        Runtime.wasm_thread_suspend()
     }
     me.ready = false
     unwind_if_cancelled(me)
@@ -129,7 +129,7 @@ wake :: fn(thread: i64) -> void {
     woken.ready = true
     if woken.suspended {
         woken.suspended = false
-        Intrinsic.wasm_thread_resume_later(woken.index)
+        Runtime.wasm_thread_resume_later(woken.index)
     }
 }
 
@@ -153,7 +153,7 @@ cancel_thread :: fn(thread: i64) -> void {
         return
     }
     cancelled.cancelled = true
-    if cancelled.index == Intrinsic.wasm_thread_index() {
+    if cancelled.index == Runtime.wasm_thread_index() {
         unwind(cancelled)
     }
     wake(thread)
@@ -228,7 +228,7 @@ exit_threads :: fn(code: i32) -> i32 {
 
 // The running thread.
 running :: fn(s: WasiScheduler) -> WasiThread {
-    index :: Intrinsic.wasm_thread_index()
+    index :: Runtime.wasm_thread_index()
     return s.threads.find((t) -> t.index == index)
         else panic("virtual threads: the running thread is unknown to the scheduler")
 }
@@ -258,7 +258,7 @@ unwind :: fn(me: WasiThread) -> void {
         park()
     }
     me.reaping = false
-    Intrinsic.wasm_thread_exit()
+    Runtime.wasm_thread_exit()
 }
 
 // The thread `handle` has ended: its launcher stops waiting for it, and so does

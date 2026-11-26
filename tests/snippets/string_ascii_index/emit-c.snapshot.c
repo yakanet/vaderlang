@@ -163,15 +163,15 @@ const size_t vader_type_info_count = 14;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 11u, 7u);
 }
 
-static vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
+static vader_string_t vader_host_std_core$Runtime$bytes_to_string(void* a0) {
 	return vader_string_as_string((vader_array_t*) a0);
 }
 
-static void vader_host_std_core$Intrinsic$collect(void) {
+static void vader_host_std_core$Runtime$collect(void) {
 	vader_gc_collect();
 }
 
@@ -272,13 +272,13 @@ static int32_t snippet$main(void) {
 	((uint8_t*) _a1_arr->buf->slots)[vader_array_offset(_a1_arr) + 1u] = (uint8_t) INT32_C(98);
 	((uint8_t*) _a1_arr->buf->slots)[vader_array_offset(_a1_arr) + 0u] = (uint8_t) INT32_C(97);
 	t0 = (void*) _a1_arr;
-	l0 = vader_host_std_core$Intrinsic$bytes_to_string(t0);
+	l0 = vader_host_std_core$Runtime$bytes_to_string(t0);
 	snippet$show(15u, l0);
 	vader_array_t* _a2_arr = vader_array_new(11u, 2u, 1u, 7u);
 	((uint8_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 1u] = (uint8_t) INT32_C(255);
 	((uint8_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 0u] = (uint8_t) INT32_C(97);
 	t0 = (void*) _a2_arr;
-	l0 = vader_host_std_core$Intrinsic$bytes_to_string(t0);
+	l0 = vader_host_std_core$Runtime$bytes_to_string(t0);
 	snippet$show(16u, l0);
 	l2 = INT32_C(0);
 	while ((l2 < INT32_C(3))) {
@@ -308,7 +308,7 @@ static int32_t snippet$main(void) {
 			vader_array_push_scalar((vader_array_t*) l3, vader_box_string(2u, l1));
 			l4 = (l4 + INT32_C(1));
 		}
-		vader_host_std_core$Intrinsic$collect();
+		vader_host_std_core$Runtime$collect();
 		l13 = (void*) vader_buffer_new((size_t) INT64_C(42));
 		l14 = INT64_C(0);
 		l14 = std_core$write_string_at(l13, l14, 19u);
@@ -764,7 +764,7 @@ static vader_string_t std_core$char$Display$to_string(uint32_t l0) {
 	};
 	vader_gc_top = &gc_frame;
 	t0 = std_core$utf8_encode(l0);
-	t1 = vader_host_std_core$Intrinsic$bytes_to_string(t0);
+	t1 = vader_host_std_core$Runtime$bytes_to_string(t0);
 	{ vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -956,7 +956,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));

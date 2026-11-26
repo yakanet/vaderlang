@@ -61,11 +61,11 @@ const vader_type_info_t vader_type_info_table[13] = {
 		.slot_size = 8,
 	},
 	[5] = { .slot_size = 8 },
-	[6] = {
+	[6] = { .slot_size = 1 },
+	[7] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 6u,
 	},
-	[7] = { .slot_size = 1 },
 	[8] = { .slot_size = 1 },
 	[9] = { .slot_size = 16 },
 	[10] = {
@@ -89,8 +89,8 @@ const size_t vader_type_info_count = 13;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 6u, 7u);
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
+	return (void*) vader_string_bytes_view(a0, 7u, 6u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -140,7 +140,7 @@ static int32_t snippet$main(void) {
 	while ((l0 < INT32_C(3))) {
 		l2 = snippet_codes$look_up(l0);
 		l3 = l2;
-		if ((l2.tag == 7u || l2.tag == 10u)) {
+		if ((l2.tag == 6u || l2.tag == 10u)) {
 			if (l3.tag == 10u) {
 				t0 = l3.payload.obj;
 				l4 = ((vader_struct_snippet_codes$FailureMessage_t*) t0)->f_text;
@@ -277,7 +277,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));
@@ -356,7 +356,7 @@ static vader_box_t snippet_codes$look_up(int32_t l0) {
 		t0 = (void*) _a1_obj;
 		{ vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 	}
-	{ vader_box_t __vret = vader_box_i32(7u, INT32_C(1)); vader_gc_top = gc_frame.prev; return __vret; }
+	{ vader_box_t __vret = vader_box_i32(6u, INT32_C(1)); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 int main(int argc, char** argv) {

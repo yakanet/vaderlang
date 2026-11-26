@@ -41,8 +41,8 @@ string 22 "false"
 string 23 "\n"
 string 24 "assert_lt failed: expected "
 string 25 " < "
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=15 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 1 panic std_core$Intrinsic$panic service=panic result_type=1 param_types=4 param_c_out= param_by_address= (string) -> void
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=15 param_types=4 param_c_out= param_by_address= (string) -> ref
+import 1 panic std_core$Runtime$panic service=panic result_type=1 param_types=4 param_c_out= param_by_address= (string) -> void
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=3,15,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
@@ -889,7 +889,7 @@ fn 20 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -1005,6 +1005,6 @@ fn 24 std_testing$assert_lt__string (string,string) -> void
   string.const 25   ; " < "
   local.get 1   ; arg 1
   call 4   ; concat_4
-  call.import 1   ; std_core$Intrinsic$panic
+  call.import 1   ; std_core$Runtime$panic
   unreachable "a no-return call returned"
 end

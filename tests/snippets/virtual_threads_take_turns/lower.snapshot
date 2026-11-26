@@ -22,11 +22,11 @@
       j: Joiner = if @global(0) == 2 { @global(1) } else { snippet.joiner() }
       j.running = j.running + i64(1)
       j.started = j.started + i64(1)
-      std_core$Intrinsic$spawn_thread(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = entry, .cap_1 = j }), j.started)
+      std_core$Runtime$spawn_thread(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = entry, .cap_1 = j }), j.started)
   }
   snippet.yield_now :: fn() -> void {  // snippet$yield_now
-      std_core$Intrinsic$wake(std_core$Intrinsic$current_thread())
-      std_core$Intrinsic$park()
+      std_core$Runtime$wake(std_core$Runtime$current_thread())
+      std_core$Runtime$park()
   }
   snippet.worker :: fn(name: string, steps: i64) -> void {  // snippet$worker
       {
@@ -49,19 +49,19 @@
       std.console.println<string>(concat_2(name, " done"))
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      main_thread: i64 = std_core$Intrinsic$current_thread()
+      main_thread: i64 = std_core$Runtime$current_thread()
       (if @global(0) == 2 { @global(1) } else { snippet.joiner() } :Joiner).main_thread = main_thread
       snippet.spawn(__lambda_snippet_2)
       snippet.spawn(__lambda_snippet_3)
       snippet.spawn(@closure(__lambda_snippet_4, __lambda_env_snippet_5 { .cap_0 = main_thread }))
       for (if @global(0) == 2 { @global(1) } else { snippet.joiner() } :Joiner).running > i64(0) {
-          std_core$Intrinsic$park()
+          std_core$Runtime$park()
       }
       std.console.println<string>({
           __buf_1: Buffer = std_core$Intrinsic$new_byte_buffer(i64(19))
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "main is back: ")
-          __off_2 = std.core.write_bool(__buf_1, __off_2, std_core$Intrinsic$current_thread() == main_thread)
+          __off_2 = std.core.write_bool(__buf_1, __off_2, std_core$Runtime$current_thread() == main_thread)
           std.core.finish_buffer(__buf_1, __off_2)
       } :string)
       return 0
@@ -85,7 +85,7 @@
       __env_0.cap_0()
       __env_0.cap_1.running = __env_0.cap_1.running - i64(1)
       if __env_0.cap_1.running == i64(0) {
-          std_core$Intrinsic$wake(__env_0.cap_1.main_thread)
+          std_core$Runtime$wake(__env_0.cap_1.main_thread)
       }
   }
   __lambda_snippet_2 :: fn() -> void {
@@ -100,7 +100,7 @@
           __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(36))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "c runs on a thread of its own: ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, std_core$Intrinsic$current_thread() != __env_0.cap_0)
+          __off_1 = std.core.write_bool(__buf_0, __off_1, std_core$Runtime$current_thread() != __env_0.cap_0)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
   }

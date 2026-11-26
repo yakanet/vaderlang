@@ -82,11 +82,11 @@ const vader_type_info_t vader_type_info_table[12] = {
 		.slot_size = 8,
 	},
 	[7] = { .slot_size = 8 },
-	[8] = {
+	[8] = { .slot_size = 1 },
+	[9] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
 	},
-	[9] = { .slot_size = 1 },
 	[10] = { .slot_size = 1 },
 	[11] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -102,15 +102,15 @@ const size_t vader_type_info_count = 12;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 8u, 9u);
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
+	return (void*) vader_string_bytes_view(a0, 9u, 8u);
 }
 
-static void vader_host_std_core$Intrinsic$collect(void) {
+static void vader_host_std_core$Runtime$collect(void) {
 	vader_gc_collect();
 }
 
-static int64_t vader_host_std_core$Intrinsic$collector_statistic(int32_t a0) {
+static int64_t vader_host_std_core$Runtime$collector_statistic(int32_t a0) {
 	return vader_gc_statistic(a0);
 }
 
@@ -196,7 +196,7 @@ static int32_t snippet$chain_survives(void) {
 	vader_gc_top = &gc_frame;
 	l0 = snippet$build_chain(INT32_C(200));
 	l1 = std_runtime$collections();
-	vader_host_std_core$Intrinsic$collect();
+	vader_host_std_core$Runtime$collect();
 	t0 = std_runtime$collections();
 	l1 = vader_chk_sub(i64, t0, l1);
 	if (l1 != INT64_C(1)) {
@@ -248,9 +248,9 @@ static int32_t snippet$chain_survives_three_collections(void) {
 	vader_gc_top = &gc_frame;
 	l0 = snippet$build_chain(INT32_C(50));
 	l1 = std_runtime$collections();
-	vader_host_std_core$Intrinsic$collect();
-	vader_host_std_core$Intrinsic$collect();
-	vader_host_std_core$Intrinsic$collect();
+	vader_host_std_core$Runtime$collect();
+	vader_host_std_core$Runtime$collect();
+	vader_host_std_core$Runtime$collect();
 	t0 = std_runtime$collections();
 	l1 = vader_chk_sub(i64, t0, l1);
 	if (l1 != INT64_C(3)) {
@@ -333,7 +333,7 @@ static int32_t snippet$array_survives(void) {
 		break;
 	}
 	l2 = std_runtime$collections();
-	vader_host_std_core$Intrinsic$collect();
+	vader_host_std_core$Runtime$collect();
 	t0 = std_runtime$collections();
 	l2 = vader_chk_sub(i64, t0, l2);
 	if (l2 != INT64_C(1)) {
@@ -497,7 +497,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));
@@ -561,7 +561,7 @@ static int64_t std_runtime$collections(void) {
 	int64_t t0;
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
 	vader_gc_top = &gc_frame;
-	t0 = vader_host_std_core$Intrinsic$collector_statistic(INT32_C(0));
+	t0 = vader_host_std_core$Runtime$collector_statistic(INT32_C(0));
 	{ int64_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 

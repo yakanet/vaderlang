@@ -95,9 +95,9 @@ string 48 "path contains a NUL byte"
 string 49 "file is closed"
 data 0 structs 17 3 1 strref 48 u8 0a i32 00000000
 data 1 structs 17 3 1 strref 49 u8 0c i32 00000000
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=10 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 1 bytes_to_string std_core$Intrinsic$bytes_to_string service=bytes_to_string result_type=4 param_types=10 param_c_out= param_by_address= (ref) -> string
-import 2 current_os std_core$Intrinsic$current_os service=current_os result_type=7 () -> u8
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=10 param_types=4 param_c_out= param_by_address= (string) -> ref
+import 1 bytes_to_string std_core$Runtime$bytes_to_string service=bytes_to_string result_type=4 param_types=10 param_c_out= param_by_address= (ref) -> string
+import 2 current_os std_core$Runtime$current_os service=current_os result_type=7 () -> u8
 import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,10,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=41 param_types=4 param_c_out= param_by_address= (string) -> any
 import 5 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=26 param_c_out= param_by_address= (pointer) -> i32
@@ -930,7 +930,7 @@ fn 12 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -1162,7 +1162,7 @@ fn 21 std_fs$read_file_string (string,i64) -> any
   end $L0
   local.get 2   ; __fallback_0
   ref.cast 10   ; u8[]
-  call.import 1   ; std_core$Intrinsic$bytes_to_string
+  call.import 1   ; std_core$Runtime$bytes_to_string
   retag 4   ; string
   return
 end
@@ -1201,7 +1201,7 @@ end
 
 fn 24 std_fs$has_nul (string) -> bool
   local.get 0   ; arg 0
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   i32.const 0
   call 11   ; std_core$index_of__u8
   type_check 0   ; null
@@ -2594,7 +2594,7 @@ fn 58 std_io$bytes_of (any) -> ref
   if $L0 void
     local.get 0   ; arg 0
     ref.cast 4   ; string
-    call.import 0   ; std_core$Intrinsic$bytes
+    call.import 0   ; std_core$Runtime$bytes
     return
   end $L0
   local.get 0   ; arg 0
@@ -2612,7 +2612,7 @@ fn 59 std_path$to_path (string) -> string
     local.get 0   ; arg 0
     return
   end $L0
-  call.import 2   ; std_core$Intrinsic$current_os
+  call.import 2   ; std_core$Runtime$current_os
   local.set 1   ; $call_4
   local.get 0   ; arg 0
   local.get 1   ; $call_4

@@ -101,11 +101,11 @@ const vader_type_info_t vader_type_info_table[13] = {
 		.slot_size = 8,
 	},
 	[7] = { .slot_size = 8 },
-	[8] = {
+	[8] = { .slot_size = 1 },
+	[9] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
 	},
-	[9] = { .slot_size = 1 },
 	[10] = { .slot_size = 1 },
 	[11] = {
 		.kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
@@ -125,11 +125,11 @@ const size_t vader_type_info_count = 13;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 8u, 9u);
+static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
+	return (void*) vader_string_bytes_view(a0, 9u, 8u);
 }
 
-static void vader_host_std_core$Intrinsic$panic(vader_string_t a0) {
+static void vader_host_std_core$Runtime$panic(vader_string_t a0) {
 	vader_panic(a0);
 }
 
@@ -185,7 +185,7 @@ static void snippet$charge(int32_t l0) {
 	l2 = std_core$write_int(l1, l2, l3);
 	t1 = std_core$finish_buffer(l1, l2);
 	std_console$println__string(t1);
-	vader_host_std_core$Intrinsic$panic(2u);
+	vader_host_std_core$Runtime$panic(2u);
 	vader_unreachable("a no-return call returned");
 	vader_gc_top = gc_frame.prev;
 }
@@ -347,7 +347,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
 	if (t0) {
 		{ vader_gc_top = gc_frame.prev; return; }
 	}
-	l2 = vader_host_std_core$Intrinsic$bytes(l1);
+	l2 = vader_host_std_core$Runtime$bytes(l1);
 	l3 = INT64_C(0);
 	for (;;) {
 		l4 = vader_array_length(((vader_array_t*) l2));

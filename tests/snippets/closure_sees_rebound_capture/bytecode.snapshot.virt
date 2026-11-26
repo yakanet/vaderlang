@@ -15,8 +15,8 @@ type 12 ref _
 type 13 fn (2) -> 2
 type 14 struct std_core$Buffer {  }
 type 15 scalar i64
-type 16 array 17
-type 17 scalar u8
+type 16 scalar u8
+type 17 array 16
 type 18 scalar bool
 type 19 struct $Cell_i32_2af2b319 { value:2 }
 type 20 ref $genstate_stepped
@@ -27,8 +27,8 @@ string 2 "lambda param "
 string 3 "generator "
 string 4 "\n"
 data 0 structs 8 0 1
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=16 param_types=11 param_c_out= param_by_address= (string) -> ref
-import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=15 param_types=2,16,15 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=17 param_types=11 param_c_out= param_by_address= (string) -> ref
+import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=15 param_types=2,17,15 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 6 std_core$Iterator
@@ -569,7 +569,7 @@ fn 13 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -588,7 +588,7 @@ fn 13 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 16   ; u8[]
+      array.slice 17   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

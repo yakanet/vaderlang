@@ -172,7 +172,7 @@ grows, keeps or hands back of what it is lent, path by path under each parameter
   with `@task_primitive`, a decorator private to `std/task`
   (`vader/front/effects/task_primitives.vader`): the parameters and fields it names
   are checked, a wrong one stops the compiler. A function that only forwards to a
-  member of `Intrinsic` that suspends the thread (`intrinsic_suspends`) is a gate too. The
+  member of `Runtime` that suspends the thread (`service_suspends`) is a gate too. The
   synchronised types carry `@task_shared`.
 - A function that hands one of its parameters to a task is a gate for its
   callers: a fixed point over the call graph (`vader/front/effects/tasks.vader`).
@@ -359,16 +359,28 @@ once by dominator tree ([ADR 0027](adr/0027-the-structurer-places-each-block-onc
 
 ## Intrinsics
 
-What Vader cannot write itself is a member of `std/core`'s trait `Intrinsic`
-(SPEC §15 *The `Intrinsic` trait*), declared without a body. A call to one is a host
-import named after the member, `std_core$Intrinsic$<member>` (a generic member is
-imported once per instance, `std_core$Intrinsic$deep_copy__Shape`). The member's
-name gives its `IntrinsicId` (`vader/core/bytecode/intrinsic_manifest.vader`), which
-the VM and the C backend each match exhaustively: both must handle a new member.
-Some members lower to a dedicated op instead (`vader/midir/select/intrinsics.vader`).
+What Vader cannot write itself is a member of one of two `std/core` traits (SPEC
+§15 *The `Intrinsic` and `Runtime` traits*), declared without a body
+([ADR 0182](adr/0182-intrinsic-holds-the-ops-runtime-the-services.md)):
+
+- a member of `Intrinsic` is an operation the compiler performs in code of its own.
+  Its name gives its `IntrinsicId` (`vader/core/bytecode/intrinsic_manifest.vader`):
+  an op of the bytecode (`vader/midir/select/intrinsics.vader`), or for the array
+  members a node of the lowering (`vader/lower/intrinsic_member.vader`). No call to
+  one reaches a backend.
+- a member of `Runtime` is a service each backend provides with a state the program
+  does not see. A call to one is a host import named after the member,
+  `std_core$Runtime$<member>` (a generic member is imported once per instance,
+  `std_core$Runtime$deep_copy__Shape`). The member's name gives its
+  `RuntimeService` (`vader/core/bytecode/runtime_service.vader`), which carries what
+  may happen during a call (`DuringCall`) and which the VM, the C backend and the
+  WASM backend each match exhaustively: each must handle a new service.
+
+No two members of the two traits share a name, so a lowered declaration names its
+member by name alone.
 
 A function whose body is one primitive operation on its parameters, in order, a
-member of `Intrinsic` or a native operator on scalars, is lowered at each call as
+member of `Intrinsic` or `Runtime` or a native operator on scalars, is lowered at each call as
 that operation (`vader/front/typecheck/intrinsic_forwarder.vader`,
 `vader/lower/intrinsic_forwarders.vader`): `xs.len()` is `array.len`, `a.add(b)` on
 `i32` is `i32.add`. A debug build keeps the call, so a breakpoint in the function

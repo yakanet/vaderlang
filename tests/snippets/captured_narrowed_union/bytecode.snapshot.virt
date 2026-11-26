@@ -12,13 +12,13 @@ type 9 struct __lambda_env_snippet_9 { cap_0:2 }
 type 10 scalar string
 type 11 struct std_core$Buffer {  }
 type 12 scalar i64
-type 13 array 14
-type 14 scalar u8
+type 13 scalar u8
+type 14 array 13
 type 15 scalar bool
 string 0 " "
 string 1 "\n"
-import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=13 param_types=10 param_c_out= param_by_address= (string) -> ref
-import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=12 param_types=3,13,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 bytes std_core$Runtime$bytes service=bytes result_type=14 param_types=10 param_c_out= param_by_address= (string) -> ref
+import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=12 param_types=3,14,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 11 std_core$ByteAccess
@@ -444,7 +444,7 @@ fn 14 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$Intrinsic$bytes
+  call.import 0   ; std_core$Runtime$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -463,7 +463,7 @@ fn 14 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 13   ; u8[]
+      array.slice 14   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

@@ -597,7 +597,7 @@ static inline vader_atom_t vader_array_borrowed_owner(const vader_array_t* a) {
 }
 /* Dynamic foreign calls, for the VM only, see runtime/c/rt/ffi.c for the
  * contract and the ABI restrictions. Declared here because the emitted C calls
- * them through the `vader/vm/ffi.vader` intrinsics. */
+ * them through the `Runtime.ffi_*` services (`lib/std/core/runtime.vader`). */
 void*   vader_ffi_open(const char* name);
 void*   vader_ffi_open_path(const char* path);
 void*   vader_ffi_symbol(void* lib, const char* symbol);

@@ -208,16 +208,16 @@ export dispatch_import :: fn(
     // compiled VM calls directly.
     .FfiOpen -> {
         name :: read_string(stack[arg_base], at_pc, "ffi_open name") else return name
-        return HostOk { .value = I64Val(ffi_open(string(name))) }
+        return HostOk { .value = I64Val(Runtime.ffi_open(string(name))) }
     }
     .FfiSymbol -> {
         lib :: read_i64(stack[arg_base], at_pc, "ffi_symbol lib") else return lib
         sym :: read_string(stack[arg_base + 1], at_pc, "ffi_symbol name") else return sym
-        return HostOk { .value = I64Val(ffi_symbol(i64(lib), string(sym))) }
+        return HostOk { .value = I64Val(Runtime.ffi_symbol(i64(lib), string(sym))) }
     }
     .FfiOpenPath -> {
         path :: read_string(stack[arg_base], at_pc, "ffi_open_path path") else return path
-        return HostOk { .value = I64Val(ffi_open_path(string(path))) }
+        return HostOk { .value = I64Val(Runtime.ffi_open_path(string(path))) }
     }
     .FfiCall -> {
         nfixed :: read_i64(stack[arg_base + 3], at_pc, "ffi_call nfixed") else return nfixed
@@ -354,11 +354,11 @@ callee_of :: fn(state: VmState, info: bc.BcImport, adapter: i64, at_pc: i32) -> 
     if reason != null {
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: ${reason}; ${BUILD_NATIVELY}" }
     }
-    lib :: ffi_open(bc.library_name(info))
+    lib :: Runtime.ffi_open(bc.library_name(info))
     if lib == 0 {
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: ${unopened_reason(info)}" }
     }
-    sym :: ffi_symbol(lib, info.extern_name)
+    sym :: Runtime.ffi_symbol(lib, info.extern_name)
     if sym == 0 {
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: symbol not found" }
     }
@@ -369,9 +369,9 @@ callee_of :: fn(state: VmState, info: bc.BcImport, adapter: i64, at_pc: i32) -> 
 // slots `desc` classes.
 call_foreign :: fn(callee: i64, through_adapter: bool, desc: u8[], frame: u8[], nfixed: i64) -> string {
     if through_adapter {
-        return ffi_call_frame(callee, desc, frame)
+        return Runtime.ffi_call_frame(callee, desc, frame)
     }
-    return ffi_call(callee, desc, frame, nfixed)
+    return Runtime.ffi_call(callee, desc, frame, nfixed)
 }
 
 /// Serve an `@extern` the VM meets at a `call.import`, by resolving its symbol
@@ -1156,3 +1156,141 @@ comptime_refusal :: fn(id: bc.RuntimeService) -> string | null = match id {
     .AbortPanic -> null
 }
 
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// `strlen` is the probe throughout: every platform's C runtime exports it, it
+// takes one pointer, and it writes NOTHING, so the tests leave the runner's own
+// stdout alone. `write` and `getpid` would fail on Windows (the CRT spells the
+// latter `_getpid`) and the first would interleave bytes into the test output.
+
+@test test_ffi_resolves_a_libc_symbol :: fn() -> void {
+    process :: Runtime.ffi_open("")
+    assert(process != 0, "the running process must expose its C runtime")
+    assert(Runtime.ffi_symbol(process, "strlen") != 0, "strlen must resolve")
+}
+
+@test test_ffi_missing_symbol_reports_zero :: fn() -> void {
+    process :: Runtime.ffi_open("")
+    assert_eq(Runtime.ffi_symbol(process, "vader_symbol_that_cannot_exist"), 0)
+}
+
+@test test_ffi_missing_library_reports_zero :: fn() -> void {
+    assert_eq(Runtime.ffi_open("vader_library_that_cannot_exist"), 0)
+}
+
+@test test_ffi_missing_library_path_reports_zero :: fn() -> void {
+    assert_eq(Runtime.ffi_open_path("/vader/no/such/adapters.library"), 0)
+}
+
+// The descriptor is one byte per slot: `desc[0]` the result, `desc[1+i]` each
+// argument: 1 word, 3 an offset into the frame. The slot area is `nargs * 8`
+// bytes, so the data an offset points at starts there.
+
+@test test_ffi_lends_bytes_to_a_foreign_call :: fn() -> void {
+    sym :: Runtime.ffi_symbol(Runtime.ffi_open(""), "strlen")
+    assert(sym != 0, "strlen must resolve")
+
+    // One address argument; the slot area is 8 bytes, so the string starts at 8.
+    desc: u8[]: [1, 3]
+    frame: u8[]: []
+    push_little_endian(frame, 8, 8)
+    frame.push_all([104, 101, 108, 108, 111, 0])
+    Runtime.ffi_call(sym, desc, frame, -1)
+    assert_eq(read_little_endian(frame, 0, 8, false), 5)
+}
+
+@test test_ffi_lends_at_an_offset :: fn() -> void {
+    sym :: Runtime.ffi_symbol(Runtime.ffi_open(""), "strlen")
+    assert(sym != 0, "strlen must resolve")
+
+    // The slot carries an OFFSET, not a value: measuring from the fourth byte
+    // of the data. A wrong offset would read the leading zeros and report 0.
+    desc: u8[]: [1, 3]
+    frame: u8[]: []
+    push_little_endian(frame, 8 + 3, 8)
+    frame.push_all([0, 0, 0, 104, 105, 0])
+    Runtime.ffi_call(sym, desc, frame, -1)
+    assert_eq(read_little_endian(frame, 0, 8, false), 2)
+}
+
+@test test_ffi_reads_back_what_c_wrote :: fn() -> void {
+    sym :: Runtime.ffi_symbol(Runtime.ffi_open(""), "memset")
+    assert(sym != 0, "memset must resolve")
+
+    // `memset(buf, 65, 4)`: the lend has to travel BOTH ways. The frame is a
+    // copy of the caller's bytes, so without the write-back this would read
+    // back what it sent.
+    desc: u8[]: [1, 3, 1, 1]
+    frame: u8[]: []
+    push_little_endian(frame, 24, 8)
+    push_little_endian(frame, 65, 8)
+    push_little_endian(frame, 4, 8)
+    frame.push_all([1, 2, 3, 4])
+    Runtime.ffi_call(sym, desc, frame, -1)
+    assert_eq(i64(frame[24]), 65)
+    assert_eq(i64(frame[27]), 65)
+}
+
+@test test_ffi_lends_two_buffers_at_once :: fn() -> void {
+    sym :: Runtime.ffi_symbol(Runtime.ffi_open(""), "memcpy")
+    assert(sym != 0, "memcpy must resolve")
+
+    // ONE frame serving two address slots: destination at 24, source at 27.
+    desc: u8[]: [1, 3, 3, 1]
+    frame: u8[]: []
+    push_little_endian(frame, 24, 8)
+    push_little_endian(frame, 27, 8)
+    push_little_endian(frame, 3, 8)
+    frame.push_all([0, 0, 0, 7, 8, 9])
+    Runtime.ffi_call(sym, desc, frame, -1)
+    assert_eq(i64(frame[24]), 7)
+    assert_eq(i64(frame[26]), 9)
+}
+
+@test test_ffi_returns_a_string_result :: fn() -> void {
+    sym :: Runtime.ffi_symbol(Runtime.ffi_open(""), "strchr")
+    assert(sym != 0, "strchr must resolve")
+
+    // `strchr("hello", 'l')`: a string result (class 4) is the call's value,
+    // since an atom id cannot travel back through the frame.
+    desc: u8[]: [4, 3, 1]
+    frame: u8[]: []
+    push_little_endian(frame, 16, 8)
+    push_little_endian(frame, 'l', 8)
+    frame.push_all([104, 101, 108, 108, 111, 0])
+    assert_eq(Runtime.ffi_call(sym, desc, frame, -1), "llo")
+}
+
+@test test_ffi_passes_the_fixed_count_of_a_variadic_callee :: fn() -> void {
+    sym :: Runtime.ffi_symbol(Runtime.ffi_open(""), "snprintf")
+    assert(sym != 0, "snprintf must resolve")
+
+    // `snprintf(buffer, 8, "%d", 42)`: three fixed parameters. On darwin-arm64 a
+    // variadic argument travels on the stack, so a call that does not say where
+    // the fixed ones end formats whatever sits there instead of 42.
+    desc: u8[]: [1, 3, 1, 3, 1]
+    frame: u8[]: []
+    push_little_endian(frame, 32, 8)
+    push_little_endian(frame, 8, 8)
+    push_little_endian(frame, 40, 8)
+    push_little_endian(frame, 42, 8)
+    frame.push_all([0, 0, 0, 0, 0, 0, 0, 0])
+    frame.push_all(['%', 'd', 0])
+    Runtime.ffi_call(sym, desc, frame, 3)
+    assert_eq(i64(frame[32]), '4')
+    assert_eq(i64(frame[33]), '2')
+    assert_eq(i64(frame[34]), 0)
+}
+
+@test test_ffi_passes_a_floating_argument :: fn() -> void {
+    sym :: Runtime.ffi_symbol(Runtime.ffi_open(""), "sqrt")
+    assert(sym != 0, "sqrt must resolve")
+
+    desc: u8[]: [2, 2]
+    frame: u8[]: []
+    push_little_endian(frame, i64(4.0.to_bits()), 8)
+    Runtime.ffi_call(sym, desc, frame, -1)
+    assert_eq(u64(read_little_endian(frame, 0, 8, false)).from_bits(), 2.0)
+}

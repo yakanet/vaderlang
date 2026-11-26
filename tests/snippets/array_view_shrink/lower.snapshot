@@ -15,7 +15,7 @@
       return nodes
   }
   snippet.collect_and_churn :: fn() -> void {  // snippet$collect_and_churn
-      std_core$Intrinsic$collect()
+      std_core$Runtime$collect()
       junk: Node[] = @array.reserve(i64(100000))
       {
           _: i32 = 0
@@ -25,7 +25,7 @@
               _ = _ +% 1
           }
       }
-      std_core$Intrinsic$collect()
+      std_core$Runtime$collect()
   }
   snippet.print_nodes :: fn(label: string, nodes: Node[]) -> void {  // snippet$print_nodes
       std.console.print<string>(label)

@@ -87,7 +87,7 @@ Arch implements Display -> match self {
 ///
 /// @return  the host OS, never null: an unsupported platform fails at C compile
 ///          time rather than guessing.
-export current_os :: fn() -> Os = Intrinsic.current_os()
+export current_os :: fn() -> Os = Runtime.current_os()
 
 /// The architecture this process is RUNNING on.
 ///
@@ -97,7 +97,7 @@ export current_os :: fn() -> Os = Intrinsic.current_os()
 ///
 /// @return  the host architecture, never null: an unsupported one fails at C
 ///          compile time rather than guessing.
-export current_arch :: fn() -> Arch = Intrinsic.current_arch()
+export current_arch :: fn() -> Arch = Runtime.current_arch()
 
 // ---- tests ----------------------------------------------------------------
 

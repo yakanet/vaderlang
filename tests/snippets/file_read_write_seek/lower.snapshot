@@ -38,7 +38,7 @@
       }
       first: u8[] = @array.repeat([u8(0)] :u8[], 2)
       if std.fs.File.read(f, first) is i64 {
-          std.console.println<string>(concat_2("read: ", std_core$Intrinsic$bytes_to_string(first)))
+          std.console.println<string>(concat_2("read: ", std_core$Runtime$bytes_to_string(first)))
       }
       std.console.println<string>(concat_2("position: ", snippet.position(std.fs.seek(f, i64(0), SeekFrom(1)))))
       std.testing.assert_succeeds(std.fs.File.write(f, "E"))

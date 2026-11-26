@@ -62,7 +62,7 @@ export CalleeIndex :: struct {
     /// Per declaration id, what a primitive is to a task (`task_doors.vader`).
     doors: Map<i64, TaskPrimitive> = Map<i64, TaskPrimitive> {}
     /// The declaration ids of the functions the host of `deep_copy` serves: the
-    /// member `Intrinsic.deep_copy`, and every function that forwards to it
+    /// member `Runtime.deep_copy`, and every function that forwards to it
     /// (`deep_copy_check.vader`).
     deep_copies: Set<i64> = Set<i64> {}
     /// Every module constant's initialiser, which may hand a frozen value on.
@@ -629,7 +629,7 @@ test_every_member_variant_names_a_member_of_its_trait :: fn() -> void {
     for service in RuntimeService {
         member :: service_member(service)
         if member != "" {
-            assert(member in services || member in ops, member)
+            assert(member in services, member)
         }
     }
 }
