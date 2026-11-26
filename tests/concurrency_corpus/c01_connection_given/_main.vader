@@ -38,7 +38,7 @@ serve_all :: fn(listener: Listener) -> void {
         if conn is NetError {
             continue
         }
-        launch(() -> serve(conn))
+        _ :: launch(() -> serve(conn))
     }
 }
 

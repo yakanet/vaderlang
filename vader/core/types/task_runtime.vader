@@ -75,6 +75,18 @@ export is_task_shared :: fn(sym: Symbol, decl: AST.StructDecl | null) -> bool {
     return decl.decorators.any_match((d) -> d.name == TASK_SHARED_DECORATOR)
 }
 
+/// Whether `sym` declares the struct of a task, as `join` tells one: a struct tasks
+/// share by design that holds the field `TASK_RESULT`, which `join` hands back.
+///
+/// @param sym   the struct's declaration symbol.
+/// @param decl  its declaration, null when unknown.
+export is_task_struct :: fn(sym: Symbol, decl: AST.StructDecl | null) -> bool {
+    if !is_task_shared(sym, decl) || decl == null {
+        return false
+    }
+    return decl.fields.any_match((f) -> f.name == TASK_RESULT)
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/abort"
@@ -98,4 +110,22 @@ test_task_shared_struct_is_told_by_its_decorator :: fn() -> void {
     assert(is_task_shared(gate, parsed_struct(source, "Gate")), "a marked struct")
     assert(!is_task_shared(door, parsed_struct(source, "Door")), "an unmarked struct")
     assert(!is_task_shared(elsewhere, parsed_struct(source, "Gate")), "a struct of the program")
+}
+
+@test
+test_task_struct_is_a_shared_struct_holding_the_result :: fn() -> void {
+    source :: """
+        @task_shared
+        Task :: struct { result: i32[] }
+        @task_shared
+        Channel :: struct { messages: i32[] }
+        Plain :: struct { result: i32[] }
+        """
+    factory :: SymbolFactory {}
+    task :: factory.make(.Struct, "Task", "std/task", "std/task", .Private, null)
+    channel :: factory.make(.Struct, "Channel", "std/task", "std/task", .Private, null)
+    plain :: factory.make(.Struct, "Plain", "std/task", "std/task", .Private, null)
+    assert(is_task_struct(task, parsed_struct(source, "Task")), "a shared struct with a result")
+    assert(!is_task_struct(channel, parsed_struct(source, "Channel")), "a shared struct without")
+    assert(!is_task_struct(plain, parsed_struct(source, "Plain")), "a result, not shared")
 }

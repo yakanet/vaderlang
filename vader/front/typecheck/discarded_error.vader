@@ -1,5 +1,5 @@
 // vader/front/typecheck/discarded_error: W0023, a value that may be an error and
-// that nothing reads.
+// that nothing reads, and W0025, a task that nothing can join any more.
 //
 // A block reports only its statements; its trailing expression is its owner's to
 // report (a fn or a lambda that returns `void`, a loop, a `defer` block), and an
@@ -51,6 +51,11 @@ warn_discarded :: fn(e: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> v
                     "or discard it on purpose with `_ :: ...`"
                 diags.push(warning(.DiscardedError, e.span, detail))
             }
+            if is_task(got, typed) {
+                detail :: "nothing can join `${display_type(got)}` now; keep it and join it, " +
+                    "or discard it on purpose with `_ :: ...`"
+                diags.push(warning(.DiscardedTask, e.span, detail))
+            }
         }
     }
 }
@@ -64,3 +69,7 @@ may_be_error :: fn(t: Type, typed: TypedProgram) -> bool {
     }
     return false
 }
+
+// Whether `t` is a task (`is_task_struct`).
+is_task :: fn(t: Type, typed: TypedProgram) =
+    t is StructType && is_task_struct(t.symbol, typed.struct_decls[t.symbol.id])

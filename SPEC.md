@@ -4507,7 +4507,7 @@ main :: fn() -> i32 {
 - A task can be joined several times, by several tasks: each `join` gives back the same value.
 - `t.is_ready()` tells whether the task has ended, so that `join` would not wait. It never parks, so a loop can poll it.
 - A task shows as `task #N`, its number in the order the program launched them. Two tasks are equal when they are the same task.
-- `launch(...)` as a statement launches the task without waiting for it, as a bare call drops its value.
+- `launch(...)` as a statement launches the task without waiting for it, as a bare call drops its value. The compiler warns when a `Task` is thrown away this way, since nothing can join it any more: `_ :: launch(...)` discards it on purpose, and `defer launch(...)` is exempt.
 - When `main` returns, the tasks still running are cancelled, stderr names them in the order they were launched, and the exit code is not zero. A task cancelled before, or launched by one before its defers ran, is waited for without being named.
 - When every task waits, and none on a sleep, a read of stdin or a child, nothing will wake one: the program stops on a deadlock and names the tasks.
 

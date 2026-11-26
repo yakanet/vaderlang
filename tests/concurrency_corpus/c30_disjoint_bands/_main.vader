@@ -22,7 +22,7 @@ main :: fn() -> i32 {
     pixels :: Image { .rows = [0, 0, 0, 0] }
     h :: 4
     for band in 0..<4 {
-        launch(() -> sharpen_rows(pixels, band * h / 4, (band + 1) * h / 4))
+        _ :: launch(() -> sharpen_rows(pixels, band * h / 4, (band + 1) * h / 4))
     }
     return 0
 }

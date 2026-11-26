@@ -14,7 +14,7 @@ main :: fn() -> i32 {
     hits :: AtomicInt {}
     files: string[]: ["a", "b"]
     for f in files {
-        launch(() -> {
+        _ :: launch(() -> {
             scan(f)
             hits.fetch_add(1)
         })

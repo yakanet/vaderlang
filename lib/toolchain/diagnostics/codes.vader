@@ -307,6 +307,7 @@ export WarningCode :: enum(CodeInfo) {
     GuardAfterBinding           { .id = "W0022", .message = "a guard on the failure of the value just bound is the `else` of its binding" },
     DiscardedError              { .id = "W0023", .message = "an error is thrown away" },
     CostlyConstant              { .id = "W0024", .message = "a constant written without `@comptime` costs every build a long computation" },
+    DiscardedTask               { .id = "W0025", .message = "a task is thrown away" },
 }
 
 /// `H6xxx`: the build driver (`build.vader`) and the hooks it registers.

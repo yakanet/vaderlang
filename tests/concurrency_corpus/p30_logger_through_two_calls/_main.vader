@@ -16,7 +16,7 @@ Log :: struct {
 log :: fn() -> Log = Log {}
 
 start_logger :: fn() -> void {
-    launch(() -> log().lines.push("start"))
+    _ :: launch(() -> log().lines.push("start"))
 }
 
 start :: fn() -> void {

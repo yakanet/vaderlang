@@ -1,0 +1,30 @@
+// A task that nothing can join any more: W0025 on a `launch` alone on its line
+// (`a`), on a function that hands back the task it launched (`b`), and on the
+// body of a loop (`c`).
+// Quiet: a task discarded on purpose with `_ ::`, a task kept and joined, a
+// `defer` that launches one, and a body whose result is the task.
+module "snippet"
+
+import "std/console"
+import "std/task"
+
+start_worker :: fn() -> Task<i32> = launch(() -> 42)
+
+started :: fn() -> Task<void> {
+    return launch(() -> println("started"))
+}
+
+main :: fn() -> i32 {
+    launch(() -> println("a"))
+    start_worker()
+    for 0..<2 {
+        launch(() -> println("c"))
+    }
+
+    _ :: launch(() -> println("on purpose"))
+    kept :: launch(() -> 1)
+    _ :: kept.join()
+    defer launch(() -> println("at the end"))
+    _ :: started().join()
+    return 0
+}

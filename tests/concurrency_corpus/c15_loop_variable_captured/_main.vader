@@ -13,7 +13,7 @@ scan :: fn(f: string) -> i64 = 1
 main :: fn() -> i32 {
     files: string[]: ["a.txt", "b.txt"]
     for f in files {
-        launch(() -> scan(f))
+        _ :: launch(() -> scan(f))
     }
     return 0
 }

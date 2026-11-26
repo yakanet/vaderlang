@@ -1,0 +1,3 @@
+[18:5] warning[W0025] a task is thrown away: nothing can join `Task<void>` now; keep it and join it, or discard it on purpose with `_ :: ...`
+[19:5] warning[W0025] a task is thrown away: nothing can join `Task<i32>` now; keep it and join it, or discard it on purpose with `_ :: ...`
+[21:9] warning[W0025] a task is thrown away: nothing can join `Task<void>` now; keep it and join it, or discard it on purpose with `_ :: ...`
