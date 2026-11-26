@@ -15,128 +15,128 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static inline void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 31u, 641u);
+static inline void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
+	return (void*) vader_string_bytes_view(a0, 31u, 647u);
 }
 
-static inline vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
+static inline vader_string_t vader_host_std_core$Runtime$bytes_to_string(void* a0) {
 	return vader_string_as_string((vader_array_t*) a0);
 }
 
-static inline void* vader_host_std_core$Intrinsic$deep_copy__std_collections_Map_string__string_(void* a0) {
+static inline void* vader_host_std_core$Runtime$deep_copy__std_collections_Map_string__string_(void* a0) {
 	return vader_deep_copy_ref(a0);
 }
 
-static inline void* vader_host_std_core$Intrinsic$deep_copy__string__(void* a0) {
+static inline void* vader_host_std_core$Runtime$deep_copy__string__(void* a0) {
 	return vader_deep_copy_ref(a0);
 }
 
-static inline int64_t vader_host_std_core$Intrinsic$collector_statistic(int32_t a0) {
+static inline int64_t vader_host_std_core$Runtime$collector_statistic(int32_t a0) {
 	return vader_gc_statistic(a0);
 }
 
-static inline void vader_host_std_core$Intrinsic$count_allocations(void) {
+static inline void vader_host_std_core$Runtime$count_allocations(void) {
 	vader_gc_count_allocations();
 }
 
-static inline int64_t vader_host_std_core$Intrinsic$spawn_thread(void* a0, int64_t a1) {
+static inline int64_t vader_host_std_core$Runtime$spawn_thread(void* a0, int64_t a1) {
 	return vader_scheduler_spawn_numbered(a0, a1);
 }
 
-static inline void vader_host_std_core$Intrinsic$park(void) {
+static inline void vader_host_std_core$Runtime$park(void) {
 	vader_scheduler_park();
 }
 
-static inline void vader_host_std_core$Intrinsic$wake(int64_t a0) {
+static inline void vader_host_std_core$Runtime$wake(int64_t a0) {
 	vader_scheduler_wake(a0);
 }
 
-static inline void vader_host_std_core$Intrinsic$sleep_for(int64_t a0) {
+static inline void vader_host_std_core$Runtime$sleep_for(int64_t a0) {
 	vader_scheduler_sleep_for(a0);
 }
 
-static inline void vader_host_std_core$Intrinsic$cancel_thread(int64_t a0) {
+static inline void vader_host_std_core$Runtime$cancel_thread(int64_t a0) {
 	vader_scheduler_cancel(a0);
 }
 
-static inline int64_t vader_host_std_core$Intrinsic$current_thread(void) {
+static inline int64_t vader_host_std_core$Runtime$current_thread(void) {
 	return vader_scheduler_current();
 }
 
-static inline bool vader_host_std_core$Intrinsic$is_cancelled(void) {
+static inline bool vader_host_std_core$Runtime$is_cancelled(void) {
 	return vader_scheduler_is_cancelled();
 }
 
-static inline bool vader_host_std_core$Intrinsic$is_leaving(int64_t a0) {
+static inline bool vader_host_std_core$Runtime$is_leaving(int64_t a0) {
 	return vader_scheduler_is_leaving(a0);
 }
 
-static inline void vader_host_std_core$Intrinsic$watch_readable(int64_t a0) {
+static inline void vader_host_std_core$Runtime$watch_readable(int64_t a0) {
 	vader_scheduler_watch_readable(a0);
 }
 
-static inline void vader_host_std_core$Intrinsic$watch_exit(int64_t a0) {
+static inline void vader_host_std_core$Runtime$watch_exit(int64_t a0) {
 	vader_scheduler_watch_exit(a0);
 }
 
-static inline void vader_host_std_core$Intrinsic$monitor_enter(bool a0) {
+static inline void vader_host_std_core$Runtime$monitor_enter(bool a0) {
 	vader_scheduler_monitor_enter(a0);
 }
 
-static inline void vader_host_std_core$Intrinsic$monitor_exit(void) {
+static inline void vader_host_std_core$Runtime$monitor_exit(void) {
 	vader_scheduler_monitor_exit();
 }
 
-static inline bool vader_host_std_core$Intrinsic$wait_for(int64_t a0, int32_t a1, int64_t a2, bool a3) {
+static inline bool vader_host_std_core$Runtime$wait_for(int64_t a0, int32_t a1, int64_t a2, bool a3) {
 	return vader_scheduler_wait(a0, a1, a2, a3);
 }
 
-static inline void vader_host_std_core$Intrinsic$stop_waiting(int64_t a0) {
+static inline void vader_host_std_core$Runtime$stop_waiting(int64_t a0) {
 	vader_scheduler_stop_waiting(a0);
 }
 
-static inline void vader_host_std_core$Intrinsic$panic(vader_string_t a0) {
+static inline void vader_host_std_core$Runtime$panic(vader_string_t a0) {
 	vader_panic(a0);
 }
 
-static inline uint8_t vader_host_std_core$Intrinsic$current_os(void) {
+static inline uint8_t vader_host_std_core$Runtime$current_os(void) {
 	return vader_current_os();
 }
 
-static inline uint8_t vader_host_std_core$Intrinsic$current_arch(void) {
+static inline uint8_t vader_host_std_core$Runtime$current_arch(void) {
 	return vader_current_arch();
 }
 
-static inline int64_t vader_host_std_core$Intrinsic$ffi_open(vader_string_t a0) {
+static inline int64_t vader_host_std_core$Runtime$ffi_open(vader_string_t a0) {
 	const char* c0 = vader_string_to_cstr(a0);
 	void* r = vader_ffi_open(c0);
 	vader_cstr_free_for(a0, c0);
 	return (int64_t) (intptr_t) r;
 }
 
-static inline int64_t vader_host_std_core$Intrinsic$ffi_open_path(vader_string_t a0) {
+static inline int64_t vader_host_std_core$Runtime$ffi_open_path(vader_string_t a0) {
 	const char* c0 = vader_string_to_cstr(a0);
 	void* r = vader_ffi_open_path(c0);
 	vader_cstr_free_for(a0, c0);
 	return (int64_t) (intptr_t) r;
 }
 
-static inline int64_t vader_host_std_core$Intrinsic$ffi_symbol(int64_t a0, vader_string_t a1) {
+static inline int64_t vader_host_std_core$Runtime$ffi_symbol(int64_t a0, vader_string_t a1) {
 	const char* c1 = vader_string_to_cstr(a1);
 	void* r = vader_ffi_symbol((void*) (intptr_t) a0, c1);
 	vader_cstr_free_for(a1, c1);
 	return (int64_t) (intptr_t) r;
 }
 
-static inline vader_string_t vader_host_std_core$Intrinsic$ffi_call(int64_t a0, void* a1, void* a2, int64_t a3) {
+static inline vader_string_t vader_host_std_core$Runtime$ffi_call(int64_t a0, void* a1, void* a2, int64_t a3) {
 	return vader_ffi_call_n((void*) (intptr_t) a0, (vader_array_t*) a1, (vader_array_t*) a2, a3);
 }
 
-static inline vader_string_t vader_host_std_core$Intrinsic$ffi_call_frame(int64_t a0, void* a1, void* a2) {
+static inline vader_string_t vader_host_std_core$Runtime$ffi_call_frame(int64_t a0, void* a1, void* a2) {
 	return vader_ffi_call_frame((void*) (intptr_t) a0, (vader_array_t*) a1, (vader_array_t*) a2);
 }
 
-static inline void vader_host_std_core$Intrinsic$task_ended(void) {
+static inline void vader_host_std_core$Runtime$task_ended(void) {
 	vader_scheduler_task_ended();
 }
 
@@ -154,7 +154,7 @@ static inline vader_box_t vader_host_system_posix$sys_opendir(vader_string_t a0)
 	void* r = opendir(c0);
 	VADER_FOREIGN_LEAVE();
 	vader_cstr_free_for(a0, c0);
-	return r == NULL ? vader_box_null() : vader_box_i64(638u, (int64_t) (intptr_t) r);
+	return r == NULL ? vader_box_null() : vader_box_i64(644u, (int64_t) (intptr_t) r);
 }
 
 static inline int32_t vader_host_system_posix$sys_closedir(void* a0) {
@@ -201,7 +201,7 @@ static inline vader_box_t vader_host_system_posix$sys_readdir(void* a0) {
 	VADER_FOREIGN_ENTER("readdir");
 	void* r = readdir(a0);
 	VADER_FOREIGN_LEAVE();
-	return r == NULL ? vader_box_null() : vader_box_i64(638u, (int64_t) (intptr_t) r);
+	return r == NULL ? vader_box_null() : vader_box_i64(644u, (int64_t) (intptr_t) r);
 }
 
 static inline vader_string_t vader_host_system_posix$dirent_name(void* a0) {
@@ -256,7 +256,7 @@ static inline vader_box_t vader_host_system_posix$sys_getcwd(void* a0, int64_t a
 	VADER_FOREIGN_ENTER("getcwd");
 	void* r = getcwd((void*) s0.ptr, a1);
 	VADER_FOREIGN_LEAVE();
-	return r == NULL ? vader_box_null() : vader_box_i64(638u, (int64_t) (intptr_t) r);
+	return r == NULL ? vader_box_null() : vader_box_i64(644u, (int64_t) (intptr_t) r);
 }
 
 static inline int32_t vader_host_system_posix$sys_chdir(vader_string_t a0) {
@@ -321,7 +321,7 @@ static inline vader_box_t vader_host_system_libc$sys_getenv(vader_string_t a0) {
 	VADER_FOREIGN_ENTER("getenv");
 	const char* r = getenv(c0);
 	VADER_FOREIGN_LEAVE();
-	vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(636u, (int64_t) vader_atom_intern(r, strlen(r)));
+	vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(642u, (int64_t) vader_atom_intern(r, strlen(r)));
 	vader_cstr_free_for(a0, c0);
 	return out;
 }

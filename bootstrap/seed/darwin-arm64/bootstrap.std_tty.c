@@ -15,31 +15,31 @@ static bool std_tty$stdout_is_tty$singleton(void);
 vader_box_t vader_fn_tramp_std_tty$no_color_set$keep(void* env) {
 	(void) env;
 	std_tty$no_color_set$keep();
-	return vader_box_obj(637u, NULL);
+	return vader_box_obj(643u, NULL);
 }
 
 vader_fn_t vader_fn_static_std_tty$no_color_set$keep = {
-	VADER_STATIC_HEADER(536u), (void*) &vader_fn_tramp_std_tty$no_color_set$keep, NULL,
+	VADER_STATIC_HEADER(542u), (void*) &vader_fn_tramp_std_tty$no_color_set$keep, NULL,
 };
 
 vader_box_t vader_fn_tramp_std_tty$stderr_is_tty$keep(void* env) {
 	(void) env;
 	std_tty$stderr_is_tty$keep();
-	return vader_box_obj(637u, NULL);
+	return vader_box_obj(643u, NULL);
 }
 
 vader_fn_t vader_fn_static_std_tty$stderr_is_tty$keep = {
-	VADER_STATIC_HEADER(536u), (void*) &vader_fn_tramp_std_tty$stderr_is_tty$keep, NULL,
+	VADER_STATIC_HEADER(542u), (void*) &vader_fn_tramp_std_tty$stderr_is_tty$keep, NULL,
 };
 
 vader_box_t vader_fn_tramp_std_tty$stdout_is_tty$keep(void* env) {
 	(void) env;
 	std_tty$stdout_is_tty$keep();
-	return vader_box_obj(637u, NULL);
+	return vader_box_obj(643u, NULL);
 }
 
 vader_fn_t vader_fn_static_std_tty$stdout_is_tty$keep = {
-	VADER_STATIC_HEADER(536u), (void*) &vader_fn_tramp_std_tty$stdout_is_tty$keep, NULL,
+	VADER_STATIC_HEADER(542u), (void*) &vader_fn_tramp_std_tty$stdout_is_tty$keep, NULL,
 };
 
 vader_string_t std_tty$bold(vader_string_t l0) {
@@ -66,7 +66,7 @@ static vader_string_t std_tty$escape(bool l0, vader_string_t l1) {
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
 	vader_gc_top = &gc_frame;
 	if (l0) {
-		t0 = concat_3(18u, l1, 2866u);
+		t0 = concat_3(18u, l1, 2870u);
 		{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	{ vader_gc_top = gc_frame.prev; return 0u; }

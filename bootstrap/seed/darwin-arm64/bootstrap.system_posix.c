@@ -19,7 +19,7 @@ vader_string_t system_posix$up_to_nul(void* l0) {
 	while ((l2 < l3)) {
 		vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
 		VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-		t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l2, 641u);
+		t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l2, 647u);
 		t1 = ((uint8_t) t0.payload.i);
 		if (t1 == INT32_C(0)) {
 			l1 = l2;
@@ -29,6 +29,6 @@ vader_string_t system_posix$up_to_nul(void* l0) {
 	}
 	vader_array_t* _a1_arr = vader_array_slice((vader_array_t*) l0, (int64_t) INT64_C(0), (int64_t) l1);
 	t2 = (void*) _a1_arr;
-	t3 = vader_host_std_core$Intrinsic$bytes_to_string(t2);
+	t3 = vader_host_std_core$Runtime$bytes_to_string(t2);
 	{ vader_string_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
 }
