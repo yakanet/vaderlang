@@ -17,7 +17,6 @@ typedef struct vader_struct___Tuple_i32_i32_3103e027_t vader_struct___Tuple_i32_
 typedef struct vader_struct___Tuple_i64_i64_f049c617_t vader_struct___Tuple_i64_i64_f049c617_t;
 typedef struct vader_struct___Tuple_i64_i64_i64_2cc25dbf_t vader_struct___Tuple_i64_i64_i64_2cc25dbf_t;
 typedef struct vader_struct___Tuple_string_string_66940ed4_t vader_struct___Tuple_string_string_66940ed4_t;
-typedef struct vader_struct___Tuple_u64_u64_u64_2d035edd_t vader_struct___Tuple_u64_u64_u64_2d035edd_t;
 typedef struct vader_struct___defer_env_std_fs_1_t vader_struct___defer_env_std_fs_1_t;
 typedef struct vader_struct___defer_env_std_fs_3_t vader_struct___defer_env_std_fs_3_t;
 typedef struct vader_struct___defer_env_std_runtime_scheduler_1_t vader_struct___defer_env_std_runtime_scheduler_1_t;
@@ -454,7 +453,6 @@ typedef struct vader_struct_std_collections$Set__vader_emit_bytecode_BytecodePro
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
 typedef struct vader_struct_std_core$CLibrary_t vader_struct_std_core$CLibrary_t;
 typedef struct vader_struct_std_core$Cancelled_t vader_struct_std_core$Cancelled_t;
-typedef struct vader_struct_std_core$Dec64_t vader_struct_std_core$Dec64_t;
 typedef struct vader_struct_std_core$DecimalParts_t vader_struct_std_core$DecimalParts_t;
 typedef struct vader_struct_std_core$Range__i64_t vader_struct_std_core$Range__i64_t;
 typedef struct vader_struct_std_core$SlowParts_t vader_struct_std_core$SlowParts_t;
@@ -1584,12 +1582,6 @@ struct vader_struct___Tuple_string_string_66940ed4_t {
 	vader_obj_header_t header;
 	vader_string_t f__0;
 	vader_string_t f__1;
-};
-struct vader_struct___Tuple_u64_u64_u64_2d035edd_t {
-	vader_obj_header_t header;
-	uint64_t f__0;
-	uint64_t f__1;
-	uint64_t f__2;
 };
 struct vader_struct___defer_env_std_fs_1_t {
 	vader_obj_header_t header;
@@ -4562,11 +4554,6 @@ struct vader_struct_std_core$CLibrary_t {
 };
 struct vader_struct_std_core$Cancelled_t {
 	vader_obj_header_t header;
-};
-struct vader_struct_std_core$Dec64_t {
-	vader_obj_header_t header;
-	uint64_t f_mantissa;
-	int32_t f_exp;
 };
 struct vader_struct_std_core$DecimalParts_t {
 	vader_obj_header_t header;
@@ -12888,7 +12875,7 @@ vader_box_t toolchain_stage$BuildFiles$list_folder$$dispatch(vader_box_t recv, v
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3800u
+#define VADER_COMPTIME_ATOM_COUNT 3817u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
@@ -13103,8 +13090,6 @@ extern const vader_array_t vader_data_209;
 extern const vader_array_t vader_data_210;
 extern const vader_array_t vader_data_211;
 extern const vader_array_t vader_data_212;
-extern const vader_array_t vader_data_213;
-extern const vader_array_t vader_data_214;
 extern vader_box_t vader_global$std_console$stderr_is_console$gate;
 extern bool vader_global$std_console$stderr_is_console$instance;
 extern int32_t vader_global$std_console$stderr_is_console$state;

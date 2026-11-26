@@ -7469,7 +7469,7 @@ void std_collections$push__vader_core_symbol_Symbol(void* l0, void* l1) {
 			vader_array_push_ref((vader_array_t*) ((vader_struct_std_collections$Queue__vader_core_symbol_Symbol_t*) l0)->f_items, l1);
 		} else {
 			t0 = vader_chk_mul(i64, l2, INT64_C(2));
-			vader_array_t* _a1_arr = vader_array_reserve(218u, (int64_t) t0, 13u, 1469u);
+			vader_array_t* _a1_arr = vader_array_reserve(218u, (int64_t) t0, 13u, 1467u);
 			l3 = (void*) _a1_arr;
 			l6 = ((vader_struct_std_collections$Queue__vader_core_symbol_Symbol_t*) l0)->f_items;
 			l4 = ((vader_struct_std_collections$Queue__vader_core_symbol_Symbol_t*) l0)->f_head;
@@ -7524,7 +7524,7 @@ void std_collections$push__vader_core_types_StructType(void* l0, void* l1) {
 			vader_array_push_ref((vader_array_t*) ((vader_struct_std_collections$Queue__vader_core_types_StructType_t*) l0)->f_items, l1);
 		} else {
 			t0 = vader_chk_mul(i64, l2, INT64_C(2));
-			vader_array_t* _a1_arr = vader_array_reserve(231u, (int64_t) t0, 13u, 1487u);
+			vader_array_t* _a1_arr = vader_array_reserve(231u, (int64_t) t0, 13u, 1485u);
 			l3 = (void*) _a1_arr;
 			l6 = ((vader_struct_std_collections$Queue__vader_core_types_StructType_t*) l0)->f_items;
 			l4 = ((vader_struct_std_collections$Queue__vader_core_types_StructType_t*) l0)->f_head;
@@ -7579,7 +7579,7 @@ void std_collections$push__vader_lower_EnumTable(void* l0, void* l1) {
 			vader_array_push_ref((vader_array_t*) ((vader_struct_std_collections$Queue__vader_lower_EnumTable_t*) l0)->f_items, l1);
 		} else {
 			t0 = vader_chk_mul(i64, l2, INT64_C(2));
-			vader_array_t* _a1_arr = vader_array_reserve(379u, (int64_t) t0, 13u, 1886u);
+			vader_array_t* _a1_arr = vader_array_reserve(379u, (int64_t) t0, 13u, 1884u);
 			l3 = (void*) _a1_arr;
 			l6 = ((vader_struct_std_collections$Queue__vader_lower_EnumTable_t*) l0)->f_items;
 			l4 = ((vader_struct_std_collections$Queue__vader_lower_EnumTable_t*) l0)->f_head;
@@ -7634,7 +7634,7 @@ void std_collections$push__vader_lower_GenericFnInstance(void* l0, void* l1) {
 			vader_array_push_ref((vader_array_t*) ((vader_struct_std_collections$Queue__vader_lower_GenericFnInstance_t*) l0)->f_items, l1);
 		} else {
 			t0 = vader_chk_mul(i64, l2, INT64_C(2));
-			vader_array_t* _a1_arr = vader_array_reserve(384u, (int64_t) t0, 13u, 1898u);
+			vader_array_t* _a1_arr = vader_array_reserve(384u, (int64_t) t0, 13u, 1896u);
 			l3 = (void*) _a1_arr;
 			l6 = ((vader_struct_std_collections$Queue__vader_lower_GenericFnInstance_t*) l0)->f_items;
 			l4 = ((vader_struct_std_collections$Queue__vader_lower_GenericFnInstance_t*) l0)->f_head;
@@ -7689,7 +7689,7 @@ void std_collections$push__vader_lower_MemberInstance(void* l0, void* l1) {
 			vader_array_push_ref((vader_array_t*) ((vader_struct_std_collections$Queue__vader_lower_MemberInstance_t*) l0)->f_items, l1);
 		} else {
 			t0 = vader_chk_mul(i64, l2, INT64_C(2));
-			vader_array_t* _a1_arr = vader_array_reserve(388u, (int64_t) t0, 13u, 1910u);
+			vader_array_t* _a1_arr = vader_array_reserve(388u, (int64_t) t0, 13u, 1908u);
 			l3 = (void*) _a1_arr;
 			l6 = ((vader_struct_std_collections$Queue__vader_lower_MemberInstance_t*) l0)->f_items;
 			l4 = ((vader_struct_std_collections$Queue__vader_lower_MemberInstance_t*) l0)->f_head;
@@ -20739,7 +20739,7 @@ static void* std_collections$remove_first__vader_core_symbol_Symbol(void* l0) {
 	vader_gc_top = &gc_frame;
 	t0 = ((vader_struct_std_collections$Queue__vader_core_symbol_Symbol_t*) l0)->f_size;
 	if (t0 == INT64_C(0)) {
-		vader_host_std_core$Intrinsic$panic(3119u);
+		vader_host_std_core$Intrinsic$panic(3117u);
 		vader_unreachable("a no-return call returned");
 	} else {
 		l1 = ((vader_struct_std_collections$Queue__vader_core_symbol_Symbol_t*) l0)->f_items;
@@ -20775,7 +20775,7 @@ static void* std_collections$remove_first__vader_core_types_StructType(void* l0)
 	vader_gc_top = &gc_frame;
 	t0 = ((vader_struct_std_collections$Queue__vader_core_types_StructType_t*) l0)->f_size;
 	if (t0 == INT64_C(0)) {
-		vader_host_std_core$Intrinsic$panic(3119u);
+		vader_host_std_core$Intrinsic$panic(3117u);
 		vader_unreachable("a no-return call returned");
 	} else {
 		l1 = ((vader_struct_std_collections$Queue__vader_core_types_StructType_t*) l0)->f_items;
@@ -20811,7 +20811,7 @@ static void* std_collections$remove_first__vader_lower_EnumTable(void* l0) {
 	vader_gc_top = &gc_frame;
 	t0 = ((vader_struct_std_collections$Queue__vader_lower_EnumTable_t*) l0)->f_size;
 	if (t0 == INT64_C(0)) {
-		vader_host_std_core$Intrinsic$panic(3119u);
+		vader_host_std_core$Intrinsic$panic(3117u);
 		vader_unreachable("a no-return call returned");
 	} else {
 		l1 = ((vader_struct_std_collections$Queue__vader_lower_EnumTable_t*) l0)->f_items;
@@ -20847,7 +20847,7 @@ static void* std_collections$remove_first__vader_lower_GenericFnInstance(void* l
 	vader_gc_top = &gc_frame;
 	t0 = ((vader_struct_std_collections$Queue__vader_lower_GenericFnInstance_t*) l0)->f_size;
 	if (t0 == INT64_C(0)) {
-		vader_host_std_core$Intrinsic$panic(3119u);
+		vader_host_std_core$Intrinsic$panic(3117u);
 		vader_unreachable("a no-return call returned");
 	} else {
 		l1 = ((vader_struct_std_collections$Queue__vader_lower_GenericFnInstance_t*) l0)->f_items;
@@ -20883,7 +20883,7 @@ static void* std_collections$remove_first__vader_lower_MemberInstance(void* l0) 
 	vader_gc_top = &gc_frame;
 	t0 = ((vader_struct_std_collections$Queue__vader_lower_MemberInstance_t*) l0)->f_size;
 	if (t0 == INT64_C(0)) {
-		vader_host_std_core$Intrinsic$panic(3119u);
+		vader_host_std_core$Intrinsic$panic(3117u);
 		vader_unreachable("a no-return call returned");
 	} else {
 		l1 = ((vader_struct_std_collections$Queue__vader_lower_MemberInstance_t*) l0)->f_items;

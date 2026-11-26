@@ -349,7 +349,7 @@ static vader_string_t std_path$normalize_on(vader_string_t l0, uint8_t l1) {
 	vader_array_t* _a2_arr = vader_array_new(28u, 0u, 0u, 630u);
 	t4 = (void*) _a2_arr;
 	vader_struct_std_string__builder$StringBuilder_t* _a3_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
-	vader_obj_header_init(_a3_obj, 1122u);
+	vader_obj_header_init(_a3_obj, 1120u);
 	_a3_obj->f_parts = t4;
 	l14 = (void*) _a3_obj;
 	l9 = vader_host_std_core$Intrinsic$byte_slice(l0, INT64_C(0), l3);
@@ -478,7 +478,7 @@ vader_string_t std_path$to_native(vader_string_t l0) {
 	t0 = vader_host_std_core$Intrinsic$current_os();
 	if (!(t0 != INT32_C(0))) {
 		l1 = (void*) &vader_fn_static___lambda_std_path_0;
-		t1 = std_string$replace_chars_where(l0, l1, 1226u);
+		t1 = std_string$replace_chars_where(l0, l1, 1223u);
 		{ vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	{ vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }

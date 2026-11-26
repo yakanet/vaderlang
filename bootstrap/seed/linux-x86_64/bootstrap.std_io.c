@@ -41,7 +41,7 @@ static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2) 
 	vader_gc_top = &gc_frame;
 	t0 = std_io$describe_io_error_kind(l1, l0);
 	vader_struct_std_io$IOError_t* _a0_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
-	vader_obj_header_init(_a0_obj, 1114u);
+	vader_obj_header_init(_a0_obj, 1112u);
 	_a0_obj->f_msg = t0;
 	_a0_obj->f_kind = l1;
 	_a0_obj->f_code = l2;
@@ -52,47 +52,47 @@ static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2) 
 static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l1) {
 	vader_string_t l2;
 	if (l0 == INT32_C(1)) {
-		l2 = 2535u;
+		l2 = 2533u;
 		return l2;
 	}
 	if (l0 == INT32_C(2)) {
-		l2 = 3069u;
+		l2 = 3067u;
 	} else if (l0 == INT32_C(3)) {
-		l2 = 2748u;
+		l2 = 2746u;
 	} else if (l0 == INT32_C(4)) {
-		l2 = 1957u;
+		l2 = 1954u;
 	} else if (l0 == INT32_C(5)) {
-		l2 = 2995u;
+		l2 = 2993u;
 	} else if (l0 == INT32_C(6)) {
-		l2 = 2773u;
+		l2 = 2771u;
 	} else if (l0 == INT32_C(7)) {
-		l2 = 3750u;
+		l2 = 3767u;
 	} else if (l0 == INT32_C(8)) {
-		l2 = 2109u;
+		l2 = 2106u;
 	} else if (l0 == INT32_C(9)) {
-		l2 = 2985u;
+		l2 = 2983u;
 	} else if (l0 == INT32_C(10)) {
-		l2 = 2761u;
+		l2 = 2759u;
 	} else if (l0 == INT32_C(11)) {
-		l2 = 2344u;
+		l2 = 2342u;
 	} else if (l0 == INT32_C(12)) {
-		l2 = 2069u;
+		l2 = 2066u;
 	} else if (l0 == INT32_C(13)) {
-		l2 = 2392u;
+		l2 = 2390u;
 	} else if (l0 == INT32_C(14)) {
-		l2 = 2282u;
+		l2 = 2280u;
 	} else if (l0 == INT32_C(15)) {
-		l2 = 2283u;
+		l2 = 2281u;
 	} else if (l0 == INT32_C(16)) {
-		l2 = 1947u;
+		l2 = 1944u;
 	} else if (l0 == INT32_C(17)) {
-		l2 = 1948u;
+		l2 = 1945u;
 	} else if (l0 == INT32_C(18)) {
-		l2 = 2997u;
+		l2 = 2995u;
 	} else if (l0 == INT32_C(19)) {
-		l2 = 3362u;
+		l2 = 3375u;
 	} else if (l0 == INT32_C(20)) {
-		l2 = 3367u;
+		l2 = 3380u;
 	} else {
 		if (!(l0 == INT32_C(0))) {
 			vader_unreachable("non-exhaustive match (T3013 should have caught this)");
