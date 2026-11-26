@@ -364,15 +364,15 @@ write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
         // What a native build adds for the library (`native_flags`): a `.virt`
         // rebuilt into a binary links what the source build would have.
         li :: library_attributes(imp.library)
-        // The member of `Intrinsic` an import calls: a `.virt` re-read has no
-        // other way to tell.
-        member :: member_name(imp.intrinsic)
-        im :: if member == "" { "" } else { "intrinsic=${member} " }
+        // The member of `Intrinsic` or `Runtime` an import calls: a `.virt`
+        // re-read has no other way to tell.
+        im :: intrinsic_attribute(imp.intrinsic)
+        sv :: service_attribute(imp.service)
         // `@c_blocking`: a `.virt` rebuilt into a binary relays the call as the
         // source build does.
         bl :: if imp.blocking { "blocking " } else { "" }
         interface :: interface_attributes(imp)
-        attributes :: "${im}${va}${headers}${rt}${pt}${pm}${pa}${ct}${rc}${bl}${li}${interface}"
+        attributes :: "${im}${sv}${va}${headers}${rt}${pt}${pm}${pa}${ct}${rc}${bl}${li}${interface}"
         sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${attributes}")
         write_signature(sb, imp.signature)
         sb.append("\n")
@@ -431,6 +431,18 @@ wit_attribute :: fn(imp: BcImport) -> string {
 library_prefix :: fn(imp: BcImport) -> string {
     library :: imp.library else return ""
     return "${library.name}:"
+}
+
+// `intrinsic=member `, nothing for no member.
+intrinsic_attribute :: fn(id: IntrinsicId | null) -> string {
+    known :: id else return ""
+    return "intrinsic=${member_name(known)} "
+}
+
+// `service=member `, nothing for no service.
+service_attribute :: fn(service: RuntimeService | null) -> string {
+    known :: service else return ""
+    return "service=${service_member(known)} "
 }
 
 // The `library_*` attributes of an import whose declaration names a `CLibrary`,

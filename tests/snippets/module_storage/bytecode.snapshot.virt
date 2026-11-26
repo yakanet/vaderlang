@@ -76,9 +76,9 @@ global 4 3 snippet flags.state
 global 5 6 snippet flags.instance
 global 6 3 snippet queue.state
 global 7 8 snippet queue.instance
-import 0 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=12 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 1 collect std_core$Intrinsic$collect intrinsic=collect result_type=1 () -> void
-import 2 collector_statistic std_core$Intrinsic$collector_statistic intrinsic=collector_statistic result_type=10 param_types=3 param_c_out= param_by_address= (i32) -> i64
+import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=12 param_types=5 param_c_out= param_by_address= (string) -> ref
+import 1 collect std_core$Intrinsic$collect service=collect result_type=1 () -> void
+import 2 collector_statistic std_core$Intrinsic$collector_statistic service=collector_statistic result_type=10 param_types=3 param_c_out= param_by_address= (i32) -> i64
 import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=3,12,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void

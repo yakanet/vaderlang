@@ -84,9 +84,16 @@ export CalleeIndex :: struct {
     /// Bodyless functions the compiler knows nothing of while they are lent a value
     /// that holds references: each is assumed to do anything with it.
     unknown: string[] = []
-    /// The members of `std/core`'s `Intrinsic`, by declaration id, each with its
-    /// signature : a member of a trait has no symbol to hold one.
-    intrinsics: Map<i64, FnType> = Map<i64, FnType> {}
+    /// The members of `std/core`'s `Intrinsic` and `Runtime`, by declaration id.
+    intrinsics: Map<i64, ToolchainMember> = Map<i64, ToolchainMember> {}
+}
+
+/// A member of a trait the toolchain implements.
+export ToolchainMember :: struct {
+    /// Its signature : a member of a trait has no symbol to hold one.
+    signature: FnType
+    /// The `trait_key` of the trait declaring it.
+    trait_key: string
 }
 
 /// A function with a body.
@@ -151,17 +158,22 @@ constant_initialiser :: fn(decl: AST.ConstDecl, sym: Symbol, typed: TypedProgram
         .initialises = sym.id,
     }
 
-// Note what each member of `decl` does when it is `Intrinsic`: the toolchain
-// implements it, so a member is summarised by its host, never a node.
+// Note what each member of `decl` does when the toolchain implements it
+// (`Intrinsic`, `Runtime`): a member is summarised by its op or its service,
+// never a node.
 register_intrinsics :: fn(index: CalleeIndex, decl: AST.TraitDecl, typed: TypedProgram) -> void {
-    intrinsic :: intrinsic_trait_of(decl, typed) else return
+    trait_sym :: toolchain_trait_of(decl, typed) else return
     for member in decl.members {
-        // Every reader of a member decides for it by its `IntrinsicId` ; one the
-        // enum lacks would be served by nothing.
-        if intrinsic_id(member.name) == .NotIntrinsic {
-            panic("effects: `Intrinsic.${member.name}` has no `IntrinsicId` (vader/core/bytecode/intrinsic_manifest.vader)")
+        // Every reader of a member decides for it by its `IntrinsicId` or its
+        // `RuntimeService` ; one both enums lack would be served by nothing.
+        name :: member.name
+        if intrinsic_id(name) == null && runtime_service(name) == null {
+            panic("effects: `${trait_sym.name}.${name}` has no `IntrinsicId` nor `RuntimeService`")
         }
-        index.intrinsics[member.id] = trait_member_type(intrinsic.id, member, typed)
+        index.intrinsics[member.id] = ToolchainMember {
+            .signature = trait_member_type(trait_sym.id, member, typed),
+            .trait_key = trait_key_of(trait_sym),
+        }
         index.register(member, typed)
     }
 }
@@ -253,11 +265,10 @@ forwarded_effects :: fn(
     if member is ForwardedOperator {
         return null
     }
-    id :: intrinsic_id(member.name)
-    if id == .DeepCopy {
+    if runtime_service(member.name) == RuntimeService.DeepCopy {
         index.deep_copies.add(decl.id)
     }
-    return member_summary(id).params
+    return member_summary(member.name).params
 }
 
 // What `decl`, summarised without its body, does: an `@extern` writes what `@c_out`
@@ -281,7 +292,7 @@ summary_target :: fn(
         index.frozen_views.add(decl.id)
         index.view = returned_array(signature)
     }
-    if member == .DeepCopy {
+    if runtime_service(member) == RuntimeService.DeepCopy {
         index.deep_copies.add(decl.id)
     }
     if known.params != null {
@@ -294,14 +305,15 @@ summary_target :: fn(
     return AnyCallee {}
 }
 
-// The type declared for `decl`: its own, or for a member of `Intrinsic`, which
-// has no symbol to hold one, its member's.
+// The type declared for `decl`: its own, or for a member of `Intrinsic` or
+// `Runtime`, which has no symbol to hold one, its member's.
 signature_of :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> Type | null {
     declared :: declared_fn_type(typed, decl)
     if declared != null {
         return declared
     }
-    return index.intrinsics[decl.id]
+    member :: index.intrinsics[decl.id] else return null
+    return member.signature
 }
 
 // The array a function of type `declared` returns ; null for any other result.
@@ -320,20 +332,22 @@ foreign_effects :: fn(p: AST.FnParam) -> ParamEffects {
     return none()
 }
 
-// The member of `Intrinsic` `decl` is (`intrinsic_id`) ; `NotIntrinsic` for any
+// The name of the member of `Intrinsic` or `Runtime` `decl` is ; `""` for any
 // other function.
-member_of :: fn(index: CalleeIndex, decl: AST.FnDecl) -> IntrinsicId {
+member_of :: fn(index: CalleeIndex, decl: AST.FnDecl) -> string {
     if decl.id !in index.intrinsics {
-        return .NotIntrinsic
+        return ""
     }
-    return intrinsic_id(decl.name)
+    return decl.name
 }
 
 // The key of a function in the dump of the unknown ones: `trait_key.member` for a
-// member of an impl or of `Intrinsic`, `module.name` for a free function.
+// member of an impl, of `Intrinsic` or of `Runtime`, `module.name` for a free
+// function.
 function_key :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> string {
-    if decl.id in index.intrinsics {
-        return vtable_key(INTRINSIC_TRAIT_KEY, decl.name)
+    member :: index.intrinsics[decl.id]
+    if member != null {
+        return vtable_key(member.trait_key, decl.name)
     }
     entry :: index.impls.member_entry(decl)
     if entry != null {
@@ -431,7 +445,7 @@ member_targets :: fn(index: CalleeIndex, trait_key: string, member: string) -> C
 
 // ---- intrinsics -----------------------------------------------------------
 
-/// What a member of `Intrinsic` does beyond what its signature says.
+/// What a member of `Intrinsic` or `Runtime` does beyond what its signature says.
 MemberSummary :: struct {
     /// What it does with each parameter ; null when it does nothing the
     /// signature does not tell.
@@ -441,24 +455,24 @@ MemberSummary :: struct {
     frozen_view: bool = false
 }
 
+/// What the member named `member` of `Intrinsic` or `Runtime` does with its
+/// parameters ; nothing the signature does not tell for any other function.
+///
+/// @param member  the member's name, `""` for none.
+member_summary :: fn(member: string) -> MemberSummary {
+    id :: intrinsic_id(member)
+    if id != null {
+        return op_summary(id)
+    }
+    service :: runtime_service(member) else return MemberSummary {}
+    return service_summary(service)
+}
+
 /// What the member `id` of `Intrinsic` does with its parameters. Exhaustive, so a
 /// new member is a decision here.
 ///
 /// @param id  the member.
-member_summary :: fn(id: IntrinsicId) -> MemberSummary = match id {
-    .Bytes              -> MemberSummary { .frozen_view = true }
-    .BytesToString      -> MemberSummary { .params = [none()] }
-    .DeepCopy           -> MemberSummary { .params = [none()] }
-    .WasmStreamRead     -> MemberSummary { .params = [none(), none(), none()] }
-    .WasmFutureWait     -> MemberSummary { .params = [none()] }
-    .WasmStreamDrop     -> MemberSummary { .params = [none()] }
-    .WasmFutureDrop     -> MemberSummary { .params = [none()] }
-    // A thread runs a function value, as `spawn_thread` does; the others take
-    // scalars.
-    .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
-        | .WasmThreadIndex | .WasmThreadExit -> MemberSummary {}
-    .FfiCall            -> MemberSummary { .params = ffi_call_effects(elements_of()) }
-    .FfiCallFrame       -> MemberSummary { .params = ffi_call_frame_effects(elements_of()) }
+op_summary :: fn(id: IntrinsicId) -> MemberSummary = match id {
     .ArrayLen           -> MemberSummary { .params = [none()] }
     .ArrayPush          -> MemberSummary { .params = push_effects(ROOT) }
     .ArrayPushAll       -> MemberSummary { .params = push_effects(elements_of()) }
@@ -472,9 +486,30 @@ member_summary :: fn(id: IntrinsicId) -> MemberSummary = match id {
     .BufferInternString -> MemberSummary { .params = [none(), none()] }
     .BufferWriteString  -> MemberSummary { .params = writes_bytes(elements_of()) }
     // Their signature says it all: scalars and strings, which nothing writes.
-    .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash
-        | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
-        | .RuntimeCollect | .RuntimeCountAllocations | .RuntimeStatistic
+    .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash | .StringCompare
+        | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32 -> MemberSummary {}
+}
+
+/// What the service `service` of `Runtime` does with its parameters. Exhaustive,
+/// so a new service is a decision here.
+///
+/// @param service  the service.
+service_summary :: fn(service: RuntimeService) -> MemberSummary = match service {
+    .Bytes              -> MemberSummary { .frozen_view = true }
+    .BytesToString      -> MemberSummary { .params = [none()] }
+    .DeepCopy           -> MemberSummary { .params = [none()] }
+    .WasmStreamRead     -> MemberSummary { .params = [none(), none(), none()] }
+    .WasmFutureWait     -> MemberSummary { .params = [none()] }
+    .WasmStreamDrop     -> MemberSummary { .params = [none()] }
+    .WasmFutureDrop     -> MemberSummary { .params = [none()] }
+    // A thread runs a function value, as `spawn_thread` does; the others take
+    // scalars.
+    .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
+        | .WasmThreadIndex | .WasmThreadExit -> MemberSummary {}
+    .FfiCall            -> MemberSummary { .params = ffi_call_effects(elements_of()) }
+    .FfiCallFrame       -> MemberSummary { .params = ffi_call_frame_effects(elements_of()) }
+    // Their signature says it all: scalars and strings, which nothing writes.
+    .RuntimeCollect | .RuntimeCountAllocations | .RuntimeStatistic
         | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
         | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
         | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMonitorEnter
@@ -547,7 +582,7 @@ import "std/testing"
 
 @test
 test_member_summary_push_resizes_and_stores :: fn() -> void {
-    effects :: member_summary(.ArrayPush).params else []
+    effects :: op_summary(.ArrayPush).params else []
     assert_eq(effects.len(), 2)
     assert(effects[0].accesses[0].effect == .Resized, "push resizes its receiver")
     assert(effects[1].accesses[0].effect == .Stored, "push keeps its value")
@@ -555,7 +590,7 @@ test_member_summary_push_resizes_and_stores :: fn() -> void {
 
 @test
 test_member_summary_of_no_member :: fn() -> void {
-    assert(member_summary(.NotIntrinsic).params == null, "no member")
+    assert(member_summary("").params == null, "no member")
 }
 
 @test
@@ -565,11 +600,12 @@ test_holds_references_of_a_value :: fn() -> void {
     assert(holds_references(null), "an unknown type")
 }
 
-// Each variant of `IntrinsicId` names a member of the prelude's `Intrinsic`, or
-// it serves a member nothing declares. The other way round, a member with no
-// variant, `register_intrinsics` refuses in every build.
+// Each variant of `IntrinsicId` names a member of the prelude's `Intrinsic`, and
+// each of `RuntimeService` one of its `Runtime`, or it serves a member nothing
+// declares. The other way round, a member with no variant, `register_intrinsics`
+// refuses in every build.
 @test
-test_every_intrinsic_id_names_a_member_of_the_trait :: fn() -> void {
+test_every_member_variant_names_a_member_of_its_trait :: fn() -> void {
     dir :: create_unique_dir(temp_dir(), "intrinsic_members.") else panic("no temporary folder")
     entry :: join_path(dir, "_main.vader")
     assert_succeeds(write_file(entry, "module \"probe\"\n\nmain :: fn() -> i32 = 0\n"))
@@ -582,15 +618,25 @@ test_every_intrinsic_id_names_a_member_of_the_trait :: fn() -> void {
     for f in core.module.files {
         traits.push_all(f.program.decls.filter_is<AST.TraitDecl>().collect())
     }
-    intrinsic :: traits.find((t) -> t.name == TRAIT_INTRINSIC) else {
-        fail("the prelude declares `Intrinsic`")
-        return
-    }
-    members :: intrinsic.members.map((m) -> m.name).collect()
+    ops :: members_of_trait(traits, TRAIT_INTRINSIC)
+    services :: members_of_trait(traits, TRAIT_RUNTIME)
     for id in IntrinsicId {
         member :: member_name(id)
         if member != "" {
-            assert(member in members, member)
+            assert(member in ops, member)
         }
     }
+    for service in RuntimeService {
+        member :: service_member(service)
+        if member != "" {
+            assert(member in services || member in ops, member)
+        }
+    }
+}
+
+// The names of the members of the trait `name` among `traits`, none when it is
+// absent.
+members_of_trait :: fn(traits: AST.TraitDecl[], name: string) -> string[] {
+    found :: traits.find((t) -> t.name == name) else return []
+    return found.members.map((m) -> m.name).collect()
 }

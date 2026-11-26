@@ -274,6 +274,7 @@ populate_core_symbols_into :: fn(
         }
     }
     typed.intrinsic_symbol = core_loaded.collected.symbols[TRAIT_INTRINSIC]
+    typed.runtime_symbol = core_loaded.collected.symbols[TRAIT_RUNTIME]
     // Surface each core symbol's declared type into `external_types` so a
     // reference to a core symbol (e.g. via `mk_struct(Range, ...)`) returns the
     // concrete declared type.

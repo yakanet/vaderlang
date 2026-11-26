@@ -21,7 +21,7 @@ check_impl_members :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    if is_intrinsic_trait(trait_type.symbol, typed) {
+    if is_toolchain_trait(trait_type.symbol, typed) {
         return
     }
     trait_decl :: typed.trait_decls[trait_type.symbol.id] else return

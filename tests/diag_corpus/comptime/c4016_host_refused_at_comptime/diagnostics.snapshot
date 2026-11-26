@@ -1,2 +1,2 @@
-[14:8] error[C4016] a comptime evaluation cannot call this host: host `Intrinsic.current_os` is refused at comptime, since it answers for the machine the compiler runs on, and baking it would make the same source emit differently per builder
+[14:8] error[C4016] a comptime evaluation cannot call this host: host `Runtime.current_os` is refused at comptime, since it answers for the machine the compiler runs on, and baking it would make the same source emit differently per builder
 [20:24] warning[W0016] the enum name adds nothing here, since the slot already pins it and the bare variant reads the same: write `.Darwin`

@@ -199,9 +199,12 @@ export BcImport :: struct {
     mangled_name: string
     signature: BcSignature
     is_extern: bool
-    /// The member of `Intrinsic` this import calls (`intrinsic_id`) ;
-    /// `NotIntrinsic` for an `@extern`.
-    intrinsic: IntrinsicId = .NotIntrinsic
+    /// The member of `Intrinsic` this import names (`intrinsic_id`), which the
+    /// selection replaces by its op ; null for any other import.
+    intrinsic: IntrinsicId | null = null
+    /// The member of `Runtime` this import calls (`runtime_service`), which each
+    /// backend serves ; null for any other import.
+    service: RuntimeService | null = null
     /// Headers to `#include` instead of synthesising a prototype, empty for
     /// none. See `extern_headers` (`toolchain/ast`).
     c_headers: string[] = []

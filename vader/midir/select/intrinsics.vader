@@ -11,8 +11,8 @@ import "std/abort"
 import "vader/core/bytecode"
 
 /// The dedicated op of the member `id` of `Intrinsic`, pre-built to push ; null
-/// for a member a host serves, or one the lowering turns into an array node.
-/// Exhaustive, so a new member is a decision here.
+/// for a member the lowering turns into an array node. Exhaustive, so a new
+/// member is a decision here.
 ///
 /// @param id  the member, from the import's `intrinsic`.
 export member_op :: fn(id: IntrinsicId) -> Op | null = match id {
@@ -38,36 +38,32 @@ export member_op :: fn(id: IntrinsicId) -> Op | null = match id {
     // Lowered as array nodes, never reaching a call.
     .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast
         | .ArrayClear -> null
-    // Served by a host.
-    .NotIntrinsic | .Bytes | .BytesToString | .DeepCopy
-        | .RuntimeCollect | .RuntimeCountAllocations | .RuntimeStatistic
-        | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
-        | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
-        | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMonitorEnter
-        | .SchedulerMonitorGive | .SchedulerMonitorExit | .SchedulerTaskEnded
-        | .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerMutexWait
-        | .WaitStop | .WaitFor
-        | .WasmStreamRead | .WasmFutureWait | .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
-        | .WasmStreamDrop | .WasmFutureDrop
-        | .WasmThreadIndex | .WasmThreadExit
-        | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
-        | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> null
+}
+
+/// The dedicated op of the member of `Intrinsic` named `member` ; null for a
+/// member with none, or a name no member of `Intrinsic` has.
+///
+/// @param member  the member's name, `""` for none.
+export named_member_op :: fn(member: string) -> Op | null {
+    id :: intrinsic_id(member) else return null
+    return member_op(id)
 }
 
 /// Fail loud when an import is wired to nothing. Called on every import of
 /// the final table, in every build mode (`emit_bytecode_from_cfg`,
 /// `emit/bytecode/emit.vader`).
 ///
-/// A non-`@extern` import that names no member of `Intrinsic` (`BcImport.intrinsic`)
-/// would lower to an unbound `call.import` and trap at runtime. `@extern` imports
-/// resolve at link time and are exempt.
+/// A non-`@extern` import that names no member of `Intrinsic` or `Runtime`
+/// (`BcImport.intrinsic`, `BcImport.service`) would lower to an unbound
+/// `call.import` and trap at runtime. `@extern` imports resolve at link time and
+/// are exempt.
 ///
 /// @param imp  an import of the final table.
 export assert_import_wired :: fn(imp: BcImport) -> void {
-    if imp.is_extern || imp.intrinsic != .NotIntrinsic {
+    if imp.is_extern || imp.intrinsic != null || imp.service != null {
         return
     }
-    panic("bytecode emit: import `${imp.mangled_name}` is wired to nothing: it names no member of `Intrinsic` that `IntrinsicId` lists")
+    panic("bytecode emit: import `${imp.mangled_name}` is wired to nothing: it names no member that `IntrinsicId` or `RuntimeService` lists")
 }
 
 /// Map an InstrIntrinsic's canonical name onto its dedicated Op, or null when
@@ -106,7 +102,7 @@ import "std/testing"
     assert(member_op(.ByteSlice) is StringByteSlice, "byte_slice")
 }
 
-@test test_a_member_a_host_serves_has_no_op :: fn() -> void {
-    assert(member_op(.Bytes) == null, "bytes")
-    assert(member_op(.NotIntrinsic) == null, "no member")
+@test test_an_array_member_has_no_op :: fn() -> void {
+    assert(member_op(.ArrayPush) == null, "array_push")
+    assert(named_member_op("bytes") == null, "a service")
 }

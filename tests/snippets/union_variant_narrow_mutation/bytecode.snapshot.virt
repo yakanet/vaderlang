@@ -22,7 +22,7 @@ string 7 " last="
 string 8 "total="
 string 9 " count="
 string 10 "\n"
-import 0 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=9 param_types=6 param_c_out= param_by_address= (string) -> ref
 import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=4,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=4 () -> i32
 import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void

@@ -39,10 +39,10 @@ export VmState :: struct {
     /// one lookup instead of a linear string-compare scan. The comptime pass
     /// resolves one entry per staged decl, which made that scan O(decls x fns).
     fn_index_by_name: Map<string, i32>
-    /// The host of each import (`BcImport.host`), index-aligned with
-    /// `bc.imports`. A user `@extern` names a linker symbol, never a host, so it
-    /// is recorded `NotIntrinsic`.
-    import_ids: bc.IntrinsicId[]
+    /// The service of each import (`BcImport.service`), index-aligned with
+    /// `bc.imports`. A user `@extern` names a linker symbol, never a service, so
+    /// it is recorded null.
+    import_services: (bc.RuntimeService | null)[]
     /// The adapter of each import, index-aligned with `bc.imports`, `0` for one
     /// called without (`attach_adapters`). Empty until adapters are attached.
     adapters: i64[] = []
@@ -103,9 +103,9 @@ prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | Verify
     depths :: verify_module(bc_mod) else is VerifyError { return depths }
     facts :: infer_module_tags(bc_mod, depths)
     mistyped :: check_module_tags(bc_mod, facts) else return mistyped
-    import_ids: bc.IntrinsicId[]: [] * bc_mod.imports.len()
+    import_services: (bc.RuntimeService | null)[]: [] * bc_mod.imports.len()
     for imp in bc_mod.imports {
-        import_ids.push(imp.intrinsic)
+        import_services.push(imp.service)
     }
     reg :: translate_module(bc_mod, facts, debug) else is VerifyError { return reg }
     by_name :: Map<string, i32> {}
@@ -121,7 +121,7 @@ prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | Verify
         .string_array_type_id = bc.find_string_array_type_id(bc_mod.types),
         .u8_array_type_id     = find_u8_array_type_id(bc_mod.types),
         .fn_index_by_name     = by_name,
-        .import_ids           = import_ids,
+        .import_services      = import_services,
         .foreign_calls        = [null] * bc_mod.imports.len(),
         .reg                  = reg,
         .debuggable           = debug,
@@ -180,7 +180,7 @@ test_virt_roundtrip :: fn() -> void {
 current_os_module :: fn() -> bc.BytecodeModule | null = parse_test_module("""
     module demo
     type 0 scalar i32
-    import 0 current_os std_core\$Intrinsic\$current_os intrinsic=current_os () -> i32
+    import 0 current_os std_core\$Runtime\$current_os service=current_os () -> i32
 
     fn 0 os () -> i32
       call.import 0

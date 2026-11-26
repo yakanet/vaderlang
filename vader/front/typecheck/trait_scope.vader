@@ -10,6 +10,7 @@
 module "vader/front/typecheck"
 
 import "std/collections"
+import "std/iter"
 AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
 import "vader/core/symbol"
@@ -286,35 +287,68 @@ export trait_qualified_member :: fn(
     return ty
 }
 
-/// Whether `trait_sym` is `std/core`'s `Intrinsic`.
+/// Whether `trait_sym` is one of the traits the toolchain implements:
+/// `std/core`'s `Intrinsic` or `Runtime`.
 ///
 /// @param trait_sym  a trait.
 /// @param typed      any module of the project.
-export is_intrinsic_trait :: fn(trait_sym: Symbol, typed: TypedProgram) -> bool {
-    intrinsic :: typed.intrinsic_symbol else return false
-    return intrinsic.id == trait_sym.id
+export is_toolchain_trait :: fn(trait_sym: Symbol, typed: TypedProgram) -> bool =
+    is_symbol(typed.intrinsic_symbol, trait_sym) || is_symbol(typed.runtime_symbol, trait_sym)
+
+// Whether `known` is `sym`.
+is_symbol :: fn(known: Symbol | null, sym: Symbol) -> bool {
+    if known == null {
+        return false
+    }
+    return known.id == sym.id
 }
 
-/// The symbol of `decl` when it is `std/core`'s `Intrinsic` ; null for any other
-/// trait.
+/// The symbol of `decl` when the toolchain implements it (`is_toolchain_trait`) ;
+/// null for any other trait.
 ///
 /// @param decl   a trait of the module `typed`.
 /// @param typed  the module declaring it.
-export intrinsic_trait_of :: fn(decl: AST.TraitDecl, typed: TypedProgram) -> Symbol | null {
+export toolchain_trait_of :: fn(decl: AST.TraitDecl, typed: TypedProgram) -> Symbol | null {
     sym :: decl_symbol(typed.resolved, decl) else return null
-    if !is_intrinsic_trait(sym, typed) {
+    if !is_toolchain_trait(sym, typed) {
         return null
     }
     return sym
 }
 
-/// `Intrinsic.member(args)`: the member itself, its arguments as written. The
-/// toolchain implements the trait, so no impl stands between the call and it.
+/// The trait the toolchain implements that declares `member`, `Intrinsic` or
+/// `Runtime` ; null for a function of neither.
+///
+/// @param member  a function.
+/// @param typed   any module of the project.
+export toolchain_trait_declaring :: fn(member: AST.FnDecl, typed: TypedProgram) -> Symbol | null {
+    if declares_member(typed.intrinsic_symbol, member, typed) {
+        return typed.intrinsic_symbol
+    }
+    if declares_member(typed.runtime_symbol, member, typed) {
+        return typed.runtime_symbol
+    }
+    return null
+}
+
+// Whether the trait `trait_sym` declares `member`, told by its node.
+declares_member :: fn(trait_sym: Symbol | null, member: AST.FnDecl, typed: TypedProgram) -> bool {
+    if trait_sym == null {
+        return false
+    }
+    decl :: typed.trait_decls[trait_sym.id] else return false
+    return decl.members.any_match((m) -> m.id == member.id)
+}
+
+/// `Intrinsic.member(args)` or `Runtime.member(args)`: the member itself, its
+/// arguments as written. The toolchain implements the trait, so no impl stands
+/// between the call and it.
 ///
 /// @param c  the call.
-/// @return   the member's type ; null when the callee is no member of `Intrinsic`.
-/// @error    T3009 when `Intrinsic` has no member by that name.
-export intrinsic_member_call :: fn(
+/// @return   the member's type ; null when the callee is no member of a trait
+///           the toolchain implements.
+/// @error    T3009 when the trait has no member by that name.
+export toolchain_member_call :: fn(
     c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type | null {
     field :: c.callee
@@ -322,7 +356,7 @@ export intrinsic_member_call :: fn(
         return null
     }
     trait_sym :: named_trait(field.target, typed) else return null
-    if !is_intrinsic_trait(trait_sym, typed) {
+    if !is_toolchain_trait(trait_sym, typed) {
         return null
     }
     decl :: typed.trait_decls[trait_sym.id] else return TY_UNRESOLVED

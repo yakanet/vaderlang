@@ -759,10 +759,10 @@ infer_call :: fn(
     return ty
 }
 
-// The callee a trait names: a member of `Intrinsic`, or `Trait.member(receiver,
-// ...)` ; null for any other callee.
+// The callee a trait names: a member of `Intrinsic` or `Runtime`, or
+// `Trait.member(receiver, ...)` ; null for any other callee.
 named_through_trait :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type | null {
-    intrinsic :: intrinsic_member_call(c, typed, diags)
+    intrinsic :: toolchain_member_call(c, typed, diags)
     if intrinsic != null {
         return intrinsic
     }

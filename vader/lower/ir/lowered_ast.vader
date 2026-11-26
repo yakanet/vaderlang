@@ -230,8 +230,9 @@ export LoweredFnDecl :: struct {
     /// `null` for `@extern` / signature-only fns.
     body:        LoweredBlock | null
     origin:     MonoEntry
-    /// The member of `std/core`'s `Intrinsic` this bodyless declaration stands
-    /// for, the toolchain providing it ; `""` for any other.
+    /// The member of `std/core`'s `Intrinsic` or `Runtime` this bodyless
+    /// declaration stands for, the toolchain providing it ; `""` for any other.
+    /// No two members of the two traits share a name.
     intrinsic:   string = ""
 }
 

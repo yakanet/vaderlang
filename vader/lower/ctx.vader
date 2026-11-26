@@ -304,9 +304,9 @@ LowerProjectCtx :: struct {
     /// for unrelated snippets.
     referenced_impl_mangles: Set<string>
 
-    /// Members of `std/core`'s `Intrinsic` a call reached, by name, each with the
-    /// type the call gave it : the surfacing pass lowers these, and only these,
-    /// to bodyless declarations (`surface_intrinsic_members`).
+    /// Members of `std/core`'s `Intrinsic` and `Runtime` a call reached, by name,
+    /// each with the type the call gave it : the surfacing pass lowers these, and
+    /// only these, to bodyless declarations (`surface_intrinsic_members`).
     referenced_intrinsics: Map<string, ReachedIntrinsic> = Map<string, ReachedIntrinsic> {}
 
     /// What each function that only forwards its parameters to a primitive

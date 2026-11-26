@@ -1,14 +1,16 @@
-// vader/lower/intrinsic_member: a call to a member of `std/core`'s `Intrinsic`.
+// vader/lower/intrinsic_member: a call to a member of `std/core`'s `Intrinsic` or
+// `Runtime`.
 //
-// The toolchain implements `Intrinsic` (`lib/std/core/intrinsics.vader`): a
+// The toolchain implements both traits (`lib/std/core/intrinsics.vader`): a
 // member has no body, and `Intrinsic.byte_len(s)` calls the member itself. A
 // member of the arrays is the operation the lowering has a node for
 // (`array_member_op`). Any other member a call reaches is surfaced as a bodyless
 // declaration carrying its name, which the bytecode emitter reserves as the
-// import of that host, or replaces by the op that serves it.
+// import of that service, or replaces by the op that serves it.
 
 module "vader/lower"
 
+import "std/abort"
 import "std/collections"
 import "std/iter"
 import "toolchain/ast"
@@ -22,15 +24,16 @@ import "vader/front/resolver"
 import "vader/front/typecheck"
 import "vader/lower/ir"
 
-/// `Intrinsic.member(args)` : the member called on its arguments.
+/// `Intrinsic.member(args)` or `Runtime.member(args)` : the member called on its
+/// arguments.
 ///
 /// @param call  the call.
 /// @param type  its result type.
-/// @return      the lowered call ; null when the callee is no member of
-///              `Intrinsic`.
+/// @return      the lowered call ; null when the callee is no member of a trait
+///              the toolchain implements.
 try_lower_intrinsic_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     field :: as_field_expr(call.callee) else return null
-    if !names_intrinsic(ctx, field.target) {
+    if !names_toolchain_trait(ctx, field.target) {
         return null
     }
     member :: recorded_decl(ctx.typed, call) else return null
@@ -73,16 +76,17 @@ lower_forwarding_on_arguments :: fn(
 first_argument_type :: fn(ctx: FnLowerCtx, call: CallExpr) -> Type | null =
     if call.args.is_empty() { null } else { ctx.types.expr_type(call.args[0].value) }
 
-/// The signature of `member` of `Intrinsic` at a call whose first argument has the
-/// type `first` : a generic member's parameters bound by that argument, as every
-/// generic member of the trait takes what it is generic over first (a `T`, or a
-/// `T[]`).
+/// The signature of `member` of `Intrinsic` or `Runtime` at a call whose first
+/// argument has the type `first` : a generic member's parameters bound by that
+/// argument, as every generic member of the two traits takes what it is generic
+/// over first (a `T`, or a `T[]`).
 ///
-/// @param member  a member of `Intrinsic`.
+/// @param member  a member of `Intrinsic` or `Runtime`.
 /// @param first   the type of the call's first argument ; null when it has none.
 intrinsic_signature :: fn(ctx: FnLowerCtx, member: FnDecl, first: Type | null) -> FnType {
-    intrinsic :: ctx.typed.intrinsic_symbol else return mk_fn([], TY_UNRESOLVED, [])
-    declared :: trait_member_type(intrinsic.id, member, ctx.typed)
+    trait_sym :: toolchain_trait_declaring(member, ctx.typed)
+        else return mk_fn([], TY_UNRESOLVED, [])
+    declared :: trait_member_type(trait_sym.id, member, ctx.typed)
     known :: first else return declared
     if declared.type_params.is_empty() || declared.params.is_empty() {
         return declared
@@ -101,10 +105,10 @@ backing_array_or :: fn(t: Type) -> Type {
     return array
 }
 
-/// `member` of `Intrinsic` called on `operands` : the node of an array member, the
-/// call of the member's declaration otherwise.
+/// `member` of `Intrinsic` or `Runtime` called on `operands` : the node of an
+/// array member, the call of the member's declaration otherwise.
 ///
-/// @param member       a member of `Intrinsic`.
+/// @param member       a member of `Intrinsic` or `Runtime`.
 /// @param signature    its signature at the call (`intrinsic_signature`).
 /// @param operands     its arguments, each lowered for its parameter.
 /// @param type         the call's result type.
@@ -119,12 +123,15 @@ lower_intrinsic_member :: fn(
     span: Span,
     callee_span: Span,
 ) -> LoweredExpr {
-    op :: array_member_op(Bc.intrinsic_id(member.name))
+    op :: named_array_op(member.name)
     if op != null {
         return array_op(op, operands, type, span, copied_operand_types(op, signature))
     }
-    mangled :: intrinsic_instance_name(ctx, member, signature)
-    note_member_origin(ctx, mangled, member, TRAIT_INTRINSIC)
+    trait_sym :: toolchain_trait_declaring(member, ctx.typed) else {
+        panic("lower: `${member.name}` is no member of a trait the toolchain implements")
+    }
+    mangled :: intrinsic_instance_name(ctx, trait_sym, member, signature)
+    note_member_origin(ctx, mangled, member, trait_sym.name)
     reached :: ReachedIntrinsic { .member = member.name, .signature = signature }
     ctx.project.referenced_intrinsics[mangled] = reached
     callee :: LoweredIdent {
@@ -160,40 +167,32 @@ array_member_op :: fn(id: Bc.IntrinsicId) -> ArrayOp | null = match id {
     .ArrayCopyTo     -> .CopyTo
     .ArrayRemoveLast -> .RemoveLast
     .ArrayClear      -> .Clear
-    .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .Bytes | .BytesToString
-        | .StringHash | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
-        | .DeepCopy | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
-        | .BufferInternString | .BufferWriteString
-        | .RuntimeCollect | .RuntimeCountAllocations | .RuntimeStatistic
-        | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
-        | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
-        | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMonitorEnter
-        | .SchedulerMonitorGive | .SchedulerMonitorExit | .SchedulerTaskEnded
-        | .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerMutexWait
-        | .WaitStop | .WaitFor
-        | .WasmStreamRead | .WasmFutureWait | .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
-        | .WasmStreamDrop | .WasmFutureDrop
-        | .WasmThreadIndex | .WasmThreadExit
-        | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
-        | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> null
+    .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash
+        | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
+        | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
+        | .BufferInternString | .BufferWriteString -> null
 }
 
-// Whether `target` names `std/core`'s `Intrinsic`: its name first, which spares
-// the lookup on every other method call.
-names_intrinsic :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
+// The operation the member of `Intrinsic` named `member` names, on an array ;
+// null for any other member, or a name no member of `Intrinsic` has.
+named_array_op :: fn(member: string) -> ArrayOp | null {
+    id :: Bc.intrinsic_id(member) else return null
+    return array_member_op(id)
+}
+
+// Whether `target` names `std/core`'s `Intrinsic` or `Runtime`: its name first,
+// which spares the lookup on every other method call.
+names_toolchain_trait :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
     ident :: as_ident(target) else return false
-    if ident.name != TRAIT_INTRINSIC {
+    if ident.name != TRAIT_INTRINSIC && ident.name != TRAIT_RUNTIME {
         return false
     }
     sym :: resolve_ident(ctx, ident.span) else return false
-    return is_intrinsic_trait(sym, ctx.typed)
+    return is_toolchain_trait(sym, ctx.typed)
 }
 
-// The name of the member `member` of `Intrinsic`, apart from any declaration.
-intrinsic_member_name :: fn(member: string) -> string =
-    trait_member_mangle(CORE_MODULE, TRAIT_INTRINSIC, member)
-
-/// A member of `Intrinsic` a call reached, at the instance its mangled name names.
+/// A member of `Intrinsic` or `Runtime` a call reached, at the instance its
+/// mangled name names.
 ReachedIntrinsic :: struct {
     /// The member's name.
     member: string
@@ -201,13 +200,18 @@ ReachedIntrinsic :: struct {
     signature: FnType
 }
 
-// The name of `member` of `Intrinsic` at the call whose signature is `signature`:
-// a generic member takes one host per instance (`deep_copy` copies by the layout
-// of the type it is handed), named after the types bound to its parameters.
-intrinsic_instance_name :: fn(ctx: FnLowerCtx, member: FnDecl, signature: FnType) -> string {
-    base :: intrinsic_member_name(member.name)
-    intrinsic :: ctx.typed.intrinsic_symbol else return base
-    declared :: trait_member_type(intrinsic.id, member, ctx.typed)
+// The name of `member` of the trait `trait_sym` at the call whose signature is
+// `signature`: a generic member takes one host per instance (`deep_copy` copies
+// by the layout of the type it is handed), named after the types bound to its
+// parameters.
+intrinsic_instance_name :: fn(
+    ctx: FnLowerCtx,
+    trait_sym: Symbol,
+    member: FnDecl,
+    signature: FnType,
+) -> string {
+    base :: trait_member_mangle(CORE_MODULE, trait_sym.name, member.name)
+    declared :: trait_member_type(trait_sym.id, member, ctx.typed)
     if declared.type_params.is_empty() {
         return base
     }
@@ -219,8 +223,8 @@ intrinsic_instance_name :: fn(ctx: FnLowerCtx, member: FnDecl, signature: FnType
     return "${base}${mono_suffix(bound)}"
 }
 
-/// The members of `trait_decl` a call reached, when it is `Intrinsic`, each a
-/// bodyless declaration that names its member.
+/// The members of `trait_decl` a call reached, when the toolchain implements it,
+/// each a bodyless declaration that names its member.
 ///
 /// @param trait_decl   a trait of the module `typed`.
 /// @param typed        the module declaring it.
@@ -230,7 +234,7 @@ surface_intrinsic_members :: fn(
     trait_decl: TraitDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
 ) -> LoweredDecl[] {
     out: LoweredDecl[]: []
-    if intrinsic_trait_of(trait_decl, typed) == null {
+    if toolchain_trait_of(trait_decl, typed) == null {
         return out
     }
     for member in trait_decl.members {
@@ -244,8 +248,8 @@ surface_intrinsic_members :: fn(
     return out
 }
 
-// The member `member` of `Intrinsic`, typed `reached` where a call reached it,
-// as the bodyless declaration of its host named `mangled`.
+// The member `member` of `Intrinsic` or `Runtime`, typed `reached` where a call
+// reached it, as the bodyless declaration of its host named `mangled`.
 intrinsic_member_decl :: fn(
     member: FnDecl,
     reached: FnType,

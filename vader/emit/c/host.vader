@@ -2,8 +2,8 @@
 //
 // Every `call.import N` op resolves to a `vader_host_<mangled>(...)` C function
 // generated here. Two flavours, switched on `BcImport.is_extern` :
-//   - members of `std/core`'s `Intrinsic` (`is_extern = false`): routed to
-//     the runtime's `vader_*` helpers by their host (`import_shim`).
+//   - members of `std/core`'s `Runtime` (`is_extern = false`): routed to
+//     the runtime's `vader_*` helpers by their service (`import_shim`).
 //   - `@extern` user FFI (`is_extern = true`): a forwarding shim that
 //     marshals `vader_string_t` args to `const char*` and calls the real
 //     foreign symbol (`user_extern_shim`), declared once via an `extern`.
@@ -884,8 +884,8 @@ is_abi_array :: fn(types: BcType[], type_index: i32) -> bool {
 /// index renumbers every later shim the moment an import is added, which
 /// rewrote unrelated lines in every snapshot.
 ///
-/// `host` rather than `import` or `intrinsic`: these shims serve BOTH the
-/// members of `Intrinsic` and a user's `@extern` symbols, so neither of the
+/// `host` rather than `import` or `service`: these shims serve BOTH the
+/// members of `Runtime` and a user's `@extern` symbols, so neither of the
 /// narrower words covers them, and `import` already means a module import in
 /// Vader source. It is the word the SPEC, the VM and the diagnostics use.
 ///
@@ -933,17 +933,16 @@ library_open_shim :: fn(opener: string, name: CExpression) -> CStatement[] = [
     CReturn { .value = address_as_integer(verbatim("r")) },
 ]
 
-// The body of the `vader_host_*` shim for `imp`. A host routes to its `vader_*`
-// runtime helper by its IntrinsicId (`imp.intrinsic`, shared with the VM's
-// `dispatch_import`). The hosts only the VM serves (string equality and the
-// primitive Equals/Display, which a native build reaches without a host call)
-// and non-intrinsics fall through to the @extern forwarder or to a loud trap
-// (compiler/runtime version skew). Exhaustive, so a new IntrinsicId
-// trips T3013 here.
+// The body of the `vader_host_*` shim for `imp`. A service routes to its
+// `vader_*` runtime helper by its `RuntimeService` (`imp.service`, shared with the
+// VM's `dispatch_import`). Any other import goes to the @extern forwarder, or to
+// a loud trap (compiler/runtime version skew). Exhaustive, so a new service trips
+// T3013 here.
 shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
+    service :: imp.service else return foreign_shim_body(imp, types)
     a0 :: argument(0)
     a1 :: argument(1)
-    match imp.intrinsic {
+    match service {
     // std/abort: implemented by the runtime.
     .AbortPanic -> { return [perform("vader_panic", [a0])] }
 
@@ -1035,17 +1034,13 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
         | .WasmThreadIndex | .WasmThreadExit -> {
         return [trap("${imp.mangled_name}: only a WASM build drives a component thread")]
     }
-
-    // Non-intrinsics, and the members an op serves, which no call reaches as an
-    // import.
-    .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash
-        | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
-        | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast | .ArrayClear
-        | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
-        | .BufferInternString | .BufferWriteString -> {}
     }
-    // User `@extern`: forward to the real C symbol ; everything else is a
-    // host fn the c-emit doesn't recognise (version skew) -> trap loudly.
+}
+
+// The body of the shim for `imp`, which names no service. A user `@extern`
+// forwards to the real C symbol ; anything else is a host fn the c-emit doesn't
+// recognise (version skew), which traps loudly.
+foreign_shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     if imp.is_extern {
         return user_extern_shim(imp, types)
     }

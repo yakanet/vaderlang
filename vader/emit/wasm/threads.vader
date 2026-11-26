@@ -176,4 +176,4 @@ declare_exit_tag :: fn(ctx: ModuleCtx) -> i32 {
 // Whether `m` starts threads of the component model, which take the built-ins,
 // the records and the table import of this file.
 starts_threads :: fn(m: Bc.BytecodeModule) -> bool =
-    m.imports.any_match((imp) -> imp.intrinsic == .WasmThreadNew)
+    m.imports.any_match((imp) -> imp.service == Bc.RuntimeService.WasmThreadNew)

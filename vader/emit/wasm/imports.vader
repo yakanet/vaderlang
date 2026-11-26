@@ -90,7 +90,7 @@ imported_functions :: fn(
     out :: ImportedFunctions { .threads = starts_threads(m) }
     reads_streams: bool = false
     for [imp, i] in m.imports.indexed() {
-        if imp.intrinsic == .WasmStreamRead {
+        if imp.service == Bc.RuntimeService.WasmStreamRead {
             reads_streams = true
         }
         interface :: imp.wasm_interface else continue

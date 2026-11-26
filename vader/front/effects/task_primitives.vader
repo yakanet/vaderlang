@@ -8,8 +8,8 @@
 // writes. Whether a join waits for one task or for an array of them is read from the
 // type of the parameter it names.
 //
-// A function that only forwards to a member of `Intrinsic` that suspends the
-// thread (`intrinsic_suspends`) parks too, and carries nothing.
+// A function that only forwards to a member of `Runtime` that suspends the
+// thread (`service_suspends`) parks too, and carries nothing.
 //
 // The check runs before the comptime pass evaluates decorators: a value is read as
 // written, and only a literal is.
@@ -66,7 +66,7 @@ door_declared_by :: fn(
             return declared
         }
     }
-    if forwarding is AST.FnDecl && intrinsic_suspends(intrinsic_id(forwarding.name)) {
+    if forwarding is AST.FnDecl && service_suspends(runtime_service(forwarding.name)) {
         return TaskPrimitive { .parks = true }
     }
     return null

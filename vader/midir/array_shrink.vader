@@ -111,10 +111,9 @@ extern_shrinks_by_itself :: fn(e: CFGExternDecl) -> bool {
     if e.is_extern {
         return false
     }
-    id :: Bc.intrinsic_id(e.intrinsic)
-    op :: member_op(id)
+    op :: named_member_op(e.intrinsic)
     if op != null {
         return Bc.op_shortens_array(op)
     }
-    return Bc.intrinsic_may_shorten_array(id)
+    return Bc.service_may_shorten_array(Bc.runtime_service(e.intrinsic))
 }

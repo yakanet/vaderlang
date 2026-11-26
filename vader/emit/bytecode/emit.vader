@@ -72,6 +72,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
         .signature = signature,
         .is_extern = ext.is_extern,
         .intrinsic = import_intrinsic(ext.is_extern, ext.intrinsic),
+        .service = import_service(ext.is_extern, ext.intrinsic),
         .c_headers = ext.c_headers,
         .library = ext.library,
         .wasm_interface = ext.wasm_interface,
@@ -1545,12 +1546,19 @@ resolve_direct_call :: fn(ctx: FnEmitCfg, ins: InstrCall) -> DirectCallTarget {
     panic("emit/bytecode/emit: unresolved callee '${ins.callee.name}' (id=${ins.callee.id}) in '${ctx.fn_.mangled}' : a callee never materialised")
 }
 
+// The dedicated op of the member of `Intrinsic` `imp` names ; null for an import
+// that names none, or a member with none.
+import_op :: fn(imp: BcImport) -> Op | null {
+    id :: imp.intrinsic else return null
+    return member_op(id)
+}
+
 // A call to import `index` : `CallImport`, or the dedicated op of a member of
 // `Intrinsic` that has one, which the native build binds no host for.
 import_call_target :: fn(p: EmitterCtx, index: i32) -> DirectCallTarget {
     imp :: p.imports[index]
     return DirectCallTarget {
-        .op = member_op(imp.intrinsic) else CallImport { .index = index },
+        .op = import_op(imp) else CallImport { .index = index },
         .signature = imp.signature,
     }
 }

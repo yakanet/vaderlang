@@ -80,18 +80,18 @@ data 6 agg 1 struct 41 0
 global 0 3 std/task started.state
 global 1 26 std/task started.instance
 global 2 39 std/task started.gate
-import 0 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=21 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 1 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=9 param_types=24,9 param_c_out= param_by_address= (ref,i64) -> i64
-import 2 park std_core$Intrinsic$park intrinsic=park result_type=1 () -> void
-import 3 wake std_core$Intrinsic$wake intrinsic=wake result_type=1 param_types=9 param_c_out= param_by_address= (i64) -> void
-import 4 sleep_for std_core$Intrinsic$sleep_for intrinsic=sleep_for result_type=1 param_types=9 param_c_out= param_by_address= (i64) -> void
-import 5 cancel_thread std_core$Intrinsic$cancel_thread intrinsic=cancel_thread result_type=1 param_types=9 param_c_out= param_by_address= (i64) -> void
-import 6 current_thread std_core$Intrinsic$current_thread intrinsic=current_thread result_type=9 () -> i64
-import 7 is_cancelled std_core$Intrinsic$is_cancelled intrinsic=is_cancelled result_type=17 () -> bool
-import 8 task_ended std_core$Intrinsic$task_ended intrinsic=task_ended result_type=1 () -> void
-import 9 monitor_enter std_core$Intrinsic$monitor_enter intrinsic=monitor_enter result_type=1 param_types=17 param_c_out= param_by_address= (bool) -> void
-import 10 monitor_exit std_core$Intrinsic$monitor_exit intrinsic=monitor_exit result_type=1 () -> void
-import 11 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=2 param_types=21 param_c_out= param_by_address= (ref) -> string
+import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=21 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 1 spawn_thread std_core$Intrinsic$spawn_thread service=spawn_thread result_type=9 param_types=24,9 param_c_out= param_by_address= (ref,i64) -> i64
+import 2 park std_core$Intrinsic$park service=park result_type=1 () -> void
+import 3 wake std_core$Intrinsic$wake service=wake result_type=1 param_types=9 param_c_out= param_by_address= (i64) -> void
+import 4 sleep_for std_core$Intrinsic$sleep_for service=sleep_for result_type=1 param_types=9 param_c_out= param_by_address= (i64) -> void
+import 5 cancel_thread std_core$Intrinsic$cancel_thread service=cancel_thread result_type=1 param_types=9 param_c_out= param_by_address= (i64) -> void
+import 6 current_thread std_core$Intrinsic$current_thread service=current_thread result_type=9 () -> i64
+import 7 is_cancelled std_core$Intrinsic$is_cancelled service=is_cancelled result_type=17 () -> bool
+import 8 task_ended std_core$Intrinsic$task_ended service=task_ended result_type=1 () -> void
+import 9 monitor_enter std_core$Intrinsic$monitor_enter service=monitor_enter result_type=1 param_types=17 param_c_out= param_by_address= (bool) -> void
+import 10 monitor_exit std_core$Intrinsic$monitor_exit service=monitor_exit result_type=1 () -> void
+import 11 bytes_to_string std_core$Intrinsic$bytes_to_string service=bytes_to_string result_type=2 param_types=21 param_c_out= param_by_address= (ref) -> string
 import 12 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=3,21,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 13 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 14 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void

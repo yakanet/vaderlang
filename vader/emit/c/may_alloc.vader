@@ -57,11 +57,11 @@ fn_has_direct_alloc :: fn(fn_decl: BcFunction, import_may_collect: bool[]) -> bo
     fn_decl.body.any_match((op) -> op_may_collect(op, import_may_collect))
 
 /// Per import, whether calling it can trigger a collection. An `@extern` or an
-/// unknown host is `NotIntrinsic`, which stays a safepoint.
+/// unknown host names no service, and stays a safepoint.
 ///
 /// @param imports  the module's imports, in `call.import` index order.
 imports_may_collect :: fn(imports: BcImport[]) -> bool[] =
-    imports.map((imp) -> intrinsic_may_collect(imp.intrinsic)).collect()
+    imports.map((imp) -> service_may_collect(imp.service)).collect()
 
 // Whether an op can trigger a collection. Drives `may_alloc` -> whether the fn
 // gets a shadow-stack frame and its ref params / locals are rooted. A missing
@@ -71,7 +71,7 @@ imports_may_collect :: fn(imports: BcImport[]) -> bool[] =
 // T3013 forces every future variant to be classified here. Keep the arms in sync
 // with the runtime: an op belongs in the `true` arm iff its emitted C reaches
 // `vader_gc_alloc` (directly or transitively). A host call answers for its host:
-// `import_may_collect` holds `intrinsic_may_collect` per import.
+// `import_may_collect` holds `service_may_collect` per import.
 op_may_collect :: fn(op: Bc.Op, import_may_collect: bool[]) -> bool = match op {
     is Bc.StructNew -> !op.stack
     is Bc.CallImport -> import_may_collect[op.index]

@@ -205,10 +205,10 @@ data 3 structs 65 0 1
 data 4 structs 70 0 1
 data 5 structs 67 0 1
 data 6 structs 68 0 1
-import 0 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 1 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=5 param_types=9 param_c_out= param_by_address= (ref) -> string
-import 2 panic std_core$Intrinsic$panic intrinsic=panic result_type=1 param_types=5 param_c_out= param_by_address= (string) -> void
-import 3 current_os std_core$Intrinsic$current_os intrinsic=current_os result_type=10 () -> u8
+import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=9 param_types=5 param_c_out= param_by_address= (string) -> ref
+import 1 bytes_to_string std_core$Intrinsic$bytes_to_string service=bytes_to_string result_type=5 param_types=9 param_c_out= param_by_address= (ref) -> string
+import 2 panic std_core$Intrinsic$panic service=panic result_type=1 param_types=5 param_c_out= param_by_address= (string) -> void
+import 3 current_os std_core$Intrinsic$current_os service=current_os result_type=10 () -> u8
 import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 5 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=50 param_types=5 param_c_out= param_by_address= (string) -> any
 import 6 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=38 param_c_out= param_by_address= (pointer) -> i32

@@ -168,7 +168,7 @@ export TypecheckCode :: enum(CodeInfo) {
     DecoratorRepeated               { .id = "T3143", .message = "a decorator is written twice without `repeatable`" },
     DecoratorDeclarationNotLiteral  { .id = "T3144", .message = "a decorator declaration writes its places and options as literals" },
     CompilerDecoratorNotLiteral     { .id = "T3145", .message = "a decorator of the compiler takes its arguments as literals" },
-    IntrinsicImplemented            { .id = "T3146", .message = "`Intrinsic` is implemented by the toolchain alone" },
+    ToolchainTraitImplemented       { .id = "T3146", .message = "the toolchain alone implements this trait" },
     NoDecoratorToRead               { .id = "T3147", .message = "`@decorator` finds no decorator to read here" },
     ExportReturnLeftToInference     { .id = "T3148", .message = "an exported function leaves its return type to inference" },
     ExportConstTypeLeftToInference  { .id = "T3149", .message = "an exported constant leaves its type to inference" },

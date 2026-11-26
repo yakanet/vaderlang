@@ -607,6 +607,7 @@ parse_import_decl_bc :: fn(
     result_c_type := ""
     blocking := false
     member := ""
+    service := ""
     interface_package := ""
     interface_name := ""
     interface_version := ""
@@ -620,6 +621,9 @@ parse_import_decl_bc :: fn(
         }
         if attr.starts_with("intrinsic=") {
             member = attr.trim_prefix("intrinsic=")
+        }
+        if attr.starts_with("service=") {
+            service = attr.trim_prefix("service=")
         }
         if attr.starts_with("interface_package=") {
             interface_package = attr.trim_prefix("interface_package=")
@@ -725,6 +729,7 @@ parse_import_decl_bc :: fn(
         .signature    = final_sig,
         .is_extern    = is_extern,
         .intrinsic    = import_intrinsic(is_extern, member),
+        .service      = import_service(is_extern, service),
         .c_headers    = c_headers,
         .c_variadic_fixed = c_variadic_fixed,
         // Positional like the flags : a list that does not cover every
@@ -1404,13 +1409,17 @@ test_parse_virt_bc_reads_the_host_of_an_import :: fn() -> void {
         type 2 scalar string
         import 0 byte_len std_core\$Intrinsic\$byte_len intrinsic=byte_len result_type=1 (string) -> i64
         import 1 extern write posix\$write (i32) -> i64
+        import 2 park std_core\$Runtime\$park service=park () -> void
         """
     m :: parse_virt_bc(src) else is VirtParseError {
         assert(false, "line ${m.line_number}: ${m.reason}")
         return
     }
-    assert(m.imports[0].intrinsic == .ByteLen, "a member read back by its name")
-    assert(m.imports[1].intrinsic == .NotIntrinsic, "an `@extern` calls no member")
+    assert(m.imports[0].intrinsic == IntrinsicId.ByteLen, "a member read back by its name")
+    assert(m.imports[1].intrinsic == null, "an `@extern` calls no member")
+    assert(m.imports[1].service == null, "nor any service")
+    assert(m.imports[2].service == RuntimeService.SchedulerPark, "a service read back by its name")
+    assert(m.imports[2].intrinsic == null, "a service is no op")
 }
 
 @test

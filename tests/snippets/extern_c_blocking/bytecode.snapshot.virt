@@ -71,20 +71,20 @@ global 1 20 std/task started.instance
 global 2 38 std/task started.gate
 import 0 extern :strlen snippet$relayed_length headers=<string.h> result_type=6 param_types=7 param_c_out= param_by_address= blocking (string) -> i64
 import 1 extern :memset snippet$relayed_fill headers=<string.h> result_type=1 param_types=8,2,6 param_c_out=1,0,0 param_by_address= blocking (ref,i32,i64) -> void
-import 2 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=7 param_c_out= param_by_address= (string) -> ref
-import 3 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=6 param_types=16,6 param_c_out= param_by_address= (ref,i64) -> i64
-import 4 park std_core$Intrinsic$park intrinsic=park result_type=1 () -> void
-import 5 wake std_core$Intrinsic$wake intrinsic=wake result_type=1 param_types=6 param_c_out= param_by_address= (i64) -> void
-import 6 current_thread std_core$Intrinsic$current_thread intrinsic=current_thread result_type=6 () -> i64
-import 7 is_cancelled std_core$Intrinsic$is_cancelled intrinsic=is_cancelled result_type=15 () -> bool
-import 8 task_ended std_core$Intrinsic$task_ended intrinsic=task_ended result_type=1 () -> void
-import 9 monitor_enter std_core$Intrinsic$monitor_enter intrinsic=monitor_enter result_type=1 param_types=15 param_c_out= param_by_address= (bool) -> void
-import 10 monitor_exit std_core$Intrinsic$monitor_exit intrinsic=monitor_exit result_type=1 () -> void
-import 11 publish std_core$Intrinsic$publish__i64 intrinsic=publish result_type=1 param_types=6 param_c_out= param_by_address= (i64) -> void
-import 12 mutex_lock std_core$Intrinsic$mutex_lock__std_runtime_scheduler_Mutex intrinsic=mutex_lock result_type=1 param_types=17 param_c_out= param_by_address= (ref) -> void
-import 13 mutex_unlock std_core$Intrinsic$mutex_unlock__std_runtime_scheduler_Mutex intrinsic=mutex_unlock result_type=1 param_types=17 param_c_out= param_by_address= (ref) -> void
-import 14 mutex_wait std_core$Intrinsic$mutex_wait__std_runtime_scheduler_Mutex intrinsic=mutex_wait result_type=1 param_types=17 param_c_out= param_by_address= (ref) -> void
-import 15 panic std_core$Intrinsic$panic intrinsic=panic result_type=1 param_types=7 param_c_out= param_by_address= (string) -> void
+import 2 bytes std_core$Intrinsic$bytes service=bytes result_type=8 param_types=7 param_c_out= param_by_address= (string) -> ref
+import 3 spawn_thread std_core$Intrinsic$spawn_thread service=spawn_thread result_type=6 param_types=16,6 param_c_out= param_by_address= (ref,i64) -> i64
+import 4 park std_core$Intrinsic$park service=park result_type=1 () -> void
+import 5 wake std_core$Intrinsic$wake service=wake result_type=1 param_types=6 param_c_out= param_by_address= (i64) -> void
+import 6 current_thread std_core$Intrinsic$current_thread service=current_thread result_type=6 () -> i64
+import 7 is_cancelled std_core$Intrinsic$is_cancelled service=is_cancelled result_type=15 () -> bool
+import 8 task_ended std_core$Intrinsic$task_ended service=task_ended result_type=1 () -> void
+import 9 monitor_enter std_core$Intrinsic$monitor_enter service=monitor_enter result_type=1 param_types=15 param_c_out= param_by_address= (bool) -> void
+import 10 monitor_exit std_core$Intrinsic$monitor_exit service=monitor_exit result_type=1 () -> void
+import 11 publish std_core$Intrinsic$publish__i64 service=publish result_type=1 param_types=6 param_c_out= param_by_address= (i64) -> void
+import 12 mutex_lock std_core$Intrinsic$mutex_lock__std_runtime_scheduler_Mutex service=mutex_lock result_type=1 param_types=17 param_c_out= param_by_address= (ref) -> void
+import 13 mutex_unlock std_core$Intrinsic$mutex_unlock__std_runtime_scheduler_Mutex service=mutex_unlock result_type=1 param_types=17 param_c_out= param_by_address= (ref) -> void
+import 14 mutex_wait std_core$Intrinsic$mutex_wait__std_runtime_scheduler_Mutex service=mutex_wait result_type=1 param_types=17 param_c_out= param_by_address= (ref) -> void
+import 15 panic std_core$Intrinsic$panic service=panic result_type=1 param_types=7 param_c_out= param_by_address= (string) -> void
 import 16 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=2,8,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 17 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 18 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void

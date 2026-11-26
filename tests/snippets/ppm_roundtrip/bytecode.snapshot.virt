@@ -106,8 +106,8 @@ string 64 "path contains a NUL byte"
 string 65 "file is closed"
 data 0 structs 16 3 1 strref 64 u8 0a i32 00000000
 data 1 structs 16 3 1 strref 65 u8 0c i32 00000000
-import 0 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=7 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 1 current_os std_core$Intrinsic$current_os intrinsic=current_os result_type=8 () -> u8
+import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=7 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 1 current_os std_core$Intrinsic$current_os service=current_os result_type=8 () -> u8
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,7,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void

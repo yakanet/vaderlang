@@ -13,8 +13,8 @@ string 0 "vader-byte-view-payload-"
 string 1 "byte-view GC corruption after major cycles"
 string 2 "ok: 4 byte views survived 2 major GCs; sum="
 string 3 "\n"
-import 0 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=3 param_types=6 param_c_out= param_by_address= (string) -> ref
-import 1 collect std_core$Intrinsic$collect intrinsic=collect result_type=1 () -> void
+import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=3 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 1 collect std_core$Intrinsic$collect service=collect result_type=1 () -> void
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=2,3,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void

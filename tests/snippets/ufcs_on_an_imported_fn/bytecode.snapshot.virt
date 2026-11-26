@@ -96,9 +96,9 @@ string 50 "path contains a NUL byte"
 string 51 "file is closed"
 data 0 structs 16 3 1 strref 50 u8 0a i32 00000000
 data 1 structs 16 3 1 strref 51 u8 0c i32 00000000
-import 0 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=9 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 1 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=3 param_types=9 param_c_out= param_by_address= (ref) -> string
-import 2 current_os std_core$Intrinsic$current_os intrinsic=current_os result_type=6 () -> u8
+import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=9 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 1 bytes_to_string std_core$Intrinsic$bytes_to_string service=bytes_to_string result_type=3 param_types=9 param_c_out= param_by_address= (ref) -> string
+import 2 current_os std_core$Intrinsic$current_os service=current_os result_type=6 () -> u8
 import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=2,9,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=40 param_types=3 param_c_out= param_by_address= (string) -> any
 import 5 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=2 param_types=25 param_c_out= param_by_address= (pointer) -> i32

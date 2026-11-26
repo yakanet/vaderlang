@@ -1063,7 +1063,7 @@ serve_import :: fn(
     if info.is_extern {
         return dispatch_extern(state, index, args, 0, origin)
     }
-    id :: state.import_ids[index]
+    id :: state.import_services[index] else return unbound_import(info, origin)
     // The walk of a copy reads the type table, which `dispatch_import` is not given.
     if id == .DeepCopy {
         return deep_copy_value(state.bc.types, args[0], origin)

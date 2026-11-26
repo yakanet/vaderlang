@@ -23,7 +23,7 @@ string 3 "true"
 string 4 "false"
 string 5 "\n"
 string 6 "b"
-import 0 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=15 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 0 bytes std_core$Intrinsic$bytes service=bytes result_type=15 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=14 param_types=6,15,14 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=6 () -> i32
 import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void

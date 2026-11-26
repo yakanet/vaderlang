@@ -60,7 +60,7 @@ guest_threads :: fn() -> GuestThreads = GuestThreads {}
 serve_thread_primitive :: fn(
     state: VmState,
     m: RegMachine,
-    id: bc.IntrinsicId,
+    id: bc.RuntimeService,
     args: Value[],
     origin: i32,
     is_comptime: bool,
@@ -77,13 +77,9 @@ serve_thread_primitive :: fn(
     .SchedulerCurrent -> HostOk { .value = I64Val(current_thread()) }
     .SchedulerIsCancelled -> HostOk { .value = BoolVal(is_cancelled()) }
     .SchedulerIsLeaving -> serve_is_leaving(args[0], origin)
-    // `dispatch_import` serves these, or an op does.
-    .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .Bytes | .BytesToString
-        | .StringHash | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
-        | .DeepCopy | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast
-        | .ArrayClear | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
-        | .BufferInternString | .BufferWriteString | .RuntimeCollect | .RuntimeCountAllocations
-        | .RuntimeStatistic | .SchedulerTaskEnded | .SchedulerMonitorEnter | .SchedulerMonitorGive
+    // `dispatch_import` serves these.
+    .Bytes | .BytesToString | .DeepCopy | .RuntimeCollect
+        | .RuntimeCountAllocations | .RuntimeStatistic | .SchedulerTaskEnded | .SchedulerMonitorEnter | .SchedulerMonitorGive
         | .SchedulerMonitorExit | .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock
         | .WasmStreamRead | .WasmFutureWait | .WasmStreamDrop | .WasmFutureDrop | .WasmThreadNew
         | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield | .WasmThreadIndex

@@ -1,0 +1,238 @@
+// vader/core/bytecode/runtime_service: each member of `Runtime`, and what a call does.
+//
+// `RuntimeService` names every member of `std/core`'s `Runtime`, found by the
+// member's name (`runtime_service`), and carries what a call to it does
+// (`DuringCall`), which the questions below read. A service reaches the backends
+// as an import, which each serves with a state the program does not see: the
+// VM's `dispatch_import`, the C emitter's `shim_body`, the WASM emitter's
+// `service_function`. Each decides for every service by an exhaustive `match`,
+// so a new one trips T3013 there, as in the effect summary and the comptime gate.
+//
+// The members of `Intrinsic`, which an op serves, are `IntrinsicId`
+// (`intrinsic_manifest.vader`): no import calls them, so nothing asks what may
+// happen during a call to one.
+
+module "vader/core/bytecode"
+
+import "std/collections"
+import "vader/core/types"
+
+/// What may happen while a call to a service runs, which its callers must
+/// account for. Each level holds the ones before it: a service that lets other
+/// threads run may collect, one that suspends lets other threads run.
+export DuringCall :: enum {
+    /// Nothing the program holds moves: no collection, no other thread.
+    NothingMoves,
+    /// The collector may run, so a live reference must be rooted across the
+    /// call ; no other code runs before it returns.
+    MayCollect,
+    /// Other threads run before it returns, and may shorten any array they reach.
+    OthersRun,
+    /// The thread is suspended until something resumes it: a wake, the end of a
+    /// delay, a descriptor ready. The others run meanwhile.
+    Suspends,
+}
+
+/// The member of `std/core`'s `Runtime` a variant names, and what a call to it
+/// does.
+export ServiceFacts :: struct {
+    member: string
+    during_call: DuringCall
+}
+
+/// The members of `std/core`'s `Runtime` (`runtime_service`), each with what may
+/// happen during a call to it.
+export RuntimeService :: enum(ServiceFacts) {
+    // std/core strings and values: a view, a string and a copy allocate.
+    Bytes         { .member = "bytes", .during_call = .MayCollect },
+    BytesToString { .member = "bytes_to_string", .during_call = .MayCollect },
+    DeepCopy      { .member = "deep_copy", .during_call = .MayCollect },
+    // std/runtime: unclassified, so conservatively a safepoint ; the collector
+    // moves objects and never changes a length.
+    RuntimeCollect          { .member = "collect", .during_call = .MayCollect },
+    RuntimeCountAllocations { .member = "count_allocations", .during_call = .MayCollect },
+    RuntimeStatistic        { .member = "collector_statistic", .during_call = .MayCollect },
+    // std/runtime/scheduler. Making a stack, queuing a thread, reading a handle
+    // or a flag, noting a watch: `malloc`, `mmap` and the OS, never the
+    // collector. A cancel suspends nothing: cancelling another thread returns at
+    // once, cancelling the running one never returns, and both let the others
+    // run.
+    SchedulerSpawn         { .member = "spawn_thread", .during_call = .NothingMoves },
+    SchedulerPark          { .member = "park", .during_call = .Suspends },
+    SchedulerWake          { .member = "wake", .during_call = .NothingMoves },
+    SchedulerSleepFor      { .member = "sleep_for", .during_call = .Suspends },
+    SchedulerCancel        { .member = "cancel_thread", .during_call = .OthersRun },
+    SchedulerCurrent       { .member = "current_thread", .during_call = .NothingMoves },
+    SchedulerIsCancelled   { .member = "is_cancelled", .during_call = .NothingMoves },
+    SchedulerIsLeaving     { .member = "is_leaving", .during_call = .NothingMoves },
+    SchedulerTaskEnded     { .member = "task_ended", .during_call = .NothingMoves },
+    SchedulerWatchReadable { .member = "watch_readable", .during_call = .NothingMoves },
+    SchedulerWatchExit     { .member = "watch_exit", .during_call = .NothingMoves },
+    // Taking the monitor to publish, or to give a value that reaches the young
+    // generation, empties the young generation of the worker ; a worker that
+    // waits for a mutex counts as stopped, and a major runs meanwhile. Neither
+    // suspends a thread: no other thread of the worker runs. Letting the monitor go
+    // allocates in the young generation again.
+    SchedulerMonitorEnter { .member = "monitor_enter", .during_call = .MayCollect },
+    SchedulerMonitorGive  { .member = "monitor_give", .during_call = .MayCollect },
+    SchedulerMonitorExit  { .member = "monitor_exit", .during_call = .NothingMoves },
+    SchedulerPublish      { .member = "publish", .during_call = .MayCollect },
+    SchedulerMutexLock    { .member = "mutex_lock", .during_call = .MayCollect },
+    SchedulerMutexUnlock  { .member = "mutex_unlock", .during_call = .NothingMoves },
+    SchedulerMutexWait    { .member = "mutex_wait", .during_call = .Suspends },
+    // std/runtime/wait: a read or a write that suspends while another thread runs
+    WaitStop { .member = "stop_waiting", .during_call = .NothingMoves },
+    WaitFor  { .member = "wait_for", .during_call = .Suspends },
+    // std/core: the stream or the future a component function returns, which
+    // only a WASM build reads. A read waits for the host, then makes the array or
+    // the value read ; a drop gives a handle back.
+    WasmStreamRead { .member = "wasm_stream_read", .during_call = .Suspends },
+    WasmFutureWait { .member = "wasm_future_wait", .during_call = .Suspends },
+    WasmStreamDrop { .member = "wasm_stream_drop", .during_call = .NothingMoves },
+    WasmFutureDrop { .member = "wasm_future_drop", .during_call = .NothingMoves },
+    // std/runtime/scheduler: the cooperative threads of the component model,
+    // which the scheduler of a WASM build drives. A yield lets the others run but
+    // waits for no wake ; the end of a thread never returns, and the others run,
+    // and collect, before it ends.
+    WasmThreadNew         { .member = "wasm_thread_new", .during_call = .NothingMoves },
+    WasmThreadSuspend     { .member = "wasm_thread_suspend", .during_call = .Suspends },
+    WasmThreadResumeLater { .member = "wasm_thread_resume_later", .during_call = .NothingMoves },
+    WasmThreadYield       { .member = "wasm_thread_yield", .during_call = .OthersRun },
+    WasmThreadIndex       { .member = "wasm_thread_index", .during_call = .NothingMoves },
+    WasmThreadExit        { .member = "wasm_thread_exit", .during_call = .MayCollect },
+    // std/abort: `panic` never returns ; unclassified, so conservatively a
+    // safepoint.
+    AbortPanic { .member = "panic", .during_call = .MayCollect },
+    // std/target: the OS the process is RUNNING on, not the one it was built
+    // for. `VADER_OS` answers the latter and is a baked constant, not a service.
+    TargetCurrentOs   { .member = "current_os", .during_call = .NothingMoves },
+    TargetCurrentArch { .member = "current_arch", .during_call = .NothingMoves },
+    // vader/vm: dynamic foreign calls, the VM's answer to `@extern`. NOT in
+    // `std/`: they amount to running arbitrary native code, conservatively a
+    // safepoint. Foreign code is lent a buffer, never the header that holds its
+    // length.
+    FfiOpen      { .member = "ffi_open", .during_call = .MayCollect },
+    FfiOpenPath  { .member = "ffi_open_path", .during_call = .MayCollect },
+    FfiSymbol    { .member = "ffi_symbol", .during_call = .MayCollect },
+    FfiCall      { .member = "ffi_call", .during_call = .MayCollect },
+    FfiCallFrame { .member = "ffi_call_frame", .during_call = .MayCollect },
+}
+
+/// The member `member` of `std/core`'s `Runtime` ; null for none.
+///
+/// @param member  the member's name (`LoweredFnDecl.intrinsic`), `""` for none.
+export runtime_service :: fn(member: string) -> RuntimeService | null =
+    SERVICES_BY_MEMBER[member]
+
+/// The service an import calls: none for an `@extern`, else `runtime_service`.
+/// What the emitter sets and what a `.virt` re-read restores.
+///
+/// @param is_extern  whether the import is an `@extern`.
+/// @param member     the member it names, `""` for none.
+export import_service :: fn(is_extern: bool, member: string) -> RuntimeService | null {
+    if is_extern {
+        return null
+    }
+    return runtime_service(member)
+}
+
+/// The name of the member `service`.
+///
+/// @param service  a member of `Runtime`.
+export service_member :: fn(service: RuntimeService) -> string = ServiceFacts(service).member
+
+/// How a message names the service `service`, as a program writes it:
+/// `Runtime.current_os`.
+///
+/// @param service  a member of `Runtime`.
+export display_service :: fn(service: RuntimeService) -> string =
+    "${TRAIT_RUNTIME}.${service_member(service)}"
+
+// Every member of `Runtime`, by its name.
+SERVICES_BY_MEMBER: Map<string, RuntimeService>: @comptime {
+    out :: Map<string, RuntimeService> {}
+    for service in RuntimeService {
+        out[service_member(service)] = service
+    }
+    return out
+}
+
+/// Whether a call to the service `service` can trigger a collection: the
+/// question `c_emit`'s `compute_may_alloc` asks of every import to decide which
+/// fns need a GC frame. `false` is a promise that the native implementation
+/// never reaches `vader_gc_alloc`: a fn whose only safepoint would be this call
+/// skips its shadow-stack frame, so a wrong `false` leaves live refs unrooted
+/// across a collection.
+///
+/// Not the question `vm/host`'s `comptime_refusal` answers, which is whether a
+/// comptime evaluation may call the service: `current_os` depends on the
+/// machine and never collects, `bytes` depends on nothing and allocates.
+///
+/// @param service  the service, from `runtime_service` ; null for any other call.
+export service_may_collect :: fn(service: RuntimeService | null) -> bool =
+    during_call_of(service) != .NothingMoves
+
+/// Whether a call to the service `service` can shorten an array of the program:
+/// the question midir's call summaries ask of an import
+/// (`vader/midir/array_shrink.vader`). `false` lets the range analysis keep the
+/// lengths it knows across the call, so a wrong `false` lets an index go
+/// unchecked against an array that got shorter.
+///
+/// @param service  the service, from `runtime_service` ; null for any other call.
+export service_may_shorten_array :: fn(service: RuntimeService | null) -> bool =
+    match during_call_of(service) {
+        .NothingMoves | .MayCollect -> false
+        .OthersRun | .Suspends      -> true
+    }
+
+/// Whether a call to the service `service` suspends the thread that makes it
+/// until something resumes it: what the task check asks of a function that only
+/// forwards to a service (`vader/front/effects/task_primitives.vader`). A wrong
+/// `false` hides the parks of a block holding a lock.
+///
+/// @param service  the service, from `runtime_service` ; null for any other call.
+export service_suspends :: fn(service: RuntimeService | null) -> bool =
+    during_call_of(service) == .Suspends
+
+// What may happen during a call to `service` ; for a call to no service, an
+// `@extern` or a function the compiler cannot see, what any call may do, short of
+// suspending.
+during_call_of :: fn(service: RuntimeService | null) -> DuringCall {
+    known :: service else return .OthersRun
+    return ServiceFacts(known).during_call
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_services_and_members_name_each_other :: fn() -> void {
+    for service in RuntimeService {
+        member :: service_member(service)
+        assert(runtime_service(member) == service, member)
+    }
+    assert(runtime_service("no_such_member") == null, "an unknown member")
+    assert(runtime_service("") == null, "no member")
+}
+
+@test
+test_service_may_collect :: fn() -> void {
+    assert(!service_may_collect(.TargetCurrentOs), "the OS is a read")
+    assert(service_may_collect(.Bytes), "a view allocates its header")
+    assert(service_may_collect(null), "no service stays a safepoint")
+}
+
+@test
+test_service_shortens_once_other_threads_run :: fn() -> void {
+    assert(service_may_shorten_array(.WasmThreadYield), "a yield runs the other threads")
+    assert(!service_may_shorten_array(.SchedulerMutexLock), "a lock runs no other thread")
+    assert(service_may_shorten_array(null), "no service stays conservative")
+}
+
+@test
+test_service_suspends_on_a_wait_and_not_on_a_cancel :: fn() -> void {
+    assert(service_suspends(.WaitFor), "a wait on a descriptor suspends")
+    assert(service_suspends(.SchedulerSleepFor), "a sleep suspends")
+    assert(!service_suspends(.SchedulerCancel), "a cancel returns at once")
+}

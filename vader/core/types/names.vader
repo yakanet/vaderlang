@@ -172,6 +172,8 @@ export TRAIT_INDEX_SET: string: @type_name(IndexSet)
 export TRAIT_ERROR: string: @type_name(Error)
 /// `Intrinsic`, the operations the toolchain implements.
 export TRAIT_INTRINSIC: string: @type_name(Intrinsic)
+/// `Runtime`, the services each backend serves with a state of its own.
+export TRAIT_RUNTIME: string: "Runtime"
 
 /// `impl_base_key` of a nominal declaration: the symbol ids are unique across
 /// every kind, so the id alone names it.
@@ -206,7 +208,6 @@ export HASH_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_HASH)
 export INDEX_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_INDEX)
 export INDEX_SET_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_INDEX_SET)
 export INTO_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_INTO)
-export INTRINSIC_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_INTRINSIC)
 export ITERATOR_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_ITERATOR)
 export MUL_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_MUL)
 export REM_TRAIT_KEY: string: @comptime core_trait_key(TRAIT_REM)

@@ -87,7 +87,7 @@ hosted_frame_call :: fn(
 /// `stack[arg_base ..]`, executes the host action, and returns either
 /// `HostOk { value }` (the result pushed onto the caller's value stack) or a
 /// `Trap` (surfaced verbatim). Hosts the VM doesn't serve (native-only C shims)
-/// and non-intrinsics fall through the grouped arm to the unbound `Trap`. An
+/// and an import that names no service fall through to the unbound `Trap`. An
 /// `@extern` goes to `dispatch_extern` instead.
 ///
 /// @param info      the import descriptor (mangled name + signature).
@@ -108,8 +108,8 @@ hosted_frame_call :: fn(
 /// @param is_comptime  true when this dispatch runs inside a `@comptime`
 ///                  evaluation (`exec_comptime_value` path). Gates the hosts such an
 ///                  evaluation may not call (`comptime_refusal`).
-/// @param id        the host the import calls (`BcImport.host`), which `prepare`
-///                  reads once per import (`VmState.import_ids`).
+/// @param id        the service the import calls (`BcImport.service`), which
+///                  `prepare` reads once per import (`VmState.import_services`).
 /// @return          `HostOk { value }` on success ; `Trap` on a missing
 ///                  import, malformed arg, host-level failure, or a host reached
 ///                  at comptime that `comptime_refusal` refuses.
@@ -126,7 +126,7 @@ export dispatch_import :: fn(
     string_array_type_id: i32,
     u8_array_type_id: i32,
     is_comptime: bool,
-    id: bc.IntrinsicId,
+    id: bc.RuntimeService,
 ) -> HostCallResult {
     // Comptime gate. It is NARROW on purpose, and narrower than it once was.
     //
@@ -144,7 +144,7 @@ export dispatch_import :: fn(
     if is_comptime {
         reason :: comptime_refusal(id)
         if reason != null {
-            return comptime_refusal_trap(bc.display_intrinsic(id), reason)
+            return comptime_refusal_trap(bc.display_service(id), reason)
         }
     }
     match id {
@@ -240,17 +240,15 @@ export dispatch_import :: fn(
         message :: read_string(stack[arg_base], at_pc, "panic") else return message
         return Trap { .message = "panic: ${string(message)}" }
     }
-    // Non-intrinsics, and the members an op serves, which no call reaches as an
-    // import. Kept as an arm rather than a wildcard so a new `IntrinsicId` variant
-    // still trips T3013 here.
-    .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash
-        | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
-        | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast | .ArrayClear
-        | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
-        | .BufferInternString | .BufferWriteString -> {}
     }
-    return Trap { .message = "unbound host import '${info.mangled_name}' at pc=${at_pc}" }
+    return unbound_import(info, at_pc)
 }
+
+/// The trap of a call to the import `info`, which nothing serves.
+///
+/// @param at_pc  pc of the calling `call.import` op.
+export unbound_import :: fn(info: bc.BcImport, at_pc: i32) -> Trap =
+    Trap { .message = "unbound host import '${info.mangled_name}' at pc=${at_pc}" }
 
 // The first `count` bytes of `a` as a `u8[]`: the bytes it reads in place when it
 // views a string, else its boxed slots gathered.
@@ -1126,9 +1124,9 @@ BUILD_MACHINE_REASON :: "it answers for the machine the compiler runs on, and ba
 // `bootstrap/verify.sh`, comparing stage1 to stage2. That is the guarantee; this
 // list is not it.
 //
-// Exhaustive over `IntrinsicId` so a newly added host must be classified here
+// Exhaustive over `RuntimeService` so a newly added service must be classified here
 // (T3013) rather than silently defaulting to servable.
-comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
+comptime_refusal :: fn(id: bc.RuntimeService) -> string | null = match id {
     // The DYNAMIC ffi: resolving a symbol by name out of a library chosen at
     // build time. Refused because what it reaches depends on the builder's
     // machine, the same reason as `current_os` below. A DECLARED `@extern` is
@@ -1156,11 +1154,5 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .WasmStreamRead | .WasmFutureWait | .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
         | .WasmThreadIndex | .WasmThreadExit | .WasmStreamDrop | .WasmFutureDrop -> null
     .AbortPanic -> null
-    // Served by an op, never called as an import.
-    .NotIntrinsic
-        | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash
-        | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
-        | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast | .ArrayClear
-        | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
-        | .BufferInternString | .BufferWriteString -> null
 }
+
