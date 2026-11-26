@@ -15,8 +15,8 @@ maybe_count :: fn(found: bool) -> i32 | null = if found { 0 } else { null }
 main :: fn() -> i32 {
     v :: maybe_direction(true)
     none :: maybe_direction(false)
-    println("${v == Direction.East} ${v == Direction.North} ${v != Direction.East}")
-    println("${none == Direction.North} ${Direction.North == none} ${none != Direction.North}")
+    println("${v == .East} ${v == .North} ${v != .East}")
+    println("${none == .North} ${Direction.North == none} ${none != .North}")
     zero :: maybe_count(true)
     missing :: maybe_count(false)
     println("${zero == 0} ${0 == zero} ${missing == 0} ${missing != 0} ${zero == 1}")

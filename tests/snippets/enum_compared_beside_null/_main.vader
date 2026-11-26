@@ -1,0 +1,27 @@
+// A bare `.Variant` compared with a value that may be null: the enum of the
+// variant comes from the union the other operand has, as from a plain enum, on
+// either side of the comparison.
+
+module "snippet"
+
+import "std/console"
+
+Color :: enum { Red, Green }
+
+pick :: fn(n: i32) -> Color | null {
+    if n == 0 {
+        return null
+    }
+    if n == 1 {
+        return .Red
+    }
+    return .Green
+}
+
+main :: fn() -> i32 {
+    for n in 0..<3 {
+        c :: pick(n)
+        println("${c == .Red} ${c != .Green} ${.Green == c}")
+    }
+    return 0
+}

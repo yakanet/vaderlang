@@ -504,7 +504,7 @@ push_consumed_as :: fn(
     function: string,
 ) -> void | WasmUnsupported {
     held :: scalar_field_type(class)
-    if top == WasmValType.EqRef && held != .EqRef {
+    if top == .EqRef && held != .EqRef {
         return out.push_adapted(ctx, .EqRef, class, held, function)
     }
 }
@@ -922,7 +922,7 @@ push_convert :: fn(
 ) -> void | WasmUnsupported {
     from :: Bc.parse_val_type(op.from_name) else return unsupported_op(op, function)
     from_class :: value_type_of(from, function) else return from_class
-    if source == WasmValType.EqRef && from_class != .EqRef {
+    if source == .EqRef && from_class != .EqRef {
         unboxed :: out.push_adapted(ctx, .EqRef, from, from_class, function) else return unboxed
     }
     match op.target {

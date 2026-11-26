@@ -150,8 +150,8 @@ import "std/testing"
 
 @test
 test_only_stdout_and_stderr_are_program_streams :: fn() -> void {
-    assert(stream_of(STDOUT_DESCRIPTOR) == Stream.Stdout, "descriptor 1 is stdout")
-    assert(stream_of(STDERR_DESCRIPTOR) == Stream.Stderr, "descriptor 2 is stderr")
+    assert(stream_of(STDOUT_DESCRIPTOR) == .Stdout, "descriptor 1 is stdout")
+    assert(stream_of(STDERR_DESCRIPTOR) == .Stderr, "descriptor 2 is stderr")
     assert(stream_of(5) == null, "a file the program opened is the system's")
 }
 

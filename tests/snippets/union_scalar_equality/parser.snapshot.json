@@ -236,12 +236,8 @@
                               "name": "v"
                             },
                             "right": {
-                              "kind": "FieldExpr",
-                              "target": {
-                                "kind": "IdentExpr",
-                                "name": "Direction"
-                              },
-                              "field": "East"
+                              "kind": "DotVariantExpr",
+                              "variant": "East"
                             }
                           }
                         },
@@ -259,12 +255,8 @@
                               "name": "v"
                             },
                             "right": {
-                              "kind": "FieldExpr",
-                              "target": {
-                                "kind": "IdentExpr",
-                                "name": "Direction"
-                              },
-                              "field": "North"
+                              "kind": "DotVariantExpr",
+                              "variant": "North"
                             }
                           }
                         },
@@ -282,12 +274,8 @@
                               "name": "v"
                             },
                             "right": {
-                              "kind": "FieldExpr",
-                              "target": {
-                                "kind": "IdentExpr",
-                                "name": "Direction"
-                              },
-                              "field": "East"
+                              "kind": "DotVariantExpr",
+                              "variant": "East"
                             }
                           }
                         }
@@ -322,12 +310,8 @@
                               "name": "none"
                             },
                             "right": {
-                              "kind": "FieldExpr",
-                              "target": {
-                                "kind": "IdentExpr",
-                                "name": "Direction"
-                              },
-                              "field": "North"
+                              "kind": "DotVariantExpr",
+                              "variant": "North"
                             }
                           }
                         },
@@ -368,12 +352,8 @@
                               "name": "none"
                             },
                             "right": {
-                              "kind": "FieldExpr",
-                              "target": {
-                                "kind": "IdentExpr",
-                                "name": "Direction"
-                              },
-                              "field": "North"
+                              "kind": "DotVariantExpr",
+                              "variant": "North"
                             }
                           }
                         }

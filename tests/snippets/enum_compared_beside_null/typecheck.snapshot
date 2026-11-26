@@ -1,0 +1,30 @@
+# Typecheck
+
+## tests/snippets/enum_compared_beside_null
+  EnumDecl       Color                :: Color
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         pick                 :: fn(i32) -> Color | null
+  expr 12:5     IfExpr         :: void
+  expr 12:8     BinaryExpr     :: bool
+  expr 12:8     IdentExpr      :: i32
+  expr 15:5     IfExpr         :: void
+  expr 15:8     BinaryExpr     :: bool
+  expr 15:8     IdentExpr      :: i32
+  expr 16:16    DotVariantExpr :: Color
+  expr 18:12    DotVariantExpr :: Color
+  expr 22:14    RangeExpr      :: Range<i32>
+  expr 23:14    CallExpr       :: Color | null
+  expr 23:14    IdentExpr      :: fn(i32) -> Color | null
+  expr 23:19    IdentExpr      :: i32
+  expr 24:17    StringLitExpr  :: string
+  expr 24:20    BinaryExpr     :: bool
+  expr 24:20    IdentExpr      :: Color | null
+  expr 24:25    DotVariantExpr :: Color
+  expr 24:33    BinaryExpr     :: bool
+  expr 24:33    IdentExpr      :: Color | null
+  expr 24:38    DotVariantExpr :: Color
+  expr 24:48    BinaryExpr     :: bool
+  expr 24:48    DotVariantExpr :: Color
+  expr 24:58    IdentExpr      :: Color | null
+  expr 24:9     CallExpr       :: void
+  expr 24:9     IdentExpr      :: fn(T) -> void

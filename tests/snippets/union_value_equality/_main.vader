@@ -67,7 +67,7 @@ main :: fn() -> i32 {
     t2 :: [1, s2]
     println("${t1 == t2}")
     c: Color | null: .Red
-    println("${c == Color.Red} ${c == Color.Green}")
+    println("${c == .Red} ${c == .Green}")
     nan :: 0.0 / 0.0
     f1: f64 | null: nan
     z1: f64 | null: 0.0

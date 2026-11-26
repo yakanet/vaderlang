@@ -1357,7 +1357,7 @@ The context gives an enum in:
 
 - a slot typed by the enum: a declaration, an assignment, a struct field or its default, an argument, a `return` value or expression body, an element of an array literal in a typed slot;
 - the value of a `match` arm or an `if` branch that fills such a slot;
-- an operand of `==` or `!=` whose other operand is an enum, and an element of an array literal on the right of `in`.
+- an operand of `==` or `!=` whose other operand is an enum, or a union holding one (`Direction | null`), and an element of an array literal on the right of `in`.
 
 Two enums may share a variant name: the shorthand takes the enum the slot names, or, in a slot typed by a union of enums, the first of them that has the name. A shorthand is an error where the context names no enum (`x :: .Red`), and as an argument that several overloads accept under different enums.
 

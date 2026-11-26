@@ -3307,7 +3307,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
                 p.error(.UnknownDecoratorPlacement, name_tok.span,
                     "`@${name_tok.text}` must precede a `match` expression")
             }
-            partial :: compiler_decorator_named(name_tok.text) == CompilerDecorator.Partial
+            partial :: compiler_decorator_named(name_tok.text) == .Partial
             return p.parse_match_expr(partial, !partial, at_tok.span)
         }
         match intrinsic :: intrinsic_named(name_tok.text) {

@@ -271,7 +271,7 @@ forwarded_effects :: fn(
     if member is ForwardedOperator {
         return null
     }
-    if runtime_service(member.name) == RuntimeService.DeepCopy {
+    if runtime_service(member.name) == .DeepCopy {
         index.deep_copies.add(decl.id)
     }
     return member_summary(member.name).params
@@ -301,7 +301,7 @@ summary_target :: fn(
         index.frozen_views.add(decl.id)
         index.view = returned_array(signature)
     }
-    if runtime_service(member) == RuntimeService.DeepCopy {
+    if runtime_service(member) == .DeepCopy {
         index.deep_copies.add(decl.id)
     }
     if known.params != null {
