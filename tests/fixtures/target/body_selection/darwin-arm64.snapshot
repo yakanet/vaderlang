@@ -17,3 +17,7 @@ std_io$last_io_error <- lib/std/io/io.vader:121
 std_runtime_wait$wait_for <- lib/std/runtime/wait/wait.vader:42
 std_time$monotonic_ns <- lib/std/time/time.vader:85
 std_time$now_unix_ms <- lib/std/time/time.vader:53
+system_wasi$drop_future <- (no body)
+system_wasi$drop_stream <- (no body)
+system_wasi$read <- (no body)
+system_wasi$wait <- (no body)

@@ -1,0 +1,32 @@
+// A service of one host, called where the build targets another: reading a
+// stream of a WASI interface builds for WASI alone, a foreign call for a target
+// with shared libraries alone. Each is refused where the program calls it, with
+// the way from `main`, and the other builds. Opening a library is not refused:
+// none opens on WASI.
+
+module "main"
+
+import "std/runtime/ffi"
+import "system/wasi"
+WasiStdin :: import "wasi:cli/stdin@0.3.0"
+
+read_some :: fn() -> i64 {
+    [bytes, done] :: WasiStdin.read_via_stream()
+    chunk :: bytes.read(16, -1) else return 0
+    return chunk.len()
+}
+
+call_strlen :: fn() -> string {
+    symbol :: ffi_symbol(ffi_open(""), "strlen")
+    return ffi_call(symbol, [1], [0] * 8, -1)
+}
+
+main :: fn() -> i32 {
+    if read_some() > 0 {
+        return 1
+    }
+    if call_strlen() == "" {
+        return 2
+    }
+    return 0
+}

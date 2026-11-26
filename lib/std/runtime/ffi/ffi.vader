@@ -1,0 +1,77 @@
+// std/runtime/ffi: the foreign calls of the VM, in machine words.
+//
+// What the VM calls to serve an `@extern` and the foreign calls of the program
+// it runs: load a shared library, find a symbol in it, call the symbol on a frame
+// of bytes. WASI has no shared library: nothing opens there, and a program that
+// makes a foreign call does not build for it. Addresses ride an `i64`, `0` the
+// null one: nothing dereferences or offsets one, it only travels from
+// `ffi_symbol` to a call.
+
+module "std/runtime/ffi"
+
+/// Open a shared library by bare name (`"sqlite3"`, not `"libsqlite3.so"`),
+/// which the host decorates per platform ; an empty name yields the running
+/// process, where a libc symbol lives.
+///
+/// @param name  the library's bare name, empty for the running process.
+/// @return      the library, 0 when it is not found.
+@target
+export ffi_open :: fn(name: string) -> i64 = 0
+
+@target(.Linux, .Darwin, .Windows)
+ffi_open :: fn(name: string) -> i64 = Runtime.ffi_open(name)
+
+/// Open a shared library by its path, as the platform's loader takes it: the
+/// adapters `vader run` builds for the `@extern`s no trampoline covers.
+///
+/// @param path  the library's path.
+/// @return      the library, 0 when it cannot be opened.
+@target
+export ffi_open_path :: fn(path: string) -> i64 = 0
+
+@target(.Linux, .Darwin, .Windows)
+ffi_open_path :: fn(path: string) -> i64 = Runtime.ffi_open_path(path)
+
+/// The address of `symbol` in `lib`.
+///
+/// @param lib     a library `ffi_open` or `ffi_open_path` opened.
+/// @param symbol  the exact linker name.
+/// @return        the address, 0 when `lib` has no such symbol.
+@target
+export ffi_symbol :: fn(lib: i64, symbol: string) -> i64 = 0
+
+@target(.Linux, .Darwin, .Windows)
+ffi_symbol :: fn(lib: i64, symbol: string) -> i64 = Runtime.ffi_symbol(lib, symbol)
+
+/// One call to `fn_ptr`, described by data rather than by its shape
+/// (`Runtime.ffi_call`, which says how `desc` and `frame` are laid out).
+///
+/// @param fn_ptr  an address `ffi_symbol` found.
+/// @param desc    one byte per slot: the result, then each argument.
+/// @param frame   the argument slots, eight bytes each, then what an offset slot
+///                points into ; the result is written over its first eight bytes.
+/// @param nfixed  how many parameters are fixed when the callee is variadic, `-1`
+///                when it is not.
+/// @return        the interned string for a `string`-returning callee, the empty
+///                string otherwise.
+@target
+export ffi_call :: fn(fn_ptr: i64, desc: u8[], frame: u8[], nfixed: i64) -> string
+
+@target(.Linux, .Darwin, .Windows)
+ffi_call :: fn(fn_ptr: i64, desc: u8[], frame: u8[], nfixed: i64) -> string =
+    Runtime.ffi_call(fn_ptr, desc, frame, nfixed)
+
+/// One call to a generated adapter, a C function of the frame alone
+/// (`Runtime.ffi_call_frame`): any signature crosses.
+///
+/// @param fn_ptr  the adapter's address.
+/// @param desc    the slots, as `ffi_call` takes them.
+/// @param frame   the slots, as `ffi_call` lays them out.
+/// @return        the interned string for a `string` result, the empty string
+///                otherwise.
+@target
+export ffi_call_frame :: fn(fn_ptr: i64, desc: u8[], frame: u8[]) -> string
+
+@target(.Linux, .Darwin, .Windows)
+ffi_call_frame :: fn(fn_ptr: i64, desc: u8[], frame: u8[]) -> string =
+    Runtime.ffi_call_frame(fn_ptr, desc, frame)

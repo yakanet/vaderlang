@@ -1,0 +1,18 @@
+# Diagnostics
+[main.vader:21:12] error[R2041] no `@target` body covers the target being built: `ffi_call` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows ; used through `main` -> `call_strlen`
+    [lib/std/runtime/ffi/ffi.vader:58:8] `ffi_call` is declared here
+
+# Baked
+VADER_OS = .Wasi
+VADER_ARCH = .Wasm32
+
+# Selected body
+std_runtime_ffi$ffi_call <- (no body)
+std_runtime_ffi$ffi_call_frame <- (no body)
+std_runtime_ffi$ffi_open <- lib/std/runtime/ffi/ffi.vader:19
+std_runtime_ffi$ffi_open_path <- lib/std/runtime/ffi/ffi.vader:30
+std_runtime_ffi$ffi_symbol <- lib/std/runtime/ffi/ffi.vader:41
+system_wasi$drop_future <- lib/system/wasi/wasi.vader:63
+system_wasi$drop_stream <- lib/system/wasi/wasi.vader:57
+system_wasi$read <- lib/system/wasi/wasi.vader:28
+system_wasi$wait <- lib/system/wasi/wasi.vader:37

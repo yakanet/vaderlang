@@ -1,0 +1,18 @@
+# Diagnostics
+[main.vader:15:20] error[R2041] no `@target` body covers the target being built: `read` has no body for `linux-x86_64` and no general body ; its `@target` bodies cover .wasi ; used through `main` -> `read_some`
+    [lib/system/wasi/wasi.vader:24:8] `read` is declared here
+
+# Baked
+VADER_OS = .Linux
+VADER_ARCH = .X86_64
+
+# Selected body
+std_runtime_ffi$ffi_call <- lib/std/runtime/ffi/ffi.vader:62
+std_runtime_ffi$ffi_call_frame <- lib/std/runtime/ffi/ffi.vader:77
+std_runtime_ffi$ffi_open <- lib/std/runtime/ffi/ffi.vader:22
+std_runtime_ffi$ffi_open_path <- lib/std/runtime/ffi/ffi.vader:33
+std_runtime_ffi$ffi_symbol <- lib/std/runtime/ffi/ffi.vader:44
+system_wasi$drop_future <- (no body)
+system_wasi$drop_stream <- (no body)
+system_wasi$read <- (no body)
+system_wasi$wait <- (no body)

@@ -3,8 +3,8 @@
 // A function of an imported WIT interface returns a stream as a `WasmReadable`
 // and a future as a `WasmFuture`, the handles the host gave (`std/core`). These
 // read and wait for them, as `std/console` does for stdin; a program that reads
-// a file or stdin calls `std/fs` or `std/console` instead. Only a WASM build
-// serves them: the interpreter and a native build stop at the call.
+// a file or stdin calls `std/fs` or `std/console` instead. Only a WASI build
+// serves them: a program that calls one builds for WASI alone.
 
 module "system/wasi"
 
@@ -20,23 +20,44 @@ module "system/wasi"
 ///   # WasiStdin :: import "wasi:cli/stdin@0.3.0"
 ///   [bytes, done] :: WasiStdin.read_via_stream()
 ///   chunk :: bytes.read(4096, -1)   // up to 4096 bytes, null at the end
-export read :: fn<T>(stream: WasmReadable<T>, max: i64, nanos: i64) -> T[] | null =
+@target
+export read :: fn<T>(stream: WasmReadable<T>, max: i64, nanos: i64) -> T[] | null
+
+@target(.Wasi)
+read :: fn<T>(stream: WasmReadable<T>, max: i64, nanos: i64) -> T[] | null =
     Runtime.wasm_stream_read(stream, max, nanos)
 
 /// What `future` resolves to, waiting for it: a future is waited for once.
 ///
 /// @param future  a future that no wait has taken yet.
-export wait :: fn<T>(future: WasmFuture<T>) -> T = Runtime.wasm_future_wait(future)
+@target
+export wait :: fn<T>(future: WasmFuture<T>) -> T
+
+@target(.Wasi)
+wait :: fn<T>(future: WasmFuture<T>) -> T = Runtime.wasm_future_wait(future)
 
 /// Give `stream` back to the host before its end, which tells its writer no more
 /// is read: a read then finds it ended. A stream read to its end is given back
 /// already.
 ///
 /// @param stream  the stream, ended or not.
-export drop :: fn<T>(stream: WasmReadable<T>) -> void = Runtime.wasm_stream_drop(stream)
+export drop :: fn<T>(stream: WasmReadable<T>) -> void = drop_stream(stream)
 
 /// Give `future` back to the host without waiting for it: a wait on it then
 /// traps. A future waited for is given back already.
 ///
 /// @param future  the future, waited for or not.
-export drop :: fn<T>(future: WasmFuture<T>) -> void = Runtime.wasm_future_drop(future)
+export drop :: fn<T>(future: WasmFuture<T>) -> void = drop_future(future)
+
+// The two `drop`s, apart: a `@target` group takes one declaration of a name.
+@target
+drop_stream :: fn<T>(stream: WasmReadable<T>) -> void
+
+@target(.Wasi)
+drop_stream :: fn<T>(stream: WasmReadable<T>) -> void = Runtime.wasm_stream_drop(stream)
+
+@target
+drop_future :: fn<T>(future: WasmFuture<T>) -> void
+
+@target(.Wasi)
+drop_future :: fn<T>(future: WasmFuture<T>) -> void = Runtime.wasm_future_drop(future)

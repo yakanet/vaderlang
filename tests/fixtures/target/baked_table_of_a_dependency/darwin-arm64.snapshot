@@ -30,3 +30,7 @@ std_tty$probe_tty <- lib/std/tty/tty.vader:58
 std_tty$raw_mode_begin <- lib/std/tty/raw.vader:69
 std_tty$raw_mode_end <- lib/std/tty/raw.vader:93
 std_tty$renders_unicode <- lib/std/tty/tty.vader:90
+system_wasi$drop_future <- (no body)
+system_wasi$drop_stream <- (no body)
+system_wasi$read <- (no body)
+system_wasi$wait <- (no body)
