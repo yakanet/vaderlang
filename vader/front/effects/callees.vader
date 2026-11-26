@@ -541,6 +541,8 @@ elements_of :: fn() -> PartPath = child(ROOT, ELEMENT_STEP)
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/env"
+import "std/fs"
 import "std/testing"
 
 @test
@@ -561,4 +563,34 @@ test_holds_references_of_a_value :: fn() -> void {
     assert(!holds_references(TY_BOOL), "bool")
     assert(holds_references(mk_array(TY_BOOL)), "bool[]")
     assert(holds_references(null), "an unknown type")
+}
+
+// Each variant of `IntrinsicId` names a member of the prelude's `Intrinsic`, or
+// it serves a member nothing declares. The other way round, a member with no
+// variant, `register_intrinsics` refuses in every build.
+@test
+test_every_intrinsic_id_names_a_member_of_the_trait :: fn() -> void {
+    dir :: create_unique_dir(temp_dir(), "intrinsic_members.") else panic("no temporary folder")
+    entry :: join_path(dir, "_main.vader")
+    assert_succeeds(write_file(entry, "module \"probe\"\n\nmain :: fn() -> i32 = 0\n"))
+    project :: load_project(entry, [], null)
+    core :: project.modules[find_core_module_id(project) else ""] else {
+        fail("the prelude is loaded")
+        return
+    }
+    traits: AST.TraitDecl[]: []
+    for f in core.module.files {
+        traits.push_all(f.program.decls.filter_is<AST.TraitDecl>().collect())
+    }
+    intrinsic :: traits.find((t) -> t.name == TRAIT_INTRINSIC) else {
+        fail("the prelude declares `Intrinsic`")
+        return
+    }
+    members :: intrinsic.members.map((m) -> m.name).collect()
+    for id in IntrinsicId {
+        member :: member_name(id)
+        if member != "" {
+            assert(member in members, member)
+        }
+    }
 }
