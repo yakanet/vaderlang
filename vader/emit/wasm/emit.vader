@@ -807,8 +807,7 @@ FixedAnswer :: enum {
 }
 
 // The answer of the member `id`, null for a member with no WASM form yet.
-fixed_answer_of :: fn(id: Bc.IntrinsicId) -> FixedAnswer | null = @partial match id {
-    // @partial: the members left have no WASM form yet.
+fixed_answer_of :: fn(id: Bc.IntrinsicId) -> FixedAnswer | null = match id {
     .SchedulerMonitorEnter | .SchedulerMonitorGive | .SchedulerMonitorExit | .SchedulerPublish
         | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerCurrent | .SchedulerIsCancelled
         | .SchedulerIsLeaving | .RuntimeCollect | .RuntimeCountAllocations
@@ -817,7 +816,16 @@ fixed_answer_of :: fn(id: Bc.IntrinsicId) -> FixedAnswer | null = @partial match
         | .SchedulerTaskEnded | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMutexWait
         | .WaitStop | .WaitFor | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall
         | .FfiCallFrame -> .Trap
-    _ -> null
+    // A function of its own serves these (`intrinsic_function`), and an op or an
+    // array node the others: none asks for a fixed answer.
+    .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .Bytes | .BytesToString
+        | .StringHash | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
+        | .DeepCopy | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast
+        | .ArrayClear | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
+        | .BufferInternString | .BufferWriteString | .WasmStreamRead | .WasmFutureWait
+        | .WasmStreamDrop | .WasmFutureDrop | .WasmThreadNew | .WasmThreadSuspend
+        | .WasmThreadResumeLater | .WasmThreadYield | .WasmThreadIndex | .WasmThreadExit
+        | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch -> null
 }
 
 // `(params) -> results` of the member `imp`, answering what `fixed_answer_of`
@@ -857,7 +865,8 @@ intrinsic_function :: fn(
     imp: Bc.BcImport,
     function: string,
 ) -> i32 | WasmUnsupported {
-    // @partial: the other members take a fixed answer, or have no WASM form yet.
+    // @partial: the others take a fixed answer, which `fixed_answer_of` decides
+    // for each member.
     return @partial match imp.intrinsic {
         .ByteLen               -> ctx.string_byte_len()
         .ByteAt                -> ctx.string_byte_at()

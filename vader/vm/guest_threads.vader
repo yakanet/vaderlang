@@ -57,7 +57,6 @@ guest_threads :: fn() -> GuestThreads = GuestThreads {}
 // Serve `id` on `args` when it is a primitive of `std/runtime/scheduler`, which
 // the VM serves with its own state, or a wait of `std/runtime/wait`, which parks
 // too; null for any other, which `dispatch_import` serves.
-// @partial: the other intrinsics park no thread.
 serve_thread_primitive :: fn(
     state: VmState,
     m: RegMachine,
@@ -65,20 +64,31 @@ serve_thread_primitive :: fn(
     args: Value[],
     origin: i32,
     is_comptime: bool,
-) -> HostCallResult | null = @partial match id {
-    .SchedulerSpawn         -> start_guest_thread(state, args, origin, is_comptime, debug_controller(m))
+) -> HostCallResult | null = match id {
+    .SchedulerSpawn -> start_guest_thread(state, args, origin, is_comptime, debug_controller(m))
     .SchedulerPark | .SchedulerMutexWait -> parked()
-    .SchedulerWake          -> on_i64(args[0], origin, "wake", (n) -> wake(n))
-    .SchedulerSleepFor      -> on_i64(args[0], origin, "sleep_for", (n) -> sleep_for(n))
+    .SchedulerWake -> on_i64(args[0], origin, "wake", (n) -> wake(n))
+    .SchedulerSleepFor -> on_i64(args[0], origin, "sleep_for", (n) -> sleep_for(n))
     .SchedulerWatchReadable -> on_i64(args[0], origin, "watch_readable", (n) -> watch_readable(n))
-    .SchedulerWatchExit     -> on_i64(args[0], origin, "watch_exit", (n) -> watch_exit(n))
-    .WaitStop               -> on_i64(args[0], origin, "stop_waiting", (n) -> stop_waiting(n))
-    .WaitFor                -> serve_wait_for(state, args, origin)
-    .SchedulerCancel        -> cancel_guest_thread(args[0], origin)
-    .SchedulerCurrent       -> HostOk { .value = I64Val(current_thread()) }
-    .SchedulerIsCancelled   -> HostOk { .value = BoolVal(is_cancelled()) }
-    .SchedulerIsLeaving     -> serve_is_leaving(args[0], origin)
-    _                       -> null
+    .SchedulerWatchExit -> on_i64(args[0], origin, "watch_exit", (n) -> watch_exit(n))
+    .WaitStop -> on_i64(args[0], origin, "stop_waiting", (n) -> stop_waiting(n))
+    .WaitFor -> serve_wait_for(state, args, origin)
+    .SchedulerCancel -> cancel_guest_thread(args[0], origin)
+    .SchedulerCurrent -> HostOk { .value = I64Val(current_thread()) }
+    .SchedulerIsCancelled -> HostOk { .value = BoolVal(is_cancelled()) }
+    .SchedulerIsLeaving -> serve_is_leaving(args[0], origin)
+    // `dispatch_import` serves these, or an op does.
+    .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .Bytes | .BytesToString
+        | .StringHash | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
+        | .DeepCopy | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast
+        | .ArrayClear | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
+        | .BufferInternString | .BufferWriteString | .RuntimeCollect | .RuntimeCountAllocations
+        | .RuntimeStatistic | .SchedulerTaskEnded | .SchedulerMonitorEnter | .SchedulerMonitorGive
+        | .SchedulerMonitorExit | .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock
+        | .WasmStreamRead | .WasmFutureWait | .WasmStreamDrop | .WasmFutureDrop | .WasmThreadNew
+        | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield | .WasmThreadIndex
+        | .WasmThreadExit | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch | .FfiOpen
+        | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> null
 }
 
 // Start the guest function `args[0]` on a thread of the host, which a report
