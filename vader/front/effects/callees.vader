@@ -476,12 +476,13 @@ member_summary :: fn(id: IntrinsicId) -> MemberSummary = match id {
         | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
         | .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied
         | .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations
+        | .RuntimeStatistic
         | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
         | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
         | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMonitorEnter
         | .SchedulerMonitorExit | .SchedulerTaskEnded
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
-        | .WaitBlockedReadFor | .WaitBlockedWriteFor
+        | .WaitBlockedReadFor | .WaitBlockedWriteFor | .WaitFor
         | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
         | .FfiOpen | .FfiOpenPath | .FfiSymbol -> MemberSummary {}
     // Reads where its value lies, and writes none of it.

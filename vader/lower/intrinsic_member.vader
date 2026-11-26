@@ -166,13 +166,14 @@ array_member_op :: fn(id: Bc.IntrinsicId) -> ArrayOp | null = match id {
         | .BufferInternString | .BufferWriteString
         | .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied
         | .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations
+        | .RuntimeStatistic
         | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
         | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
         | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMonitorEnter
         | .SchedulerMonitorGive | .SchedulerMonitorExit | .SchedulerTaskEnded
         | .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerMutexWait
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
-        | .WaitBlockedReadFor | .WaitBlockedWriteFor
+        | .WaitBlockedReadFor | .WaitBlockedWriteFor | .WaitFor
         | .WasmStreamRead | .WasmFutureWait | .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
         | .WasmStreamDrop | .WasmFutureDrop
         | .WasmThreadIndex | .WasmThreadExit

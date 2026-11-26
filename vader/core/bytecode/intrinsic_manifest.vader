@@ -66,6 +66,7 @@ export IntrinsicId :: enum(MemberName) {
     RuntimeAllocatedBytes   { .member = "allocated_bytes" },
     RuntimeAllocations      { .member = "allocations" },
     RuntimeCountAllocations { .member = "count_allocations" },
+    RuntimeStatistic        { .member = "collector_statistic" },
     // std/runtime/scheduler
     SchedulerSpawn          { .member = "spawn_thread" },
     SchedulerPark           { .member = "park" },
@@ -93,6 +94,7 @@ export IntrinsicId :: enum(MemberName) {
     WaitBlockedReadFor      { .member = "wait_blocked_read_for" },
     WaitBlockedWriteFor     { .member = "wait_blocked_write_for" },
     WaitStop                { .member = "stop_waiting" },
+    WaitFor                 { .member = "wait_for" },
     // std/core: the stream or the future a component function returns, which
     // only a WASM build reads
     WasmStreamRead          { .member = "wasm_stream_read" },
@@ -197,7 +199,7 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     .SchedulerMutexUnlock -> false
     .SchedulerPark | .SchedulerSleepFor | .SchedulerCancel | .SchedulerMutexWait -> true
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
-    .WaitBlockedReadFor | .WaitBlockedWriteFor -> true
+    .WaitBlockedReadFor | .WaitBlockedWriteFor | .WaitFor -> true
     // Wait for the host, then make the array or the value read.
     .WasmStreamRead | .WasmFutureWait -> true
     // Give a handle back to the host.
@@ -212,7 +214,7 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     .Bytes | .BytesToString | .DeepCopy -> true
     // Unclassified: conservatively a safepoint.
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> true
-    .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> true
+    .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations | .RuntimeStatistic -> true
     .AbortPanic -> true
     .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame | .NotIntrinsic -> true
     // Served by an op, which answers for itself: never called through an import.
@@ -237,7 +239,7 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     .DeepCopy -> false
     // The collector moves objects and never changes a length; the rest only read.
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false
-    .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> false
+    .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations | .RuntimeStatistic -> false
     // Nothing runs before they return.
     .SchedulerSpawn | .SchedulerWake | .SchedulerCurrent | .SchedulerIsCancelled -> false
     .SchedulerIsLeaving | .SchedulerWatchReadable | .SchedulerWatchExit | .WaitStop -> false
@@ -249,7 +251,7 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     // reach.
     .SchedulerPark | .SchedulerSleepFor | .SchedulerCancel | .SchedulerMutexWait -> true
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
-    .WaitBlockedReadFor | .WaitBlockedWriteFor -> true
+    .WaitBlockedReadFor | .WaitBlockedWriteFor | .WaitFor -> true
     .WasmStreamRead | .WasmFutureWait | .WasmThreadSuspend | .WasmThreadYield -> true
     // Nothing runs before they return ; the end of a thread never returns.
     .WasmStreamDrop | .WasmFutureDrop -> false
@@ -277,7 +279,7 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
 export intrinsic_parks :: fn(id: IntrinsicId) -> bool = match id {
     .SchedulerPark | .SchedulerSleepFor | .SchedulerMutexWait -> true
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
-    .WaitBlockedReadFor | .WaitBlockedWriteFor -> true
+    .WaitBlockedReadFor | .WaitBlockedWriteFor | .WaitFor -> true
     // A wait for the host, or for a wake.
     .WasmStreamRead | .WasmFutureWait | .WasmThreadSuspend -> true
     // A drop returns at once, a yield waits for no wake, the end of a thread
@@ -297,7 +299,7 @@ export intrinsic_parks :: fn(id: IntrinsicId) -> bool = match id {
     .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash | .Bytes | .BytesToString -> false
     .DeepCopy | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch -> false
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false
-    .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> false
+    .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations | .RuntimeStatistic -> false
     .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame | .NotIntrinsic -> false
     .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
         | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast | .ArrayClear

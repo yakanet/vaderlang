@@ -12,6 +12,21 @@ module "std/core"
 
 import "std/target"
 
+/// What a wait on a descriptor waits for. The runtime reads its ordinal.
+export Readiness :: enum(i32) {
+    Readable,
+    Writable,
+}
+
+/// A statistic of the collector. The runtime reads its ordinal.
+export CollectorStatistic :: enum(i32) {
+    Collections,
+    BytesUsed,
+    BytesCopied,
+    AllocatedBytes,
+    Allocations,
+}
+
 /// The operations the toolchain performs: the VM and the native runtime each
 /// implement every member.
 export Intrinsic :: trait {

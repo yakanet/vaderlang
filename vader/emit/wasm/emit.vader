@@ -813,11 +813,11 @@ fixed_answer_of :: fn(id: Bc.IntrinsicId) -> FixedAnswer | null = @partial match
         | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerCurrent | .SchedulerIsCancelled
         | .SchedulerIsLeaving | .RuntimeCollect | .RuntimeCountAllocations | .RuntimeCollections
         | .RuntimeBytesUsed | .RuntimeBytesCopied | .RuntimeAllocatedBytes
-        | .RuntimeAllocations -> .Zero
+        | .RuntimeAllocations | .RuntimeStatistic -> .Zero
     .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor | .SchedulerCancel
         | .SchedulerTaskEnded | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMutexWait
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitBlockedReadFor
-        | .WaitBlockedWriteFor | .WaitStop | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall
+        | .WaitBlockedWriteFor | .WaitStop | .WaitFor | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall
         | .FfiCallFrame -> .Trap
     _ -> null
 }

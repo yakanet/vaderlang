@@ -1023,6 +1023,18 @@ vader_gc_stats_t vader_gc_get_stats(void) {
     return s;
 }
 
+int64_t vader_gc_statistic(int32_t which) {
+    vader_gc_stats_t s = vader_gc_get_stats();
+    switch (which) {
+    case VADER_STATISTIC_COLLECTIONS: return (int64_t) s.total_collections;
+    case VADER_STATISTIC_BYTES_USED: return (int64_t) s.bytes_used;
+    case VADER_STATISTIC_BYTES_COPIED: return (int64_t) s.total_copied;
+    case VADER_STATISTIC_ALLOCATED_BYTES: return (int64_t) s.total_alloc_bytes;
+    case VADER_STATISTIC_ALLOCATIONS: return (int64_t) s.total_alloc_count;
+    default: return 0;
+    }
+}
+
 /* From here on a lend may collect, so every shared buffer must be still: the
  * ones sliced before now are promoted, inside a collection that rewrites every
  * header of them. Invariant: vader.h, `VADER_ARRAY_RESOLVE_BUF`. */

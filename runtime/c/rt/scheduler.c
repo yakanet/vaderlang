@@ -1657,6 +1657,12 @@ bool vader_scheduler_wait_blocked_write_for(int64_t fd, int64_t nanos) {
     return vader_scheduler_wait_for(VADER_WATCH_WRITABLE, fd, nanos, 1);
 }
 
+bool vader_scheduler_wait(int64_t fd, int32_t readiness, int64_t nanos, bool blocked) {
+    int kind = VADER_WATCH_READABLE;
+    if (readiness == VADER_READINESS_WRITABLE) kind = VADER_WATCH_WRITABLE;
+    return vader_scheduler_wait_for(kind, fd, nanos, blocked);
+}
+
 void vader_scheduler_stop_waiting(int64_t fd) {
     if (!g_scheduler_started) return;
     vader_scheduler_lock();

@@ -38,13 +38,14 @@ export member_op :: fn(id: IntrinsicId) -> Op | null = match id {
         | .StringHash | .DeepCopy
         | .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied
         | .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations
+        | .RuntimeStatistic
         | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
         | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
         | .SchedulerWatchReadable | .SchedulerWatchExit | .SchedulerMonitorEnter
         | .SchedulerMonitorGive | .SchedulerMonitorExit | .SchedulerTaskEnded
         | .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerMutexWait
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
-        | .WaitBlockedReadFor | .WaitBlockedWriteFor
+        | .WaitBlockedReadFor | .WaitBlockedWriteFor | .WaitFor
         | .WasmStreamRead | .WasmFutureWait | .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
         | .WasmStreamDrop | .WasmFutureDrop
         | .WasmThreadIndex | .WasmThreadExit

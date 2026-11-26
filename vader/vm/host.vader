@@ -179,6 +179,13 @@ export dispatch_import :: fn(
     .RuntimeAllocatedBytes   -> { return HostOk { .value = I64Val(0) } }
     .RuntimeAllocations      -> { return HostOk { .value = I64Val(0) } }
     .RuntimeCountAllocations -> { return HostOk { .value = NullVal {} } }
+    .RuntimeStatistic -> {
+        which :: read_i32(stack[arg_base], at_pc, "collector_statistic") else return which
+        if i32(which) == i32(CollectorStatistic.Collections) {
+            return HostOk { .value = I64Val(gc_state[0]) }
+        }
+        return HostOk { .value = I64Val(0) }
+    }
     // One system thread runs every guest thread: no other worker to keep out.
     .SchedulerMonitorEnter | .SchedulerMonitorGive | .SchedulerMonitorExit | .SchedulerPublish
         | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerTaskEnded -> {
@@ -187,7 +194,7 @@ export dispatch_import :: fn(
     .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor | .SchedulerCancel
         | .SchedulerMutexWait | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving | .SchedulerWatchReadable
         | .SchedulerWatchExit | .WaitReadable | .WaitReadableFor | .WaitWritable
-        | .WaitWritableFor | .WaitBlockedReadFor | .WaitBlockedWriteFor | .WaitStop -> {
+        | .WaitWritableFor | .WaitBlockedReadFor | .WaitBlockedWriteFor | .WaitStop | .WaitFor -> {
         message :: "${info.mangled_name}: a thread primitive reached the host dispatch"
         return Trap { .message = message }
     }
@@ -1146,6 +1153,7 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .Bytes | .BytesToString | .DeepCopy -> null
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> null
     .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> null
+    .RuntimeStatistic -> null
     // A comptime evaluation treats threads as `vader run` does.
     .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor -> null
     .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving -> null
@@ -1154,7 +1162,7 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .SchedulerTaskEnded -> null
     .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerMutexWait -> null
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop -> null
-    .WaitBlockedReadFor | .WaitBlockedWriteFor -> null
+    .WaitBlockedReadFor | .WaitBlockedWriteFor | .WaitFor -> null
     // Traps, which the evaluation reports.
     .WasmStreamRead | .WasmFutureWait | .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
         | .WasmThreadIndex | .WasmThreadExit | .WasmStreamDrop | .WasmFutureDrop -> null

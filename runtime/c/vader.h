@@ -1567,6 +1567,17 @@ typedef struct {
     size_t total_alloc_count;
 } vader_gc_stats_t;
 vader_gc_stats_t vader_gc_get_stats(void);
+/* The ordinals of `std/core`'s `CollectorStatistic`, in its order. */
+enum {
+    VADER_STATISTIC_COLLECTIONS = 0,
+    VADER_STATISTIC_BYTES_USED = 1,
+    VADER_STATISTIC_BYTES_COPIED = 2,
+    VADER_STATISTIC_ALLOCATED_BYTES = 3,
+    VADER_STATISTIC_ALLOCATIONS = 4,
+};
+/* The field of `vader_gc_get_stats` that `which`, a `VADER_STATISTIC_*`,
+ * names. */
+int64_t vader_gc_statistic(int32_t which);
 
 /* Type information for the GC scanner. Indexed by `vader_obj_header_t.type_index`
  * (which is the same index space as `vader_box_t.tag` and the BcType table).
@@ -1751,6 +1762,12 @@ bool    vader_scheduler_wait_writable_for(int64_t fd, int64_t nanos);
  * and when no other thread could run, it waits on the system thread. */
 bool    vader_scheduler_wait_blocked_read_for(int64_t fd, int64_t nanos);
 bool    vader_scheduler_wait_blocked_write_for(int64_t fd, int64_t nanos);
+/* The ordinals of `std/core`'s `Readiness`, in its order. */
+enum { VADER_READINESS_READABLE = 0, VADER_READINESS_WRITABLE = 1 };
+/* Wait until `fd` reads or takes a write without blocking, as `readiness`, a
+ * `VADER_READINESS_*`, says: `nanos` at most when not negative, and without
+ * asking `fd` first when `blocked`. */
+bool    vader_scheduler_wait(int64_t fd, int32_t readiness, int64_t nanos, bool blocked);
 /* End the waits of the threads parked on `fd`, each returning as if `fd` were
  * ready: for a descriptor about to be closed, whose number the OS hands out
  * again. */
