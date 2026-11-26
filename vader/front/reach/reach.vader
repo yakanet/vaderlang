@@ -11,7 +11,9 @@ module "vader/front/reach"
 
 import "std/collections"
 import "std/iter"
+import "std/string"
 AST :: import "toolchain/ast"
+import "toolchain/span"
 
 // ---- names ----------------------------------------------------------------
 
@@ -48,6 +50,15 @@ export collect_names_through :: fn(
 /// @param module  the module's name, as its `module` line writes it.
 /// @param name    the name the declaration declares.
 export qualified_name :: fn(module: string, name: string) -> string = "${module}#${name}"
+
+/// The name a declaration declares, out of a name a walk keys it by: itself for
+/// a bare one, the part after its module for a `qualified_name`.
+///
+/// @param name  a name of the walk.
+export unqualified_name :: fn(name: string) -> string {
+    halves :: name.split_last("#") else return name
+    return halves.1
+}
 
 // `Alias.member` through a namespace alias, which names the member of one
 // module ; any other node as `referenced_name` reads it.
@@ -174,4 +185,60 @@ export bfs_reachable :: fn(
         }
     }
     return reachable
+}
+
+/// The names reached from `seeds`, each with the name whose references reached
+/// it first, `""` for a seed. The walk goes in breadth, so the way back from a
+/// name to a seed is a shortest one.
+///
+/// @param seeds         the names reached to begin with.
+/// @param refs_by_name  the names each name references (`register_refs`).
+export parents_reached :: fn(seeds: string[], refs_by_name: Map<string, string[]>) -> Map<string, string> {
+    parents :: Map<string, string> {}
+    work: string[]: []
+    for s in seeds {
+        if parents.put_absent(s, "") == null {
+            work.push(s)
+        }
+    }
+    cursor: i64 = 0
+    for cursor < work.len() {
+        n :: work[cursor]
+        cursor += 1
+        nrefs :: refs_by_name[n] else continue
+        for r in nrefs {
+            if parents.put_absent(r, n) == null {
+                work.push(r)
+            }
+        }
+    }
+    return parents
+}
+
+/// Where `n` first writes the name `name`, as `collect_names` reads names: an
+/// identifier, or the field of an access.
+///
+/// @param n     the node to walk.
+/// @param name  the name, bare.
+/// @return      the span of the name ; null when `n` does not write it.
+export first_written :: fn(n: AST.Node, name: string) -> Span | null {
+    found: Span[]: []
+    AST.inspect(n, (m) -> written_at(m, name, found))
+    if found.is_empty() {
+        return null
+    }
+    return found[0]
+}
+
+// Push to `found` the span of `n` when it writes `name`, and end the walk there.
+written_at :: fn(n: AST.Node, name: string, found: Span[]) -> AST.Walk {
+    if n is AST.IdentExpr && n.name == name {
+        found.push(n.span)
+        return .Stop
+    }
+    if n is AST.FieldExpr && n.field == name {
+        found.push(n.field_span)
+        return .Stop
+    }
+    return .Descend
 }

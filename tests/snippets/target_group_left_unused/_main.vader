@@ -1,0 +1,21 @@
+module "snippet"
+
+import "std/console"
+
+// A `@target` group with a body for WebAssembly alone, on a host target where no
+// body covers it: nothing the program runs uses it, so it builds, and leaves no
+// import behind. `describe` names it and is never called.
+
+@target
+wasm_tag :: fn() -> i32
+
+@target(.Wasi)
+wasm_tag :: fn() -> i32 = 1
+
+@allow_unused
+describe :: fn() -> i32 = wasm_tag() + 1
+
+main :: fn() -> i32 {
+    println("built without a body for the host")
+    return 0
+}

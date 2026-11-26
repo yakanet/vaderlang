@@ -1,0 +1,12 @@
+# Typecheck
+
+## tests/snippets/target_group_left_unused
+  FnDecl         describe             :: fn() -> i32
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         wasm_tag             :: fn() -> i32
+  expr 16:27    BinaryExpr     :: i32
+  expr 16:27    CallExpr       :: i32
+  expr 16:27    IdentExpr      :: fn() -> i32
+  expr 19:13    StringLitExpr  :: string
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void

@@ -69,7 +69,7 @@ export discarded_bodies :: fn(files: SourceFile[], target: Target | null) -> AST
     if target == null {
         return out
     }
-    kept :: select_target_bodies(files, target, [])
+    kept :: select_target_bodies(files, target, [], [])
     for f in files {
         for d in f.program.decls.filter_is<AST.FnDecl>() {
             if target_selectors(d.decorators) == null {
@@ -113,13 +113,17 @@ export target_declarations :: fn(files: SourceFile[]) -> AST.FnDecl[] {
 ///
 /// @param files   the module's parsed files.
 /// @param target  the compilation target, or null to disable selection.
-/// @param diags   accumulates the group well-formedness diagnostics, which are
-///                raised for every target rather than only the one being built.
-/// @return        files whose programs hold only the selected declarations.
+/// @param diags      accumulates the group well-formedness diagnostics, which
+///                   are raised for every target rather than only the one being
+///                   built.
+/// @param uncovered  receives each declaration no body covers for `target`,
+///                   an error where the program uses it (`report_used_uncovered`).
+/// @return           files whose programs hold only the selected declarations.
 export select_target_bodies :: fn(
     files: SourceFile[],
     target: Target | null,
     diags: Diagnostic[],
+    uncovered: UncoveredDecl[],
 ) -> SourceFile[] {
     // Group well-formedness is checked BEFORE any filtering, and therefore for
     // every target rather than only the one being built. That is what makes a
@@ -161,7 +165,7 @@ export select_target_bodies :: fn(
             }
         }
     }
-    report_uncovered(files, target, winners, covered, diags)
+    note_uncovered(files, winners, covered, uncovered)
     out: SourceFile[]: []
     for f in files {
         kept: AST.Decl[]: []
@@ -336,17 +340,26 @@ check_signature :: fn(decl: AST.FnDecl, body: AST.FnDecl, diags: Diagnostic[]) -
     }
 }
 
-// A bare declaration with NO general body, whose group covers other platforms but
-// not this one. Left alone it reaches the type checker as an ordinary bodyless
-// fn and comes out as T3062, whose advice ("must be `@extern`")
-// is exactly the wrong thing to do here, and which names neither the target
-// nor the group. Reported before selection hands anything on.
-report_uncovered :: fn(
+/// A bare `@target` declaration with no general body, whose group covers other
+/// targets but not the one being built. Left alone it would reach the type
+/// checker as an ordinary bodyless fn and come out as T3062, whose advice ("must
+/// be `@extern`") is the wrong fix for a coverage hole: a use of it is R2041
+/// instead, and a declaration nothing uses is dead.
+export UncoveredDecl :: struct {
+    decl: AST.FnDecl
+    /// The name of its module.
+    module: string
+    /// The targets the bodies of its group cover, as a message lists them.
+    covered: string
+}
+
+// Push to `uncovered` each bare declaration of `files` that neither a general
+// body nor a body of `winners` covers.
+note_uncovered :: fn(
     files: SourceFile[],
-    target: Target,
     winners: Map<string, AST.FnDecl>,
     covered: Map<string, string>,
-    diags: Diagnostic[],
+    uncovered: UncoveredDecl[],
 ) -> void {
     for f in files {
         for d in f.program.decls.filter_is<AST.FnDecl>() {
@@ -367,15 +380,11 @@ report_uncovered :: fn(
             if is_host_bound(d) {
                 continue
             }
-            have :: covered[d.name] else "(none)"
-            diags.push(
-                resolver_error(
-                    .NoTargetBodyCoversTarget,
-                    d.name_span,
-                    "`${d.name}` has no body for `${target}` and no general body ; "
-                        + "its `@target` bodies cover ${have}",
-                ),
-            )
+            uncovered.push(UncoveredDecl {
+                .decl = d,
+                .module = module_of(f),
+                .covered = covered[d.name] else "(none)",
+            })
         }
     }
 }

@@ -4660,7 +4660,7 @@ A build keeps one body per declaration, the one listing the target's OS or else 
 
 Whatever the target being built, each line above is an error, and so are: a body carrying a decorator other than `@extern`; a body with another number of parameters (a body binds them by position, and their types are not compared); `@target` on anything but a top-level free function (a constant that depends on the target uses `VADER_OS`).
 
-A declaration with no general body and no body for the OS being built is an error too.
+A declaration with no general body and no body for the OS being built is an error where the program uses it, and the error names the way from where the program starts: `main`, each test a run of the tests runs, or every declaration of a project with no `main`. Naming the function is a use, as a function value too, and a test of `VADER_OS` around the use does not avoid the error. A library may thus declare what a target lacks: a program that never uses it builds for that target.
 
 #### `VADER_OS`: the target as a value
 

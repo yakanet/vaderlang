@@ -55,6 +55,9 @@ ReachUnit :: struct {
     /// module that is not trimmed, what they name stays, so that the lint of
     /// imports finds what an import served.
     discarded: AST.FnDecl[] = []
+    /// Whether the roots of the program are declared here: a module of the
+    /// project being built, or the one whose tests run (`root_names`).
+    rooted: bool = false
 }
 
 /// What `only_reached` leaves of one module.
@@ -72,10 +75,57 @@ Reached :: struct {
 ///                         whatever the sources write.
 /// @return                 what is left of each unit, in the order of `units`.
 only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reached[] {
-    dependency_types :: Set<string> {}
-    // The names that reach a declaration of a trimmed module. Any other name a
-    // declaration writes leads nowhere, and is not kept: a program writes far
-    // more names than its dependencies declare.
+    graph :: name_graph(units, compiler_called)
+    reachable :: bfs_reachable([], graph.seeds, graph.refs_by_name)
+    out: Reached[]: []
+    for unit in units {
+        if !unit.trimmed {
+            out.push(Reached { .files = unit.files })
+            continue
+        }
+        left :: Reached { .files = [] }
+        for f in unit.files {
+            own :: module_of(f)
+            kept: AST.Decl[]: []
+            for d in f.program.decls {
+                key :: reach_key(d, graph.dependency_types)
+                if key == null || is_reached(d, key, own, reachable) {
+                    kept.push(d)
+                } else if d is AST.ImplDecl {
+                    left.lost_impl_traits.push(AST.impl_trait_name(d))
+                }
+            }
+            left.files.push(
+                SourceFile { ...f, .program = AST.Program { ...f.program, .decls = kept } },
+            )
+        }
+        out.push(left)
+    }
+    return out
+}
+
+/// The names that lead to the declarations of a load, by the rules of the
+/// header, and the names reached whatever else is.
+NameGraph :: struct {
+    /// The types the graphed modules declare, which an impl follows.
+    dependency_types: Set<string>
+    /// The names each name leads to (`register_refs`).
+    refs_by_name: Map<string, string[]>
+    /// The names written where no declaration is graphed, each reached once.
+    seeds: string[]
+}
+
+// The names that lead to the declarations of the trimmed modules of `units`,
+// the others seeding the walk with all they write.
+name_graph :: fn(units: ReachUnit[], compiler_called: string[]) -> NameGraph {
+    graph :: NameGraph {
+        .dependency_types = Set<string> {},
+        .refs_by_name = Map<string, string[]> {},
+        .seeds = [],
+    }
+    // The names that reach a graphed declaration. Any other name a declaration
+    // writes leads nowhere, and is not kept: a program writes far more names
+    // than its dependencies declare.
     leading :: Set<string> {}
     modules :: Set<string> {}
     for unit in units {
@@ -98,17 +148,15 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
             for d in f.program.decls {
                 add_leading_names(d, own, leading)
                 if declares_type(d) {
-                    dependency_types.add(declared_name(d) else continue)
+                    graph.dependency_types.add(declared_name(d) else continue)
                 }
             }
         }
     }
-    refs_by_name :: Map<string, string[]> {}
     seeded :: Set<string> {}
-    seed_refs: string[]: []
     for name in compiler_called {
         if seeded.add(name) {
-            seed_refs.push(name)
+            graph.seeds.push(name)
         }
     }
     for unit in units {
@@ -116,19 +164,19 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
         if !unit.trimmed {
             for body in unit.discarded {
                 aliases :: aliases_in(aliases_by_file, body.span.start.file)
-                seed_leading(names_written_by(body, aliases, ""), leading, seeded, seed_refs)
+                seed_leading(names_written_by(body, aliases, ""), leading, seeded, graph.seeds)
             }
         }
         for f in unit.files {
             own :: module_of(f)
             module_names: string[]: []
             collect_decorator_names(AST.module_decorators(f.program), module_names)
-            seed_leading(module_names, leading, seeded, seed_refs)
+            seed_leading(module_names, leading, seeded, graph.seeds)
             for d in f.program.decls {
                 written :: names_written_by(d, aliases_read_by(d, f, aliases_by_file), own)
-                key :: reach_key(d, dependency_types)
+                key :: reach_key(d, graph.dependency_types)
                 if !unit.trimmed || key == null {
-                    seed_leading(written, leading, seeded, seed_refs)
+                    seed_leading(written, leading, seeded, graph.seeds)
                     continue
                 }
                 refs: string[]: []
@@ -137,47 +185,42 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
                         refs.push(name)
                     }
                 }
-                if !is_private_to(d, own) {
-                    register_refs(refs_by_name, key, refs)
+                if leads_bare(d, own) {
+                    register_refs(graph.refs_by_name, key, refs)
                 }
-                if own != "" && d !is AST.ImplDecl {
-                    register_refs(refs_by_name, qualified_name(own, key), refs.clone())
+                if leads_qualified(d, own) {
+                    register_refs(graph.refs_by_name, qualified_name(own, key), refs.clone())
                 }
                 if d is AST.TraitDecl {
                     for member in d.members {
-                        register_refs(refs_by_name, member.name, [d.name])
+                        register_refs(graph.refs_by_name, member.name, [d.name])
                     }
                 }
             }
         }
     }
-    reachable :: bfs_reachable([], seed_refs, refs_by_name)
-    out: Reached[]: []
-    for unit in units {
-        if !unit.trimmed {
-            out.push(Reached { .files = unit.files })
-            continue
-        }
-        left :: Reached { .files = [] }
-        for f in unit.files {
-            own :: module_of(f)
-            kept: AST.Decl[]: []
-            for d in f.program.decls {
-                key :: reach_key(d, dependency_types)
-                if key == null || is_reached(d, key, own, reachable) {
-                    kept.push(d)
-                } else if d is AST.ImplDecl {
-                    left.lost_impl_traits.push(AST.impl_trait_name(d))
-                }
-            }
-            left.files.push(
-                SourceFile { ...f, .program = AST.Program { ...f.program, .decls = kept } },
-            )
-        }
-        out.push(left)
+    return graph
+}
+
+// The names that lead to `d`, of the module `own`, which `key` names: the bare
+// one unless it is private, and its name in its module.
+names_of :: fn(d: AST.Decl, key: string, own: string) -> string[] {
+    out: string[]: []
+    if leads_bare(d, own) {
+        out.push(key)
+    }
+    if leads_qualified(d, own) {
+        out.push(qualified_name(own, key))
     }
     return out
 }
+
+// Whether the bare name of `d`, of the module `own`, leads to it: unless it is
+// private.
+leads_bare :: fn(d: AST.Decl, own: string) -> bool = !is_private_to(d, own)
+
+// Whether the name of `d` in its module `own` leads to it: an impl has none.
+leads_qualified :: fn(d: AST.Decl, own: string) -> bool = own != "" && d !is AST.ImplDecl
 
 // Add to `leading` the names that reach the declaration `d` of the trimmed
 // module `own`: its own, bare and in its module, the trait of an impl, the
@@ -243,10 +286,10 @@ names_written_by :: fn(d: AST.Decl, aliases: Map<string, string>, own: string) -
 // Whether the walk reached `d`, of the module `own`, which `key` names: by its
 // bare name unless it is private, or by its name in its module.
 is_reached :: fn(d: AST.Decl, key: string, own: string, reachable: Set<string>) -> bool {
-    if key in reachable && !is_private_to(d, own) {
+    if leads_bare(d, own) && key in reachable {
         return true
     }
-    return own != "" && d !is AST.ImplDecl && qualified_name(own, key) in reachable
+    return leads_qualified(d, own) && qualified_name(own, key) in reachable
 }
 
 // Whether `d`, of the module `own`, is a function or a constant no other module

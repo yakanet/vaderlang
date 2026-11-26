@@ -304,7 +304,7 @@ is_fn_root :: fn(
     if ast is FnDecl && ast.id in interfaces {
         return false
     }
-    if fn_decl.body == null { return true }
+    if fn_decl.body == null { return !is_target_hole(ast) }
     if fn_decl.origin.is_main { return true }
     if ast is FnDecl {
         if ast.id in roots {
@@ -316,6 +316,14 @@ is_fn_root :: fn(
     }
     return false
 }
+
+// Whether `ast` is a `@target` declaration that no body covers for the target
+// being built: target selection grafts the body that covers one onto it, so a
+// bodyless one that no `@extern` binds has none. No import binds it, and the
+// resolver refused any use of it, so what is left of it here is dead.
+is_target_hole :: fn(ast: Decl) -> bool =
+    ast is FnDecl && has_compiler_decorator(ast.decorators, .Target)
+        && !has_compiler_decorator(ast.decorators, .Extern)
 
 /// Whether the project exposes a top-level `main` fn (a fn with a body
 /// flagged `origin.is_main`). When false, every user decl stays a root.

@@ -1,1 +1,2 @@
-[14:1] error[R2041] no `@target` body covers the target being built: `platform_tag` has no body for `linux-x86_64` and no general body ; its `@target` bodies cover .wasi
+[21:25] error[R2041] no `@target` body covers the target being built: `platform_tag` has no body for `linux-x86_64` and no general body ; its `@target` bodies cover .wasi ; used through `main` -> `tagged`
+    [tests/diag_corpus/resolver/r2041_no_target_body_covers_target/_main.vader:16:1] `platform_tag` is declared here

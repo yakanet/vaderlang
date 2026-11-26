@@ -1,8 +1,10 @@
 // A bare declaration with no general body, whose group covers other platforms
-// but not the one being built. Left alone it reaches the type checker as an
-// ordinary bodyless fn and comes out as T3062, whose advice ("must be
-// `@extern`") is exactly the wrong thing to do here, and which
-// names neither the target nor the group.
+// but not the one being built, which the program uses. The error points at the
+// use and names the way from `main` ; a declaration of the group nothing uses
+// would build. Left alone it would reach the type checker as an ordinary
+// bodyless fn and come out as T3062, whose advice ("must be `@extern`") is
+// exactly the wrong thing to do here, and which names neither the target nor
+// the group.
 //
 // `.Wasi` is deliberate: no CI target selects it, so this fixture reports the
 // same thing on every machine. A fixture whose diagnostics depend on the host
@@ -16,4 +18,6 @@ platform_tag :: fn() -> i32
 @target(.Wasi)
 platform_tag :: fn() -> i32 = 1
 
-main :: fn() -> i32 = platform_tag()
+tagged :: fn() -> i32 = platform_tag() + 1
+
+main :: fn() -> i32 = tagged()

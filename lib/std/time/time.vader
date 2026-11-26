@@ -41,8 +41,8 @@ export Duration :: i64
 // and the two shapes differ enough that `@target` selects a BODY: the split
 // `std/console::write_bytes` already makes between a descriptor and a HANDLE.
 //
-// The bare `@target` declaration carries no body on purpose: a target with no
-// clock then fails to BUILD (R2041) rather than reading a plausible zero.
+// The bare `@target` declaration carries no body on purpose: a program reading the clock on a
+// target with none fails to BUILD (R2041) rather than reading a plausible zero.
 
 // Wall-clock milliseconds since the Unix epoch (1970-01-01 UTC). Deliberately
 // coarser than `monotonic_ns` so the backends agree.

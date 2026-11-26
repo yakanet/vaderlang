@@ -242,9 +242,9 @@ declare_fn :: fn(
     // go through other declarers and never reach `declare_fn`.
     //
     // A `@target` declaration is exempt: bodyless here means the group had no
-    // body for the target being built, which the resolver already reported as
-    // R2041: naming the target and what the group DOES cover. Emitting this too
-    // would answer the same question a second time with the opposite advice
+    // body for the target being built, which the resolver reports as R2041 where
+    // the program uses it, naming the target and what the group DOES cover, and
+    // which is dead otherwise. Emitting this too would give the opposite advice
     // ("make it `@extern`"), which is the wrong fix for a coverage hole.
     //
     // A function a stage wrote without a body takes it after the comptime
