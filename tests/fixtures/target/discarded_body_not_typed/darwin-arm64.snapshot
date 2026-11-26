@@ -15,5 +15,6 @@ std_console$write_bytes <- lib/std/console/console.vader:64
 std_console$write_text <- lib/std/console/console.vader:98
 std_io$io_error_of <- lib/std/io/io.vader:145
 std_io$last_io_error <- lib/std/io/io.vader:121
+std_runtime_wait$wait_for <- lib/std/runtime/wait/wait.vader:42
 std_time$monotonic_ns <- lib/std/time/time.vader:85
 std_time$now_unix_ms <- lib/std/time/time.vader:53

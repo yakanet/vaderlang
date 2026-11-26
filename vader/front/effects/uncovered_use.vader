@@ -1,0 +1,536 @@
+// vader/front/effects/uncovered_use: a use of a declaration the target being
+// built leaves without a body.
+//
+// Target selection notes each bare `@target` declaration whose group has no
+// body for the target (`UncoveredDecl`, `vader/front/resolver/target_select.vader`).
+// Such a declaration is an error where the program uses it, and dead otherwise:
+// a library may declare what a target lacks, and only a program that uses it
+// fails to build there.
+//
+// What the program uses is what its roots reach through what the typecheck
+// settled, never through a name alone: a local or a field that shares the
+// declaration's name uses nothing. A declaration uses
+//
+// - what each call it writes runs, in every role a site plays
+//   (`call_sites.vader`), a member reached through a trait being that member of
+//   every impl ;
+// - the function or the constant a name it writes outside a call settles on ;
+// - the field defaults of a struct a literal it writes builds.
+//
+// The roots are those the lowering keeps (`vader/lower/dce/dce.vader`): the
+// entry's `main`, or every declaration of the entry when it declares none, the
+// tests a load runs, `@extern` functions, and the functions the compiler calls by
+// itself. The walk goes in breadth and keeps the declaration that reached each one
+// first, which gives the chain the diagnostic names, from a root to the use.
+
+module "vader/front/effects"
+
+import "std/collections"
+import "std/iter"
+import "std/string"
+import "toolchain/diagnostics"
+import "toolchain/span"
+import "vader/core/symbol"
+import "vader/core/types"
+import "vader/front/resolver"
+import "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+
+/// The R2041 errors of a checked project: one per declaration target selection
+/// left without a body that the roots of the program use.
+///
+/// @param summary  the effect summary, whose index says what a call runs.
+/// @param checked  its typecheck, which recorded what each name settles on.
+export uncovered_use_diagnostics :: fn(
+    summary: EffectSummary,
+    checked: CheckResult,
+) -> Diagnostic[] {
+    out: Diagnostic[]: []
+    project :: summary.index.project
+    if project.uncovered.is_empty() {
+        return out
+    }
+    walk :: walk_of(summary.index, checked)
+    for root in roots_of(project) {
+        walk.reach(root, FirstUse {})
+    }
+    walk.drain()
+    for u in project.uncovered {
+        if walk.reached[u.decl.id] == null {
+            continue
+        }
+        out.push(uncovered_use(u, walk.steps_to(u.decl.id)))
+    }
+    return out
+}
+
+// ---- the walk -------------------------------------------------------------
+
+// A declaration the walk may reach, and the module that typed it.
+UsedDecl :: struct {
+    decl: AST.Decl
+    /// The name it declares.
+    name: string
+    typed: TypedProgram
+    /// Whether a module of the project being built declares it, which its author
+    /// can change.
+    in_project: bool
+}
+
+// How the walk first reached a declaration: from the declaration `user`, by its
+// id, at `at` ; neither for a root.
+FirstUse :: struct {
+    user: i64 | null = null
+    at: Span | null = null
+}
+
+// The walk from the roots of a program.
+UseWalk :: struct {
+    index: CalleeIndex
+    /// Every declaration the walk may reach, by its id: the functions, impl
+    /// members included, the constants and the structs.
+    decls: Map<i64, UsedDecl>
+    /// The id of each constant's declaration, by its symbol's id.
+    constants: Map<i32, i64>
+    roles: CallRole[] = all_roles()
+    /// How the walk first reached each declaration, by its id.
+    reached: Map<i64, FirstUse> = Map<i64, FirstUse> {}
+    /// The declarations reached, in the order the walk reached them.
+    work: i64[] = []
+    /// The callees of the calls walked, which their call settles: node ids are
+    /// unique across the project.
+    settled: Set<i64> = Set<i64> {}
+}
+
+// The walk over the declarations of `checked`, nothing reached yet.
+walk_of :: fn(index: CalleeIndex, checked: CheckResult) -> UseWalk {
+    walk :: UseWalk {
+        .index = index,
+        .decls = Map<i64, UsedDecl> {},
+        .constants = Map<i32, i64> {},
+    }
+    // The module of each typed program, for the impl members below.
+    in_project :: Set<string> {}
+    for [id, loaded] in index.project.modules {
+        typed :: checked.all_modules[id] else continue
+        own :: loaded.module.origin == .Build
+        if own {
+            in_project.add(id)
+        }
+        for file in loaded.module.files {
+            for d in file.program.decls {
+                name :: walked_name(d) else continue
+                if d is AST.ConstDecl {
+                    sym :: loaded.collected.symbols[name] else continue
+                    walk.constants[sym.id] = d.id
+                }
+                used :: UsedDecl {
+                    .decl = d,
+                    .name = name,
+                    .typed = typed,
+                    .in_project = own,
+                }
+                walk.decls[d.id] = used
+            }
+        }
+    }
+    // The members of impls, and the trait defaults they inherit.
+    for f in index.functions {
+        used :: UsedDecl {
+            .decl = f.decl,
+            .name = f.decl.name,
+            .typed = f.typed,
+            .in_project = f.typed.resolved.path in in_project,
+        }
+        walk.decls.put_absent(f.decl.id, used)
+    }
+    return walk
+}
+
+// The name of `d` when the walk may reach it: a function, a constant or a struct.
+walked_name :: fn(d: AST.Decl) -> string | null = match d {
+    is AST.FnDecl | AST.ConstDecl | AST.StructDecl -> d.name
+    is AST.ImportDecl | AST.EnumDecl | AST.TraitDecl | AST.ImplDecl -> null
+    is AST.TypeAliasDecl | AST.AssertDecl -> null
+}
+
+// Note that the walk reached the declaration `id` by `first`, unless it had.
+reach :: fn(walk: UseWalk, id: i64, first: FirstUse) -> void {
+    if walk.reached.put_absent(id, first) == null {
+        walk.work.push(id)
+    }
+}
+
+// Reach what each declaration reached uses, until nothing new is reached.
+drain :: fn(walk: UseWalk) -> void {
+    // `work` grows as declarations are reached: the cursor re-reads its length.
+    cursor: i64 = 0
+    for cursor < walk.work.len() {
+        user :: walk.work[cursor]
+        cursor += 1
+        used :: walk.decls[user] else continue
+        AST.inspect(used.decl, (n) -> walk.use_at(n, used.typed, user))
+    }
+}
+
+// Reach what the node `n` of the declaration `user`, typed by `typed`, uses.
+use_at :: fn(walk: UseWalk, n: AST.Node, typed: TypedProgram, user: i64) -> AST.Walk {
+    if n !is AST.Expr || n.id in walk.settled {
+        return .Descend
+    }
+    if walk.reach_sites(n, typed, user) {
+        return .Descend
+    }
+    if n is AST.IdentExpr {
+        sym :: typed.resolved.idents[n.span.hash()] else return .Descend
+        walk.reach_symbol(sym, typed, FirstUse { .user = user, .at = n.span })
+    } else if n is AST.FieldExpr {
+        sym :: namespace_member_symbol(n, walk.index.project, typed) else return .Descend
+        walk.reach_symbol(sym, typed, FirstUse { .user = user, .at = n.field_span })
+    } else if n is AST.StructLitExpr {
+        walk.reach_defaults(n, typed, user)
+    }
+    return .Descend
+}
+
+// Reach what the sites at `e` run, and settle the callee of a call there: the
+// call says what it runs. False when no site is at `e`.
+reach_sites :: fn(walk: UseWalk, e: AST.Expr, typed: TypedProgram, user: i64) -> bool {
+    found := false
+    for role in walk.roles {
+        callee :: sites_of(typed.call_sites, role)[e.id] else continue
+        found = true
+        first :: FirstUse { .user = user, .at = name_span(e) }
+        if callee is DirectFn && !callee.per_instance {
+            walk.reach(callee.decl.id, first)
+            continue
+        }
+        for decl in named_decls(callee) {
+            walk.reach(decl.id, first)
+        }
+        for target in walk.index.targets_of(callee).filter_is<CalleeNode>() {
+            walk.reach(walk.index.functions[target.node].decl.id, first)
+        }
+    }
+    if found && e is AST.CallExpr {
+        walk.settled.add(e.callee.id)
+    }
+    return found
+}
+
+// Reach the function or the constant `sym` names, through the import that binds
+// it.
+reach_symbol :: fn(walk: UseWalk, sym: Symbol, typed: TypedProgram, first: FirstUse) -> void {
+    named :: typed.resolved.imports_to[sym.id] else sym
+    if named.kind == .Fn {
+        decl :: typed.fn_decls[named.id] else return
+        walk.reach(decl.id, first)
+    } else if named.kind == .Const {
+        id :: walk.constants[named.id] else return
+        walk.reach(id, first)
+    }
+}
+
+// Reach the struct the literal `e` builds, when a field of it has a default.
+reach_defaults :: fn(walk: UseWalk, e: AST.StructLitExpr, typed: TypedProgram, user: i64) -> void {
+    built :: typed.expr_types[e.id] else return
+    if built !is StructType {
+        return
+    }
+    decl :: typed.struct_decls[built.symbol.id] else return
+    if decl.fields.any_match((f) -> f.default != null) {
+        walk.reach(decl.id, FirstUse { .user = user, .at = e.type_name.span })
+    }
+}
+
+// Where a site writes what it uses: the name a call calls, else the site.
+name_span :: fn(e: AST.Expr) -> Span {
+    if e !is AST.CallExpr {
+        return e.span
+    }
+    callee :: e.callee
+    if callee is AST.FieldExpr {
+        return callee.field_span
+    }
+    return callee.span
+}
+
+// ---- the roots ------------------------------------------------------------
+
+// The declarations the program starts from (see the header).
+roots_of :: fn(project: LoadedProject) -> i64[] {
+    entries: i64[]: []
+    every: i64[]: []
+    has_main := false
+    for [id, loaded] in project.modules {
+        entry :: id == project.entry
+        called :: loaded.module.module_name == SCHEDULER_MODULE
+        for file in loaded.module.files {
+            for d in file.program.decls {
+                if entry {
+                    every.push(d.id)
+                }
+                if d !is AST.FnDecl {
+                    continue
+                }
+                if is_entry(d, entry, called, project.under_test) {
+                    entries.push(d.id)
+                }
+                has_main = has_main || entry && d.name == "main"
+            }
+        }
+    }
+    if !project.under_test && !has_main {
+        entries.push_all(every)
+    }
+    return entries
+}
+
+// Whether the program starts at `d`, as the lowering keeps it: an `@extern`
+// function, a function of the scheduler the compiler calls by itself
+// (`called`), and in the entry, `main` and the tests a load runs.
+is_entry :: fn(d: AST.FnDecl, entry: bool, called: bool, under_test: bool) -> bool {
+    if AST.has_compiler_decorator(d.decorators, .Extern) {
+        return true
+    }
+    if called && CALLED_BY_NAME.contains(d.name) {
+        return true
+    }
+    if !entry {
+        return false
+    }
+    return d.name == "main" || under_test && AST.has_compiler_decorator(d.decorators, .Test)
+}
+
+// ---- the diagnostic -------------------------------------------------------
+
+// One step of a way from a root: a declaration that uses the next.
+UseStep :: struct {
+    user: string
+    used: string
+    at: Span | null
+    /// Whether the project being built declares `user`.
+    in_project: bool
+}
+
+// The steps from a root down to the declaration `id`, which the walk reached,
+// the root's first.
+steps_to :: fn(walk: UseWalk, id: i64) -> UseStep[] {
+    back: UseStep[]: []
+    used := id
+    for {
+        first :: walk.reached[used] else break
+        user :: first.user else break
+        owner :: walk.decls[user] else break
+        step :: UseStep {
+            .user = owner.name,
+            .used = walk.name_of(used),
+            .at = first.at,
+            .in_project = owner.in_project,
+        }
+        back.push(step)
+        used = user
+    }
+    out: UseStep[]: []
+    for i in 0..<back.len() {
+        out.push(back[back.len() - 1 - i])
+    }
+    return out
+}
+
+// The name the declaration `id` declares.
+name_of :: fn(walk: UseWalk, id: i64) -> string {
+    used :: walk.decls[id] else return ""
+    return used.name
+}
+
+// R2041 for the declaration `u`, which `steps` lead to from a root: at the
+// deepest use the project writes, the uses past it and the declaration related.
+uncovered_use :: fn(u: UncoveredDecl, steps: UseStep[]) -> Diagnostic {
+    d :: u.decl
+    detail :: "`${d.name}` has no body for `${u.target}` and no general body ; "
+        + "its `@target` bodies cover ${u.covered} ; ${display_way(steps)}"
+    primary := d.name_span
+    related: Related[]: []
+    at :: primary_step(steps)
+    if at != null {
+        primary = steps[at].at else d.name_span
+        for i in at + 1..<steps.len() {
+            step :: steps[i]
+            span :: step.at else continue
+            message :: "`${step.user}` uses `${step.used}` here"
+            related.push(Related { .span = span, .message = message })
+        }
+    }
+    related.push(Related { .span = d.name_span, .message = "`${d.name}` is declared here" })
+    return Diagnostic {
+        ...resolver_error(.NoTargetBodyCoversTarget, primary, detail),
+        .related = related,
+    }
+}
+
+// The index of the step the diagnostic points at: the deepest use the project
+// writes, else the deepest use written ; null for none.
+primary_step :: fn(steps: UseStep[]) -> i64 | null {
+    deepest: i64 | null = null
+    deepest_in_project: i64 | null = null
+    for i in 0..<steps.len() {
+        step :: steps[i]
+        if step.at == null {
+            continue
+        }
+        deepest = i
+        if step.in_project {
+            deepest_in_project = i
+        }
+    }
+    if deepest_in_project != null {
+        return deepest_in_project
+    }
+    return deepest
+}
+
+// The way from a root to the declaration, as a message says it.
+display_way :: fn(steps: UseStep[]) -> string {
+    if steps.is_empty() {
+        return "it is a root of the program"
+    }
+    return "used through ${steps.map((s) -> "`${s.user}`").collect().join(" -> ")}"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/testing"
+import "vader/support/target"
+
+// The R2041 errors of `source`, the entry of a project built for WASI, which must
+// check otherwise ; `under_test` loads it to run its tests.
+uses_of_holes :: fn(source: string, under_test: bool = false) -> Diagnostic[] {
+    entry :: "/no/such/vader_uncovered_use/main.vader"
+    overlay :: Map<string, string> {}
+    overlay[entry] = "module \"main\"\n\n@target\nhole :: fn() -> i32\n\n@target(.Linux)\n"
+        + "hole :: fn() -> i32 = 1\n\n" + source
+    wasi :: Target { .os = .Wasi, .arch = .Wasm32 }
+    project :: load_project_with_overlay(entry, overlay, [], null, wasi, under_test = under_test)
+    diags: Diagnostic[]: []
+    diags.push_all(project.diags)
+    result :: check_project_with_bodies(project, diags, false)
+    for d in diags.filter((d) -> d.severity == .Error) {
+        panic("the project should check: ${d.code.id} ${d.detail}")
+    }
+    return uncovered_use_diagnostics(summarise_effects(project, result), result)
+}
+
+@test
+test_a_hole_nothing_uses_is_no_error :: fn() -> void {
+    source :: """
+        unused :: fn() -> i32 = hole()
+
+        main :: fn() -> i32 = 0
+        """
+    assert_eq(uses_of_holes(source).len(), 0)
+}
+
+@test
+test_a_use_names_the_way_from_main :: fn() -> void {
+    source :: """
+        through :: fn() -> i32 = hole() + 1
+
+        main :: fn() -> i32 = through()
+        """
+    diags :: uses_of_holes(source)
+    assert_eq(diags.len(), 1)
+    d :: diags[0]
+    assert_eq(d.code.id, "R2041")
+    assert(d.detail.contains("used through `main` -> `through`"), d.detail)
+    assert_eq(d.primary.start.line, 9)
+    assert_eq(d.related.len(), 1)
+    assert_eq(d.related[0].message, "`hole` is declared here")
+}
+
+@test
+test_a_name_the_hole_shares_uses_nothing :: fn() -> void {
+    source :: """
+        Holder :: struct {
+            hole: i32
+        }
+
+        main :: fn() -> i32 {
+            hole :: 2
+            h :: Holder { .hole = hole }
+            return h.hole
+        }
+        """
+    assert_eq(uses_of_holes(source).len(), 0)
+}
+
+@test
+test_a_hole_taken_as_a_value_is_used :: fn() -> void {
+    source :: """
+        run :: fn(f: fn() -> i32) -> i32 = f()
+
+        main :: fn() -> i32 = run(hole)
+        """
+    assert_eq(uses_of_holes(source).len(), 1)
+}
+
+@test
+test_a_member_called_through_its_trait_reaches_every_impl :: fn() -> void {
+    source :: """
+        Shape :: trait {
+            sides :: fn(self) -> i32
+        }
+
+        Square :: struct {}
+
+        Square implements Shape {
+            sides :: fn(self) -> i32 = hole()
+        }
+
+        count :: fn(s: Shape) -> i32 = s.sides()
+
+        main :: fn() -> i32 = count(Square {})
+        """
+    diags :: uses_of_holes(source)
+    assert_eq(diags.len(), 1)
+    assert(diags[0].detail.contains("used through `main` -> `count` -> `sides`"), diags[0].detail)
+}
+
+@test
+test_a_field_default_runs_where_a_literal_leaves_it_out :: fn() -> void {
+    source :: """
+        Counted :: struct {
+            sides: i32 = hole()
+        }
+
+        main :: fn() -> i32 {
+            c :: Counted {}
+            return c.sides
+        }
+        """
+    assert_eq(uses_of_holes(source).len(), 1)
+}
+
+@test
+test_the_tests_of_a_load_that_runs_them_are_its_roots :: fn() -> void {
+    source :: """
+        main :: fn() -> i32 = 0
+
+        @test
+        test_hole :: fn() -> void {
+            hole()
+        }
+        """
+    assert_eq(uses_of_holes(source).len(), 0)
+    assert_eq(uses_of_holes(source, under_test = true).len(), 1)
+}
+
+@test
+test_a_project_with_no_main_uses_all_it_declares :: fn() -> void {
+    source :: """
+        export entry :: fn() -> i32 = hole()
+        """
+    assert_eq(uses_of_holes(source).len(), 1)
+}

@@ -179,6 +179,7 @@ run_checks :: fn(plan: Invocation[], input: CheckInput) -> Diagnostic[] {
 
 /// The checks of a program, in the order they report.
 check_stages :: fn() -> CheckStage[] = [
+    UncoveredUses {},
     DeadCode {},
     UnusedImports {},
     Widening {},

@@ -117,7 +117,7 @@ export target_declarations :: fn(files: SourceFile[]) -> AST.FnDecl[] {
 ///                   are raised for every target rather than only the one being
 ///                   built.
 /// @param uncovered  receives each declaration no body covers for `target`,
-///                   an error where the program uses it (`report_used_uncovered`).
+///                   an error where the program uses it (`uncovered_use_diagnostics`).
 /// @return           files whose programs hold only the selected declarations.
 export select_target_bodies :: fn(
     files: SourceFile[],
@@ -165,7 +165,7 @@ export select_target_bodies :: fn(
             }
         }
     }
-    note_uncovered(files, winners, covered, uncovered)
+    note_uncovered(files, target, winners, covered, uncovered)
     out: SourceFile[]: []
     for f in files {
         kept: AST.Decl[]: []
@@ -347,16 +347,17 @@ check_signature :: fn(decl: AST.FnDecl, body: AST.FnDecl, diags: Diagnostic[]) -
 /// instead, and a declaration nothing uses is dead.
 export UncoveredDecl :: struct {
     decl: AST.FnDecl
-    /// The name of its module.
-    module: string
+    /// The target being built, as a message names it.
+    target: string
     /// The targets the bodies of its group cover, as a message lists them.
     covered: string
 }
 
 // Push to `uncovered` each bare declaration of `files` that neither a general
-// body nor a body of `winners` covers.
+// body nor a body of `winners` covers for `target`.
 note_uncovered :: fn(
     files: SourceFile[],
+    target: Target,
     winners: Map<string, AST.FnDecl>,
     covered: Map<string, string>,
     uncovered: UncoveredDecl[],
@@ -380,11 +381,12 @@ note_uncovered :: fn(
             if is_host_bound(d) {
                 continue
             }
-            uncovered.push(UncoveredDecl {
+            hole :: UncoveredDecl {
                 .decl = d,
-                .module = module_of(f),
+                .target = "${target}",
                 .covered = covered[d.name] else "(none)",
-            })
+            }
+            uncovered.push(hole)
         }
     }
 }

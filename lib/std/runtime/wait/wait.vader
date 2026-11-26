@@ -33,7 +33,12 @@ module "std/runtime/wait"
 ///                   block.
 /// @return           `false` once `nanos` have passed with `fd` still not
 ///                   ready.
-export wait_for :: fn(fd: i64, readiness: Readiness, nanos: i64, blocked: bool) -> bool =
+@target
+export wait_for :: fn(fd: i64, readiness: Readiness, nanos: i64, blocked: bool) -> bool
+
+// WASI has no descriptor to wait on: a program that waits does not build for it.
+@target(.Linux, .Darwin, .Windows)
+wait_for :: fn(fd: i64, readiness: Readiness, nanos: i64, blocked: bool) -> bool =
     Runtime.wait_for(fd, readiness, nanos, blocked)
 
 /// End the waits of the threads parked on descriptor `fd`: each returns as if

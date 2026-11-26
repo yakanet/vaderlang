@@ -86,6 +86,9 @@ export CalleeIndex :: struct {
     unknown: string[] = []
     /// The members of `std/core`'s `Intrinsic` and `Runtime`, by declaration id.
     intrinsics: Map<i64, ToolchainMember> = Map<i64, ToolchainMember> {}
+    /// The declarations no body covers for the target, by id: none of them runs,
+    /// since a use of one is an error of its own (`uncovered_use.vader`).
+    holes: Set<i64> = Set<i64> {}
 }
 
 /// A member of a trait the toolchain implements.
@@ -120,6 +123,9 @@ index_functions :: fn(
     project: LoadedProject, modules: Map<string, TypedProgram>,
 ) -> CalleeIndex {
     index :: CalleeIndex { .project = project }
+    for u in project.uncovered {
+        index.holes.add(u.decl.id)
+    }
     for [id, loaded] in project.modules {
         typed :: modules[id] else continue
         for file in loaded.module.files {
@@ -272,9 +278,9 @@ forwarded_effects :: fn(
 }
 
 // What `decl`, summarised without its body, does: an `@extern` writes what `@c_out`
-// marks, a member of `Intrinsic` what `member_summary` says ; one neither describes
-// does nothing to a parameter that holds no references, and anything to one that
-// does.
+// marks, a declaration no body covers nothing, a member of `Intrinsic` what
+// `member_summary` says ; one none of them describes does nothing to a parameter
+// that holds no references, and anything to one that does.
 summary_target :: fn(
     index: CalleeIndex,
     decl: AST.FnDecl,
@@ -282,6 +288,9 @@ summary_target :: fn(
 ) -> CallTarget {
     if AST.has_compiler_decorator(decl.decorators, .Extern) {
         return KnownEffects { .params = decl.params.map(foreign_effects).collect() }
+    }
+    if decl.id in index.holes {
+        return KnownEffects { .params = decl.params.map((_) -> none()).collect() }
     }
     // By its node id : an inherited member shares its parameters' spans with the
     // other impls of its trait.

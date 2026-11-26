@@ -144,7 +144,13 @@ on_i64 :: fn(
 }
 
 // Run the host's own `wait_for` on what the guest handed it, unless it waits to
-// read the stdin the VM serves, which is at its end and readable at once.
+// read the stdin the VM serves, which is at its end and readable at once. A host
+// with no descriptor to wait on, a WASI one, fails the guest's run instead.
+@target
+serve_wait_for :: fn(state: VmState, args: Value[], origin: i32) -> HostCallResult =
+    Trap { .message = "wait_for: this host has no descriptor to wait on" }
+
+@target(.Linux, .Darwin, .Windows)
 serve_wait_for :: fn(state: VmState, args: Value[], origin: i32) -> HostCallResult {
     fd :: read_i64(args[0], origin, "wait_for") else return fd
     ordinal :: read_i32(args[1], origin, "wait_for") else return ordinal

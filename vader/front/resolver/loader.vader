@@ -74,6 +74,11 @@ export LoadedProject :: struct {
     given_bodies: GeneratedSource[] = []
     /// The WIT interfaces the imports read, by qualified name (`read_interfaces`).
     wit_interfaces: Map<string, WitInterface> = Map<string, WitInterface> {}
+    /// The declarations target selection left without a body, an error where the
+    /// program uses them (`uncovered_use_diagnostics`).
+    uncovered:    UncoveredDecl[] = []
+    /// Whether the load runs the tests of its entry.
+    under_test:   bool = false
 }
 
 /// Empty placeholder: used by test fixtures that construct downstream
@@ -284,6 +289,8 @@ export load_project_with_overlay :: fn(
                 .late_fns = ctx.late_fns,
                 .body_stages = ctx.body_stages,
                 .wit_interfaces = read_interfaces(ctx.module_server),
+                .uncovered = ctx.uncovered,
+                .under_test = under_test,
             }
         }
     }
@@ -456,6 +463,9 @@ LoadState :: struct {
     module_server: ModuleServer
     /// The functions they wrote without a body, in the modules the load keeps.
     late_fns: LateFn[] = []
+    /// The declarations no body covers for the target, of the modules the load
+    /// keeps, whether their trim kept them or not.
+    uncovered: UncoveredDecl[] = []
     /// The folder of the prelude, null in a load with no standard library. The
     /// compiler reads its declarations by itself, with no source that writes
     /// their name, so `only_reached` never trims it.
@@ -474,7 +484,7 @@ DeferredModule :: struct {
     /// The functions the source stages wrote into it without a body.
     late: LateFn[] = []
     /// Its declarations no body covers for the target being built, an error
-    /// where the program uses them (`report_uncovered_uses`).
+    /// where the program uses them (`uncovered_use_diagnostics`).
     uncovered: UncoveredDecl[] = []
 }
 
@@ -763,8 +773,8 @@ collect_deferred :: fn(ctx: LoadState) -> void {
     }
     intercept_functions(ctx.deferred, ctx.node_factory, ctx.diags)
     modules :: if ctx.only_reached { trimmed_to_reached(ctx) } else { ctx.deferred }
-    report_uncovered_uses(ctx, modules)
     for read in modules {
+        ctx.uncovered.push_all(read.uncovered)
         ctx.late_fns.push_all(still_declared(read.late, read.sources))
         collected :: collect_files(
             read.sources, read.found.folder, read.found.name, ctx.factory, ctx.index, ctx.bases,
@@ -837,35 +847,6 @@ trimmed_to_reached :: fn(ctx: LoadState) -> DeferredModule[] {
         })
     }
     return out
-}
-
-// R2041 at each use of a declaration of `modules` that target selection left
-// without a body.
-report_uncovered_uses :: fn(ctx: LoadState, modules: DeferredModule[]) -> void {
-    target :: ctx.selected_target else return
-    uncovered: UncoveredDecl[]: []
-    for read in modules {
-        uncovered.push_all(read.uncovered)
-    }
-    if uncovered.is_empty() {
-        return
-    }
-    units: ReachUnit[]: []
-    for read in modules {
-        units.push(ReachUnit {
-            .files = read.sources,
-            .trimmed = is_trimmed(ctx, read.found),
-            .rooted = is_rooted(ctx, read.found),
-        })
-    }
-    report_used_uncovered(units, CALLED_BY_NAME, ctx.tested != null, uncovered, "${target}", ctx.diags)
-}
-
-// Whether the roots of the program are declared in `m`: the module whose tests
-// the load runs, else a module of the project being built.
-is_rooted :: fn(ctx: LoadState, m: DiscoveredModule) -> bool {
-    tested :: ctx.tested else return m.origin == .Build
-    return m.folder == tested
 }
 
 // The files `read` of `m` as the load keeps them: without their tests, but in

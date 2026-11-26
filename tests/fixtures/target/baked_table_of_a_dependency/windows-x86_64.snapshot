@@ -22,6 +22,7 @@ std_env$system_unset_env <- lib/std/env/env.vader:172
 std_env$temp_dir <- lib/std/env/env.vader:321
 std_io$io_error_of <- lib/std/io/io.vader:149
 std_io$last_io_error <- lib/std/io/io.vader:124
+std_runtime_wait$wait_for <- lib/std/runtime/wait/wait.vader:42
 std_time$monotonic_ns <- lib/std/time/time.vader:99
 std_time$now_unix_ms <- lib/std/time/time.vader:72
 std_tty$columns <- lib/std/tty/raw.vader:165

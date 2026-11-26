@@ -53,10 +53,12 @@ without carrying the compiler, which a build driver is meant to do (ADR 0145).
 Before the type checker, the loader keeps one body per `@target` group
 (`vader/front/resolver/target_select.vader`), so a body for another target is never
 type-checked. A declaration left with no body is refused only where the program
-uses it: once the load has trimmed its dependencies, a walk by name from the roots
-over every module finds the uses, keeping the name that reached each one first for
-the chain the error names (`vader/front/resolver/uncovered_use.vader`). One nothing
-uses is no root of the lowerer's dead-function elimination, which drops it. The resolver fills each impl from its trait
+uses it: once the program is typed, a walk from the roots follows what each call
+runs, as the type checker settled it, and the functions and constants named outside
+a call, keeping the declaration that reached each one first for the chain the error
+names (`vader/front/effects/uncovered_use.vader`). A local or a field of the same
+name uses nothing. One nothing uses is no root of the lowerer's dead-function
+elimination, which drops it. The resolver fills each impl from its trait
 (`vader/front/resolver/impl_members.vader`): the method a short impl stands for,
 plus a declaration of each default method it inherits, its signature read with
 `Self` and the trait's parameters substituted. The default body itself stays in
