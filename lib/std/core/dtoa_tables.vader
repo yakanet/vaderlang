@@ -26,10 +26,6 @@
 // dividend exceeds every `k(q)` (max 916 at q = 341), so `floor(2^k / 5^q)` is
 // recovered as `floor(2^K / 5^q) >> (K - k)` (exact : floor(floor(x)/2^s) =
 // floor(x/2^s)). `test_*_reference` pins the baked values against sampled rows.
-//
-// `build_*` are plain fns, not intermediate @comptime consts : an un-baked
-// @comptime const referenced from another comptime block gets its RHS re-inlined
-// at the read site, so reading one inside a loop rebuilds it per iteration.
 
 module "std/core"
 
@@ -57,7 +53,9 @@ inv_row :: fn(r: BigInt, q: i32) -> [u64, u64] {
     s :: inv_shift(q)
     lo :: r.bits64(s)
     hi :: r.bits64(s + 64)
-    if lo == 0xFFFFFFFFFFFFFFFF { return [u64(0), hi + 1] }   // + 1 carries into hi
+    if lo == 0xFFFFFFFFFFFFFFFF {
+        return [u64(0), hi + 1]   // + 1 carries into hi
+    }
     return [lo + 1, hi]
 }
 
@@ -90,10 +88,10 @@ build_pow5_inv :: fn(rows: i32) -> u64[] {
 // ---- f64 : one packed [lo, hi] row per index ------------------------------
 
 /// Row `i` of 5^i at `[2 * i]` (low) + `[2 * i + 1]` (high). 326 rows.
-DOUBLE_POW5_SPLIT: u64[]: @comptime { return build_pow5_split(326) }
+DOUBLE_POW5_SPLIT: u64[]: @comptime build_pow5_split(326)
 
 /// Row `q` of 1/5^q at `[2 * q]` (low) + `[2 * q + 1]` (high). 342 rows.
-DOUBLE_POW5_INV_SPLIT: u64[]: @comptime { return build_pow5_inv(342) }
+DOUBLE_POW5_INV_SPLIT: u64[]: @comptime build_pow5_inv(342)
 
 // ---- f32 (Ryu f2s) : single-u64 tables, the high word of the f64 rows -----
 // FLOAT_POW5_SPLIT     : 47 rows  (5^i,  used when e2 < 0) , f64 hi (>> 64)
