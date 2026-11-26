@@ -21,6 +21,17 @@
 //   writes `area` and never `Shape`;
 // - a name an import rebinds (`import "p" { x as y }`) is reached as written.
 //
+// Three rules of the language narrow what a name leads to, each keyed by the
+// name of a declaration in its module (`qualified_name`, `m#f`):
+//
+// - `Alias.f`, through a namespace import, names `f` of the module the alias
+//   names, and no other `f`. An alias whose path names no module of the load
+//   leads by the bare name, as any name does;
+// - a private function or constant is named from its own module alone, so only
+//   a name written in that module leads to it;
+// - a body that target selection moved into its declaration reads the imports
+//   of the file it is written in, as the resolver does.
+//
 // A module reaches here without its tests, which the load took
 // (`dependency_tests.vader`).
 //
@@ -30,6 +41,7 @@
 module "vader/front/resolver"
 
 import "std/collections"
+import "std/iter"
 import "vader/front/reach"
 AST :: import "toolchain/ast"
 
@@ -65,13 +77,26 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
     // declaration writes leads nowhere, and is not kept: a program writes far
     // more names than its dependencies declare.
     leading :: Set<string> {}
+    modules :: Set<string> {}
+    for unit in units {
+        for f in unit.files {
+            modules.add(module_of(f))
+        }
+    }
+    aliases_by_file :: Map<string, Map<string, string>> {}
+    for unit in units {
+        for f in unit.files {
+            aliases_by_file[file_of(f)] = namespace_aliases(f, modules)
+        }
+    }
     for unit in units {
         if !unit.trimmed {
             continue
         }
         for f in unit.files {
+            own :: module_of(f)
             for d in f.program.decls {
-                add_leading_names(d, leading)
+                add_leading_names(d, own, leading)
                 if declares_type(d) {
                     dependency_types.add(declared_name(d) else continue)
                 }
@@ -90,15 +115,17 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
         // The lint of imports reads no trimmed module.
         if !unit.trimmed {
             for body in unit.discarded {
-                seed_leading(names_written_by(body), leading, seeded, seed_refs)
+                aliases :: aliases_in(aliases_by_file, body.span.start.file)
+                seed_leading(names_written_by(body, aliases, ""), leading, seeded, seed_refs)
             }
         }
         for f in unit.files {
+            own :: module_of(f)
             module_names: string[]: []
             collect_decorator_names(AST.module_decorators(f.program), module_names)
             seed_leading(module_names, leading, seeded, seed_refs)
             for d in f.program.decls {
-                written :: names_written_by(d)
+                written :: names_written_by(d, aliases_read_by(d, f, aliases_by_file), own)
                 key :: reach_key(d, dependency_types)
                 if !unit.trimmed || key == null {
                     seed_leading(written, leading, seeded, seed_refs)
@@ -110,7 +137,12 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
                         refs.push(name)
                     }
                 }
-                register_refs(refs_by_name, key, refs)
+                if !is_private_to(d, own) {
+                    register_refs(refs_by_name, key, refs)
+                }
+                if own != "" && d !is AST.ImplDecl {
+                    register_refs(refs_by_name, qualified_name(own, key), refs.clone())
+                }
                 if d is AST.TraitDecl {
                     for member in d.members {
                         register_refs(refs_by_name, member.name, [d.name])
@@ -128,10 +160,11 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
         }
         left :: Reached { .files = [] }
         for f in unit.files {
+            own :: module_of(f)
             kept: AST.Decl[]: []
             for d in f.program.decls {
                 key :: reach_key(d, dependency_types)
-                if key == null || key in reachable {
+                if key == null || is_reached(d, key, own, reachable) {
                     kept.push(d)
                 } else if d is AST.ImplDecl {
                     left.lost_impl_traits.push(AST.impl_trait_name(d))
@@ -146,15 +179,19 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
     return out
 }
 
-// Add to `leading` the names that reach the declaration `d` of a trimmed
-// module: its own, the trait of an impl, the members of a trait.
-add_leading_names :: fn(d: AST.Decl, leading: Set<string>) -> void {
+// Add to `leading` the names that reach the declaration `d` of the trimmed
+// module `own`: its own, bare and in its module, the trait of an impl, the
+// members of a trait.
+add_leading_names :: fn(d: AST.Decl, own: string, leading: Set<string>) -> void {
     if d is AST.ImplDecl {
         leading.add(AST.impl_trait_name(d))
         return
     }
     name :: declared_name(d) else return
     leading.add(name)
+    if own != "" {
+        leading.add(qualified_name(own, name))
+    }
     if d is AST.TraitDecl {
         for member in d.members {
             leading.add(member.name)
@@ -176,11 +213,13 @@ seed_leading :: fn(
     }
 }
 
-// Every name `d` writes, the one the walk of the tree does not meet as a node
-// included: the source name an import rebinds.
-names_written_by :: fn(d: AST.Decl) -> string[] {
+// Every name `d`, written in the module `own`, writes: through the namespace
+// aliases `aliases`, the one the walk of the tree does not meet as a node
+// included (the source name an import rebinds), and each bare name again as the
+// name of a declaration of `own`, which a private one answers to alone.
+names_written_by :: fn(d: AST.Decl, aliases: Map<string, string>, own: string) -> string[] {
     refs: string[]: []
-    collect_names(d, refs)
+    collect_names_through(d, aliases, refs)
     if d is AST.ImportDecl {
         binding :: d.binding
         if binding is AST.DestructureImport {
@@ -189,8 +228,84 @@ names_written_by :: fn(d: AST.Decl) -> string[] {
             }
         }
     }
+    if own == "" {
+        return refs
+    }
+    bare :: refs.len()
+    for i in 0..<bare {
+        if !refs[i].contains("#") {
+            refs.push(qualified_name(own, refs[i]))
+        }
+    }
     return refs
 }
+
+// Whether the walk reached `d`, of the module `own`, which `key` names: by its
+// bare name unless it is private, or by its name in its module.
+is_reached :: fn(d: AST.Decl, key: string, own: string, reachable: Set<string>) -> bool {
+    if key in reachable && !is_private_to(d, own) {
+        return true
+    }
+    return own != "" && d !is AST.ImplDecl && qualified_name(own, key) in reachable
+}
+
+// Whether `d`, of the module `own`, is a function or a constant no other module
+// can name. A file with no `module` line has no name to key one by, and leads by
+// the bare name.
+is_private_to :: fn(d: AST.Decl, own: string) -> bool {
+    if own == "" {
+        return false
+    }
+    if d is AST.FnDecl | AST.ConstDecl {
+        return d.visibility == .Private
+    }
+    return false
+}
+
+// The name of the module `f` belongs to, `""` for a file with no `module` line.
+module_of :: fn(f: SourceFile) -> string {
+    own :: f.program.module else return ""
+    return own.name
+}
+
+// The file a span of `f` names, which keys its aliases.
+file_of :: fn(f: SourceFile) -> string = f.program.span.start.file
+
+// The namespace aliases of `f` that name a module of the load, each with the
+// module's name. Any other alias leads by the bare name: the walk may keep too
+// much, never too little.
+namespace_aliases :: fn(f: SourceFile, modules: Set<string>) -> Map<string, string> {
+    out :: Map<string, string> {}
+    for d in f.program.decls.filter_is<AST.ImportDecl>() {
+        binding :: d.binding
+        if binding is AST.NamedNamespaceImport && d.path in modules {
+            out[binding.name] = d.path
+        }
+    }
+    return out
+}
+
+// The aliases `d`, a declaration of `f`, reads: those of the file its body is
+// written in when target selection moved the body there, as the resolver reads
+// them.
+aliases_read_by :: fn(
+    d: AST.Decl,
+    f: SourceFile,
+    by_file: Map<string, Map<string, string>>,
+) -> Map<string, string> {
+    if d is AST.FnDecl {
+        body :: d.body
+        if body != null {
+            return aliases_in(by_file, body.span.start.file)
+        }
+    }
+    return aliases_in(by_file, file_of(f))
+}
+
+// The namespace aliases of the file `file`, none for a file the load does not
+// hold.
+aliases_in :: fn(by_file: Map<string, Map<string, string>>, file: string) -> Map<string, string> =
+    by_file[file] else Map<string, string> {}
 
 // The name that reaches `d` in a trimmed module, null for a declaration that
 // always stays: an import, an assert, an impl with neither a type of a
@@ -214,18 +329,26 @@ import "std/testing"
 import "toolchain/parser"
 
 // A one-file module from its source.
-unit_of :: fn(source: string, trimmed: bool) -> ReachUnit {
-    parsed :: parse_source(source, "t.vader")
-    file :: SourceFile { .path = "t.vader", .content = source, .program = parsed.program }
-    return ReachUnit { .files = [file], .trimmed = trimmed }
+unit_of :: fn(source: string, trimmed: bool) -> ReachUnit = ReachUnit {
+    .files = [file_at(source, "t.vader")],
+    .trimmed = trimmed,
 }
+
+// The file at `path` that holds `source`.
+file_at :: fn(source: string, path: string) -> SourceFile =
+    SourceFile { .path = path, .content = source, .program = parse_source(source, path).program }
 
 // What `only_reached` leaves of the dependency `library` loaded by `program`:
 // the names it declares, an impl as `Type:Trait`.
 reached_by :: fn(program: string, library: string) -> string {
     left :: only_reached([unit_of(program, false), unit_of(library, true)])
+    return names_left(left[1])
+}
+
+// The names `left` declares, an impl as `Type:Trait`.
+names_left :: fn(left: Reached) -> string {
     names: string[]: []
-    for d in left[1].files[0].program.decls {
+    for d in left.files[0].program.decls {
         if d is AST.ImplDecl {
             names.push("${type_head_name(d.for_type) else "_"}:${AST.impl_trait_name(d)}")
             continue
@@ -357,3 +480,101 @@ test_only_reached_leaves_whole_a_module_that_is_not_trimmed :: fn() -> void {
     left :: only_reached([unit_of(source, false)])
     assert_eq(left[0].files[0].program.decls.len(), 2)
 }
+
+@test
+test_only_reached_follows_an_alias_to_its_module_alone :: fn() -> void {
+    program :: file_at(r"""
+        module "main"
+
+        A :: import "a"
+
+        main :: fn() -> i32 = A.value()
+    """, "main.vader")
+    first :: file_at(r"""
+        module "a"
+
+        export value :: fn() -> i32 = 1
+    """, "a.vader")
+    second :: file_at(r"""
+        module "b"
+
+        export value :: fn() -> i32 = 2
+    """, "b.vader")
+    left :: only_reached([
+        ReachUnit { .files = [program], .trimmed = false },
+        ReachUnit { .files = [first], .trimmed = true },
+        ReachUnit { .files = [second], .trimmed = true },
+    ])
+    assert_eq(names_left(left[1]), "value")
+    assert_eq(names_left(left[2]), "")
+}
+
+@test
+test_only_reached_leaves_a_private_function_another_module_names :: fn() -> void {
+    library :: r"""
+        module "lib"
+
+        export unused :: fn() -> i32 = helper()
+
+        helper :: fn() -> i32 = 1
+    """
+    program :: r"""
+        module "main"
+
+        import "lib"
+
+        main :: fn() -> i32 = helper()
+
+        helper :: fn() -> i32 = 0
+    """
+    assert_eq(reached_by(program, library), "")
+}
+
+// Target selection moved the body of `f`, written beside the alias `B`, into a
+// file that has no such alias.
+@test
+test_only_reached_reads_the_aliases_of_the_file_a_moved_body_is_written_in :: fn() -> void {
+    program :: file_at(r"""
+        module "main"
+
+        import "lib"
+
+        main :: fn() -> i32 = f()
+    """, "main.vader")
+    declared :: file_at(r"""
+        module "lib"
+    """, "declared.vader")
+    written :: file_at(r"""
+        module "lib"
+
+        B :: import "b"
+
+        export f :: fn() -> i32 = B.g()
+    """, "written.vader")
+    moved :: with_decls(declared, written.program.decls.filter((d) -> d is AST.FnDecl).collect())
+    imports :: written.program.decls.filter((d) -> d is AST.ImportDecl).collect()
+    aliases :: with_decls(written, imports)
+    b :: file_at(r"""
+        module "b"
+
+        export g :: fn() -> i32 = 1
+    """, "b.vader")
+    c :: file_at(r"""
+        module "c"
+
+        export g :: fn() -> i32 = 2
+    """, "c.vader")
+    left :: only_reached([
+        ReachUnit { .files = [program], .trimmed = false },
+        ReachUnit { .files = [moved, aliases], .trimmed = true },
+        ReachUnit { .files = [b], .trimmed = true },
+        ReachUnit { .files = [c], .trimmed = true },
+    ])
+    assert_eq(names_left(left[1]), "f")
+    assert_eq(names_left(left[2]), "g")
+    assert_eq(names_left(left[3]), "")
+}
+
+// `f` holding the declarations `decls` in place of its own.
+with_decls :: fn(f: SourceFile, decls: AST.Decl[]) -> SourceFile =
+    SourceFile { ...f, .program = AST.Program { ...f.program, .decls = decls } }

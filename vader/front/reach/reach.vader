@@ -27,6 +27,45 @@ export collect_names :: fn(n: AST.Node, out: string[]) -> void {
     AST.inspect(n, (m) -> referenced_name(m, out))
 }
 
+/// Push every name `n` and the nodes under it reference, as `collect_names`
+/// does, except a member named through a namespace alias: `Alias.f` pushes the
+/// name of `f` in the module the alias names (`qualified_name`), and the alias.
+///
+/// @param n        the node to walk.
+/// @param aliases  the module each namespace alias of the file names, by alias.
+/// @param out      receives the names, one per reference.
+export collect_names_through :: fn(
+    n: AST.Node,
+    aliases: Map<string, string>,
+    out: string[],
+) -> void {
+    AST.inspect(n, (m) -> name_through(m, aliases, out))
+}
+
+/// The name of the declaration `name` of the module `module`, as a walk keys it:
+/// no identifier holds a `#`, so it is never a name a source writes bare.
+///
+/// @param module  the module's name, as its `module` line writes it.
+/// @param name    the name the declaration declares.
+export qualified_name :: fn(module: string, name: string) -> string = "${module}#${name}"
+
+// `Alias.member` through a namespace alias, which names the member of one
+// module ; any other node as `referenced_name` reads it.
+name_through :: fn(n: AST.Node, aliases: Map<string, string>, out: string[]) -> AST.Walk {
+    if n is AST.FieldExpr {
+        target :: n.target
+        if target is AST.IdentExpr {
+            module :: aliases[target.name]
+            if module != null {
+                out.push(qualified_name(module, n.field))
+                out.push(target.name)
+                return .Skip
+            }
+        }
+    }
+    return referenced_name(n, out)
+}
+
 /// Push every name `decorators` reference, arguments included: those above a
 /// `module` line belong to no declaration, so whatever they name is reached.
 ///
