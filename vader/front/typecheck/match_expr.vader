@@ -96,6 +96,7 @@ infer_match :: fn(
     // flag the arm T3013 just demanded.
     closed_scrutinee :: scrut_ty is UnionType || scrut_ty is EnumType || whole != null
     for arm in e.arms {
+        settle_member_patterns(arm.pattern, scrut_ty, typed, diags)
         // W0014, nothing is left for this arm to match: a wildcard, or arms
         // that together consumed the scrutinee, came before it. T3013 asks the
         // opposite question (is a variant MISSING) and T3040 compares against
@@ -529,8 +530,63 @@ is_never :: fn(t: Type) -> bool {
 // `bind_pattern_types`, which walks each pattern once, passes the caller's, and a
 // pattern's diagnostics must reach it : an unreported `is Alias.Nope` takes a
 // branch under the VM that native never takes.
-pattern_type_of :: fn(ty: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type =
-    type_from_expr(ty, typed.resolved, diags)
+//
+// An `is .X` pattern denotes the member its arm settled (`settle_member_patterns`).
+pattern_type_of :: fn(ty: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    if ty is AST.IdentExpr && ty.implicit_dot {
+        return typed.expr_types[ty.id] else TY_UNRESOLVED
+    }
+    return type_from_expr(ty, typed.resolved, diags)
+}
+
+// Record the type each `is .X` of an arm denotes: the member named `X` of the
+// scrutinee's type, a union's variant or the type itself, whatever scope its
+// declaration is reached through. T3040 when no member bears the name. Read
+// against the whole scrutinee, not what the arms above leave, so an arm
+// restating a member is W0014's.
+settle_member_patterns :: fn(
+    p: AST.Pattern,
+    scrut: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    if p is AST.OrPattern {
+        for sub in p.patterns {
+            settle_member_patterns(sub, scrut, typed, diags)
+        }
+        return
+    }
+    if p !is AST.IsPattern {
+        return
+    }
+    named :: p.ty
+    if named !is AST.IdentExpr || !named.implicit_dot {
+        return
+    }
+    member :: member_named(scrut, named.name)
+    if member == null && scrut !is UnresolvedType {
+        diags.push(
+            typecheck_error(
+                .UnreachableIsTest,
+                named.span,
+                "`.${named.name}` names no member of `${display_type(scrut)}`",
+            ),
+        )
+    }
+    typed.expr_types[named.id] = member else TY_UNRESOLVED
+}
+
+// The member of `t` whose declaration is named `name`: a variant of a union, or
+// `t` itself ; null when none is.
+member_named :: fn(t: Type, name: string) -> Type | null {
+    for m in union_variants(t) else [t] {
+        sym :: type_to_target_symbol(m) else continue
+        if sym.name == name {
+            return m
+        }
+    }
+    return null
+}
 
 arm_narrow_for :: fn(
     p: AST.Pattern,

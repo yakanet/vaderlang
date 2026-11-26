@@ -1,0 +1,25 @@
+// `is .X` tests the member of the scrutinee's union named `X`, however it is in
+// scope: `.Halt` and `.Go` are reached only through the alias `O`, and `.Stop`
+// is `O.Stop`, not the prelude's `Stop` of the same name. A nullable scrutinee
+// holds the members of its union.
+// Expected: prints "halt", "stop 3", "go 7" then "none", exits 0.
+
+module "snippet"
+
+import "std/console"
+O :: import "snippet/ops"
+
+describe :: fn(op: O.Op | null) -> string = match op {
+    is .Halt -> "halt"
+    is .Stop -> "stop ${op.code}"
+    is .Go   -> "go ${op.steps}"
+    is null  -> "none"
+}
+
+main :: fn() -> i32 {
+    println(describe(O.Halt {}))
+    println(describe(O.Stop { .code = 3 }))
+    println(describe(O.Go { .steps = 7 }))
+    println(describe(null))
+    return 0
+}

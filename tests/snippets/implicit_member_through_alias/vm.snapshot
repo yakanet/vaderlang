@@ -1,0 +1,7 @@
+# stdout
+halt
+stop 3
+go 7
+none
+# exit
+0

@@ -1,0 +1,1 @@
+[12:8] error[T3040] test can never match, since its operands have no overlapping values: `.Wait` names no member of `Go | Halt`

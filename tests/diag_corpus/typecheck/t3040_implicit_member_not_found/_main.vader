@@ -1,0 +1,15 @@
+// `is .X` names a member of the scrutinee's union: a name no member bears is a
+// T3040, even when a type of that name is in scope.
+
+module "snippet"
+
+export Halt :: struct {}
+export Go :: struct {}
+export Wait :: struct {}
+export Op :: Halt | Go
+
+export kind :: fn(op: Op) -> i32 = match op {
+    is .Wait -> 0
+    is .Halt -> 1
+    is .Go   -> 2
+}

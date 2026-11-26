@@ -1115,7 +1115,12 @@ bind_header_name :: fn(
 bind_pattern :: fn(self: ResolveState, p: AST.Pattern) -> void {
     match p {
         is AST.IsPattern -> {
-            self.walk_expr(p.ty)
+            // `is .X` names a member of the scrutinee's type, which the typecheck
+            // finds: no scope lookup.
+            implicit :: p.ty is AST.IdentExpr && p.ty.implicit_dot
+            if !implicit {
+                self.walk_expr(p.ty)
+            }
             if p.inner !is null {
                 self.bind_pattern(p.inner)
             }

@@ -1,0 +1,40 @@
+# Typecheck
+
+## tests/snippets/implicit_member_through_alias
+  FnDecl         describe             :: fn(Go | Halt | null | Stop) -> string
+  FnDecl         main                 :: fn() -> i32
+  expr 12:45    MatchExpr      :: string
+  expr 12:51    IdentExpr      :: Go | Halt | null | Stop
+  expr 13:17    StringLitExpr  :: string
+  expr 14:17    StringLitExpr  :: string
+  expr 14:25    FieldExpr      :: i32
+  expr 14:25    IdentExpr      :: Stop
+  expr 15:17    StringLitExpr  :: string
+  expr 15:23    FieldExpr      :: i32
+  expr 15:23    IdentExpr      :: Go
+  expr 16:17    StringLitExpr  :: string
+  expr 20:13    CallExpr       :: string
+  expr 20:13    IdentExpr      :: fn(Go | Halt | null | Stop) -> string
+  expr 20:22    StructLitExpr  :: Halt
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 21:13    CallExpr       :: string
+  expr 21:13    IdentExpr      :: fn(Go | Halt | null | Stop) -> string
+  expr 21:22    StructLitExpr  :: Stop
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 22:13    CallExpr       :: string
+  expr 22:13    IdentExpr      :: fn(Go | Halt | null | Stop) -> string
+  expr 22:22    StructLitExpr  :: Go
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 23:13    CallExpr       :: string
+  expr 23:13    IdentExpr      :: fn(Go | Halt | null | Stop) -> string
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/implicit_member_through_alias/ops
+  StructDecl     Go                   :: Go
+  StructDecl     Halt                 :: Halt
+  ConstDecl      Op                   :: type
+  StructDecl     Stop                 :: Stop

@@ -1564,6 +1564,7 @@ holds<string>(5)                     // false
 - A generic function may test its own type parameters, against what the call binds them to, through generic callers too.
 - An impl member may test its own type parameters, but not those of its impl: testing one, or handing one to a function that tests it, is an error.
 - An arm whose `is T` can never hold is an error, as in an `if`.
+- `is .Name` tests the member of the scrutinee's union declared as `Name` (a struct, an enum or a distinct type), or the scrutinee's own type when it bears that name. The name needs no import: on a scrutinee typed `bc.Instr`, `is .Call` is `is bc.Call`. A name that no member bears is an error.
 
 ```vader
 match boxed {                        // boxed: Box<Circle> | Box<Square>

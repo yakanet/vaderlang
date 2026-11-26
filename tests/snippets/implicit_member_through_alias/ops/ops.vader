@@ -1,0 +1,6 @@
+module "snippet/ops"
+
+export Halt :: struct {}
+export Stop :: struct { code: i32 }
+export Go :: struct { steps: i32 }
+export Op :: Halt | Stop | Go
