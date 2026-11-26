@@ -196,11 +196,13 @@ export dispatch_import :: fn(
         message :: "${info.mangled_name}: a thread primitive reached the host dispatch"
         return Trap { .message = message }
     }
-    // A stream or a future of a component exists in a WASM build only.
+    // A stream or a future of a component exists in a WASM build only: `system/wasi`
+    // reaches these on WASI alone, so only a direct call of `Runtime` gets here.
     .WasmStreamRead | .WasmFutureWait | .WasmStreamDrop | .WasmFutureDrop -> {
         return Trap { .message = "${info.mangled_name}: only a WASM build reads a component stream" }
     }
-    // The threads of the component model exist in a WASM build only.
+    // The threads of the component model exist in a WASM build only: the scheduler
+    // reaches these on WASI alone, so only a direct call of `Runtime` gets here.
     .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
         | .WasmThreadIndex | .WasmThreadExit -> {
         return Trap { .message = "${info.mangled_name}: only a WASM build drives a component thread" }
