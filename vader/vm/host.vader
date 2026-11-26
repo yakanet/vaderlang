@@ -166,22 +166,17 @@ export dispatch_import :: fn(
     // so the VM runs a real fn: there is no host shim to dispatch here.
     // ---- std/runtime collection counters ---------------------------------
     // The Vader VM has no GC arena ; the snippet tests just need the
-    // counter to be present + monotonic. `collect` bumps it, `collections`
-    // returns the current value, the byte and allocation counters stay at
-    // zero (no real arena to measure).
+    // counter to be present + monotonic. `collect` bumps it, the statistic
+    // `Collections` returns the current value, the byte and allocation counters
+    // stay at zero (no real arena to measure).
     .RuntimeCollect -> {
         gc_state[0] = gc_state[0] + 1
         return HostOk { .value = NullVal {} }
     }
-    .RuntimeCollections      -> { return HostOk { .value = I64Val(gc_state[0]) } }
-    .RuntimeBytesUsed        -> { return HostOk { .value = I64Val(0) } }
-    .RuntimeBytesCopied      -> { return HostOk { .value = I64Val(0) } }
-    .RuntimeAllocatedBytes   -> { return HostOk { .value = I64Val(0) } }
-    .RuntimeAllocations      -> { return HostOk { .value = I64Val(0) } }
     .RuntimeCountAllocations -> { return HostOk { .value = NullVal {} } }
     .RuntimeStatistic -> {
         which :: read_i32(stack[arg_base], at_pc, "collector_statistic") else return which
-        if i32(which) == i32(CollectorStatistic.Collections) {
+        if CollectorStatistic(i32(which)) == .Collections {
             return HostOk { .value = I64Val(gc_state[0]) }
         }
         return HostOk { .value = I64Val(0) }
@@ -193,8 +188,7 @@ export dispatch_import :: fn(
     }
     .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor | .SchedulerCancel
         | .SchedulerMutexWait | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving | .SchedulerWatchReadable
-        | .SchedulerWatchExit | .WaitReadable | .WaitReadableFor | .WaitWritable
-        | .WaitWritableFor | .WaitBlockedReadFor | .WaitBlockedWriteFor | .WaitStop | .WaitFor -> {
+        | .SchedulerWatchExit | .WaitStop | .WaitFor -> {
         message :: "${info.mangled_name}: a thread primitive reached the host dispatch"
         return Trap { .message = message }
     }
@@ -1151,9 +1145,7 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     // Pure : the baked value depends only on the args, never external state.
     .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash -> null
     .Bytes | .BytesToString | .DeepCopy -> null
-    .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> null
-    .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> null
-    .RuntimeStatistic -> null
+    .RuntimeCollect | .RuntimeCountAllocations | .RuntimeStatistic -> null
     // A comptime evaluation treats threads as `vader run` does.
     .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor -> null
     .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving -> null
@@ -1161,8 +1153,7 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .SchedulerMonitorEnter | .SchedulerMonitorGive | .SchedulerMonitorExit -> null
     .SchedulerTaskEnded -> null
     .SchedulerPublish | .SchedulerMutexLock | .SchedulerMutexUnlock | .SchedulerMutexWait -> null
-    .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop -> null
-    .WaitBlockedReadFor | .WaitBlockedWriteFor | .WaitFor -> null
+    .WaitStop | .WaitFor -> null
     // Traps, which the evaluation reports.
     .WasmStreamRead | .WasmFutureWait | .WasmThreadNew | .WasmThreadSuspend | .WasmThreadResumeLater | .WasmThreadYield
         | .WasmThreadIndex | .WasmThreadExit | .WasmStreamDrop | .WasmFutureDrop -> null

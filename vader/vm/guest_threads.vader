@@ -72,12 +72,6 @@ serve_thread_primitive :: fn(
     .SchedulerSleepFor      -> on_i64(args[0], origin, "sleep_for", (n) -> sleep_for(n))
     .SchedulerWatchReadable -> on_i64(args[0], origin, "watch_readable", (n) -> watch_readable(n))
     .SchedulerWatchExit     -> on_i64(args[0], origin, "watch_exit", (n) -> watch_exit(n))
-    .WaitReadable           -> serve_wait_readable(state, args[0], origin)
-    .WaitReadableFor        -> serve_wait_readable_for(state, args, origin, false)
-    .WaitWritable           -> on_i64(args[0], origin, "wait_writable", (n) -> wait_writable(n))
-    .WaitWritableFor        -> serve_wait_writable_for(args, origin, false)
-    .WaitBlockedReadFor     -> serve_wait_readable_for(state, args, origin, true)
-    .WaitBlockedWriteFor    -> serve_wait_writable_for(args, origin, true)
     .WaitStop               -> on_i64(args[0], origin, "stop_waiting", (n) -> stop_waiting(n))
     .WaitFor                -> serve_wait_for(state, args, origin)
     .SchedulerCancel        -> cancel_guest_thread(args[0], origin)
@@ -143,58 +137,18 @@ on_i64 :: fn(
     return void_result()
 }
 
-// Run the host's own `wait_readable` on the descriptor the guest handed it, unless
-// it is the stdin the VM serves, which is at its end and readable at once.
-serve_wait_readable :: fn(state: VmState, fd: Value, origin: i32) -> HostCallResult {
-    n :: read_i64(fd, origin, "wait_readable") else return n
-    if !serves_stdin(state, i64(n)) {
-        wait_readable(i64(n))
-    }
-    return void_result()
-}
-
-// Run the host's own `wait_readable_for` on the two `i64` the guest handed it,
-// or `wait_blocked_read_for` when `blocked`, unless it waits on the stdin the
-// VM serves.
-serve_wait_readable_for :: fn(
-    state: VmState,
-    args: Value[],
-    origin: i32,
-    blocked: bool,
-) -> HostCallResult {
-    fd :: read_i64(args[0], origin, "wait_readable_for") else return fd
-    if serves_stdin(state, i64(fd)) {
+// Run the host's own `wait_for` on what the guest handed it, unless it waits to
+// read the stdin the VM serves, which is at its end and readable at once.
+serve_wait_for :: fn(state: VmState, args: Value[], origin: i32) -> HostCallResult {
+    fd :: read_i64(args[0], origin, "wait_for") else return fd
+    ordinal :: read_i32(args[1], origin, "wait_for") else return ordinal
+    nanos :: read_i64(args[2], origin, "wait_for") else return nanos
+    blocked :: read_bool(args[3], origin, "wait_for") else return blocked
+    readiness :: Readiness(i32(ordinal))
+    if readiness == .Readable && serves_stdin(state, i64(fd)) {
         return HostOk { .value = BoolVal(true) }
     }
-    nanos :: read_i64(args[1], origin, "wait_readable_for") else return nanos
-    if blocked {
-        return HostOk { .value = BoolVal(wait_blocked_read_for(i64(fd), i64(nanos))) }
-    }
-    return HostOk { .value = BoolVal(wait_readable_for(i64(fd), i64(nanos))) }
-}
-
-// Run the host's own `wait_writable_for` on the two `i64` the guest handed it,
-// or `wait_blocked_write_for` when `blocked`.
-serve_wait_writable_for :: fn(args: Value[], origin: i32, blocked: bool) -> HostCallResult {
-    fd :: read_i64(args[0], origin, "wait_writable_for") else return fd
-    nanos :: read_i64(args[1], origin, "wait_writable_for") else return nanos
-    if blocked {
-        return HostOk { .value = BoolVal(wait_blocked_write_for(i64(fd), i64(nanos))) }
-    }
-    return HostOk { .value = BoolVal(wait_writable_for(i64(fd), i64(nanos))) }
-}
-
-// Run the host's own wait on the descriptor, the readiness, the deadline and the
-// `blocked` flag the guest handed it, as `serve_wait_readable_for` and
-// `serve_wait_writable_for` do.
-serve_wait_for :: fn(state: VmState, args: Value[], origin: i32) -> HostCallResult {
-    readiness :: read_i32(args[1], origin, "wait_for") else return readiness
-    blocked :: read_bool(args[3], origin, "wait_for") else return blocked
-    timed: Value[]: [args[0], args[2]]
-    if i32(readiness) == i32(Readiness.Writable) {
-        return serve_wait_writable_for(timed, origin, bool(blocked))
-    }
-    return serve_wait_readable_for(state, timed, origin, bool(blocked))
+    return HostOk { .value = BoolVal(wait_for(i64(fd), readiness, i64(nanos), bool(blocked))) }
 }
 
 // Ask the host's scheduler whether the thread the guest names is leaving.

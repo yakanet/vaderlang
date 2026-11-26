@@ -62,6 +62,7 @@ static bool std_console$write_text(uint8_t l0, vader_string_t l1);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
+static int64_t std_runtime$collections(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -113,8 +114,8 @@ static void vader_host_std_core$Intrinsic$collect(void) {
 	vader_gc_collect();
 }
 
-static int64_t vader_host_std_core$Intrinsic$collections(void) {
-	return (int64_t) vader_gc_get_stats().total_collections;
+static int64_t vader_host_std_core$Intrinsic$collector_statistic(int32_t a0) {
+	return vader_gc_statistic(a0);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -198,9 +199,9 @@ static int32_t snippet$chain_survives(void) {
 	};
 	vader_gc_top = &gc_frame;
 	l0 = snippet$build_chain(INT32_C(200));
-	l1 = vader_host_std_core$Intrinsic$collections();
+	l1 = std_runtime$collections();
 	vader_host_std_core$Intrinsic$collect();
-	t0 = vader_host_std_core$Intrinsic$collections();
+	t0 = std_runtime$collections();
 	l1 = vader_chk_sub(i64, t0, l1);
 	if (l1 != INT64_C(1)) {
 		l2 = (void*) vader_buffer_new((size_t) INT64_C(54));
@@ -250,11 +251,11 @@ static int32_t snippet$chain_survives_three_collections(void) {
 	};
 	vader_gc_top = &gc_frame;
 	l0 = snippet$build_chain(INT32_C(50));
-	l1 = vader_host_std_core$Intrinsic$collections();
+	l1 = std_runtime$collections();
 	vader_host_std_core$Intrinsic$collect();
 	vader_host_std_core$Intrinsic$collect();
 	vader_host_std_core$Intrinsic$collect();
-	t0 = vader_host_std_core$Intrinsic$collections();
+	t0 = std_runtime$collections();
 	l1 = vader_chk_sub(i64, t0, l1);
 	if (l1 != INT64_C(3)) {
 		l2 = (void*) vader_buffer_new((size_t) INT64_C(55));
@@ -335,9 +336,9 @@ static int32_t snippet$array_survives(void) {
 		}
 		break;
 	}
-	l2 = vader_host_std_core$Intrinsic$collections();
+	l2 = std_runtime$collections();
 	vader_host_std_core$Intrinsic$collect();
-	t0 = vader_host_std_core$Intrinsic$collections();
+	t0 = std_runtime$collections();
 	l2 = vader_chk_sub(i64, t0, l2);
 	if (l2 != INT64_C(1)) {
 		l3 = (void*) vader_buffer_new((size_t) INT64_C(54));
@@ -558,6 +559,14 @@ static void std_console$println__string(vader_string_t l0) {
 	l1 = concat_2(l0, 12u);
 	std_console$write((uint8_t) 0, l1);
 	{ vader_gc_top = gc_frame.prev; return; }
+}
+
+static int64_t std_runtime$collections(void) {
+	int64_t t0;
+	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
+	vader_gc_top = &gc_frame;
+	t0 = vader_host_std_core$Intrinsic$collector_statistic(INT32_C(0));
+	{ int64_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 int main(int argc, char** argv) {

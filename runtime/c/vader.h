@@ -1747,26 +1747,15 @@ void    vader_scheduler_task_ended(void);
  * will not watch wakes it after a short sleep. */
 void    vader_scheduler_watch_readable(int64_t fd);
 void    vader_scheduler_watch_exit(int64_t child);
-/* Park until `fd` reads without blocking, when another thread could run
- * meanwhile; otherwise return at once, and the read blocks. */
-void    vader_scheduler_wait_readable(int64_t fd);
-/* The same wait, given up once `nanos` have passed: false then. A negative
- * `nanos` sets no deadline. */
-bool    vader_scheduler_wait_readable_for(int64_t fd, int64_t nanos);
-/* Park until `fd` takes a write without blocking, as the two above do for a
- * read. */
-void    vader_scheduler_wait_writable(int64_t fd);
-bool    vader_scheduler_wait_writable_for(int64_t fd, int64_t nanos);
-/* The timed waits above, for a caller whose read or write of `fd`, a descriptor
- * that does not block, just found it would: the wait does not ask `fd` first,
- * and when no other thread could run, it waits on the system thread. */
-bool    vader_scheduler_wait_blocked_read_for(int64_t fd, int64_t nanos);
-bool    vader_scheduler_wait_blocked_write_for(int64_t fd, int64_t nanos);
 /* The ordinals of `std/core`'s `Readiness`, in its order. */
 enum { VADER_READINESS_READABLE = 0, VADER_READINESS_WRITABLE = 1 };
-/* Wait until `fd` reads or takes a write without blocking, as `readiness`, a
- * `VADER_READINESS_*`, says: `nanos` at most when not negative, and without
- * asking `fd` first when `blocked`. */
+/* Park until `fd` reads or takes a write without blocking, as `readiness`, a
+ * `VADER_READINESS_*`, says, when another thread could run meanwhile; otherwise
+ * return at once, and the read or write blocks. Given up once `nanos` have
+ * passed, false then; a negative `nanos` sets no deadline. `blocked` says the
+ * caller's read or write of `fd`, a descriptor that does not block, just found
+ * it would: the wait does not ask `fd` first, and when no other thread could
+ * run, it waits on the system thread. */
 bool    vader_scheduler_wait(int64_t fd, int32_t readiness, int64_t nanos, bool blocked);
 /* End the waits of the threads parked on `fd`, each returning as if `fd` were
  * ready: for a descriptor about to be closed, whose number the OS hands out

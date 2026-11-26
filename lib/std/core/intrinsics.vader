@@ -14,16 +14,23 @@ import "std/target"
 
 /// What a wait on a descriptor waits for. The runtime reads its ordinal.
 export Readiness :: enum(i32) {
+    /// Something to read, or the end.
     Readable,
+    /// Room to write.
     Writable,
 }
 
 /// A statistic of the collector. The runtime reads its ordinal.
 export CollectorStatistic :: enum(i32) {
+    /// The number of collections run since the process started.
     Collections,
+    /// The bytes in use, old and young generations.
     BytesUsed,
+    /// The bytes copied by every collection since the process started.
     BytesCopied,
+    /// The bytes requested from the collector since the process started.
     AllocatedBytes,
+    /// The number of allocations made through the collector.
     Allocations,
 }
 
@@ -115,16 +122,8 @@ export Intrinsic :: trait {
 
     /// Run a full collection.
     collect :: fn() -> void
-    /// The number of collections run since the process started.
-    collections :: fn() -> i64
-    /// The bytes in use, old and young generations.
-    bytes_used :: fn() -> i64
-    /// The bytes copied by every collection since the process started.
-    bytes_copied :: fn() -> i64
-    /// The bytes requested from the collector since the process started.
-    allocated_bytes :: fn() -> i64
-    /// The number of allocations made through the collector.
-    allocations :: fn() -> i64
+    /// The statistic `which` names.
+    collector_statistic :: fn(which: CollectorStatistic) -> i64
     /// Count every allocation from now on.
     count_allocations :: fn() -> void
 
@@ -173,20 +172,10 @@ export Intrinsic :: trait {
 
     // ---- waits on a descriptor ------------------------------------------
 
-    /// Park until `fd` has something to read.
-    wait_readable :: fn(fd: i64) -> void
-    /// Park until `fd` has something to read, `nanos` at most.
-    wait_readable_for :: fn(fd: i64, nanos: i64) -> bool
-    /// Park until `fd` has room to write.
-    wait_writable :: fn(fd: i64) -> void
-    /// Park until `fd` has room to write, `nanos` at most.
-    wait_writable_for :: fn(fd: i64, nanos: i64) -> bool
-    /// Park as `wait_readable_for` does, without asking `fd` first: its read
-    /// just found it would block.
-    wait_blocked_read_for :: fn(fd: i64, nanos: i64) -> bool
-    /// Park as `wait_writable_for` does, without asking `fd` first: its write
-    /// just found it would block.
-    wait_blocked_write_for :: fn(fd: i64, nanos: i64) -> bool
+    /// Park until `fd` is as `readiness` says, `nanos` at most when not
+    /// negative, without asking `fd` first when `blocked`: its read or write
+    /// just found it would block. False once `nanos` have passed.
+    wait_for :: fn(fd: i64, readiness: Readiness, nanos: i64, blocked: bool) -> bool
     /// Forget what the threads parked on `fd` wait for.
     stop_waiting :: fn(fd: i64) -> void
 

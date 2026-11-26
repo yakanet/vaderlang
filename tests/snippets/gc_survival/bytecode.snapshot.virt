@@ -26,7 +26,7 @@ string 11 "\n"
 import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=7 param_types=4 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=8 param_types=4 param_c_out= param_by_address= (string) -> ref
 import 2 collect std_core$Intrinsic$collect intrinsic=collect result_type=1 () -> void
-import 3 collections std_core$Intrinsic$collections intrinsic=collections result_type=7 () -> i64
+import 3 collector_statistic std_core$Intrinsic$collector_statistic intrinsic=collector_statistic result_type=7 param_types=2 param_c_out= param_by_address= (i32) -> i64
 import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
@@ -109,10 +109,10 @@ fn 2 snippet$chain_survives () -> i32
   i32.const 200
   call 0   ; snippet$build_chain
   local.set 0   ; head
-  call.import 3   ; std_core$Intrinsic$collections
+  call 14   ; std_runtime$collections
   local.set 1   ; before
   call.import 2   ; std_core$Intrinsic$collect
-  call.import 3   ; std_core$Intrinsic$collections
+  call 14   ; std_runtime$collections
   local.get 1   ; before
   i64.checked_sub
   local.tee 1   ; before
@@ -226,12 +226,12 @@ fn 3 snippet$chain_survives_three_collections () -> i32
   i32.const 50
   call 0   ; snippet$build_chain
   local.set 0   ; head
-  call.import 3   ; std_core$Intrinsic$collections
+  call 14   ; std_runtime$collections
   local.set 1   ; c1
   call.import 2   ; std_core$Intrinsic$collect
   call.import 2   ; std_core$Intrinsic$collect
   call.import 2   ; std_core$Intrinsic$collect
-  call.import 3   ; std_core$Intrinsic$collections
+  call 14   ; std_runtime$collections
   local.get 1   ; c1
   i64.checked_sub
   local.tee 1   ; c1
@@ -362,10 +362,10 @@ fn 4 snippet$array_survives () -> i32
       br $L0
     end $L1
   end $L0
-  call.import 3   ; std_core$Intrinsic$collections
+  call 14   ; std_runtime$collections
   local.set 2   ; before
   call.import 2   ; std_core$Intrinsic$collect
-  call.import 3   ; std_core$Intrinsic$collections
+  call 14   ; std_runtime$collections
   local.get 2   ; before
   i64.checked_sub
   local.tee 2   ; before
@@ -788,5 +788,11 @@ fn 13 std_console$println__string (string) -> void
   i32.const 0
   local.get 1   ; $call_3
   call 10   ; std_console$write
+  return
+end
+
+fn 14 std_runtime$collections () -> i64
+  i32.const 0
+  call.import 3   ; std_core$Intrinsic$collector_statistic
   return
 end

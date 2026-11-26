@@ -40,6 +40,8 @@ static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
+static int64_t std_runtime$allocated_bytes(void);
+static int64_t std_runtime$allocations(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -77,12 +79,8 @@ static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 7u, 8u);
 }
 
-static int64_t vader_host_std_core$Intrinsic$allocated_bytes(void) {
-	return (int64_t) vader_gc_get_stats().total_alloc_bytes;
-}
-
-static int64_t vader_host_std_core$Intrinsic$allocations(void) {
-	return (int64_t) vader_gc_get_stats().total_alloc_count;
+static int64_t vader_host_std_core$Intrinsic$collector_statistic(int32_t a0) {
+	return vader_gc_statistic(a0);
 }
 
 static void vader_host_std_core$Intrinsic$count_allocations(void) {
@@ -128,8 +126,8 @@ static int32_t snippet$main(void) {
 	};
 	vader_gc_top = &gc_frame;
 	vader_host_std_core$Intrinsic$count_allocations();
-	l0 = vader_host_std_core$Intrinsic$allocations();
-	l1 = vader_host_std_core$Intrinsic$allocated_bytes();
+	l0 = std_runtime$allocations();
+	l1 = std_runtime$allocated_bytes();
 	vader_array_t* _a0_arr = vader_array_new(7u, 1u, 1u, 8u);
 	((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint8_t) INT32_C(0);
 	t0 = (void*) _a0_arr;
@@ -138,7 +136,7 @@ static int32_t snippet$main(void) {
 	l3 = (void*) vader_buffer_new((size_t) INT64_C(29));
 	l4 = INT64_C(0);
 	l4 = std_core$write_string_at(l3, l4, 1u);
-	t1 = vader_host_std_core$Intrinsic$allocations();
+	t1 = std_runtime$allocations();
 	l5 = (t1 > l0);
 	l4 = std_core$write_bool(l3, l4, l5);
 	t2 = std_core$finish_buffer(l3, l4);
@@ -146,7 +144,7 @@ static int32_t snippet$main(void) {
 	l3 = (void*) vader_buffer_new((size_t) INT64_C(24));
 	l0 = INT64_C(0);
 	l0 = std_core$write_string_at(l3, l0, 2u);
-	t1 = vader_host_std_core$Intrinsic$allocated_bytes();
+	t1 = std_runtime$allocated_bytes();
 	t3 = vader_chk_sub(i64, t1, l1);
 	l5 = (t3 >= INT64_C(100000));
 	l0 = std_core$write_bool(l3, l0, l5);
@@ -334,6 +332,22 @@ static void std_console$println__string(vader_string_t l0) {
 	l1 = concat_2(l0, 6u);
 	std_console$write((uint8_t) 0, l1);
 	{ vader_gc_top = gc_frame.prev; return; }
+}
+
+static int64_t std_runtime$allocations(void) {
+	int64_t t0;
+	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
+	vader_gc_top = &gc_frame;
+	t0 = vader_host_std_core$Intrinsic$collector_statistic(INT32_C(4));
+	{ int64_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static int64_t std_runtime$allocated_bytes(void) {
+	int64_t t0;
+	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
+	vader_gc_top = &gc_frame;
+	t0 = vader_host_std_core$Intrinsic$collector_statistic(INT32_C(3));
+	{ int64_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 int main(int argc, char** argv) {

@@ -218,6 +218,7 @@ static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
+static int64_t std_runtime$collections(void);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -301,8 +302,8 @@ static void vader_host_std_core$Intrinsic$collect(void) {
 	vader_gc_collect();
 }
 
-static int64_t vader_host_std_core$Intrinsic$collections(void) {
-	return (int64_t) vader_gc_get_stats().total_collections;
+static int64_t vader_host_std_core$Intrinsic$collector_statistic(int32_t a0) {
+	return vader_gc_statistic(a0);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -751,7 +752,7 @@ static int32_t snippet$main(void) {
 	l6 = ((int64_t) (int32_t) l3);
 	l1 = std_core$write_int(l2, l1, l6);
 	l1 = std_core$write_string_at(l2, l1, 14u);
-	t6 = vader_host_std_core$Intrinsic$collections();
+	t6 = std_runtime$collections();
 	l7 = (t6 > INT64_C(0));
 	l1 = std_core$write_bool(l2, l1, l7);
 	t0 = std_core$finish_buffer(l2, l1);
@@ -1216,6 +1217,14 @@ static void std_console$println__string(vader_string_t l0) {
 	l1 = concat_2(l0, 28u);
 	std_console$write((uint8_t) 0, l1);
 	{ vader_gc_top = gc_frame.prev; return; }
+}
+
+static int64_t std_runtime$collections(void) {
+	int64_t t0;
+	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
+	vader_gc_top = &gc_frame;
+	t0 = vader_host_std_core$Intrinsic$collector_statistic(INT32_C(0));
+	{ int64_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 int main(int argc, char** argv) {

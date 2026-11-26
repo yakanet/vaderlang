@@ -85,7 +85,7 @@
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " distinct ")
           __off_9 = std.core.write_int(__buf_8, __off_9, std.collections.len<string, i32>(counts))
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " collections>0 ")
-          __off_9 = std.core.write_bool(__buf_8, __off_9, std_core$Intrinsic$collections() > i64(0))
+          __off_9 = std.core.write_bool(__buf_8, __off_9, std.runtime.collections() > i64(0))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       return 0
@@ -149,3 +149,5 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
+  std/runtime
+    fn std.runtime.collections  // std_runtime$collections

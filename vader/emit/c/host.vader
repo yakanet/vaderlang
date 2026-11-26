@@ -969,11 +969,6 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
 
     // std/runtime: GC introspection.
     .RuntimeCollect          -> { return [perform("vader_gc_collect", [])] }
-    .RuntimeCollections      -> { return [gc_statistic("total_collections")] }
-    .RuntimeBytesUsed        -> { return [gc_statistic("bytes_used")] }
-    .RuntimeBytesCopied      -> { return [gc_statistic("total_copied")] }
-    .RuntimeAllocatedBytes   -> { return [gc_statistic("total_alloc_bytes")] }
-    .RuntimeAllocations      -> { return [gc_statistic("total_alloc_count")] }
     .RuntimeCountAllocations -> { return [perform("vader_gc_count_allocations", [])] }
     .RuntimeStatistic        -> { return [returning("vader_gc_statistic", [a0])] }
 
@@ -997,16 +992,6 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .SchedulerMutexUnlock   -> { return [perform("vader_scheduler_mutex_unlock", [a0])] }
     .SchedulerMutexWait     -> { return [perform("vader_scheduler_mutex_wait", [a0])] }
     // std/runtime/wait: a read or a write that parks (`runtime/c/rt/scheduler.c`).
-    .WaitReadable           -> { return [perform("vader_scheduler_wait_readable", [a0])] }
-    .WaitReadableFor        -> { return [returning("vader_scheduler_wait_readable_for", [a0, a1])] }
-    .WaitWritable           -> { return [perform("vader_scheduler_wait_writable", [a0])] }
-    .WaitWritableFor        -> { return [returning("vader_scheduler_wait_writable_for", [a0, a1])] }
-    .WaitBlockedReadFor     -> {
-        return [returning("vader_scheduler_wait_blocked_read_for", [a0, a1])]
-    }
-    .WaitBlockedWriteFor    -> {
-        return [returning("vader_scheduler_wait_blocked_write_for", [a0, a1])]
-    }
     .WaitStop               -> { return [perform("vader_scheduler_stop_waiting", [a0])] }
     .WaitFor                -> {
         return [returning("vader_scheduler_wait", [a0, a1, argument(2), argument(3)])]
@@ -1112,11 +1097,6 @@ monitor_take_alone :: fn() -> CStatement = perform(
 
 // `vader_trap("message");`: a runtime abort naming what went wrong.
 trap :: fn(message: string) -> CStatement = perform("vader_trap", [verbatim(c_string_lit(message))])
-
-// `return (int64_t) vader_gc_get_stats().<field>;`.
-gc_statistic :: fn(field: string) -> CStatement = CReturn {
-    .value = cast("int64_t", CMember { .base = call("vader_gc_get_stats", []), .member = field }),
-}
 
 // `(int64_t) (intptr_t) pointer`: an address riding an `i64` slot.
 address_as_integer :: fn(pointer: CExpression) -> CExpression =

@@ -1633,30 +1633,6 @@ void vader_scheduler_watch_exit(int64_t child) {
     vader_scheduler_unlock();
 }
 
-bool vader_scheduler_wait_readable_for(int64_t fd, int64_t nanos) {
-    return vader_scheduler_wait_for(VADER_WATCH_READABLE, fd, nanos, 0);
-}
-
-void vader_scheduler_wait_readable(int64_t fd) {
-    (void) vader_scheduler_wait_for(VADER_WATCH_READABLE, fd, -1, 0);
-}
-
-bool vader_scheduler_wait_writable_for(int64_t fd, int64_t nanos) {
-    return vader_scheduler_wait_for(VADER_WATCH_WRITABLE, fd, nanos, 0);
-}
-
-void vader_scheduler_wait_writable(int64_t fd) {
-    (void) vader_scheduler_wait_for(VADER_WATCH_WRITABLE, fd, -1, 0);
-}
-
-bool vader_scheduler_wait_blocked_read_for(int64_t fd, int64_t nanos) {
-    return vader_scheduler_wait_for(VADER_WATCH_READABLE, fd, nanos, 1);
-}
-
-bool vader_scheduler_wait_blocked_write_for(int64_t fd, int64_t nanos) {
-    return vader_scheduler_wait_for(VADER_WATCH_WRITABLE, fd, nanos, 1);
-}
-
 bool vader_scheduler_wait(int64_t fd, int32_t readiness, int64_t nanos, bool blocked) {
     int kind = VADER_WATCH_READABLE;
     if (readiness == VADER_READINESS_WRITABLE) kind = VADER_WATCH_WRITABLE;

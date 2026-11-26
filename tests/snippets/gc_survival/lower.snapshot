@@ -34,9 +34,9 @@
   }
   snippet.chain_survives :: fn() -> i32 {  // snippet$chain_survives
       head: Node = snippet.build_chain(200)
-      before: i64 = std_core$Intrinsic$collections()
+      before: i64 = std.runtime.collections()
       std_core$Intrinsic$collect()
-      after: i64 = std_core$Intrinsic$collections()
+      after: i64 = std.runtime.collections()
       diff: i64 = after - before
       if diff != i64(1) {
           std.console.println<string>({
@@ -73,11 +73,11 @@
   }
   snippet.chain_survives_three_collections :: fn() -> i32 {  // snippet$chain_survives_three_collections
       head: Node = snippet.build_chain(50)
-      c1: i64 = std_core$Intrinsic$collections()
+      c1: i64 = std.runtime.collections()
       std_core$Intrinsic$collect()
       std_core$Intrinsic$collect()
       std_core$Intrinsic$collect()
-      c2: i64 = std_core$Intrinsic$collections()
+      c2: i64 = std.runtime.collections()
       diff: i64 = c2 - c1
       if diff != i64(3) {
           std.console.println<string>({
@@ -122,9 +122,9 @@
               i = i +% 1
           }
       }
-      before: i64 = std_core$Intrinsic$collections()
+      before: i64 = std.runtime.collections()
       std_core$Intrinsic$collect()
-      after: i64 = std_core$Intrinsic$collections()
+      after: i64 = std.runtime.collections()
       diff: i64 = after - before
       if diff != i64(1) {
           std.console.println<string>({
@@ -200,3 +200,5 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
+  std/runtime
+    fn std.runtime.collections  // std_runtime$collections

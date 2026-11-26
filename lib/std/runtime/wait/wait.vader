@@ -10,67 +10,31 @@
 
 module "std/runtime/wait"
 
-/// Park the running thread until descriptor `fd` has input to read, or has
-/// reached its end, while the other threads run. With no other thread, it
-/// returns at once, and the read that follows waits on the system thread.
+/// Park the running thread until descriptor `fd` is as `readiness` says, while
+/// the other threads run: input to read or its end, or room for a write or a
+/// failure. With no other thread, it returns `true` at once, and the read or
+/// write that follows waits on the system thread.
 ///
-/// @param fd  a descriptor of the process. On Windows, 0 for stdin, else the
-///            read end of a pipe `create_watched_pipe` made, as its address.
-export wait_readable :: fn(fd: i64) -> void = Intrinsic.wait_readable(fd)
-
-/// Park the running thread as `wait_readable` does, but no longer than `nanos`.
-/// With no other thread, it returns `true` at once, and the caller asks the
-/// system itself.
-///
-/// @param fd     a descriptor of the process, as `wait_readable` takes it.
-/// @param nanos  the longest wait; a negative one waits with no deadline.
-/// @return       `false` once `nanos` have passed with nothing to read on `fd`.
-export wait_readable_for :: fn(fd: i64, nanos: i64) -> bool = Intrinsic.wait_readable_for(fd, nanos)
-
-/// Park the running thread until descriptor `fd` takes a write without
-/// blocking, or fails, while the other threads run. With no other thread, it
-/// returns at once, and the write that follows waits on the system thread.
-///
-/// @param fd  a descriptor of the process.
-export wait_writable :: fn(fd: i64) -> void = Intrinsic.wait_writable(fd)
-
-/// Park the running thread as `wait_writable` does, but no longer than `nanos`.
-/// With no other thread, it returns `true` at once, and the caller asks the
-/// system itself.
-///
-/// @param fd     a descriptor of the process.
-/// @param nanos  the longest wait; a negative one waits with no deadline.
-/// @return       `false` once `nanos` have passed with no room on `fd`.
-export wait_writable_for :: fn(fd: i64, nanos: i64) -> bool = Intrinsic.wait_writable_for(fd, nanos)
-
-/// Park the running thread as `wait_readable_for` does, after a read of `fd`
-/// found it would block.
-///
-/// The wait may then park without asking `fd` first, and trust what the system
+/// `blocked` says that a read or write of `fd` just found it would block: the
+/// wait may then park without asking `fd` first, and trust what the system
 /// reports when it wakes. Called before any read, it could park on input that
-/// already arrived. With no other thread, it waits on the system thread; on
-/// Windows, a descriptor other than a socket returns at once, and the read
-/// waits.
+/// already arrived. With no other thread, a blocked wait waits on the system
+/// thread itself; on Windows, a descriptor other than a socket returns at
+/// once, and the read waits.
 ///
-/// @param fd     a descriptor of the process set not to block, whose last read
-///               failed with `EAGAIN`.
-/// @param nanos  the longest wait; a negative one waits with no deadline.
-/// @return       `false` once `nanos` have passed with nothing to read on `fd`.
-export wait_blocked_read_for :: fn(fd: i64, nanos: i64) -> bool =
-    Intrinsic.wait_blocked_read_for(fd, nanos)
-
-/// Park the running thread as `wait_writable_for` does, after a write to `fd`
-/// found it would block.
-///
-/// The wait skips the asks `wait_blocked_read_for` skips, and waits as it does
-/// when no other thread runs.
-///
-/// @param fd     a descriptor of the process set not to block, whose last
-///               write failed with `EAGAIN`.
-/// @param nanos  the longest wait; a negative one waits with no deadline.
-/// @return       `false` once `nanos` have passed with no room on `fd`.
-export wait_blocked_write_for :: fn(fd: i64, nanos: i64) -> bool =
-    Intrinsic.wait_blocked_write_for(fd, nanos)
+/// @param fd         a descriptor of the process. On Windows, a read waits on
+///                   0 for stdin, else the read end of a pipe
+///                   `create_watched_pipe` made, as its address. A blocked wait
+///                   takes one set not to block, whose last read or write
+///                   failed with `EAGAIN`.
+/// @param readiness  what to wait for.
+/// @param nanos      the longest wait; a negative one waits with no deadline.
+/// @param blocked    whether the last read or write of `fd` found it would
+///                   block.
+/// @return           `false` once `nanos` have passed with `fd` still not
+///                   ready.
+export wait_for :: fn(fd: i64, readiness: Readiness, nanos: i64, blocked: bool) -> bool =
+    Intrinsic.wait_for(fd, readiness, nanos, blocked)
 
 /// End the waits of the threads parked on descriptor `fd`: each returns as if
 /// `fd` were ready, and asks what it waited for again. Called before `fd` is

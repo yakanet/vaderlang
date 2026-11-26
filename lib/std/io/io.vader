@@ -275,12 +275,17 @@ export Descriptor :: Fd | PipeHandle | SocketHandle
 /// Standard input.
 export STDIN: Descriptor: Fd(0)
 
+// The `nanos` of a wait with no deadline.
+NO_TIMEOUT: i64: -1
+
 /// Park the running task until `d` has input to read, or has reached its end,
 /// while the other tasks run. With no other task, it returns at once, and the
 /// read that follows waits on the system thread.
 ///
 /// @param d  what to wait on; `STDIN` for standard input.
-export wait_readable :: fn(d: Descriptor) -> void = Wait.wait_readable(descriptor_word(d))
+export wait_readable :: fn(d: Descriptor) -> void {
+    Wait.wait_for(descriptor_word(d), .Readable, NO_TIMEOUT, false)
+}
 
 /// Park the running task as `wait_readable` does, but no longer than `timeout`.
 /// With no other task, it returns `true` at once, and the caller asks the
@@ -290,14 +295,16 @@ export wait_readable :: fn(d: Descriptor) -> void = Wait.wait_readable(descripto
 /// @param timeout  the longest wait; a negative one waits with no deadline.
 /// @return         `false` once `timeout` has passed with nothing to read on `d`.
 export wait_readable_for :: fn(d: Descriptor, timeout: Duration) -> bool =
-    Wait.wait_readable_for(descriptor_word(d), timeout.to_nanos())
+    Wait.wait_for(descriptor_word(d), .Readable, timeout.to_nanos(), false)
 
 /// Park the running task until `d` takes a write without blocking, or fails,
 /// while the other tasks run. With no other task, it returns at once, and the
 /// write that follows waits on the system thread.
 ///
 /// @param d  what to wait on.
-export wait_writable :: fn(d: Descriptor) -> void = Wait.wait_writable(descriptor_word(d))
+export wait_writable :: fn(d: Descriptor) -> void {
+    Wait.wait_for(descriptor_word(d), .Writable, NO_TIMEOUT, false)
+}
 
 /// Park the running task as `wait_writable` does, but no longer than `timeout`.
 /// With no other task, it returns `true` at once, and the caller asks the
@@ -307,7 +314,7 @@ export wait_writable :: fn(d: Descriptor) -> void = Wait.wait_writable(descripto
 /// @param timeout  the longest wait; a negative one waits with no deadline.
 /// @return         `false` once `timeout` has passed with no room on `d`.
 export wait_writable_for :: fn(d: Descriptor, timeout: Duration) -> bool =
-    Wait.wait_writable_for(descriptor_word(d), timeout.to_nanos())
+    Wait.wait_for(descriptor_word(d), .Writable, timeout.to_nanos(), false)
 
 /// Park the running task as `wait_readable_for` does, after a read of `d`
 /// found it would block.
@@ -321,7 +328,7 @@ export wait_writable_for :: fn(d: Descriptor, timeout: Duration) -> bool =
 /// @param timeout  the longest wait; a negative one waits with no deadline.
 /// @return         `false` once `timeout` has passed with nothing to read on `d`.
 export wait_blocked_read_for :: fn(d: Descriptor, timeout: Duration) -> bool =
-    Wait.wait_blocked_read_for(descriptor_word(d), timeout.to_nanos())
+    Wait.wait_for(descriptor_word(d), .Readable, timeout.to_nanos(), true)
 
 /// Park the running task as `wait_writable_for` does, after a write to `d`
 /// found it would block.
@@ -334,7 +341,7 @@ export wait_blocked_read_for :: fn(d: Descriptor, timeout: Duration) -> bool =
 /// @param timeout  the longest wait; a negative one waits with no deadline.
 /// @return         `false` once `timeout` has passed with no room on `d`.
 export wait_blocked_write_for :: fn(d: Descriptor, timeout: Duration) -> bool =
-    Wait.wait_blocked_write_for(descriptor_word(d), timeout.to_nanos())
+    Wait.wait_for(descriptor_word(d), .Writable, timeout.to_nanos(), true)
 
 /// `timeout` in the whole milliseconds a system poll takes: rounded up, so
 /// that the poll never ends before `timeout`, and at most the largest `i32`.

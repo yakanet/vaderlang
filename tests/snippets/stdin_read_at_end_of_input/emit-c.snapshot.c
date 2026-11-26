@@ -171,8 +171,8 @@ static vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
 	return vader_string_as_string((vader_array_t*) a0);
 }
 
-static void vader_host_std_core$Intrinsic$wait_readable(int64_t a0) {
-	vader_scheduler_wait_readable(a0);
+static bool vader_host_std_core$Intrinsic$wait_for(int64_t a0, int32_t a1, int64_t a2, bool a3) {
+	return vader_scheduler_wait(a0, a1, a2, a3);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -612,7 +612,7 @@ static void std_io$wait_readable(vader_box_t l0) {
 	vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
 	vader_gc_top = &gc_frame;
 	t0 = std_io$descriptor_word(l0);
-	vader_host_std_core$Intrinsic$wait_readable(t0);
+	vader_host_std_core$Intrinsic$wait_for(t0, INT32_C(0), INT64_C(-1), false);
 	{ vader_gc_top = gc_frame.prev; return; }
 }
 

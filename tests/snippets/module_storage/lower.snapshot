@@ -214,7 +214,7 @@
           __off_31 = std.core.write_string_at(__buf_30, __off_31, " lost=")
           __off_31 = std.core.write_int(__buf_30, __off_31, lost)
           __off_31 = std.core.write_string_at(__buf_30, __off_31, "/24 collected=")
-          __off_31 = std.core.write_bool(__buf_30, __off_31, std_core$Intrinsic$collections() > i64(0))
+          __off_31 = std.core.write_bool(__buf_30, __off_31, std.runtime.collections() > i64(0))
           std.core.finish_buffer(__buf_30, __off_31)
       } :string)
       (if @global(4) == 2 { @global(5) } else { snippet.flags() } :bool[])[2] = true
@@ -378,3 +378,5 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
+  std/runtime
+    fn std.runtime.collections  // std_runtime$collections
