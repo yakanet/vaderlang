@@ -1400,7 +1400,8 @@ typedef struct vader_worker {
     uint8_t*                     cards;
     uint8_t*                     card_shadow;
     /* One byte per `VADER_CARD_GROUP` cards, dirty where one of them may be:
-     * a minor reads and cleans only the cards of dirty groups. */
+     * a minor reads and cleans only the cards of dirty groups. The two tables
+     * trade places at each minor, which hands the mutator the clean one. */
     uint8_t*                     card_groups;
     uint8_t*                     card_group_shadow;
     /* The objects a collection it runs still has to scan. */

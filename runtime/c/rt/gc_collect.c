@@ -40,6 +40,25 @@ static inline size_t vader_old_used_cards(void) {
     return ((size_t)(bump - g_old_block) + VADER_CARD_BYTES - 1u) / VADER_CARD_BYTES;
 }
 
+/* The index, among the first `count` regions of the table, of the one that
+ * holds `p`, searched from `from`, whose base is at most `p`: the last one
+ * whose base is at most `p`. */
+static inline size_t vader_old_region_at(size_t count, size_t from, const char* p) {
+    const vader_old_region_t* regions = g_old_region_table;
+    if (regions[from].end > p) return from;
+    size_t lo = from;
+    size_t hi = count - 1u;
+    while (lo < hi) {
+        size_t mid = lo + (hi - lo + 1u) / 2u;
+        if (regions[mid].base <= p) {
+            lo = mid;
+        } else {
+            hi = mid - 1u;
+        }
+    }
+    return lo;
+}
+
 /* Grow the gray worklist geometrically. Out of line, so that the push it serves
  * costs no stack frame in the collector's loops. */
 static VADER_NOINLINE void vader_gray_grow(vader_worker_t* w) {
@@ -76,18 +95,16 @@ static inline void vader_gc_dirty_card(vader_worker_t* w, const void* slot) {
 }
 
 /* Map an interior old-gen pointer to the start of its containing slot, or NULL
- * if it falls in a region's never-used tail. Regions partition [g_old_block,
- * g_old_bump); within one, slots are fixed `slot_size`-strided. Linear over
- * regions: only reached for the few stack words that point into old. */
+ * if it falls outside the carved regions or in a region's never-used tail.
+ * Within a region, slots are fixed `slot_size`-strided. */
 static char* vader_old_slot_of(void* p) {
     char* a = (char*) p;
-    for (vader_old_region_t* r = g_old_regions; r != NULL; r = r->next) {
-        if (a >= r->base && a < r->cur) {
-            size_t off = (size_t)(a - r->base);
-            return r->base + (off / r->slot_size) * r->slot_size;
-        }
-    }
-    return NULL;
+    size_t count = __atomic_load_n(&g_old_region_count, __ATOMIC_ACQUIRE);
+    if (count == 0u || a < g_old_block) return NULL;
+    const vader_old_region_t* r = &g_old_region_table[vader_old_region_at(count, 0u, a)];
+    if (a >= r->cur) return NULL;
+    size_t off = (size_t)(a - r->base);
+    return r->base + (off / r->slot_size) * r->slot_size;
 }
 
 /* Conservative C-stack root scan for the OLD generation's major mark.
@@ -479,8 +496,15 @@ static void vader_gc_scan_roots(vader_worker_t* w, const vader_worker_t* x) {
 }
 
 /* The first index in [i, hi] marked in `table`, or hi + 1. Steps over unmarked
- * bytes eight at a time. */
+ * bytes sixty-four, then eight at a time. */
 static inline size_t vader_next_marked(const uint8_t* table, size_t i, size_t hi) {
+    while (i + 64u <= hi + 1u) {
+        uint64_t block[8];
+        memcpy(block, table + i, sizeof block);
+        uint64_t any = block[0] | block[1] | block[2] | block[3] | block[4] | block[5] | block[6] | block[7];
+        if (any != 0u) break;
+        i += 64u;
+    }
     while (i + 8u <= hi + 1u) {
         uint64_t word;
         memcpy(&word, table + i, sizeof word);
@@ -491,41 +515,68 @@ static inline size_t vader_next_marked(const uint8_t* table, size_t i, size_t hi
     return i;
 }
 
-/* The first card in [c, hi] marked in `dirty` within a group marked in
- * `groups`, or hi + 1: the cards of a clean group are not read, since only
- * those of dirty groups were copied into `dirty`. */
-static inline size_t vader_next_dirty_card(const uint8_t* dirty, const uint8_t* groups,
-                                           size_t c, size_t hi) {
-    size_t last_group = hi / VADER_CARD_GROUP;
-    while (c <= hi) {
-        size_t group = vader_next_marked(groups, c / VADER_CARD_GROUP, last_group);
-        if (group > last_group) break;
-        size_t first = group * VADER_CARD_GROUP;
-        if (first > c) c = first;
-        size_t last = first + VADER_CARD_GROUP - 1u;
-        if (last > hi) last = hi;
-        size_t found = vader_next_marked(dirty, c, last);
-        if (found <= last) return found;
-        c = last + 1u;
-    }
-    return hi + 1u;
-}
-
-/* Copy into the shadows the groups of `w` and the cards of its dirty groups
- * among the first `used_cards`, and clean what was copied. */
-static void vader_gc_snapshot_cards(vader_worker_t* w, size_t used_cards) {
-    size_t used_groups = vader_card_groups_of(used_cards);
-    if (used_groups == 0u) return;
-    memcpy(w->card_group_shadow, w->card_groups, used_groups);
-    memset(w->card_groups, 0, used_groups);
-    size_t last_group = used_groups - 1u;
-    size_t group = vader_next_marked(w->card_group_shadow, 0u, last_group);
+/* Swap the group tables of `w`, then copy into `card_shadow` the cards of the
+ * dirty groups among the first `used_cards`, and clean them in the live table.
+ * The live group table it hands the mutator is clean: the scan cleans each
+ * group of the shadow as it visits it. Returns the last dirty group, and the
+ * first in `first_dirty`; the first is past the last when none is dirty. */
+static size_t vader_gc_snapshot_cards(vader_worker_t* w, size_t used_cards, size_t* first_dirty) {
+    uint8_t* dirty_groups = w->card_groups;
+    w->card_groups = w->card_group_shadow;
+    w->card_group_shadow = dirty_groups;
+    *first_dirty = 1u;
+    size_t last_dirty = 0u;
+    size_t last_group = vader_card_groups_of(used_cards) - 1u;
+    size_t group = vader_next_marked(dirty_groups, 0u, last_group);
+    if (group <= last_group) *first_dirty = group;
     while (group <= last_group) {
         size_t first = group * VADER_CARD_GROUP;
         memcpy(w->card_shadow + first, w->cards + first, VADER_CARD_GROUP);
         memset(w->cards + first, 0, VADER_CARD_GROUP);
-        group = vader_next_marked(w->card_group_shadow, group + 1u, last_group);
+        last_dirty = group;
+        group = vader_next_marked(dirty_groups, group + 1u, last_group);
     }
+    return last_dirty;
+}
+
+/* Where a scan of the old cards stands: cards are visited by increasing address,
+ * so the region of the next one is at or after `region`, and every slot that
+ * starts below `cursor` was scanned already. */
+typedef struct {
+    size_t count;
+    size_t region;
+    char*  cursor;
+} vader_card_scan_t;
+
+/* Scan the published objects that overlap card `c`; false once past the last
+ * region the scan saw, where no card lies that the minor dirtied: a card it
+ * dirtied lies in a region carved before it started. */
+static bool vader_gc_scan_old_card(vader_worker_t* w, vader_card_scan_t* scan, size_t c) {
+    if (scan->region == scan->count) return false;
+    char* card_start = (char*) (vader_old_base + (uintptr_t) c * VADER_CARD_BYTES);
+    char* card_end = card_start + VADER_CARD_BYTES;
+    size_t k = vader_old_region_at(scan->count, scan->region, card_start);
+    /* The card may end in the next region: the regions partition old. */
+    for (; k < scan->count; k++) {
+        const vader_old_region_t* r = &g_old_region_table[k];
+        if (r->base >= card_end) break;
+        char* used_end = __atomic_load_n(&r->cur, __ATOMIC_RELAXED);
+        /* First slot of `r` overlapping the card, clamped past already-scanned
+         * slots. Slots start at r->base + n*slot_size, so the slot covering
+         * the card's first byte may have begun in an earlier card. */
+        size_t into = 0u;
+        if (card_start > r->base) into = (size_t) (card_start - r->base);
+        char* s = r->base + (into / r->slot_size) * r->slot_size;
+        if (s < scan->cursor) s = scan->cursor;
+        for (; s < card_end && s < used_end; s += r->slot_size) {
+            vader_obj_header_t* hdr = (vader_obj_header_t*) s;
+            if (vader_obj_is_published(hdr)) (void) vader_gc_scan_object(w, s);
+        }
+        if (s > scan->cursor) scan->cursor = s;
+        if (r->end > card_end) break;                   /* the next card may lie in `r` too */
+    }
+    scan->region = k;
+    return true;
 }
 
 /* Forward every old->young pointer, then leave the card table holding EXACTLY
@@ -533,18 +584,19 @@ static void vader_gc_snapshot_cards(vader_worker_t* w, size_t used_cards) {
  * minor CLEANS + REDIRTIES.
  *
  * Snapshot the live dirty set into `w->card_shadow`, clear the live table, and
- * card-drive the scan: per region, skip clean (snapshot) cards without touching
- * their slots, and scan only the live objects under dirty cards. Forwarding a
- * slot that still references young re-dirties its LIVE card via the barrier in
- * `vader_gc_scan_box`/`_raw`; a slot whose referent tenured to old leaves its
- * card clean. So after the scan a card is dirty iff a live old object in it
- * still holds a young pointer.
+ * card-drive the scan: visit the dirty cards of the snapshot alone, find the
+ * region of each in the region table, and scan only the live objects under
+ * them, so the cost follows the dirty cards and not the size of old, but for
+ * one pass over the group table. Forwarding a slot that still references young
+ * re-dirties its LIVE card via the barrier in `vader_gc_scan_box`/`_raw`; a
+ * slot whose referent tenured to old leaves its card clean. So after the scan a
+ * card is dirty iff a live old object in it still holds a young pointer.
  *
  * Snapshot-then-scan (rather than clear-as-you-go) is load-bearing: an object
  * can span two cards, and a redirty written while scanning the first card must
  * not be wiped when the second card is cleared. Reading the immutable snapshot
- * while only ever SETTING the live table removes that race; a per-region cursor
- * scans each spanning object at most once.
+ * while only ever SETTING the live table removes that race; the cursor of the
+ * scan, which only moves up, scans each spanning object at most once.
  *
  * Invariant: the mutator write barrier dirties a field's card on every
  * old->young store, so before the minor every live old->young field sits under
@@ -555,9 +607,17 @@ static void vader_gc_scan_old_dirty_cards(vader_worker_t* w) {
      * under the bump (`vader_old_carve_region`) and each object by its mark
      * (`vader_obj_publish_mark`): a slot read here is scanned only once its
      * mark says the object in it is written. */
-    vader_old_region_t* regions = __atomic_load_n(&g_old_regions, __ATOMIC_ACQUIRE);
-    if (regions == NULL) return;
+    vader_card_scan_t scan = { 0u, 0u, NULL };
+    scan.count = __atomic_load_n(&g_old_region_count, __ATOMIC_ACQUIRE);
+    if (scan.count == 0u) return;
     size_t used_cards = vader_old_used_cards();
+    if (used_cards == 0u) return;
+    size_t last_card = used_cards - 1u;
+
+    if (g_gc_scan_all_old) {
+        for (size_t c = 0; c <= last_card && vader_gc_scan_old_card(w, &scan, c); c++) {}
+        return;
+    }
 
     /* Snapshot, then clear. Clearing here is safe because the only forwarding
      * done earlier in the minor (vader_gc_scan_roots) touches off-heap root /
@@ -565,38 +625,18 @@ static void vader_gc_scan_old_dirty_cards(vader_worker_t* w) {
      * cannot dirty a card the clear would wipe; every card-redirtying forward
      * (this scan + the gray drain that follows it) runs at or after this
      * clear. */
-    const uint8_t* dirty = NULL;
-    if (!g_gc_scan_all_old) {
-        vader_gc_snapshot_cards(w, used_cards);
-        dirty = w->card_shadow;                         /* what to scan; live table = redirty target */
-    }
-
-    for (vader_old_region_t* r = regions; r != NULL; r = r->next) {
-        char* used_end = __atomic_load_n(&r->cur, __ATOMIC_RELAXED);
-        if (used_end == r->base) continue;              /* nothing carved yet */
-        uintptr_t rbase_off = (uintptr_t) r->base - vader_old_base;
-        size_t    card_lo   = rbase_off / VADER_CARD_BYTES;
-        size_t    card_hi   = ((uintptr_t) used_end - 1u - vader_old_base) / VADER_CARD_BYTES;
-        char*     cursor    = r->base;                  /* slots below are already scanned */
-        for (size_t c = card_lo; c <= card_hi; c++) {
-            if (dirty != NULL) {                        /* clean cards: skip their slots wholesale */
-                c = vader_next_dirty_card(dirty, w->card_group_shadow, c, card_hi);
-                if (c > card_hi) break;
-            }
-
-            /* First slot of `r` overlapping card c, clamped past already-scanned
-             * slots. Slots start at r->base + k*slot_size, so the slot covering
-             * the card's first byte may have begun in an earlier card. */
-            uintptr_t card_start_off = (uintptr_t) c * VADER_CARD_BYTES;
-            size_t into = card_start_off > rbase_off ? (size_t)(card_start_off - rbase_off) : 0u;
-            char* s = r->base + (into / r->slot_size) * r->slot_size;
-            if (s < cursor) s = cursor;
-            char* card_end = (char*)(vader_old_base + card_start_off + VADER_CARD_BYTES);
-            for (; s < card_end && s < used_end; s += r->slot_size) {
-                vader_obj_header_t* hdr = (vader_obj_header_t*) s;
-                if (vader_obj_is_published(hdr)) (void) vader_gc_scan_object(w, s);
-            }
-            cursor = s;
+    size_t first_group = 0u;
+    size_t last_group = vader_gc_snapshot_cards(w, used_cards, &first_group);
+    const uint8_t* dirty = w->card_shadow;              /* what to scan; live table = redirty target */
+    uint8_t* groups = w->card_group_shadow;
+    for (size_t g = first_group; g <= last_group; g = vader_next_marked(groups, g + 1u, last_group)) {
+        groups[g] = 0u;                                 /* clean for the next swap */
+        size_t first = g * VADER_CARD_GROUP;
+        size_t last = first + VADER_CARD_GROUP - 1u;
+        if (last > last_card) last = last_card;
+        for (size_t c = vader_next_marked(dirty, first, last); c <= last;
+             c = vader_next_marked(dirty, c + 1u, last)) {
+            if (!vader_gc_scan_old_card(w, &scan, c)) break;
         }
     }
 }

@@ -31,6 +31,7 @@
 #define VADER_OLD_SMALL_MAX    (1u << VADER_OLD_SMALL_MAX_LOG2)               /* 1024 */
 #define VADER_OLD_REGION_BYTES (256u * 1024u)   /* small-class region granularity */
 #define VADER_OLD_COMMIT_STEP  (4u * 1024u * 1024u)  /* how much of the reservation one commit takes */
+#define VADER_OLD_REGION_TABLE_STEP 4096u             /* how many entries of the region table one commit takes */
 #define VADER_OLD_DISCARD_MIN  (64u * 1024u)    /* only discard freed large regions >= this */
 /* Freed large regions are binned by size, VADER_OLD_LARGE_SUBBINS bins per power
  * of two above VADER_OLD_SMALL_MAX, up to the widest `size_t`. */
@@ -59,7 +60,16 @@ static int    g_old_alloc_failed_at_cap = 0;  /* set when a carve hit the cap wi
 /* By class, the regions with room that no worker allocates in, linked by
  * `free_next`: a sweep fills them, a worker takes one under the lock. */
 static vader_old_region_t* g_old_pools[VADER_OLD_NUM_CLASSES];
-static vader_old_region_t* g_old_regions    = NULL;   /* all regions, carve order */
+/* Every region, by increasing base: each carve takes the next extent of the
+ * bump, so the regions partition [g_old_block, g_old_bump) in this order. The
+ * table is reserved at init for as many regions as the smallest ones would
+ * make, and never moves. Only the carve appends, under the lock, and it
+ * publishes a region by the count, released: a minor of another worker reads
+ * the table without the lock. */
+static vader_old_region_t* g_old_region_table     = NULL;
+static size_t              g_old_region_count     = 0;
+static size_t              g_old_region_limit     = 0;   /* entries reserved */
+static size_t              g_old_region_committed = 0;   /* entries committed */
 /* Freed large regions by size bin: every region of a bin is at least as large as
  * every region of a lower one. Rebuilt by each sweep (`vader_old_sweep`), which
  * also records the highest bin it filled: no bin above it holds a region. */
@@ -270,13 +280,27 @@ static void vader_old_commit_to(char* needed) {
     g_old_committed = end;
 }
 
+/* Commit the region table up to `entries` at least, a whole step at a time. */
+static void vader_old_region_table_commit(size_t entries) {
+    if (entries <= g_old_region_committed) return;
+    size_t steps = (entries + VADER_OLD_REGION_TABLE_STEP - 1u) / VADER_OLD_REGION_TABLE_STEP;
+    size_t upto = steps * VADER_OLD_REGION_TABLE_STEP;
+    if (upto > g_old_region_limit) upto = g_old_region_limit;
+    char* from = (char*) (g_old_region_table + g_old_region_committed);
+    if (!vader_os_commit(from, (upto - g_old_region_committed) * sizeof(vader_old_region_t))) {
+        vader_trap("vader_old_carve_region: could not commit the region table (out of commit charge)");
+    }
+    g_old_region_committed = upto;
+}
+
 /* Carve a fresh region of `region_bytes` from the global bump and dedicate it to
  * `slot_size` (class_idx >= 0 for small, -1 for a one-object large region).
  * Returns NULL when the reservation is exhausted (the real OOM ceiling). */
 static vader_old_region_t* vader_old_carve_region(size_t region_bytes, size_t slot_size, int class_idx) {
     if (g_old_bump + region_bytes > g_old_block_end) return NULL;
-    vader_old_region_t* r = (vader_old_region_t*) malloc(sizeof(vader_old_region_t));
-    if (r == NULL) vader_trap("vader_old_carve_region: region metadata malloc failed");
+    size_t n = g_old_region_count;
+    vader_old_region_table_commit(n + 1u);
+    vader_old_region_t* r = &g_old_region_table[n];
     vader_old_commit_to(g_old_bump + region_bytes);
     r->base      = g_old_bump;
     r->cur       = g_old_bump;
@@ -288,12 +312,11 @@ static vader_old_region_t* vader_old_carve_region(size_t region_bytes, size_t sl
     r->free_next = NULL;
     /* A large region holds its one object from the start. */
     if (class_idx < 0) r->cur = r->end;
-    r->next      = g_old_regions;
-    /* The bump first, then the region, released: a minor of another worker
-     * reads the list without the lock (`vader_gc_scan_old_dirty_cards`), and
-     * finds every region it reaches whole and under the bump. */
+    /* The bump first, then the count, released: a minor of another worker
+     * reads the table without the lock (`vader_gc_scan_old_dirty_cards`), and
+     * finds every region it counts whole and under the bump. */
     __atomic_store_n(&g_old_bump, g_old_bump + region_bytes, __ATOMIC_RELAXED);
-    __atomic_store_n(&g_old_regions, r, __ATOMIC_RELEASE);
+    __atomic_store_n(&g_old_region_count, n + 1u, __ATOMIC_RELEASE);
     return r;
 }
 
@@ -413,7 +436,8 @@ static void* vader_old_alloc(vader_worker_t* w, size_t bytes) {
  * atom-GC heap walk, the histogram, and the profiler: every consumer that needs
  * to enumerate the old live set, which spans several regions. */
 static void vader_old_foreach_live(void (*fn)(char* obj, uint32_t type_index, void* ctx), void* ctx) {
-    for (vader_old_region_t* r = g_old_regions; r != NULL; r = r->next) {
+    for (size_t i = g_old_region_count; i-- > 0;) {
+        const vader_old_region_t* r = &g_old_region_table[i];
         for (char* slot = r->base; slot < r->cur; slot += r->slot_size) {
             vader_obj_header_t* h = (vader_obj_header_t*) slot;
             if (h->mark == g_mark_value) fn(slot, h->type_index, ctx);
@@ -458,7 +482,9 @@ static void vader_old_sweep(void) {
     memset(g_old_large_bins, 0, sizeof g_old_large_bins);
     g_old_large_top_bin = 0;
     size_t live = 0;
-    for (vader_old_region_t* r = g_old_regions; r != NULL; r = r->next) {
+    /* The newest region first: it ends up deepest in its pool or bin. */
+    for (size_t i = g_old_region_count; i-- > 0;) {
+        vader_old_region_t* r = &g_old_region_table[i];
         if (r->class_idx < 0) {
             /* Large: one object at r->base, if any (r->cur > r->base). */
             if (r->cur == r->base) continue;
@@ -534,8 +560,8 @@ static void vader_gc_worker_init(vader_worker_t* w) {
     if (w->card_shadow == NULL) vader_trap("vader_gc_init: card-shadow malloc failed");
     w->card_groups = (uint8_t*) calloc(groups, 1u);
     if (w->card_groups == NULL) vader_trap("vader_gc_init: card-group calloc failed");
-    w->card_group_shadow = (uint8_t*) malloc(groups);
-    if (w->card_group_shadow == NULL) vader_trap("vader_gc_init: card-group-shadow malloc failed");
+    w->card_group_shadow = (uint8_t*) calloc(groups, 1u);
+    if (w->card_group_shadow == NULL) vader_trap("vader_gc_init: card-group-shadow calloc failed");
     g_workers[g_worker_count++] = w;
 }
 
@@ -632,7 +658,11 @@ void vader_gc_init(void) {
     g_old_committed = g_old_block;
     g_old_block_end = g_old_block + g_old_capacity;
     memset(g_old_pools, 0, sizeof g_old_pools);
-    g_old_regions    = NULL;
+    g_old_region_limit = g_old_capacity / (VADER_OLD_SMALL_MAX + VADER_OLD_CLASS_GRAN) + 1u;
+    g_old_region_table = (vader_old_region_t*) vader_os_reserve(g_old_region_limit * sizeof(vader_old_region_t));
+    if (g_old_region_table == NULL) vader_trap("vader_gc_init: region table reservation failed (out of address space)");
+    g_old_region_count = 0;
+    g_old_region_committed = 0;
     memset(g_old_large_bins, 0, sizeof g_old_large_bins);
     g_old_large_top_bin = 0;
     g_old_live_bytes = 0;
@@ -675,14 +705,13 @@ void vader_gc_shutdown(void) {
     if (g_old_block != NULL) {
         vader_os_release(g_old_block, g_old_capacity);
     }
-    for (vader_old_region_t* r = g_old_regions; r != NULL; ) {
-        vader_old_region_t* next = r->next;
-        free(r);
-        r = next;
+    if (g_old_region_table != NULL) {
+        vader_os_release((char*) g_old_region_table, g_old_region_limit * sizeof(vader_old_region_t));
     }
+    g_old_region_table = NULL;
+    g_old_region_count = g_old_region_limit = g_old_region_committed = 0;
     g_old_block = g_old_bump = g_old_committed = g_old_block_end = NULL;
     g_old_capacity = g_old_live_bytes = g_old_live_after_major = 0;
-    g_old_regions = NULL;
     memset(g_old_large_bins, 0, sizeof g_old_large_bins);
     g_old_large_top_bin = 0;
     memset(g_old_pools, 0, sizeof g_old_pools);

@@ -57,7 +57,6 @@ typedef struct vader_old_region {
     uint8_t freed;        /* large only: currently in a large free bin */
     /* Small only: its free slots, linked in the word after each one's header. */
     char*  free_head;
-    struct vader_old_region* next;       /* global region list (sweep + walks) */
     /* The next region of its large free bin, or of the pool of its class. */
     struct vader_old_region* free_next;
 } vader_old_region_t;
@@ -70,7 +69,8 @@ static char* g_old_bump;
 static size_t g_old_capacity;
 static size_t g_old_live_bytes;
 static size_t g_old_live_after_major;
-static vader_old_region_t* g_old_regions;
+static vader_old_region_t* g_old_region_table;
+static size_t g_old_region_count;
 static int g_gc_initialized;
 static vader_worker_t* g_workers[VADER_WORKERS_MAX];
 static size_t g_worker_count;
