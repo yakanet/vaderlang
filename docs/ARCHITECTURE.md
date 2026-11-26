@@ -172,7 +172,7 @@ grows, keeps or hands back of what it is lent, path by path under each parameter
   with `@task_primitive`, a decorator private to `std/task`
   (`vader/front/effects/task_primitives.vader`): the parameters and fields it names
   are checked, a wrong one stops the compiler. A function that only forwards to a
-  member of `Intrinsic` that parks (`intrinsic_parks`) is a gate too. The
+  member of `Intrinsic` that suspends the thread (`intrinsic_suspends`) is a gate too. The
   synchronised types carry `@task_shared`.
 - A function that hands one of its parameters to a task is a gate for its
   callers: a fixed point over the call graph (`vader/front/effects/tasks.vader`).

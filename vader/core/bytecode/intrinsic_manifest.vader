@@ -2,7 +2,7 @@
 //
 // `IntrinsicId` names every member of `std/core`'s `Intrinsic`, found by the
 // member's name (`intrinsic_id`), and carries what a call to it does
-// (`MemberEffect`), which the questions below read. Every other reader that must
+// (`DuringCall`), which the questions below read. Every other reader that must
 // know a member decides for each by an exhaustive `match`, so a new member trips
 // T3013 at each: the two backends (`vm/host::dispatch_import`,
 // `emit/c/host::import_shim`), the op selection
@@ -19,137 +19,139 @@ import "vader/core/types"
 
 // ---- member identity -------------------------------------------------------
 
-/// What a call to a member does that its callers must account for. Each level
-/// holds the ones before it: a member that lets other threads run may collect,
-/// one that parks lets other threads run.
-export MemberEffect :: enum {
+/// What may happen while a call to a member runs, which its callers must account
+/// for. Each level holds the ones before it: a member that lets other threads
+/// run may collect, one that suspends lets other threads run.
+export DuringCall :: enum {
     /// Nothing the program holds moves: no collection, no other thread.
-    Quiet,
-    /// May collect, so a live reference must be rooted across the call ; no
-    /// other code runs before it returns.
-    Collects,
+    NothingMoves,
+    /// The collector may run, so a live reference must be rooted across the
+    /// call ; no other code runs before it returns.
+    MayCollect,
     /// Other threads run before it returns, and may shorten any array they reach.
-    RunsOthers,
-    /// Parks the thread until something wakes it, the others running meanwhile.
-    Parks,
+    OthersRun,
+    /// The thread is suspended until something resumes it: a wake, the end of a
+    /// delay, a descriptor ready. The others run meanwhile.
+    Suspends,
 }
 
 /// The member of `std/core`'s `Intrinsic` a variant names, `""` for none
 /// (`NotIntrinsic`), and what a call to it does.
 export MemberFacts :: struct {
     member: string
-    effect: MemberEffect
+    during_call: DuringCall
 }
 
-/// Identity and effect of a member of `std/core`'s `Intrinsic` (`intrinsic_id`). A member a
-/// host serves reaches the backends as an import ; one an op serves never does,
-/// and the backends' `match` groups those in one arm.
+/// The members of `std/core`'s `Intrinsic` (`intrinsic_id`), each with what may
+/// happen during a call to it. A member a host serves reaches the backends as an
+/// import ; one an op serves never does, and the backends' `match` groups those
+/// in one arm.
 export IntrinsicId :: enum(MemberFacts) {
-    // Unrecognised: what any call may do, short of parking.
-    NotIntrinsic { .member = "", .effect = .RunsOthers },
+    // Unrecognised: what any call may do, short of suspending.
+    NotIntrinsic { .member = "", .during_call = .OthersRun },
     // std/core string + bytes. Reads of the atom (`runtime/c/rt/atoms.c`): its
     // length, one byte, the hash and the ASCII flag set at intern ; a slice takes
     // an atom-table slot, grown by `realloc`. A view and a string allocate.
-    ByteLen       { .member = "byte_len", .effect = .Quiet },
-    ByteAt        { .member = "byte_at", .effect = .Quiet },
-    ByteSlice     { .member = "byte_slice", .effect = .Quiet },
-    IsAscii       { .member = "is_ascii", .effect = .Quiet },
-    Bytes         { .member = "bytes", .effect = .Collects },
-    BytesToString { .member = "bytes_to_string", .effect = .Collects },
-    StringHash    { .member = "string_hash", .effect = .Quiet },
+    ByteLen       { .member = "byte_len", .during_call = .NothingMoves },
+    ByteAt        { .member = "byte_at", .during_call = .NothingMoves },
+    ByteSlice     { .member = "byte_slice", .during_call = .NothingMoves },
+    IsAscii       { .member = "is_ascii", .during_call = .NothingMoves },
+    Bytes         { .member = "bytes", .during_call = .MayCollect },
+    BytesToString { .member = "bytes_to_string", .during_call = .MayCollect },
+    StringHash    { .member = "string_hash", .during_call = .NothingMoves },
     // std/core: served by an op of their own, which answers for itself. These
     // and the array and buffer members below never reach a call: they take the
-    // unrecognised member's effect.
-    StringCompare { .member = "string_compare", .effect = .RunsOthers },
-    F64ToBits     { .member = "f64_to_bits", .effect = .RunsOthers },
-    BitsToF64     { .member = "bits_to_f64", .effect = .RunsOthers },
-    F32ToBits     { .member = "f32_to_bits", .effect = .RunsOthers },
-    BitsToF32     { .member = "bits_to_f32", .effect = .RunsOthers },
+    // unrecognised member's level.
+    StringCompare { .member = "string_compare", .during_call = .OthersRun },
+    F64ToBits     { .member = "f64_to_bits", .during_call = .OthersRun },
+    BitsToF64     { .member = "bits_to_f64", .during_call = .OthersRun },
+    F32ToBits     { .member = "f32_to_bits", .during_call = .OthersRun },
+    BitsToF32     { .member = "bits_to_f32", .during_call = .OthersRun },
     // std/core values: a copy allocates.
-    DeepCopy { .member = "deep_copy", .effect = .Collects },
-    // std/core arrays: lowered as typed nodes, never a call (effect as above)
-    ArrayLen        { .member = "array_len", .effect = .RunsOthers },
-    ArrayPush       { .member = "array_push", .effect = .RunsOthers },
-    ArrayPushAll    { .member = "array_push_all", .effect = .RunsOthers },
-    ArrayCopyTo     { .member = "array_copy_to", .effect = .RunsOthers },
-    ArrayRemoveLast { .member = "array_remove_last", .effect = .RunsOthers },
-    ArrayClear      { .member = "array_clear", .effect = .RunsOthers },
-    // std/core buffer: the Target ABI memory opcodes (effect as above)
-    NewByteBuffer      { .member = "new_byte_buffer", .effect = .RunsOthers },
-    BufferLoadU8       { .member = "buffer_load_u8", .effect = .RunsOthers },
-    BufferStoreU8      { .member = "buffer_store_u8", .effect = .RunsOthers },
-    BufferMemoryCopy   { .member = "buffer_memory_copy", .effect = .RunsOthers },
-    BufferInternString { .member = "buffer_intern_string", .effect = .RunsOthers },
-    BufferWriteString  { .member = "buffer_write_string", .effect = .RunsOthers },
+    DeepCopy { .member = "deep_copy", .during_call = .MayCollect },
+    // std/core arrays: lowered as typed nodes, never a call (level as above)
+    ArrayLen        { .member = "array_len", .during_call = .OthersRun },
+    ArrayPush       { .member = "array_push", .during_call = .OthersRun },
+    ArrayPushAll    { .member = "array_push_all", .during_call = .OthersRun },
+    ArrayCopyTo     { .member = "array_copy_to", .during_call = .OthersRun },
+    ArrayRemoveLast { .member = "array_remove_last", .during_call = .OthersRun },
+    ArrayClear      { .member = "array_clear", .during_call = .OthersRun },
+    // std/core buffer: the Target ABI memory opcodes (level as above)
+    NewByteBuffer      { .member = "new_byte_buffer", .during_call = .OthersRun },
+    BufferLoadU8       { .member = "buffer_load_u8", .during_call = .OthersRun },
+    BufferStoreU8      { .member = "buffer_store_u8", .during_call = .OthersRun },
+    BufferMemoryCopy   { .member = "buffer_memory_copy", .during_call = .OthersRun },
+    BufferInternString { .member = "buffer_intern_string", .during_call = .OthersRun },
+    BufferWriteString  { .member = "buffer_write_string", .during_call = .OthersRun },
     // std/runtime: unclassified, so conservatively a safepoint ; the collector
     // moves objects and never changes a length.
-    RuntimeCollect          { .member = "collect", .effect = .Collects },
-    RuntimeCountAllocations { .member = "count_allocations", .effect = .Collects },
-    RuntimeStatistic        { .member = "collector_statistic", .effect = .Collects },
+    RuntimeCollect          { .member = "collect", .during_call = .MayCollect },
+    RuntimeCountAllocations { .member = "count_allocations", .during_call = .MayCollect },
+    RuntimeStatistic        { .member = "collector_statistic", .during_call = .MayCollect },
     // std/runtime/scheduler. Making a stack, queuing a thread, reading a handle
     // or a flag, noting a watch: `malloc`, `mmap` and the OS, never the
-    // collector. A cancel parks nothing: cancelling another thread returns at
+    // collector. A cancel suspends nothing: cancelling another thread returns at
     // once, cancelling the running one never returns, and both let the others
     // run.
-    SchedulerSpawn         { .member = "spawn_thread", .effect = .Quiet },
-    SchedulerPark          { .member = "park", .effect = .Parks },
-    SchedulerWake          { .member = "wake", .effect = .Quiet },
-    SchedulerSleepFor      { .member = "sleep_for", .effect = .Parks },
-    SchedulerCancel        { .member = "cancel_thread", .effect = .RunsOthers },
-    SchedulerCurrent       { .member = "current_thread", .effect = .Quiet },
-    SchedulerIsCancelled   { .member = "is_cancelled", .effect = .Quiet },
-    SchedulerIsLeaving     { .member = "is_leaving", .effect = .Quiet },
-    SchedulerTaskEnded     { .member = "task_ended", .effect = .Quiet },
-    SchedulerWatchReadable { .member = "watch_readable", .effect = .Quiet },
-    SchedulerWatchExit     { .member = "watch_exit", .effect = .Quiet },
+    SchedulerSpawn         { .member = "spawn_thread", .during_call = .NothingMoves },
+    SchedulerPark          { .member = "park", .during_call = .Suspends },
+    SchedulerWake          { .member = "wake", .during_call = .NothingMoves },
+    SchedulerSleepFor      { .member = "sleep_for", .during_call = .Suspends },
+    SchedulerCancel        { .member = "cancel_thread", .during_call = .OthersRun },
+    SchedulerCurrent       { .member = "current_thread", .during_call = .NothingMoves },
+    SchedulerIsCancelled   { .member = "is_cancelled", .during_call = .NothingMoves },
+    SchedulerIsLeaving     { .member = "is_leaving", .during_call = .NothingMoves },
+    SchedulerTaskEnded     { .member = "task_ended", .during_call = .NothingMoves },
+    SchedulerWatchReadable { .member = "watch_readable", .during_call = .NothingMoves },
+    SchedulerWatchExit     { .member = "watch_exit", .during_call = .NothingMoves },
     // Taking the monitor to publish, or to give a value that reaches the young
     // generation, empties the young generation of the worker ; a worker that
     // waits for a mutex counts as stopped, and a major runs meanwhile. Neither
-    // parks a thread: no other thread of the worker runs. Letting the monitor go
+    // suspends a thread: no other thread of the worker runs. Letting the monitor go
     // allocates in the young generation again.
-    SchedulerMonitorEnter { .member = "monitor_enter", .effect = .Collects },
-    SchedulerMonitorGive  { .member = "monitor_give", .effect = .Collects },
-    SchedulerMonitorExit  { .member = "monitor_exit", .effect = .Quiet },
-    SchedulerPublish      { .member = "publish", .effect = .Collects },
-    SchedulerMutexLock    { .member = "mutex_lock", .effect = .Collects },
-    SchedulerMutexUnlock  { .member = "mutex_unlock", .effect = .Quiet },
-    SchedulerMutexWait    { .member = "mutex_wait", .effect = .Parks },
-    // std/runtime/wait: a read or a write that parks while another thread runs
-    WaitStop { .member = "stop_waiting", .effect = .Quiet },
-    WaitFor  { .member = "wait_for", .effect = .Parks },
+    SchedulerMonitorEnter { .member = "monitor_enter", .during_call = .MayCollect },
+    SchedulerMonitorGive  { .member = "monitor_give", .during_call = .MayCollect },
+    SchedulerMonitorExit  { .member = "monitor_exit", .during_call = .NothingMoves },
+    SchedulerPublish      { .member = "publish", .during_call = .MayCollect },
+    SchedulerMutexLock    { .member = "mutex_lock", .during_call = .MayCollect },
+    SchedulerMutexUnlock  { .member = "mutex_unlock", .during_call = .NothingMoves },
+    SchedulerMutexWait    { .member = "mutex_wait", .during_call = .Suspends },
+    // std/runtime/wait: a read or a write that suspends while another thread runs
+    WaitStop { .member = "stop_waiting", .during_call = .NothingMoves },
+    WaitFor  { .member = "wait_for", .during_call = .Suspends },
     // std/core: the stream or the future a component function returns, which
     // only a WASM build reads. A read waits for the host, then makes the array or
     // the value read ; a drop gives a handle back.
-    WasmStreamRead { .member = "wasm_stream_read", .effect = .Parks },
-    WasmFutureWait { .member = "wasm_future_wait", .effect = .Parks },
-    WasmStreamDrop { .member = "wasm_stream_drop", .effect = .Quiet },
-    WasmFutureDrop { .member = "wasm_future_drop", .effect = .Quiet },
+    WasmStreamRead { .member = "wasm_stream_read", .during_call = .Suspends },
+    WasmFutureWait { .member = "wasm_future_wait", .during_call = .Suspends },
+    WasmStreamDrop { .member = "wasm_stream_drop", .during_call = .NothingMoves },
+    WasmFutureDrop { .member = "wasm_future_drop", .during_call = .NothingMoves },
     // std/runtime/scheduler: the cooperative threads of the component model,
     // which the scheduler of a WASM build drives. A yield lets the others run but
     // waits for no wake ; the end of a thread never returns, and the others run,
     // and collect, before it ends.
-    WasmThreadNew         { .member = "wasm_thread_new", .effect = .Quiet },
-    WasmThreadSuspend     { .member = "wasm_thread_suspend", .effect = .Parks },
-    WasmThreadResumeLater { .member = "wasm_thread_resume_later", .effect = .Quiet },
-    WasmThreadYield       { .member = "wasm_thread_yield", .effect = .RunsOthers },
-    WasmThreadIndex       { .member = "wasm_thread_index", .effect = .Quiet },
-    WasmThreadExit        { .member = "wasm_thread_exit", .effect = .Collects },
+    WasmThreadNew         { .member = "wasm_thread_new", .during_call = .NothingMoves },
+    WasmThreadSuspend     { .member = "wasm_thread_suspend", .during_call = .Suspends },
+    WasmThreadResumeLater { .member = "wasm_thread_resume_later", .during_call = .NothingMoves },
+    WasmThreadYield       { .member = "wasm_thread_yield", .during_call = .OthersRun },
+    WasmThreadIndex       { .member = "wasm_thread_index", .during_call = .NothingMoves },
+    WasmThreadExit        { .member = "wasm_thread_exit", .during_call = .MayCollect },
     // std/abort: `panic` never returns ; unclassified, so conservatively a
     // safepoint.
-    AbortPanic { .member = "panic", .effect = .Collects },
+    AbortPanic { .member = "panic", .during_call = .MayCollect },
     // std/target: the OS the process is RUNNING on, not the one it was built
     // for. `VADER_OS` answers the latter and is a baked constant, not a host.
-    TargetCurrentOs   { .member = "current_os", .effect = .Quiet },
-    TargetCurrentArch { .member = "current_arch", .effect = .Quiet },
+    TargetCurrentOs   { .member = "current_os", .during_call = .NothingMoves },
+    TargetCurrentArch { .member = "current_arch", .during_call = .NothingMoves },
     // vader/vm: dynamic foreign calls, the VM's answer to `@extern`. NOT in
     // `std/`: they amount to running arbitrary native code, conservatively a
     // safepoint. Foreign code is lent a buffer, never the header that holds its
     // length.
-    FfiOpen      { .member = "ffi_open", .effect = .Collects },
-    FfiOpenPath  { .member = "ffi_open_path", .effect = .Collects },
-    FfiSymbol    { .member = "ffi_symbol", .effect = .Collects },
-    FfiCall      { .member = "ffi_call", .effect = .Collects },
-    FfiCallFrame { .member = "ffi_call_frame", .effect = .Collects },
+    FfiOpen      { .member = "ffi_open", .during_call = .MayCollect },
+    FfiOpenPath  { .member = "ffi_open_path", .during_call = .MayCollect },
+    FfiSymbol    { .member = "ffi_symbol", .during_call = .MayCollect },
+    FfiCall      { .member = "ffi_call", .during_call = .MayCollect },
+    FfiCallFrame { .member = "ffi_call_frame", .during_call = .MayCollect },
 }
 
 /// The member `member` of `std/core`'s `Intrinsic` ; `NotIntrinsic` for none.
@@ -204,7 +206,7 @@ IDS_BY_MEMBER: Map<string, IntrinsicId>: @comptime {
 /// and never collects, `bytes` depends on nothing and allocates.
 ///
 /// @param id  the member, from `intrinsic_id`.
-export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = MemberFacts(id).effect != .Quiet
+export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = MemberFacts(id).during_call != .NothingMoves
 
 /// Whether a call to the member `id` can shorten an array of the program: the question
 /// midir's call summaries ask of a host function no op serves
@@ -213,18 +215,18 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = MemberFacts(id).ef
 /// unchecked against an array that got shorter.
 ///
 /// @param id  the member, from `intrinsic_id`.
-export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match MemberFacts(id).effect {
-    .Quiet | .Collects   -> false
-    .RunsOthers | .Parks -> true
+export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match MemberFacts(id).during_call {
+    .NothingMoves | .MayCollect -> false
+    .OthersRun | .Suspends      -> true
 }
 
-/// Whether a call to the member `id` parks the thread that makes it until something
-/// wakes it: what the task check asks of a function that only forwards to a member
+/// Whether a call to the member `id` suspends the thread that makes it until something
+/// resumes it: what the task check asks of a function that only forwards to a member
 /// (`vader/front/effects/task_primitives.vader`). A wrong `false` hides the parks of
 /// a block holding a lock.
 ///
 /// @param id  the member, from `intrinsic_id`.
-export intrinsic_parks :: fn(id: IntrinsicId) -> bool = MemberFacts(id).effect == .Parks
+export intrinsic_suspends :: fn(id: IntrinsicId) -> bool = MemberFacts(id).during_call == .Suspends
 
 // ---- tests ----------------------------------------------------------------
 
@@ -257,8 +259,8 @@ test_intrinsic_shortens_once_other_threads_run :: fn() -> void {
 }
 
 @test
-test_intrinsic_parks_on_a_wait_and_not_on_a_cancel :: fn() -> void {
-    assert(intrinsic_parks(.WaitFor), "a wait on a descriptor parks")
-    assert(intrinsic_parks(.SchedulerSleepFor), "a sleep parks")
-    assert(!intrinsic_parks(.SchedulerCancel), "a cancel returns at once")
+test_intrinsic_suspends_on_a_wait_and_not_on_a_cancel :: fn() -> void {
+    assert(intrinsic_suspends(.WaitFor), "a wait on a descriptor suspends")
+    assert(intrinsic_suspends(.SchedulerSleepFor), "a sleep suspends")
+    assert(!intrinsic_suspends(.SchedulerCancel), "a cancel returns at once")
 }
