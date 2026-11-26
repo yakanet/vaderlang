@@ -3,7 +3,7 @@
 // Eisel-Lemire fast path (Daniel Lemire, "Number Parsing at a Gigabyte per
 // Second", 2021 ; the Mushtak-Lemire "no fallback" variant is exact for <= 19
 // significant digits, which the scanner caps `w` at). Reuses the 128-bit
-// power-of-5 table (`parse_float_tables.vader`), `umul128` (`dtoa.vader`) and
+// power-of-5 table (`powers_of_five.vader`), `umul128` (`dtoa.vader`) and
 // `from_bits` (`core.vader`): all `module "std/core"`, so no imports.
 //
 // Scope : decimal only, sign, mantissa, exponent (`[+-]? d* ('.' d*)? ([eE]
@@ -18,7 +18,7 @@ module "std/core"
 PF_MANTISSA_BITS  :: 52
 PF_MIN_EXPONENT   :: -1023
 PF_INFINITE_POWER :: 0x7FF
-PF_SMALLEST_POW5  :: -342
+PF_SMALLEST_POW5  :: POW5_SMALLEST
 PF_LARGEST_POW5   :: 308
 PF_MIN_RTE        :: -4        // min_exponent_round_to_even
 PF_MAX_RTE        :: 23        // max_exponent_round_to_even
@@ -114,15 +114,25 @@ pf_clz64 :: fn(x: u64) -> i32 {
     return n
 }
 
+// The exponents from this one to -1 read their power of five rounded up, as
+// fast_float's table holds them.
+PF_ROUNDED_UP_FROM :: -27
+
 // compute_product_approximation(q, w), bit_precision 55 : `w * 5^q` as a 128-bit
 // [hi, lo], refined by a second multiply when the top 9 bits of `hi` are all 1.
 pf_product :: fn(q: i32, w: u64) -> [u64, u64] {
-    idx :: i64(2 * (q - PF_SMALLEST_POW5))
-    [hi0, lo0] :: umul128(w, POW5_128[idx])
+    idx :: i64(2 * (q - POW5_SMALLEST))
+    power_hi := POW5_128[idx]
+    power_lo := POW5_128[idx + 1]
+    if q >= PF_ROUNDED_UP_FROM && q < 0 {
+        power_lo = power_lo +% 1
+        power_hi = power_hi + b2u(power_lo == 0)
+    }
+    [hi0, lo0] :: umul128(w, power_hi)
     hi: u64 = hi0
     lo: u64 = lo0
     if (hi & 0x1FF) == 0x1FF {
-        [sp_hi, _sp_lo] :: umul128(w, POW5_128[idx + 1])
+        [sp_hi, _sp_lo] :: umul128(w, power_lo)
         lo = lo +% sp_hi
         if sp_hi > lo { hi = hi + 1 }
     }

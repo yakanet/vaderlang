@@ -74,6 +74,7 @@
     fn std.core.BigInt.div  // std_core$BigInt$Div$div
     fn std.core.BigInt.mul  // std_core$BigInt$Mul$mul
     fn std.core.any_below  // std_core$any_below
+    fn std.core.b2u  // std_core$b2u
     fn std.core.bit_len  // std_core$bit_len
     fn std.core.bits64  // std_core$bits64
     fn std.core.clz32  // std_core$clz32

@@ -170,12 +170,11 @@ int_digits :: fn(value: IntValue) -> string {
 
 // Arrays longer than this are truncated in the dump: a comptime snapshot
 // verifies that evaluation produced an array of the right shape, not the exact
-// payload of a large data table (e.g. std/core's Ryu power-of-5 tables, the
+// payload of a large data table (e.g. std/core's power-of-5 table, the
 // crypto round-constant tables): inlining all ~1300 entries into the 276
 // prelude-bearing snapshots would bloat them by megabytes. The head elements +
 // the total length stay visible; the exact values are checked by their
-// colocated reference-row `@test`s (e.g. `dtoa_tables.vader`,
-// `parse_float_tables.vader`).
+// colocated reference-row `@test`s (e.g. `powers_of_five.vader`).
 ARRAY_DISPLAY_CAP  :: 16   // truncate arrays longer than this ...
 ARRAY_DISPLAY_HEAD :: 8    // ... showing this many leading elements + the count
 

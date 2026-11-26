@@ -1,11 +1,16 @@
-// std/core/parse_float_tables.vader: Eisel-Lemire power-of-5 table,
-// computed at compile time (no committed data, no external generator).
+// std/core/powers_of_five.vader: the 128-bit powers of five both float
+// directions read, computed at compile time (no committed data, no external
+// generator).
 //
-// One 128-bit power of five per decimal exponent q in [-342, 308] (651
-// entries), stored interleaved [hi, lo] and indexed by `2 * (q + 342)`. Each
-// entry is 5^q normalized so bit 127 is set: bit-for-bit fast_float's
-// `power_of_five_128` (Lemire 2021). `test_pow5_128_reference` guards the baked
-// values against sampled reference rows.
+// One 128-bit power of five per decimal exponent q in [-342, 324] (667
+// entries), stored interleaved [hi, lo] and indexed by `2 * (q - POW5_SMALLEST)`.
+// Each entry is 5^q normalized so bit 127 is set, truncated: fast_float's
+// `power_of_five_128` (Lemire 2021) over its range [-342, 308], but for the rows
+// it rounds up, which the parser rounds as it reads them (`pf_product`). The
+// parser (`parse_float.vader`) reads it as 5^q, the formatter
+// (`schubfach.vader`) as 10^q, whose normalized mantissa is the same.
+// `test_pow5_128_reference` guards the baked values against sampled reference
+// rows.
 //
 // Built with the `BigInt` kernel (little-endian u32 limbs) in `bigint.vader`
 // (same `module "std/core"`). The floor identity
@@ -20,10 +25,15 @@ module "std/core"
 // the top 128 bits of `floor(2^K / 5^j)` equal the normalized mantissa of 5^-j.
 POW5_BIG_K :: 1100
 
-// ---- the table : 5^q for q in [-342, 308], interleaved [hi, lo] -----------
+/// The exponent of the first row of `POW5_128`.
+POW5_SMALLEST: i32: -342
+/// The exponent of the last row of `POW5_128`.
+POW5_LARGEST: i32: 324
 
-/// 128-bit powers of five, `POW5_128[2*(q+342)]` = high word, `+1` = low word.
-/// Computed at compile time ; see the file header for the algorithm.
+// ---- the table : 5^q for q in [-342, 324], interleaved [hi, lo] -----------
+
+/// 128-bit powers of five, `POW5_128[2 * (q - POW5_SMALLEST)]` = high word, `+1`
+/// = low word. Computed at compile time ; see the file header for the algorithm.
 POW5_128 :: @comptime {
     // Negative powers 5^-j = floor(2^K / 5^j), j = 1..342, by repeated /5.
     neg_hi: u64[]: []
@@ -31,17 +41,7 @@ POW5_128 :: @comptime {
     r: BigInt = two_pow(POW5_BIG_K)
     for j in 1..<343 {
         r = r.div_small(5)
-        [h0, l0] :: r.top128()
-        h: u64 = h0
-        l: u64 = l0
-        if j <= 27 {                          // fast_float "rounded toward one"
-            if l == 0xFFFFFFFFFFFFFFFF {
-                h = h + 1
-                l = 0
-            } else {
-                l = l + 1
-            }
-        }
+        [h, l] :: r.top128()
         neg_hi.push(h)
         neg_lo.push(l)
     }
@@ -53,9 +53,9 @@ POW5_128 :: @comptime {
         out.push(neg_lo[k])
         k -= 1
     }
-    // q = 0 .. 308  (positive powers 5^q by repeated *5)
+    // q = 0 .. 324  (positive powers 5^q by repeated *5)
     p: BigInt = [1]
-    for _q in 0..<309 {
+    for 0..=324 {
         [h, l] :: p.top128()
         out.push(h)
         out.push(l)
@@ -68,11 +68,12 @@ POW5_128 :: @comptime {
 
 import "std/testing"
 
-// Rows sampled verbatim from fastfloat/fast_float `power_of_five_128` : the
-// endpoints, both sides of the |q| <= 27 rounding boundary, and the exact
-// small positives. Pins the comptime big-int against the reference.
+// Rows sampled from fastfloat/fast_float `power_of_five_128` : the endpoints,
+// both sides of the |q| <= 27 rounding boundary, and the exact small
+// positives. Pins the comptime big-int against the reference. The rows q in
+// [-27, -1] are fast_float's minus one: it rounds them up.
 expect_pow5 :: fn(q: i32, hi: u64, lo: u64) -> void {
-    idx :: i64(2 * (q + 342))
+    idx :: i64(2 * (q - POW5_SMALLEST))
     assert_eq(POW5_128[idx], hi)
     assert_eq(POW5_128[idx + 1], lo)
 }
@@ -80,8 +81,8 @@ expect_pow5 :: fn(q: i32, hi: u64, lo: u64) -> void {
 @test test_pow5_128_reference :: fn() -> void {
     expect_pow5(-342, 0xeef453d6923bd65a, 0x113faa2906a13b3f)
     expect_pow5(-28,  0xfd87b5f28300ca0d, 0x8bca9d6e188853fc)
-    expect_pow5(-27,  0x9e74d1b791e07e48, 0x775ea264cf55347e)
-    expect_pow5(-1,   0xcccccccccccccccc, 0xcccccccccccccccd)
+    expect_pow5(-27,  0x9e74d1b791e07e48, 0x775ea264cf55347d)
+    expect_pow5(-1,   0xcccccccccccccccc, 0xcccccccccccccccc)
     expect_pow5(0,    0x8000000000000000, 0x0000000000000000)
     expect_pow5(1,    0xa000000000000000, 0x0000000000000000)
     expect_pow5(27,   0xcecb8f27f4200f3a, 0x0000000000000000)
@@ -89,5 +90,5 @@ expect_pow5 :: fn(q: i32, hi: u64, lo: u64) -> void {
 }
 
 @test test_pow5_128_length :: fn() -> void {
-    assert_eq(POW5_128.len(), i64(2 * 651))
+    assert_eq(POW5_128.len(), i64(2 * (POW5_LARGEST - POW5_SMALLEST + 1)))
 }

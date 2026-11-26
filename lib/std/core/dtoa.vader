@@ -1,51 +1,19 @@
-// std/core/dtoa.vader: pure-Vader shortest-double formatter (Ryu).
+// std/core/dtoa.vader: the string of a float.
 //
-// Faithful port of Ulf Adams' Ryu algorithm (PLDI 2018, ulfjack/ryu
-// ryu/d2s.c). Turns an `f64` into the shortest decimal string that round-trips
-// back to the exact same bits. Replaces the host `append_shortest_double`
-// fast path for `f64.to_string()`, see `primitives.vader::f64 implements
-// Display`. The power-of-5 lookup tables live in the generated sibling
-// `dtoa_tables.vader` (both part of `module "std/core"`).
+// `f64.to_string()` and `f32.to_string()` write the shortest decimal that reads
+// back as the same float, the one `schubfach.vader` chooses, following the
+// ECMAScript `Number::toString` rules with the Vader tweak that an
+// integer-valued float keeps a trailing `.0` (`3.0` renders as "3.0").
 //
-// std/core constraint honoured here (same as the integer formatters above):
-//   - no `std/string_builder` / `std/string` import (cycle): the result is
-//     written into a `Buffer` and interned once, never through a StringBuilder.
-//
-// The presentation layer (digits + exponent -> final string) follows the
-// ECMAScript `Number::toString` rules, with the Vader tweak that an
-// integer-valued float keeps a trailing `.0` (so `3.0` renders as "3.0").
+// std/core cannot import `std/string_builder` (cycle): the result is written
+// into a `Buffer` and interned once.
 
 module "std/core"
-
-// ---- IEEE-754 double layout -----------------------------------------------
-
-DOUBLE_MANTISSA_BITS     :: 52
-DOUBLE_BIAS              :: 1023
-DOUBLE_POW5_INV_BITCOUNT :: 125
-DOUBLE_POW5_BITCOUNT     :: 125
 
 MASK32: u64: 0xFFFFFFFF
 MASK52: u64: 0xFFFFFFFFFFFFF
 
-// Shortest decimal as `mantissa * 10^exp`.
-Dec64 :: struct {
-    mantissa: u64
-    exp:      i32
-}
-
-// ---- small helpers --------------------------------------------------------
-
 b2u :: fn(b: bool) -> u64 = if b { 1 } else { 0 }
-b2i :: fn(b: bool) -> i32 = if b { 1 } else { 0 }
-
-// floor(e * log10(2)), valid for 0 <= e <= 1650 (Ryu common.h).
-log10_pow2 :: fn(e: i32) -> i32 = i32((u64(e) * 78913) >> 18)
-// floor(e * log10(5)), valid for 0 <= e <= 2620.
-log10_pow5 :: fn(e: i32) -> i32 = i32((u64(e) * 732923) >> 20)
-// number of bits in 5^e, valid for 0 <= e <= 3528.
-pow5bits   :: fn(e: i32) -> i32 = i32(((u64(e) * 1217359) >> 19) + 1)
-
-// ---- 128-bit primitives (Ryu d2s_intrinsics.h, portable fallback) ---------
 
 // Full 64x64 -> 128 multiply. Returns [high64, low64].
 umul128 :: fn(a: u64, b: u64) -> [u64, u64] {
@@ -62,218 +30,6 @@ umul128 :: fn(a: u64, b: u64) -> [u64, u64] {
     p_hi :: b11 + (mid1 >> 32) + (mid2 >> 32)
     p_lo :: ((mid2 & MASK32) << 32) | (b00 & MASK32)
     return [p_hi, p_lo]
-}
-
-// (hi:lo) >> dist, for 0 < dist < 64.
-shiftright128 :: fn(lo: u64, hi: u64, dist: u64) -> u64 = (hi << (64 - dist)) | (lo >> dist)
-
-// Compute vr = mv*mul >> j, vp = mp*mul >> j, vm = mm*mul >> j in one pass,
-// where mv = 4*m2, mp = 4*m2+2, mm = 4*m2-1-mmShift. Returns [vr, vp, vm].
-// Optimised form from Ryu (single base product of 2*m2, adjusted by ±mul).
-mul_shift_all_64 :: fn(m2: u64, mul0: u64, mul1: u64, j: i32, mm_shift: u64) -> [u64, u64, u64] {
-    m :: m2 << 1
-    [tmp, lo]  :: umul128(m, mul0)
-    [hi0, lo1] :: umul128(m, mul1)
-    mid :: tmp +% lo1
-    hi  :: hi0 + b2u(mid < tmp)
-
-    lo2  :: lo +% mul0
-    mid2 :: mid +% mul1 +% b2u(lo2 < lo)
-    hi2  :: hi + b2u(mid2 < mid)
-    vp :: shiftright128(mid2, hi2, u64(j - 64 - 1))
-
-    vm: u64 = 0
-    if mm_shift == 1 {
-        lo3  :: lo -% mul0
-        mid3 :: mid -% mul1 -% b2u(lo3 > lo)
-        hi3  :: hi - b2u(mid3 > mid)
-        vm = shiftright128(mid3, hi3, u64(j - 64 - 1))
-    } else {
-        lo3  :: lo +% lo
-        mid3 :: mid +% mid +% b2u(lo3 < lo)
-        hi3  :: hi + hi + b2u(mid3 < mid)
-        lo4  :: lo3 -% mul0
-        mid4 :: mid3 -% mul1 -% b2u(lo4 > lo3)
-        hi4  :: hi3 - b2u(mid4 > mid3)
-        vm = shiftright128(mid4, hi4, u64(j - 64))
-    }
-    vr :: shiftright128(mid, hi, u64(j - 64 - 1))
-    return [vr, vp, vm]
-}
-
-// Count of factors of 5 in `value` (value != 0), via the modular inverse of 5.
-pow5_factor :: fn(value_in: u64) -> i32 {
-    m_inv_5: u64: 0xCCCC_CCCC_CCCC_CCCD   // 5 * m_inv_5 == 1 (mod 2^64)
-    n_div_5: u64: 0x3333_3333_3333_3333   // floor((2^64 - 1) / 5)
-    value := value_in
-    count: i32 = 0
-    for {
-        value = value *% m_inv_5
-        if value > n_div_5 { break }
-        count = count + 1
-    }
-    return count
-}
-
-multiple_of_power_of_5 :: fn(value: u64, p: i32) -> bool = pow5_factor(value) >= p
-multiple_of_power_of_2 :: fn(value: u64, p: i32) -> bool = (value & ((1 << u64(p)) - 1)) == 0
-
-// ---- the shortest-decimal core (Ryu d2s.c::d2d) ---------------------------
-
-// Compute the shortest `mantissa * 10^exp` for a finite, non-zero double given
-// its decoded IEEE mantissa / exponent fields.
-d2d :: fn(ieee_mantissa: u64, ieee_exponent: u64) -> Dec64 {
-    e2: i32 = 0
-    m2: u64 = 0
-    if ieee_exponent == 0 {
-        // Subtract 2 so the bounds computation has 2 extra bits.
-        e2 = 1 - DOUBLE_BIAS - DOUBLE_MANTISSA_BITS - 2
-        m2 = ieee_mantissa
-    } else {
-        e2 = i32(ieee_exponent) - DOUBLE_BIAS - DOUBLE_MANTISSA_BITS - 2
-        m2 = (1 << 52) | ieee_mantissa
-    }
-    even :: (m2 & 1) == 0
-    accept_bounds :: even
-
-    // Step 2: the interval of valid representations.
-    // (Literal kept on the right of `*`: a free literal on the LEFT of a
-    // binary op against a wide u64 is computed at i32 width and truncates.)
-    mv :: m2 * 4
-    mm_shift :: b2u(ieee_mantissa != 0 || ieee_exponent <= 1)
-
-    // Step 3: convert to a decimal power base via 128-bit arithmetic.
-    vr: u64 = 0
-    vp: u64 = 0
-    vm: u64 = 0
-    e10: i32 = 0
-    vm_is_tz := false
-    vr_is_tz := false
-
-    if e2 >= 0 {
-        q :: log10_pow2(e2) - b2i(e2 > 3)
-        e10 = q
-        k :: DOUBLE_POW5_INV_BITCOUNT + pow5bits(q) - 1
-        i :: -e2 + q + k
-        row :: 2 * i64(q)
-        lo  :: DOUBLE_POW5_INV_SPLIT[row]
-        hi  :: DOUBLE_POW5_INV_SPLIT[row + 1]
-        [rvr, rvp, rvm] :: mul_shift_all_64(m2, lo, hi, i, mm_shift)
-        vr = rvr
-        vp = rvp
-        vm = rvm
-        if q <= 21 {
-            // Only one of mp, mv, mm can be a multiple of 5, if any.
-            mv_mod5 :: mv - (mv / 5) * 5
-            if mv_mod5 == 0 {
-                vr_is_tz = multiple_of_power_of_5(mv, q)
-            } else if accept_bounds {
-                vm_is_tz = multiple_of_power_of_5(mv - 1 - mm_shift, q)
-            } else {
-                vp = vp - b2u(multiple_of_power_of_5(mv + 2, q))
-            }
-        }
-    } else {
-        q :: log10_pow5(-e2) - b2i(-e2 > 1)
-        e10 = q + e2
-        i :: -e2 - q
-        k :: pow5bits(i) - DOUBLE_POW5_BITCOUNT
-        j :: q - k
-        row :: 2 * i64(i)
-        lo  :: DOUBLE_POW5_SPLIT[row]
-        hi  :: DOUBLE_POW5_SPLIT[row + 1]
-        [rvr, rvp, rvm] :: mul_shift_all_64(m2, lo, hi, j, mm_shift)
-        vr = rvr
-        vp = rvp
-        vm = rvm
-        if q <= 1 {
-            // mv = 4*m2 always has >= 2 trailing zero bits.
-            vr_is_tz = true
-            if accept_bounds {
-                // mm = mv - 1 - mmShift has 1 trailing zero bit iff mmShift == 1.
-                vm_is_tz = mm_shift == 1
-            } else {
-                vp = vp - 1
-            }
-        } else if q < 63 {
-            vr_is_tz = multiple_of_power_of_2(mv, q)
-        }
-    }
-
-    // Step 4: shortest decimal in the valid interval.
-    removed: i32 = 0
-    last_removed_digit: u64 = 0
-    output: u64 = 0
-    if vm_is_tz || vr_is_tz {
-        // General case (~0.7%).
-        for {
-            vp_div10 :: vp / 10
-            vm_div10 :: vm / 10
-            if vp_div10 <= vm_div10 { break }
-            vm_mod10 :: vm - vm_div10 * 10
-            vr_div10 :: vr / 10
-            vr_mod10 :: vr - vr_div10 * 10
-            vm_is_tz = vm_is_tz && vm_mod10 == 0
-            vr_is_tz = vr_is_tz && last_removed_digit == 0
-            last_removed_digit = vr_mod10
-            vr = vr_div10
-            vp = vp_div10
-            vm = vm_div10
-            removed = removed + 1
-        }
-        if vm_is_tz {
-            for {
-                vm_div10 :: vm / 10
-                vm_mod10 :: vm - vm_div10 * 10
-                if vm_mod10 != 0 { break }
-                vp_div10 :: vp / 10
-                vr_div10 :: vr / 10
-                vr_mod10 :: vr - vr_div10 * 10
-                vr_is_tz = vr_is_tz && last_removed_digit == 0
-                last_removed_digit = vr_mod10
-                vr = vr_div10
-                vp = vp_div10
-                vm = vm_div10
-                removed = removed + 1
-            }
-        }
-        if vr_is_tz && last_removed_digit == 5 && vr % 2 == 0 {
-            // Round to even when the exact value is ...50...0.
-            last_removed_digit = 4
-        }
-        // +1 if vr is out of bounds or we must round up.
-        round :: (vr == vm && (!accept_bounds || !vm_is_tz)) || last_removed_digit >= 5
-        output = vr + b2u(round)
-    } else {
-        // Common case (~99.3%).
-        round_up := false
-        vp_div100 :: vp / 100
-        vm_div100 :: vm / 100
-        if vp_div100 > vm_div100 {
-            // Remove two digits at a time.
-            vr_div100 :: vr / 100
-            vr_mod100 :: vr - vr_div100 * 100
-            round_up = vr_mod100 >= 50
-            vr = vr_div100
-            vp = vp_div100
-            vm = vm_div100
-            removed = removed + 2
-        }
-        for {
-            vp_div10 :: vp / 10
-            vm_div10 :: vm / 10
-            if vp_div10 <= vm_div10 { break }
-            vr_div10 :: vr / 10
-            vr_mod10 :: vr - vr_div10 * 10
-            round_up = vr_mod10 >= 5
-            vr = vr_div10
-            vp = vp_div10
-            vm = vm_div10
-            removed = removed + 1
-        }
-        output = vr + b2u(vr == vm || round_up)
-    }
-    return Dec64 { .mantissa = output, .exp = e10 + removed }
 }
 
 // ---- presentation (ECMAScript Number::toString, with a trailing .0) --------
@@ -398,15 +154,36 @@ render :: fn(mantissa_in: u64, exp_in: i32, sign: bool) -> string {
 format_f64 :: fn(x: f64) -> string {
     bits :: x.to_bits()
     sign :: (bits >> 63) != 0
-    mantissa :: bits & MASK52
-    exponent :: (bits >> 52) & 0x7FF
-    if exponent == 0x7FF {
-        if mantissa != 0 { return "nan" }
+    significand :: bits & MASK52
+    biased :: (bits >> 52) & 0x7FF
+    if biased == 0x7FF {
+        if significand != 0 {
+            return "nan"
+        }
         return if sign { "-inf" } else { "inf" }
     }
-    if exponent == 0 && mantissa == 0 {
+    if biased == 0 && significand == 0 {
         return if sign { "-0.0" } else { "0.0" }
     }
-    d :: d2d(mantissa, exponent)
-    return render(d.mantissa, d.exp, sign)
+    [digits, exponent] :: shortest_f64(significand, biased)
+    return render(digits, exponent, sign)
+}
+
+// Shortest round-tripping decimal string for `x`. Drives `f32.to_string()`.
+format_f32 :: fn(x: f32) -> string {
+    bits :: x.to_bits()
+    sign :: (bits >> 31) != 0
+    significand :: u64(bits & 0x7FFFFF)
+    biased :: u64((bits >> 23) & 0xFF)
+    if biased == 0xFF {
+        if significand != 0 {
+            return "nan"
+        }
+        return if sign { "-inf" } else { "inf" }
+    }
+    if biased == 0 && significand == 0 {
+        return if sign { "-0.0" } else { "0.0" }
+    }
+    [digits, exponent] :: shortest_f32(significand, biased)
+    return render(digits, exponent, sign)
 }

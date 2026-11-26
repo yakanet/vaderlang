@@ -1,0 +1,248 @@
+// std/core/schubfach.vader: the shortest decimal of a float (Schubfach).
+//
+// For a finite non-zero `f64` or `f32`, the decimal `digits * 10^exponent`, as
+// `[digits, exponent]`, that reads back as the same float: the shortest one,
+// and of the shortest the closest, a tie going to the even digit. `dtoa.vader`
+// writes it out.
+//
+// Raffaello Giulietti's Schubfach ("The Schubfach way to render doubles",
+// 2020), as OpenJDK's `jdk.internal.math.DoubleToDecimal` and `FloatToDecimal`
+// implement it. One rule differs: Java keeps two digits where one would do, and
+// takes the smallest subnormals ten times larger to find them (`4.9E-324`) ;
+// this file keeps the shortest (`5e-324`).
+//
+// The float `c * 2^q` reads back from every decimal of an interval around it.
+// The value and both ends of that interval are multiplied by an approximation
+// of `10^-k`, rounded to odd: the last bit says whether the product was exact,
+// which is all the choice among the decimals needs. `k` is picked so a normal
+// value lands on 16 or 17 digits (8 or 9 for an `f32`), and the candidates are
+// its neighbours at that length, or one digit shorter.
+
+module "std/core"
+
+// ---- IEEE-754 layouts -------------------------------------------------------
+
+// `*_MIN_EXPONENT` is the binary exponent of a subnormal's last bit.
+F64_MIN_EXPONENT: i32: -1074
+F64_HIDDEN_BIT: u64: 0x10_0000_0000_0000
+F64_PRECISION: i32: 53
+
+F32_MIN_EXPONENT: i32: -149
+F32_HIDDEN_BIT: u64: 0x80_0000
+F32_PRECISION: i32: 24
+
+MASK63: u64: 0x7FFF_FFFF_FFFF_FFFF
+
+// ---- logarithms, in fixed point ---------------------------------------------
+
+// floor(log10(2^e)), over the exponents of a float.
+floor_log10_pow2 :: fn(e: i32) -> i32 = i32((i64(e) * 661_971_961_083) >> 41)
+
+// floor(log10(3/4 * 2^e)), over the exponents of a float.
+floor_log10_three_quarters_pow2 :: fn(e: i32) -> i32 =
+    i32((i64(e) * 661_971_961_083 - 274_743_187_321) >> 41)
+
+// floor(log2(10^e)), over the exponents of a float.
+floor_log2_pow10 :: fn(e: i32) -> i32 = i32((i64(e) * 913_124_641_741) >> 38)
+
+// The power of ten `k` that brings `c * 2^q` to its full count of digits ; below
+// a power of two (not `regular`), where the interval below is narrower, the
+// three quarters of `2^q` set it.
+decimal_exponent :: fn(q: i32, regular: bool) -> i32 =
+    if regular { floor_log10_pow2(q) } else { floor_log10_three_quarters_pow2(q) }
+
+// ---- the powers of ten ------------------------------------------------------
+
+// Schubfach's `g` for `10^e`, as its high and low 63 bits: `floor(beta) + 1`,
+// where `10^e = beta * 2^r` and `2^125 <= beta < 2^126`. The row of
+// `POW5_128` holds `beta` times 4, truncated.
+power_of_ten :: fn(e: i32) -> [u64, u64] {
+    row :: 2 * i64(e - POW5_SMALLEST)
+    high :: POW5_128[row]
+    low :: POW5_128[row + 1]
+    g_low :: ((high << 62) | (low >> 2)) +% 1
+    g_high :: (high >> 2) + b2u(g_low == 0)
+    return [(g_high << 1) | (g_low >> 63), g_low & MASK63]
+}
+
+// Java's `rop` for `g = high * 2^63 + low`: `m * g / 2^127` rounded to odd, the
+// last bit set when the division leaves a remainder, from the 128-bit products
+// `high * m` (`upper_high`, `upper_low`) and `low * m`, of which only the high
+// half `lower_high` counts.
+round_to_odd :: fn(upper_high: u64, upper_low: u64, lower_high: u64) -> u64 {
+    z :: (upper_low >> 1) + lower_high
+    return (upper_high + (z >> 63)) | (((z & MASK63) + MASK63) >> 63)
+}
+
+// `m * g / 2^95` rounded to odd, for an `f32`, from the high half of the
+// 128-bit product.
+round_to_odd_f32 :: fn(product_high: u64) -> u64 =
+    (product_high >> 31) | (((product_high & MASK32) + MASK32) >> 32)
+
+// The 128 bits of `x * 2^shift`, for a shift from 1 to 63: the ends of an
+// interval take 2 to 6, 33 to 37 for an `f32`.
+shifted :: fn(x: u64, shift: u64) -> [u64, u64] = [x >> (64 - shift), x << shift]
+
+// The 128-bit `[high, low]` minus `x * 2^shift`, which it does not pass under.
+minus_shifted :: fn(high: u64, low: u64, x: u64, shift: u64) -> [u64, u64] {
+    [shifted_high, shifted_low] :: shifted(x, shift)
+    return [high - shifted_high - b2u(low < shifted_low), low -% shifted_low]
+}
+
+// The 128-bit `[high, low]` plus `x * 2^shift`, which stays under 2^128.
+plus_shifted :: fn(high: u64, low: u64, x: u64, shift: u64) -> [u64, u64] {
+    [shifted_high, shifted_low] :: shifted(x, shift)
+    sum :: low +% shifted_low
+    return [high + shifted_high + b2u(sum < low), sum]
+}
+
+// ---- the choice -------------------------------------------------------------
+
+// The decimal chosen in the interval `below..above` around `value`, all three
+// at the power of ten `exponent`, times 4 and rounded to odd ; both ends are
+// excluded when `exclusive` is 1. One digit shorter first, then at full length.
+shortest_between :: fn(
+    value: u64,
+    below: u64,
+    above: u64,
+    exclusive: u64,
+    exponent: i32,
+) -> [u64, i32] {
+    down :: value >> 2
+    short_down :: down / 10 * 10
+    short_up :: short_down + 10
+    short_down_in :: below + exclusive <= short_down << 2
+    short_up_in :: (short_up << 2) + exclusive <= above
+    if short_down_in || short_up_in {
+        short_down_even :: (short_down / 10) % 2 == 0
+        digits :: chosen(value, short_down, short_down_in, short_up, short_up_in, short_down_even)
+        return [digits, exponent]
+    }
+    up :: down + 1
+    down_in :: below + exclusive <= down << 2
+    up_in :: (up << 2) + exclusive <= above
+    digits :: chosen(value, down, down_in, up, up_in, down % 2 == 0)
+    return [digits, exponent]
+}
+
+// Of the neighbours `down < up` around `value` (times 4), the one inside the
+// interval ; when both are, or neither, the closest, a tie going to `down` when
+// `down_even`, the parity of its last significant digit.
+chosen :: fn(value: u64, down: u64, down_in: bool, up: u64, up_in: bool, down_even: bool) -> u64 {
+    if down_in != up_in {
+        return if down_in { down } else { up }
+    }
+    middle :: (down + up) << 1
+    if value < middle {
+        return down
+    }
+    if value > middle {
+        return up
+    }
+    return if down_even { down } else { up }
+}
+
+// ---- f64 --------------------------------------------------------------------
+
+// The shortest decimal of the finite non-zero `f64` whose fields are
+// `significand` and `biased`, its biased exponent.
+shortest_f64 :: fn(significand: u64, biased: u64) -> [u64, i32] {
+    if biased == 0 {
+        return shortest_f64_at(F64_MIN_EXPONENT, significand)
+    }
+    c :: significand | F64_HIDDEN_BIT
+    q :: i32(biased) + F64_MIN_EXPONENT - 1
+    // An integer the significand holds whole is its own shortest decimal.
+    if -F64_PRECISION < q && q < 0 {
+        integer :: c >> u64(-q)
+        if integer << u64(-q) == c {
+            return [integer, 0]
+        }
+    }
+    return shortest_f64_at(q, c)
+}
+
+// The shortest decimal of `c * 2^q`.
+shortest_f64_at :: fn(q: i32, c: u64) -> [u64, i32] {
+    scaled :: c << 2
+    // The interval is narrower below a power of two, where the spacing halves.
+    regular :: c != F64_HIDDEN_BIT || q == F64_MIN_EXPONENT
+    k :: decimal_exponent(q, regular)
+    h :: u64(q + floor_log2_pow10(-k) + 2)
+    [high, low] :: power_of_ten(-k)
+    // The ends sit 2 below and 2 above `scaled` (1 below under a power of two),
+    // times `2^h`: their products are the value's, minus or plus `g` shifted.
+    below_shift :: if regular { h + 1 } else { h }
+    multiplicand :: scaled << h
+    [upper_high, upper_low] :: umul128(high, multiplicand)
+    [lower_high, lower_low] :: umul128(low, multiplicand)
+    value :: round_to_odd(upper_high, upper_low, lower_high)
+    [below_upper_high, below_upper_low] :: minus_shifted(upper_high, upper_low, high, below_shift)
+    [below_lower_high, _] :: minus_shifted(lower_high, lower_low, low, below_shift)
+    below :: round_to_odd(below_upper_high, below_upper_low, below_lower_high)
+    [above_upper_high, above_upper_low] :: plus_shifted(upper_high, upper_low, high, h + 1)
+    [above_lower_high, _] :: plus_shifted(lower_high, lower_low, low, h + 1)
+    above :: round_to_odd(above_upper_high, above_upper_low, above_lower_high)
+    return shortest_between(value, below, above, c & 1, k)
+}
+
+// ---- f32 --------------------------------------------------------------------
+
+// The shortest decimal of the finite non-zero `f32` whose fields are
+// `significand` and `biased`, its biased exponent.
+shortest_f32 :: fn(significand: u64, biased: u64) -> [u64, i32] {
+    if biased == 0 {
+        return shortest_f32_at(F32_MIN_EXPONENT, significand)
+    }
+    c :: significand | F32_HIDDEN_BIT
+    q :: i32(biased) + F32_MIN_EXPONENT - 1
+    if -F32_PRECISION < q && q < 0 {
+        integer :: c >> u64(-q)
+        if integer << u64(-q) == c {
+            return [integer, 0]
+        }
+    }
+    return shortest_f32_at(q, c)
+}
+
+// The shortest decimal of `c * 2^q`.
+shortest_f32_at :: fn(q: i32, c: u64) -> [u64, i32] {
+    scaled :: c << 2
+    regular :: c != F32_HIDDEN_BIT || q == F32_MIN_EXPONENT
+    k :: decimal_exponent(q, regular)
+    h :: u64(q + floor_log2_pow10(-k) + 33)
+    // Schubfach's `g` for an `f32`: the 63-bit high half of the `f64` one,
+    // rounded up again.
+    [high, _] :: power_of_ten(-k)
+    g :: high + 1
+    below_shift :: if regular { h + 1 } else { h }
+    [product_high, product_low] :: umul128(g, scaled << h)
+    value :: round_to_odd_f32(product_high)
+    [below_high, _] :: minus_shifted(product_high, product_low, g, below_shift)
+    [above_high, _] :: plus_shifted(product_high, product_low, g, h + 1)
+    below :: round_to_odd_f32(below_high)
+    above :: round_to_odd_f32(above_high)
+    return shortest_between(value, below, above, c & 1, k)
+}
+
+// ---- tests ------------------------------------------------------------------
+
+import "std/testing"
+
+// Rows of OpenJDK's `MathUtils.g`, the reference this reading of `POW5_128`
+// must give: the exact powers 10^0 and 10^1, and the largest high half.
+expect_power :: fn(e: i32, high: u64, low: u64) -> void {
+    [got_high, got_low] :: power_of_ten(e)
+    assert_eq(got_high, high)
+    assert_eq(got_low, low)
+}
+
+@test
+test_power_of_ten_matches_the_reference_rows :: fn() -> void {
+    expect_power(0, 0x4000_0000_0000_0000, 1)
+    expect_power(1, 0x5000_0000_0000_0000, 1)
+    // 10^-1 sits in a row held rounded up: g = floor(2^128 / 5) + 1.
+    expect_power(-1, 0x6666_6666_6666_6666, 0x3333_3333_3333_3334)
+    [high, _] :: power_of_ten(-146)
+    assert_eq(high, 0x7FDD_E7F4_CA72_E30F)
+}

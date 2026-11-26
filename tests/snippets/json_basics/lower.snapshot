@@ -110,49 +110,50 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #1
-    const DOUBLE_POW5_SPLIT: u64[]  data pool #2
     const POW5_128: u64[]  data pool #0
     fn std.core.BigInt.div  // std_core$BigInt$Div$div
     fn std.core.BigInt.mul  // std_core$BigInt$Mul$mul
     fn std.core.any_below  // std_core$any_below
     fn std.core.ascii_prefix  // std_core$ascii_prefix
-    fn std.core.b2i  // std_core$b2i
     fn std.core.b2u  // std_core$b2u
     fn std.core.bit_len  // std_core$bit_len
     fn std.core.bits64  // std_core$bits64
+    fn std.core.chosen  // std_core$chosen
     fn std.core.clz32  // std_core$clz32
-    fn std.core.d2d  // std_core$d2d
+    fn std.core.decimal_exponent  // std_core$decimal_exponent
     fn std.core.decimal_width  // std_core$decimal_width
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.eisel_lemire  // std_core$eisel_lemire
     fn std.core.f64.to_string  // std_core$f64$Display$to_string
     fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.floor_log10_pow2  // std_core$floor_log10_pow2
+    fn std.core.floor_log10_three_quarters_pow2  // std_core$floor_log10_three_quarters_pow2
+    fn std.core.floor_log2_pow10  // std_core$floor_log2_pow10
     fn std.core.format_f64  // std_core$format_f64
     fn std.core.insert_point  // std_core$insert_point
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
     fn std.core.is_zero  // std_core$is_zero
     fn std.core.len  // std_core$len_1
     fn std.core.limb  // std_core$limb
-    fn std.core.log10_pow2  // std_core$log10_pow2
-    fn std.core.log10_pow5  // std_core$log10_pow5
+    fn std.core.minus_shifted  // std_core$minus_shifted
     fn std.core.mul_add_small  // std_core$mul_add_small
-    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
-    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
-    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
     fn std.core.parse_f64  // std_core$parse_f64
     fn std.core.parse_f64_slow  // std_core$parse_f64_slow
     fn std.core.pf_clz64  // std_core$pf_clz64
     fn std.core.pf_is_digit  // std_core$pf_is_digit
     fn std.core.pf_product  // std_core$pf_product
-    fn std.core.pow5_factor  // std_core$pow5_factor
-    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.plus_shifted  // std_core$plus_shifted
+    fn std.core.power_of_ten  // std_core$power_of_ten
     fn std.core.render  // std_core$render
+    fn std.core.round_to_odd  // std_core$round_to_odd
     fn std.core.scan_decimal  // std_core$scan_decimal
     fn std.core.sd_round_at  // std_core$sd_round_at
     fn std.core.sd_scan  // std_core$sd_scan
-    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.shifted  // std_core$shifted
     fn std.core.shl  // std_core$shl
+    fn std.core.shortest_between  // std_core$shortest_between
+    fn std.core.shortest_f64  // std_core$shortest_f64
+    fn std.core.shortest_f64_at  // std_core$shortest_f64_at
     fn std.core.string.mul  // std_core$string$Mul$mul
     fn std.core.umul128  // std_core$umul128
     fn std.core.utf8_encode  // std_core$utf8_encode
@@ -164,7 +165,6 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
-    struct std.core.Dec64  // std_core$Dec64
     struct std.core.DecimalParts  // std_core$DecimalParts
     struct std.core.SlowParts  // std_core$SlowParts
     struct std.core.Stop  // std_core$Stop

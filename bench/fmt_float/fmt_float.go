@@ -1,5 +1,5 @@
 // Go peer of bench/fmt_float.vader. `%v` on a float64 is strconv's shortest
-// round-trip, the same answer Vader's Ryū produces.
+// round-trip, the same answer Vader's formatter produces.
 
 package main
 

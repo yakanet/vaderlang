@@ -154,21 +154,19 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #3
-    const DOUBLE_POW5_SPLIT: u64[]  data pool #4
-    const FLOAT_POW5_INV_SPLIT: u64[]  data pool #5
-    const FLOAT_POW5_SPLIT: u64[]  data pool #6
-    fn std.core.b2i  // std_core$b2i
+    const POW5_128: u64[]  data pool #3
     fn std.core.b2u  // std_core$b2u
-    fn std.core.b2u32  // std_core$b2u32
     fn std.core.bool.to_string  // std_core$bool$Display$to_string
     fn std.core.char.to_string  // std_core$char$Display$to_string
-    fn std.core.d2d  // std_core$d2d
+    fn std.core.chosen  // std_core$chosen
+    fn std.core.decimal_exponent  // std_core$decimal_exponent
     fn std.core.decimal_width  // std_core$decimal_width
-    fn std.core.f2d  // std_core$f2d
     fn std.core.f32.to_string  // std_core$f32$Display$to_string
     fn std.core.f64.to_string  // std_core$f64$Display$to_string
     fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.floor_log10_pow2  // std_core$floor_log10_pow2
+    fn std.core.floor_log10_three_quarters_pow2  // std_core$floor_log10_three_quarters_pow2
+    fn std.core.floor_log2_pow10  // std_core$floor_log2_pow10
     fn std.core.format_f32  // std_core$format_f32
     fn std.core.format_f64  // std_core$format_f64
     fn std.core.format_signed  // std_core$format_signed
@@ -179,22 +177,19 @@
     fn std.core.i64.to_string  // std_core$i64$Display$to_string
     fn std.core.i8.to_string  // std_core$i8$Display$to_string
     fn std.core.insert_point  // std_core$insert_point
-    fn std.core.log10_pow2  // std_core$log10_pow2
-    fn std.core.log10_pow5  // std_core$log10_pow5
-    fn std.core.mul_pow5_div_pow2  // std_core$mul_pow5_div_pow2
-    fn std.core.mul_pow5_inv_div_pow2  // std_core$mul_pow5_inv_div_pow2
-    fn std.core.mul_shift_32  // std_core$mul_shift_32
-    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
-    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
-    fn std.core.multiple_of_power_of_2_32  // std_core$multiple_of_power_of_2_32
-    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
-    fn std.core.multiple_of_power_of_5_32  // std_core$multiple_of_power_of_5_32
+    fn std.core.minus_shifted  // std_core$minus_shifted
     fn std.core.null.to_string  // std_core$null$Display$to_string
-    fn std.core.pow5_factor  // std_core$pow5_factor
-    fn std.core.pow5_factor_32  // std_core$pow5_factor_32
-    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.plus_shifted  // std_core$plus_shifted
+    fn std.core.power_of_ten  // std_core$power_of_ten
     fn std.core.render  // std_core$render
-    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.round_to_odd  // std_core$round_to_odd
+    fn std.core.round_to_odd_f32  // std_core$round_to_odd_f32
+    fn std.core.shifted  // std_core$shifted
+    fn std.core.shortest_between  // std_core$shortest_between
+    fn std.core.shortest_f32  // std_core$shortest_f32
+    fn std.core.shortest_f32_at  // std_core$shortest_f32_at
+    fn std.core.shortest_f64  // std_core$shortest_f64
+    fn std.core.shortest_f64_at  // std_core$shortest_f64_at
     fn std.core.string.to_string  // std_core$string$Display$to_string
     fn std.core.string[].to_string  // std_core$$array$Display$to_string__string
     fn std.core.u16.to_string  // std_core$u16$Display$to_string
@@ -212,5 +207,3 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
-    struct std.core.Dec64  // std_core$Dec64
-    struct std.core.FloatDec32  // std_core$FloatDec32

@@ -74,8 +74,8 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
-static const VADER_ARRAY_STATIC_BUF(uint64_t, 1302) vader_data_0_buf = {
-	VADER_STATIC_BUF_HEADER(8u, 4u, 1302u),
+static const VADER_ARRAY_STATIC_BUF(uint64_t, 1334) vader_data_0_buf = {
+	VADER_STATIC_BUF_HEADER(8u, 4u, 1334u),
 	.slots = {
 		(uint64_t) UINT64_C(17218479456385750618), (uint64_t) UINT64_C(1242899115359157055),
 		(uint64_t) UINT64_C(10761549660241094136), (uint64_t) UINT64_C(5388497965526861063),
@@ -392,33 +392,33 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 1302) vader_data_0_buf = {
 		(uint64_t) UINT64_C(11692013098647223345), (uint64_t) UINT64_C(11611831772799369869),
 		(uint64_t) UINT64_C(14615016373309029182), (uint64_t) UINT64_C(679731660717048624),
 		(uint64_t) UINT64_C(18268770466636286477), (uint64_t) UINT64_C(10073036612751086588),
-		(uint64_t) UINT64_C(11417981541647679048), (uint64_t) UINT64_C(8601490892183123070),
-		(uint64_t) UINT64_C(14272476927059598810), (uint64_t) UINT64_C(10751863615228903838),
-		(uint64_t) UINT64_C(17840596158824498513), (uint64_t) UINT64_C(4216457482181353989),
-		(uint64_t) UINT64_C(11150372599265311570), (uint64_t) UINT64_C(14164500972431816003),
-		(uint64_t) UINT64_C(13937965749081639463), (uint64_t) UINT64_C(8482254178684994196),
-		(uint64_t) UINT64_C(17422457186352049329), (uint64_t) UINT64_C(5991131704928854841),
-		(uint64_t) UINT64_C(10889035741470030830), (uint64_t) UINT64_C(15273672361649004036),
-		(uint64_t) UINT64_C(13611294676837538538), (uint64_t) UINT64_C(9868718415206479237),
-		(uint64_t) UINT64_C(17014118346046923173), (uint64_t) UINT64_C(3112525982153323238),
-		(uint64_t) UINT64_C(10633823966279326983), (uint64_t) UINT64_C(4251171748059520976),
-		(uint64_t) UINT64_C(13292279957849158729), (uint64_t) UINT64_C(702278666647013315),
-		(uint64_t) UINT64_C(16615349947311448411), (uint64_t) UINT64_C(5489534351736154548),
-		(uint64_t) UINT64_C(10384593717069655257), (uint64_t) UINT64_C(1125115960621402641),
-		(uint64_t) UINT64_C(12980742146337069071), (uint64_t) UINT64_C(6018080969204141205),
-		(uint64_t) UINT64_C(16225927682921336339), (uint64_t) UINT64_C(2910915193077788602),
-		(uint64_t) UINT64_C(10141204801825835211), (uint64_t) UINT64_C(17960223060169475540),
-		(uint64_t) UINT64_C(12676506002282294014), (uint64_t) UINT64_C(17838592806784456521),
-		(uint64_t) UINT64_C(15845632502852867518), (uint64_t) UINT64_C(13074868971625794844),
-		(uint64_t) UINT64_C(9903520314283042199), (uint64_t) UINT64_C(3560107088838733873),
-		(uint64_t) UINT64_C(12379400392853802748), (uint64_t) UINT64_C(18285191916330581054),
-		(uint64_t) UINT64_C(15474250491067253436), (uint64_t) UINT64_C(4409745821703674701),
-		(uint64_t) UINT64_C(9671406556917033397), (uint64_t) UINT64_C(11979463175419572496),
-		(uint64_t) UINT64_C(12089258196146291747), (uint64_t) UINT64_C(1139270913992301908),
-		(uint64_t) UINT64_C(15111572745182864683), (uint64_t) UINT64_C(15259146697772541097),
-		(uint64_t) UINT64_C(9444732965739290427), (uint64_t) UINT64_C(7231123676894144234),
-		(uint64_t) UINT64_C(11805916207174113034), (uint64_t) UINT64_C(4427218577690292388),
-		(uint64_t) UINT64_C(14757395258967641292), (uint64_t) UINT64_C(14757395258967641293),
+		(uint64_t) UINT64_C(11417981541647679048), (uint64_t) UINT64_C(8601490892183123069),
+		(uint64_t) UINT64_C(14272476927059598810), (uint64_t) UINT64_C(10751863615228903837),
+		(uint64_t) UINT64_C(17840596158824498513), (uint64_t) UINT64_C(4216457482181353988),
+		(uint64_t) UINT64_C(11150372599265311570), (uint64_t) UINT64_C(14164500972431816002),
+		(uint64_t) UINT64_C(13937965749081639463), (uint64_t) UINT64_C(8482254178684994195),
+		(uint64_t) UINT64_C(17422457186352049329), (uint64_t) UINT64_C(5991131704928854840),
+		(uint64_t) UINT64_C(10889035741470030830), (uint64_t) UINT64_C(15273672361649004035),
+		(uint64_t) UINT64_C(13611294676837538538), (uint64_t) UINT64_C(9868718415206479236),
+		(uint64_t) UINT64_C(17014118346046923173), (uint64_t) UINT64_C(3112525982153323237),
+		(uint64_t) UINT64_C(10633823966279326983), (uint64_t) UINT64_C(4251171748059520975),
+		(uint64_t) UINT64_C(13292279957849158729), (uint64_t) UINT64_C(702278666647013314),
+		(uint64_t) UINT64_C(16615349947311448411), (uint64_t) UINT64_C(5489534351736154547),
+		(uint64_t) UINT64_C(10384593717069655257), (uint64_t) UINT64_C(1125115960621402640),
+		(uint64_t) UINT64_C(12980742146337069071), (uint64_t) UINT64_C(6018080969204141204),
+		(uint64_t) UINT64_C(16225927682921336339), (uint64_t) UINT64_C(2910915193077788601),
+		(uint64_t) UINT64_C(10141204801825835211), (uint64_t) UINT64_C(17960223060169475539),
+		(uint64_t) UINT64_C(12676506002282294014), (uint64_t) UINT64_C(17838592806784456520),
+		(uint64_t) UINT64_C(15845632502852867518), (uint64_t) UINT64_C(13074868971625794843),
+		(uint64_t) UINT64_C(9903520314283042199), (uint64_t) UINT64_C(3560107088838733872),
+		(uint64_t) UINT64_C(12379400392853802748), (uint64_t) UINT64_C(18285191916330581053),
+		(uint64_t) UINT64_C(15474250491067253436), (uint64_t) UINT64_C(4409745821703674700),
+		(uint64_t) UINT64_C(9671406556917033397), (uint64_t) UINT64_C(11979463175419572495),
+		(uint64_t) UINT64_C(12089258196146291747), (uint64_t) UINT64_C(1139270913992301907),
+		(uint64_t) UINT64_C(15111572745182864683), (uint64_t) UINT64_C(15259146697772541096),
+		(uint64_t) UINT64_C(9444732965739290427), (uint64_t) UINT64_C(7231123676894144233),
+		(uint64_t) UINT64_C(11805916207174113034), (uint64_t) UINT64_C(4427218577690292387),
+		(uint64_t) UINT64_C(14757395258967641292), (uint64_t) UINT64_C(14757395258967641292),
 		(uint64_t) UINT64_C(9223372036854775808), (uint64_t) UINT64_C(0),
 		(uint64_t) UINT64_C(11529215046068469760), (uint64_t) UINT64_C(0),
 		(uint64_t) UINT64_C(14411518807585587200), (uint64_t) UINT64_C(0),
@@ -728,9 +728,25 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 1302) vader_data_0_buf = {
 		(uint64_t) UINT64_C(13134517764154803997), (uint64_t) UINT64_C(16146319340457224530),
 		(uint64_t) UINT64_C(16418147205193504997), (uint64_t) UINT64_C(6347841120289366950),
 		(uint64_t) UINT64_C(10261342003245940623), (uint64_t) UINT64_C(6273243709394548296),
+		(uint64_t) UINT64_C(12826677504057425779), (uint64_t) UINT64_C(3229868618315797466),
+		(uint64_t) UINT64_C(16033346880071782223), (uint64_t) UINT64_C(17872393828176910545),
+		(uint64_t) UINT64_C(10020841800044863889), (uint64_t) UINT64_C(18087775170251650946),
+		(uint64_t) UINT64_C(12526052250056079862), (uint64_t) UINT64_C(8774660907532399971),
+		(uint64_t) UINT64_C(15657565312570099828), (uint64_t) UINT64_C(1744954097560724156),
+		(uint64_t) UINT64_C(9785978320356312392), (uint64_t) UINT64_C(10313968347830228405),
+		(uint64_t) UINT64_C(12232472900445390490), (uint64_t) UINT64_C(12892460434787785506),
+		(uint64_t) UINT64_C(15290591125556738113), (uint64_t) UINT64_C(6892203506629956075),
+		(uint64_t) UINT64_C(9556619453472961320), (uint64_t) UINT64_C(15836842237712192307),
+		(uint64_t) UINT64_C(11945774316841201651), (uint64_t) UINT64_C(1349308723430688768),
+		(uint64_t) UINT64_C(14932217896051502063), (uint64_t) UINT64_C(15521693959570524672),
+		(uint64_t) UINT64_C(9332636185032188789), (uint64_t) UINT64_C(16618587752372659776),
+		(uint64_t) UINT64_C(11665795231290235987), (uint64_t) UINT64_C(6938176635183661008),
+		(uint64_t) UINT64_C(14582244039112794984), (uint64_t) UINT64_C(4061034775552188356),
+		(uint64_t) UINT64_C(18227805048890993730), (uint64_t) UINT64_C(5076293469440235445),
+		(uint64_t) UINT64_C(11392378155556871081), (uint64_t) UINT64_C(7784369436827535057),
 	},
 };
-static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(21u, 1302u, &vader_data_0_buf);
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(21u, 1334u, &vader_data_0_buf);
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
@@ -742,6 +758,7 @@ static bool std_console$write_text(uint8_t l0, vader_string_t l1);
 static void* std_core$BigInt$Div$div(void* l0, uint32_t l1);
 static void* std_core$BigInt$Mul$mul(void* l0, uint32_t l1);
 static bool std_core$any_below(void* l0, int32_t l1);
+static uint64_t std_core$b2u(bool l0);
 static int32_t std_core$bit_len(void* l0);
 static uint64_t std_core$bits64(void* l0, int32_t l1);
 static int32_t std_core$clz32(uint32_t l0);
@@ -1426,8 +1443,8 @@ static int32_t std_core$pf_clz64(uint64_t l0) {
 static void std_core$pf_product(int32_t l0, uint64_t l1, uint64_t* __o0, uint64_t* __o1) {
 	int32_t l2;
 	int64_t l3;
-	uint64_t l4, l5, l7;
-	void* l6;
+	uint64_t l4, l6, l7, l8;
+	void* l5;
 	int32_t t0;
 	void* t1;
 	int64_t t2;
@@ -1441,28 +1458,38 @@ static void std_core$pf_product(int32_t l0, uint64_t l1, uint64_t* __o0, uint64_
 	VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
 	t2 = ((int64_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) l3];
 	l4 = (uint64_t) (int64_t) t2;
+	l5 = (void*) &vader_data_0;
+	l3 = vader_chk_add(i64, l3, INT64_C(1));
+	vader_array_t* _a1_slotarr = ((vader_array_t*) l5);
+	VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+	VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l3)
+	t2 = ((int64_t*) _a1_slotarr->buf->slots)[vader_array_offset(_a1_slotarr) + (size_t) l3];
+	l6 = (uint64_t) (int64_t) t2;
+	if ((l0 >= INT32_C(-27))) {
+		if ((l0 < INT32_C(0))) {
+			t2 = (l6 + INT64_C(1));
+			l6 = (uint64_t) (int64_t) t2;
+			l7 = std_core$b2u(l6 == INT64_C(0));
+			t2 = vader_chk_add(u64, l4, l7);
+			l4 = (uint64_t) (int64_t) t2;
+		}
+	}
 	std_core$umul128(l1, l4, &t3, &t4);
-	l5 = t4;
+	l8 = t4;
 	l4 = t3;
+	l7 = l8;
 	if ((l4 & INT64_C(511)) == INT64_C(511)) {
-		l6 = (void*) &vader_data_0;
-		l3 = vader_chk_add(i64, l3, INT64_C(1));
-		vader_array_t* _a1_slotarr = ((vader_array_t*) l6);
-		VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
-		VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l3)
-		t2 = ((int64_t*) _a1_slotarr->buf->slots)[vader_array_offset(_a1_slotarr) + (size_t) l3];
+		std_core$umul128(l1, l6, &t3, &t4);
+		l6 = t3;
+		t2 = (l7 + l6);
 		l7 = (uint64_t) (int64_t) t2;
-		std_core$umul128(l1, l7, &t3, &t4);
-		l7 = t3;
-		t2 = (l5 + l7);
-		l5 = (uint64_t) (int64_t) t2;
-		if ((l7 > l5)) {
+		if ((l6 > l7)) {
 			t2 = vader_chk_add(u64, l4, INT64_C(1));
 			l4 = (uint64_t) (int64_t) t2;
 		}
-		*__o1 = l5; *__o0 = l4; return;
+		*__o1 = l7; *__o0 = l4; return;
 	}
-	*__o1 = l5; *__o0 = l4; return;
+	*__o1 = l7; *__o0 = l4; return;
 }
 
 static void* std_core$sd_scan(vader_string_t l0) {
@@ -1793,6 +1820,13 @@ static uint64_t std_core$sd_round_at(void* l0, int32_t l1, bool l2) {
 	}
 	t1 = vader_chk_add(u64, l3, INT64_C(1));
 	return (uint64_t) (int64_t) t1;
+}
+
+static uint64_t std_core$b2u(bool l0) {
+	if (l0) {
+		return (uint64_t) 1;
+	}
+	return (uint64_t) 0;
 }
 
 static void std_core$umul128(uint64_t l0, uint64_t l1, uint64_t* __o0, uint64_t* __o1) {

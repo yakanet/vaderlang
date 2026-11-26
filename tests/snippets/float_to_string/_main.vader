@@ -1,13 +1,15 @@
-// tests/snippets/float_to_string: pure-Vader shortest-double formatter (Ryu).
+// tests/snippets/float_to_string: the pure-Vader shortest-float formatter.
 //
 // Exercises `f64.to_string()` / `${f64}` through the normal build/run path,
 // which is the only float-formatting path with no caveats (the bytecode VM's
-// host `parse_float` mishandles subnormals, and std/core can't host @tests).
-// The run-output snapshot guards `stdlib/std/core/dtoa.vader` against
-// regressions ; the Ryu tables it uses are pinned by reference-row `@test`s in
-// `dtoa_tables.vader`. Covers: integer-valued (.0), plain decimal,
-// the ECMAScript decimal/scientific boundary (n = 21 vs 22, n = -6), ties,
-// the 17-significant-digit cases, and the inf / -inf / nan / -0.0 specials.
+// host `parse_float` mishandles subnormals). The run-output snapshot guards
+// `lib/std/core/schubfach.vader` and `dtoa.vader` against regressions ; the
+// power table they read is pinned by reference-row `@test`s in
+// `powers_of_five.vader`. Covers: integer-valued (.0), plain decimal, the
+// ECMAScript decimal/scientific boundary (n = 21 vs 22, n = -6), ties, the
+// 17-significant-digit cases, the smallest subnormals (one digit where two
+// would be closer), the powers of two (a narrower interval below than above),
+// `f32`, and the inf / -inf / nan / -0.0 specials.
 
 module "snippet"
 
@@ -24,10 +26,12 @@ main :: fn() -> i32 {
     for x in xs {
         println(x.to_string())
     }
-    // `${...}` interpolation must agree with `.to_string()` (both Ryu).
+    // `${...}` interpolation must agree with `.to_string()`.
     pi :: 3.141592653589793
     println("pi = ${pi}, sci = ${2.5e-8 * 1.0}")
     inf :: 1.0 / 0.0
     println("${inf} ${-inf} ${0.0 / 0.0}")
+    println("${1e-323} ${9007199254740992.0} ${2.2250738585072014e-308}")
+    println("${f32(1e-45)} ${f32(1e-44)} ${f32(16777216.0)} ${f32(0.1)} ${f32(3.4028235e38)}")
     return 0
 }

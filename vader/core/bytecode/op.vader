@@ -823,7 +823,7 @@ export F64ToBits :: struct {}
 export BitsToF64 :: struct {}
 /// `f32` -> raw IEEE 754 `u32` bit pattern (the 32-bit analogue of `F64ToBits`).
 /// Pops an `f32`, pushes the `u32`. NOT `u32(x)` (value truncation). Powers the
-/// pure-Vader shortest-`f32` formatter (Ryu f2s).
+/// pure-Vader shortest-`f32` formatter (`std/core/dtoa.vader`).
 export F32ToBits :: struct {}
 /// Inverse of `F32ToBits` : bit-reinterpret a `u32` bit pattern as an `f32`.
 /// Pops a `u32`, pushes the `f32`. NOT `f32(x)` (which widens the integer VALUE).

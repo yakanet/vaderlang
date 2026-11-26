@@ -2,9 +2,8 @@
 //
 // `BigInt` is a natural (unsigned) arbitrary-precision integer stored as
 // little-endian base-2^32 limbs. It is the shared foundation for the
-// compile-time power-of-5 table generation (`parse_float_tables.vader`,
-// `dtoa_tables.vader`) and the runtime slow-path float parser
-// (`parse_float.vader`).
+// compile-time power-of-5 table generation (`powers_of_five.vader`) and the
+// runtime slow-path float parser (`parse_float.vader`).
 //
 // The limb width is u32 on purpose : every division stays native `64/32` (no
 // u128 needed), and the table algorithms use the floor identity

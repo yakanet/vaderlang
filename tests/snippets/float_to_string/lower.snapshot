@@ -18,6 +18,8 @@
       std.console.println<string>(concat_4("pi = ", std.core.f64.to_string(pi), ", sci = ", std.core.f64.to_string(2.5e-8 * 1.0)))
       inf: f64 = 1.0 / 0.0
       std.console.println<string>(concat_5(std.core.f64.to_string(inf), " ", std.core.f64.to_string(-inf), " ", std.core.f64.to_string(0.0 / 0.0)))
+      std.console.println<string>(concat_5(std.core.f64.to_string(1e-323), " ", std.core.f64.to_string(9007199254740992.0), " ", std.core.f64.to_string(2.2250738585072014e-308)))
+      std.console.println<string>(concat_9(std.core.f32.to_string(f32(1e-45)), " ", std.core.f32.to_string(f32(1e-44)), " ", std.core.f32.to_string(f32(16777216.0)), " ", std.core.f32.to_string(f32(0.1)), " ", std.core.f32.to_string(f32(3.4028235e+38))))
       return 0
   }
   concat_4 :: fn(p0: string, p1: string, p2: string, p3: string) -> string {
@@ -46,6 +48,28 @@
       std_core$Intrinsic$buffer_write_string(buf, c3, p4)
       std_core$Intrinsic$buffer_intern_string(buf, c4)
   }
+  concat_9 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string, p5: string, p6: string, p7: string, p8: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
+      c3: i64 = c2 +% std_core$Intrinsic$byte_len(p3)
+      c4: i64 = c3 +% std_core$Intrinsic$byte_len(p4)
+      c5: i64 = c4 +% std_core$Intrinsic$byte_len(p5)
+      c6: i64 = c5 +% std_core$Intrinsic$byte_len(p6)
+      c7: i64 = c6 +% std_core$Intrinsic$byte_len(p7)
+      c8: i64 = c7 +% std_core$Intrinsic$byte_len(p8)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c8)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_write_string(buf, c2, p3)
+      std_core$Intrinsic$buffer_write_string(buf, c3, p4)
+      std_core$Intrinsic$buffer_write_string(buf, c4, p5)
+      std_core$Intrinsic$buffer_write_string(buf, c5, p6)
+      std_core$Intrinsic$buffer_write_string(buf, c6, p7)
+      std_core$Intrinsic$buffer_write_string(buf, c7, p8)
+      std_core$Intrinsic$buffer_intern_string(buf, c8)
+  }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
@@ -62,28 +86,34 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
-    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
-    const DOUBLE_POW5_SPLIT: u64[]  data pool #1
-    fn std.core.b2i  // std_core$b2i
+    const POW5_128: u64[]  data pool #0
     fn std.core.b2u  // std_core$b2u
-    fn std.core.d2d  // std_core$d2d
+    fn std.core.chosen  // std_core$chosen
+    fn std.core.decimal_exponent  // std_core$decimal_exponent
     fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.f32.to_string  // std_core$f32$Display$to_string
     fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.floor_log10_pow2  // std_core$floor_log10_pow2
+    fn std.core.floor_log10_three_quarters_pow2  // std_core$floor_log10_three_quarters_pow2
+    fn std.core.floor_log2_pow10  // std_core$floor_log2_pow10
+    fn std.core.format_f32  // std_core$format_f32
     fn std.core.format_f64  // std_core$format_f64
     fn std.core.insert_point  // std_core$insert_point
-    fn std.core.log10_pow2  // std_core$log10_pow2
-    fn std.core.log10_pow5  // std_core$log10_pow5
-    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
-    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
-    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
-    fn std.core.pow5_factor  // std_core$pow5_factor
-    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.minus_shifted  // std_core$minus_shifted
+    fn std.core.plus_shifted  // std_core$plus_shifted
+    fn std.core.power_of_ten  // std_core$power_of_ten
     fn std.core.render  // std_core$render
-    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.round_to_odd  // std_core$round_to_odd
+    fn std.core.round_to_odd_f32  // std_core$round_to_odd_f32
+    fn std.core.shifted  // std_core$shifted
+    fn std.core.shortest_between  // std_core$shortest_between
+    fn std.core.shortest_f32  // std_core$shortest_f32
+    fn std.core.shortest_f32_at  // std_core$shortest_f32_at
+    fn std.core.shortest_f64  // std_core$shortest_f64
+    fn std.core.shortest_f64_at  // std_core$shortest_f64_at
     fn std.core.umul128  // std_core$umul128
     fn std.core.write_decimal  // std_core$write_decimal
     fn std.core.write_digits  // std_core$write_digits
     fn std.core.write_unsigned  // std_core$write_unsigned
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
-    struct std.core.Dec64  // std_core$Dec64

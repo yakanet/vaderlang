@@ -20,14 +20,13 @@ module "std/core"
 // value`) routes through the blanket `T implements[T: Display] Into<string>`
 // declared above. `${x}` string interpolation routes every scalar primitive
 // through its `to_string` impl (below), including `f32`/`f64`, which format
-// via the Ryu `format_f32`/`format_f64` shortest-float formatters.
+// via the shortest-float formatters `format_f32` / `format_f64`.
 
 // Pure-Vader Display for the scalar primitives (the integers, bool, char,
 // string, f32 and f64). std/core cannot import std/string_builder / std/string
 // (import cycle: that's why std/numbers lives outside core), so every formatter
 // here sizes its result first, fills one `Buffer` and interns it once ; f32/f64
-// delegate to the Ryu formatters in dtoa.vader / f2s.vader, which render the
-// same way.
+// delegate to the formatters in dtoa.vader, which render the same way.
 
 // Render a signed value working entirely in NON-POSITIVE space, because
 // `abs(i64 min)` overflows i64 (|i64 min| = i64 max + 1). So rather than negate

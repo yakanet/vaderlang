@@ -139,7 +139,7 @@ export BitsFloat :: trait {
 
 /// 32-bit analogue of `FloatBits` : the raw IEEE 754 `u32` bit pattern of an
 /// `f32` (NOT `u32(self)`, which truncates the value). Powers the pure-Vader
-/// shortest-`f32` formatter (Ryu f2s). Inverse is `Bits32Float::from_bits`.
+/// shortest-`f32` formatter (`dtoa.vader`). Inverse is `Bits32Float::from_bits`.
 export Float32Bits :: trait {
     /// The raw IEEE 754 bit pattern of `self`.
     to_bits :: fn(self) -> u32
