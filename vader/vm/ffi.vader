@@ -171,6 +171,41 @@ import "std/testing"
     assert_eq(i64(frame[26]), 9)
 }
 
+@test test_ffi_returns_a_string_result :: fn() -> void {
+    sym :: ffi_symbol(ffi_open(""), "strchr")
+    assert(sym != 0, "strchr must resolve")
+
+    // `strchr("hello", 'l')`: a string result (class 4) is the call's value,
+    // since an atom id cannot travel back through the frame.
+    desc: u8[]: [4, 3, 1]
+    frame: u8[]: []
+    push_little_endian(frame, 16, 8)
+    push_little_endian(frame, 'l', 8)
+    frame.push_all([104, 101, 108, 108, 111, 0])
+    assert_eq(ffi_call(sym, desc, frame, -1), "llo")
+}
+
+@test test_ffi_passes_the_fixed_count_of_a_variadic_callee :: fn() -> void {
+    sym :: ffi_symbol(ffi_open(""), "snprintf")
+    assert(sym != 0, "snprintf must resolve")
+
+    // `snprintf(buffer, 8, "%d", 42)`: three fixed parameters. On darwin-arm64 a
+    // variadic argument travels on the stack, so a call that does not say where
+    // the fixed ones end formats whatever sits there instead of 42.
+    desc: u8[]: [1, 3, 1, 3, 1]
+    frame: u8[]: []
+    push_little_endian(frame, 32, 8)
+    push_little_endian(frame, 8, 8)
+    push_little_endian(frame, 40, 8)
+    push_little_endian(frame, 42, 8)
+    frame.push_all([0, 0, 0, 0, 0, 0, 0, 0])
+    frame.push_all(['%', 'd', 0])
+    ffi_call(sym, desc, frame, 3)
+    assert_eq(i64(frame[32]), '4')
+    assert_eq(i64(frame[33]), '2')
+    assert_eq(i64(frame[34]), 0)
+}
+
 @test test_ffi_passes_a_floating_argument :: fn() -> void {
     sym :: ffi_symbol(ffi_open(""), "sqrt")
     assert(sym != 0, "sqrt must resolve")

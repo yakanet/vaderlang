@@ -48,10 +48,16 @@ lent_word :: fn(
 }
 
 // Serve `ffi_call` or, `through_adapter`, `ffi_call_frame` to code the VM runs:
-// an address, a descriptor and a frame, passed on as real byte arrays.
+// an address, a descriptor and a frame, passed on as real byte arrays. An adapter
+// takes no `nfixed`: `-1`.
 hosted_frame_call :: fn(
-    stack: Value[], arg_base: i64, at_pc: i32, label: string, through_adapter: bool,
-) -> string | Trap {
+    stack: Value[],
+    arg_base: i64,
+    at_pc: i32,
+    label: string,
+    through_adapter: bool,
+    nfixed: i64,
+) -> HostCallResult {
     ptr :: read_i64(stack[arg_base], at_pc, "${label} fn_ptr") else return ptr
     desc_arr :: read_array(stack[arg_base + 1], at_pc, "${label} desc") else return desc_arr
     frame_arr :: read_array(stack[arg_base + 2], at_pc, "${label} frame") else return frame_arr
@@ -66,13 +72,13 @@ hosted_frame_call :: fn(
         b :: read_i64(frame_arr.elements[i], at_pc, "${label} frame byte") else return b
         frame.push(u8(b))
     }
-    returned :: call_foreign(i64(ptr), through_adapter, desc, frame, -1)
+    returned :: call_foreign(i64(ptr), through_adapter, desc, frame, nfixed)
     // `frame` is a COPY, and it carries BOTH what the callee wrote into a
     // lent area and the result itself, so it has to travel back whole.
     for i in 0..<frame_arr.elements.len() {
         frame_arr.elements[i] = retyped_int(frame_arr.elements[i], i64(frame[i]))
     }
-    return returned
+    return HostOk { .value = StringVal(returned) }
 }
 
 
@@ -218,14 +224,11 @@ export dispatch_import :: fn(
         return HostOk { .value = I64Val(ffi_open_path(string(path))) }
     }
     .FfiCall -> {
-        returned :: hosted_frame_call(stack, arg_base, at_pc, "ffi_call", false)
-            else return returned
-        return HostOk { .value = zero_value() }
+        nfixed :: read_i64(stack[arg_base + 3], at_pc, "ffi_call nfixed") else return nfixed
+        return hosted_frame_call(stack, arg_base, at_pc, "ffi_call", false, i64(nfixed))
     }
     .FfiCallFrame -> {
-        returned :: hosted_frame_call(stack, arg_base, at_pc, "ffi_call_frame", true)
-            else return returned
-        return HostOk { .value = StringVal(returned) }
+        return hosted_frame_call(stack, arg_base, at_pc, "ffi_call_frame", true, -1)
     }
     // ---- std/target --------------------------------------------------------
     // Both re-enter the same host the compiled compiler binds to: an `Os` / `Arch`
