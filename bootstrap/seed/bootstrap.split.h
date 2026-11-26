@@ -29,8 +29,8 @@ typedef struct vader_struct___defer_env_std_task_3_t vader_struct___defer_env_st
 typedef struct vader_struct___defer_env_std_task_5_t vader_struct___defer_env_std_task_5_t;
 typedef struct vader_struct___defer_env_std_task_7_t vader_struct___defer_env_std_task_7_t;
 typedef struct vader_struct___defer_env_std_task_9_t vader_struct___defer_env_std_task_9_t;
-typedef struct vader_struct___defer_env_vader_vm_23_t vader_struct___defer_env_vader_vm_23_t;
-typedef struct vader_struct___defer_env_vader_vm_25_t vader_struct___defer_env_vader_vm_25_t;
+typedef struct vader_struct___defer_env_vader_vm_22_t vader_struct___defer_env_vader_vm_22_t;
+typedef struct vader_struct___defer_env_vader_vm_24_t vader_struct___defer_env_vader_vm_24_t;
 typedef struct vader_struct___lambda_env_std_task_1_t vader_struct___lambda_env_std_task_1_t;
 typedef struct vader_struct___lambda_env_toolchain_ast_1_t vader_struct___lambda_env_toolchain_ast_1_t;
 typedef struct vader_struct___lambda_env_toolchain_ast_3_t vader_struct___lambda_env_toolchain_ast_3_t;
@@ -242,7 +242,7 @@ typedef struct vader_struct___lambda_env_vader_support_profile_4_t vader_struct_
 typedef struct vader_struct___lambda_env_vader_vm_1_t vader_struct___lambda_env_vader_vm_1_t;
 typedef struct vader_struct___lambda_env_vader_vm_10_t vader_struct___lambda_env_vader_vm_10_t;
 typedef struct vader_struct___lambda_env_vader_vm_13_t vader_struct___lambda_env_vader_vm_13_t;
-typedef struct vader_struct___lambda_env_vader_vm_21_t vader_struct___lambda_env_vader_vm_21_t;
+typedef struct vader_struct___lambda_env_vader_vm_20_t vader_struct___lambda_env_vader_vm_20_t;
 typedef struct vader_struct___lambda_env_vader_vm_4_t vader_struct___lambda_env_vader_vm_4_t;
 typedef struct vader_struct___lambda_env_vader_vm_7_t vader_struct___lambda_env_vader_vm_7_t;
 typedef struct vader_struct_json$JsonArray_t vader_struct_json$JsonArray_t;
@@ -1629,12 +1629,12 @@ struct vader_struct___defer_env_std_task_9_t {
 	vader_obj_header_t header;
 	void* f_cap_0;
 };
-struct vader_struct___defer_env_vader_vm_23_t {
+struct vader_struct___defer_env_vader_vm_22_t {
 	vader_obj_header_t header;
 	void* f_cap_0;
 	int64_t f_cap_1;
 };
-struct vader_struct___defer_env_vader_vm_25_t {
+struct vader_struct___defer_env_vader_vm_24_t {
 	vader_obj_header_t header;
 	void* f_cap_0;
 	void* f_cap_1;
@@ -2589,7 +2589,7 @@ struct vader_struct___lambda_env_vader_vm_13_t {
 	void* f_cap_0;
 	vader_box_t f_cap_1;
 };
-struct vader_struct___lambda_env_vader_vm_21_t {
+struct vader_struct___lambda_env_vader_vm_20_t {
 	vader_obj_header_t header;
 	void* f_cap_0;
 	vader_box_t f_cap_1;
@@ -11151,8 +11151,8 @@ void __defer_std_task_2(void* l0);
 void __defer_std_task_4(void* l0);
 void __defer_std_task_6(void* l0);
 void __defer_std_task_8(void* l0);
-void __defer_vader_vm_22(void* l0);
-void __defer_vader_vm_24(void* l0);
+void __defer_vader_vm_21(void* l0);
+void __defer_vader_vm_23(void* l0);
 bool __lambda_std_numbers_0(uint32_t l0);
 bool __lambda_std_path_0(uint32_t l0);
 bool __lambda_std_path_1(uint32_t l0);
@@ -11302,9 +11302,8 @@ void __lambda_vader_vm_15(int64_t l0);
 void __lambda_vader_vm_16(int64_t l0);
 void __lambda_vader_vm_17(int64_t l0);
 void __lambda_vader_vm_18(int64_t l0);
-void __lambda_vader_vm_19(int64_t l0);
+void __lambda_vader_vm_19(void* l0);
 bool __lambda_vader_vm_2(void);
-void __lambda_vader_vm_20(void* l0);
 bool __lambda_vader_vm_6(void* l0, int64_t l1, int64_t l2);
 vader_box_t __lambda_vader_vm_8(void);
 void* __lambda_vader_vm_9(void* l0);
@@ -11670,6 +11669,10 @@ vader_string_t std_path$to_native(vader_string_t l0);
 vader_string_t std_path$to_native_1(vader_string_t l0);
 vader_string_t std_path$to_path(vader_string_t l0);
 vader_string_t std_path$to_posix(vader_string_t l0);
+int64_t std_runtime$allocated_bytes(void);
+int64_t std_runtime$allocations(void);
+int64_t std_runtime$bytes_copied(void);
+int64_t std_runtime$collections(void);
 vader_box_t std_runtime$peak_resident_bytes(void);
 void* std_runtime_scheduler$gate_or_new(vader_box_t l0);
 void std_runtime_scheduler$monitor_enter(void);
@@ -12632,8 +12635,6 @@ vader_box_t vader_fn_tramp___lambda_vader_vm_17(void* env, vader_box_t a0);
 extern vader_fn_t vader_fn_static___lambda_vader_vm_17;
 vader_box_t vader_fn_tramp___lambda_vader_vm_18(void* env, vader_box_t a0);
 extern vader_fn_t vader_fn_static___lambda_vader_vm_18;
-vader_box_t vader_fn_tramp___lambda_vader_vm_19(void* env, vader_box_t a0);
-extern vader_fn_t vader_fn_static___lambda_vader_vm_19;
 vader_box_t vader_fn_tramp___lambda_vader_vm_2(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_vm_2;
 vader_box_t vader_fn_tramp___lambda_vader_vm_8(void* env);
@@ -12782,8 +12783,8 @@ vader_box_t vader_fn_lift___defer_std_task_2(void* env);
 vader_box_t vader_fn_lift___defer_std_task_4(void* env);
 vader_box_t vader_fn_lift___defer_std_task_6(void* env);
 vader_box_t vader_fn_lift___defer_std_task_8(void* env);
-vader_box_t vader_fn_lift___defer_vader_vm_22(void* env);
-vader_box_t vader_fn_lift___defer_vader_vm_24(void* env);
+vader_box_t vader_fn_lift___defer_vader_vm_21(void* env);
+vader_box_t vader_fn_lift___defer_vader_vm_23(void* env);
 vader_box_t vader_fn_lift___lambda_std_task_0(void* env);
 vader_box_t vader_fn_lift___lambda_toolchain_ast_2(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_toolchain_parser_0(void* env, vader_box_t a0);
@@ -12860,7 +12861,7 @@ vader_box_t vader_fn_lift___lambda_vader_midir_optimise_2(void* env, vader_box_t
 vader_box_t vader_fn_lift___lambda_vader_pipeline_0(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_support_fixpoint_1(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_vm_12(void* env);
-vader_box_t vader_fn_lift___lambda_vader_vm_20(void* env);
+vader_box_t vader_fn_lift___lambda_vader_vm_19(void* env);
 vader_box_t vader_fn_lift___lambda_vader_vm_6(void* env, vader_box_t a0, vader_box_t a1);
 vader_box_t vader_fn_lift___lambda_vader_vm_9(void* env);
 
@@ -12875,7 +12876,7 @@ vader_box_t toolchain_stage$BuildFiles$list_folder$$dispatch(vader_box_t recv, v
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3817u
+#define VADER_COMPTIME_ATOM_COUNT 3795u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;

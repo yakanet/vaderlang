@@ -147,15 +147,15 @@ static vader_string_t toolchain_diagnostics$diag_key(void* l0) {
 	l7 = INT64_C(0);
 	l8 = ((int64_t) (int32_t) l1);
 	l7 = std_core$write_int(l9, l7, l8);
-	l7 = std_core$write_string_at(l9, l7, 3809u);
+	l7 = std_core$write_string_at(l9, l7, 3787u);
 	l7 = std_core$write_string_at(l9, l7, l2);
-	l7 = std_core$write_string_at(l9, l7, 3809u);
+	l7 = std_core$write_string_at(l9, l7, 3787u);
 	l7 = std_core$write_string_at(l9, l7, l3);
-	l7 = std_core$write_string_at(l9, l7, 3809u);
+	l7 = std_core$write_string_at(l9, l7, 3787u);
 	l7 = std_core$write_int(l9, l7, l4);
-	l7 = std_core$write_string_at(l9, l7, 3809u);
+	l7 = std_core$write_string_at(l9, l7, 3787u);
 	l7 = std_core$write_int(l9, l7, l5);
-	l7 = std_core$write_string_at(l9, l7, 3809u);
+	l7 = std_core$write_string_at(l9, l7, 3787u);
 	l7 = std_core$write_string_at(l9, l7, l6);
 	t0 = std_core$finish_buffer(l9, l7);
 	{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -240,16 +240,16 @@ static void toolchain_diagnostics$format_diagnostic(void* l0, void* l1, void* l2
 	vader_gc_top = &gc_frame;
 	l4 = ((vader_struct_toolchain_diagnostics$Diagnostic_t*) l1)->f_severity;
 	if (l4 == INT32_C(0)) {
-		l3 = 2417u;
+		l3 = 2412u;
 	} else if (l4 == INT32_C(1)) {
-		l3 = 3733u;
+		l3 = 3711u;
 	} else if (l4 == INT32_C(2)) {
-		l3 = 2719u;
+		l3 = 2714u;
 	} else {
 		if (!(l4 == INT32_C(3))) {
 			vader_unreachable("non-exhaustive match (T3013 should have caught this)");
 		}
-		l3 = 2630u;
+		l3 = 2625u;
 	}
 	t0 = ((vader_struct_toolchain_diagnostics$Channel_t*) l2)->f_user;
 	if (t0) {
@@ -681,7 +681,7 @@ vader_string_t toolchain_diagnostics$wildcard_clash_detail(vader_string_t l0, vo
 	vader_gc_top = &gc_frame;
 	l2 = std_string$join(l1, 441u);
 	l2 = concat_4(1305u, l0, 1462u, l2);
-	l3 = concat_3(3085u, l0, 1630u);
+	l3 = concat_3(3080u, l0, 1630u);
 	t0 = concat_6(l2, 98u, l3, 239u, l0, 120u);
 	{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }

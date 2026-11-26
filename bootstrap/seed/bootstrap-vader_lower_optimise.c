@@ -1119,12 +1119,12 @@ static bool vader_lower_optimise$is_fresh_array(vader_box_t l0) {
 	}
 	t0 = l0.payload.obj;
 	t1 = ((vader_struct_vader_lower_ir$LoweredIntrinsicCall_t*) t0)->f_name;
-	if (t1 == 2037u) {
+	if (t1 == 2035u) {
 		return true;
 	}
 	t0 = l0.payload.obj;
 	t1 = ((vader_struct_vader_lower_ir$LoweredIntrinsicCall_t*) t0)->f_name;
-	if (t1 == 2034u) {
+	if (t1 == 2032u) {
 		t0 = l0.payload.obj;
 		t2 = vader_array_length(((vader_array_t*) ((vader_struct_vader_lower_ir$LoweredIntrinsicCall_t*) t0)->f_args));
 		l1 = t2 == INT64_C(2);

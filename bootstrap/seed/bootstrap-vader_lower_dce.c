@@ -108,7 +108,7 @@ void __lambda_vader_lower_dce_5(void* l0, vader_string_t l1, vader_string_t l2) 
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l3 = concat_3(l1, 3809u, l2);
+	l3 = concat_3(l1, 3787u, l2);
 	t0 = std_collections$add__string(((vader_struct___lambda_env_vader_lower_dce_6_t*) l0)->f_cap_0, l3);
 	if (t0) {
 		vader_array_push_scalar((vader_array_t*) ((vader_struct___lambda_env_vader_lower_dce_6_t*) l0)->f_cap_1, vader_box_string(630u, l3));
@@ -588,7 +588,7 @@ void* vader_lower_dce$prune_unreachable_fns(void* l0, void* l1) {
 			t1 = vader_array_box_slots(_a37_slotarr->buf)[vader_array_offset(_a37_slotarr) + (size_t) l22];
 			l15 = t1.payload.s;
 			l16 = ((vader_struct_vader_lower_ir$LoweredVtableEntry_t*) l12)->f_method_name;
-			l18 = concat_3(l15, 3809u, l16);
+			l18 = concat_3(l15, 3787u, l16);
 			l20 = (void*) &vader_fn_static___lambda_vader_lower_dce_2;
 			t0 = std_collections$get_or_put_with__string__vader_lower_ir_LoweredVtableEntry__(l9, l18, l20);
 			vader_array_push_ref((vader_array_t*) t0, l12);

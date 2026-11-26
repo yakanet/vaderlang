@@ -36,7 +36,7 @@ static bool __lambda_vader_front_dead__code_0(vader_box_t l0) {
 	if (l0.tag == 1162u) {
 		t0 = l0.payload.obj;
 		t1 = ((vader_struct_toolchain_ast$FnDecl_t*) t0)->f_name;
-		return t1 == 2869u;
+		return t1 == 2864u;
 	}
 	return false;
 }
@@ -1071,8 +1071,8 @@ static bool vader_front_dead__code$is_root_decl(uint8_t l0, void* l1, vader_stri
 	if (l4) {
 		return true;
 	}
-	if (l3 == 2125u) {
-		l4 = l2 == 2125u;
+	if (l3 == 2123u) {
+		l4 = l2 == 2123u;
 	} else {
 		l4 = false;
 	}

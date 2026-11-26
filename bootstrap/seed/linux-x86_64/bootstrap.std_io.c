@@ -52,47 +52,47 @@ static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2) 
 static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l1) {
 	vader_string_t l2;
 	if (l0 == INT32_C(1)) {
-		l2 = 2533u;
+		l2 = 2528u;
 		return l2;
 	}
 	if (l0 == INT32_C(2)) {
-		l2 = 3067u;
+		l2 = 3062u;
 	} else if (l0 == INT32_C(3)) {
-		l2 = 2746u;
+		l2 = 2741u;
 	} else if (l0 == INT32_C(4)) {
-		l2 = 1954u;
+		l2 = 1952u;
 	} else if (l0 == INT32_C(5)) {
-		l2 = 2993u;
+		l2 = 2988u;
 	} else if (l0 == INT32_C(6)) {
-		l2 = 2771u;
+		l2 = 2766u;
 	} else if (l0 == INT32_C(7)) {
-		l2 = 3767u;
+		l2 = 3745u;
 	} else if (l0 == INT32_C(8)) {
-		l2 = 2106u;
+		l2 = 2104u;
 	} else if (l0 == INT32_C(9)) {
-		l2 = 2983u;
+		l2 = 2978u;
 	} else if (l0 == INT32_C(10)) {
-		l2 = 2759u;
+		l2 = 2754u;
 	} else if (l0 == INT32_C(11)) {
-		l2 = 2342u;
+		l2 = 2337u;
 	} else if (l0 == INT32_C(12)) {
-		l2 = 2066u;
+		l2 = 2064u;
 	} else if (l0 == INT32_C(13)) {
-		l2 = 2390u;
+		l2 = 2385u;
 	} else if (l0 == INT32_C(14)) {
-		l2 = 2280u;
+		l2 = 2275u;
 	} else if (l0 == INT32_C(15)) {
-		l2 = 2281u;
+		l2 = 2276u;
 	} else if (l0 == INT32_C(16)) {
 		l2 = 1944u;
 	} else if (l0 == INT32_C(17)) {
 		l2 = 1945u;
 	} else if (l0 == INT32_C(18)) {
-		l2 = 2995u;
+		l2 = 2990u;
 	} else if (l0 == INT32_C(19)) {
-		l2 = 3375u;
+		l2 = 3370u;
 	} else if (l0 == INT32_C(20)) {
-		l2 = 3380u;
+		l2 = 3375u;
 	} else {
 		if (!(l0 == INT32_C(0))) {
 			vader_unreachable("non-exhaustive match (T3013 should have caught this)");

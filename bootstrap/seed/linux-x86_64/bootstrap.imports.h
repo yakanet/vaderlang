@@ -51,20 +51,8 @@ static inline void* vader_host_std_core$Intrinsic$deep_copy__string__(void* a0) 
 	return vader_deep_copy_ref(a0);
 }
 
-static inline int64_t vader_host_std_core$Intrinsic$collections(void) {
-	return (int64_t) vader_gc_get_stats().total_collections;
-}
-
-static inline int64_t vader_host_std_core$Intrinsic$bytes_copied(void) {
-	return (int64_t) vader_gc_get_stats().total_copied;
-}
-
-static inline int64_t vader_host_std_core$Intrinsic$allocated_bytes(void) {
-	return (int64_t) vader_gc_get_stats().total_alloc_bytes;
-}
-
-static inline int64_t vader_host_std_core$Intrinsic$allocations(void) {
-	return (int64_t) vader_gc_get_stats().total_alloc_count;
+static inline int64_t vader_host_std_core$Intrinsic$collector_statistic(int32_t a0) {
+	return vader_gc_statistic(a0);
 }
 
 static inline void vader_host_std_core$Intrinsic$count_allocations(void) {
@@ -119,28 +107,8 @@ static inline void vader_host_std_core$Intrinsic$monitor_exit(void) {
 	vader_scheduler_monitor_exit();
 }
 
-static inline void vader_host_std_core$Intrinsic$wait_readable(int64_t a0) {
-	vader_scheduler_wait_readable(a0);
-}
-
-static inline bool vader_host_std_core$Intrinsic$wait_readable_for(int64_t a0, int64_t a1) {
-	return vader_scheduler_wait_readable_for(a0, a1);
-}
-
-static inline void vader_host_std_core$Intrinsic$wait_writable(int64_t a0) {
-	vader_scheduler_wait_writable(a0);
-}
-
-static inline bool vader_host_std_core$Intrinsic$wait_writable_for(int64_t a0, int64_t a1) {
-	return vader_scheduler_wait_writable_for(a0, a1);
-}
-
-static inline bool vader_host_std_core$Intrinsic$wait_blocked_read_for(int64_t a0, int64_t a1) {
-	return vader_scheduler_wait_blocked_read_for(a0, a1);
-}
-
-static inline bool vader_host_std_core$Intrinsic$wait_blocked_write_for(int64_t a0, int64_t a1) {
-	return vader_scheduler_wait_blocked_write_for(a0, a1);
+static inline bool vader_host_std_core$Intrinsic$wait_for(int64_t a0, int32_t a1, int64_t a2, bool a3) {
+	return vader_scheduler_wait(a0, a1, a2, a3);
 }
 
 static inline void vader_host_std_core$Intrinsic$stop_waiting(int64_t a0) {

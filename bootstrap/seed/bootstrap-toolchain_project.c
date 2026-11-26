@@ -43,7 +43,7 @@ vader_box_t toolchain_project$asset_problem(vader_string_t l0) {
 	if (!(t0)) {
 		{ vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
 	}
-	t1 = concat_3(2053u, l0, 1503u);
+	t1 = concat_3(2051u, l0, 1503u);
 	{ vader_box_t __vret = vader_box_string(630u, t1); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -54,13 +54,13 @@ vader_box_t toolchain_project$entry_name_problem(vader_string_t l0) {
 	vader_gc_top = &gc_frame;
 	t0 = toolchain_project$is_portable_name(l0);
 	if (!(t0)) {
-		{ vader_box_t __vret = vader_box_string(630u, 2204u); vader_gc_top = gc_frame.prev; return __vret; }
+		{ vader_box_t __vret = vader_box_string(630u, 2200u); vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	t0 = toolchain_project$is_windows_device_name(l0);
 	if (!(t0)) {
 		{ vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
 	}
-	{ vader_box_t __vret = vader_box_string(630u, 2203u); vader_gc_top = gc_frame.prev; return __vret; }
+	{ vader_box_t __vret = vader_box_string(630u, 2199u); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 vader_box_t toolchain_project$entry_named(void* l0, vader_string_t l1) {
@@ -144,10 +144,10 @@ static bool toolchain_project$is_windows_device_name(vader_string_t l0) {
 	vader_gc_top = &gc_frame;
 	l1 = std_string$to_lower(l0);
 	vader_array_t* _a0_arr = vader_array_new(28u, 4u, 0u, 630u);
-	vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 3u] = vader_box_string(630u, 3001u);
-	vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 2u] = vader_box_string(630u, 2064u);
-	vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 1u] = vader_box_string(630u, 3076u);
-	vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 0u] = vader_box_string(630u, 2272u);
+	vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 3u] = vader_box_string(630u, 2996u);
+	vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 2u] = vader_box_string(630u, 2062u);
+	vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 1u] = vader_box_string(630u, 3071u);
+	vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 0u] = vader_box_string(630u, 2267u);
 	t0 = (void*) _a0_arr;
 	t1 = std_core$$array$Contains$contains__string(t0, l1);
 	if (t1) {
@@ -155,11 +155,11 @@ static bool toolchain_project$is_windows_device_name(vader_string_t l0) {
 	}
 	t2 = vader_host_std_core$Intrinsic$byte_len(l1);
 	if (t2 == INT64_C(4)) {
-		t1 = std_string$starts_with(l1, 2251u);
+		t1 = std_string$starts_with(l1, 2246u);
 		if (t1) {
 			l2 = true;
 		} else {
-			l2 = std_string$starts_with(l1, 2865u);
+			l2 = std_string$starts_with(l1, 2860u);
 		}
 	} else {
 		l2 = false;

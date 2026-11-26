@@ -91,7 +91,7 @@ vader_string_t vader_core_mangle$generated_name(vader_string_t l0, uint8_t l1) {
 		t1 = concat_3(l0, 332u, l2);
 		{ vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 	}
-	t1 = concat_3(2598u, l0, 1488u);
+	t1 = concat_3(2593u, l0, 1488u);
 	vader_host_std_core$Intrinsic$panic(t1);
 	vader_unreachable("a no-return call returned");
 	vader_gc_top = gc_frame.prev;
@@ -100,20 +100,20 @@ vader_string_t vader_core_mangle$generated_name(vader_string_t l0, uint8_t l1) {
 static vader_string_t vader_core_mangle$generated_word(uint8_t l0) {
 	vader_string_t l1;
 	if (l0 == INT32_C(0)) {
-		l1 = 2738u;
+		l1 = 2733u;
 		return l1;
 	}
 	if (l0 == INT32_C(1)) {
-		l1 = 2816u;
+		l1 = 2811u;
 	} else if (l0 == INT32_C(2)) {
 		l1 = 870u;
 	} else if (l0 == INT32_C(3)) {
-		l1 = 3077u;
+		l1 = 3072u;
 	} else {
 		if (!(l0 == INT32_C(4))) {
 			vader_unreachable("non-exhaustive match (T3013 should have caught this)");
 		}
-		l1 = 3145u;
+		l1 = 3140u;
 	}
 	return l1;
 }
