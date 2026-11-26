@@ -77,6 +77,28 @@ GATED_STDOUT :: "config starts\nconfig done\ncfg cfg cfg\npool starts\npool star
 // collections move the buffer, and exits with what it reads back.
 MEMBUF :: "tests/fixtures/membuf_gc/membuf_gc.virt"
 
+// A program that copies a map of ten thousand entries five hundred times, each
+// copy garbage once counted: several times what 64 MB of old generation holds.
+REPEATED_DEEP_COPY :: r"""
+    module "snippet"
+
+    import "std/collections"
+    import "std/console"
+
+    main :: fn() -> i32 {
+        counts :: Map<string, i64> {}
+        for i in 0..<10_000 {
+            counts["word${i}"] = i
+        }
+        total: i64 = 0
+        for 0..<500 {
+            total += counts.deep_copy().len()
+        }
+        println(total)
+        return 0
+    }
+    """
+
 // ---- building and running -------------------------------------------------
 
 // Build `source` with `flags` into a fresh folder named after `name`, run the
@@ -290,4 +312,19 @@ test_a_byte_buffer_survives_a_moving_collection :: fn() -> void {
             "the buffer survives a ${kilobytes} KB arena",
         )
     }
+}
+
+@test
+test_repeated_deep_copies_free_the_old_generation :: fn() -> void {
+    // A copy fills old and not young, so no minor comes to start a major: the
+    // copy must start it, or make room when old is full.
+    if !has_cc() {
+        return
+    }
+    source :: scratch_source("native_deep_copy_source", REPEATED_DEEP_COPY)
+    binary :: build_binary("deep_copy", ["--emit=executable", "--release"], source)
+        else panic(binary.message())
+    options :: RunOptions { .env = [["VADER_GC_OLD_MAX", "64M"]] }
+    ran :: succeeded(run_command([binary], options)) else panic(ran.message())
+    assert_eq(ran.stdout, "5000000\n")
 }

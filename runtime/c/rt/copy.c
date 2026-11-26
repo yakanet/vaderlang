@@ -8,10 +8,13 @@
  *
  * Nothing may collect during the walk: a collection would move the sources the
  * table names by address. So the copies are carved straight from the old
- * generation, which never collects to make room, and a reservation exhausted at
- * its cap traps. A copy is born marked for the current epoch, as a promoted
- * object is, and a reference it keeps to a young object (a kept shared struct)
- * marks its card, as the write barrier would. */
+ * generation, without collecting. A copy starts with the major a minor would
+ * start, once old has grown past its trigger, since a copy fills old and not
+ * young. A walk that finds old full stops, a major makes room, and the copy
+ * starts over once: the copies the first walk made are garbage, which the major
+ * frees. A copy is born marked for the current epoch, as a promoted object is,
+ * and a reference it keeps to a young object (a kept shared struct) marks its
+ * card, as the write barrier would. */
 
 #include "internal.h"
 
@@ -28,6 +31,8 @@ typedef struct {
     size_t  pending_cap;
     /* The worker that copies: the copies' cards are marked in its table. */
     vader_worker_t* worker;
+    /* Set when old had no room for a copy: the walk gives up. */
+    int full;
 } vader_copy_t;
 
 static void* vader_copy_calloc(size_t count, size_t size) {
@@ -83,10 +88,11 @@ static void vader_copy_note(vader_copy_t* c, void* source, void* copy) {
 }
 
 /* `bytes` of old-generation storage, carved without collecting, in the regions
- * of the worker that copies. */
+ * of the worker that copies ; NULL, and the walk marked full, when old has no
+ * room. */
 static void* vader_copy_carve(vader_copy_t* c, size_t bytes) {
     void* p = vader_old_alloc(c->worker, bytes);
-    if (p == NULL) vader_trap("deep_copy: old reservation exhausted at cap (VADER_GC_OLD_MAX)");
+    if (p == NULL) c->full = 1;
     return p;
 }
 
@@ -99,6 +105,7 @@ static void vader_copy_header(void* copy, uint32_t type_index) {
 /* A copy of the object `obj` of `bytes`, its references still the source's. */
 static void* vader_copy_raw(vader_copy_t* c, void* obj, size_t bytes) {
     void* copy = vader_copy_carve(c, bytes);
+    if (copy == NULL) return obj;
     memcpy(copy, obj, bytes);
     vader_copy_header(copy, ((vader_obj_header_t*) obj)->type_index);
     vader_copy_note(c, obj, copy);
@@ -119,6 +126,7 @@ static void* vader_copy_array(vader_copy_t* c, vader_array_t* a) {
     if (capacity < 4u) capacity = 4u;
     size_t buf_bytes = vader_array_buf_bytes(capacity, kind);
     vader_array_buf_t* buf = (vader_array_buf_t*) vader_copy_carve(c, buf_bytes);
+    if (buf == NULL) return source;
     vader_copy_header(buf, VADER_TYPE_INDEX_ARRAY_BUF);
     buf->capacity = capacity;
     buf->length = length;
@@ -126,6 +134,7 @@ static void* vader_copy_array(vader_copy_t* c, vader_array_t* a) {
     buf->element_tag = tag;
     if (length > 0u) memcpy(buf->slots, data, length * element_size);
     vader_array_t* copy = (vader_array_t*) vader_copy_carve(c, sizeof(vader_array_t));
+    if (copy == NULL) return source;
     vader_copy_header(copy, a->header.type_index);
     vader_array_set_extent(copy, length, capacity);
     copy->offset = 0;
@@ -136,7 +145,7 @@ static void* vader_copy_array(vader_copy_t* c, vader_array_t* a) {
 
 /* The copy of the object `obj`: the one already made, or a new one. */
 static void* vader_copy_ref(vader_copy_t* c, void* obj) {
-    if (obj == NULL) return NULL;
+    if (obj == NULL || c->full) return obj;
     size_t i = vader_copy_slot(c, obj);
     if (c->from[i] == obj) return c->to[i];
     uint32_t type_index = ((vader_obj_header_t*) obj)->type_index;
@@ -213,7 +222,6 @@ static void vader_copy_references(vader_copy_t* c, char* copy) {
 }
 
 static void vader_copy_open(vader_copy_t* c) {
-    if (VADER_UNLIKELY(!g_gc_initialized)) vader_gc_init();
     c->worker = &vader_worker;
     c->capacity = 64u;
     c->count = 0;
@@ -222,31 +230,40 @@ static void vader_copy_open(vader_copy_t* c) {
     c->pending_cap = 64u;
     c->pending_len = 0;
     c->pending = (void**) vader_copy_calloc(c->pending_cap, sizeof(void*));
+    c->full = 0;
 }
 
-/* Copy what the queued copies reach, then free the table. */
-static void vader_copy_close(vader_copy_t* c) {
-    while (c->pending_len > 0u) {
+/* Copy what the queued copies reach, then free the table. Returns whether the
+ * walk went to its end: false when old had no room. */
+static bool vader_copy_close(vader_copy_t* c) {
+    while (c->pending_len > 0u && !c->full) {
         vader_copy_references(c, (char*) c->pending[--c->pending_len]);
     }
     free(c->from);
     free(c->to);
     free(c->pending);
+    return !c->full;
+}
+
+vader_box_t vader_deep_copy_box(vader_box_t value) {
+    VADER_GC_PUSH1(value);
+    if (VADER_UNLIKELY(!g_gc_initialized)) vader_gc_init();
+    vader_old_maybe_major();
+    vader_box_t copy = value;
+    for (int attempt = 0;; attempt++) {
+        vader_copy_t c;
+        vader_copy_open(&c);
+        copy = vader_copy_box(&c, value);
+        if (vader_copy_close(&c)) break;
+        if (attempt > 0) vader_trap("deep_copy: old reservation exhausted at cap (VADER_GC_OLD_MAX)");
+        vader_old_make_room();
+    }
+    VADER_GC_POP();
+    return copy;
 }
 
 void* vader_deep_copy_ref(void* obj) {
     if (obj == NULL) return NULL;
-    vader_copy_t c;
-    vader_copy_open(&c);
-    void* copy = vader_copy_ref(&c, obj);
-    vader_copy_close(&c);
-    return copy;
-}
-
-vader_box_t vader_deep_copy_box(vader_box_t value) {
-    vader_copy_t c;
-    vader_copy_open(&c);
-    vader_box_t copy = vader_copy_box(&c, value);
-    vader_copy_close(&c);
-    return copy;
+    vader_box_t value = vader_box_obj(((vader_obj_header_t*) obj)->type_index, obj);
+    return vader_deep_copy_box(value).payload.obj;
 }

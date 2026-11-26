@@ -96,6 +96,10 @@ static void* vader_old_alloc(vader_worker_t* w, size_t bytes);
 static void vader_old_report(vader_worker_t* w);
 /* The bytes live objects hold in old, as the workers last reported them. */
 static size_t vader_old_live(void);
+/* A major once old has grown past its trigger, at a point that may collect. */
+static void vader_old_maybe_major(void);
+/* A major that frees room in a full old generation. */
+static void vader_old_make_room(void);
 /* With several workers, taking a region of old takes a lock. */
 static void vader_old_pool_start(void);
 static void vader_old_foreach_live(void (*fn)(char* obj, uint32_t type_index, void* ctx), void* ctx);
