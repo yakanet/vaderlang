@@ -14,14 +14,14 @@ vader_string_t std_env$current_executable_location(void) {
 		vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	vader_array_t* _a0_arr = vader_array_new(31u, 1u, 1u, 635u);
+	vader_array_t* _a0_arr = vader_array_new(31u, 1u, 1u, 641u);
 	((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint8_t) INT32_C(0);
 	t0 = (void*) _a0_arr;
 	vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) INT64_C(4096));
 	l0 = (void*) _a1_arr;
 	t1 = vader_array_length(((vader_array_t*) l0));
 	l1 = vader_chk_sub(i64, t1, INT64_C(1));
-	t1 = vader_host_system_posix$sys_readlink(548u, l0, l1);
+	t1 = vader_host_system_posix$sys_readlink(549u, l0, l1);
 	if (!((t1 <= INT64_C(0)))) {
 		t2 = system_posix$up_to_nul(l0);
 		{ vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
@@ -42,7 +42,7 @@ vader_string_t std_env$current_working_directory(void) {
 		vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	vader_array_t* _a0_arr = vader_array_new(31u, 1u, 1u, 635u);
+	vader_array_t* _a0_arr = vader_array_new(31u, 1u, 1u, 641u);
 	((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint8_t) INT32_C(0);
 	t0 = (void*) _a0_arr;
 	vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) INT64_C(4096));
@@ -88,10 +88,8 @@ bool std_env$is_env_flag_on(vader_string_t l0) {
 }
 
 static bool std_env$is_flag_value_on(vader_string_t l0) {
-	uint8_t t0;
 	if (l0 != 0u) {
-		t0 = vader_host_std_core$Intrinsic$byte_at(l0, INT64_C(0));
-		return t0 != INT32_C(48);
+		return vader_string_byte_at(l0, (size_t) INT64_C(0)) != INT32_C(48);
 	}
 	return false;
 }
@@ -107,8 +105,8 @@ vader_box_t std_env$set_current_working_directory(vader_string_t l0) {
 	vader_gc_top = &gc_frame;
 	t0 = vader_host_system_posix$sys_chdir(l0);
 	if (!(t0 != INT32_C(0))) {
-		{ vader_box_t __vret = vader_box_obj(631u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
+		{ vader_box_t __vret = vader_box_obj(637u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
 	}
-	t1 = std_io$last_io_error(2192u);
+	t1 = std_io$last_io_error(2195u);
 	{ vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 }

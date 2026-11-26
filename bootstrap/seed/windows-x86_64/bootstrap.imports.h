@@ -7,32 +7,12 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static inline int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
-	return vader_string_byte_len(a0);
-}
-
-static inline uint8_t vader_host_std_core$Intrinsic$byte_at(vader_string_t a0, int64_t a1) {
-	return vader_string_byte_at(a0, a1);
-}
-
-static inline vader_string_t vader_host_std_core$Intrinsic$byte_slice(vader_string_t a0, int64_t a1, int64_t a2) {
-	return vader_string_byte_slice(a0, a1, a2);
-}
-
-static inline bool vader_host_std_core$Intrinsic$is_ascii(vader_string_t a0) {
-	return vader_string_is_ascii(a0);
-}
-
 static inline void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 31u, 635u);
+	return (void*) vader_string_bytes_view(a0, 31u, 641u);
 }
 
 static inline vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
 	return vader_string_as_string((vader_array_t*) a0);
-}
-
-static inline uint64_t vader_host_std_core$Intrinsic$string_hash(vader_string_t a0) {
-	return vader_string_hash(a0);
 }
 
 static inline void* vader_host_std_core$Intrinsic$deep_copy__std_collections_Map_string__string_(void* a0) {

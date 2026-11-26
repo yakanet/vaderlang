@@ -40,7 +40,7 @@ vader_box_t std_runtime$peak_resident_bytes(void) {
 	void** gc_raw_roots[2] = { &l0, &t0 };
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
-	vader_array_t* _a0_arr = vader_array_new(30u, 1u, 8u, 634u);
+	vader_array_t* _a0_arr = vader_array_new(30u, 1u, 8u, 640u);
 	((int64_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (int64_t) INT64_C(0);
 	t0 = (void*) _a0_arr;
 	vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) INT64_C(18));
@@ -52,7 +52,7 @@ vader_box_t std_runtime$peak_resident_bytes(void) {
 		VADER_ARRAY_CHECK_INDEX(_a2_slotarr, INT64_C(4))
 		t2 = ((int64_t*) _a2_slotarr->buf->slots)[vader_array_offset(_a2_slotarr) + (size_t) INT64_C(4)];
 		t3 = vader_chk_mul(i64, t2, INT64_C(1024));
-		{ vader_box_t __vret = vader_box_i64(634u, t3); vader_gc_top = gc_frame.prev; return __vret; }
+		{ vader_box_t __vret = vader_box_i64(640u, t3); vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	{ vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
 }

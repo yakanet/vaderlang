@@ -15,32 +15,12 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static inline int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
-	return vader_string_byte_len(a0);
-}
-
-static inline uint8_t vader_host_std_core$Intrinsic$byte_at(vader_string_t a0, int64_t a1) {
-	return vader_string_byte_at(a0, a1);
-}
-
-static inline vader_string_t vader_host_std_core$Intrinsic$byte_slice(vader_string_t a0, int64_t a1, int64_t a2) {
-	return vader_string_byte_slice(a0, a1, a2);
-}
-
-static inline bool vader_host_std_core$Intrinsic$is_ascii(vader_string_t a0) {
-	return vader_string_is_ascii(a0);
-}
-
 static inline void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 31u, 635u);
+	return (void*) vader_string_bytes_view(a0, 31u, 641u);
 }
 
 static inline vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
 	return vader_string_as_string((vader_array_t*) a0);
-}
-
-static inline uint64_t vader_host_std_core$Intrinsic$string_hash(vader_string_t a0) {
-	return vader_string_hash(a0);
 }
 
 static inline void* vader_host_std_core$Intrinsic$deep_copy__std_collections_Map_string__string_(void* a0) {
@@ -174,7 +154,7 @@ static inline vader_box_t vader_host_system_posix$sys_opendir(vader_string_t a0)
 	void* r = opendir(c0);
 	VADER_FOREIGN_LEAVE();
 	vader_cstr_free_for(a0, c0);
-	return r == NULL ? vader_box_null() : vader_box_i64(632u, (int64_t) (intptr_t) r);
+	return r == NULL ? vader_box_null() : vader_box_i64(638u, (int64_t) (intptr_t) r);
 }
 
 static inline int32_t vader_host_system_posix$sys_closedir(void* a0) {
@@ -221,7 +201,7 @@ static inline vader_box_t vader_host_system_posix$sys_readdir(void* a0) {
 	VADER_FOREIGN_ENTER("readdir");
 	void* r = readdir(a0);
 	VADER_FOREIGN_LEAVE();
-	return r == NULL ? vader_box_null() : vader_box_i64(632u, (int64_t) (intptr_t) r);
+	return r == NULL ? vader_box_null() : vader_box_i64(638u, (int64_t) (intptr_t) r);
 }
 
 static inline vader_string_t vader_host_system_posix$dirent_name(void* a0) {
@@ -276,7 +256,7 @@ static inline vader_box_t vader_host_system_posix$sys_getcwd(void* a0, int64_t a
 	VADER_FOREIGN_ENTER("getcwd");
 	void* r = getcwd((void*) s0.ptr, a1);
 	VADER_FOREIGN_LEAVE();
-	return r == NULL ? vader_box_null() : vader_box_i64(632u, (int64_t) (intptr_t) r);
+	return r == NULL ? vader_box_null() : vader_box_i64(638u, (int64_t) (intptr_t) r);
 }
 
 static inline int32_t vader_host_system_posix$sys_chdir(vader_string_t a0) {
@@ -341,7 +321,7 @@ static inline vader_box_t vader_host_system_libc$sys_getenv(vader_string_t a0) {
 	VADER_FOREIGN_ENTER("getenv");
 	const char* r = getenv(c0);
 	VADER_FOREIGN_LEAVE();
-	vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(630u, (int64_t) vader_atom_intern(r, strlen(r)));
+	vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(636u, (int64_t) vader_atom_intern(r, strlen(r)));
 	vader_cstr_free_for(a0, c0);
 	return out;
 }
