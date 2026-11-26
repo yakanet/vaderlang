@@ -486,9 +486,9 @@ write_return_text :: fn(out: CPrinter, node: CReturn) -> void {
         write_expression(out, value)
         out.append("; ")
     }
+    // Written out rather than through `FRAME_RESTORE`, whose every read is a copy.
     if node.pops_frame {
-        write_assign(out, FRAME_RESTORE)
-        out.append(" ")
+        out.append("${FRAME_TOP} = ${CALLER_FRAME}; ")
     }
     if value == null {
         out.append("return;")

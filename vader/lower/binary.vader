@@ -475,9 +475,14 @@ runs_array_repeat :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> bool {
 }
 
 try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr | null {
+    left_ty :: ctx.types.expr_type(binary.left)
+    // The built-in op of a primitive, which only a `string` leaves to its impls
+    // (`operator_target`): no need for the operator's trait.
+    if left_ty is PrimitiveType | RangeType && !is_string_type(left_ty) {
+        return null
+    }
     info :: op_trait_method(binary.op) else return null
     if info is OpTraitInfo {
-        left_ty :: ctx.types.expr_type(binary.left)
         target :: operator_target(ctx, binary, info, left_ty)
         // TypeParam-bound and erased Any receivers, a value of the operator's
         // trait and a union of its implementors route through virtual

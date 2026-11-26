@@ -453,10 +453,15 @@ export returning :: fn(callee: string, arguments: CExpression[]) -> CStatement =
     .value = call(callee, arguments),
 }
 
+/// The top of the GC frame stack, which a function's frame is pushed onto.
+export FRAME_TOP :: "vader_gc_top"
+/// The caller's GC frame, which `FRAME_TOP` gets back when a function leaves.
+export CALLER_FRAME :: "gc_frame.prev"
+
 /// The statement that restores the caller's GC frame.
 export FRAME_RESTORE :: CAssign {
-    .target = CVerbatim { .text = "vader_gc_top" },
-    .value = CVerbatim { .text = "gc_frame.prev" },
+    .target = CVerbatim { .text = FRAME_TOP },
+    .value = CVerbatim { .text = CALLER_FRAME },
 }
 
 /// `callee(arguments...)`.
