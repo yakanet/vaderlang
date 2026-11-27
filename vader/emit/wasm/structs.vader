@@ -29,6 +29,9 @@ export GcTypes :: struct {
     of_layout: Map<i32, i32> = Map<i32, i32> {}
     /// The box of each scalar class.
     of_box: Map<Bc.ValType, i32> = Map<Bc.ValType, i32> {}
+    /// The box of each enum, by the index of its `BcNominal` row: a subtype of the
+    /// box of the class it rides, so what tests or opens that box takes it too.
+    of_nominal: Map<i32, i32> = Map<i32, i32> {}
     /// The box of `void`, which holds nothing.
     void_box: i32 = -1
     /// The array type of each way of storing elements (`arrays.vader`).
@@ -102,8 +105,21 @@ export gc_types_of :: fn(m: Bc.BytecodeModule) -> GcTypes {
             )
         }
     }
+    ridden :: m.types.filter_is<Bc.BcNominal>().map((t) -> t.val).collect()
     for class in BOXED_CLASSES {
-        out.of_box[class] = out.add([WasmField { .type = scalar_field_type(class) }])
+        out.of_box[class] = out.add_type(WasmStructType {
+            .fields = [WasmField { .type = scalar_field_type(class) }],
+            .open = class in ridden,
+        })
+    }
+    for i in 0..<m.types.len() {
+        t :: m.types[i]
+        if t is Bc.BcNominal {
+            out.of_nominal[i32(i)] = out.add_type(WasmStructType {
+                .fields = [WasmField { .type = scalar_field_type(t.val) }],
+                .supertype = out.of_box[t.val],
+            })
+        }
     }
     out.void_box = out.add([])
     out.add_array_types(m)
@@ -194,7 +210,8 @@ scalar_field_type :: fn(v: Bc.ValType) -> WasmValType = match v {
 // The box a value of `t` is held in where any type may be, null for a type held
 // as a reference, or a foreign pointer.
 box_of :: fn(gc: GcTypes, t: Bc.BcType) -> i32 | null {
-    // An enum's own tag is held in the box of its representation.
+    // A test of an enum's row answers as its representation: the box of its
+    // class, which its own box subtypes (`of_nominal`).
     if t is Bc.BcNominal {
         return gc.of_box[t.val]
     }
@@ -443,16 +460,25 @@ push_pin :: fn(
     return unsupported_op(op, function)
 }
 
-// `retag`: a scalar stored where any type may be, boxed in its class's box. The
-// bytecode retags a scalar only, of the type `op` names.
+// `retag`: a scalar stored where any type may be, boxed in its class's box, or an
+// enum in its own. The bytecode retags a scalar only, of the type `op` names.
 push_retag :: fn(
     ctx: ModuleCtx,
     out: WasmInstr[],
     op: Bc.Retag,
     function: string,
 ) -> void | WasmUnsupported {
-    box :: box_of(ctx.gc, ctx.module.types[op.type_id]) else return unsupported_op(op, function)
+    box :: retag_box(ctx.gc, ctx.module.types, op.type_id) else return unsupported_op(op, function)
     out.push(StructNew { .type_index = box })
+}
+
+// The box a `retag` to `types[index]` makes.
+retag_box :: fn(gc: GcTypes, types: Bc.BcType[], index: i32) -> i32 | null {
+    nominal :: gc.of_nominal[index]
+    if nominal != null {
+        return nominal
+    }
+    return box_of(gc, types[index])
 }
 
 // `type_check`, and every test of a type: whether `value` is of `type_id`.

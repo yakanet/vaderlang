@@ -117,6 +117,7 @@ export describe_value_tag :: fn(v: Value) -> string = match v {
     is CharVal    -> "char"
     is TypeVal    -> "type"
     is ObjVal     -> "object"
+    is NominalVal -> describe_value_tag(v.inner)
 }
 
 /// Unwrap an `F64Val` from a `Value`. Integer values are NOT auto-
@@ -299,7 +300,10 @@ export read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Tra
 /// `===` asks. A baked const is one shared object on both backends. A type
 /// compares its index in the type table, which the native payload holds in
 /// place of a pointer: each `type.const` boxes a new `TypeVal`.
-export value_ref_eq :: fn(a: Value, b: Value) -> bool = match a {
+export value_ref_eq :: fn(a: Value, b: Value) -> bool =
+    same_value(representation_of(a), representation_of(b))
+
+same_value :: fn(a: Value, b: Value) -> bool = match a {
     is NullVal   -> b is NullVal
     is VoidVal   -> b is VoidVal
     is I32Val    -> b is I32Val && a == b
@@ -311,6 +315,8 @@ export value_ref_eq :: fn(a: Value, b: Value) -> bool = match a {
     is F64Val    -> b is F64Val && f64(a).to_bits() == f64(b).to_bits()
     is HeapVal   -> b is HeapVal && a === b
     is TypeVal   -> b is TypeVal && a.type_id == b.type_id
+    // Only for exhaustiveness: `value_ref_eq` hands over representations.
+    is NominalVal -> same_value(a.inner, b)
 }
 
 // The values the VM allocates, each an object with an identity.
@@ -322,9 +328,9 @@ export type_matches :: fn(state: VmState, v: Value, type_id: i32) -> bool {
     if type_id < 0 || i64(type_id) >= state.bc.types.len() { return false }
     type_decl :: state.bc.types[type_id]
     return match type_decl {
-        // The VM holds an enum as the integer it rides, so its nominal tag is
-        // told by that representation.
-        is bc.BcScalar | bc.BcNominal -> class_matches(v, type_decl.val)
+        // An enum's tag answers as its representation, and so does a
+        // `NominalVal`.
+        is bc.BcScalar | bc.BcNominal -> class_matches(representation_of(v), type_decl.val)
         // @partial: only StructVal carries a matchable tag; every other Value -> false.
         is bc.BcStruct        -> @partial match v {
             is StructVal -> v.type_id == type_id
@@ -529,6 +535,7 @@ export Value :: I32Val
        | CharVal
        | TypeVal
        | ObjVal
+       | NominalVal
 
 /// Heap-allocated struct payload. `type_id` indexes into `Module.types`
 /// (used for diagnostics + the `type_check` op) ; `fields[i]` carries
@@ -627,6 +634,18 @@ export VoidVal :: struct {}
 /// Runtime reification of a `type` value: pushed by `type.const N`,
 /// `type_id` keys `Module.types`.
 export TypeVal :: struct { type_id: i32 }
+
+/// An enum value in a box (a union, a trait value, an erased slot): the integer it
+/// rides and the `BcNominal` row of its type, set by `retag`. Unwrapped when a cast
+/// narrows it back to its representation. Every test, comparison and dispatch
+/// reads it as that integer (`representation_of`).
+export NominalVal :: struct {
+    type_id: i32
+    inner:   Value
+}
+
+/// `v` itself, or the integer a `NominalVal` rides.
+export representation_of :: fn(v: Value) -> Value = if v is NominalVal { v.inner } else { v }
 
 /// Heap object payload for the Target ABI memory opcodes (the VM backs a
 /// REAL byte-addressed heap). Splits the two disjoint regions an
@@ -748,6 +767,7 @@ export display_value :: fn(v: Value) -> string = match v {
     is CharVal -> v.to_string()
     is TypeVal -> v.to_string()
     is ObjVal -> v.to_string()
+    is NominalVal -> display_value(v.inner)
 }
 
 // ---- tests ----------------------------------------------------------------

@@ -14,6 +14,7 @@ module "vader/vm"
 
 import "std/abort"
 import "std/collections"
+import "std/iter"
 bc :: import "vader/core/bytecode"
 
 // Where a pending stack value is.
@@ -44,6 +45,8 @@ Translation :: struct {
     source_pc: i32[]
     /// Where each scalar constant sits in `code.consts`.
     constants: Map<Scalar, i64>
+    /// The tags of the integers the enums of the module ride (`nominal_tags`).
+    nominal_tags: u8
 }
 
 /// Translate every function of `module`.
@@ -60,8 +63,9 @@ translate_module :: fn(
     module: bc.BytecodeModule, facts: FunctionTags[], debug: bool,
 ) -> RegModule | VerifyError {
     functions: RegFunction[]: [] * module.functions.len()
+    ridden :: nominal_tags(module.types)
     for i in 0..<module.functions.len() {
-        code :: translate_function(module, i32(i), facts[i], debug)
+        code :: translate_function(module, i32(i), facts[i], debug, ridden)
             else is VerifyError {
                 return code
             }
@@ -76,6 +80,7 @@ translate_function :: fn(
     index: i32,
     ft: FunctionTags,
     debug: bool,
+    ridden: u8,
 ) -> RegFunction | VerifyError {
     f :: module.functions[index]
     n :: f.body.len()
@@ -105,6 +110,7 @@ translate_function :: fn(
             .registers = stack_base + ft.deepest + 1,
             .params    = f.signature.params.len(),
             .slots     = slots,
+            .unwraps   = ridden != 0 && f.signature.params.any_match(is_scalar_parameter),
         },
         .operands = [],
         .stack    = [],
@@ -113,6 +119,7 @@ translate_function :: fn(
         .source_pc = f.source_pc,
         .jumps    = [],
         .constants = constants,
+        .nominal_tags = ridden,
     }
     leader :: bc.mark_jump_targets(f.jump_table, n)
     start: i64[]: [0] * (n + 1)
@@ -206,7 +213,18 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
         is bc.StringByteSlice -> { string_byte_slice(t, pc) }
         // Emit nothing, so the op before them stays retargetable: a VM value
         // already carries its class, the casts only inform the C backend.
-        is bc.Block | bc.Loop | bc.End | bc.RefCast | bc.Retag -> { t.retarget = previous }
+        is bc.Block | bc.Loop | bc.End -> { t.retarget = previous }
+        is bc.RefCast | bc.Retag -> {
+            if runs_nominal_cast(module, ft, t, pc, op) {
+                src :: operand(t, 1)
+                dst :: pop_to(t, 1)
+                emit(t, pc, if op is bc.Retag { .Wrap } else { .Unwrap }, dst, src, op.type_id)
+                push_register(t, dst)
+                t.retarget = t.code.ops.len() - 1
+            } else {
+                t.retarget = previous
+            }
+        }
         is bc.Else | bc.Branch -> {
             // After an `if` with an empty then-arm, the `if` already jumped past.
             if !(op is bc.Else && skips_else(f, pc - 1)) {
@@ -445,6 +463,37 @@ void_constant :: fn(t: Translation, pc: i64) -> void {
     t.code.values.push(VoidVal {})
     emit(t, pc, .ConstRef, dst, i32(t.code.values.len() - 1), 0)
     push_register(t, dst)
+}
+
+// The tags of the integers the `BcNominal` rows of `types` ride.
+nominal_tags :: fn(types: bc.BcType[]) -> u8 {
+    out: u8 = 0
+    for t in types.filter_is<bc.BcNominal>() {
+        out = out | tags_of_val(t.val)
+    }
+    return out
+}
+
+// Whether a parameter of class `v` takes a scalar bare (`unwrap_arguments`).
+is_scalar_parameter :: fn(v: bc.ValType) -> bool = v != .Any && v != .Ref
+
+// Whether the cast at `pc` moves a value: a `retag` to an enum's row wraps it in
+// a `NominalVal`, and a `ref.cast` to a scalar of the tags an enum rides unwraps
+// one, when the cell may hold it: the VM holds every narrow integer alike, so a
+// `u8` enum also passes a test of `i32`. Any other cast only informs the C
+// backend.
+runs_nominal_cast :: fn(
+    module: bc.BytecodeModule,
+    ft: FunctionTags,
+    t: Translation,
+    pc: i64,
+    op: bc.RefCast | bc.Retag,
+) -> bool {
+    if op is bc.Retag {
+        return module.types[op.type_id] is bc.BcNominal
+    }
+    target :: scalar_row(module.types, op.type_id) else return false
+    return t.nominal_tags & tags_of_val(target.val) != 0 && stack_tags(ft, pc, 1) & TAGS_REF != 0
 }
 
 // The ops `apply_boxed` runs.

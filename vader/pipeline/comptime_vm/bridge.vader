@@ -64,6 +64,8 @@ value_to_comptime :: fn(
     is Vm.TypeVal   -> unsupported(span, "a type value")
     is Vm.VoidVal   -> unsupported(span, "the `void` value")
     is Vm.ObjVal    -> unsupported(span, "a heap object (set / map)")
+    // An enum in a box: the integer it rides, typed by `ty` as above.
+    is Vm.NominalVal -> value_to_comptime(ctx, value.inner, ty, span)
 }
 
 // Build an `IntValue` of the integer type `type_name`, wrapped to its width : the

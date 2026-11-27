@@ -603,6 +603,21 @@ reg_call :: fn(
                 matched :: held != null && held.type_id == operand_c(w)
                 set_bool(bits, tags, base, operand_a(w), matched)
             }
+            .Wrap -> {
+                held :: representation_of(register_value(m, base + i64(operand_b(w))))
+                wrapped :: NominalVal { .type_id = operand_c(w), .inner = held }
+                set_register(m, base + i64(operand_a(w)), wrapped)
+            }
+            .Unwrap -> {
+                at :: base + i64(operand_b(w))
+                to :: base + i64(operand_a(w))
+                held :: refs[at]
+                if tags[at] == .Ref && held is NominalVal {
+                    set_register(m, to, held.inner)
+                } else {
+                    move_register(m, to, at)
+                }
+            }
             .GetElement | .LoadSlot -> {
                 if !try_get_element(m, base, operand_a(w), operand_b(w), operand_c(w)) {
                     return element_trap(m, base, operand_b(w), operand_c(w), f, pc, op)
@@ -660,6 +675,7 @@ reg_call :: fn(
                                 }
                                 set_register(m, at, env)
                             }
+                            unwrap_arguments(state, code, m, at, target)
                             index = target
                         } else {
                             return indirect_call_trap(code, m, at, arity, f.origin[pc])
@@ -703,9 +719,10 @@ reg_call :: fn(
                             refs[at] = receiver
                             tags[at] = .Ref
                         }
+                        unwrap_arguments(state, code, m, at, target)
                         index = target
                     } else {
-                        resolved :: resolve_virtual(state, m, f, pc, at) else return resolved
+                        resolved :: resolve_virtual(state, code, m, f, pc, at) else return resolved
                         index = resolved
                     }
                 }
@@ -948,6 +965,7 @@ indirect_call_trap :: fn(code: RegModule, m: RegMachine, at: i64, arity: i64, or
 // arguments, moved to `at` ahead of them.
 resolve_virtual :: fn(
     state: VmState,
+    code: RegModule,
     m: RegMachine,
     f: RegFunction,
     pc: i64,
@@ -982,9 +1000,35 @@ resolve_virtual :: fn(
             declared :: callee.signature.params.len()
             return Trap { .message = "virtual.call '${call.vtable_key}' : impl '${callee.name}' expects ${declared} param(s) but call site supplied ${count} at pc=${origin}" }
         }
+        unwrap_arguments(state, code, m, at, target)
         return target
     }
     return Trap { .message = "virtual.call '${call.vtable_key}' : no impl for type ${type_id} at pc=${origin}" }
+}
+
+// A function takes its scalar parameters bare: an enum boxed by a virtual call
+// (its receiver, an argument of type `Self`) or by the erased signature of a fn
+// value reaches it as the integer it rides.
+unwrap_arguments :: fn(
+    state: VmState,
+    code: RegModule,
+    m: RegMachine,
+    at: i64,
+    target: i32,
+) -> void {
+    if !code.functions[target].unwraps {
+        return
+    }
+    params :: state.bc.functions[target].signature.params
+    for k in 0..<params.len() {
+        if !is_scalar_parameter(params[k]) || m.tags[at + k] != .Ref {
+            continue
+        }
+        held :: m.refs[at + k]
+        if held is NominalVal {
+            set_register(m, at + k, held.inner)
+        }
+    }
 }
 
 // A frame with room for the operands and results of any boxed op.

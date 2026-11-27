@@ -161,6 +161,11 @@ RegOp :: enum(i32) {
     // r[a] <- whether r[b] holds a struct of type `c`: `type_check` on a struct
     // type.
     IsStruct
+    // r[a] <- the enum in r[b] in a `NominalVal` of type `c`: a `retag` to its row ;
+    // r[a] <- the integer of the `NominalVal` in r[b], else r[b]: a `ref.cast` to
+    // the scalar it rides.
+    Wrap
+    Unwrap
     // r[a] <- element r[c] of the array in r[b] ; element r[b] of the array in r[a]
     // <- r[c] ; r[a] <- the length of the array in r[b] ; append r[b] to the array
     // in r[a].
@@ -231,6 +236,10 @@ RegFunction :: struct {
     params:    i64
     /// Parameters plus locals: the registers a call resets.
     slots:     i64
+    /// Whether a call through a fn value may hand it an enum in a box where it
+    /// takes a scalar: a parameter of a scalar class, in a module with enums
+    /// (`unwrap_arguments`).
+    unwraps:   bool = false
 }
 
 // The translated module, index-aligned with `BytecodeModule.functions`.

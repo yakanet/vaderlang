@@ -115,7 +115,9 @@ type_tags :: fn(types: bc.BcType[], index: i32, nesting: i32) -> u8 {
     }
     t :: types[index]
     return match t {
-        is bc.BcScalar | bc.BcNominal -> tags_of_val(t.val)
+        is bc.BcScalar -> tags_of_val(t.val)
+        // A `NominalVal`, or the bare integer where no `retag` wrapped it.
+        is bc.BcNominal -> tags_of_val(t.val) | TAGS_REF
         is bc.BcStruct | bc.BcArray | bc.BcFn -> TAGS_REF
         is bc.BcRef -> TAGS_ANY
         is bc.BcUnion -> {
@@ -126,6 +128,31 @@ type_tags :: fn(types: bc.BcType[], index: i32, nesting: i32) -> u8 {
             out
         }
     }
+}
+
+is_nominal_row :: fn(ctx: TagContext, index: i32) =
+    in_range(index, ctx.module.types.len()) && ctx.module.types[index] is bc.BcNominal
+
+// What a `ref.cast` to `types[index]` leaves of the tags `top`.
+cast_tags :: fn(ctx: TagContext, top: u8, index: i32) -> u8 {
+    tags :: tags_of_type(ctx, index)
+    if top & TAGS_REF != 0 && scalar_row(ctx.module.types, index) != null {
+        return tags
+    }
+    return top & tags
+}
+
+// The scalar row `types[index]`, null for another row or an index out of range.
+// A `ref.cast` to it unwraps a `NominalVal` (`runs_nominal_cast`).
+scalar_row :: fn(types: bc.BcType[], index: i32) -> bc.BcScalar | null {
+    if !in_range(index, types.len()) {
+        return null
+    }
+    row :: types[index]
+    if row is bc.BcScalar {
+        return row
+    }
+    return null
 }
 
 tags_of_type :: fn(ctx: TagContext, index: i32) -> u8 =
@@ -396,10 +423,12 @@ pushed_tags :: fn(ctx: TagContext, op: bc.Op, state: u8[], top: u8) -> u8 = matc
      | bc.MakeClosure | bc.StructNew | bc.ArrayNew | bc.ArrayReserve | bc.ArrayRepeat | bc.ArraySlice
      | bc.BufferNew | bc.BufferToString -> TAGS_REF
     is bc.LocalGet -> state[op.slot]
-    is bc.LocalTee | bc.Retag -> top
+    is bc.LocalTee -> top
+    is bc.Retag -> if is_nominal_row(ctx, op.type_id) { TAGS_REF } else { top }
     // No run-time check: a target that no incoming tag reaches marks a dead path,
-    // so the cast pushes the empty set, which no arm refuses.
-    is bc.RefCast -> top & tags_of_type(ctx, op.type_id)
+    // so the cast pushes the empty set, which no arm refuses. A cell that may hold
+    // a `NominalVal` cast to a scalar gets its integer (`runs_nominal_cast`).
+    is bc.RefCast -> cast_tags(ctx, top, op.type_id)
     is bc.Convert -> match op.target {
         .I32  -> TAGS_I32
         .I64  -> TAGS_I64

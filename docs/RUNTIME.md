@@ -29,7 +29,7 @@ The C layouts below are excerpts of `runtime/c/vader.h`, the authority.
 | `f32`, `f64` | `float`, `double` | `F64Val` |
 | `bool` | `bool` | `BoolVal` |
 | `char` | `uint32_t`, the codepoint | `CharVal` |
-| enum | the narrowest integer its values fit in, or the width it declares (SPEC §4) | that integer |
+| enum | the narrowest integer its values fit in, or the width it declares (SPEC §4) | that integer, in a `NominalVal` once boxed |
 | integer range type (`0..=9`) | the narrowest integer that holds its bounds | that integer |
 | distinct type | its base type, down to the C struct of a distinct struct | its base type |
 | `string` | `vader_string_t`, a 32-bit atom id | `StringVal`, a string of the host |
@@ -93,20 +93,24 @@ every instance of a declaration with an impl of the trait, whatever its type
 arguments, without checking the impl's bounds. And `is f32` and `is f64`
 both accept either tag. `TODO.md` lists both as bugs.
 
-An enum, an integer range type and a distinct type have no index of their own: a
-box holds an enum or a range under its integer's index, a distinct under its
-backing's (over a struct, an array, a tuple or a function, a distinct is the
-backing's object, header included). So `is` could not tell
-`Color` from `u8` in a `Color | u8`, a union SPEC §4 *Unions* rejects, and a trait
-call on such a box reaches the representation's impl, the type's own impl only
-when the representation has none.
+A box holds an enum under an index of its own, which every test and every trait
+call still reads as its integer's index. An integer range type and a distinct type
+have no index of their own: a box holds a range under its integer's index, a
+distinct under its backing's (over a struct, an array, a tuple or a function, a
+distinct is the backing's object, header included). So `is` cannot tell `Color`
+from `u8` in a `Color | u8`, a union SPEC §4 *Unions* rejects, and a trait call on
+such a box reaches the representation's impl, the type's own impl only when the
+representation has none.
 
 On the VM, a union slot holds the member's own `Value`, whose variant is the tag;
 the native build of the VM stores a scalar `Value` without allocating
 ([ADR 0025](adr/0025-a-vm-scalar-rides-in-its-box.md)). That tag is coarser than the
-native one (one `I32Val` for any integer up to 32 bits, `retag` ignored), so a test
-on a union of integer widths can answer differently (`TODO.md`). A
-struct or an array is tested by the index it carries.
+native one (one `I32Val` for any integer up to 32 bits), so a test on a union of
+integer widths can answer differently (`TODO.md`). An enum is the exception: the
+`retag` that boxes it wraps its integer in a `NominalVal` naming its index, and the
+cast back to the integer unwraps it, as does a call to a function that takes it
+bare through a fn value or a trait. A struct or an array is tested by the index it
+carries.
 
 ## Strings
 
