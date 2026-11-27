@@ -11,6 +11,7 @@
 # Baked
 VADER_OS = .Linux
 VADER_ARCH = .X86_64
+VADER_BUILD = .Debug
 
 # Selected body
 main$leaky <- main.vader:16

@@ -15,6 +15,7 @@ module "vader/pipeline"
 import "std/console"
 import "std/iter"
 import "std/path"
+import "std/target"
 import "toolchain/diagnostics"
 import "vader/core/mangle"
 import "vader/core/symbol"
@@ -223,13 +224,16 @@ export lower_to_entry :: fn(
 ///                            module is loaded without its own.
 /// @param keep_frames         a call to a function that only forwards to a
 ///                            primitive operation stays a call (`begin_lowering`).
+/// @param build               how the build is made, which `VADER_BUILD` holds.
 export lower_to_entry_with :: fn(
     file: Path, include_path_flags: string[], project_root: string | null,
     target: Target | null = null, verify: bool = false, under_test: bool = false,
-    keep_frames: bool = false,
+    keep_frames: bool = false, build: Build = .Debug,
 ) -> LoweredEntry =
     lower_to_entry_from(
-        prepare_evaluated_project_with(file, include_path_flags, project_root, target, under_test),
+        prepare_evaluated_project_with(
+            file, include_path_flags, project_root, target, under_test, build = build,
+        ),
         verify,
         keep_frames,
     )
@@ -342,13 +346,14 @@ export CfgBytecode :: struct {
 ///                            bounds.
 /// @param verify_bounds       keep the check of each access `prove_bounds`
 ///                            marks (`CfgBytecode.verify_bounds`).
+/// @param build               how the build is made, which `VADER_BUILD` holds.
 export prepare_cfg_bytecode_with :: fn(
     file: Path, want_debug: bool, include_path_flags: string[], project_root: string | null,
     target: Target | null = null, verify: bool = false, prove_bounds: bool = false,
-    verify_bounds: bool = false,
+    verify_bounds: bool = false, build: Build = .Debug,
 ) -> CfgBytecode =
     prepare_cfg_bytecode_from(
-        lower_to_entry_with(file, include_path_flags, project_root, target, verify),
+        lower_to_entry_with(file, include_path_flags, project_root, target, verify, build = build),
         file,
         want_debug,
         verify,

@@ -11,6 +11,7 @@
 # Baked
 VADER_OS = .Darwin
 VADER_ARCH = .Arm64
+VADER_BUILD = .Debug
 
 # Selected body
 main$leaky <- main.vader:16

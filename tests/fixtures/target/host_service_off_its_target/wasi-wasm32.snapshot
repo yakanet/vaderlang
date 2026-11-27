@@ -5,6 +5,7 @@
 # Baked
 VADER_OS = .Wasi
 VADER_ARCH = .Wasm32
+VADER_BUILD = .Debug
 
 # Selected body
 std_runtime_ffi$ffi_call <- (no body)

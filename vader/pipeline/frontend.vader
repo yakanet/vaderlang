@@ -13,6 +13,7 @@ module "vader/pipeline"
 
 import "std/collections"
 import "std/path"
+import "std/target"
 import "toolchain/diagnostics"
 import "vader/front/resolver"
 import "vader/support/target"
@@ -40,6 +41,7 @@ export EvaluatedPipeline :: struct {
     file:               Path
     include_path_flags: string[]
     view:               Selection | null
+    build:              Build = .Debug
 }
 
 // Load, typecheck and evaluate `file`. The `--include-paths` search roots are
@@ -50,10 +52,15 @@ export EvaluatedPipeline :: struct {
 // dependency what the program reaches (`load_project`): a caller that lists
 // what the modules it loads declare turns it off. `keep_docs` keeps the
 // vaderdoc of every declaration, which a driven build answers questions with.
+// `build` is how the build is made, which `VADER_BUILD` holds.
 export prepare_evaluated_project_with :: fn(
-    file: Path, include_path_flags: string[], project_root: string | null,
-    view: Selection | null = null, under_test: bool = false, only_reached: bool = true,
+    file: Path, include_path_flags: string[],
+    project_root: string | null,
+    view: Selection | null = null,
+    under_test: bool = false,
+    only_reached: bool = true,
     keep_docs: bool = false,
+    build: Build = .Debug,
 ) -> EvaluatedPipeline {
     // Per-pass profiling brackets (here + in lower_to_entry_with /
     // prepare_cfg_bytecode_with / the C emit of `output.vader`). `prof_begin` / `prof_end` are
@@ -65,8 +72,14 @@ export prepare_evaluated_project_with :: fn(
     // vader/support/profile.
     Prof.prof_begin(.Load)
     loaded :: load_project(
-        file.as_string(), include_path_flags, project_root, view, under_test, only_reached,
+        file.as_string(),
+        include_path_flags,
+        project_root,
+        view,
+        under_test,
+        only_reached,
         keep_docs = keep_docs,
+        build = build,
     )
     Prof.prof_end(.Load)
     typecheck_diags: Diagnostic[]: []
@@ -102,7 +115,9 @@ export prepare_evaluated_project_with :: fn(
         && !any_error_diag(resolver_diags)
         && !any_error_diag(typecheck_diags)
     if front_end_ok && !any_error_diag(comptime_diags) && project_defers_a_value(loaded, evaluated) {
-        bake_deferred_values(file, include_path_flags, view, loaded, evaluated, null, comptime_diags)
+        bake_deferred_values(
+            file, include_path_flags, view, build, loaded, evaluated, null, comptime_diags,
+        )
     }
     return EvaluatedPipeline {
         .loaded             = loaded,
@@ -114,6 +129,7 @@ export prepare_evaluated_project_with :: fn(
         .file               = file,
         .include_path_flags = include_path_flags,
         .view               = view,
+        .build              = build,
     }
 }
 
@@ -145,6 +161,7 @@ export bake_awaited_values :: fn(pipeline: EvaluatedPipeline, owners: string[]) 
         pipeline.file,
         pipeline.include_path_flags,
         pipeline.view,
+        pipeline.build,
         pipeline.loaded,
         pipeline.evaluated,
         owners,
@@ -161,17 +178,22 @@ export bake_awaited_values :: fn(pipeline: EvaluatedPipeline, owners: string[]) 
 // `owners` are the modules whose values are baked, every module when null. A
 // declared decorator that waits for one of them is evaluated after.
 bake_deferred_values :: fn(
-    file: Path, include_path_flags: string[], view: Selection | null,
+    file: Path, include_path_flags: string[], view: Selection | null, build: Build,
     loaded: LoadedProject, evaluated: EvaluatedProject, owners: string[] | null,
     diags: Diagnostic[],
 ) -> void {
-    bake_on_the_vm(file, include_path_flags, view, loaded, evaluated, owners, diags)
+    bake_on_the_vm(file, include_path_flags, view, build, loaded, evaluated, owners, diags)
     evaluate_awaiting_decorator_uses(evaluated, owners, diags)
 }
 
 bake_on_the_vm :: fn(
-    file: Path, include_path_flags: string[], view: Selection | null,
-    loaded: LoadedProject, evaluated: EvaluatedProject, owners: string[] | null,
+    file: Path,
+    include_path_flags: string[],
+    view: Selection | null,
+    build: Build,
+    loaded: LoadedProject,
+    evaluated: EvaluatedProject,
+    owners: string[] | null,
     diags: Diagnostic[],
 ) -> void {
     if evaluated.vm_required.len() == 0 || view !is Target || view.os == host_target().os {
@@ -179,7 +201,11 @@ bake_on_the_vm :: fn(
         return
     }
     host :: prepare_evaluated_project_with(
-        file, include_path_flags, loaded.project_root, HostBodies { .target = view },
+        file,
+        include_path_flags,
+        loaded.project_root,
+        HostBodies { .target = view },
+        build = build,
     )
     // The host's bodies are another platform's code to this build, and `@target`
     // keeps their errors out of it. When they do not compile, the values are

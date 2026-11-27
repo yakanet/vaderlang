@@ -1,0 +1,52 @@
+// A test of a constant that holds `null` is settled at compile time, whatever its
+// form: `!=`, a guard on `==`, `is`, a `match` and an `else` keep only the branch
+// they take, and the branch that reads the constant as a `Site` is neither lowered
+// nor emitted. A test of `VADER_BUILD` is settled the same way.
+
+module "snippet"
+
+import "std/console"
+
+Site :: struct {
+    function: string
+    line: i32
+}
+
+NOWHERE: Site | null: null
+
+// Called only from branches that the constants rule out.
+never_called :: fn(what: string) -> void {
+    println("unreachable: ${what}")
+}
+
+guarded :: fn() -> i32 {
+    if NOWHERE == null {
+        return 0
+    }
+    never_called("guard ${NOWHERE.function}")
+    return NOWHERE.line
+}
+
+bound :: fn() -> i32 {
+    site :: NOWHERE else return 0
+    never_called("else ${site.function}")
+    return site.line
+}
+
+main :: fn() -> i32 {
+    if NOWHERE != null {
+        never_called("not null ${NOWHERE.function}")
+    }
+    if NOWHERE is Site {
+        never_called("is ${NOWHERE.function}")
+    }
+    match NOWHERE {
+        is null -> println("nowhere")
+        is Site -> never_called("match ${NOWHERE.function}")
+    }
+    if VADER_BUILD == .Release {
+        never_called("release")
+    }
+    println("${guarded()} ${bound()}")
+    return 0
+}

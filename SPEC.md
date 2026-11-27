@@ -4685,6 +4685,22 @@ test_separator_matches_the_platform :: fn() -> void {
 }
 ```
 
+### Debug and release builds: `VADER_BUILD`
+
+`VADER_BUILD` is a prelude constant, known at compile time, holding how the program is built: `.Debug` or `.Release`, of type `Build` (`std/target`). `vader build --release` makes a release build; `vader build`, `vader run` and `vader test` make a debug one. A `@comptime` value sees the build it is computed for.
+
+A release binary is kept small, and a debug build keeps what a diagnostic needs. Code meant for debugging only tests the constant:
+
+```vader
+if VADER_BUILD == .Debug {
+    println("cache: ${hits} hits, ${misses} misses")
+}
+```
+
+A test whose answer is known at compile time is settled there: the branch the build does not take is not in its binary, its strings included, though it is checked as any other code is. This holds for a test of `VADER_BUILD`, `VADER_OS` or `VADER_ARCH` (`&&` and `||` included), and for a test of a constant that holds `null` (`==`, `!=`, `is`, `match`, `else`).
+
+The branch is for diagnostics, not for what the program does: code whose effects the rest of the program depends on behaves differently in the two builds.
+
 ### Native (Linux, macOS, Windows)
 
 A native build writes portable C, compiles it with the system C compiler (`docs/TOOLING.md` *`vader build`*) and links the Vader C runtime, which provides the garbage collector (§8). Direct assembly backends, one per target, may come later.

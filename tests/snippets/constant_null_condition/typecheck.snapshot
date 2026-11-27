@@ -1,0 +1,73 @@
+# Typecheck
+
+## tests/snippets/constant_null_condition
+  FnDecl         bound                :: fn() -> i32
+  FnDecl         guarded              :: fn() -> i32
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         never_called         :: fn(string) -> void
+  ConstDecl      NOWHERE              :: null | Site
+  StructDecl     Site                 :: Site
+  expr 19:13    StringLitExpr  :: string
+  expr 19:29    IdentExpr      :: string
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void
+  expr 23:5     IfExpr         :: void
+  expr 23:8     BinaryExpr     :: bool
+  expr 23:8     IdentExpr      :: null | Site
+  expr 26:18    StringLitExpr  :: string
+  expr 26:27    FieldExpr      :: string
+  expr 26:27    IdentExpr      :: Site
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(string) -> void
+  expr 27:12    FieldExpr      :: i32
+  expr 27:12    IdentExpr      :: Site
+  expr 31:13    FallbackExpr   :: Site
+  expr 31:13    IdentExpr      :: null | Site
+  expr 32:18    StringLitExpr  :: string
+  expr 32:26    FieldExpr      :: string
+  expr 32:26    IdentExpr      :: Site
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(string) -> void
+  expr 33:12    FieldExpr      :: i32
+  expr 33:12    IdentExpr      :: Site
+  expr 37:5     IfExpr         :: void
+  expr 37:8     BinaryExpr     :: bool
+  expr 37:8     IdentExpr      :: null | Site
+  expr 38:22    StringLitExpr  :: string
+  expr 38:34    FieldExpr      :: string
+  expr 38:34    IdentExpr      :: Site
+  expr 38:9     CallExpr       :: void
+  expr 38:9     IdentExpr      :: fn(string) -> void
+  expr 40:19    IdentExpr      :: Site
+  expr 40:5     IfExpr         :: void
+  expr 40:8     BinaryExpr     :: bool
+  expr 40:8     IdentExpr      :: null | Site
+  expr 41:22    StringLitExpr  :: string
+  expr 41:28    FieldExpr      :: string
+  expr 41:28    IdentExpr      :: Site
+  expr 41:9     CallExpr       :: void
+  expr 41:9     IdentExpr      :: fn(string) -> void
+  expr 43:11    IdentExpr      :: null | Site
+  expr 43:5     MatchExpr      :: void
+  expr 44:20    CallExpr       :: void
+  expr 44:20    IdentExpr      :: fn(T) -> void
+  expr 44:28    StringLitExpr  :: string
+  expr 45:20    CallExpr       :: void
+  expr 45:20    IdentExpr      :: fn(string) -> void
+  expr 45:33    StringLitExpr  :: string
+  expr 45:42    FieldExpr      :: string
+  expr 45:42    IdentExpr      :: Site
+  expr 47:23    DotVariantExpr :: Build
+  expr 47:5     IfExpr         :: void
+  expr 47:8     BinaryExpr     :: bool
+  expr 47:8     IdentExpr      :: Build
+  expr 48:22    StringLitExpr  :: string
+  expr 48:9     CallExpr       :: void
+  expr 48:9     IdentExpr      :: fn(string) -> void
+  expr 50:13    StringLitExpr  :: string
+  expr 50:16    CallExpr       :: i32
+  expr 50:16    IdentExpr      :: fn() -> i32
+  expr 50:29    CallExpr       :: i32
+  expr 50:29    IdentExpr      :: fn() -> i32
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void

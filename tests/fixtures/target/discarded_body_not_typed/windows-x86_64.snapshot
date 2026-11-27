@@ -5,6 +5,7 @@
 # Baked
 VADER_OS = .Windows
 VADER_ARCH = .X86_64
+VADER_BUILD = .Debug
 
 # Selected body
 main$platform_kind <- main-windows.vader:19

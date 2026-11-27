@@ -1,0 +1,64 @@
+# Lower
+
+## snippet
+  storage
+    const NOWHERE: null | Site  inline
+  snippet.Site :: struct { function: string, line: i32 }  // snippet$Site
+  snippet.NOWHERE: null | Site: null  // snippet$NOWHERE
+  snippet.never_called :: fn(what: string) -> void {  // snippet$never_called
+      std.console.println<string>(concat_2("unreachable: ", what))
+  }
+  snippet.guarded :: fn() -> i32 {  // snippet$guarded
+      {
+          return 0
+      }
+  }
+  snippet.bound :: fn() -> i32 {  // snippet$bound
+      site: Site = {
+          __fallback_0: null | Site = (null | Site)(null)
+          {
+              return 0
+              @unreachable("an `else` clause leaves")
+          } :Site
+      }
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      {}
+      {}
+      {
+          __scrut_0: null | Site = (null | Site)(null)
+          std.console.println<string>("nowhere")
+      }
+      {}
+      std.console.println<string>({
+          __buf_1: Buffer = std_core$Intrinsic$new_byte_buffer(i64(41))
+          __off_2: i64 = 0
+          __off_2 = std.core.write_int(__buf_1, __off_2, snippet.guarded())
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
+          __off_2 = std.core.write_int(__buf_1, __off_2, snippet.bound())
+          std.core.finish_buffer(__buf_1, __off_2)
+      } :string)
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer

@@ -667,9 +667,10 @@ lower_fallback :: fn(ctx: FnLowerCtx, e: FallbackExpr) -> LoweredExpr {
     result  :: ctx.types.expr_type(e)
     left_ty :: ctx.types.expr_type(e.left)
     tmp :: fresh_synthetic_symbol(ctx, "fallback")
+    left :: lower_expr(ctx, e.left)
     let_stmt :: LoweredLet {
         .span = e.span, .name = tmp.name, .symbol = tmp,
-        .type = left_ty, .value = lower_expr(ctx, e.left),
+        .type = left_ty, .value = left,
     }
     tmp_ref :: LoweredIdent { .span = e.span, .type = left_ty, .symbol = tmp }
     stmts: LoweredStmt[]: [let_stmt]
@@ -685,16 +686,33 @@ lower_fallback :: fn(ctx: FnLowerCtx, e: FallbackExpr) -> LoweredExpr {
         rest = subtract_type_with_impls(rest, ctx.types.clause_type(clause), ctx.typed)
     }
     chain: LoweredExpr = no_clause_taken(tmp_ref, rest, result, e.span)
+    // A constant on the left is tested itself, whose type answers each clause before
+    // the program runs (`settled_read`): a clause settled true is the value, one
+    // settled false is dropped, and what follows a clause that leaves is not lowered.
+    tested: LoweredExpr: if settled_read(left) != null {
+        left
+    } else {
+        tmp_ref
+    }
     i := e.clauses.len()
     for i > 0 {
         i -= 1
         clause :: e.clauses[i]
-        chain = LoweredIf {
-            .span       = e.span,
-            .type       = result,
-            .cond       = folded_type_check(ctx, tmp_ref, ctx.types.clause_type(clause), e.span),
-            .then_block = lower_fallback_body(ctx, clause.body, result),
-            .else_block = wrap_as_block(chain, e.span),
+        test :: folded_type_check(ctx, tested, ctx.types.clause_type(clause), e.span)
+        if is_false_literal(test) {
+            continue
+        }
+        body :: lower_fallback_body(ctx, clause.body, result)
+        if is_true_literal(test) {
+            chain = body
+        } else {
+            chain = LoweredIf {
+                .span       = e.span,
+                .type       = result,
+                .cond       = test,
+                .then_block = body,
+                .else_block = wrap_as_block(chain, e.span),
+            }
         }
     }
     return LoweredBlock { .span = e.span, .type = result, .stmts = stmts, .trailing = chain }

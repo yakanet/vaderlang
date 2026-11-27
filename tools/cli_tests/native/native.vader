@@ -99,6 +99,33 @@ REPEATED_DEEP_COPY :: r"""
     }
     """
 
+// ---- what a release build leaves out --------------------------------------
+
+// A string only a debug build prints, behind a test of `VADER_BUILD` and one of a
+// constant that holds `null`.
+DEBUG_ONLY :: r"""
+    module "snippet"
+
+    import "std/console"
+
+    Site :: struct {
+        line: i32
+    }
+
+    NOWHERE: Site | null: null
+
+    main :: fn() -> i32 {
+        if VADER_BUILD == .Debug {
+            println("kept for debugging")
+        }
+        if NOWHERE != null {
+            println("never printed ${NOWHERE.line}")
+        }
+        println("always")
+        return 0
+    }
+    """
+
 // ---- building and running -------------------------------------------------
 
 // Build `source` with `flags` into a fresh folder named after `name`, run the
@@ -276,6 +303,35 @@ test_a_singleton_called_again_by_its_own_body_stops_a_native_build :: fn() -> vo
     }
     ran :: build_and_run("selfish", [], SELFISH_SINGLETON) else panic(ran.message())
     assert_stopped(ran, "selfish starts\n", SELFISH_STOP)
+}
+
+// The C `vader build --emit=c` writes for `source`, with `flags`.
+emitted_c :: fn(name: string, flags: string[], source: string) -> string {
+    out :: "${scratch_dir(name)}/program.c"
+    argv :: ["build", "--emit=c", "--no-split", "--out=${out}"] + flags + [source]
+    built :: succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }))
+        else panic(built.message())
+    c :: read_file_string(out) else panic(c.message())
+    return c
+}
+
+@test
+test_a_release_build_leaves_out_the_branches_it_settles :: fn() -> void {
+    // The strings live in the atom table the compiler writes before `cc` runs:
+    // only the compiler can leave them out.
+    source :: scratch_source("native_debug_only_source", DEBUG_ONLY)
+    c :: emitted_c("native_debug_only_release", ["--release"], source)
+    assert("kept for debugging" !in c, "the debug branch is left out")
+    assert("never printed" !in c, "the branch of a null constant is left out")
+    assert("always" in c, "the rest stays")
+}
+
+@test
+test_a_debug_build_keeps_the_branch_of_vader_build :: fn() -> void {
+    source :: scratch_source("native_debug_only_source", DEBUG_ONLY)
+    c :: emitted_c("native_debug_only_debug", [], source)
+    assert("kept for debugging" in c, "the debug branch stays")
+    assert("never printed" !in c, "the branch of a null constant is left out")
 }
 
 @test

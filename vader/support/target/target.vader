@@ -63,6 +63,11 @@ Target implements Equals -> self.os == other.os && self.arch == other.arch
 // `<os>-<arch>`: the form `--target=` accepts and `parse_target` round-trips.
 Target implements Display -> "${self.os}-${self.arch}"
 
+/// How a build is made, from the `--release` flag.
+///
+/// @param release  whether the build was asked with `--release`.
+export build_for :: fn(release: bool) -> Build = if release { .Release } else { .Debug }
+
 /// The target this machine IS: the default a build assumes when `--target=` is
 /// not given.
 ///

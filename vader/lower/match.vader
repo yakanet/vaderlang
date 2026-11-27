@@ -94,12 +94,19 @@ lower_match :: fn(ctx: FnLowerCtx, expr: MatchExpr, result_type: Type) -> Lowere
         }
     }
 
+    // A constant scrutinee is tested itself, whose type answers each arm before the
+    // program runs (`settled_read`) ; any other through its slot.
+    tested :: if settled_read(scrut_value) != null {
+        scrut_value
+    } else {
+        null
+    }
     chain: LoweredBlock = fallback
     cursor := arm_count
     for cursor > 0 {
         cursor = cursor - 1
         arm :: expr.arms[cursor]
-        predicate :: arm_predicate(ctx, arm, scrut_symbol, scrut_type)
+        predicate :: arm_predicate(ctx, arm, scrut_symbol, scrut_type, tested)
         // An arm whose test is settled false is not lowered : its body reads the
         // scrutinee at a type it never has.
         if predicate != null && is_false_literal(predicate) {
@@ -157,12 +164,15 @@ lower_arm :: fn(
     }
 }
 
+// The test of `arm` on the scrutinee: `tested` when the match reads a constant,
+// its slot otherwise.
 arm_predicate :: fn(
     ctx: FnLowerCtx, arm: MatchArm, scrut_symbol: Symbol, scrut_type: Type,
+    tested: LoweredExpr | null,
 ) -> LoweredExpr | null {
     span :: arm.pattern.span
-    scrut_ident :: LoweredIdent { .span = span, .type = scrut_type, .symbol = scrut_symbol }
-    core :: pattern_predicate(ctx, arm.pattern, scrut_ident, scrut_type, span)
+    target :: tested else LoweredIdent { .span = span, .type = scrut_type, .symbol = scrut_symbol }
+    core :: pattern_predicate(ctx, arm.pattern, target, scrut_type, span)
     arm_guard :: arm.guard else return core
     // A pattern settled false leaves the guard dead : it may read a binding at a
     // type the scrutinee never has.

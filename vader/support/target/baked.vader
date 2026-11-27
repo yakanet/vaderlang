@@ -1,6 +1,6 @@
-// vader/support/target/baked: the target constants, as a module the compiler writes.
+// vader/support/target/baked: the build constants, as a module the compiler writes.
 //
-// `VADER_OS` and `VADER_ARCH` cannot be written by hand: their value is decided
+// `VADER_OS`, `VADER_ARCH` and `VADER_BUILD` cannot be written by hand: their value is decided
 // per build. But they must behave like any other module-level constant, visible
 // to the comptime evaluator, foldable into a `SEP :: if VADER_OS == ...`, nameable
 // in an `@target`-free program, and the cheapest way to get all of that is to
@@ -12,7 +12,7 @@
 // existing ones, composed.
 //
 // The enums themselves are NOT generated: they live in `std/target`, written by
-// hand, documented and tested. Only the two values are baked, which keeps the
+// hand, documented and tested. Only the values are baked, which keeps the
 // generated text small enough to be obviously correct.
 
 module "vader/support/target"
@@ -42,9 +42,10 @@ export BAKED_FOLDER :: "<baked>/std/target/baked"
 /// means `vader dump` can show it, and that a puzzled reader can be handed the
 /// six lines rather than an explanation.
 ///
-/// @param t  the compilation target this build is for.
-/// @return   the module source, ending in a newline.
-export baked_module_source :: fn(t: Target) -> string {
+/// @param t      the compilation target this build is for.
+/// @param build  how the build is made.
+/// @return       the module source, ending in a newline.
+export baked_module_source :: fn(t: Target, build: Build) -> string {
     lines: string[]: [
         "// Generated per build by `vader/support/target/baked`: never on disk, never edited.",
         "// The compilation target, baked. See `std/target::current_os` for the OTHER",
@@ -65,6 +66,9 @@ export baked_module_source :: fn(t: Target) -> string {
         "",
         "/// The architecture this build is FOR. Parameterises values; selects nothing.",
         "export VADER_ARCH: Arch: .${arch_variant(t.arch)}",
+        "",
+        "/// How this build is made. A `--release` build leaves out what a diagnostic reads.",
+        "export VADER_BUILD: Build: .${build_variant(build)}",
         "",
     ]
     return lines.join("\n")
@@ -89,20 +93,26 @@ arch_variant :: fn(arch: Arch) -> string = match arch {
     .Wasm32 -> "Wasm32"
 }
 
+build_variant :: fn(build: Build) -> string = match build {
+    .Debug   -> "Debug"
+    .Release -> "Release"
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
 
-@test test_baked_source_names_both_constants :: fn() -> void {
-    src :: baked_module_source(Target { .os = .Darwin, .arch = .Arm64 })
+@test test_baked_source_names_every_constant :: fn() -> void {
+    src :: baked_module_source(Target { .os = .Darwin, .arch = .Arm64 }, .Release)
     // The ASCRIPTION is asserted, not just the name: dropping it is what makes
     // `VADER_OS` untyped, and untyped it assigns to a `string` in silence.
     assert("export VADER_OS: Os: .Darwin" in src, "VADER_OS is baked, and typed")
     assert("export VADER_ARCH: Arch: .Arm64" in src, "VADER_ARCH is baked, and typed")
+    assert("export VADER_BUILD: Build: .Release" in src, "VADER_BUILD is baked, and typed")
 }
 
 @test test_baked_source_declares_its_module :: fn() -> void {
-    src :: baked_module_source(Target { .os = .Linux, .arch = .X86_64 })
+    src :: baked_module_source(Target { .os = .Linux, .arch = .X86_64 }, .Debug)
     assert("module \"std/target/baked\"" in src, "declares the module")
     assert("import \"std/target\"" in src, "imports the enums it names")
 }
@@ -110,7 +120,7 @@ import "std/testing"
 @test test_variant_spelling_is_not_the_display_name :: fn() -> void {
     // `Os.Windows`, not `Os.windows`: the parser needs the variant, a reader
     // gets the Display form. A rename of one must not silently follow the other.
-    src :: baked_module_source(Target { .os = .Windows, .arch = .X86_64 })
+    src :: baked_module_source(Target { .os = .Windows, .arch = .X86_64 }, .Debug)
     assert(".Windows" in src, "variant case is preserved")
     assert_eq(Os.Windows.to_string(), "windows")
 }

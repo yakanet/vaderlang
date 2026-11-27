@@ -67,6 +67,22 @@ Arch implements Display -> match self {
     .Wasm32 -> "wasm32"
 }
 
+/// How a build is made: what `VADER_BUILD` holds.
+///
+/// A debug build, which `vader run` and `vader test` are too, keeps what a
+/// diagnostic reads; a release build leaves it out. A test of `VADER_BUILD` is
+/// settled before the program runs, so the branch a release build does not take
+/// is not in its binary, though it is checked like any other code.
+export Build :: enum {
+    Debug,
+    Release,
+}
+
+Build implements Display -> match self {
+    .Debug   -> "debug"
+    .Release -> "release"
+}
+
 // ---- the running platform -------------------------------------------------
 
 /// The operating system this process is RUNNING on.

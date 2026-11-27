@@ -24,6 +24,7 @@ import "std/io"
 import "std/iter"
 import "std/path"
 import "std/string"
+import "std/target"
 import "std/task"
 import "toolchain/diagnostics"
 import "toolchain/ast"
@@ -134,15 +135,27 @@ export LoadedModule :: struct {
 ///                      by name, and no other (`reached.vader`). For a load that
 ///                      builds or runs the program; one that reads what a module
 ///                      offers (completion, docs, lints) leaves it off.
+/// @param build         how the build is made, which `VADER_BUILD` holds.
 export load_project :: fn(
-    entry_path: string, include_path_flags: string[], project_root: string | null,
-    selection: Selection | null = null, under_test: bool = false, only_reached: bool = false,
+    entry_path: string,
+    include_path_flags: string[],
+    project_root: string | null,
+    selection: Selection | null = null,
+    under_test: bool = false,
+    only_reached: bool = false,
     keep_docs: bool = false,
-) -> LoadedProject {
-    return load_project_with_overlay(
-        entry_path, Map<string, string> {}, include_path_flags, project_root, selection,
-        keep_docs = keep_docs, under_test = under_test, only_reached = only_reached)
-}
+    build: Build = .Debug,
+) -> LoadedProject = load_project_with_overlay(
+    entry_path,
+    Map<string, string> {},
+    include_path_flags,
+    project_root,
+    selection,
+    keep_docs = keep_docs,
+    under_test = under_test,
+    only_reached = only_reached,
+    build = build
+)
 
 /// Like `load_project`, but consults an in-memory `overlay` (filesystem path
 /// -> current source text) before the disk for every module file. The LSP
@@ -171,11 +184,18 @@ export load_project :: fn(
 ///                     is loaded without its own, the project's included.
 /// @param only_reached a dependency keeps the declarations the program reaches
 ///                     by name, and no other (see `load_project`).
+/// @param build        how the build is made, which `VADER_BUILD` holds.
 export load_project_with_overlay :: fn(
-    entry_path: string, overlay: Map<string, string>,
-    include_path_flags: string[], project_root: string | null,
-    selection: Selection | null = null, extra_seeds: string[] = [],
-    keep_docs: bool = false, under_test: bool = false, only_reached: bool = false,
+    entry_path: string,
+    overlay: Map<string, string>,
+    include_path_flags: string[],
+    project_root: string | null,
+    selection: Selection | null = null,
+    extra_seeds: string[] = [],
+    keep_docs: bool = false,
+    under_test: bool = false,
+    only_reached: bool = false,
+    build: Build = .Debug,
 ) -> LoadedProject {
     factory :: SymbolFactory {}
     // Windows hands the entry path with `\` separators ; the resolver keeps `/`
@@ -265,7 +285,7 @@ export load_project_with_overlay :: fn(
                 extra_queue.push(found)
             }
             drain_load_queue(ctx, extra_queue)
-            // The baked target constants (`VADER_OS` / `VADER_ARCH`), appended
+            // The baked build constants (`VADER_OS`, `VADER_ARCH`, `VADER_BUILD`), appended
             // after the natural BFS for the same order-preserving reason as
             // `std/string_builder` above. The module is VIRTUAL: generated per
             // build and served through the overlay, never written to disk, which
@@ -277,7 +297,7 @@ export load_project_with_overlay :: fn(
             // bodies of `effective_target`: the two differ in the union view and
             // under `HostBodies`. Defaulting here rather than per entry point is
             // what makes `run` / `test` / `lint` / `dump` / the LSP consistent.
-            load_baked_target(ctx, bake_target)
+            load_baked_target(ctx, bake_target, build)
             collect_deferred(ctx)
             detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
@@ -495,7 +515,7 @@ resolve_in :: fn(ctx: LoadState, name: string) -> DiscoveredModule | null =
 // Generate and ingest the baked-constants module. Requires `std/target`, which
 // declares the enums the constants name; loads it first if the natural BFS did
 // not, so that `VADER_OS` is available to a program that never imported anything.
-load_baked_target :: fn(ctx: LoadState, baked_for: Target) -> void {
+load_baked_target :: fn(ctx: LoadState, baked_for: Target, build: Build) -> void {
     std_target :: resolve_in(ctx, "std/target") else return
     if !has_module(ctx.modules, std_target.folder) {
         drain_load_queue(ctx, [std_target])
@@ -504,7 +524,7 @@ load_baked_target :: fn(ctx: LoadState, baked_for: Target) -> void {
     // caller's.
     with_baked :: Map<string, string> {}
     for [path, text] in ctx.overlay { with_baked[path] = text }
-    with_baked[BAKED_PATH] = baked_module_source(baked_for)
+    with_baked[BAKED_PATH] = baked_module_source(baked_for, build)
     baked :: DiscoveredModule {
         .name = BAKED_MODULE,
         .folder = BAKED_FOLDER,

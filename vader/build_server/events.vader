@@ -29,6 +29,7 @@ import "toolchain/protocol"
 import "vader/front/comptime"
 import "vader/front/resolver"
 import "vader/pipeline"
+import "vader/support/target"
 
 // ---- events ---------------------------------------------------------------
 
@@ -168,6 +169,7 @@ export build_events :: fn(session: BuildSession) -> Iterator<BuildEvent> {
                 project,
                 output.target,
                 keep_docs = true,
+                build = build_for(output.release),
             )
             for [module_id, loaded] in pipeline.loaded.modules {
                 if loaded.module.origin != .Build {

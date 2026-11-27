@@ -384,13 +384,27 @@ stmt_diverges :: fn(s: LoweredStmt) -> bool {
     // fall-through drain doesn't emit a duplicate pop_exec after a
     // wrapped exit.
     if s is LoweredExprStmt {
-        lb :: s.expr
-        if lb is LoweredBlock {
-            n :: lb.stmts.len()
-            if n > 0 { return stmt_diverges(lb.stmts[n - 1]) }
-        }
+        return expr_leaves(s.expr)
+    }
+    // `x :: f() else return` once its test settled: the value is the clause that
+    // leaves.
+    if s is LoweredLet {
+        return expr_leaves(s.value)
     }
     return false
+}
+
+// Whether evaluating `e` leaves the block it sits in: a block whose last statement
+// does, or whose value is such a block.
+expr_leaves :: fn(e: LoweredExpr) -> bool {
+    if e !is LoweredBlock {
+        return false
+    }
+    if last_stmt_diverges(e.stmts) {
+        return true
+    }
+    trailing :: e.trailing
+    return trailing != null && expr_leaves(trailing)
 }
 
 // One `defer.pop_exec N` over the defers of every open BlockCtx: all of them up

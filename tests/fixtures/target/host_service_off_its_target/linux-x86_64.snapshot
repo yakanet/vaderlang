@@ -5,6 +5,7 @@
 # Baked
 VADER_OS = .Linux
 VADER_ARCH = .X86_64
+VADER_BUILD = .Debug
 
 # Selected body
 std_runtime_ffi$ffi_call <- lib/std/runtime/ffi/ffi.vader:62

@@ -28,9 +28,14 @@ strip_narrowing_cast :: fn(e: LoweredExpr) -> LoweredExpr {
     return e
 }
 
-// `!cond` when `negate`, else `cond`.
+// `!cond` when `negate`, else `cond`. A settled `cond` stays settled, which the `if`
+// it guards prunes on.
 maybe_negate :: fn(cond: LoweredExpr, negate: bool, span: Span) -> LoweredExpr {
     if negate {
+        known :: settled_bool(cond)
+        if known != null {
+            return settled_as(cond, !known)
+        }
         return LoweredUnary {
             .span = span,
             .type = TY_BOOL,
@@ -83,8 +88,9 @@ trait_test_type :: fn(ctx: FnLowerCtx, scrutinee: Type, check: Type) -> Type {
 // the run-time tag test otherwise. Only a read is folded, since dropping it
 // loses nothing.
 folded_type_check :: fn(ctx: FnLowerCtx, value: LoweredExpr, check: Type, span: Span) -> LoweredExpr {
-    if is_effect_free_read(value) {
-        known :: static_type_test(ctx, value.type, check)
+    read :: settled_read(value) else value
+    if is_effect_free_read(read) {
+        known :: static_type_test(ctx, read.type, check)
         if known != null {
             return LoweredBoolLit {
                 .span = span,
@@ -650,7 +656,7 @@ try_lower_null_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | nu
     null_side :: if null_on_left { binary.left } else { binary.right }
     value :: lowered_beside_null(ctx, operand, null_side, null_on_left, prelude)
     if boxed {
-        check :: type_check(value, TY_NULL, binary.span)
+        check :: folded_type_check(ctx, value, TY_NULL, binary.span)
         return with_prelude(prelude, maybe_negate(check, binary.op == .Neq, binary.span), binary.span)
     }
     if !is_effect_free_read(value) {
@@ -658,6 +664,21 @@ try_lower_null_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | nu
     }
     answer :: LoweredBoolLit { .span = binary.span, .type = TY_BOOL, .value = binary.op == .Neq }
     return with_prelude(prelude, answer, binary.span)
+}
+
+// The read a type test of `value` is answered on before the program runs, or null:
+// a widening cast over an effect-free read whose type carries no tag, as a constant
+// read at its union is (`fold_const_symbol`). Its own type answers, and the `if`
+// the test guards drops the branch that reads the constant at a type it never has.
+settled_read :: fn(value: LoweredExpr) -> LoweredExpr | null {
+    if value !is LoweredCast {
+        return null
+    }
+    held :: value.value
+    if has_run_time_tag(held.type) || !is_effect_free_read(held) {
+        return null
+    }
+    return held
 }
 
 // `operand` lowered, what the `null` side does run where the source puts it, in

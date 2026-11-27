@@ -66,6 +66,7 @@ export prepare_program :: fn(file: Path, request: BuildRequest) -> CfgBytecode =
         request.verify,
         marks_proven_bounds(request),
         request.verify_bounds,
+        build_for(request.release),
     )
 
 /// Carry an already-lowered entry to the bytecode of the artefact `request`

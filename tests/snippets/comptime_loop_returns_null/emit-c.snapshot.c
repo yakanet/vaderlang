@@ -4,14 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct_snippet$Point_t vader_struct_snippet$Point_t;
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
 
-struct vader_struct_snippet$Point_t {
-	vader_obj_header_t header;
-	int32_t f_x;
-	int32_t f_y;
-};
 struct vader_struct_std_core$Buffer_t {
 	vader_obj_header_t header;
 };
@@ -46,27 +40,22 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[11] = {
+const vader_type_info_t vader_type_info_table[9] = {
 	[2] = { .slot_size = 4 },
 	[3] = { .slot_size = 4 },
 	[4] = {
-		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet$Point_t),
-		.slot_size = 8,
-	},
-	[5] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
 		.slot_size = 8,
 	},
-	[6] = { .slot_size = 8 },
+	[5] = { .slot_size = 8 },
+	[6] = { .slot_size = 1 },
 	[7] = { .slot_size = 1 },
-	[8] = { .slot_size = 1 },
-	[9] = {
+	[8] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
 	},
-	[10] = { .slot_size = 16 },
 };
-const size_t vader_type_info_count = 11;
+const size_t vader_type_info_count = 9;
 
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
@@ -76,7 +65,7 @@ const size_t vader_type_info_count = 11;
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 9u, 8u);
+	return (void*) vader_string_bytes_view(a0, 8u, 7u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -106,24 +95,19 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
 static int32_t snippet$main(void) {
 	void* l0 = NULL;
 	int64_t l1;
-	bool l2;
-	vader_box_t t0 = vader_box_null();
-	vader_string_t t1 = 0;
-	vader_box_t* gc_roots[1] = { &t0 };
+	vader_string_t t0 = 0;
 	void** gc_raw_roots[1] = { &l0 };
-	vader_string_t* gc_atom_roots[1] = { &t1 };
+	vader_string_t* gc_atom_roots[1] = { &t0 };
 	vader_gc_frame_t gc_frame = {
-		vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
 	l0 = (void*) vader_buffer_new((size_t) INT64_C(25));
 	l1 = INT64_C(0);
 	l1 = std_core$write_string_at(l0, l1, 1u);
-	t0 = vader_box_obj(0u, NULL);
-	l2 = t0.tag == 0u;
-	l1 = std_core$write_bool(l0, l1, l2);
-	t1 = std_core$finish_buffer(l0, l1);
-	std_console$println__string(t1);
+	l1 = std_core$write_bool(l0, l1, true);
+	t0 = std_core$finish_buffer(l0, l1);
+	std_console$println__string(t0);
 	{ vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
