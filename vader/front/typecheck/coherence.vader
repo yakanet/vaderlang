@@ -232,7 +232,7 @@ check_module_fn_redefinitions :: fn(
         }
         seen :: Map<string, bool> {}
         for fd in group {
-            key :: fn_signature_key(fd, tp.resolved) else continue
+            key :: fn_signature_key(fd, tp) else continue
             // A matching canonical signature key is a redefinition, not an overload.
             if seen[key] != null {
                 diags.push(
@@ -309,14 +309,12 @@ imported_fn_sigs :: fn(
     return out
 }
 
-// Canonical key for a fn decl's resolved parameter signature, or null when a
-// param is un-annotated (only lambdas omit param types ; a named fn always has
-// them, so the null branch is a defensive skip).
-fn_signature_key :: fn(fd: AST.FnDecl, resolved: ResolvedModule) -> string | null {
+// Canonical key for a fn decl's parameter signature as declared, or null when a
+// param has no type: its declaration reports it.
+fn_signature_key :: fn(fd: AST.FnDecl, typed: TypedProgram) -> string | null {
     params: Type[]: []
     for p in fd.params {
-        pty :: p.ty else return null
-        params.push(type_from_expr(pty, resolved, diag_sink()))
+        params.push(typed.param_types[p.span.hash()] else return null)
     }
     return canonical_args_key(params)
 }

@@ -1,0 +1,1 @@
+[6:24] error[P1045] a parameter of a lambda takes no default: a call through a function type passes every argument

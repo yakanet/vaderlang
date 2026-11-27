@@ -216,6 +216,14 @@ scheduler_gate_runtime :: fn(project: LoadedProject) -> GateRuntime | null {
     }
 }
 
+// `SourceLocation` of std/core, the type of a parameter that defaults to
+// `@call_site()`: needed when signatures are declared.
+source_location_symbol_of :: fn(project: LoadedProject) -> Symbol | null {
+    core_id :: find_core_module_id(project) else return null
+    core :: project.modules[core_id] else return null
+    return core.collected.symbols[STRUCT_SOURCE_LOCATION]
+}
+
 populate_core_symbols :: fn(
     entry_typed: TypedProgram,
     project: LoadedProject,
@@ -282,7 +290,6 @@ populate_core_symbols_into :: fn(
         // Still set the well-known slots below even without typed core types.
         typed.range_symbol = core_loaded.collected.symbols[STRUCT_RANGE]
         typed.field_symbol = core_loaded.collected.symbols[STRUCT_FIELD]
-        typed.source_location_symbol = core_loaded.collected.symbols[STRUCT_SOURCE_LOCATION]
         return
     }
     for [_, sym] in core_loaded.collected.symbols {
@@ -293,7 +300,6 @@ populate_core_symbols_into :: fn(
     // without a source span so they can't come through span-keyed `idents`.
     typed.range_symbol = core_loaded.collected.symbols[STRUCT_RANGE]
     typed.field_symbol = core_loaded.collected.symbols[STRUCT_FIELD]
-    typed.source_location_symbol = core_loaded.collected.symbols[STRUCT_SOURCE_LOCATION]
     typed.equals_symbol = core_loaded.collected.symbols[TRAIT_EQUALS]
     typed.iterator_symbol = core_loaded.collected.symbols[TRAIT_ITERATOR]
     typed.decorator_target_symbol = core_loaded.collected.symbols[ENUM_DECORATOR_TARGET]

@@ -1,7 +1,8 @@
 // An intercepted function passes its arguments and its written result to one
 // interceptor, and keeps one state for the program: a generic function, one
-// without parameters, one whose result is not written and one marked twice by one
-// interceptor, which reads its site from one decorator, are R2045.
+// without parameters, one whose result is not written, one marked twice by one
+// interceptor, which reads its site from one decorator, and one whose parameter
+// takes its type from its default are R2045.
 module "snippet"
 
 Count :: struct<A, R> {
@@ -40,4 +41,7 @@ twice :: fn(x: i32) = x * 2
 @Timed
 again :: fn(x: i32) -> i32 = x
 
-main :: fn() -> i32 = identity(0) + zero() + twice(1) + again(2)
+@Counted
+offset :: fn(x = 0) -> i32 = x
+
+main :: fn() -> i32 = identity(0) + zero() + twice(1) + again(2) + offset()

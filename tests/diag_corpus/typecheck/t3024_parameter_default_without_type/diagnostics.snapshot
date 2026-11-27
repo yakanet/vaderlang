@@ -1,0 +1,7 @@
+[12:17] error[T3024] function signature must be fully annotated: the default of `n` does not give its type ; annotate it
+[13:17] error[T3024] function signature must be fully annotated: the default of `n` does not give its type ; annotate it
+[14:18] error[T3024] function signature must be fully annotated: the default of `n` does not give its type ; annotate it
+[15:20] error[T3024] function signature must be fully annotated: the default of `level` does not give its type ; annotate it
+[15:28] error[T3028] cannot infer enum type from context: `.High` expects an enum-typed slot, got ?
+[16:12] error[T3024] function signature must be fully annotated: parameter `n` lacks a type
+[8:1] warning[W0007] declaration is never used in its module: `Level` is never used

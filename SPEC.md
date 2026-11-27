@@ -1715,7 +1715,7 @@ The compiler warns about an arm whose values the arms above already take: after 
 
 Inference is bidirectional: from the value (`x :: 12` infers `x: i32`), and from the context (the function type a slot expects gives a lambda the types of its parameters).
 
-There is no Hindley-Milner inference across the program: the parameters of a function declaration must be annotated (`self` excepted). An expression-bodied function may leave out its return type, which its expression gives; a block body without one returns nothing. An exported function writes its return type: other modules read it as a contract, which must not change with its body. One that never returns says so with `@no_return` instead (§12 *Decorators*, `@no_return`).
+There is no Hindley-Milner inference across the program: the parameters of a function declaration must be annotated (`self` excepted), or take their type from their default (§6 *Default parameter values*). An expression-bodied function may leave out its return type, which its expression gives; a block body without one returns nothing. An exported function writes its return type: other modules read it as a contract, which must not change with its body. One that never returns says so with `@no_return` instead (§12 *Decorators*, `@no_return`).
 
 An exported constant writes its type too, unless its value shows it: a string, a character, a boolean, a struct literal, or a conversion `T(x)` to a scalar, an enum or a distinct type. A number does not show its type, since a free literal takes the one its context asks for.
 
@@ -2580,6 +2580,16 @@ greet("Bob", "Hi")                // "Hi, Bob"
 greet("Eve", prefix = "Hello")    // "Hello, Eve" (named parameter)
 ```
 
+A parameter of a function declaration written without a type takes the one its default gives on its own:
+
+```vader
+repeat :: fn(text: string, times = 2, separator = ", ") -> string
+```
+
+- A free number literal gives its default type, `i32` or `f64` (§4 *Default integer*): `times = 0` is an `i32`, and a parameter of another width is annotated, `times: i64 = 0`.
+- A string, a character, a boolean, a struct literal, a conversion `T(x)` and `@call_site()` give their own type.
+- Any other default, such as a call, `null`, `[]` or a variant written `.Name`, gives none: the parameter is then annotated, or it is an error.
+
 ### Named arguments at call site
 
 An argument may name its parameter, `f(a = 1, b = 2)`, in a bare call and through UFCS alike. Named arguments may come in any order. Arguments are evaluated in the order they are written, so `f(b = g(), a = h())` calls `g` first. These are errors:
@@ -2627,7 +2637,7 @@ items.map(x -> {
 })
 ```
 
-A parameter written without a type takes it from the function type of the slot the lambda fills (§6 *Function values*). Leaving it out with no such slot is an error.
+A parameter written without a type takes it from the function type of the slot the lambda fills (§6 *Function values*). Leaving it out with no such slot is an error. A parameter of a lambda, or of an anonymous function literal, takes no default: a call through a function type passes every argument, so writing one is an error.
 
 The `->` form has no place for a return type: the type comes from the slot the lambda fills (a parameter, a field, a typed declaration) or from its body. To write the return type, use an anonymous function literal `fn(params) -> R { body }` or `fn(params) -> R = expr`, which is allowed wherever a value is expected and means the same thing, or a named function:
 
@@ -4721,7 +4731,7 @@ warn :: fn(message: string, site: SourceLocation | null = @call_site()) -> void 
     log("warning: ${message}", site)
 ```
 
-- `@call_site()` is the whole default of a parameter of type `SourceLocation | null`; written anywhere else, it is an error.
+- `@call_site()` is the whole default of a parameter of type `SourceLocation | null`, which a parameter written without a type takes (`site = @call_site()`); written anywhere else, it is an error.
 - A function that wraps another hands on its own parameter, as `warn` does: called without it, the inner function would name the line inside the wrapper.
 - A release build keeps no place: every call passes `null`, and the parameter is `null` in its function whatever a call passes, so the code its test guards is left out of the binary.
 

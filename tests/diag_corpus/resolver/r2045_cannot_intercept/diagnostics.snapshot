@@ -1,4 +1,5 @@
-[31:1] error[R2045] this function cannot be intercepted: `identity` is generic, and a state is kept per function
-[34:1] error[R2045] this function cannot be intercepted: `zero` takes no parameter to pass on
-[37:1] error[R2045] this function cannot be intercepted: the result of `twice` must be written
-[41:1] error[R2045] this function cannot be intercepted: `again` is marked twice by `Timed`, which wraps a function once
+[32:1] error[R2045] this function cannot be intercepted: `identity` is generic, and a state is kept per function
+[35:1] error[R2045] this function cannot be intercepted: `zero` takes no parameter to pass on
+[38:1] error[R2045] this function cannot be intercepted: the result of `twice` must be written
+[42:1] error[R2045] this function cannot be intercepted: `again` is marked twice by `Timed`, which wraps a function once
+[45:1] error[R2045] this function cannot be intercepted: the type of `x` must be written

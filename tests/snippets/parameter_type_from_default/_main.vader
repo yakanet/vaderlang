@@ -1,0 +1,40 @@
+// A parameter written without a type takes the one its default gives: a free
+// number literal its default type (`i32`, `f64`), a string, a character, a
+// boolean, a struct literal, a conversion `T(x)` and `@call_site()` their own.
+// A call fills it, or passes its own value of that type.
+
+module "snippet"
+
+import "std/console"
+
+Point :: struct { x: i32, y: i32 }
+
+@displayable
+Level :: enum { Low, High }
+
+describe :: fn(
+    count = 0,
+    ratio = 1.5,
+    offset = -3,
+    name = "x",
+    loud = true,
+    mark = 'c',
+    origin = Point { .x = 1, .y = 2 },
+    wide = i64(7),
+    level = Level(1),
+) -> string = "${count} ${ratio} ${offset} ${name} ${loud} ${mark} ${origin.y} ${wide} ${level}"
+
+located :: fn(site = @call_site()) -> string {
+    if site == null {
+        return "nowhere"
+    }
+    return "line ${site.line}"
+}
+
+main :: fn() -> i32 {
+    println(describe())
+    big: i64: 1 << 40
+    println(describe(5, 2.5, wide = big, level = .Low))
+    println(located())
+    return 0
+}

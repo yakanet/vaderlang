@@ -1,0 +1,8 @@
+// A lambda is called through a function type, which carries no default: a
+// default on one of its parameters is P1045.
+module "snippet"
+
+main :: fn() -> i32 {
+    twice :: (x: i32 = 1) -> x * 2
+    return twice(0)
+}

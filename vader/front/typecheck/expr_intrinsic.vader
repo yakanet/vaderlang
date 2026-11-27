@@ -228,17 +228,19 @@ check_field_index :: fn(
 
 
 
+// `@call_site() -> SourceLocation | null`, the struct of std/core.
+call_site_type :: fn(typed: TypedProgram) -> Type {
+    located :: typed.source_location_symbol else return TY_UNRESOLVED
+    return union_of([mk_struct(located, []), TY_NULL])
+}
+
 type_for_result :: fn(name: string, typed: TypedProgram) -> Type {
     if name == "i64"        { return TY_I64 }
     if name == "bool"       { return TY_BOOL }
     if name == "string"     { return TY_STRING }
     if name == "type"       { return TY_TYPE }
     if name == "type_array" { return mk_array(TY_TYPE) }
-    if name == "call_site" {
-        // `@call_site() -> SourceLocation | null`, the struct of std/core.
-        located :: typed.source_location_symbol else return TY_UNRESOLVED
-        return union_of([mk_struct(located, []), TY_NULL])
-    }
+    if name == "call_site"  { return call_site_type(typed) }
     if name == "field_array" {
         // `@fields(T) -> Field[]`: `Field` lives in std/core
         // (auto-imported). Fall back to Unresolved when std/core

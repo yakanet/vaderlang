@@ -1236,19 +1236,42 @@ declare_fn_param :: fn(
     diags: Diagnostic[],
 ) -> Type {
     ty :: p.ty else {
-        // SPEC §4 : top-level fn signatures must be fully annotated, except
-        // `self` which carries the implicit `Self` type, bound at body time.
+        // `self` carries the implicit `Self` type, bound at body time.
         if p.name == "self" {
             return TY_UNRESOLVED
         }
-        diags.push(
-            typecheck_error(.FnSignatureMustBeAnnotated, p.span, "parameter ${p.name} lacks a type"),
-        )
-        return TY_UNRESOLVED
+        given :: default_param_type(p.default_value, typed) else {
+            diags.push(typecheck_error(.FnSignatureMustBeAnnotated, p.span, missing_type_detail(p)))
+            return TY_UNRESOLVED
+        }
+        record_param(typed, p, given)
+        return given
     }
     written :: type_from_expr(ty, resolved, diags)
     record_param(typed, p, written)
     return written
+}
+
+// The type an unannotated parameter takes from its default: one that gives it at
+// sight (`evident_const_type`), a free number literal at its default type, or
+// `@call_site()`. Null for any other default, whose type would need the
+// signatures still being declared, and for no default at all.
+default_param_type :: fn(default_value: AST.Expr | null, typed: TypedProgram) -> Type | null {
+    value :: default_value else return null
+    if value is AST.IntLitExpr   { return TY_I32 }
+    if value is AST.FloatLitExpr { return TY_F64 }
+    if is_call_site_default(value) {
+        return call_site_type(typed)
+    }
+    return evident_const_type(value, typed.resolved)
+}
+
+// Why `p` has no type: no annotation, and a default that does not give one.
+missing_type_detail :: fn(p: AST.FnParam) -> string {
+    if p.default_value == null {
+        return "parameter `${p.name}` lacks a type"
+    }
+    return "the default of `${p.name}` does not give its type ; annotate it"
 }
 
 // Records the type of `p`, and whether its default is `@call_site()`, which a

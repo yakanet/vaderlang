@@ -1,0 +1,18 @@
+// A parameter written without a type takes it from its default when the default
+// gives it on its own. A call, `null`, an empty array and a variant whose enum
+// the default does not name do not, and neither does a missing default: T3024.
+// Called, the variant has no enum to take its type from (T3028).
+
+module "main"
+
+Level :: enum { Low, High }
+
+make :: fn() -> i32 = 4
+
+from_call :: fn(n = make()) -> i32 = n
+from_null :: fn(n = null) -> i32 = 0
+from_array :: fn(n = []) -> i32 = 0
+from_variant :: fn(level = .High) -> i32 = 0
+bare :: fn(n) -> i32 = 0
+
+main :: fn() -> i32 = from_call() + from_null() + from_array() + from_variant() + bare(1)

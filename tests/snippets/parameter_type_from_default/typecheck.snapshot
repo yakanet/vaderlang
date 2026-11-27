@@ -1,0 +1,52 @@
+# Typecheck
+
+## tests/snippets/parameter_type_from_default
+  FnDecl         describe             :: fn(i32, f64, i32, string, bool, char, Point, i64, Level) -> string
+  EnumDecl       Level                :: Level
+  FnDecl         located              :: fn(null | SourceLocation) -> string
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  expr 19:12    StringLitExpr  :: string
+  expr 22:14    StructLitExpr  :: Point
+  expr 23:12    CallExpr       :: i64
+  expr 23:12    IdentExpr      :: type
+  expr 24:13    CallExpr       :: Level
+  expr 24:13    IdentExpr      :: Level
+  expr 25:15    StringLitExpr  :: string
+  expr 25:18    IdentExpr      :: i32
+  expr 25:27    IdentExpr      :: f64
+  expr 25:36    IdentExpr      :: i32
+  expr 25:46    IdentExpr      :: string
+  expr 25:54    IdentExpr      :: bool
+  expr 25:62    IdentExpr      :: char
+  expr 25:70    FieldExpr      :: i32
+  expr 25:70    IdentExpr      :: Point
+  expr 25:82    IdentExpr      :: i64
+  expr 25:90    IdentExpr      :: Level
+  expr 27:22    IntrinsicCallExpr :: null | SourceLocation
+  expr 28:5     IfExpr         :: void
+  expr 28:8     BinaryExpr     :: bool
+  expr 28:8     IdentExpr      :: null | SourceLocation
+  expr 29:16    StringLitExpr  :: string
+  expr 31:12    StringLitExpr  :: string
+  expr 31:20    FieldExpr      :: i32
+  expr 31:20    IdentExpr      :: SourceLocation
+  expr 35:13    CallExpr       :: string
+  expr 35:13    IdentExpr      :: fn(i32, f64, i32, string, bool, char, Point, i64, Level) -> string
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 36:15    BinaryExpr     :: i64
+  expr 37:13    CallExpr       :: string
+  expr 37:13    IdentExpr      :: fn(i32, f64, i32, string, bool, char, Point, i64, Level) -> string
+  expr 37:37    IdentExpr      :: i64
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 37:50    DotVariantExpr :: Level
+  expr 38:13    CallExpr       :: string
+  expr 38:13    IdentExpr      :: fn(null | SourceLocation) -> string
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 4:39     MatchExpr      :: string
+  expr 4:45     IdentExpr      :: Level
+  expr 5:17     StringLitExpr  :: string
+  expr 6:18     StringLitExpr  :: string

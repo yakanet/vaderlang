@@ -113,7 +113,9 @@ check_project_modules :: fn(
     // thread runs.
     gate_runtime :: scheduler_gate_runtime(project)
     scheduler :: find_scheduler_module_id(project)
+    located :: source_location_symbol_of(project)
     for [id, typed] in per_module {
+        typed.source_location_symbol = located
         if id != scheduler {
             typed.gate_runtime = gate_runtime
         }

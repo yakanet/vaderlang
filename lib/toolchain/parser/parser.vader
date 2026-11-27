@@ -3814,7 +3814,7 @@ peek_lambda_without_fn :: fn(p: Parser) -> bool {
 parse_lambda_without_fn :: fn(p: Parser) -> LambdaExpr {
     start :: p.peek()
     sig :: p.parse_fn_signature_params()
-    p.reject_lambda_parameter_decorators(sig.params)
+    p.reject_lambda_parameter_extras(sig.params)
     p.expect(.Arrow, "`->` between lambda params and body")
     body_expr :: p.parse_expr(0)
     body :: wrap_as_block(body_expr)
@@ -3853,13 +3853,24 @@ parse_single_param_lambda_tail :: fn(p: Parser, param_ident: IdentExpr) -> Lambd
     }
 }
 
-// A lambda declares nothing a decorator could describe, and no pass reads one on
-// its parameters: written there, it would be dropped in silence.
-reject_lambda_parameter_decorators :: fn(p: Parser, params: FnParam[]) -> void {
+// What a parameter of a lambda cannot carry: a decorator, which no pass reads
+// there, and a default, which no call through a function type fills.
+reject_lambda_parameter_extras :: fn(p: Parser, params: FnParam[]) -> void {
     for param in params {
         for d in param.decorators {
-            p.error(.UnknownDecoratorPlacement, d.span,
-                "`@${d.name}` does not apply to the parameter of a lambda")
+            p.error(
+                .UnknownDecoratorPlacement,
+                d.span,
+                "`@${d.name}` does not apply to the parameter of a lambda",
+            )
+        }
+        default_value :: param.default_value
+        if default_value != null {
+            p.error(
+                .LambdaParameterDefault,
+                default_value.span,
+                "a call through a function type passes every argument",
+            )
         }
     }
 }
@@ -4089,7 +4100,7 @@ parse_match_arm :: fn(p: Parser) -> MatchArm {
 parse_lambda :: fn(p: Parser) -> LambdaExpr {
     start :: p.advance()  // `fn`
     sig :: p.parse_fn_signature_params()
-    p.reject_lambda_parameter_decorators(sig.params)
+    p.reject_lambda_parameter_extras(sig.params)
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
     // A missing body is reported by `parse_block`.

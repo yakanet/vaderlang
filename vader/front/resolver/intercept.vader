@@ -255,6 +255,12 @@ refusal :: fn(f: FnDecl, interceptions: Interception[]) -> string | null {
     if f.return_type == null {
         return "the result of `${f.name}` must be written"
     }
+    // The layers pass the arguments on as written types: a type a default gives
+    // is known to the typecheck alone.
+    unwritten :: f.params.find((p) -> p.ty == null)
+    if unwritten != null {
+        return "the type of `${unwritten.name}` must be written"
+    }
     return null
 }
 
@@ -336,8 +342,8 @@ layer_text :: fn(
     return out.to_string()
 }
 
-// The type the parameters of `f` travel as: the one's, or their tuple. An
-// unwritten type is the typecheck's to report.
+// The type the parameters of `f` travel as: the one's, or their tuple. Each is
+// written, which `refusal` requires.
 arguments_type :: fn(content: string, f: FnDecl) -> string {
     types: string[]: []
     for p in f.params {
