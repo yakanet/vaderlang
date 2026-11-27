@@ -30,8 +30,20 @@
       }
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.console.println<string>(@vcall(std.core.Display.to_string, std.task.join<i32>(std.task.launch<i32>(__lambda_snippet_8))))
-      parked: Task<i32> = std.task.launch<i32>(snippet.outer)
+      std.console.println<string>(@vcall(std.core.Display.to_string, std.task.join<i32>(std.task.launch<i32>(__lambda_snippet_8, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/task_defers_at_end_and_on_cancel/_main.vader",
+          .line = 34,
+          .column = 16,
+      }))))
+      parked: Task<i32> = std.task.launch<i32>(snippet.outer, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/task_defers_at_end_and_on_cancel/_main.vader",
+          .line = 35,
+          .column = 15,
+      })
       std.task.sleep(std.time.millis(i64(1)))
       std.task.cancel<i32>(parked)
       std.console.println<string>(@vcall(std.core.Display.to_string, std.task.join<i32>(parked)))
@@ -74,6 +86,7 @@
   std/core
     const POW5_128: u64[]  data pool #0
     fn std.core.Cancelled.to_string  // std_core$Cancelled$Display$to_string
+    fn std.core.SourceLocation.to_string  // std_core$SourceLocation$Display$to_string
     fn std.core.b2u  // std_core$b2u
     fn std.core.bool.to_string  // std_core$bool$Display$to_string
     fn std.core.char.to_string  // std_core$char$Display$to_string
@@ -127,6 +140,7 @@
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Cancelled  // std_core$Cancelled
+    struct std.core.SourceLocation  // std_core$SourceLocation
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0
     fn __defer_std_runtime_scheduler_2

@@ -61,8 +61,9 @@ export Runtime :: trait {
     // ---- threads --------------------------------------------------------
 
     /// Start a thread running `entry`, which a report names `task #number`,
-    /// and hand back its handle.
-    spawn_thread :: fn(entry: fn() -> void, number: i64) -> i64
+    /// then `(launched at <site>)` unless `site` is empty, and hand back its
+    /// handle. The runtime keeps a copy of `site`.
+    spawn_thread :: fn(entry: fn() -> void, number: i64, site: string) -> i64
     /// Suspend the running thread until another wakes it.
     park :: fn() -> void
     /// Make the thread `thread` ready to run.

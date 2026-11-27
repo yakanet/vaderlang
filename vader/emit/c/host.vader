@@ -966,7 +966,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .RuntimeStatistic        -> { return [returning("vader_gc_statistic", [a0])] }
 
     // std/runtime/scheduler: virtual threads (`runtime/c/rt/scheduler.c`).
-    .SchedulerSpawn         -> { return [returning("vader_scheduler_spawn_numbered", [a0, a1])] }
+    .SchedulerSpawn         -> { return [returning("vader_scheduler_spawn", [a0, a1, argument(2)])] }
     .SchedulerPark          -> { return [perform("vader_scheduler_park", [])] }
     .SchedulerWake          -> { return [perform("vader_scheduler_wake", [a0])] }
     .SchedulerSleepFor      -> { return [perform("vader_scheduler_sleep_for", [a0])] }

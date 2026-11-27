@@ -4,8 +4,8 @@ first defers
 inner defers
 second defers
 # stderr
-vader: task #1 still runs when main returns: cancelled
-vader: task #2 still runs when main returns: cancelled
-vader: task #3 still runs when main returns: cancelled
+vader: task #1 (launched at tests/snippets/tasks_cancelled_when_main_returns/_main.vader:12:10, in `main`) still runs when main returns: cancelled
+vader: task #2 (launched at tests/snippets/tasks_cancelled_when_main_returns/_main.vader:19:10, in `main`) still runs when main returns: cancelled
+vader: task #3 (launched at tests/snippets/tasks_cancelled_when_main_returns/_main.vader:21:22, in `main`) still runs when main returns: cancelled
 # exit
 1

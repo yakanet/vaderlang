@@ -3,7 +3,16 @@
 ## snippet
   snippet.Holder :: struct { task: Task<i32>, rows: i32[][] }  // snippet$Holder
   snippet.main :: fn() -> i32 {  // snippet$main
-      h: Holder = Holder { .task = std.task.launch<i32>(__lambda_snippet_0), .rows = [[1, 2] :i32[], [3] :i32[]] :i32[][] }
+      h: Holder = Holder {
+          .task = std.task.launch<i32>(__lambda_snippet_0, SourceLocation {
+              .function = "main",
+              .module = "snippet",
+              .file = "tests/snippets/deep_copy_keeps_a_shared_task/_main.vader",
+              .line = 15,
+              .column = 27,
+          }),
+          .rows = [[1, 2] :i32[], [3] :i32[]] :i32[][],
+      }
       ch: Holder = std_core$Runtime$deep_copy__snippet_Holder(h)
       @array.push(ch.rows[0], 9)
       std.console.println<string>({
@@ -52,6 +61,7 @@
   std/core
     const POW5_128: u64[]  data pool #0
     fn std.core.Cancelled.to_string  // std_core$Cancelled$Display$to_string
+    fn std.core.SourceLocation.to_string  // std_core$SourceLocation$Display$to_string
     fn std.core.b2u  // std_core$b2u
     fn std.core.bool.to_string  // std_core$bool$Display$to_string
     fn std.core.char.to_string  // std_core$char$Display$to_string
@@ -105,6 +115,7 @@
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Cancelled  // std_core$Cancelled
+    struct std.core.SourceLocation  // std_core$SourceLocation
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0
     fn __defer_std_runtime_scheduler_2

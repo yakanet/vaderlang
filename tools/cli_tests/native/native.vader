@@ -147,6 +147,23 @@ CALL_SITES :: r"""
     }
     """
 
+// A task still running when `main` returns, which stderr names.
+LEFT_RUNNING :: r"""
+    module "snippet"
+
+    import "std/task"
+    import "std/time"
+
+    main :: fn() -> i32 {
+        _ :: launch(fn() -> i32 {
+            sleep(10.seconds())
+            return 0
+        })
+        sleep(1.millis())
+        return 0
+    }
+    """
+
 // ---- building and running -------------------------------------------------
 
 // Build `source` with `flags` into a fresh folder named after `name`, run the
@@ -370,6 +387,21 @@ test_a_debug_build_passes_the_place_of_a_call :: fn() -> void {
     c :: emitted_c("native_call_sites_debug", [], source)
     assert(" said " in c, "the branch that reads the place stays")
     assert("native_call_sites_source" in c, "the file is named")
+}
+
+@test
+test_a_debug_build_names_where_a_task_was_launched :: fn() -> void {
+    source :: scratch_source("native_left_running_source", LEFT_RUNNING)
+    ran :: build_and_run("left_running_debug", [], source) else panic(ran.message())
+    assert("task #1 (launched at " in ran.stderr, ran.stderr)
+    assert("main.vader:7:10, in `main`) still runs when main returns" in ran.stderr, ran.stderr)
+}
+
+@test
+test_a_release_build_names_a_task_by_its_number_alone :: fn() -> void {
+    source :: scratch_source("native_left_running_source", LEFT_RUNNING)
+    ran :: build_and_run("left_running_release", ["--release"], source) else panic(ran.message())
+    assert("vader: task #1 still runs when main returns: cancelled" in ran.stderr, ran.stderr)
 }
 
 @test

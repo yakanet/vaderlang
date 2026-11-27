@@ -44,7 +44,7 @@
   expr 34:16    CallExpr       :: Cancelled | i32
   expr 34:16    CallExpr       :: Task<i32>
   expr 34:16    FieldExpr      :: fn() -> Cancelled | i32
-  expr 34:16    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 34:16    IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 34:23    LambdaExpr     :: fn() -> i32
   expr 34:29    CallExpr       :: i32
   expr 34:29    IdentExpr      :: fn(string) -> i32
@@ -52,7 +52,7 @@
   expr 34:5     CallExpr       :: void
   expr 34:5     IdentExpr      :: fn(T) -> void
   expr 35:15    CallExpr       :: Task<i32>
-  expr 35:15    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 35:15    IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 35:22    IdentExpr      :: fn() -> i32
   expr 36:11    CallExpr       :: Duration
   expr 36:11    FieldExpr      :: fn() -> Duration
@@ -67,3 +67,4 @@
   expr 38:16    IdentExpr      :: Task<i32>
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 90:72    IntrinsicCallExpr :: null | SourceLocation

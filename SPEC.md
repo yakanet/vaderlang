@@ -4511,6 +4511,7 @@ main :: fn() -> i32 {
 - `launch(...)` as a statement launches the task without waiting for it, as a bare call drops its value. The compiler warns when a `Task` is thrown away this way, since nothing can join it any more: `_ :: launch(...)` discards it on purpose, and `defer launch(...)` is exempt.
 - When `main` returns, the tasks still running are cancelled, stderr names them in the order they were launched, and the exit code is not zero. A task cancelled before, or launched by one before its defers ran, is waited for without being named.
 - When every task waits, and none on a sleep, a read of stdin or a child, nothing will wake one: the program stops on a deadlock and names the tasks.
+- A debug build names a task in these reports after the place of its `launch`, which `launch` takes through `@call_site()` (§17 *The place of a call: `@call_site()`*): `task #3 (launched at src/main.vader:12:5, in `main`)`. A release build names it `task #3`.
 
 ### Values shared between tasks
 

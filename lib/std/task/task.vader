@@ -61,18 +61,23 @@ Started :: struct {
 @singleton
 started :: fn() -> Started = Started {}
 
-// Start `entry` on a thread, numbered by the count of those started.
-start_thread :: fn(entry: fn() -> void) -> i64 {
+// Start `entry` on a thread, numbered by the count of those started, launched
+// at `site`, empty when the program keeps no place.
+start_thread :: fn(entry: fn() -> void, site: string = "") -> i64 {
     s :: started()
     s.count += 1
-    return spawn_thread(entry, s.count)
+    return spawn_thread(entry, s.count, site)
 }
 
 /// Launch a task that runs `entry`.
 ///
-/// The code after the `launch` goes on until it parks, then the task starts.
+/// The code after the `launch` goes on until it parks, then the task starts. A
+/// debug build names the task after the place of the launch in what the runtime
+/// reports: `task #3 (launched at src/main.vader:12:5, in `main`)`.
 ///
 /// @param entry  what the task runs.
+/// @param site   the place of the launch; a function that launches for its
+///               caller hands its own on.
 /// @return       the task, which `join` waits for.
 /// @example
 ///   # import "std/time"
@@ -82,10 +87,13 @@ start_thread :: fn(entry: fn() -> void) -> i64 {
 ///   })
 ///   t.join()   // 42, after 10 ms
 @task_primitive(runs = "entry")
-export launch :: fn<T>(entry: fn() -> T) -> Task<T> {
+export launch :: fn<T>(entry: fn() -> T, site: SourceLocation | null = @call_site()) -> Task<T> {
+    // Written here, where a release build reads `site` as `null` and drops it;
+    // before the monitor, which the formatting would hold.
+    text :: if site != null { "${site}" } else { "" }
     monitor_enter_to_publish()
     task :: Task<T> { .number = started().count + 1 }
-    task.thread = start_thread(() -> run(task, entry))
+    task.thread = start_thread(() -> run(task, entry), text)
     monitor_exit()
     return task
 }

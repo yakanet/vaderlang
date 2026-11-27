@@ -51,7 +51,7 @@
   expr 41:16    IdentExpr      :: string[]
   expr 41:26    LambdaExpr     :: fn(string) -> Task<i64>
   expr 41:36    CallExpr       :: Task<i64>
-  expr 41:36    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 41:36    IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 41:43    LambdaExpr     :: fn() -> i64
   expr 41:49    CallExpr       :: i64
   expr 41:49    IdentExpr      :: fn(Pipes, string) -> i64
@@ -156,3 +156,4 @@
   expr 60:29    IdentExpr      :: Pipes
   expr 60:5     CallExpr       :: void
   expr 60:5     IdentExpr      :: fn(T) -> void
+  expr 90:72    IntrinsicCallExpr :: null | SourceLocation

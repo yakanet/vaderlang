@@ -31,7 +31,7 @@
   expr 25:30    SeqLitExpr     :: Task<string[]>[]
   expr 26:14    RangeExpr      :: Range<i32>
   expr 27:20    CallExpr       :: Task<string[]>
-  expr 27:20    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 27:20    IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 27:27    LambdaExpr     :: fn() -> string[]
   expr 27:33    CallExpr       :: string[]
   expr 27:33    IdentExpr      :: fn() -> string[]
@@ -82,3 +82,4 @@
   expr 46:5     CallExpr       :: void
   expr 46:5     IdentExpr      :: fn(T) -> void
   expr 46:68    IdentExpr      :: i32
+  expr 90:72    IntrinsicCallExpr :: null | SourceLocation

@@ -28,21 +28,21 @@
   expr 23:26    StringLitExpr  :: string
   expr 23:36    IdentExpr      :: AtomicInt
   expr 23:9     CallExpr       :: Task<i64>
-  expr 23:9     IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 23:9     IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 24:16    LambdaExpr     :: fn() -> i64
   expr 24:22    CallExpr       :: i64
   expr 24:22    IdentExpr      :: fn(string, i64, AtomicInt) -> i64
   expr 24:26    StringLitExpr  :: string
   expr 24:35    IdentExpr      :: AtomicInt
   expr 24:9     CallExpr       :: Task<i64>
-  expr 24:9     IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 24:9     IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 25:16    LambdaExpr     :: fn() -> i64
   expr 25:22    CallExpr       :: i64
   expr 25:22    IdentExpr      :: fn(string, i64, AtomicInt) -> i64
   expr 25:26    StringLitExpr  :: string
   expr 25:35    IdentExpr      :: AtomicInt
   expr 25:9     CallExpr       :: Task<i64>
-  expr 25:9     IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 25:9     IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 27:14    CallExpr       :: (Cancelled | i64)[]
   expr 27:14    IdentExpr      :: fn(Task<T>[]) -> (Cancelled | T)[]
   expr 27:23    IdentExpr      :: Task<i64>[]
@@ -50,3 +50,4 @@
   expr 28:20    IdentExpr      :: Cancelled | i64
   expr 28:9     CallExpr       :: void
   expr 28:9     IdentExpr      :: fn(T) -> void
+  expr 90:72    IntrinsicCallExpr :: null | SourceLocation

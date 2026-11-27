@@ -10,6 +10,7 @@ typedef struct vader_struct___lambda_env_snippet_3_t vader_struct___lambda_env_s
 typedef struct vader_struct___lambda_env_snippet_5_t vader_struct___lambda_env_snippet_5_t;
 typedef struct vader_struct_std_task$Channel__i64_t vader_struct_std_task$Channel__i64_t;
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
+typedef struct vader_struct_std_core$SourceLocation_t vader_struct_std_core$SourceLocation_t;
 typedef struct vader_struct_std_runtime_scheduler$Mutex_t vader_struct_std_runtime_scheduler$Mutex_t;
 typedef struct vader_struct_std_core$Cancelled_t vader_struct_std_core$Cancelled_t;
 typedef struct vader_struct_std_core$Stop_t vader_struct_std_core$Stop_t;
@@ -65,6 +66,14 @@ struct vader_struct_std_task$Channel__i64_t {
 };
 struct vader_struct_std_core$Buffer_t {
 	vader_obj_header_t header;
+};
+struct vader_struct_std_core$SourceLocation_t {
+	vader_obj_header_t header;
+	vader_string_t f_function;
+	vader_string_t f_module;
+	vader_string_t f_file;
+	int32_t f_line;
+	int32_t f_column;
 };
 struct vader_struct_std_runtime_scheduler$Mutex_t {
 	vader_obj_header_t header;
@@ -192,35 +201,49 @@ struct vader_struct___defer_env_std_runtime_scheduler_5_t {
 
 /* Compile-time atom table. */
 static const char vader_atom_blob[] =
+	"receivers_round" "\0"
+	"snippet" "\0"
+	"tests/snippets/channel_waiters_cancelled/_main.vader" "\0"
+	"senders_round" "\0"
 	"bad receivers " "\0"
 	", bad senders " "\0"
+	":" "\0"
+	", in `" "\0"
+	"`" "\0"
 	"\n" "\0"
 	"send: a channel holds at least one message, its capacity is " "\0"
 	"send: the channel is closed" "\0"
 	"remove_first: the queue is empty" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
-	{ 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
-	{ 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15] },
-	{ 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30] },
-	{ 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32] },
-	{ 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[93] },
-	{ 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[121] },
+	{ 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
+	{ 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[16] },
+	{ 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[24] },
+	{ 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[77] },
+	{ 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[91] },
+	{ 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[106] },
+	{ 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[121] },
+	{ 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[123] },
+	{ 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[130] },
+	{ 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[132] },
+	{ 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[134] },
+	{ 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[195] },
+	{ 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[223] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 6u
+#define VADER_COMPTIME_ATOM_COUNT 13u
 
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
-static const struct vader_struct_std_core$Stop_t vader_data_0_e0 = { VADER_STATIC_HEADER(20u) };
+static const struct vader_struct_std_core$Stop_t vader_data_0_e0 = { VADER_STATIC_HEADER(21u) };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
-	VADER_STATIC_BUF_HEADER(20u, 0u, 1u),
+	VADER_STATIC_BUF_HEADER(21u, 0u, 1u),
 	.slots = {
-		{ 20u, 0u, { .obj = (void*) (struct vader_struct_std_core$Stop_t*) &vader_data_0_e0 } },
+		{ 21u, 0u, { .obj = (void*) (struct vader_struct_std_core$Stop_t*) &vader_data_0_e0 } },
 	},
 };
-static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(59u, 1u, &vader_data_0_buf);
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(61u, 1u, &vader_data_0_buf);
 static const struct vader_struct_std_task$Closed_t vader_data_1_e0 = { VADER_STATIC_HEADER(7u) };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_1_buf = {
 	VADER_STATIC_BUF_HEADER(7u, 0u, 1u),
@@ -228,87 +251,87 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_1_buf = {
 		{ 7u, 0u, { .obj = (void*) (struct vader_struct_std_task$Closed_t*) &vader_data_1_e0 } },
 	},
 };
-static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(60u, 1u, &vader_data_1_buf);
+static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(62u, 1u, &vader_data_1_buf);
 static const struct vader_struct___defer_env_std_task_13_t vader_data_2_e0 = {
-	VADER_STATIC_HEADER(35u),
+	VADER_STATIC_HEADER(37u),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_2_buf = {
-	VADER_STATIC_BUF_HEADER(35u, 0u, 1u),
+	VADER_STATIC_BUF_HEADER(37u, 0u, 1u),
 	.slots = {
 		{
-			35u, 0u,
+			37u, 0u,
 			{ .obj = (void*) (struct vader_struct___defer_env_std_task_13_t*) &vader_data_2_e0 },
 		},
 	},
 };
-static const vader_array_t vader_data_2 = VADER_STATIC_ARRAY(61u, 1u, &vader_data_2_buf);
+static const vader_array_t vader_data_2 = VADER_STATIC_ARRAY(63u, 1u, &vader_data_2_buf);
 static const struct vader_struct___defer_env_std_task_5_t vader_data_3_e0 = {
-	VADER_STATIC_HEADER(38u),
-};
-static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_3_buf = {
-	VADER_STATIC_BUF_HEADER(38u, 0u, 1u),
-	.slots = {
-		{
-			38u, 0u,
-			{ .obj = (void*) (struct vader_struct___defer_env_std_task_5_t*) &vader_data_3_e0 },
-		},
-	},
-};
-static const vader_array_t vader_data_3 = VADER_STATIC_ARRAY(62u, 1u, &vader_data_3_buf);
-static const struct vader_struct_std_core$Cancelled_t vader_data_4_e0 = {
-	VADER_STATIC_HEADER(19u),
-};
-static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_4_buf = {
-	VADER_STATIC_BUF_HEADER(19u, 0u, 1u),
-	.slots = {
-		{
-			19u, 0u,
-			{ .obj = (void*) (struct vader_struct_std_core$Cancelled_t*) &vader_data_4_e0 },
-		},
-	},
-};
-static const vader_array_t vader_data_4 = VADER_STATIC_ARRAY(63u, 1u, &vader_data_4_buf);
-static const struct vader_struct___defer_env_std_task_11_t vader_data_5_e0 = {
 	VADER_STATIC_HEADER(40u),
 };
-static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_5_buf = {
+static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_3_buf = {
 	VADER_STATIC_BUF_HEADER(40u, 0u, 1u),
 	.slots = {
 		{
 			40u, 0u,
+			{ .obj = (void*) (struct vader_struct___defer_env_std_task_5_t*) &vader_data_3_e0 },
+		},
+	},
+};
+static const vader_array_t vader_data_3 = VADER_STATIC_ARRAY(64u, 1u, &vader_data_3_buf);
+static const struct vader_struct_std_core$Cancelled_t vader_data_4_e0 = {
+	VADER_STATIC_HEADER(20u),
+};
+static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_4_buf = {
+	VADER_STATIC_BUF_HEADER(20u, 0u, 1u),
+	.slots = {
+		{
+			20u, 0u,
+			{ .obj = (void*) (struct vader_struct_std_core$Cancelled_t*) &vader_data_4_e0 },
+		},
+	},
+};
+static const vader_array_t vader_data_4 = VADER_STATIC_ARRAY(65u, 1u, &vader_data_4_buf);
+static const struct vader_struct___defer_env_std_task_11_t vader_data_5_e0 = {
+	VADER_STATIC_HEADER(42u),
+};
+static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_5_buf = {
+	VADER_STATIC_BUF_HEADER(42u, 0u, 1u),
+	.slots = {
+		{
+			42u, 0u,
 			{ .obj = (void*) (struct vader_struct___defer_env_std_task_11_t*) &vader_data_5_e0 },
 		},
 	},
 };
-static const vader_array_t vader_data_5 = VADER_STATIC_ARRAY(64u, 1u, &vader_data_5_buf);
+static const vader_array_t vader_data_5 = VADER_STATIC_ARRAY(66u, 1u, &vader_data_5_buf);
 static const struct vader_struct___defer_env_std_task_3_t vader_data_6_e0 = {
-	VADER_STATIC_HEADER(41u),
+	VADER_STATIC_HEADER(43u),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_6_buf = {
-	VADER_STATIC_BUF_HEADER(41u, 0u, 1u),
+	VADER_STATIC_BUF_HEADER(43u, 0u, 1u),
 	.slots = {
 		{
-			41u, 0u,
+			43u, 0u,
 			{ .obj = (void*) (struct vader_struct___defer_env_std_task_3_t*) &vader_data_6_e0 },
 		},
 	},
 };
-static const vader_array_t vader_data_6 = VADER_STATIC_ARRAY(65u, 1u, &vader_data_6_buf);
+static const vader_array_t vader_data_6 = VADER_STATIC_ARRAY(67u, 1u, &vader_data_6_buf);
 static const struct vader_struct___defer_env_std_runtime_scheduler_1_t vader_data_7_e0 = {
-	VADER_STATIC_HEADER(51u),
+	VADER_STATIC_HEADER(53u),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_7_buf = {
-	VADER_STATIC_BUF_HEADER(51u, 0u, 1u),
+	VADER_STATIC_BUF_HEADER(53u, 0u, 1u),
 	.slots = {
 		{
-			51u, 0u,
+			53u, 0u,
 			{
 				.obj = (void*) (struct vader_struct___defer_env_std_runtime_scheduler_1_t*) &vader_data_7_e0,
 			},
 		},
 	},
 };
-static const vader_array_t vader_data_7 = VADER_STATIC_ARRAY(66u, 1u, &vader_data_7_buf);
+static const vader_array_t vader_data_7 = VADER_STATIC_ARRAY(68u, 1u, &vader_data_7_buf);
 static int32_t vader_global$std_task$started$state = 0u;
 static void* vader_global$std_task$started$instance = 0u;
 static vader_box_t vader_global$std_task$started$gate = { 0u };
@@ -349,6 +372,7 @@ static void std_console$println__string(vader_string_t l0);
 static void std_console$write(uint8_t l0, vader_string_t l1);
 static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static bool std_console$write_text(uint8_t l0, vader_string_t l1);
+static vader_string_t std_core$SourceLocation$Display$to_string(void* l0);
 static void std_core$drop_last__i64(void* l0);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static vader_box_t std_core$index_of__i64(void* l0, int64_t l1);
@@ -373,8 +397,8 @@ static void std_task$gave_up_receiving__i64(void* l0, int64_t l1);
 static void std_task$gave_up_sending__i64(void* l0, int64_t l1);
 static vader_box_t std_task$join__i64(void* l0);
 static vader_box_t std_task$join__std_task_Closed___i64(void* l0);
-static void* std_task$launch__i64(void* l0);
-static void* std_task$launch__std_task_Closed___i64(void* l0);
+static void* std_task$launch__i64(void* l0, vader_box_t l1);
+static void* std_task$launch__std_task_Closed___i64(void* l0, vader_box_t l1);
 static vader_box_t std_task$outcome__Any(void* l0);
 static vader_box_t std_task$outcome__i64(void* l0);
 static void std_task$put__i64(void* l0, int64_t l1);
@@ -382,7 +406,7 @@ static vader_box_t std_task$receive__i64(void* l0);
 static void std_task$run__Any(void* l0, void* l1);
 static void std_task$run__i64(void* l0, void* l1);
 static void std_task$send__i64(void* l0, int64_t l1);
-static int64_t std_task$start_thread(void* l0);
+static int64_t std_task$start_thread(void* l0, vader_string_t l1);
 static void* std_task$started(void);
 static void std_task$started$keep(void);
 static void* std_task$started$singleton(void);
@@ -401,7 +425,7 @@ static vader_box_t vader_fn_tramp_std_task$started$keep(void* env) {
 }
 
 static vader_fn_t vader_fn_static_std_task$started$keep = {
-	VADER_STATIC_HEADER(17u), (void*) &vader_fn_tramp_std_task$started$keep, NULL,
+	VADER_STATIC_HEADER(18u), (void*) &vader_fn_tramp_std_task$started$keep, NULL,
 };
 
 static vader_box_t vader_fn_lift___lambda_snippet_0(void* env) {
@@ -494,7 +518,7 @@ static vader_box_t vader_fn_lift___defer_std_runtime_scheduler_4(void* env) {
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[67] = {
+const vader_type_info_t vader_type_info_table[69] = {
 	[2] = { .slot_size = 8 },
 	[3] = { .slot_size = 1 },
 	[4] = { .slot_size = 4 },
@@ -533,213 +557,212 @@ const vader_type_info_t vader_type_info_table[67] = {
 		.slot_size = 8,
 	},
 	[13] = {
+		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$SourceLocation_t),
+		.slot_size = 8,
+		.string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_core$SourceLocation_t, f_function), offsetof(vader_struct_std_core$SourceLocation_t, f_module), offsetof(vader_struct_std_core$SourceLocation_t, f_file) },
+		.string_count = 3,
+	},
+	[14] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
 		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
 	},
-	[14] = { .slot_size = 16 },
-	[15] = { .slot_size = 1 },
-	[16] = {
-		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 15u,
-	},
+	[15] = { .slot_size = 16 },
+	[16] = { .slot_size = 1 },
 	[17] = {
+		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 16u,
+	},
+	[18] = {
 		.kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
 		.ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
 	},
-	[18] = {
+	[19] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_runtime_scheduler$Mutex_t),
 		.slot_size = 8,
 	},
-	[19] = {
+	[20] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Cancelled_t),
 		.slot_size = 8,
 	},
-	[20] = {
+	[21] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Stop_t),
 		.slot_size = 8,
 	},
-	[21] = { .slot_size = 16 },
-	[22] = {
+	[22] = { .slot_size = 16 },
+	[23] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_task$Started_t),
 		.slot_size = 8,
 	},
-	[23] = {
+	[24] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___defer_env_std_task_21_t),
 		.slot_size = 8,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct___defer_env_std_task_21_t, f_cap_0) },
 		.ref_count = 1,
 	},
-	[24] = {
+	[25] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___defer_env_std_task_19_t),
 		.slot_size = 8,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct___defer_env_std_task_19_t, f_cap_0) },
 		.ref_count = 1,
 	},
-	[25] = {
+	[26] = {
 		.kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
 		.ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
 	},
-	[26] = {
+	[27] = { .slot_size = 16 },
+	[28] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_task$Task__i64_t),
 		.slot_size = 8, .flags = VADER_TYPE_FLAG_SHARED,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_task$Task__i64_t, f_result), offsetof(vader_struct_std_task$Task__i64_t, f_waiters) },
 		.ref_count = 2,
 	},
-	[27] = {
+	[29] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_std_task_9_t),
 		.slot_size = 8,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_std_task_9_t, f_cap_0), offsetof(vader_struct___lambda_env_std_task_9_t, f_cap_1) },
 		.ref_count = 2,
 	},
-	[28] = {
+	[30] = {
 		.kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
 		.ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
 	},
-	[29] = { .slot_size = 16 },
-	[30] = {
+	[31] = { .slot_size = 16 },
+	[32] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_task$Task__Any_t),
 		.slot_size = 8, .flags = VADER_TYPE_FLAG_SHARED,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_task$Task__Any_t, f_result), offsetof(vader_struct_std_task$Task__Any_t, f_waiters) },
 		.ref_count = 2,
 	},
-	[31] = {
+	[33] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_std_task_1_t),
 		.slot_size = 8,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_std_task_1_t, f_cap_0), offsetof(vader_struct___lambda_env_std_task_1_t, f_cap_1) },
 		.ref_count = 2,
 	},
-	[32] = {
+	[34] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___defer_env_std_task_17_t),
 		.slot_size = 8,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct___defer_env_std_task_17_t, f_cap_0) },
 		.ref_count = 1,
 	},
-	[33] = {
+	[35] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___defer_env_std_task_23_t),
 		.slot_size = 8,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct___defer_env_std_task_23_t, f_cap_0) },
 		.ref_count = 1,
 	},
-	[34] = { .slot_size = 16 },
-	[35] = {
+	[36] = { .slot_size = 16 },
+	[37] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___defer_env_std_task_13_t),
 		.slot_size = 8,
 	},
-	[36] = {
+	[38] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___defer_env_std_task_15_t),
 		.slot_size = 8,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct___defer_env_std_task_15_t, f_cap_0) },
 		.ref_count = 1,
 	},
-	[37] = { .slot_size = 16 },
-	[38] = {
+	[39] = { .slot_size = 16 },
+	[40] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___defer_env_std_task_5_t),
 		.slot_size = 8,
 	},
-	[39] = {
+	[41] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___defer_env_std_task_7_t),
 		.slot_size = 8,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct___defer_env_std_task_7_t, f_cap_0) },
 		.ref_count = 1,
 	},
-	[40] = {
+	[42] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___defer_env_std_task_11_t),
 		.slot_size = 8,
 	},
-	[41] = {
+	[43] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___defer_env_std_task_3_t),
 		.slot_size = 8,
 	},
-	[42] = {
+	[44] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_collections$Queue__i64_t),
 		.slot_size = 8,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$Queue__i64_t, f_items) },
 		.ref_count = 1,
 	},
-	[43] = {
-		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 29u,
-	},
-	[44] = {
-		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 45u,
-	},
 	[45] = {
+		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 31u,
+	},
+	[46] = {
+		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 47u,
+	},
+	[47] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_task$Waiter_t),
 		.slot_size = 8,
 		.ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_std_task$Waiter_t, f_group) },
 		.ptr_count = 1,
 	},
-	[46] = {
+	[48] = {
 		.kind = VADER_TYPE_KIND_STRUCT,
 		.size = sizeof(vader_struct_std_task$Task__std_task_Closed___i64_t), .slot_size = 8,
 		.flags = VADER_TYPE_FLAG_SHARED,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_task$Task__std_task_Closed___i64_t, f_result), offsetof(vader_struct_std_task$Task__std_task_Closed___i64_t, f_waiters) },
 		.ref_count = 2,
 	},
-	[47] = { .slot_size = 16 },
-	[48] = {
+	[49] = { .slot_size = 16 },
+	[50] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_task$Group_t),
 		.slot_size = 8,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_task$Group_t, f_ended) },
 		.ref_count = 1,
 	},
-	[49] = { .slot_size = 16 },
-	[50] = {
+	[51] = { .slot_size = 16 },
+	[52] = {
 		.kind = VADER_TYPE_KIND_STRUCT,
 		.size = sizeof(vader_struct_std_runtime_scheduler$InitGate_t), .slot_size = 8,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_runtime_scheduler$InitGate_t, f_waiters) },
 		.ref_count = 1,
 	},
-	[51] = {
+	[53] = {
 		.kind = VADER_TYPE_KIND_STRUCT,
 		.size = sizeof(vader_struct___defer_env_std_runtime_scheduler_1_t), .slot_size = 8,
 	},
-	[52] = {
+	[54] = {
 		.kind = VADER_TYPE_KIND_STRUCT,
 		.size = sizeof(vader_struct___defer_env_std_runtime_scheduler_3_t), .slot_size = 8,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct___defer_env_std_runtime_scheduler_3_t, f_cap_0) },
 		.ref_count = 1,
 	},
-	[53] = {
+	[55] = {
 		.kind = VADER_TYPE_KIND_STRUCT,
 		.size = sizeof(vader_struct___defer_env_std_runtime_scheduler_5_t), .slot_size = 8,
 		.ref_offsets = (const uint16_t[]){ offsetof(vader_struct___defer_env_std_runtime_scheduler_5_t, f_cap_0) },
 		.ref_count = 1,
 	},
-	[54] = { .slot_size = 4 },
-	[55] = {
+	[56] = { .slot_size = 4 },
+	[57] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 46u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 48u,
 	},
-	[56] = {
+	[58] = {
 		.kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
 		.ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
 	},
-	[57] = { .slot_size = 16 },
-	[58] = {
-		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 26u,
-	},
-	[59] = {
-		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 20u,
-	},
+	[59] = { .slot_size = 16 },
 	[60] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 28u,
 	},
 	[61] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 35u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 21u,
 	},
 	[62] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 38u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
 	},
 	[63] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 19u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 37u,
 	},
 	[64] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -747,14 +770,22 @@ const vader_type_info_t vader_type_info_table[67] = {
 	},
 	[65] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 41u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 20u,
 	},
 	[66] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 51u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 42u,
+	},
+	[67] = {
+		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 43u,
+	},
+	[68] = {
+		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 53u,
 	},
 };
-const size_t vader_type_info_count = 67;
+const size_t vader_type_info_count = 69;
 
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
@@ -764,11 +795,11 @@ const size_t vader_type_info_count = 67;
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 16u, 15u);
+	return (void*) vader_string_bytes_view(a0, 17u, 16u);
 }
 
-static int64_t vader_host_std_core$Runtime$spawn_thread(void* a0, int64_t a1) {
-	return vader_scheduler_spawn_numbered(a0, a1);
+static int64_t vader_host_std_core$Runtime$spawn_thread(void* a0, int64_t a1, vader_string_t a2) {
+	return vader_scheduler_spawn(a0, a1, a2);
 }
 
 static void vader_host_std_core$Runtime$park(void) {
@@ -851,30 +882,31 @@ static int64_t snippet$receivers_round(void) {
 	void* l1 = NULL;
 	void* l2 = NULL;
 	void* l3 = NULL;
+	void* l5 = NULL;
 	int32_t l4;
-	int64_t l5, l6, l7, l9;
-	vader_box_t l8 = vader_box_null();
+	int64_t l6, l7, l8, l10;
+	vader_box_t l9 = vader_box_null();
 	void* t0 = NULL;
 	int32_t t1;
-	vader_box_t* gc_roots[1] = { &l8 };
-	void** gc_raw_roots[5] = { &l0, &l1, &l2, &l3, &t0 };
-	vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 5u, gc_roots, gc_raw_roots, 0u, NULL };
+	vader_box_t* gc_roots[1] = { &l9 };
+	void** gc_raw_roots[6] = { &l0, &l1, &l2, &l3, &l5, &t0 };
+	vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 6u, gc_roots, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
 	vader_struct_std_runtime_scheduler$Mutex_t* _a0_obj = (vader_struct_std_runtime_scheduler$Mutex_t*) vader_gc_alloc(sizeof(vader_struct_std_runtime_scheduler$Mutex_t));
-	vader_obj_header_init(_a0_obj, 18u);
+	vader_obj_header_init(_a0_obj, 19u);
 	_a0_obj->f_word = (uint32_t) 0;
 	l0 = (void*) _a0_obj;
-	vader_array_t* _a1_arr = vader_array_new(13u, 0u, 8u, 2u);
+	vader_array_t* _a1_arr = vader_array_new(14u, 0u, 8u, 2u);
 	t0 = (void*) _a1_arr;
 	vader_struct_std_collections$Queue__i64_t* _a2_obj = (vader_struct_std_collections$Queue__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$Queue__i64_t));
-	vader_obj_header_init(_a2_obj, 42u);
+	vader_obj_header_init(_a2_obj, 44u);
 	_a2_obj->f_items = t0;
 	_a2_obj->f_head = INT64_C(0);
 	_a2_obj->f_size = INT64_C(0);
 	l1 = (void*) _a2_obj;
-	vader_array_t* _a3_arr = vader_array_new(13u, 0u, 8u, 2u);
+	vader_array_t* _a3_arr = vader_array_new(14u, 0u, 8u, 2u);
 	l2 = (void*) _a3_arr;
-	vader_array_t* _a4_arr = vader_array_new(13u, 0u, 8u, 2u);
+	vader_array_t* _a4_arr = vader_array_new(14u, 0u, 8u, 2u);
 	l3 = (void*) _a4_arr;
 	vader_struct_std_task$Channel__i64_t* _a5_obj = (vader_struct_std_task$Channel__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Channel__i64_t));
 	vader_obj_header_init(_a5_obj, 11u);
@@ -887,7 +919,7 @@ static int64_t snippet$receivers_round(void) {
 	_a5_obj->f_sender_woken = false;
 	_a5_obj->f_receiver_woken = false;
 	l0 = (void*) _a5_obj;
-	vader_array_t* _a6_arr = vader_array_reserve(55u, (int64_t) INT64_C(8), 13u, 46u);
+	vader_array_t* _a6_arr = vader_array_reserve(57u, (int64_t) INT64_C(8), 13u, 48u);
 	l1 = (void*) _a6_arr;
 	l4 = INT32_C(0);
 	while ((l4 < INT32_C(8))) {
@@ -896,50 +928,58 @@ static int64_t snippet$receivers_round(void) {
 		_a7_obj->f_cap_0 = l0;
 		t0 = (void*) _a7_obj;
 		vader_fn_t* _a8_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-		vader_obj_header_init(_a8_closure, 56u);
+		vader_obj_header_init(_a8_closure, 58u);
 		_a8_closure->code = (void*) &vader_fn_lift___lambda_snippet_0;
 		_a8_closure->env = t0;
-		t0 = (void*) _a8_closure;
-		l2 = std_task$launch__std_task_Closed___i64(t0);
-		vader_array_push_ref((vader_array_t*) l1, l2);
+		l2 = (void*) _a8_closure;
+		vader_struct_std_core$SourceLocation_t* _a9_obj = (vader_struct_std_core$SourceLocation_t*) vader_gc_alloc(sizeof(vader_struct_std_core$SourceLocation_t));
+		vader_obj_header_init(_a9_obj, 13u);
+		_a9_obj->f_function = 1u;
+		_a9_obj->f_module = 2u;
+		_a9_obj->f_file = 3u;
+		_a9_obj->f_line = INT32_C(15);
+		_a9_obj->f_column = INT32_C(20);
+		l3 = (void*) _a9_obj;
+		l5 = std_task$launch__std_task_Closed___i64(l2, vader_ref_box(l3));
+		vader_array_push_ref((vader_array_t*) l1, l5);
 		l4 = (l4 + INT32_C(1));
 	}
 	l4 = INT32_C(0);
 	while ((l4 < INT32_C(8))) {
 		t1 = vader_mod_i32(l4, INT32_C(2));
 		if (t1 == INT32_C(0)) {
-			vader_array_t* _a9_slotarr = ((vader_array_t*) l1);
-			VADER_ARRAY_RESOLVE_BUF(_a9_slotarr)
-			VADER_ARRAY_CHECK_INDEX(_a9_slotarr, l4)
-			t0 = vader_array_ref_load_obj(_a9_slotarr->buf, vader_array_offset(_a9_slotarr) + (size_t) l4);
+			vader_array_t* _a10_slotarr = ((vader_array_t*) l1);
+			VADER_ARRAY_RESOLVE_BUF(_a10_slotarr)
+			VADER_ARRAY_CHECK_INDEX(_a10_slotarr, l4)
+			t0 = vader_array_ref_load_obj(_a10_slotarr->buf, vader_array_offset(_a10_slotarr) + (size_t) l4);
 			std_task$cancel__std_task_Closed___i64(t0);
 		}
 		l4 = (l4 + INT32_C(1));
 	}
 	l4 = INT32_C(1);
 	while ((l4 <= INT32_C(4))) {
-		l5 = ((int64_t) (int32_t) l4);
-		std_task$send__i64(l0, l5);
+		l6 = ((int64_t) (int32_t) l4);
+		std_task$send__i64(l0, l6);
 		l4 = (l4 + INT32_C(1));
 	}
 	std_task$close__i64(l0);
-	l5 = INT64_C(0);
+	l6 = INT64_C(0);
 	l0 = l1;
-	l6 = vader_array_length(((vader_array_t*) l0));
-	l7 = INT64_C(0);
-	while ((l7 < l6)) {
-		vader_array_t* _a10_slotarr = ((vader_array_t*) l0);
-		VADER_ARRAY_RESOLVE_BUF(_a10_slotarr)
-		VADER_ARRAY_CHECK_INDEX(_a10_slotarr, l7)
-		t0 = vader_array_ref_load_obj(_a10_slotarr->buf, vader_array_offset(_a10_slotarr) + (size_t) l7);
-		l8 = std_task$join__std_task_Closed___i64(t0);
-		if (l8.tag == 2u) {
-			l9 = ((int64_t) l8.payload.i);
-			l5 = vader_chk_add(i64, l5, l9);
+	l7 = vader_array_length(((vader_array_t*) l0));
+	l8 = INT64_C(0);
+	while ((l8 < l7)) {
+		vader_array_t* _a11_slotarr = ((vader_array_t*) l0);
+		VADER_ARRAY_RESOLVE_BUF(_a11_slotarr)
+		VADER_ARRAY_CHECK_INDEX(_a11_slotarr, l8)
+		t0 = vader_array_ref_load_obj(_a11_slotarr->buf, vader_array_offset(_a11_slotarr) + (size_t) l8);
+		l9 = std_task$join__std_task_Closed___i64(t0);
+		if (l9.tag == 2u) {
+			l10 = ((int64_t) l9.payload.i);
+			l6 = vader_chk_add(i64, l6, l10);
 		}
-		l7 = (l7 + INT64_C(1));
+		l8 = (l8 + INT64_C(1));
 	}
-	{ int64_t __vret = l5; vader_gc_top = gc_frame.prev; return __vret; }
+	{ int64_t __vret = l6; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static bool snippet$senders_round(void) {
@@ -947,31 +987,32 @@ static bool snippet$senders_round(void) {
 	void* l1 = NULL;
 	void* l2 = NULL;
 	void* l3 = NULL;
+	void* l5 = NULL;
 	int32_t l4;
-	int64_t l5, l6, l7, l9;
-	vader_box_t l8 = vader_box_null();
+	int64_t l6, l7, l8, l10;
+	vader_box_t l9 = vader_box_null();
 	void* t0 = NULL;
 	int32_t t1;
 	int64_t t2;
-	vader_box_t* gc_roots[1] = { &l8 };
-	void** gc_raw_roots[5] = { &l0, &l1, &l2, &l3, &t0 };
-	vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 5u, gc_roots, gc_raw_roots, 0u, NULL };
+	vader_box_t* gc_roots[1] = { &l9 };
+	void** gc_raw_roots[6] = { &l0, &l1, &l2, &l3, &l5, &t0 };
+	vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 6u, gc_roots, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
 	vader_struct_std_runtime_scheduler$Mutex_t* _a0_obj = (vader_struct_std_runtime_scheduler$Mutex_t*) vader_gc_alloc(sizeof(vader_struct_std_runtime_scheduler$Mutex_t));
-	vader_obj_header_init(_a0_obj, 18u);
+	vader_obj_header_init(_a0_obj, 19u);
 	_a0_obj->f_word = (uint32_t) 0;
 	l0 = (void*) _a0_obj;
-	vader_array_t* _a1_arr = vader_array_new(13u, 0u, 8u, 2u);
+	vader_array_t* _a1_arr = vader_array_new(14u, 0u, 8u, 2u);
 	t0 = (void*) _a1_arr;
 	vader_struct_std_collections$Queue__i64_t* _a2_obj = (vader_struct_std_collections$Queue__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$Queue__i64_t));
-	vader_obj_header_init(_a2_obj, 42u);
+	vader_obj_header_init(_a2_obj, 44u);
 	_a2_obj->f_items = t0;
 	_a2_obj->f_head = INT64_C(0);
 	_a2_obj->f_size = INT64_C(0);
 	l1 = (void*) _a2_obj;
-	vader_array_t* _a3_arr = vader_array_new(13u, 0u, 8u, 2u);
+	vader_array_t* _a3_arr = vader_array_new(14u, 0u, 8u, 2u);
 	l2 = (void*) _a3_arr;
-	vader_array_t* _a4_arr = vader_array_new(13u, 0u, 8u, 2u);
+	vader_array_t* _a4_arr = vader_array_new(14u, 0u, 8u, 2u);
 	l3 = (void*) _a4_arr;
 	vader_struct_std_task$Channel__i64_t* _a5_obj = (vader_struct_std_task$Channel__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Channel__i64_t));
 	vader_obj_header_init(_a5_obj, 11u);
@@ -985,7 +1026,7 @@ static bool snippet$senders_round(void) {
 	_a5_obj->f_receiver_woken = false;
 	l0 = (void*) _a5_obj;
 	std_task$send__i64(l0, INT64_C(1));
-	vader_array_t* _a6_arr = vader_array_reserve(58u, (int64_t) INT64_C(8), 13u, 26u);
+	vader_array_t* _a6_arr = vader_array_reserve(60u, (int64_t) INT64_C(8), 13u, 28u);
 	l1 = (void*) _a6_arr;
 	l4 = INT32_C(0);
 	while ((l4 < INT32_C(8))) {
@@ -994,56 +1035,72 @@ static bool snippet$senders_round(void) {
 		_a7_obj->f_cap_0 = l0;
 		t0 = (void*) _a7_obj;
 		vader_fn_t* _a8_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-		vader_obj_header_init(_a8_closure, 25u);
+		vader_obj_header_init(_a8_closure, 26u);
 		_a8_closure->code = (void*) &vader_fn_lift___lambda_snippet_2;
 		_a8_closure->env = t0;
-		t0 = (void*) _a8_closure;
-		l2 = std_task$launch__i64(t0);
-		vader_array_push_ref((vader_array_t*) l1, l2);
+		l2 = (void*) _a8_closure;
+		vader_struct_std_core$SourceLocation_t* _a9_obj = (vader_struct_std_core$SourceLocation_t*) vader_gc_alloc(sizeof(vader_struct_std_core$SourceLocation_t));
+		vader_obj_header_init(_a9_obj, 13u);
+		_a9_obj->f_function = 4u;
+		_a9_obj->f_module = 2u;
+		_a9_obj->f_file = 3u;
+		_a9_obj->f_line = INT32_C(43);
+		_a9_obj->f_column = INT32_C(20);
+		l3 = (void*) _a9_obj;
+		l5 = std_task$launch__i64(l2, vader_ref_box(l3));
+		vader_array_push_ref((vader_array_t*) l1, l5);
 		l4 = (l4 + INT32_C(1));
 	}
 	l4 = INT32_C(0);
 	while ((l4 < INT32_C(8))) {
 		t1 = vader_mod_i32(l4, INT32_C(2));
 		if (t1 == INT32_C(0)) {
-			vader_array_t* _a9_slotarr = ((vader_array_t*) l1);
-			VADER_ARRAY_RESOLVE_BUF(_a9_slotarr)
-			VADER_ARRAY_CHECK_INDEX(_a9_slotarr, l4)
-			t0 = vader_array_ref_load_obj(_a9_slotarr->buf, vader_array_offset(_a9_slotarr) + (size_t) l4);
+			vader_array_t* _a10_slotarr = ((vader_array_t*) l1);
+			VADER_ARRAY_RESOLVE_BUF(_a10_slotarr)
+			VADER_ARRAY_CHECK_INDEX(_a10_slotarr, l4)
+			t0 = vader_array_ref_load_obj(_a10_slotarr->buf, vader_array_offset(_a10_slotarr) + (size_t) l4);
 			std_task$cancel__i64(t0);
 		}
 		l4 = (l4 + INT32_C(1));
 	}
-	vader_struct___lambda_env_snippet_5_t* _a10_obj = (vader_struct___lambda_env_snippet_5_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_5_t));
-	vader_obj_header_init(_a10_obj, 9u);
-	_a10_obj->f_cap_0 = l0;
-	t0 = (void*) _a10_obj;
-	vader_fn_t* _a11_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-	vader_obj_header_init(_a11_closure, 25u);
-	_a11_closure->code = (void*) &vader_fn_lift___lambda_snippet_4;
-	_a11_closure->env = t0;
-	t0 = (void*) _a11_closure;
-	l2 = std_task$launch__i64(t0);
-	l5 = INT64_C(1);
-	l6 = vader_array_length(((vader_array_t*) l1));
-	l7 = INT64_C(0);
-	while ((l7 < l6)) {
-		vader_array_t* _a12_slotarr = ((vader_array_t*) l1);
-		VADER_ARRAY_RESOLVE_BUF(_a12_slotarr)
-		VADER_ARRAY_CHECK_INDEX(_a12_slotarr, l7)
-		t0 = vader_array_ref_load_obj(_a12_slotarr->buf, vader_array_offset(_a12_slotarr) + (size_t) l7);
-		l8 = std_task$join__i64(t0);
-		if (l8.tag == 2u) {
-			l9 = ((int64_t) l8.payload.i);
-			l5 = vader_chk_add(i64, l5, l9);
+	vader_struct___lambda_env_snippet_5_t* _a11_obj = (vader_struct___lambda_env_snippet_5_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_5_t));
+	vader_obj_header_init(_a11_obj, 9u);
+	_a11_obj->f_cap_0 = l0;
+	t0 = (void*) _a11_obj;
+	vader_fn_t* _a12_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
+	vader_obj_header_init(_a12_closure, 26u);
+	_a12_closure->code = (void*) &vader_fn_lift___lambda_snippet_4;
+	_a12_closure->env = t0;
+	l2 = (void*) _a12_closure;
+	vader_struct_std_core$SourceLocation_t* _a13_obj = (vader_struct_std_core$SourceLocation_t*) vader_gc_alloc(sizeof(vader_struct_std_core$SourceLocation_t));
+	vader_obj_header_init(_a13_obj, 13u);
+	_a13_obj->f_function = 4u;
+	_a13_obj->f_module = 2u;
+	_a13_obj->f_file = 3u;
+	_a13_obj->f_line = INT32_C(53);
+	_a13_obj->f_column = INT32_C(16);
+	l3 = (void*) _a13_obj;
+	l2 = std_task$launch__i64(l2, vader_ref_box(l3));
+	l6 = INT64_C(1);
+	l7 = vader_array_length(((vader_array_t*) l1));
+	l8 = INT64_C(0);
+	while ((l8 < l7)) {
+		vader_array_t* _a14_slotarr = ((vader_array_t*) l1);
+		VADER_ARRAY_RESOLVE_BUF(_a14_slotarr)
+		VADER_ARRAY_CHECK_INDEX(_a14_slotarr, l8)
+		t0 = vader_array_ref_load_obj(_a14_slotarr->buf, vader_array_offset(_a14_slotarr) + (size_t) l8);
+		l9 = std_task$join__i64(t0);
+		if (l9.tag == 2u) {
+			l10 = ((int64_t) l9.payload.i);
+			l6 = vader_chk_add(i64, l6, l10);
 		}
-		l7 = (l7 + INT64_C(1));
+		l8 = (l8 + INT64_C(1));
 	}
 	std_task$close__i64(l0);
-	l8 = std_task$join__i64(l2);
-	if (l8.tag == 2u) {
-		t2 = ((int64_t) l8.payload.i);
-		{ bool __vret = t2 == l5; vader_gc_top = gc_frame.prev; return __vret; }
+	l9 = std_task$join__i64(l2);
+	if (l9.tag == 2u) {
+		t2 = ((int64_t) l9.payload.i);
+		{ bool __vret = t2 == l6; vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	{ vader_gc_top = gc_frame.prev; return false; }
 }
@@ -1077,9 +1134,9 @@ static int32_t snippet$main(void) {
 	}
 	l3 = (void*) vader_buffer_new((size_t) INT64_C(68));
 	l4 = INT64_C(0);
-	l4 = std_core$write_string_at(l3, l4, 1u);
+	l4 = std_core$write_string_at(l3, l4, 5u);
 	l4 = std_core$write_int(l3, l4, l0);
-	l4 = std_core$write_string_at(l3, l4, 2u);
+	l4 = std_core$write_string_at(l3, l4, 6u);
 	l4 = std_core$write_int(l3, l4, l1);
 	t2 = std_core$finish_buffer(l3, l4);
 	std_console$println__string(t2);
@@ -1109,7 +1166,7 @@ static int64_t __lambda_snippet_4(void* l0) {
 	l2 = ((vader_struct___lambda_env_snippet_5_t*) l0)->f_cap_0;
 	for (;;) {
 		l3 = std_task$Channel$std_core$Iterator$next__i64(l2);
-		if (!(l3.tag == 20u)) {
+		if (!(l3.tag == 21u)) {
 			l4 = ((int64_t) l3.payload.i);
 			l1 = vader_chk_add(i64, l1, l4);
 			continue;
@@ -1205,6 +1262,42 @@ static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2) {
 	}
 	t0 = vader_chk_add(i64, l1, l5);
 	return t0;
+}
+
+static vader_string_t std_core$SourceLocation$Display$to_string(void* l0) {
+	vader_string_t l1 = 0;
+	vader_string_t l4 = 0;
+	int32_t l2, l3;
+	int64_t l5, l6;
+	void* l7 = NULL;
+	vader_string_t t0 = 0;
+	void** gc_raw_roots[2] = { &l0, &l7 };
+	vader_string_t* gc_atom_roots[3] = { &l1, &l4, &t0 };
+	vader_gc_frame_t gc_frame = {
+		vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
+	};
+	vader_gc_top = &gc_frame;
+	l1 = ((vader_struct_std_core$SourceLocation_t*) l0)->f_file;
+	l2 = ((vader_struct_std_core$SourceLocation_t*) l0)->f_line;
+	l3 = ((vader_struct_std_core$SourceLocation_t*) l0)->f_column;
+	l4 = ((vader_struct_std_core$SourceLocation_t*) l0)->f_function;
+	l5 = (int64_t) vader_string_byte_len(l1);
+	l6 = (int64_t) vader_string_byte_len(l4);
+	l5 = (l5 + l6);
+	l7 = (void*) vader_buffer_new((size_t) (INT64_C(49) + l5));
+	l5 = INT64_C(0);
+	l5 = std_core$write_string_at(l7, l5, l1);
+	l5 = std_core$write_string_at(l7, l5, 7u);
+	l6 = ((int64_t) (int32_t) l2);
+	l5 = std_core$write_int(l7, l5, l6);
+	l5 = std_core$write_string_at(l7, l5, 7u);
+	l6 = ((int64_t) (int32_t) l3);
+	l5 = std_core$write_int(l7, l5, l6);
+	l5 = std_core$write_string_at(l7, l5, 8u);
+	l5 = std_core$write_string_at(l7, l5, l4);
+	l5 = std_core$write_string_at(l7, l5, 9u);
+	t0 = std_core$finish_buffer(l7, l5);
+	{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t std_core$index_of__i64(void* l0, int64_t l1) {
@@ -1320,7 +1413,7 @@ static void std_console$println__string(vader_string_t l0) {
 	vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
 	vader_gc_top = &gc_frame;
-	l1 = concat_2(l0, 3u);
+	l1 = concat_2(l0, 10u);
 	std_console$write((uint8_t) 0, l1);
 	{ vader_gc_top = gc_frame.prev; return; }
 }
@@ -1380,7 +1473,7 @@ static void* std_task$started$singleton(void) {
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
 	vader_struct_std_task$Started_t* _a0_obj = (vader_struct_std_task$Started_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Started_t));
-	vader_obj_header_init(_a0_obj, 22u);
+	vader_obj_header_init(_a0_obj, 23u);
 	_a0_obj->f_count = INT64_C(0);
 	t0 = (void*) _a0_obj;
 	{ void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -1402,25 +1495,28 @@ static void std_task$started$keep(void) {
 	{ vader_gc_top = gc_frame.prev; return; }
 }
 
-static int64_t std_task$start_thread(void* l0) {
-	void* l1 = NULL;
-	int64_t l2;
+static int64_t std_task$start_thread(void* l0, vader_string_t l1) {
+	void* l2 = NULL;
+	int64_t l3;
 	int32_t t0;
 	int64_t t1;
-	void** gc_raw_roots[2] = { &l0, &l1 };
-	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
+	void** gc_raw_roots[2] = { &l0, &l2 };
+	vader_string_t* gc_atom_roots[1] = { &l1 };
+	vader_gc_frame_t gc_frame = {
+		vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+	};
 	vader_gc_top = &gc_frame;
 	t0 = vader_global$std_task$started$state;
 	if (t0 == INT32_C(2)) {
-		l1 = vader_global$std_task$started$instance;
+		l2 = vader_global$std_task$started$instance;
 	} else {
-		l1 = std_task$started();
+		l2 = std_task$started();
 	}
-	t1 = ((vader_struct_std_task$Started_t*) l1)->f_count;
-	l2 = vader_chk_add(i64, t1, INT64_C(1));
-	((vader_struct_std_task$Started_t*) l1)->f_count = l2;
-	l2 = ((vader_struct_std_task$Started_t*) l1)->f_count;
-	t1 = vader_host_std_core$Runtime$spawn_thread(l0, l2);
+	t1 = ((vader_struct_std_task$Started_t*) l2)->f_count;
+	l3 = vader_chk_add(i64, t1, INT64_C(1));
+	((vader_struct_std_task$Started_t*) l2)->f_count = l3;
+	l3 = ((vader_struct_std_task$Started_t*) l2)->f_count;
+	t1 = vader_host_std_core$Runtime$spawn_thread(l0, l3, l1);
 	{ int64_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1442,7 +1538,7 @@ static void std_task$send__i64(void* l0, int64_t l1) {
 	if ((t0 < INT64_C(1))) {
 		l2 = (void*) vader_buffer_new((size_t) INT64_C(80));
 		l3 = INT64_C(0);
-		l3 = std_core$write_string_at(l2, l3, 4u);
+		l3 = std_core$write_string_at(l2, l3, 11u);
 		l4 = ((vader_struct_std_task$Channel__i64_t*) l0)->f_capacity;
 		l3 = std_core$write_int(l2, l3, l4);
 		t1 = std_core$finish_buffer(l2, l3);
@@ -1462,7 +1558,7 @@ static void std_task$send__i64(void* l0, int64_t l1) {
 			std_task$put__i64(l0, l1);
 			{ vader_gc_top = gc_frame.prev; return; }
 		}
-		vader_host_std_core$Runtime$panic(5u);
+		vader_host_std_core$Runtime$panic(12u);
 		vader_unreachable("a no-return call returned");
 	}
 	vader_gc_top = gc_frame.prev;
@@ -1577,12 +1673,12 @@ static void std_task$await_room__i64(void* l0) {
 	l1 = vader_host_std_core$Runtime$current_thread();
 	vader_array_push_i64((vader_array_t*) ((vader_struct_std_task$Channel__i64_t*) l0)->f_senders, l1);
 	vader_struct___defer_env_std_task_21_t* _a0_obj = (vader_struct___defer_env_std_task_21_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_task_21_t));
-	vader_obj_header_init(_a0_obj, 23u);
+	vader_obj_header_init(_a0_obj, 24u);
 	_a0_obj->f_cap_0 = l0;
 	_a0_obj->f_cap_1 = l1;
 	t0 = (void*) _a0_obj;
 	vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-	vader_obj_header_init(_a1_closure, 17u);
+	vader_obj_header_init(_a1_closure, 18u);
 	_a1_closure->code = (void*) &vader_fn_lift___defer_std_task_20;
 	_a1_closure->env = t0;
 	t0 = (void*) _a1_closure;
@@ -1623,12 +1719,12 @@ static void std_task$await_message__i64(void* l0) {
 	l1 = vader_host_std_core$Runtime$current_thread();
 	vader_array_push_i64((vader_array_t*) ((vader_struct_std_task$Channel__i64_t*) l0)->f_receivers, l1);
 	vader_struct___defer_env_std_task_19_t* _a0_obj = (vader_struct___defer_env_std_task_19_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_task_19_t));
-	vader_obj_header_init(_a0_obj, 24u);
+	vader_obj_header_init(_a0_obj, 25u);
 	_a0_obj->f_cap_0 = l0;
 	_a0_obj->f_cap_1 = l1;
 	t0 = (void*) _a0_obj;
 	vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-	vader_obj_header_init(_a1_closure, 17u);
+	vader_obj_header_init(_a1_closure, 18u);
 	_a1_closure->code = (void*) &vader_fn_lift___defer_std_task_18;
 	_a1_closure->env = t0;
 	t0 = (void*) _a1_closure;
@@ -1734,51 +1830,62 @@ static void std_task$wake_receiver__i64(void* l0) {
 	return;
 }
 
-static void* std_task$launch__i64(void* l0) {
-	void* l1 = NULL;
+static void* std_task$launch__i64(void* l0, vader_box_t l1) {
+	vader_string_t l2 = 0;
 	void* l3 = NULL;
-	int64_t l2;
-	int32_t t0;
-	int64_t t1;
-	void* t2 = NULL;
-	void** gc_raw_roots[4] = { &l0, &l1, &l3, &t2 };
-	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
+	void* l5 = NULL;
+	int64_t l4;
+	void* t0 = NULL;
+	int32_t t1;
+	int64_t t2;
+	vader_box_t* gc_roots[1] = { &l1 };
+	void** gc_raw_roots[4] = { &l0, &l3, &l5, &t0 };
+	vader_string_t* gc_atom_roots[1] = { &l2 };
+	vader_gc_frame_t gc_frame = {
+		vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+	};
 	vader_gc_top = &gc_frame;
-	std_runtime_scheduler$monitor_enter_to_publish();
-	t0 = vader_global$std_task$started$state;
-	if (t0 == INT32_C(2)) {
-		l1 = vader_global$std_task$started$instance;
+	if (l1.tag == 0u) {
+		l2 = 0u;
 	} else {
-		l1 = std_task$started();
+		t0 = l1.payload.obj;
+		l2 = std_core$SourceLocation$Display$to_string(t0);
 	}
-	t1 = ((vader_struct_std_task$Started_t*) l1)->f_count;
-	l2 = vader_chk_add(i64, t1, INT64_C(1));
-	vader_array_t* _a0_arr = vader_array_new(13u, 0u, 8u, 2u);
-	l1 = (void*) _a0_arr;
-	vader_array_t* _a1_arr = vader_array_new(44u, 0u, 13u, 45u);
-	l3 = (void*) _a1_arr;
+	std_runtime_scheduler$monitor_enter_to_publish();
+	t1 = vader_global$std_task$started$state;
+	if (t1 == INT32_C(2)) {
+		l3 = vader_global$std_task$started$instance;
+	} else {
+		l3 = std_task$started();
+	}
+	t2 = ((vader_struct_std_task$Started_t*) l3)->f_count;
+	l4 = vader_chk_add(i64, t2, INT64_C(1));
+	vader_array_t* _a0_arr = vader_array_new(14u, 0u, 8u, 2u);
+	l3 = (void*) _a0_arr;
+	vader_array_t* _a1_arr = vader_array_new(46u, 0u, 13u, 47u);
+	l5 = (void*) _a1_arr;
 	vader_struct_std_task$Task__i64_t* _a2_obj = (vader_struct_std_task$Task__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Task__i64_t));
-	vader_obj_header_init(_a2_obj, 26u);
-	_a2_obj->f_number = l2;
+	vader_obj_header_init(_a2_obj, 28u);
+	_a2_obj->f_number = l4;
 	_a2_obj->f_thread = INT64_C(-1);
 	_a2_obj->f_ended = false;
-	_a2_obj->f_result = l1;
-	_a2_obj->f_waiters = l3;
-	l1 = (void*) _a2_obj;
+	_a2_obj->f_result = l3;
+	_a2_obj->f_waiters = l5;
+	l3 = (void*) _a2_obj;
 	vader_struct___lambda_env_std_task_9_t* _a3_obj = (vader_struct___lambda_env_std_task_9_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_std_task_9_t));
-	vader_obj_header_init(_a3_obj, 27u);
-	_a3_obj->f_cap_0 = l1;
+	vader_obj_header_init(_a3_obj, 29u);
+	_a3_obj->f_cap_0 = l3;
 	_a3_obj->f_cap_1 = l0;
-	t2 = (void*) _a3_obj;
+	t0 = (void*) _a3_obj;
 	vader_fn_t* _a4_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-	vader_obj_header_init(_a4_closure, 17u);
+	vader_obj_header_init(_a4_closure, 18u);
 	_a4_closure->code = (void*) &vader_fn_lift___lambda_std_task_8;
-	_a4_closure->env = t2;
-	t2 = (void*) _a4_closure;
-	l2 = std_task$start_thread(t2);
-	((vader_struct_std_task$Task__i64_t*) l1)->f_thread = l2;
+	_a4_closure->env = t0;
+	t0 = (void*) _a4_closure;
+	l4 = std_task$start_thread(t0, l2);
+	((vader_struct_std_task$Task__i64_t*) l3)->f_thread = l4;
 	vader_host_std_core$Runtime$monitor_exit();
-	{ void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
+	{ void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void __lambda_std_task_8(void* l0) {
@@ -1793,51 +1900,62 @@ static void __lambda_std_task_8(void* l0) {
 	{ vader_gc_top = gc_frame.prev; return; }
 }
 
-static void* std_task$launch__std_task_Closed___i64(void* l0) {
-	void* l1 = NULL;
+static void* std_task$launch__std_task_Closed___i64(void* l0, vader_box_t l1) {
+	vader_string_t l2 = 0;
 	void* l3 = NULL;
-	int64_t l2;
-	int32_t t0;
-	int64_t t1;
-	void* t2 = NULL;
-	void** gc_raw_roots[4] = { &l0, &l1, &l3, &t2 };
-	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
+	void* l5 = NULL;
+	int64_t l4;
+	void* t0 = NULL;
+	int32_t t1;
+	int64_t t2;
+	vader_box_t* gc_roots[1] = { &l1 };
+	void** gc_raw_roots[4] = { &l0, &l3, &l5, &t0 };
+	vader_string_t* gc_atom_roots[1] = { &l2 };
+	vader_gc_frame_t gc_frame = {
+		vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+	};
 	vader_gc_top = &gc_frame;
-	std_runtime_scheduler$monitor_enter_to_publish();
-	t0 = vader_global$std_task$started$state;
-	if (t0 == INT32_C(2)) {
-		l1 = vader_global$std_task$started$instance;
+	if (l1.tag == 0u) {
+		l2 = 0u;
 	} else {
-		l1 = std_task$started();
+		t0 = l1.payload.obj;
+		l2 = std_core$SourceLocation$Display$to_string(t0);
 	}
-	t1 = ((vader_struct_std_task$Started_t*) l1)->f_count;
-	l2 = vader_chk_add(i64, t1, INT64_C(1));
-	vader_array_t* _a0_arr = vader_array_new(43u, 0u, 0u, 29u);
-	l1 = (void*) _a0_arr;
-	vader_array_t* _a1_arr = vader_array_new(44u, 0u, 13u, 45u);
-	l3 = (void*) _a1_arr;
+	std_runtime_scheduler$monitor_enter_to_publish();
+	t1 = vader_global$std_task$started$state;
+	if (t1 == INT32_C(2)) {
+		l3 = vader_global$std_task$started$instance;
+	} else {
+		l3 = std_task$started();
+	}
+	t2 = ((vader_struct_std_task$Started_t*) l3)->f_count;
+	l4 = vader_chk_add(i64, t2, INT64_C(1));
+	vader_array_t* _a0_arr = vader_array_new(45u, 0u, 0u, 31u);
+	l3 = (void*) _a0_arr;
+	vader_array_t* _a1_arr = vader_array_new(46u, 0u, 13u, 47u);
+	l5 = (void*) _a1_arr;
 	vader_struct_std_task$Task__Any_t* _a2_obj = (vader_struct_std_task$Task__Any_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Task__Any_t));
-	vader_obj_header_init(_a2_obj, 30u);
-	_a2_obj->f_number = l2;
+	vader_obj_header_init(_a2_obj, 32u);
+	_a2_obj->f_number = l4;
 	_a2_obj->f_thread = INT64_C(-1);
 	_a2_obj->f_ended = false;
-	_a2_obj->f_result = l1;
-	_a2_obj->f_waiters = l3;
-	l1 = (void*) _a2_obj;
+	_a2_obj->f_result = l3;
+	_a2_obj->f_waiters = l5;
+	l3 = (void*) _a2_obj;
 	vader_struct___lambda_env_std_task_1_t* _a3_obj = (vader_struct___lambda_env_std_task_1_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_std_task_1_t));
-	vader_obj_header_init(_a3_obj, 31u);
-	_a3_obj->f_cap_0 = l1;
+	vader_obj_header_init(_a3_obj, 33u);
+	_a3_obj->f_cap_0 = l3;
 	_a3_obj->f_cap_1 = l0;
-	t2 = (void*) _a3_obj;
+	t0 = (void*) _a3_obj;
 	vader_fn_t* _a4_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-	vader_obj_header_init(_a4_closure, 17u);
+	vader_obj_header_init(_a4_closure, 18u);
 	_a4_closure->code = (void*) &vader_fn_lift___lambda_std_task_0;
-	_a4_closure->env = t2;
-	t2 = (void*) _a4_closure;
-	l2 = std_task$start_thread(t2);
-	((vader_struct_std_task$Task__Any_t*) l1)->f_thread = l2;
+	_a4_closure->env = t0;
+	t0 = (void*) _a4_closure;
+	l4 = std_task$start_thread(t0, l2);
+	((vader_struct_std_task$Task__Any_t*) l3)->f_thread = l4;
 	vader_host_std_core$Runtime$monitor_exit();
-	{ void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
+	{ void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void __lambda_std_task_0(void* l0) {
@@ -1862,11 +1980,11 @@ static void std_task$run__Any(void* l0, void* l1) {
 	vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
 	vader_struct___defer_env_std_task_17_t* _a0_obj = (vader_struct___defer_env_std_task_17_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_task_17_t));
-	vader_obj_header_init(_a0_obj, 32u);
+	vader_obj_header_init(_a0_obj, 34u);
 	_a0_obj->f_cap_0 = l0;
 	t0 = (void*) _a0_obj;
 	vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-	vader_obj_header_init(_a1_closure, 17u);
+	vader_obj_header_init(_a1_closure, 18u);
 	_a1_closure->code = (void*) &vader_fn_lift___defer_std_task_16;
 	_a1_closure->env = t0;
 	t0 = (void*) _a1_closure;
@@ -1900,11 +2018,11 @@ static void std_task$run__i64(void* l0, void* l1) {
 	vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
 	vader_struct___defer_env_std_task_23_t* _a0_obj = (vader_struct___defer_env_std_task_23_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_task_23_t));
-	vader_obj_header_init(_a0_obj, 33u);
+	vader_obj_header_init(_a0_obj, 35u);
 	_a0_obj->f_cap_0 = l0;
 	t0 = (void*) _a0_obj;
 	vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-	vader_obj_header_init(_a1_closure, 17u);
+	vader_obj_header_init(_a1_closure, 18u);
 	_a1_closure->code = (void*) &vader_fn_lift___defer_std_task_22;
 	_a1_closure->env = t0;
 	t0 = (void*) _a1_closure;
@@ -2021,7 +2139,7 @@ static vader_box_t std_task$join__i64(void* l0) {
 	VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
 	t0 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) INT64_C(0));
 	vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-	vader_obj_header_init(_a1_closure, 17u);
+	vader_obj_header_init(_a1_closure, 18u);
 	_a1_closure->code = (void*) &vader_fn_lift___defer_std_task_12;
 	_a1_closure->env = t0;
 	t0 = (void*) _a1_closure;
@@ -2031,19 +2149,19 @@ static vader_box_t std_task$join__i64(void* l0) {
 		l1 = vader_host_std_core$Runtime$current_thread();
 		l2 = ((vader_struct_std_task$Task__i64_t*) l0)->f_waiters;
 		vader_struct_std_task$Waiter_t* _a2_obj = (vader_struct_std_task$Waiter_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Waiter_t));
-		vader_obj_header_init(_a2_obj, 45u);
+		vader_obj_header_init(_a2_obj, 47u);
 		_a2_obj->f_thread = l1;
 		_a2_obj->f_group = vader_box_obj(0u, NULL);
 		_a2_obj->f_index = INT64_C(0);
 		l3 = (void*) _a2_obj;
 		vader_array_push_ref((vader_array_t*) l2, l3);
 		vader_struct___defer_env_std_task_15_t* _a3_obj = (vader_struct___defer_env_std_task_15_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_task_15_t));
-		vader_obj_header_init(_a3_obj, 36u);
+		vader_obj_header_init(_a3_obj, 38u);
 		_a3_obj->f_cap_0 = l0;
 		_a3_obj->f_cap_1 = l1;
 		t0 = (void*) _a3_obj;
 		vader_fn_t* _a4_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-		vader_obj_header_init(_a4_closure, 17u);
+		vader_obj_header_init(_a4_closure, 18u);
 		_a4_closure->code = (void*) &vader_fn_lift___defer_std_task_14;
 		_a4_closure->env = t0;
 		t0 = (void*) _a4_closure;
@@ -2094,7 +2212,7 @@ static vader_box_t std_task$join__std_task_Closed___i64(void* l0) {
 	VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
 	t0 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) INT64_C(0));
 	vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-	vader_obj_header_init(_a1_closure, 17u);
+	vader_obj_header_init(_a1_closure, 18u);
 	_a1_closure->code = (void*) &vader_fn_lift___defer_std_task_4;
 	_a1_closure->env = t0;
 	t0 = (void*) _a1_closure;
@@ -2104,19 +2222,19 @@ static vader_box_t std_task$join__std_task_Closed___i64(void* l0) {
 		l1 = vader_host_std_core$Runtime$current_thread();
 		l2 = ((vader_struct_std_task$Task__Any_t*) l0)->f_waiters;
 		vader_struct_std_task$Waiter_t* _a2_obj = (vader_struct_std_task$Waiter_t*) vader_gc_alloc(sizeof(vader_struct_std_task$Waiter_t));
-		vader_obj_header_init(_a2_obj, 45u);
+		vader_obj_header_init(_a2_obj, 47u);
 		_a2_obj->f_thread = l1;
 		_a2_obj->f_group = vader_box_obj(0u, NULL);
 		_a2_obj->f_index = INT64_C(0);
 		l3 = (void*) _a2_obj;
 		vader_array_push_ref((vader_array_t*) l2, l3);
 		vader_struct___defer_env_std_task_7_t* _a3_obj = (vader_struct___defer_env_std_task_7_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_task_7_t));
-		vader_obj_header_init(_a3_obj, 39u);
+		vader_obj_header_init(_a3_obj, 41u);
 		_a3_obj->f_cap_0 = l0;
 		_a3_obj->f_cap_1 = l1;
 		t0 = (void*) _a3_obj;
 		vader_fn_t* _a4_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-		vader_obj_header_init(_a4_closure, 17u);
+		vader_obj_header_init(_a4_closure, 18u);
 		_a4_closure->code = (void*) &vader_fn_lift___defer_std_task_6;
 		_a4_closure->env = t0;
 		t0 = (void*) _a4_closure;
@@ -2200,7 +2318,7 @@ static void std_task$cancel__i64(void* l0) {
 	VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
 	t0 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) INT64_C(0));
 	vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-	vader_obj_header_init(_a1_closure, 17u);
+	vader_obj_header_init(_a1_closure, 18u);
 	_a1_closure->code = (void*) &vader_fn_lift___defer_std_task_10;
 	_a1_closure->env = t0;
 	t0 = (void*) _a1_closure;
@@ -2234,7 +2352,7 @@ static void std_task$cancel__std_task_Closed___i64(void* l0) {
 	VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
 	t0 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) INT64_C(0));
 	vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-	vader_obj_header_init(_a1_closure, 17u);
+	vader_obj_header_init(_a1_closure, 18u);
 	_a1_closure->code = (void*) &vader_fn_lift___defer_std_task_2;
 	_a1_closure->env = t0;
 	t0 = (void*) _a1_closure;
@@ -2354,7 +2472,7 @@ static void std_collections$push__i64(void* l0, int64_t l1) {
 			vader_array_push_i64((vader_array_t*) ((vader_struct_std_collections$Queue__i64_t*) l0)->f_items, l1);
 		} else {
 			t0 = vader_chk_mul(i64, l2, INT64_C(2));
-			vader_array_t* _a1_arr = vader_array_reserve(13u, (int64_t) t0, 8u, 2u);
+			vader_array_t* _a1_arr = vader_array_reserve(14u, (int64_t) t0, 8u, 2u);
 			l3 = (void*) _a1_arr;
 			l6 = ((vader_struct_std_collections$Queue__i64_t*) l0)->f_items;
 			l4 = ((vader_struct_std_collections$Queue__i64_t*) l0)->f_head;
@@ -2391,7 +2509,7 @@ static int64_t std_collections$remove_first__i64(void* l0) {
 	vader_gc_top = &gc_frame;
 	t0 = ((vader_struct_std_collections$Queue__i64_t*) l0)->f_size;
 	if (t0 == INT64_C(0)) {
-		vader_host_std_core$Runtime$panic(6u);
+		vader_host_std_core$Runtime$panic(13u);
 		vader_unreachable("a no-return call returned");
 	} else {
 		l1 = ((vader_struct_std_collections$Queue__i64_t*) l0)->f_items;
@@ -2454,10 +2572,10 @@ static void* std_runtime_scheduler$gate_or_new(vader_box_t l0) {
 	vader_gc_top = &gc_frame;
 	l1 = l0;
 	if (l1.tag == 0u) {
-		vader_array_t* _a0_arr = vader_array_new(13u, 0u, 8u, 2u);
+		vader_array_t* _a0_arr = vader_array_new(14u, 0u, 8u, 2u);
 		l2 = (void*) _a0_arr;
 		vader_struct_std_runtime_scheduler$InitGate_t* _a1_obj = (vader_struct_std_runtime_scheduler$InitGate_t*) vader_gc_alloc(sizeof(vader_struct_std_runtime_scheduler$InitGate_t));
-		vader_obj_header_init(_a1_obj, 50u);
+		vader_obj_header_init(_a1_obj, 52u);
 		_a1_obj->f_held = false;
 		_a1_obj->f_owner = INT64_C(0);
 		_a1_obj->f_waiters = l2;
@@ -2481,7 +2599,7 @@ static bool std_runtime_scheduler$run_gated(void* l0, void* l1) {
 	VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
 	t0 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) INT64_C(0));
 	vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-	vader_obj_header_init(_a1_closure, 17u);
+	vader_obj_header_init(_a1_closure, 18u);
 	_a1_closure->code = (void*) &vader_fn_lift___defer_std_runtime_scheduler_0;
 	_a1_closure->env = t0;
 	t0 = (void*) _a1_closure;
@@ -2502,11 +2620,11 @@ static bool std_runtime_scheduler$run_gated(void* l0, void* l1) {
 	((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_held = true;
 	((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_owner = l2;
 	vader_struct___defer_env_std_runtime_scheduler_3_t* _a2_obj = (vader_struct___defer_env_std_runtime_scheduler_3_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_runtime_scheduler_3_t));
-	vader_obj_header_init(_a2_obj, 52u);
+	vader_obj_header_init(_a2_obj, 54u);
 	_a2_obj->f_cap_0 = l0;
 	t0 = (void*) _a2_obj;
 	vader_fn_t* _a3_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-	vader_obj_header_init(_a3_closure, 17u);
+	vader_obj_header_init(_a3_closure, 18u);
 	_a3_closure->code = (void*) &vader_fn_lift___defer_std_runtime_scheduler_2;
 	_a3_closure->env = t0;
 	t0 = (void*) _a3_closure;
@@ -2535,12 +2653,12 @@ static void std_runtime_scheduler$await_gate(void* l0, int64_t l1) {
 	vader_gc_top = &gc_frame;
 	vader_array_push_i64((vader_array_t*) ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_waiters, l1);
 	vader_struct___defer_env_std_runtime_scheduler_5_t* _a0_obj = (vader_struct___defer_env_std_runtime_scheduler_5_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_runtime_scheduler_5_t));
-	vader_obj_header_init(_a0_obj, 53u);
+	vader_obj_header_init(_a0_obj, 55u);
 	_a0_obj->f_cap_0 = l0;
 	_a0_obj->f_cap_1 = l1;
 	t0 = (void*) _a0_obj;
 	vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-	vader_obj_header_init(_a1_closure, 17u);
+	vader_obj_header_init(_a1_closure, 18u);
 	_a1_closure->code = (void*) &vader_fn_lift___defer_std_runtime_scheduler_4;
 	_a1_closure->env = t0;
 	t0 = (void*) _a1_closure;

@@ -108,21 +108,63 @@
       snippet.LOOP + 1
   }
   snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
-      first: Task<string> = std.task.launch<string>(__lambda_snippet_0)
-      second: Task<string> = std.task.launch<string>(__lambda_snippet_1)
+      first: Task<string> = std.task.launch<string>(__lambda_snippet_0, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/singleton_and_constant_across_tasks/_main.vader",
+          .line = 62,
+          .column = 14,
+      })
+      second: Task<string> = std.task.launch<string>(__lambda_snippet_1, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/singleton_and_constant_across_tasks/_main.vader",
+          .line = 63,
+          .column = 15,
+      })
       std.console.println<string>(concat_5(@vcall(std.core.Display.to_string, std.task.join<string>(first)), " ", @vcall(std.core.Display.to_string, std.task.join<string>(second)), " ", if @global(0) == 2 { @global(1) } else { snippet.config() } :string))
-      cancelled: Task<string> = std.task.launch<string>(__lambda_snippet_2)
+      cancelled: Task<string> = std.task.launch<string>(__lambda_snippet_2, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/singleton_and_constant_across_tasks/_main.vader",
+          .line = 65,
+          .column = 18,
+      })
       for !std.task.load(if @global(3) == 2 { @global(4) } else { snippet.pool_entered() } :AtomicBool) {
           std.task.sleep(std.time.millis(i64(1)))
       }
-      waiting: Task<string> = std.task.launch<string>(__lambda_snippet_3)
+      waiting: Task<string> = std.task.launch<string>(__lambda_snippet_3, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/singleton_and_constant_across_tasks/_main.vader",
+          .line = 69,
+          .column = 16,
+      })
       std.task.sleep(std.time.millis(i64(1)))
       std.task.cancel<string>(cancelled)
       std.console.println<string>(concat_3(@vcall(std.core.Display.to_string, std.task.join<string>(cancelled)), " ", @vcall(std.core.Display.to_string, std.task.join<string>(waiting))))
-      reader: Task<i32> = std.task.launch<i32>(snippet.read_answer)
-      other: Task<i32> = std.task.launch<i32>(snippet.read_answer)
+      reader: Task<i32> = std.task.launch<i32>(snippet.read_answer, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/singleton_and_constant_across_tasks/_main.vader",
+          .line = 73,
+          .column = 15,
+      })
+      other: Task<i32> = std.task.launch<i32>(snippet.read_answer, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/singleton_and_constant_across_tasks/_main.vader",
+          .line = 74,
+          .column = 14,
+      })
       std.console.println<string>(concat_3(@vcall(std.core.Display.to_string, std.task.join<i32>(reader)), " ", @vcall(std.core.Display.to_string, std.task.join<i32>(other))))
-      joiner: Task<i32> = std.task.launch<i32>(__lambda_snippet_4)
+      joiner: Task<i32> = std.task.launch<i32>(__lambda_snippet_4, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/singleton_and_constant_across_tasks/_main.vader",
+          .line = 76,
+          .column = 15,
+      })
       std.console.println<string>(concat_3(@vcall(std.core.Display.to_string, std.task.join<i32>(joiner)), " ", @vcall(std.core.Display.to_string, std.task.join<i32>(if @global(9) == 2 { @global(10) } else { snippet.warmup() } :Task<i32>))))
       if (@array.len(argv) > i64(1)) && (argv[1] == "again") {
           std.console.println<string>({
@@ -172,7 +214,13 @@
       @global(6) = 2
   }
   snippet$warmup$singleton :: fn() -> Task<i32> {
-      std.task.launch<i32>(snippet.warm)
+      std.task.launch<i32>(snippet.warm, SourceLocation {
+          .function = "warmup",
+          .module = "snippet",
+          .file = "tests/snippets/singleton_and_constant_across_tasks/_main.vader",
+          .line = 50,
+          .column = 31,
+      })
   }
   snippet$warmup$keep :: fn() -> void {
       if @global(9) == 2 {
@@ -241,6 +289,7 @@
   std/core
     const POW5_128: u64[]  data pool #0
     fn std.core.Cancelled.to_string  // std_core$Cancelled$Display$to_string
+    fn std.core.SourceLocation.to_string  // std_core$SourceLocation$Display$to_string
     fn std.core.b2u  // std_core$b2u
     fn std.core.bool.to_string  // std_core$bool$Display$to_string
     fn std.core.char.to_string  // std_core$char$Display$to_string
@@ -294,6 +343,7 @@
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Cancelled  // std_core$Cancelled
+    struct std.core.SourceLocation  // std_core$SourceLocation
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0
     fn __defer_std_runtime_scheduler_2

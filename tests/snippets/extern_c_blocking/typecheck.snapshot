@@ -13,7 +13,7 @@
   expr 16:19    StringLitExpr  :: string
   expr 21:13    StructLitExpr  :: Channel<i64>
   expr 22:16    CallExpr       :: Task<Closed | i64>
-  expr 22:16    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 22:16    IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 22:23    LambdaExpr     :: fn() -> Closed | i64
   expr 22:29    CallExpr       :: Closed | i64
   expr 22:29    FieldExpr      :: fn() -> Closed | i64
@@ -38,3 +38,4 @@
   expr 28:10    CallExpr       :: Cancelled | Closed | i64
   expr 28:10    FieldExpr      :: fn() -> Cancelled | Closed | i64
   expr 28:10    IdentExpr      :: Task<Closed | i64>
+  expr 90:72    IntrinsicCallExpr :: null | SourceLocation

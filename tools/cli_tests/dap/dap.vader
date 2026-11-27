@@ -421,7 +421,12 @@ test_a_breakpoint_in_a_task_stops_that_thread_and_each_thread_shows_its_stack ::
     assert_eq(int_at(stopped, ["body", "threadId"]), 2)
     assert_eq(json_at(stopped, ["body", "allThreadsStopped"]), "true")
     named :: threads_in(frames).map((t) -> "${int_at(t, ["id"])} ${name_of(t)}").collect()
-    assert_eq(named.join(", "), "1 main, 2 task #1")
+    assert_eq(named.len(), 2)
+    assert_eq(named[0], "1 main")
+    // A debug run names a task after the place of its launch.
+    launched :: named[1]
+    assert(launched.starts_with("2 task #1 (launched at "), launched)
+    assert(launched.ends_with("main.vader:14:10, in `main`)"), launched)
     traces :: responses_to(frames, "stackTrace")
     task :: stack_of(traces[0])
     assert_eq(name_of(task[0]), "work")
@@ -553,7 +558,8 @@ test_a_task_cancelled_when_main_returns_is_announced_through_the_session :: fn()
         """
     frames :: debug("cancelled", source, [], [])
     stderr :: written(frames, "stderr")
-    assert("task #1 still runs when main returns" in stderr, stderr)
+    assert("task #1 (launched at " in stderr, stderr)
+    assert("main.vader:8:5, in `main`) still runs when main returns" in stderr, stderr)
     assert_eq(exit_code(frames), 1)
 }
 

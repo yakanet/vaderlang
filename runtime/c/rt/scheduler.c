@@ -39,6 +39,7 @@
 /* What the scheduler keeps of a thread, at the thread's index. */
 typedef struct {
     uint64_t number;        /* how a report names it; 0 for the main thread */
+    char*    site;          /* where it was launched, owned; NULL when unknown */
     int64_t  parent;        /* the thread that launched it */
     uint32_t children;      /* the threads it launched that have not ended */
     uint32_t sleep;         /* a timer armed under another value wakes nothing */
@@ -469,8 +470,8 @@ static vader_scheduler_slot_t* vader_scheduler_slot_of(int64_t thread) {
     return &g_scheduler_slots[vader_virtual_thread_index(thread)];
 }
 
-/* Give `thread` a fresh slot, numbered `number`. */
-static void vader_scheduler_fresh_slot(int64_t thread, uint64_t number) {
+/* Give `thread` a fresh slot, numbered `number`, which owns `site`. */
+static void vader_scheduler_fresh_slot(int64_t thread, uint64_t number, char* site) {
     size_t index = vader_virtual_thread_index(thread);
     if (index >= g_scheduler_slot_cap) {
         size_t cap = 64u;
@@ -484,8 +485,10 @@ static void vader_scheduler_fresh_slot(int64_t thread, uint64_t number) {
         g_scheduler_slot_cap = cap;
     }
     vader_scheduler_slot_t* s = &g_scheduler_slots[index];
+    free(s->site);
     memset(s, 0, sizeof(vader_scheduler_slot_t));
     s->number = number;
+    s->site = site;
 }
 
 /* ---- the ready queue ------------------------------------------------------- */
@@ -938,7 +941,7 @@ static void vader_scheduler_rest(vader_scheduler_worker_t* w) {
 
 /* ---- reports --------------------------------------------------------------- */
 
-static char   g_scheduler_report[512];
+static char   g_scheduler_report[4096];
 static size_t g_scheduler_report_len = 0;
 
 static void vader_scheduler_report_append(const char* text) {
@@ -952,26 +955,30 @@ static void vader_scheduler_report_append(const char* text) {
     g_scheduler_report_len += (size_t) n;
 }
 
-/* How a report names `thread`: `main`, or `task #N`, since every thread a
-   program starts is a task. */
-static void vader_scheduler_name(int64_t thread, char* out, size_t room) {
-    uint64_t number = vader_scheduler_slot_of(thread)->number;
-    if (number == 0u) {
-        snprintf(out, room, "main");
+/* Append how a report names `thread`: `main`, or `task #N`, since every thread
+   a program starts is a task, then where it was launched when that is known. */
+static void vader_scheduler_report_name(int64_t thread) {
+    vader_scheduler_slot_t* s = vader_scheduler_slot_of(thread);
+    if (s->number == 0u) {
+        vader_scheduler_report_append("main");
         return;
     }
-    snprintf(out, room, "task #%llu", (unsigned long long) number);
+    char number[32];
+    snprintf(number, sizeof(number), "task #%llu", (unsigned long long) s->number);
+    vader_scheduler_report_append(number);
+    if (s->site == NULL) return;
+    vader_scheduler_report_append(" (launched at ");
+    vader_scheduler_report_append(s->site);
+    vader_scheduler_report_append(")");
 }
 
 /* How many threads the report names so far. */
 static size_t g_scheduler_report_names = 0;
 
 static void vader_scheduler_report_thread(int64_t thread) {
-    char name[32];
-    vader_scheduler_name(thread, name, sizeof(name));
     if (g_scheduler_report_names > 0u) vader_scheduler_report_append(",");
     vader_scheduler_report_append(" ");
-    vader_scheduler_report_append(name);
+    vader_scheduler_report_name(thread);
     g_scheduler_report_names++;
 }
 
@@ -1309,7 +1316,7 @@ static void vader_scheduler_start(void) {
     vader_scheduler_read_clock();
     g_scheduler_slow_end = vader_gc_env_bool("VADER_SCHEDULER_SLOW_END");
     vader_virtual_thread_start_scheduler();
-    vader_scheduler_fresh_slot(vader_virtual_thread_main(), 0u);
+    vader_scheduler_fresh_slot(vader_virtual_thread_main(), 0u, NULL);
     vader_scheduler_start_pool();
     g_relay_guard = vader_os_lock_new();
     vader_scheduler_watch_long_calls();
@@ -1540,7 +1547,20 @@ static bool vader_scheduler_wait_for(int kind, int64_t fd, int64_t nanos, int bl
 
 /* ---- what Vader calls ------------------------------------------------------ */
 
-int64_t vader_scheduler_spawn_numbered(vader_fn_t* entry, int64_t number) {
+/* A copy of `site`, which may be collected before a report reads it; NULL for
+ * an empty one. */
+static char* vader_scheduler_copy_site(vader_atom_t site) {
+    size_t len = vader_atom_len(site);
+    if (len == 0u) return NULL;
+    char* copy = (char*) malloc(len + 1u);
+    if (copy == NULL) vader_trap("virtual threads: out of memory");
+    memcpy(copy, vader_atom_data(site), len);
+    copy[len] = '\0';
+    return copy;
+}
+
+/* Start `entry` as the thread numbered `number`, whose slot owns `site`. */
+static int64_t vader_scheduler_spawn_owning(vader_fn_t* entry, int64_t number, char* site) {
     vader_scheduler_enter();
     int64_t launcher = vader_virtual_thread_current();
     /* Launched under the monitor, its entry is old: any worker may run it. */
@@ -1555,7 +1575,7 @@ int64_t vader_scheduler_spawn_numbered(vader_fn_t* entry, int64_t number) {
     } else {
         thread = vader_virtual_thread_create(entry);
     }
-    vader_scheduler_fresh_slot(thread, (uint64_t) number);
+    vader_scheduler_fresh_slot(thread, (uint64_t) number, site);
     vader_scheduler_slot_of(thread)->parent = launcher;
     vader_scheduler_slot_of(thread)->outlives = vader_scheduler_slot_of(launcher)->unwinding;
     vader_scheduler_slot_of(launcher)->children++;
@@ -1567,6 +1587,14 @@ int64_t vader_scheduler_spawn_numbered(vader_fn_t* entry, int64_t number) {
     }
     vader_scheduler_unlock();
     return thread;
+}
+
+int64_t vader_scheduler_spawn(vader_fn_t* entry, int64_t number, vader_atom_t site) {
+    return vader_scheduler_spawn_owning(entry, number, vader_scheduler_copy_site(site));
+}
+
+int64_t vader_scheduler_spawn_numbered(vader_fn_t* entry, int64_t number) {
+    return vader_scheduler_spawn_owning(entry, number, NULL);
 }
 
 void vader_scheduler_park(void) {
@@ -1702,10 +1730,11 @@ bool vader_scheduler_is_leaving(int64_t thread) {
 static void vader_scheduler_name_at_exit(int64_t thread) {
     if (thread == vader_virtual_thread_main() || vader_scheduler_is_leaving_locked(thread)) return;
     if (vader_scheduler_slot_of(thread)->task_ended) return;
-    char name[32];
-    vader_scheduler_name(thread, name, sizeof(name));
+    g_scheduler_report_len = 0;
+    g_scheduler_report[0] = '\0';
+    vader_scheduler_report_name(thread);
     const char* what = " still runs when main returns: cancelled";
-    vader_os_report_fatal(name, what, strlen(what));
+    vader_os_report_fatal(g_scheduler_report, what, strlen(what));
     g_scheduler_left_running = 1;
 }
 

@@ -20,21 +20,22 @@ type 17 struct __defer_env_std_runtime_scheduler_1 {  }
 type 18 struct __defer_env_std_runtime_scheduler_3 { cap_0:16 }
 type 19 struct __defer_env_std_runtime_scheduler_5 { cap_0:16,cap_1:5 }
 type 20 array 17
-string 0 " step "
-string 1 " done"
-string 2 "main is back: "
-string 3 "a"
-string 4 "b"
-string 5 "c runs on a thread of its own: "
-string 6 "true"
-string 7 "false"
-string 8 "\n"
+string 0 ""
+string 1 " step "
+string 2 " done"
+string 3 "main is back: "
+string 4 "a"
+string 5 "b"
+string 6 "c runs on a thread of its own: "
+string 7 "true"
+string 8 "false"
+string 9 "\n"
 data 0 agg 1 struct 17 0
 global 0 6 snippet joiner.state
 global 1 2 snippet joiner.instance
 global 2 15 snippet joiner.gate
 import 0 bytes std_core$Runtime$bytes service=bytes result_type=14 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 1 spawn_thread std_core$Runtime$spawn_thread service=spawn_thread result_type=5 param_types=3,5 param_c_out= param_by_address= (ref,i64) -> i64
+import 1 spawn_thread std_core$Runtime$spawn_thread service=spawn_thread result_type=5 param_types=3,5,4 param_c_out= param_by_address= (ref,i64,string) -> i64
 import 2 park std_core$Runtime$park service=park result_type=1 () -> void
 import 3 wake std_core$Runtime$wake service=wake result_type=1 param_types=5 param_c_out= param_by_address= (i64) -> void
 import 4 current_thread std_core$Runtime$current_thread service=current_thread result_type=5 () -> i64
@@ -114,6 +115,7 @@ fn 1 snippet$spawn (ref) -> void
   local.set 2   ; $add_checked_9
   local.get 3   ; $closure_14
   local.get 2   ; $add_checked_9
+  string.const 0   ; ""
   call.import 1   ; std_core$Runtime$spawn_thread
   drop
   return
@@ -157,7 +159,7 @@ fn 3 snippet$worker (string,i64) -> void
       local.set 6   ; __off_2
       local.get 5   ; __buf_1
       local.get 6   ; __off_2
-      string.const 0   ; " step "
+      string.const 1   ; " step "
       call 13   ; std_core$write_string_at
       local.set 6   ; __off_2
       local.get 5   ; __buf_1
@@ -178,7 +180,7 @@ fn 3 snippet$worker (string,i64) -> void
     end $L1
   end $L0
   local.get 0   ; arg 0
-  string.const 1   ; " done"
+  string.const 2   ; " done"
   call 11   ; concat_2
   call 22   ; std_console$println__string
   return
@@ -237,7 +239,7 @@ fn 4 snippet$main () -> i32
       local.set 3   ; __off_2
       local.get 2   ; __buf_1
       local.get 3   ; __off_2
-      string.const 2   ; "main is back: "
+      string.const 3   ; "main is back: "
       call 13   ; std_core$write_string_at
       local.set 3   ; __off_2
       call.import 4   ; std_core$Runtime$current_thread
@@ -315,14 +317,14 @@ fn 7 __lambda_snippet_0 (ref) -> void
 end
 
 fn 8 __lambda_snippet_2 () -> void
-  string.const 3   ; "a"
+  string.const 4   ; "a"
   i64.const 2
   call 3   ; snippet$worker
   return
 end
 
 fn 9 __lambda_snippet_3 () -> void
-  string.const 4   ; "b"
+  string.const 5   ; "b"
   i64.const 1
   call 3   ; snippet$worker
   return
@@ -341,7 +343,7 @@ fn 10 __lambda_snippet_4 (ref) -> void
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  string.const 5   ; "c runs on a thread of its own: "
+  string.const 6   ; "c runs on a thread of its own: "
   call 13   ; std_core$write_string_at
   local.set 2   ; __off_1
   call.import 4   ; std_core$Runtime$current_thread
@@ -536,13 +538,13 @@ fn 15 std_core$write_bool (ref,i64,bool) -> i64
   else
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    string.const 7   ; "false"
+    string.const 8   ; "false"
     call 13   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  string.const 6   ; "true"
+  string.const 7   ; "true"
   call 13   ; std_core$write_string_at
   return
 end
@@ -732,7 +734,7 @@ end
 fn 22 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
-  string.const 8   ; "\n"
+  string.const 9   ; "\n"
   call 11   ; concat_2
   local.set 1   ; $call_3
   i32.const 0

@@ -20,7 +20,13 @@
       {
           _: i32 = 0
           for _ < 8 {
-              @array.push(tasks, std.task.launch<Closed | i64>(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = ch })))
+              @array.push(tasks, std.task.launch<Closed | i64>(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = ch }), SourceLocation {
+                  .function = "receivers_round",
+                  .module = "snippet",
+                  .file = "tests/snippets/channel_waiters_cancelled/_main.vader",
+                  .line = 15,
+                  .column = 20,
+              }))
           } @step {
               _ = _ +% 1
           }
@@ -81,7 +87,13 @@
       {
           __for_discard_0: i32 = 0
           for __for_discard_0 < 8 {
-              @array.push(tasks, std.task.launch<i64>(@closure(__lambda_snippet_2, __lambda_env_snippet_3 { .cap_0 = ch })))
+              @array.push(tasks, std.task.launch<i64>(@closure(__lambda_snippet_2, __lambda_env_snippet_3 { .cap_0 = ch }), SourceLocation {
+                  .function = "senders_round",
+                  .module = "snippet",
+                  .file = "tests/snippets/channel_waiters_cancelled/_main.vader",
+                  .line = 43,
+                  .column = 20,
+              }))
           } @step {
               __for_discard_0 = __for_discard_0 +% 1
           }
@@ -96,7 +108,13 @@
               i = i +% 1
           }
       }
-      drainer: Task<i64> = std.task.launch<i64>(@closure(__lambda_snippet_4, __lambda_env_snippet_5 { .cap_0 = ch }))
+      drainer: Task<i64> = std.task.launch<i64>(@closure(__lambda_snippet_4, __lambda_env_snippet_5 { .cap_0 = ch }), SourceLocation {
+          .function = "senders_round",
+          .module = "snippet",
+          .file = "tests/snippets/channel_waiters_cancelled/_main.vader",
+          .line = 53,
+          .column = 16,
+      })
       sent: i64 = 1
       {
           __for_arr_3: Task<i64>[] = tasks
@@ -193,6 +211,7 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
+    fn std.core.SourceLocation.to_string  // std_core$SourceLocation$Display$to_string
     fn std.core.drop_last<i64>  // std_core$drop_last__i64
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.index_of<i64>  // std_core$index_of__i64
@@ -203,6 +222,7 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Cancelled  // std_core$Cancelled
+    struct std.core.SourceLocation  // std_core$SourceLocation
     struct std.core.Stop  // std_core$Stop
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0

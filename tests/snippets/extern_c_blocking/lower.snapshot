@@ -20,7 +20,13 @@
           .sender_woken = false,
           .receiver_woken = false,
       }
-      waiting: Task<Closed | i64> = std.task.launch<Closed | i64>(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = gate }))
+      waiting: Task<Closed | i64> = std.task.launch<Closed | i64>(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = gate }), SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/extern_c_blocking/_main.vader",
+          .line = 22,
+          .column = 16,
+      })
       std.console.println<string>({
           __buf_1: Buffer = std_core$Intrinsic$new_byte_buffer(i64(28))
           __off_2: i64 = 0
@@ -63,6 +69,7 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
+    fn std.core.SourceLocation.to_string  // std_core$SourceLocation$Display$to_string
     fn std.core.drop_last<i64>  // std_core$drop_last__i64
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.format_unsigned  // std_core$format_unsigned
@@ -77,6 +84,7 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.CLibrary  // std_core$CLibrary
     struct std.core.Cancelled  // std_core$Cancelled
+    struct std.core.SourceLocation  // std_core$SourceLocation
     struct std.core.Stop  // std_core$Stop
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0

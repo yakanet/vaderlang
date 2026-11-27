@@ -32,6 +32,9 @@ WasiThread :: struct {
     handle: i64
     /// How a report names it, `task #number`; 0 for the main thread.
     number: i64
+    /// Where it was launched, which a report names after its number; empty when
+    /// the program keeps no place.
+    site: string = ""
     /// The host's index of it, -1 until the host made it.
     index: i64 = -1
     /// The thread that launched it, -1 for the main thread.
@@ -77,12 +80,13 @@ wasi_scheduler :: fn() -> WasiScheduler {
 }
 
 @target(.Wasi)
-spawn_thread :: fn(entry: fn() -> void, number: i64) -> i64 {
+spawn_thread :: fn(entry: fn() -> void, number: i64, site: string = "") -> i64 {
     s :: wasi_scheduler()
     launcher :: running(s)
     thread :: WasiThread {
         .handle = s.next_handle,
         .number = number,
+        .site = site,
         .parent = launcher.handle,
         .outlives = launcher.unwinding,
         .ready = true,
@@ -201,7 +205,7 @@ exit_threads :: fn(code: i32) -> i32 {
     // leave.
     for t in s.threads {
         if t.handle != MAIN_THREAD && !is_leaving(t.handle) && !t.task_ended {
-            line :: "vader: task #${t.number} still runs when main returns: cancelled\n"
+            line :: "vader: ${task_name(t.number, t.site)} still runs when main returns: cancelled\n"
             // A report that does not reach stderr has nowhere else to go.
             _ :: WasiStderr.write_via_stream(line.bytes()).wait()
             left_running = true

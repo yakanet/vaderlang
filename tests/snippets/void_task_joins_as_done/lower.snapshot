@@ -18,11 +18,35 @@
       } :string
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      one: Task<void> = std.task.launch<void>(snippet.work)
+      one: Task<void> = std.task.launch<void>(snippet.work, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/void_task_joins_as_done/_main.vader",
+          .line = 20,
+          .column = 12,
+      })
       std.console.println<string>(snippet.outcome_of(std.task.join<void>(one)))
-      two: Task<void> = std.task.launch<void>(snippet.work)
+      two: Task<void> = std.task.launch<void>(snippet.work, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/void_task_joins_as_done/_main.vader",
+          .line = 22,
+          .column = 12,
+      })
       std.console.println<string>(snippet.outcome_of(std.task.timeout<void>(two, std.time.seconds(i64(5)))))
-      tasks: Task<void>[] = [std.task.launch<void>(snippet.work), std.task.launch<void>(snippet.work)] :Task<void>[]
+      tasks: Task<void>[] = [std.task.launch<void>(snippet.work, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/void_task_joins_as_done/_main.vader",
+          .line = 24,
+          .column = 27,
+      }), std.task.launch<void>(snippet.work, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/void_task_joins_as_done/_main.vader",
+          .line = 24,
+          .column = 41,
+      })] :Task<void>[]
       {
           __for_arr_0: (Cancelled | void)[] = std.task.join_all<void>(tasks)
           __for_len_1: i64 = @array.len(__for_arr_0)
@@ -52,6 +76,7 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
+    fn std.core.SourceLocation.to_string  // std_core$SourceLocation$Display$to_string
     fn std.core.drop_last<i64>  // std_core$drop_last__i64
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.index_of<i64>  // std_core$index_of__i64
@@ -62,6 +87,7 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Cancelled  // std_core$Cancelled
+    struct std.core.SourceLocation  // std_core$SourceLocation
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0
     fn __defer_std_runtime_scheduler_2

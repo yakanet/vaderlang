@@ -20,7 +20,25 @@
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       started: AtomicInt = AtomicInt { .value = i64(0) }
-      naps: Task<i64>[] = [std.task.launch<i64>(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = started })), std.task.launch<i64>(@closure(__lambda_snippet_2, __lambda_env_snippet_3 { .cap_0 = started })), std.task.launch<i64>(@closure(__lambda_snippet_4, __lambda_env_snippet_5 { .cap_0 = started }))] :Task<i64>[]
+      naps: Task<i64>[] = [std.task.launch<i64>(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = started }), SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/tasks_interleave_by_sleep/_main.vader",
+          .line = 23,
+          .column = 9,
+      }), std.task.launch<i64>(@closure(__lambda_snippet_2, __lambda_env_snippet_3 { .cap_0 = started }), SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/tasks_interleave_by_sleep/_main.vader",
+          .line = 24,
+          .column = 9,
+      }), std.task.launch<i64>(@closure(__lambda_snippet_4, __lambda_env_snippet_5 { .cap_0 = started }), SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/tasks_interleave_by_sleep/_main.vader",
+          .line = 25,
+          .column = 9,
+      })] :Task<i64>[]
       {
           __for_arr_3: (Cancelled | i64)[] = std.task.join_all<i64>(naps)
           __for_len_4: i64 = @array.len(__for_arr_3)
@@ -64,6 +82,7 @@
   std/core
     const POW5_128: u64[]  data pool #0
     fn std.core.Cancelled.to_string  // std_core$Cancelled$Display$to_string
+    fn std.core.SourceLocation.to_string  // std_core$SourceLocation$Display$to_string
     fn std.core.b2u  // std_core$b2u
     fn std.core.bool.to_string  // std_core$bool$Display$to_string
     fn std.core.char.to_string  // std_core$char$Display$to_string
@@ -117,6 +136,7 @@
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Cancelled  // std_core$Cancelled
+    struct std.core.SourceLocation  // std_core$SourceLocation
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0
     fn __defer_std_runtime_scheduler_2

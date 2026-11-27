@@ -273,8 +273,8 @@ static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
 	return (void*) vader_string_bytes_view(a0, 14u, 13u);
 }
 
-static int64_t vader_host_std_core$Runtime$spawn_thread(void* a0, int64_t a1) {
-	return vader_scheduler_spawn_numbered(a0, a1);
+static int64_t vader_host_std_core$Runtime$spawn_thread(void* a0, int64_t a1, vader_string_t a2) {
+	return vader_scheduler_spawn(a0, a1, a2);
 }
 
 static void vader_host_std_core$Runtime$park(void) {
@@ -383,7 +383,7 @@ static void snippet$spawn(void* l0) {
 	_a1_closure->env = t2;
 	l3 = (void*) _a1_closure;
 	l2 = ((vader_struct_snippet$Joiner_t*) l1)->f_started;
-	vader_host_std_core$Runtime$spawn_thread(l3, l2);
+	vader_host_std_core$Runtime$spawn_thread(l3, l2, 0u);
 	{ vader_gc_top = gc_frame.prev; return; }
 }
 

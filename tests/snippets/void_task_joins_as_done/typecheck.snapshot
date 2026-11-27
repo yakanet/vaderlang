@@ -13,7 +13,7 @@
   expr 15:24    StringLitExpr  :: string
   expr 16:24    StringLitExpr  :: string
   expr 20:12    CallExpr       :: Task<void>
-  expr 20:12    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 20:12    IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 20:19    IdentExpr      :: fn() -> void
   expr 21:13    CallExpr       :: string
   expr 21:13    IdentExpr      :: fn(Cancelled | TimeoutError | void) -> string
@@ -23,7 +23,7 @@
   expr 21:5     CallExpr       :: void
   expr 21:5     IdentExpr      :: fn(T) -> void
   expr 22:12    CallExpr       :: Task<void>
-  expr 22:12    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 22:12    IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 22:19    IdentExpr      :: fn() -> void
   expr 23:13    CallExpr       :: string
   expr 23:13    IdentExpr      :: fn(Cancelled | TimeoutError | void) -> string
@@ -36,10 +36,10 @@
   expr 23:5     IdentExpr      :: fn(T) -> void
   expr 24:26    SeqLitExpr     :: Task<void>[]
   expr 24:27    CallExpr       :: Task<void>
-  expr 24:27    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 24:27    IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 24:34    IdentExpr      :: fn() -> void
   expr 24:41    CallExpr       :: Task<void>
-  expr 24:41    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 24:41    IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 24:48    IdentExpr      :: fn() -> void
   expr 25:19    CallExpr       :: (Cancelled | void)[]
   expr 25:19    IdentExpr      :: fn(Task<T>[]) -> (Cancelled | T)[]
@@ -49,3 +49,4 @@
   expr 26:28    IdentExpr      :: Cancelled | void
   expr 26:9     CallExpr       :: void
   expr 26:9     IdentExpr      :: fn(T) -> void
+  expr 90:72    IntrinsicCallExpr :: null | SourceLocation

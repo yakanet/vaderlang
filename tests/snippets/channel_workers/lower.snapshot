@@ -200,7 +200,13 @@
   }
   __lambda_env_snippet_3 :: struct { cap_0: Pipes }
   __lambda_snippet_2 :: fn(__env_1: __lambda_env_snippet_3, name: string) -> Task<i64> {
-      std.task.launch<i64>(@closure(__lambda_snippet_4, __lambda_env_snippet_5 { .cap_0 = __env_1.cap_0, .cap_1 = name }))
+      std.task.launch<i64>(@closure(__lambda_snippet_4, __lambda_env_snippet_5 { .cap_0 = __env_1.cap_0, .cap_1 = name }), SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/channel_workers/_main.vader",
+          .line = 41,
+          .column = 36,
+      })
   }
   __lambda_snippet_6 :: fn(all: string[]) -> string {
       std.string.join(all, " ")
@@ -266,6 +272,7 @@
   std/core
     const POW5_128: u64[]  data pool #0
     fn std.core.Cancelled.to_string  // std_core$Cancelled$Display$to_string
+    fn std.core.SourceLocation.to_string  // std_core$SourceLocation$Display$to_string
     fn std.core.b2u  // std_core$b2u
     fn std.core.bool.to_string  // std_core$bool$Display$to_string
     fn std.core.char.to_string  // std_core$char$Display$to_string
@@ -324,6 +331,7 @@
     fn std_core$i64$Zero$zero
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Cancelled  // std_core$Cancelled
+    struct std.core.SourceLocation  // std_core$SourceLocation
     struct std.core.Stop  // std_core$Stop
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0

@@ -5,7 +5,7 @@
   FnDecl         main                 :: fn() -> i32
   expr 15:10    StructLitExpr  :: Holder
   expr 15:27    CallExpr       :: Task<i32>
-  expr 15:27    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 15:27    IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 15:34    LambdaExpr     :: fn() -> i32
   expr 15:52    SeqLitExpr     :: i32[][]
   expr 15:53    SeqLitExpr     :: i32[]
@@ -48,3 +48,4 @@
   expr 19:65    FieldExpr      :: Task<i32>
   expr 19:65    FieldExpr      :: fn() -> Cancelled | i32
   expr 19:65    IdentExpr      :: Holder
+  expr 90:72    IntrinsicCallExpr :: null | SourceLocation

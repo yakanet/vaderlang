@@ -22,7 +22,7 @@
       j: Joiner = if @global(0) == 2 { @global(1) } else { snippet.joiner() }
       j.running = j.running + i64(1)
       j.started = j.started + i64(1)
-      std_core$Runtime$spawn_thread(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = entry, .cap_1 = j }), j.started)
+      std_core$Runtime$spawn_thread(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = entry, .cap_1 = j }), j.started, "")
   }
   snippet.yield_now :: fn() -> void {  // snippet$yield_now
       std_core$Runtime$wake(std_core$Runtime$current_thread())

@@ -8,7 +8,7 @@
   expr 13:34    SeqLitExpr     :: Task<Closed | i64>[]
   expr 14:14    RangeExpr      :: Range<i32>
   expr 15:20    CallExpr       :: Task<Closed | i64>
-  expr 15:20    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 15:20    IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 15:27    LambdaExpr     :: fn() -> Closed | i64
   expr 15:33    CallExpr       :: Closed | i64
   expr 15:33    FieldExpr      :: fn() -> Closed | i64
@@ -53,7 +53,7 @@
   expr 41:25    SeqLitExpr     :: Task<i64>[]
   expr 42:9     RangeExpr      :: Range<i32>
   expr 43:20    CallExpr       :: Task<i64>
-  expr 43:20    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 43:20    IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 43:27    LambdaExpr     :: fn() -> i64
   expr 43:9     CallExpr       :: void
   expr 43:9     FieldExpr      :: fn(Task<i64>) -> void
@@ -72,7 +72,7 @@
   expr 50:13    IndexExpr      :: Task<i64>
   expr 50:19    IdentExpr      :: i32
   expr 53:16    CallExpr       :: Task<i64>
-  expr 53:16    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 53:16    IdentExpr      :: fn(fn() -> T, null | SourceLocation) -> Task<T>
   expr 53:23    LambdaExpr     :: fn() -> i64
   expr 55:18    IdentExpr      :: Channel<i64>
   expr 56:13    BinaryExpr     :: i64
@@ -121,3 +121,4 @@
   expr 83:5     CallExpr       :: void
   expr 83:5     IdentExpr      :: fn(T) -> void
   expr 83:60    IdentExpr      :: i64
+  expr 90:72    IntrinsicCallExpr :: null | SourceLocation

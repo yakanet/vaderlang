@@ -18,7 +18,7 @@
   expr 21:5     IdentExpr      :: Joiner
   expr 22:18    LambdaExpr     :: fn() -> void
   expr 22:5     CallExpr       :: i64
-  expr 22:5     IdentExpr      :: fn(fn() -> void, i64) -> i64
+  expr 22:5     IdentExpr      :: fn(fn() -> void, i64, string) -> i64
   expr 23:9     CallExpr       :: void
   expr 23:9     IdentExpr      :: fn() -> void
   expr 24:9     BinaryExpr     :: i64
@@ -53,6 +53,7 @@
   expr 41:16    IdentExpr      :: string
   expr 41:5     CallExpr       :: void
   expr 41:5     IdentExpr      :: fn(T) -> void
+  expr 44:76    StringLitExpr  :: string
   expr 45:20    CallExpr       :: i64
   expr 45:20    IdentExpr      :: fn() -> i64
   expr 46:28    IdentExpr      :: i64

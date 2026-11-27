@@ -2,8 +2,20 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      _: Task<void> = std.task.launch<void>(__lambda_snippet_0)
-      _: Task<Cancelled | void> = std.task.launch<Cancelled | void>(__lambda_snippet_3)
+      _: Task<void> = std.task.launch<void>(__lambda_snippet_0, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/tasks_cancelled_when_main_returns/_main.vader",
+          .line = 12,
+          .column = 10,
+      })
+      _: Task<Cancelled | void> = std.task.launch<Cancelled | void>(__lambda_snippet_3, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/tasks_cancelled_when_main_returns/_main.vader",
+          .line = 19,
+          .column = 10,
+      })
       std.task.sleep(std.time.millis(i64(1)))
       std.console.println<string>("main returns")
       return 0
@@ -32,7 +44,13 @@
       std.console.println<string>("second defers")
   }
   __lambda_snippet_3 :: fn() -> Cancelled | void {
-      inner: Task<void> = std.task.launch<void>(__lambda_snippet_4)
+      inner: Task<void> = std.task.launch<void>(__lambda_snippet_4, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/tasks_cancelled_when_main_returns/_main.vader",
+          .line = 21,
+          .column = 22,
+      })
       @defer_push(@closure(__defer_snippet_7, __defer_env_snippet_8 {}))
       __block_1: Cancelled | void = std.task.join<void>(inner)
       @defer_run(1)
@@ -54,6 +72,7 @@
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
   std/core
+    fn std.core.SourceLocation.to_string  // std_core$SourceLocation$Display$to_string
     fn std.core.drop_last<i64>  // std_core$drop_last__i64
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.index_of<i64>  // std_core$index_of__i64
@@ -64,6 +83,7 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Cancelled  // std_core$Cancelled
+    struct std.core.SourceLocation  // std_core$SourceLocation
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0
     fn __defer_std_runtime_scheduler_2

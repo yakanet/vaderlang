@@ -1694,6 +1694,10 @@ void vader_defer_pop_exec(uint32_t count);
  * and the switch of rt/virtual_threads.c. A thread is named by a handle; once
  * its thread has ended, a handle names nothing, and waking or cancelling it
  * does nothing. */
+/* Start `entry` as a thread a report names `task #number`, then where it was
+ * launched unless `site` is empty. The runtime keeps a copy of `site`. */
+int64_t vader_scheduler_spawn(vader_fn_t* entry, int64_t number, vader_atom_t site);
+/* The same with no site, which the bootstrap seed calls. */
 int64_t vader_scheduler_spawn_numbered(vader_fn_t* entry, int64_t number);
 void    vader_scheduler_park(void);
 void    vader_scheduler_wake(int64_t thread);
