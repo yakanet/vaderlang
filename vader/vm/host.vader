@@ -1279,6 +1279,12 @@ import "std/testing"
 }
 
 @test test_ffi_passes_the_fixed_count_of_a_variadic_callee :: fn() -> void {
+    // The UCRT defines the `printf` family inline in its headers: `ucrtbase.dll`
+    // exports no `snprintf`. Windows x64 passes a variadic argument as a fixed one
+    // anyway, so the count has nothing to change there.
+    if VADER_OS == .Windows {
+        return
+    }
     sym :: ffi_symbol(ffi_open(""), "snprintf")
     assert(sym != 0, "snprintf must resolve")
 
