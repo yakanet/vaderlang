@@ -11,6 +11,9 @@ Amended (2026-11-08) by 0128: a read of stdin parks its task on Linux and macOS.
 Amended (2026-11-08): a thread cancelled before it starts runs its entry, which
 `is_cancelled` tells, and the thread a defer of a cancellation launched is named
 when `main` returns.
+Amended (2026-11-26) by 0183: a `locked` body may wait, and where a call may
+park becomes a hint of the editor; by 0184: a lock per `Shared` and a
+promotion at publication replace the global monitor.
 
 ## Context
 
