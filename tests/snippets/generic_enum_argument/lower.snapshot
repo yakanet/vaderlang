@@ -137,10 +137,38 @@
       std_core$Intrinsic$buffer_write_string(buf, c0, p1)
       std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
+  snippet$HttpStatus$Equals$equals :: fn(self: HttpStatus, other: HttpStatus) -> bool {
+      self == other
+  }
+  snippet$Level$Equals$equals :: fn(self: Level, other: Level) -> bool {
+      self == other
+  }
+  snippet$Color$Equals$equals :: fn(self: Color, other: Color) -> bool {
+      self == other
+  }
+  snippet$Direction$Equals$equals :: fn(self: Direction, other: Direction) -> bool {
+      self == other
+  }
+  snippet$HttpStatus$Equals$equals$guard :: fn(self: HttpStatus, other: Any) -> bool {
+      (other is HttpStatus) && snippet$HttpStatus$Equals$equals(self, HttpStatus(other))
+  }
+  snippet$Level$Equals$equals$guard :: fn(self: Level, other: Any) -> bool {
+      (other is Level) && snippet$Level$Equals$equals(self, Level(other))
+  }
+  snippet$Color$Equals$equals$guard :: fn(self: Color, other: Any) -> bool {
+      (other is Color) && snippet$Color$Equals$equals(self, Color(other))
+  }
+  snippet$Direction$Equals$equals$guard :: fn(self: Direction, other: Any) -> bool {
+      (other is Direction) && snippet$Direction$Equals$equals(self, Direction(other))
+  }
   vtable std.core.Display.to_string for Box<Color>  snippet.Box<Color>.to_string  // snippet$Box$std_core$Display$to_string__snippet_Color
   vtable std.core.Display.to_string for Box<Direction>  snippet.Box<Direction>.to_string  // snippet$Box$std_core$Display$to_string__snippet_Direction
   vtable std.core.Display.to_string for Color  snippet.Color.to_string  // snippet$Color$std_core$Display$to_string
   vtable std.core.Display.to_string for Direction  snippet.Direction.to_string  // snippet$Direction$std_core$Display$to_string
+  vtable std.core.Equals.equals for Color  snippet$Color$Equals$equals$guard
+  vtable std.core.Equals.equals for Direction  snippet$Direction$Equals$equals$guard
+  vtable std.core.Equals.equals for HttpStatus  snippet$HttpStatus$Equals$equals$guard
+  vtable std.core.Equals.equals for Level  snippet$Level$Equals$equals$guard
 
 ## lowered in dependencies
   std/collections
@@ -164,6 +192,8 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     const POW5_128: u64[]  data pool #1
     fn std.core.b2u  // std_core$b2u
@@ -216,5 +246,19 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     fn std.core.write_zeros  // std_core$write_zeros
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard

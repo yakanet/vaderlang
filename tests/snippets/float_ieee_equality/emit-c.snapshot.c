@@ -55,11 +55,19 @@ static int32_t snippet$main(void);
 static vader_string_t snippet$pick(vader_box_t l0);
 static bool snippet$same__f64(double l0, double l1);
 static bool snippet$same__f64___string(vader_box_t l0, vader_box_t l1);
+static bool std_console$Stream$Equals$equals(uint8_t l0, uint8_t l1);
+static bool std_console$Stream$Equals$equals$guard(uint8_t l0, vader_box_t l1);
 static void std_console$println__string(vader_string_t l0);
 static void std_console$write(uint8_t l0, vader_string_t l1);
 static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static bool std_console$write_text(uint8_t l0, vader_string_t l1);
 static bool std_core$$array$Contains$contains__f64___string(void* l0, vader_box_t l1);
+static bool std_core$CollectorStatistic$Equals$equals(int32_t l0, int32_t l1);
+static bool std_core$CollectorStatistic$Equals$equals$guard(int32_t l0, vader_box_t l1);
+static bool std_core$DecoratorTarget$Equals$equals(uint8_t l0, uint8_t l1);
+static bool std_core$DecoratorTarget$Equals$equals$guard(uint8_t l0, vader_box_t l1);
+static bool std_core$Readiness$Equals$equals(int32_t l0, int32_t l1);
+static bool std_core$Readiness$Equals$equals$guard(int32_t l0, vader_box_t l1);
 static bool std_core$bool$Equals$equals$guard(bool l0, vader_box_t l1);
 static bool std_core$char$Equals$equals$guard(uint32_t l0, vader_box_t l1);
 static bool std_core$f32$Equals$equals$guard(float l0, vader_box_t l1);
@@ -76,12 +84,18 @@ static bool std_core$u64$Equals$equals$guard(uint64_t l0, vader_box_t l1);
 static bool std_core$u8$Equals$equals$guard(uint8_t l0, vader_box_t l1);
 static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
+static bool std_io$IOErrorKind$Equals$equals(uint8_t l0, uint8_t l1);
+static bool std_io$IOErrorKind$Equals$equals$guard(uint8_t l0, vader_box_t l1);
+static bool std_target$Arch$Equals$equals(uint8_t l0, uint8_t l1);
+static bool std_target$Arch$Equals$equals$guard(uint8_t l0, vader_box_t l1);
+static bool std_target$Os$Equals$equals(uint8_t l0, uint8_t l1);
+static bool std_target$Os$Equals$equals$guard(uint8_t l0, vader_box_t l1);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[22] = {
+const vader_type_info_t vader_type_info_table[29] = {
 	[2] = { .slot_size = 16 },
 	[3] = { .slot_size = 8 },
 	[4] = { .slot_size = 4 },
@@ -104,9 +118,9 @@ const vader_type_info_t vader_type_info_table[22] = {
 		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
 	},
 	[12] = { .slot_size = 1 },
-	[13] = { .slot_size = 16 },
-	[14] = { .slot_size = 2 },
-	[15] = { .slot_size = 1 },
+	[13] = { .slot_size = 1 },
+	[14] = { .slot_size = 16 },
+	[15] = { .slot_size = 2 },
 	[16] = { .slot_size = 2 },
 	[17] = { .slot_size = 4 },
 	[18] = { .slot_size = 8 },
@@ -114,10 +128,17 @@ const vader_type_info_t vader_type_info_table[22] = {
 	[20] = { .slot_size = 4 },
 	[21] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 15u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 12u,
 	},
+	[22] = { .slot_size = 1 },
+	[23] = { .slot_size = 4 },
+	[24] = { .slot_size = 4 },
+	[25] = { .slot_size = 1 },
+	[26] = { .slot_size = 1 },
+	[27] = { .slot_size = 1 },
+	[28] = { .slot_size = 1 },
 };
-const size_t vader_type_info_count = 22;
+const size_t vader_type_info_count = 29;
 
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
@@ -127,7 +148,7 @@ const size_t vader_type_info_count = 22;
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 21u, 15u);
+	return (void*) vader_string_bytes_view(a0, 21u, 12u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -558,9 +579,21 @@ static bool std_core$$array$Contains$contains__f64___string(void* l0, vader_box_
 	return false;
 }
 
+static bool std_core$DecoratorTarget$Equals$equals(uint8_t l0, uint8_t l1) {
+	return l0 == l1;
+}
+
+static bool std_core$Readiness$Equals$equals(int32_t l0, int32_t l1) {
+	return l0 == l1;
+}
+
+static bool std_core$CollectorStatistic$Equals$equals(int32_t l0, int32_t l1) {
+	return l0 == l1;
+}
+
 static bool std_core$i8$Equals$equals$guard(int8_t l0, vader_box_t l1) {
 	int8_t l2;
-	if (l1.tag == 12u) {
+	if (l1.tag == 13u) {
 		l2 = ((int8_t) l1.payload.i);
 		return l0 == l2;
 	}
@@ -569,7 +602,7 @@ static bool std_core$i8$Equals$equals$guard(int8_t l0, vader_box_t l1) {
 
 static bool std_core$i16$Equals$equals$guard(int16_t l0, vader_box_t l1) {
 	int16_t l2;
-	if (l1.tag == 14u) {
+	if (l1.tag == 15u) {
 		l2 = ((int16_t) l1.payload.i);
 		return l0 == l2;
 	}
@@ -596,7 +629,7 @@ static bool std_core$i64$Equals$equals$guard(int64_t l0, vader_box_t l1) {
 
 static bool std_core$u8$Equals$equals$guard(uint8_t l0, vader_box_t l1) {
 	uint8_t l2;
-	if (l1.tag == 15u) {
+	if (l1.tag == 12u) {
 		l2 = ((uint8_t) l1.payload.i);
 		return l0 == l2;
 	}
@@ -671,6 +704,39 @@ static bool std_core$string$Equals$equals$guard(vader_string_t l0, vader_box_t l
 	if (l1.tag == 4u) {
 		l2 = l1.payload.s;
 		return l0 == l2;
+	}
+	return false;
+}
+
+static bool std_core$DecoratorTarget$Equals$equals$guard(uint8_t l0, vader_box_t l1) {
+	uint8_t l2;
+	bool t0;
+	if (l1.tag == 22u) {
+		l2 = ((uint8_t) l1.payload.i);
+		t0 = std_core$DecoratorTarget$Equals$equals(l0, l2);
+		return t0;
+	}
+	return false;
+}
+
+static bool std_core$Readiness$Equals$equals$guard(int32_t l0, vader_box_t l1) {
+	int32_t l2;
+	bool t0;
+	if (l1.tag == 23u) {
+		l2 = ((int32_t) l1.payload.i);
+		t0 = std_core$Readiness$Equals$equals(l0, l2);
+		return t0;
+	}
+	return false;
+}
+
+static bool std_core$CollectorStatistic$Equals$equals$guard(int32_t l0, vader_box_t l1) {
+	int32_t l2;
+	bool t0;
+	if (l1.tag == 24u) {
+		l2 = ((int32_t) l1.payload.i);
+		t0 = std_core$CollectorStatistic$Equals$equals(l0, l2);
+		return t0;
 	}
 	return false;
 }
@@ -751,14 +817,74 @@ static void std_console$println__string(vader_string_t l0) {
 	{ vader_gc_top = gc_frame.prev; return; }
 }
 
+static bool std_console$Stream$Equals$equals(uint8_t l0, uint8_t l1) {
+	return l0 == l1;
+}
+
+static bool std_console$Stream$Equals$equals$guard(uint8_t l0, vader_box_t l1) {
+	uint8_t l2;
+	bool t0;
+	if (l1.tag == 25u) {
+		l2 = ((uint8_t) l1.payload.i);
+		t0 = std_console$Stream$Equals$equals(l0, l2);
+		return t0;
+	}
+	return false;
+}
+
+static bool std_target$Os$Equals$equals(uint8_t l0, uint8_t l1) {
+	return l0 == l1;
+}
+
+static bool std_target$Arch$Equals$equals(uint8_t l0, uint8_t l1) {
+	return l0 == l1;
+}
+
+static bool std_target$Os$Equals$equals$guard(uint8_t l0, vader_box_t l1) {
+	uint8_t l2;
+	bool t0;
+	if (l1.tag == 26u) {
+		l2 = ((uint8_t) l1.payload.i);
+		t0 = std_target$Os$Equals$equals(l0, l2);
+		return t0;
+	}
+	return false;
+}
+
+static bool std_target$Arch$Equals$equals$guard(uint8_t l0, vader_box_t l1) {
+	uint8_t l2;
+	bool t0;
+	if (l1.tag == 27u) {
+		l2 = ((uint8_t) l1.payload.i);
+		t0 = std_target$Arch$Equals$equals(l0, l2);
+		return t0;
+	}
+	return false;
+}
+
+static bool std_io$IOErrorKind$Equals$equals(uint8_t l0, uint8_t l1) {
+	return l0 == l1;
+}
+
+static bool std_io$IOErrorKind$Equals$equals$guard(uint8_t l0, vader_box_t l1) {
+	uint8_t l2;
+	bool t0;
+	if (l1.tag == 28u) {
+		l2 = ((uint8_t) l1.payload.i);
+		t0 = std_io$IOErrorKind$Equals$equals(l0, l2);
+		return t0;
+	}
+	return false;
+}
+
 /* vtable dispatchers */
 static bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0) {
 	switch (recv.tag) {
-		case 12u: return std_core$i8$Equals$equals$guard(((int8_t) recv.payload.i), a0);
-		case 14u: return std_core$i16$Equals$equals$guard(((int16_t) recv.payload.i), a0);
+		case 13u: return std_core$i8$Equals$equals$guard(((int8_t) recv.payload.i), a0);
+		case 15u: return std_core$i16$Equals$equals$guard(((int16_t) recv.payload.i), a0);
 		case 5u: return std_core$i32$Equals$equals$guard(((int32_t) recv.payload.i), a0);
 		case 10u: return std_core$i64$Equals$equals$guard(((int64_t) recv.payload.i), a0);
-		case 15u: return std_core$u8$Equals$equals$guard(((uint8_t) recv.payload.i), a0);
+		case 12u: return std_core$u8$Equals$equals$guard(((uint8_t) recv.payload.i), a0);
 		case 16u: return std_core$u16$Equals$equals$guard(((uint16_t) recv.payload.i), a0);
 		case 17u: return std_core$u32$Equals$equals$guard(((uint32_t) recv.payload.i), a0);
 		case 18u: return std_core$u64$Equals$equals$guard(((uint64_t) recv.payload.i), a0);
@@ -767,6 +893,13 @@ static bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0) {
 		case 6u: return std_core$bool$Equals$equals$guard(recv.payload.b, a0);
 		case 20u: return std_core$char$Equals$equals$guard(((uint32_t) recv.payload.i), a0);
 		case 4u: return std_core$string$Equals$equals$guard(recv.payload.s, a0);
+		case 22u: return std_core$DecoratorTarget$Equals$equals$guard(((uint8_t) recv.payload.i), a0);
+		case 23u: return std_core$Readiness$Equals$equals$guard(((int32_t) recv.payload.i), a0);
+		case 24u: return std_core$CollectorStatistic$Equals$equals$guard(((int32_t) recv.payload.i), a0);
+		case 25u: return std_console$Stream$Equals$equals$guard(((uint8_t) recv.payload.i), a0);
+		case 26u: return std_target$Os$Equals$equals$guard(((uint8_t) recv.payload.i), a0);
+		case 27u: return std_target$Arch$Equals$equals$guard(((uint8_t) recv.payload.i), a0);
+		case 28u: return std_io$IOErrorKind$Equals$equals$guard(((uint8_t) recv.payload.i), a0);
 		default: vader_unreachable("vtable miss in std_core$Equals.equals");
 	}
 	vader_unreachable("vtable miss in std_core$Equals.equals");

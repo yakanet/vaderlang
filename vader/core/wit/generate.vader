@@ -461,8 +461,8 @@ function_words :: fn(f: WitNamedFunction) -> string {
 // ---- tags -------------------------------------------------------------------
 
 // The run-time tags a union tells a value of `t` apart by, as `union_tag_name`
-// gives them: an enum is tagged as its integer, a scalar, a list or a tuple as
-// itself, a named struct as itself. A union contributes the tags of its sides.
+// gives them: an enum, a scalar, a list or a tuple as itself, a named struct as
+// itself. A union contributes the tags of its sides.
 tags_of :: fn(t: WitType) -> string[] {
     out: string[]: []
     push_tags(t, out)
@@ -472,7 +472,7 @@ tags_of :: fn(t: WitType) -> string[] {
 push_tags :: fn(t: WitType, out: string[]) -> void {
     match t {
         is WitScalar      -> out.push(scalar_text(t))
-        is WitEnum        -> out.push("u${enum_case_bits(t.cases.len())}")
+        is WitEnum        -> out.push(enum_tag(t.owner, t.name))
         is WitVariant     -> push_variant_tags(t, out)
         is WitRecord      -> out.push(struct_tag(t.owner, t.name))
         is WitFlags       -> out.push(struct_tag(t.owner, t.name))
@@ -507,7 +507,7 @@ push_tags :: fn(t: WitType, out: string[]) -> void {
 push_variant_tags :: fn(v: WitVariant, out: string[]) -> void {
     bare :: bare_cases(v)
     if bare.len() > 0 {
-        out.push("u${enum_case_bits(bare.len())}")
+        out.push(enum_tag(v.owner, "${v.name} cases"))
     }
     for c in payload_cases(v) {
         out.push(struct_tag(v.owner, "${v.name}-${c.name}"))
@@ -524,6 +524,10 @@ optional_tag_text :: fn(t: WitType | null) -> string {
 tag_text :: fn(t: WitType) -> string = tags_of(t).join(" | ")
 
 struct_tag :: fn(owner: WitOwner, name: string) -> string = "${wit_owner_text(owner)}/${name}"
+
+// An enum is tagged as itself, so its tag meets no other.
+enum_tag :: fn(owner: WitOwner | null, name: string) -> string =
+    if owner == null { "enum ${name}" } else { "enum ${struct_tag(owner, name)}" }
 
 shares_tag :: fn(a: WitType, b: WitType) -> bool = tags_meet(tags_of(a), tags_of(b))
 
@@ -860,8 +864,7 @@ test_wit_generate_wraps_an_ok_side_that_shares_a_tag :: fn() -> void {
         export ErrorCode :: ErrorCodeCase | ErrorCodeOther
         export ErrorCodeCase :: enum(u8) {
         export ErrorCodeOther :: struct {
-        export KindOfOk :: struct {
-        export kind_of :: fn() -> KindOfOk | ErrorCode
+        export kind_of :: fn() -> Kind | ErrorCode
         export MaybeOk :: struct {
         export maybe :: fn() -> MaybeOk | null
         export size :: fn() -> u64 | ErrorCode

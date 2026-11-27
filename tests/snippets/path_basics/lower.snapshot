@@ -95,6 +95,8 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     fn std.core.codepoint_at_byte  // std_core$codepoint_at_byte
     fn std.core.decode_tail  // std_core$decode_tail
@@ -106,7 +108,16 @@
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
   std/path
     const EMPTY_PATH: Path  inline
     fn std.path.as_string  // std_path$as_string
@@ -143,3 +154,8 @@
     fn std.string_builder.append  // std_string__builder$append
     fn std.string_builder.byte_len  // std_string__builder$byte_len
     struct std.string_builder.StringBuilder  // std_string__builder$StringBuilder
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard

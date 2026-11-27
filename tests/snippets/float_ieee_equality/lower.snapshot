@@ -117,6 +117,8 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     fn std.core.(f64 | string)[].contains  // std_core$$array$Contains$contains__f64___string
     fn std.core.bool.equals  // std_core$bool$Equals$equals
@@ -137,6 +139,12 @@
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     fn std_core$bool$Equals$equals$guard
     fn std_core$char$Equals$equals$guard
     fn std_core$f32$Equals$equals$guard
@@ -151,3 +159,11 @@
     fn std_core$u64$Equals$equals$guard
     fn std_core$u8$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard

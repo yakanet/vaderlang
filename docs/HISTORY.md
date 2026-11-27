@@ -1643,3 +1643,9 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 ### 3.1 Concurrency
 
 - [x] **The task check knows its primitives by name**, **closed 2026-11-19** (noted 2026-11-16): `task_primitive` (`vader/core/types/task_runtime.vader`) matched the keys `std/task.launch`, `std/task.join`, `std/runtime/scheduler.park`... and a closed list named the shared structs, so renaming or moving one in the library dropped it from the analysis in silence. Each primitive now says what it is to a task with `@task_primitive`, and each shared struct carries `@task_shared`, two decorators private to `std/task` (`lib/std/task/decorators.vader`); a function that only forwards to a member of `Intrinsic` that parks is a gate by `intrinsic_parks` (ADR 0160).
+
+## Archived from TODO.md, 2026-11-27
+
+### Phase 2 (Self-hosting) leftovers: typecheck and lowering
+
+- [x] **Reject a union whose variants share a representation**, **closed 2026-11-27** (decided 2026-10-26): T3151 (`7bf5700aa`, `vader/front/typecheck/tag_dispatch.vader`) refuses a union of two variants carried as one run-time type: a range type beside its integer (`Hour | u8`), a distinct beside its backing (`Path | string`), two distincts over one backing (`Meters | Seconds`). Enums were refused too until a boxed enum carried its own type ([ADR 0187](./adr/0187-a-boxed-enum-carries-its-own-type.md)): `Color | u8` and `Fruit | Color` are unions like any other. Fixture: `tests/diag_corpus/typecheck/t3151_union_variants_share_tag`.

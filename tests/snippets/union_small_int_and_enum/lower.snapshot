@@ -157,7 +157,14 @@
       std_core$Intrinsic$buffer_write_string(buf, c0, p1)
       std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
+  snippet$Color$Equals$equals :: fn(self: Color, other: Color) -> bool {
+      self == other
+  }
+  snippet$Color$Equals$equals$guard :: fn(self: Color, other: Any) -> bool {
+      (other is Color) && snippet$Color$Equals$equals(self, Color(other))
+  }
   vtable snippet.Shower.shown for Plain  snippet.Plain.shown  // snippet$Plain$Shower$shown
+  vtable std.core.Equals.equals for Color  snippet$Color$Equals$equals$guard
   vtable std.core.Iterator.next for $genstate_bytes  snippet$$genstate_bytes$Iterator$next
 
 ## snippet/bytes
@@ -203,6 +210,8 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     fn std.core.bool.equals  // std_core$bool$Equals$equals
     fn std.core.char.equals  // std_core$char$Equals$equals
@@ -232,6 +241,12 @@
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     fn std_core$bool$Equals$equals$guard
     fn std_core$char$Equals$equals$guard
     fn std_core$f32$Equals$equals$guard
@@ -247,3 +262,11 @@
     fn std_core$u8$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard

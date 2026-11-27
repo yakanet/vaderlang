@@ -698,9 +698,10 @@ reg_call :: fn(
                         // @partial: a primitive's type id comes from the type table
                         // (`receiver_type_id_of`), in `resolve_virtual`.
                         @partial match receiver {
-                            is StructVal -> receiver.type_id
-                            is ArrayVal  -> receiver.type_id
-                            _            -> -1
+                            is StructVal  -> receiver.type_id
+                            is ArrayVal   -> receiver.type_id
+                            is NominalVal -> receiver.type_id
+                            _             -> -1
                         }
                     }
                     row :: if type_id < 0 { -1 } else { f.virtual_rows[site] }

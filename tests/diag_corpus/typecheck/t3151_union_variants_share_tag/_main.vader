@@ -1,5 +1,6 @@
-// Two variants of a union carrying one run-time type (an enum its integer, a
-// distinct its backing) could not be told apart; `kept_apart` mixes those that can.
+// Two variants of a union carrying one run-time type (a distinct its backing, an
+// integer range its integer) could not be told apart; `kept_apart` mixes those
+// that can, enums included: an enum is carried as itself.
 module "snippet"
 
 export Fruit :: enum { Apple, Pear }
@@ -9,12 +10,10 @@ export Path :: string
 export Hour :: Int in 0..=23
 export Point :: struct { x: i32 }
 
-export two_enums :: fn(v: Fruit | Color) -> void {}
-export enum_and_integer :: fn(v: Fruit | u8) -> void {}
 export distinct_and_backing :: fn(v: Path | string) -> void {}
 export range_and_integer :: fn(v: Hour | u8) -> void {}
 
-export kept_apart :: fn(v: Fruit | Wide | Point | string | null) -> void {}
+export kept_apart :: fn(v: Fruit | Color | Wide | u8 | Point | string | null) -> void {}
 
 main :: fn() -> i32 {
     return 0

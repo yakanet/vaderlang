@@ -1,0 +1,279 @@
+# Lower
+
+## snippet
+  storage
+    const PALETTE: (Color | string)[]  data pool #0
+  snippet.Holder :: struct { cell: Color | string }  // snippet$Holder
+  snippet.name_of :: fn(v: Color | u8) -> string {  // snippet$name_of
+      if v is Color {
+          concat_2("color ", snippet.Color.to_string(Color(v)))
+      } else {
+          {
+              __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(25))
+              __off_1: i64 = 0
+              __off_1 = std.core.write_string_at(__buf_0, __off_1, "byte ")
+              __off_1 = std.core.write_unsigned(__buf_0, __off_1, u8(v))
+              std.core.finish_buffer(__buf_0, __off_1)
+          } :string
+      } :string
+  }
+  snippet.kind_of :: fn(v: Color | Fruit) -> string {  // snippet$kind_of
+      if v is Color { concat_2("color ", snippet.Color.to_string(Color(v))) } else { concat_2("fruit ", snippet.Fruit.to_string(Fruit(v))) } :string
+  }
+  snippet.render :: fn(d: Display) -> string {  // snippet$render
+      @vcall(std.core.Display.to_string, d)
+  }
+  snippet.same :: fn(a: Equals, b: Equals) -> bool {  // snippet$same
+      @vcall(std.core.Equals.equals, a, b)
+  }
+  snippet.cell_of :: fn(c: Color | string) -> string {  // snippet$cell_of
+      if c is Color { concat_2("color ", snippet.Color.to_string(Color(c))) } else { concat_2("text ", string(c)) } :string
+  }
+  snippet.colors :: fn() -> Iterator<Color | string> {  // snippet$colors
+      return $genstate_colors { .state = 2 }
+  }
+  snippet.pick :: fn(n: i32) -> Color | string {  // snippet$pick
+      if n == 0 { Color(0) } else { "none" } :Color | string
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.console.println<string>(concat_3(snippet.name_of(Color(1)), " ", snippet.name_of(u8(1))))
+      std.console.println<string>(concat_3(snippet.kind_of(Color(0)), " ", snippet.kind_of(Fruit(0))))
+      std.console.println<string>(snippet.render(Color(2)))
+      across: bool = snippet.same(Color(0), Fruit(0))
+      std.console.println<string>({
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(17))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_bool(__buf_0, __off_1, snippet.same(Color(0), Color(0)))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_bool(__buf_0, __off_1, across)
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_bool(__buf_0, __off_1, snippet.same(Color(0), Color(2)))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      cells: (Color | string)[] = [Color(1), "x"] :(Color | string)[]
+      std.console.println<string>(snippet.cell_of(cells[0]))
+      by_name: Map<string, Color | string> = Map<string, Color | string> {
+          .ekeys = [] :string[],
+          .evals = [] :(Color | string)[],
+          .index = [] :i32[],
+          .mask = i64(0),
+          .grow_at = i64(0),
+          .size = i64(0),
+          .tombs = i64(0),
+      }
+      std.collections.Map<string, Color | string>.set_at(by_name, "sky", Color(2))
+      std.console.println<string>(snippet.cell_of({
+          __fallback_2: Color | null | string = std.collections.Map<string, Color | string>.at(by_name, "sky")
+          if __fallback_2 is null { "missing" } else { (Color | string)(__fallback_2) } :Color | string
+      } :Color | string))
+      held: Holder = Holder { .cell = Color(0) }
+      std.console.println<string>(snippet.cell_of(held.cell))
+      captured: Color = 1
+      show: __lambda_env_snippet_1 = __lambda_env_snippet_1 { .cap_0 = captured }
+      std.console.println<string>(__lambda_snippet_0(show))
+      chosen: fn(i32) -> Color | string = snippet.pick
+      std.console.println<string>(snippet.cell_of(snippet.pick(0)))
+      {
+          c: Color | string = Color(1)
+          std.console.println<string>(snippet.cell_of(c))
+          c: Color | string = "leaf"
+          std.console.println<string>(snippet.cell_of(c))
+      }
+      std.console.println<string>(snippet.cell_of(snippet.PALETTE[0]))
+      return 0
+  }
+  snippet.Color.to_string :: fn(self: Color) -> string {  // snippet$Color$std_core$Display$to_string
+      {
+          if self == Color(0) {
+              "Red"
+          } else if self == Color(1) {
+              "Green"
+          } else if self == Color(2) {
+              "Blue"
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :string
+      } :string
+  }
+  snippet.Fruit.to_string :: fn(self: Fruit) -> string {  // snippet$Fruit$std_core$Display$to_string
+      {
+          if self == Fruit(0) {
+              "Apple"
+          } else if self == Fruit(1) {
+              "Pear"
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :string
+      } :string
+  }
+  snippet$$genstate_colors :: struct { state: i32 }
+  snippet$$genstate_colors$Iterator$next :: fn(self: $genstate_colors) -> Color | Stop | string {
+      dispatch$: for {
+          if __self_0.state == 0 {
+              __self_0.state = -1
+          } else if __self_0.state == 1 {
+              __self_0.state = 0
+              return "leaf"
+          } else if __self_0.state == 2 {
+              __self_0.state = 1
+              return Color(1)
+          } else {
+              return Stop {}
+          }
+      }
+  }
+  __lambda_env_snippet_1 :: struct { cap_0: Color }
+  __lambda_snippet_0 :: fn(__env_3: __lambda_env_snippet_1) -> string {
+      snippet.render(__env_3.cap_0)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c2)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
+      std_core$Intrinsic$buffer_intern_string(buf, c2)
+  }
+  snippet$Color$Equals$equals :: fn(self: Color, other: Color) -> bool {
+      self == other
+  }
+  snippet$Fruit$Equals$equals :: fn(self: Fruit, other: Fruit) -> bool {
+      self == other
+  }
+  snippet$Color$Equals$equals$guard :: fn(self: Color, other: Any) -> bool {
+      (other is Color) && snippet$Color$Equals$equals(self, Color(other))
+  }
+  snippet$Fruit$Equals$equals$guard :: fn(self: Fruit, other: Any) -> bool {
+      (other is Fruit) && snippet$Fruit$Equals$equals(self, Fruit(other))
+  }
+  vtable std.core.Display.to_string for Color  snippet.Color.to_string  // snippet$Color$std_core$Display$to_string
+  vtable std.core.Display.to_string for Fruit  snippet.Fruit.to_string  // snippet$Fruit$std_core$Display$to_string
+  vtable std.core.Equals.equals for Color  snippet$Color$Equals$equals$guard
+  vtable std.core.Equals.equals for Fruit  snippet$Fruit$Equals$equals$guard
+  vtable std.core.Iterator.next for $genstate_colors  snippet$$genstate_colors$Iterator$next
+
+## lowered in dependencies
+  std/collections
+    fn std.collections.Map<string, Color | string>.at  // std_collections$Map$std_core$Index$at__string__snippet_Color___string
+    fn std.collections.Map<string, Color | string>.contains  // std_collections$Map$std_core$Contains$contains__string__snippet_Color___string
+    fn std.collections.Map<string, Color | string>.into  // std_collections$Map$std_core$Into$into__string__snippet_Color___string
+    fn std.collections.Map<string, Color | string>.set_at  // std_collections$Map$std_core$IndexSet$set_at__string__snippet_Color___string
+    fn std.collections.contains_key<string, Color | string>  // std_collections$contains_key__string__snippet_Color___string
+    fn std.collections.first_slot  // std_collections$first_slot
+    fn std.collections.get<string, Color | string>  // std_collections$get__string__snippet_Color___string
+    fn std.collections.grow_index<string, Color | string>  // std_collections$grow_index__string__snippet_Color___string
+    fn std.collections.next_slot  // std_collections$next_slot
+    fn std.collections.put<string, Color | string>  // std_collections$put__string__snippet_Color___string
+    fn std.collections.rehash<string, Color | string>  // std_collections$rehash__string__snippet_Color___string
+    fn std_collections$__gen_state_std_collections_0$Iterator$next
+    struct std.collections.Map<string, Color | string>  // std_collections$Map__string__snippet_Color___string
+    struct std_collections$__gen_state_std_collections_0
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
+  std/core
+    const POW5_128: u64[]  data pool #1
+    fn std.core.b2u  // std_core$b2u
+    fn std.core.bool.equals  // std_core$bool$Equals$equals
+    fn std.core.bool.to_string  // std_core$bool$Display$to_string
+    fn std.core.char.equals  // std_core$char$Equals$equals
+    fn std.core.char.to_string  // std_core$char$Display$to_string
+    fn std.core.chosen  // std_core$chosen
+    fn std.core.decimal_exponent  // std_core$decimal_exponent
+    fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.f32.equals  // std_core$f32$Equals$equals
+    fn std.core.f32.to_string  // std_core$f32$Display$to_string
+    fn std.core.f64.equals  // std_core$f64$Equals$equals
+    fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.floor_log10_pow2  // std_core$floor_log10_pow2
+    fn std.core.floor_log10_three_quarters_pow2  // std_core$floor_log10_three_quarters_pow2
+    fn std.core.floor_log2_pow10  // std_core$floor_log2_pow10
+    fn std.core.format_f32  // std_core$format_f32
+    fn std.core.format_f64  // std_core$format_f64
+    fn std.core.format_signed  // std_core$format_signed
+    fn std.core.format_unsigned  // std_core$format_unsigned
+    fn std.core.i16.equals  // std_core$i16$Equals$equals
+    fn std.core.i16.to_string  // std_core$i16$Display$to_string
+    fn std.core.i32.equals  // std_core$i32$Equals$equals
+    fn std.core.i32.to_string  // std_core$i32$Display$to_string
+    fn std.core.i64.equals  // std_core$i64$Equals$equals
+    fn std.core.i64.to_string  // std_core$i64$Display$to_string
+    fn std.core.i8.equals  // std_core$i8$Equals$equals
+    fn std.core.i8.to_string  // std_core$i8$Display$to_string
+    fn std.core.insert_point  // std_core$insert_point
+    fn std.core.minus_shifted  // std_core$minus_shifted
+    fn std.core.null.to_string  // std_core$null$Display$to_string
+    fn std.core.plus_shifted  // std_core$plus_shifted
+    fn std.core.power_of_ten  // std_core$power_of_ten
+    fn std.core.render  // std_core$render
+    fn std.core.round_to_odd  // std_core$round_to_odd
+    fn std.core.round_to_odd_f32  // std_core$round_to_odd_f32
+    fn std.core.shifted  // std_core$shifted
+    fn std.core.shortest_between  // std_core$shortest_between
+    fn std.core.shortest_f32  // std_core$shortest_f32
+    fn std.core.shortest_f32_at  // std_core$shortest_f32_at
+    fn std.core.shortest_f64  // std_core$shortest_f64
+    fn std.core.shortest_f64_at  // std_core$shortest_f64_at
+    fn std.core.string.equals  // std_core$string$Equals$equals
+    fn std.core.string.to_string  // std_core$string$Display$to_string
+    fn std.core.u16.equals  // std_core$u16$Equals$equals
+    fn std.core.u16.to_string  // std_core$u16$Display$to_string
+    fn std.core.u32.equals  // std_core$u32$Equals$equals
+    fn std.core.u32.to_string  // std_core$u32$Display$to_string
+    fn std.core.u64.equals  // std_core$u64$Equals$equals
+    fn std.core.u64.to_string  // std_core$u64$Display$to_string
+    fn std.core.u8.equals  // std_core$u8$Equals$equals
+    fn std.core.u8.to_string  // std_core$u8$Display$to_string
+    fn std.core.umul128  // std_core$umul128
+    fn std.core.utf8_encode  // std_core$utf8_encode
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_decimal  // std_core$write_decimal
+    fn std.core.write_digits  // std_core$write_digits
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std.core.write_zeros  // std_core$write_zeros
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
+    fn std_core$bool$Equals$equals$guard
+    fn std_core$char$Equals$equals$guard
+    fn std_core$f32$Equals$equals$guard
+    fn std_core$f64$Equals$equals$guard
+    fn std_core$i16$Equals$equals$guard
+    fn std_core$i32$Equals$equals$guard
+    fn std_core$i64$Equals$equals$guard
+    fn std_core$i8$Equals$equals$guard
+    fn std_core$string$Equals$equals$guard
+    fn std_core$u16$Equals$equals$guard
+    fn std_core$u32$Equals$equals$guard
+    fn std_core$u64$Equals$equals$guard
+    fn std_core$u8$Equals$equals$guard
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Stop  // std_core$Stop
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard

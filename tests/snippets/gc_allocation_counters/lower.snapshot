@@ -40,19 +40,40 @@
 
 ## lowered in dependencies
   wasi:filesystem/types@0.3.0
+    fn wasi_0filesystem_types_10_23_20$ErrorCodeCase$Equals$equals
+    fn wasi_0filesystem_types_10_23_20$ErrorCodeCase$Equals$equals$guard
     struct wasi:filesystem.types@0.3.0.Descriptor  // wasi_0filesystem_types_10_23_20$Descriptor
   std/console
     fn std.console.println<string>  // std_console$println__string
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
+  std/numbers
+    fn std_numbers$SignMode$Equals$equals
+    fn std_numbers$SignMode$Equals$equals$guard
   std/runtime
     fn std.runtime.allocated_bytes  // std_runtime$allocated_bytes
     fn std.runtime.allocations  // std_runtime$allocations
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard

@@ -878,6 +878,8 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.finish_buffer  // std_core$finish_buffer
@@ -887,10 +889,19 @@
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     fn std_core$__gen_state_std_core_0$Iterator$next
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
     struct std_core$__gen_state_std_core_0
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
   std/iter
     fn std.iter.chain<i32>  // std_iter$chain__i32
     fn std.iter.filter<char>  // std_iter$filter__char
@@ -914,3 +925,8 @@
     fn std.string.StringChars.next  // std_string$StringChars$std_core$Iterator$next
     fn std.string.chars  // std_string$chars
     struct std.string.StringChars  // std_string$StringChars
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard

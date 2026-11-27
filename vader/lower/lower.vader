@@ -313,6 +313,7 @@ export finish_lowering :: fn(lowering: Lowering, diags: Diagnostic[]) -> Lowered
     // (e.g. M5001 from `lower_for_in`) into the caller-owned sink so
     // they reach `# Diagnostics` in the CLI dump.
     for d in project_ctx.diags { diags.push(d) }
+    enum_equals_slots(project, project_ctx)
     // Before `collect_vtable_entries` : it moves each guarded `Equals` slot from the
     // impl onto its guard.
     guard_equals_slots(project, project_ctx)

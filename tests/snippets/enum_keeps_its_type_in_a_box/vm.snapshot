@@ -1,0 +1,15 @@
+# stdout
+color Green byte 1
+color Red fruit Apple
+Blue
+true false false
+color Green
+color Blue
+color Red
+Green
+color Red
+color Green
+text leaf
+color Blue
+# exit
+0

@@ -175,6 +175,8 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     fn std.core.clone<u8>  // std_core$clone__u8
     fn std.core.finish_buffer  // std_core$finish_buffer
@@ -183,6 +185,12 @@
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
   std/io
     const STREAM_FAILED: IOError  data pool #0, element 0
@@ -207,6 +215,8 @@
     fn std.io.refill  // std_io$refill
     fn std.io.reserve  // std_io$reserve
     fn std.io.take_through  // std_io$take_through
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
     struct std.io.BufferedReader  // std_io$BufferedReader
     struct std.io.BufferedWriter  // std_io$BufferedWriter
     struct std.io.BytesReader  // std_io$BytesReader
@@ -217,5 +227,10 @@
     struct std.io.IOError  // std_io$IOError
   std/math
     fn std.math.min<i64>  // std_math$min__i64
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard
   std/testing
     fn std.testing.assert_succeeds  // std_testing$assert_succeeds

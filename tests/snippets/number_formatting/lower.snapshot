@@ -114,6 +114,8 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     const POW5_128: u64[]  data pool #0
     fn std.core.ascii_prefix  // std_core$ascii_prefix
@@ -149,7 +151,16 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     fn std.core.write_zeros  // std_core$write_zeros
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
   std/math
     fn std.math.abs  // std_math$abs_2
     fn std.math.is_finite  // std_math$is_finite
@@ -177,6 +188,10 @@
     fn std.numbers.trimmed  // std_numbers$trimmed
     fn std.numbers.with_point  // std_numbers$with_point
     fn std.numbers.write_integer  // std_numbers$write_integer
+    fn std_numbers$Notation$Equals$equals
+    fn std_numbers$Notation$Equals$equals$guard
+    fn std_numbers$SignMode$Equals$equals
+    fn std_numbers$SignMode$Equals$equals$guard
     fn std_numbers$format
     fn std_numbers$format_1
     struct std.numbers.DecimalDigits  // std_numbers$DecimalDigits
@@ -198,3 +213,8 @@
     fn std.string_builder.append_char  // std_string__builder$append_char
     fn std.string_builder.byte_len  // std_string__builder$byte_len
     struct std.string_builder.StringBuilder  // std_string__builder$StringBuilder
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard

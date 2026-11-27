@@ -969,7 +969,7 @@ box_slot :: fn(
         return boxed_string(class_tag_of(types, .String), atom_for(atom_of, v.value))
     }
     if v is BcValPrim {
-        return boxed_scalar(scalar_tag(types, v.kind), v.kind, v.bits)
+        return boxed_scalar(prim_tag(types, v), v.kind, v.bits)
     }
     return boxed_object(baked_object_tag(types, v), emit_data_value(ctx, items, v, name, atom_of))
 }
@@ -981,6 +981,11 @@ baked_object_tag :: fn(types: BcType[], v: BcValStruct | BcValArray) -> i32 {
     }
     return type_id_for_struct_symbol(types, v.symbol_id)
 }
+
+// The tag a boxed baked number carries: an enum's own (`BcValPrim.tag`), else
+// its kind's scalar.
+prim_tag :: fn(types: BcType[], v: BcValPrim) -> i32 =
+    if v.tag >= 0 { v.tag } else { scalar_tag(types, v.kind) }
 
 // Type-table index of the scalar a baked number of `kind` is, or 0.
 scalar_tag :: fn(types: BcType[], kind: ArrayKind) -> i32 {

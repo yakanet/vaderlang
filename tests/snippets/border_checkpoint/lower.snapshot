@@ -81,6 +81,13 @@
       std_core$Intrinsic$buffer_write_string(buf, c0, p1)
       std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
+  snippet$Lane$Equals$equals :: fn(self: Lane, other: Lane) -> bool {
+      self == other
+  }
+  snippet$Lane$Equals$equals$guard :: fn(self: Lane, other: Any) -> bool {
+      (other is Lane) && snippet$Lane$Equals$equals(self, Lane(other))
+  }
+  vtable std.core.Equals.equals for Lane  snippet$Lane$Equals$equals$guard
 
 ## lowered in dependencies
   std/console
@@ -88,8 +95,24 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard
 
 # Diagnostics
 [40:26] warning[W0016] the enum name adds nothing here, since the slot already pins it and the bare variant reads the same: write `.Trucks`

@@ -83,11 +83,18 @@
   }
 
 ## lowered in dependencies
+  wasi:cli/types@0.3.0
+    fn wasi_0cli_types_10_23_20$ErrorCode$Equals$equals
+    fn wasi_0cli_types_10_23_20$ErrorCode$Equals$equals$guard
   wasi:clocks/system-clock@0.3.0
     struct wasi:clocks.system-clock@0.3.0.Instant  // wasi_0clocks_system_3clock_10_23_20$Instant
   wasi:filesystem/types@0.3.0
     fn wasi:filesystem.types@0.3.0.ErrorCodeCase.message  // wasi_0filesystem_types_10_23_20$ErrorCodeCase$std_core$Error$message
     fn wasi:filesystem.types@0.3.0.ErrorCodeOther.message  // wasi_0filesystem_types_10_23_20$ErrorCodeOther$std_core$Error$message
+    fn wasi_0filesystem_types_10_23_20$DescriptorTypeCase$Equals$equals
+    fn wasi_0filesystem_types_10_23_20$DescriptorTypeCase$Equals$equals$guard
+    fn wasi_0filesystem_types_10_23_20$ErrorCodeCase$Equals$equals
+    fn wasi_0filesystem_types_10_23_20$ErrorCodeCase$Equals$equals$guard
     struct wasi:filesystem.types@0.3.0.Descriptor  // wasi_0filesystem_types_10_23_20$Descriptor
     struct wasi:filesystem.types@0.3.0.DescriptorFlags  // wasi_0filesystem_types_10_23_20$DescriptorFlags
     struct wasi:filesystem.types@0.3.0.DescriptorStat  // wasi_0filesystem_types_10_23_20$DescriptorStat
@@ -98,10 +105,29 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard
+
+# Diagnostics
+[36:22] warning[W0016] the enum name adds nothing here, since the slot already pins it and the bare variant reads the same: write `.Directory`

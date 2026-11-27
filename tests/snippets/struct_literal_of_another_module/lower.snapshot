@@ -43,6 +43,13 @@
       Label { .text = concat_3("<", self, ">") }
   }
   snippet.base.Label :: struct { text: string }  // snippet_base$Label
+  snippet_base$Level$Equals$equals :: fn(self: Level, other: Level) -> bool {
+      self == other
+  }
+  snippet_base$Level$Equals$equals$guard :: fn(self: Level, other: Any) -> bool {
+      (other is Level) && snippet_base$Level$Equals$equals(self, Level(other))
+  }
+  vtable std.core.Equals.equals for Level  snippet_base$Level$Equals$equals$guard
   vtable std.core.Into.into (and std_core$Into__snippet_base_Label) for string  snippet.base.string.into  // snippet_base$string$std_core$Into$into
 
 ## snippet/util
@@ -87,10 +94,26 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard

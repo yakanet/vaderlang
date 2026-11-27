@@ -192,6 +192,15 @@ storage_type :: fn(gc: GcTypes, storage: WasmStorageType) -> i32 =
 box_of_class :: fn(gc: GcTypes, class: Bc.ValType) -> i32 =
     gc.of_box[class] else panic("wasm: no box for a boxed class")
 
+// The box a scalar of the row `index`, held as `class`, is made in: an enum's own,
+// that of its class otherwise.
+box_of_row :: fn(gc: GcTypes, index: i32 | null, class: Bc.ValType) -> i32 {
+    if index == null {
+        return box_of_class(gc, class)
+    }
+    return gc.of_nominal[index] else box_of_class(gc, class)
+}
+
 // ---- ops ------------------------------------------------------------------
 
 // The array ops `push_array_op` translates.

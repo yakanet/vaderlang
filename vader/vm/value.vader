@@ -300,10 +300,7 @@ export read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Tra
 /// `===` asks. A baked const is one shared object on both backends. A type
 /// compares its index in the type table, which the native payload holds in
 /// place of a pointer: each `type.const` boxes a new `TypeVal`.
-export value_ref_eq :: fn(a: Value, b: Value) -> bool =
-    same_value(representation_of(a), representation_of(b))
-
-same_value :: fn(a: Value, b: Value) -> bool = match a {
+export value_ref_eq :: fn(a: Value, b: Value) -> bool = match a {
     is NullVal   -> b is NullVal
     is VoidVal   -> b is VoidVal
     is I32Val    -> b is I32Val && a == b
@@ -315,8 +312,8 @@ same_value :: fn(a: Value, b: Value) -> bool = match a {
     is F64Val    -> b is F64Val && f64(a).to_bits() == f64(b).to_bits()
     is HeapVal   -> b is HeapVal && a === b
     is TypeVal   -> b is TypeVal && a.type_id == b.type_id
-    // Only for exhaustiveness: `value_ref_eq` hands over representations.
-    is NominalVal -> same_value(a.inner, b)
+    // Two enums of one type holding the same integer.
+    is NominalVal -> b is NominalVal && a.type_id == b.type_id && value_ref_eq(a.inner, b.inner)
 }
 
 // The values the VM allocates, each an object with an identity.
@@ -328,9 +325,8 @@ export type_matches :: fn(state: VmState, v: Value, type_id: i32) -> bool {
     if type_id < 0 || i64(type_id) >= state.bc.types.len() { return false }
     type_decl :: state.bc.types[type_id]
     return match type_decl {
-        // An enum's tag answers as its representation, and so does a
-        // `NominalVal`.
-        is bc.BcScalar | bc.BcNominal -> class_matches(representation_of(v), type_decl.val)
+        is bc.BcScalar  -> class_matches(v, type_decl.val)
+        is bc.BcNominal -> v is NominalVal && v.type_id == type_id
         // @partial: only StructVal carries a matchable tag; every other Value -> false.
         is bc.BcStruct        -> @partial match v {
             is StructVal -> v.type_id == type_id
@@ -359,11 +355,12 @@ ref_type_matches :: fn(state: VmState, v: Value, trait_name: string) -> bool {
             _                -> false
         }
     }
-    // @partial: only a StructVal, an ArrayVal or a FnVal names its type, which the
-    // impl table lists ; else false.
+    // @partial: only a StructVal, an ArrayVal, a FnVal or a NominalVal names its
+    // type, which the impl table lists ; else false.
     return @partial match v {
-        is StructVal | ArrayVal | FnVal -> trait_implemented_by(state, trait_name, v.type_id)
-        _                               -> false
+        is StructVal | ArrayVal | FnVal | NominalVal ->
+            trait_implemented_by(state, trait_name, v.type_id)
+        _ -> false
     }
 }
 
@@ -380,7 +377,7 @@ trait_implemented_by :: fn(state: VmState, trait_name: string, type_id: i32) -> 
     return false
 }
 
-/// Receiver `type_id` extraction for `virtual.call`. Struct / Array / Fn
+/// Receiver `type_id` extraction for `virtual.call`. Struct / Array / Fn / enum
 /// receivers carry their type_id directly ; primitives need a module-
 /// level lookup via the type table to find the `BcScalar` entry
 /// matching the value's runtime tag. Returns `-1` when nothing matches
@@ -389,8 +386,8 @@ export receiver_type_id_of :: fn(state: VmState, v: Value) -> i32 {
     // @partial: struct, array and fn receivers carry a type_id; primitives resolve
     // via the table.
     return @partial match v {
-        is StructVal | ArrayVal | FnVal -> v.type_id
-        _                               -> primitive_type_id(state, v)
+        is StructVal | ArrayVal | FnVal | NominalVal -> v.type_id
+        _ -> primitive_type_id(state, v)
     }
 }
 
@@ -446,6 +443,10 @@ lookup_vtable_row :: fn(vtables: bc.VtableRow[], row: i32, type_id: i32) -> i32 
 /// `if x is i64 { ... }` against an `I32Val` matches and runs with i32
 /// semantics. Sprint 5d / per-width values will replace the alias collapse.
 export class_matches :: fn(v: Value, val: bc.ValType) -> bool {
+    // An enum in a box is of its own type, not of the integer it rides.
+    if v is NominalVal {
+        return false
+    }
     if bc.val_type_name(val) == describe_value_tag(v) { return true }
     // Width-suffixed integer classes have no dedicated Value variant: they
     // ride in `I32Val` (<=32-bit) or `I64Val` (64-bit: u64 ; i64
@@ -636,9 +637,9 @@ export VoidVal :: struct {}
 export TypeVal :: struct { type_id: i32 }
 
 /// An enum value in a box (a union, a trait value, an erased slot): the integer it
-/// rides and the `BcNominal` row of its type, set by `retag`. Unwrapped when a cast
-/// narrows it back to its representation. Every test, comparison and dispatch
-/// reads it as that integer (`representation_of`).
+/// rides and the `BcNominal` row of its type, set by `retag`, which tests,
+/// comparisons and dispatch read. Unwrapped when a cast narrows it back to its
+/// representation, or a call takes it bare.
 export NominalVal :: struct {
     type_id: i32
     inner:   Value

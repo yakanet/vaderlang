@@ -30,7 +30,8 @@ export GcTypes :: struct {
     /// The box of each scalar class.
     of_box: Map<Bc.ValType, i32> = Map<Bc.ValType, i32> {}
     /// The box of each enum, by the index of its `BcNominal` row: a subtype of the
-    /// box of the class it rides, so what tests or opens that box takes it too.
+    /// box of the class it rides, so what opens that box opens it too. A test of
+    /// the class leaves it out (`scalar_test`).
     of_nominal: Map<i32, i32> = Map<i32, i32> {}
     /// The box of `void`, which holds nothing.
     void_box: i32 = -1
@@ -210,8 +211,8 @@ scalar_field_type :: fn(v: Bc.ValType) -> WasmValType = match v {
 // The box a value of `t` is held in where any type may be, null for a type held
 // as a reference, or a foreign pointer.
 box_of :: fn(gc: GcTypes, t: Bc.BcType) -> i32 | null {
-    // A test of an enum's row answers as its representation: the box of its
-    // class, which its own box subtypes (`of_nominal`).
+    // What holds an enum is the box of its class, which its own subtypes
+    // (`of_nominal`).
     if t is Bc.BcNominal {
         return gc.of_box[t.val]
     }
@@ -461,15 +462,25 @@ push_pin :: fn(
 }
 
 // `retag`: a scalar stored where any type may be, boxed in its class's box, or an
-// enum in its own. The bytecode retags a scalar only, of the type `op` names.
+// enum in its own, of the type `op` names. A box already made, by a read from an
+// erased array say, holds the enum in the box of its class: it moves to its own.
 push_retag :: fn(
     ctx: ModuleCtx,
     out: WasmInstr[],
     op: Bc.Retag,
+    source: WasmValType | null,
     function: string,
 ) -> void | WasmUnsupported {
     box :: retag_box(ctx.gc, ctx.module.types, op.type_id) else return unsupported_op(op, function)
-    out.push(StructNew { .type_index = box })
+    if source != .EqRef {
+        out.push(StructNew { .type_index = box })
+        return
+    }
+    target :: ctx.module.types[op.type_id]
+    if target is Bc.BcNominal {
+        class_box :: box_of_class(ctx.gc, target.val)
+        out.push_on_stack(struct_new(box, [unboxed(class_box, on_stack())]))
+    }
 }
 
 // The box a `retag` to `types[index]` makes.
@@ -508,12 +519,44 @@ single_test :: fn(
     if target is Bc.BcFn {
         return sequence([drop(value), i32_const(0)])
     }
+    if target is Bc.BcNominal {
+        own :: ctx.gc.of_nominal[type_id] else panic("wasm: no box for an enum's row")
+        return ref_test(own, value)
+    }
+    if target is Bc.BcScalar && has_riding_nominal(ctx, target.val) {
+        return call(ctx.scalar_test(target.val), [value])
+    }
     box :: box_of(ctx.gc, target) else {
         return WasmUnsupported {
             .reason = "`${function}`: no WASM test yet for type ${type_id}",
         }
     }
     return ref_test(box, value)
+}
+
+// Whether an enum box holds values of the class `class`.
+has_riding_nominal :: fn(ctx: ModuleCtx, class: Bc.ValType) -> bool =
+    ctx.gc.of_nominal.keys().any_match((index) -> nominal_class(ctx, index) == class)
+
+// `(value: eqref) -> i32`: whether the value is in the box of `class` and in none
+// of the enum boxes that subtype it.
+scalar_test :: fn(ctx: ModuleCtx, class: Bc.ValType) -> i32 {
+    key :: "is.class.${i32(class)}"
+    known :: ctx.helpers[key]
+    if known != null {
+        return known
+    }
+    value :: 0
+    body: WasmExpression[]: []
+    for [index, box] in ctx.gc.of_nominal {
+        if nominal_class(ctx, index) == class {
+            body.push(answer_if(ref_test(box, local_get(value)), 0))
+        }
+    }
+    class_box :: ctx.gc.of_box[class] else panic("wasm: no box for a boxed class")
+    body.push(ref_test(class_box, local_get(value)))
+    frame :: HelperFrame { .signature = func_of([.EqRef], [.I32]) }
+    return ctx.define_tree_helper(key, frame, body)
 }
 
 // The value on the stack, tested as `single_test` tests it.
@@ -594,6 +637,15 @@ define_reference_equality :: fn(ctx: ModuleCtx) -> i32 {
     a :: local_get(0)
     b :: local_get(1)
     body: WasmExpression[]: [answer_if(binary(.RefEq, a, b), 1)]
+    // Two enums of one type compare their integers ; an enum equals nothing else.
+    for [index, box] in ctx.gc.of_nominal {
+        class :: nominal_class(ctx, index)
+        both :: i32_and(ref_test(box, a), ref_test(box, b))
+        same_payload :: binary(payload_equality(class), unboxed(box, a), unboxed(box, b))
+        body.push(when(both, [return_([same_payload])]))
+        either :: i32_or(ref_test(box, a), ref_test(box, b))
+        body.push(answer_if(either, 0))
+    }
     for [class, box] in ctx.gc.of_box {
         both_boxed :: i32_and(ref_test(box, a), ref_test(box, b))
         same_payload :: binary(payload_equality(class), unboxed(box, a), unboxed(box, b))
@@ -602,6 +654,15 @@ define_reference_equality :: fn(ctx: ModuleCtx) -> i32 {
     body.push(i32_const(0))
     frame :: HelperFrame { .signature = func_of([.EqRef, .EqRef], [.I32]) }
     return ctx.define_tree_helper("ref.eq", frame, body)
+}
+
+// The class the enum of the row `index` rides.
+nominal_class :: fn(ctx: ModuleCtx, index: i32) -> Bc.ValType {
+    row :: ctx.module.types[index]
+    if row is Bc.BcNominal {
+        return row.val
+    }
+    panic("wasm: row ${index} is no enum")
 }
 
 payload_equality :: fn(class: Bc.ValType) -> WasmOp = match scalar_field_type(class) {

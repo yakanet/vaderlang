@@ -30,8 +30,9 @@ import "vader/core/types"
 /// @param span       where a refusal is reported.
 /// @error            T3032 when two traits offer `method` to every variant.
 /// @error            T3097 when a variant implements the trait more than once.
-/// @error            T3086 when a variant is boxed as its representation : an enum
-///                   or a distinct implementing the trait itself, an array of either.
+/// @error            T3086 when a variant is boxed as its representation : a
+///                   distinct implementing the trait itself, an array of enums or of
+///                   such distincts.
 /// @error            T3098 as `trait_value_member`.
 union_trait_member :: fn(
     u: UnionType,
@@ -221,11 +222,11 @@ shared_argument :: fn(variants: Type[], per_variant: Type[][], i: i64) -> Type |
     return if itself { TY_SELF } else { null }
 }
 
-/// The first variant of `u` a box would carry as its representation : an enum (its
-/// integer) or a distinct (its backing) implementing `trait_key` itself, whose
-/// dispatch would reach the representation's impl ; or an array of an enum or a
-/// distinct, which takes the representation's array type and so shares its
-/// vtable rows. Null when every variant keeps its own.
+/// The first variant of `u` a box would carry as its representation : a distinct
+/// (its backing) implementing `trait_key` itself, whose dispatch would reach the
+/// representation's impl ; or an array of an enum or a distinct, which takes the
+/// representation's array type and so shares its vtable rows. Null when every
+/// variant keeps its own.
 ///
 /// @param u          the union.
 /// @param trait_key  the trait the box dispatches through.
@@ -237,7 +238,7 @@ variant_without_identity :: fn(
     for variant in u.variants {
         if variant is ArrayType {
             element :: lift_enum_placeholder(innermost_element(variant), typed)
-            if boxes_as_representation(element) {
+            if element is EnumType || boxes_as_representation(element) {
                 return nominal_symbol(element)
             }
             continue
@@ -286,8 +287,7 @@ union_dispatch_refusal :: fn(
     }
     boxed :: variant_without_identity(u, trait_key, typed)
     if boxed != null {
-        detail :: "a `${boxed.name}` is boxed as its representation ; "
-            + "narrow `${display_type(u)}` first"
+        detail :: "`${boxed.name}` ; narrow `${display_type(u)}` first"
         return typecheck_error(.UnionLosesVariantIdentity, span, detail)
     }
     if found.self_hazard != "" {

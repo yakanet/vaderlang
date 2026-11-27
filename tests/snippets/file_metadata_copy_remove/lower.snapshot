@@ -83,6 +83,8 @@
 
 ## lowered in dependencies
   wasi:filesystem/types@0.3.0
+    fn wasi_0filesystem_types_10_23_20$ErrorCodeCase$Equals$equals
+    fn wasi_0filesystem_types_10_23_20$ErrorCodeCase$Equals$equals$guard
     struct wasi:filesystem.types@0.3.0.Descriptor  // wasi_0filesystem_types_10_23_20$Descriptor
     struct wasi:filesystem.types@0.3.0.ErrorCodeOther  // wasi_0filesystem_types_10_23_20$ErrorCodeOther
   std/console
@@ -90,6 +92,8 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.index_of<u8>  // std_core$index_of__u8
@@ -97,6 +101,12 @@
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.WasmFuture<ErrorCodeCase | ErrorCodeOther | void>  // std_core$WasmFuture__wasi_0filesystem_types_10_23_20_ErrorCodeCase___wasi_0filesystem_types_10_23_20_ErrorCodeOther___void
     struct std.core.WasmReadable<u8>  // std_core$WasmReadable__u8
@@ -154,6 +164,8 @@
     fn std.fs.system_set_read_only  // std_fs$system_set_read_only
     fn std.fs.system_write  // std_fs$system_write
     fn std.fs.write_file  // std_fs$write_file
+    fn std_fs$EntryKind$Equals$equals
+    fn std_fs$EntryKind$Equals$equals$guard
     struct __defer_env_std_fs_1
     struct __defer_env_std_fs_3
     struct std.fs.File  // std_fs$File
@@ -174,7 +186,12 @@
     fn std.io.failure_unless  // std_io$failure_unless
     fn std.io.io_error_of  // std_io$io_error_of
     fn std.io.last_io_error  // std_io$last_io_error
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
     struct std.io.IOError  // std_io$IOError
+  std/numbers
+    fn std_numbers$SignMode$Equals$equals
+    fn std_numbers$SignMode$Equals$equals$guard
   std/path
     fn std.path.as_string  // std_path$as_string
     fn std.path.is_ascii_letter  // std_path$is_ascii_letter
@@ -187,6 +204,11 @@
   std/string
     fn std.string.ends_with  // std_string$ends_with
     fn std.string.matches_at  // std_string$matches_at
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard
   std/testing
     fn std.testing.assert_succeeds  // std_testing$assert_succeeds
   system/posix

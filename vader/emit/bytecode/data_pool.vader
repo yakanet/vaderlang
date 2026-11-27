@@ -52,8 +52,9 @@ convert_data_pool :: fn(ctx: EmitterCtx, entries: DataPoolEntry[]) -> BcDataEntr
             }
             is AggregateDataPoolEntry -> {
                 elements: BcDataValue[]: []
+                boxed :: boxed_element(e.literal.type)
                 for el in e.literal.elements {
-                    elements.push(baked_value(ctx, el))
+                    elements.push(baked_value(ctx, el, boxed))
                 }
                 out.push(BcAggregateData { .elements = elements })
             }
@@ -62,31 +63,55 @@ convert_data_pool :: fn(ctx: EmitterCtx, entries: DataPoolEntry[]) -> BcDataEntr
     return out
 }
 
-// One constant literal as a baked value. `lower/inline_consts::is_bakeable_array`
-// only routes the shapes handled here, so the tail meets a primitive leaf.
-baked_value :: fn(ctx: EmitterCtx, el: LoweredExpr) -> BcDataValue {
+// One constant literal as a baked value, held in a box when `boxed`.
+// `lower/inline_consts::is_bakeable_array` only routes the shapes handled here, so
+// the tail meets a primitive leaf.
+baked_value :: fn(ctx: EmitterCtx, el: LoweredExpr, boxed: bool) -> BcDataValue {
     if el is LoweredStringLit {
         intern_string(el.value, ctx)
         return BcValStr { .value = el.value }
     }
     if el is LoweredStructLit {
+        row :: ctx.types[intern_type(el.type, ctx)]
         fields: BcDataValue[]: []
         for f in el.fields {
-            fields.push(baked_value(ctx, f.value))
+            fields.push(baked_value(ctx, f.value, boxes_field(ctx, row, f.name)))
         }
         return BcValStruct { .symbol_id = struct_symbol_id(el.type), .fields = fields }
     }
     if el is LoweredArrayLit {
         elements: BcDataValue[]: []
+        boxes_elements :: boxed_element(el.type)
         for e in el.elements {
-            elements.push(baked_value(ctx, e))
+            elements.push(baked_value(ctx, e, boxes_elements))
         }
         return BcValArray { .type_id = intern_type(el.type, ctx), .elements = elements }
     }
     name :: representation_name(el.type)
     bits :: data_item_bits(el, name)
         else panic("emit/bytecode: `baked_value` met a leaf `is_bakeable_array` does not admit")
-    return BcValPrim { .kind = array_kind_from_name(name), .bits = u64(bits) }
+    return BcValPrim {
+        .kind = array_kind_from_name(name),
+        .bits = u64(bits),
+        .tag = leaf_tag(ctx, el.type, boxed),
+    }
+}
+
+// The tag a leaf of `t` boxed carries, when not its kind's: an enum's own.
+leaf_tag :: fn(ctx: EmitterCtx, t: Type, boxed: bool) -> i32 =
+    if boxed && t is EnumType { intern_box_tag(t, ctx) } else { -1 }
+
+// Whether the field `name` of the struct `row` holds its value in a box.
+boxes_field :: fn(ctx: EmitterCtx, row: BcType, name: string) -> bool {
+    if row !is BcStruct {
+        return false
+    }
+    for f in row.fields {
+        if f.name == name {
+            return is_boxed_row(ctx, f.type_index)
+        }
+    }
+    return false
 }
 
 // `symbol_id` of a named struct type (the producer rejects non-`StructType`s).
@@ -135,6 +160,8 @@ collect_baked_types :: fn(v: BcDataValue, arrays: i32[], symbol_ids: Set<i32>) -
         for e in v.elements {
             collect_baked_types(e, arrays, symbol_ids)
         }
+    } else if v is BcValPrim && v.tag >= 0 {
+        arrays.push(v.tag)
     }
 }
 
@@ -164,5 +191,9 @@ remap_data_value :: fn(v: BcDataValue, remap: i32[]) -> BcDataValue = match v {
         .type_id = remap_idx(remap, v.type_id),
         .elements = remap_data_values(v.elements, remap),
     }
-    is BcValPrim | BcValStr -> v
+    is BcValPrim            -> BcValPrim { ...v, .tag = remapped_tag(remap, v.tag) }
+    is BcValStr             -> v
 }
+
+remapped_tag :: fn(remap: i32[], tag: i32) -> i32 =
+    if tag < 0 { tag } else { remap_idx(remap, tag) }

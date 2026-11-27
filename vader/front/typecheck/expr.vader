@@ -352,10 +352,10 @@ mark_display_dispatch :: fn(type: Type, typed: TypedProgram) -> void {
 // none is refused here: past this check it would compile and fail at run time,
 // a dispatch finding no impl.
 //
-// T3086 : a boxed enum or distinct carries its representation's runtime type, not
-// its own, so one reached through a union: the value itself, or an array's
-// elements: would render through its representation's `Display`. Refused until a
-// boxed value keeps its identity ; a narrowed value renders through its own. Only
+// T3086 : a boxed distinct carries its backing's runtime type, not its own, and an
+// array of enums its integer's array type, so one reached through a union: the
+// value itself, or an array's elements: would render through its
+// representation's `Display`. A narrowed value renders through its own. Only
 // worth reporting on a type that would otherwise render.
 //
 // Returns what renders the value (`display_callee`), `ErroneousCallee` once refused.
@@ -410,8 +410,8 @@ all_display :: fn(types: Type[], typed: TypedProgram) -> bool {
     return true
 }
 
-// The first enum or distinct `t` holds as a union variant, looking through array
-// elements : boxed, it loses its identity (`variant_without_identity`).
+// The first distinct, or array of enums, `t` holds as a union variant, looking
+// through array elements : boxed, it loses its identity (`variant_without_identity`).
 boxed_without_identity :: fn(t: Type, typed: TypedProgram) -> Symbol | null {
     if t is ArrayType {
         return boxed_without_identity(t.element, typed)

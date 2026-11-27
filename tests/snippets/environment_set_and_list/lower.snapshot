@@ -66,9 +66,17 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     fn std.core.clone<EnvVar>  // std_core$clone__std_env_EnvVar
     fn std.core.index_of<u8>  // std_core$index_of__u8
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
   std/env
     fn std.env.by_name  // std_env$by_name
@@ -91,6 +99,8 @@
     fn std.io.failure_unless  // std_io$failure_unless
     fn std.io.io_error_of  // std_io$io_error_of
     fn std.io.last_io_error  // std_io$last_io_error
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
     struct std.io.IOError  // std_io$IOError
   std/sort
     fn std.sort.insertion_sort_range<Any>  // std_sort$insertion_sort_range__Any
@@ -101,5 +111,10 @@
     fn std.string.first_byte_offset  // std_string$first_byte_offset
     fn std.string.matches_at  // std_string$matches_at
     fn std.string.split_first  // std_string$split_first
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard
   std/testing
     fn std.testing.assert_succeeds  // std_testing$assert_succeeds

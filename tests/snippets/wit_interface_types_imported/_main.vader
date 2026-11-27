@@ -2,8 +2,8 @@
 // record is a struct, `flags` a struct of `bool`, a `variant` with a payload a
 // union of the enum of its bare cases and a struct per case, a `type` an alias,
 // and a `use` reaches the type of the interface that declares it. A type a
-// `result` holds as its error implements `Error`, and the ok side of a result
-// whose tag the error shares is wrapped in a struct named after the function.
+// `result` holds as its error implements `Error`. An enum is tagged as itself, so
+// the ok side of `get-type`, an enum beside an enum error, is not wrapped.
 
 module "snippet"
 
@@ -33,6 +33,6 @@ main :: fn() -> i32 {
     println(describe(Fs.DescriptorTypeOther { .value = "door" }))
     no_entry :: Fs.ErrorCodeCase.NoEntry.message()
     println("${no_entry} ${Fs.ErrorCodeOther { .value = null }.message()}")
-    println(describe(Fs.DescriptorGetTypeOk { .value = .Directory }.value))
+    println(describe(Fs.DescriptorTypeCase.Directory))
     return 0
 }

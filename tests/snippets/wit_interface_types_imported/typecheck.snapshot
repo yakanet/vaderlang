@@ -61,8 +61,10 @@
   expr 35:5     IdentExpr      :: fn(T) -> void
   expr 36:13    CallExpr       :: string
   expr 36:13    IdentExpr      :: fn(DescriptorTypeCase | DescriptorTypeOther) -> string
-  expr 36:22    FieldExpr      :: DescriptorTypeCase | DescriptorTypeOther
-  expr 36:22    StructLitExpr  :: DescriptorGetTypeOk
+  expr 36:22    FieldExpr      :: DescriptorTypeCase
+  expr 36:22    FieldExpr      :: DescriptorTypeCase
   expr 36:5     CallExpr       :: void
   expr 36:5     IdentExpr      :: fn(T) -> void
-  expr 36:56    DotVariantExpr :: DescriptorTypeCase
+
+# Diagnostics
+[36:22] warning[W0016] the enum name adds nothing here, since the slot already pins it and the bare variant reads the same: write `.Directory`

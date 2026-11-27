@@ -1,0 +1,68 @@
+// A boxed enum carries its own type, whatever boxed it: a union beside its
+// integer or beside another enum of the same width tells them apart, a trait call
+// runs the enum's impl, and an erased comparison with a value of another type is
+// false, the same rank included. Each line reaches the box another way: a union
+// parameter, an array element, a map value, a struct field, a closure capture, a
+// fn value's result, a `yield`, a constant.
+
+module "snippet"
+
+import "std/collections"
+import "std/console"
+
+@displayable
+Color :: enum { Red, Green, Blue }
+
+@displayable
+Fruit :: enum { Apple, Pear }
+
+Shown :: Color | u8
+Either :: Color | Fruit
+
+Holder :: struct {
+    cell: Color | string
+}
+
+PALETTE: (Color | string)[]: [.Blue, "ink"]
+
+name_of :: fn(v: Shown) -> string = if v is Color { "color ${v}" } else { "byte ${v}" }
+
+kind_of :: fn(v: Either) -> string = if v is Color { "color ${v}" } else { "fruit ${v}" }
+
+render :: fn(d: Display) -> string = d.to_string()
+
+same :: fn(a: Equals, b: Equals) -> bool = a.equals(b)
+
+cell_of :: fn(c: Color | string) -> string = if c is Color { "color ${c}" } else { "text ${c}" }
+
+colors :: fn() -> Iterator<Color | string> {
+    yield .Green
+    yield "leaf"
+}
+
+pick :: fn(n: i32) -> Color | string = if n == 0 { .Red } else { "none" }
+
+main :: fn() -> i32 {
+    println("${name_of(.Green)} ${name_of(u8(1))}")
+    println("${kind_of(.Red)} ${kind_of(.Apple)}")
+    println(render(Color.Blue))
+    across :: same(Color.Red, Fruit.Apple)
+    println("${same(Color.Red, Color.Red)} ${across} ${same(Color.Red, Color.Blue)}")
+    cells: (Color | string)[]: [.Green, "x"]
+    println(cell_of(cells[0]))
+    by_name :: Map<string, Color | string> {}
+    by_name["sky"] = .Blue
+    println(cell_of(by_name["sky"] else "missing"))
+    held :: Holder { .cell = .Red }
+    println(cell_of(held.cell))
+    captured :: Color.Green
+    show :: () -> render(captured)
+    println(show())
+    chosen :: pick
+    println(cell_of(chosen(0)))
+    for c in colors() {
+        println(cell_of(c))
+    }
+    println(cell_of(PALETTE[0]))
+    return 0
+}

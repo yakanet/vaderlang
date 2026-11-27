@@ -1,0 +1,82 @@
+// vader/lower/enum_equals: the `Equals` a boxed enum dispatches to.
+//
+// An enum implements `Equals` with no impl written (`has_builtin_impl`): where its
+// type is known, `==` compares its integers in place. A boxed enum dispatches by
+// its own tag, so each enum gets the impl that comparison is,
+// `Color$Equals$equals`, which `guard_equals_slots` then guards as it guards a
+// written one. Its built-in `Hash` is its integer's, which the vtable builder
+// points the enum's tag at (`build_vtables_from_entries`).
+//
+// Every enum of the project gets one: the bytecode keeps only those whose tag a
+// box carries, the others reaching no vtable.
+
+module "vader/lower"
+
+import "std/collections"
+import "toolchain/span"
+import "vader/core/mangle"
+import "vader/core/mono"
+import "vader/core/types"
+import "vader/front/typecheck"
+import "vader/lower/ir"
+
+/// Give every enum of the project its `Equals` impl, see the file header. Runs
+/// before `guard_equals_slots`, which guards it.
+///
+/// @param project      the lowered project ; the module of each enum gains its impl.
+/// @param project_ctx  reads the typed modules, mints the impls' symbols.
+enum_equals_slots :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) -> void {
+    seen :: Set<i32> {}
+    for [_, typed] in project_ctx.typed.modules {
+        for [_, decl] in typed.enum_decls {
+            t :: declared_type_at(typed, decl.name_span)
+            if t !is EnumType || !seen.add(t.symbol.id) {
+                continue
+            }
+            push_to_module(project, home_of(project, t), enum_equals_of(t, project_ctx))
+        }
+    }
+}
+
+// The module that declares `t`, or the entry module when that one is not lowered.
+home_of :: fn(project: LoweredProject, t: EnumType) -> string {
+    if project.modules[t.symbol.module] != null {
+        return t.symbol.module
+    }
+    return project.entry
+}
+
+// `self == other`, filling the `Equals.equals` slot of `t`.
+enum_equals_of :: fn(t: EnumType, project_ctx: LowerProjectCtx) -> LoweredDecl {
+    span :: empty_span()
+    self_param :: guard_param("self", t, project_ctx)
+    other_param :: guard_param("other", t, project_ctx)
+    same :: equals_primop(
+        synth_ident(self_param.symbol, t, span),
+        synth_ident(other_param.symbol, t, span),
+        span,
+    )
+    name :: impl_member_mangle(t.symbol.module_name, t.symbol.name, TRAIT_EQUALS, METHOD_EQUALS)
+    symbol :: synthetic_symbol(next_project_synthetic_id(project_ctx), .Fn, name)
+    return LoweredFnDecl {
+        .mangled = name,
+        .params = [self_param, other_param],
+        .return_type = TY_BOOL,
+        .body = wrap_as_block(same, span),
+        .origin = MonoEntry {
+            .id = mint_mono_entry_id(project_ctx),
+            .is_main = false,
+            .mangled = name,
+            .decl = stub_decl_for(symbol),
+            .symbol = symbol,
+            .subst = new_substitution(),
+            .type_arguments = [],
+            .module = t.symbol.module,
+            .vtable_slot = VtableSlot {
+                .trait_key = EQUALS_TRAIT_KEY,
+                .method = METHOD_EQUALS,
+                .instance_key = null,
+            },
+        },
+    }
+}

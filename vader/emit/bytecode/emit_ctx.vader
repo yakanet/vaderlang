@@ -235,7 +235,7 @@ export intern_box_tag :: fn(t: Type, ctx: EmitterCtx) -> i32 {
     }
     name :: declaration_mangle(t.symbol.module_name, t.symbol.name)
     new_index :: i32(ctx.types.len())
-    existing :: ctx.type_key.get_or_put("nominal ${name}", new_index)
+    existing :: ctx.type_key.get_or_put(box_tag_key(t), new_index)
     if existing != new_index {
         return existing
     }
@@ -245,6 +245,17 @@ export intern_box_tag :: fn(t: Type, ctx: EmitterCtx) -> i32 {
     ctx.types.push(BcNominal { .val = val_type_of_type(t), .name = name })
     record_slot_type(ctx, new_index, t)
     return new_index
+}
+
+/// The `type_key` of the row `intern_box_tag` gives `t`: what a table built after
+/// the bodies looks a receiver up by, minting nothing.
+///
+/// @param t  the static type of a boxed value.
+export box_tag_key :: fn(t: Type) -> string {
+    if t is EnumType {
+        return "nominal ${declaration_mangle(t.symbol.module_name, t.symbol.name)}"
+    }
+    return type_intern_key(t)
 }
 
 /// Intern a string literal into the module-wide pool. Returns the

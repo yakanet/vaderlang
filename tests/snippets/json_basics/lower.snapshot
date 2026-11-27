@@ -109,6 +109,8 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     const POW5_128: u64[]  data pool #0
     fn std.core.BigInt.div  // std_core$BigInt$Div$div
@@ -164,16 +166,27 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     fn std.core.write_zeros  // std_core$write_zeros
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.DecimalParts  // std_core$DecimalParts
     struct std.core.SlowParts  // std_core$SlowParts
     struct std.core.Stop  // std_core$Stop
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
   std/numbers
     fn std.numbers.digit_char  // std_numbers$digit_char
     fn std.numbers.digits_in_base  // std_numbers$digits_in_base
     fn std.numbers.hex_digit  // std_numbers$hex_digit
     fn std.numbers.to_compact_string  // std_numbers$to_compact_string
     fn std.numbers.to_hex  // std_numbers$to_hex
+    fn std_numbers$SignMode$Equals$equals
+    fn std_numbers$SignMode$Equals$equals$guard
   std/string
     fn std.string.combine_surrogates  // std_string$combine_surrogates
     fn std.string.ends_with  // std_string$ends_with
@@ -192,3 +205,8 @@
     fn std.string_builder.append_repeated  // std_string__builder$append_repeated
     fn std.string_builder.byte_len  // std_string__builder$byte_len
     struct std.string_builder.StringBuilder  // std_string__builder$StringBuilder
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard

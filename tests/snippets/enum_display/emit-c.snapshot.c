@@ -2398,13 +2398,13 @@ static void std_console$println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
 	switch (recv.tag) {
+		case 6u: return snippet$Direction$std_core$Display$to_string(((uint8_t) recv.payload.i));
 		case 9u: return std_core$$array$Display$to_string__snippet_Direction(recv.payload.obj);
 		case 13u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));
 		case 14u: return std_core$i16$Display$to_string(((int16_t) recv.payload.i));
 		case 8u: return std_core$i32$Display$to_string(((int32_t) recv.payload.i));
 		case 11u: return std_core$i64$Display$to_string(((int64_t) recv.payload.i));
 		case 2u: return std_core$u8$Display$to_string(((uint8_t) recv.payload.i));
-		case 6u: return std_core$u8$Display$to_string(((uint8_t) recv.payload.i));
 		case 15u: return std_core$u16$Display$to_string(((uint16_t) recv.payload.i));
 		case 16u: return std_core$u32$Display$to_string(((uint32_t) recv.payload.i));
 		case 12u: return std_core$u64$Display$to_string(((uint64_t) recv.payload.i));

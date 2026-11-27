@@ -667,27 +667,14 @@
                           "value": {
                             "kind": "FieldExpr",
                             "target": {
-                              "kind": "StructLitExpr",
-                              "typeName": {
-                                "kind": "FieldExpr",
-                                "target": {
-                                  "kind": "IdentExpr",
-                                  "name": "Fs"
-                                },
-                                "field": "DescriptorGetTypeOk"
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "Fs"
                               },
-                              "items": [
-                                {
-                                  "kind": "field",
-                                  "name": "value",
-                                  "value": {
-                                    "kind": "DotVariantExpr",
-                                    "variant": "Directory"
-                                  }
-                                }
-                              ]
+                              "field": "DescriptorTypeCase"
                             },
-                            "field": "value"
+                            "field": "Directory"
                           },
                           "spread": false
                         }

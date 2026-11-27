@@ -1,0 +1,1 @@
+[19:23] error[T3086] a union variant boxed as its representation cannot dispatch through a trait: narrow it to `Code` first

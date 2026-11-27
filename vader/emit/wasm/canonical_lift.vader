@@ -475,7 +475,7 @@ bare_cases_value :: fn(
             ordinal = i32_sub(ordinal, binary(.I32GtU, local_get(case), i32_const(i32(i))))
         }
     }
-    return struct_new(box_of_class(l.ctx.gc, held.val), [ordinal])
+    return struct_new(box_of_row(l.ctx.gc, enum_id, held.val), [ordinal])
 }
 
 // A case of `t` that carries `payload`, read at `payload_at`, in the struct of
@@ -518,7 +518,7 @@ payload_value :: fn(
     load_payload :: canonical_load(l.ctx, t, type_id, holders, l.function) else return load_payload
     value :: call(load_payload, [i32_add(local_get(ADDRESS), i32_const(offset))])
     class :: held_class(l.ctx, t, type_id) else return value
-    return struct_new(box_of_class(l.ctx.gc, class), [value])
+    return struct_new(box_of_row(l.ctx.gc, type_id, class), [value])
 }
 
 // `(address, length) -> atom`: the string of the `length` bytes at `address`.

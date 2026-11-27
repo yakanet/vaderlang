@@ -11,28 +11,35 @@ type 8 nominal snippet$Color u8
 type 9 scalar i32
 type 10 struct snippet$Plain { tag:9 }
 type 11 array 3
-type 12 struct __lambda_env_snippet_1 { cap_0:14 }
-type 13 struct snippet$Holder { b:2 }
+type 12 struct __lambda_env_snippet_1 { cap_0:16 }
+type 13 scalar bool
 type 14 ref _
-type 15 struct std_core$Buffer {  }
-type 16 scalar i64
-type 17 scalar u64
-type 18 scalar i8
-type 19 scalar i16
-type 20 scalar u16
-type 21 scalar char
-type 22 ref _
-type 23 scalar bool
+type 15 struct snippet$Holder { b:2 }
+type 16 ref _
+type 17 struct std_core$Buffer {  }
+type 18 scalar i64
+type 19 scalar u64
+type 20 scalar i8
+type 21 scalar i16
+type 22 scalar u16
+type 23 scalar char
 type 24 scalar f32
 type 25 scalar f64
 type 26 array 4
-type 27 struct std_collections$Map__string___u8__bool { ekeys:29,evals:30,index:31,mask:16,grow_at:16,size:16,tombs:16 }
+type 27 struct std_collections$Map__string___u8__bool { ekeys:29,evals:30,index:31,mask:18,grow_at:18,size:18,tombs:18 }
 type 28 struct std_collections$Set__string___u8 { inner:27 }
 type 29 array 2
-type 30 array 23
+type 30 array 13
 type 31 array 9
 type 32 struct $Cell_Union_string_u8__d0f53381 { value:2 }
 type 33 array 7
+type 34 nominal std_core$DecoratorTarget u8
+type 35 nominal std_core$Readiness i32
+type 36 nominal std_core$CollectorStatistic i32
+type 37 nominal std_console$Stream u8
+type 38 nominal std_target$Os u8
+type 39 nominal std_target$Arch u8
+type 40 nominal std_io$IOErrorKind u8
 string 0 "u8 "
 string 1 "text"
 string 2 "u32 "
@@ -45,41 +52,63 @@ string 8 "\n"
 string 9 "alias u8 "
 string 10 "alias text"
 import 0 bytes std_core$Runtime$bytes service=bytes result_type=26 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=16 param_types=9,26,16 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 extern :write system_posix$sys_write headers=<unistd.h> result_type=18 param_types=9,26,18 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 2 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=9 () -> i32
 import 3 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=1 () -> void
 impl 10 snippet$Shower
-impl 15 std_core$ByteAccess
+impl 8 std_core$Equals
+impl 34 std_core$Equals
+impl 35 std_core$Equals
+impl 36 std_core$Equals
+impl 37 std_core$Equals
+impl 38 std_core$Equals
+impl 39 std_core$Equals
+impl 40 std_core$Equals
+impl 8 std_core$Hash
+impl 17 std_core$ByteAccess
 impl 27 std_core$Index
 impl 27 std_core$IndexSet
 impl 27 std_core$Contains
 impl 27 std_core$Into
 impl 28 std_core$Contains
 impl 28 std_core$Into
+impl 39 std_core$Hash
+impl 40 std_core$Hash
 vtable snippet$Shower.shown 10 5
-vtable std_core$Hash.hash 18 13
-vtable std_core$Hash.hash 19 14
-vtable std_core$Hash.hash 9 15
-vtable std_core$Hash.hash 16 16
-vtable std_core$Hash.hash 4 17
-vtable std_core$Hash.hash 20 18
-vtable std_core$Hash.hash 6 19
-vtable std_core$Hash.hash 17 20
-vtable std_core$Hash.hash 21 21
-vtable std_core$Hash.hash 3 22
-vtable std_core$Equals.equals 18 23
-vtable std_core$Equals.equals 19 24
-vtable std_core$Equals.equals 9 25
-vtable std_core$Equals.equals 16 26
-vtable std_core$Equals.equals 4 27
+vtable std_core$Equals.equals 8 10
 vtable std_core$Equals.equals 20 28
-vtable std_core$Equals.equals 6 29
-vtable std_core$Equals.equals 17 30
-vtable std_core$Equals.equals 24 31
-vtable std_core$Equals.equals 25 32
-vtable std_core$Equals.equals 23 33
-vtable std_core$Equals.equals 21 34
-vtable std_core$Equals.equals 3 35
+vtable std_core$Equals.equals 21 29
+vtable std_core$Equals.equals 9 30
+vtable std_core$Equals.equals 18 31
+vtable std_core$Equals.equals 4 32
+vtable std_core$Equals.equals 22 33
+vtable std_core$Equals.equals 6 34
+vtable std_core$Equals.equals 19 35
+vtable std_core$Equals.equals 24 36
+vtable std_core$Equals.equals 25 37
+vtable std_core$Equals.equals 13 38
+vtable std_core$Equals.equals 23 39
+vtable std_core$Equals.equals 3 40
+vtable std_core$Equals.equals 34 41
+vtable std_core$Equals.equals 35 42
+vtable std_core$Equals.equals 36 43
+vtable std_core$Equals.equals 37 56
+vtable std_core$Equals.equals 38 60
+vtable std_core$Equals.equals 39 61
+vtable std_core$Equals.equals 40 63
+vtable std_core$Hash.hash 20 15
+vtable std_core$Hash.hash 21 16
+vtable std_core$Hash.hash 9 17
+vtable std_core$Hash.hash 40 17
+vtable std_core$Hash.hash 18 18
+vtable std_core$Hash.hash 4 19
+vtable std_core$Hash.hash 8 19
+vtable std_core$Hash.hash 39 19
+vtable std_core$Hash.hash 22 20
+vtable std_core$Hash.hash 6 21
+vtable std_core$Hash.hash 19 22
+vtable std_core$Hash.hash 23 23
+vtable std_core$Hash.hash 3 24
 export main 6
 
 fn 0 snippet$show_byte (any) -> string
@@ -97,7 +126,7 @@ fn 0 snippet$show_byte (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     string.const 0   ; "u8 "
-    call 10   ; std_core$write_string_at
+    call 12   ; std_core$write_string_at
     local.set 2   ; __off_1
     local.get 0   ; arg 0
     ref.cast 4   ; u8
@@ -106,11 +135,11 @@ fn 0 snippet$show_byte (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     local.get 3   ; $cast_11
-    call 12   ; std_core$write_unsigned
+    call 14   ; std_core$write_unsigned
     local.set 2   ; __off_1
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
-    call 9   ; std_core$finish_buffer
+    call 11   ; std_core$finish_buffer
     return
   end $L0
   return.lit string.const 1   ; "text"
@@ -131,7 +160,7 @@ fn 1 snippet$show_word (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     string.const 2   ; "u32 "
-    call 10   ; std_core$write_string_at
+    call 12   ; std_core$write_string_at
     local.set 2   ; __off_1
     local.get 0   ; arg 0
     ref.cast 6   ; u32
@@ -140,11 +169,11 @@ fn 1 snippet$show_word (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     local.get 3   ; $cast_11
-    call 12   ; std_core$write_unsigned
+    call 14   ; std_core$write_unsigned
     local.set 2   ; __off_1
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
-    call 9   ; std_core$finish_buffer
+    call 11   ; std_core$finish_buffer
     return
   end $L0
   return.lit string.const 1   ; "text"
@@ -165,7 +194,7 @@ fn 2 snippet$show_cell (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     string.const 3   ; "color "
-    call 10   ; std_core$write_string_at
+    call 12   ; std_core$write_string_at
     local.set 2   ; __off_1
     local.get 0   ; arg 0
     ref.cast 4   ; u8
@@ -175,11 +204,11 @@ fn 2 snippet$show_cell (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     local.get 3   ; $cast_12
-    call 11   ; std_core$write_int
+    call 13   ; std_core$write_int
     local.set 2   ; __off_1
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
-    call 9   ; std_core$finish_buffer
+    call 11   ; std_core$finish_buffer
     return
   end $L0
   return.lit string.const 1   ; "text"
@@ -221,11 +250,11 @@ fn 6 snippet$main (ref) -> i32
   i32.const 5
   retag 4   ; u8
   call 0   ; snippet$show_byte
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   i32.const 6
   retag 4   ; u8
   call 0   ; snippet$show_byte
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   local.get 0   ; arg 0
   array.len
   i64.to_i32
@@ -236,28 +265,28 @@ fn 6 snippet$main (ref) -> i32
   i32.bitand
   retag 4   ; u8
   call 0   ; snippet$show_byte
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   i32.const 7
   retag 6   ; u32
   call 1   ; snippet$show_word
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   call 3   ; snippet$nine
   call 0   ; snippet$show_byte
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   i32.const 8
   retag 4   ; u8
-  struct.new 13   ; snippet$Holder
+  struct.new 15   ; snippet$Holder
   local.set 1   ; h
-  local.field 1 13 0   ; h snippet$Holder.b
+  local.field 1 15 0   ; h snippet$Holder.b
   call 0   ; snippet$show_byte
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   local.get 1   ; h
   i32.const 10
   retag 4   ; u8
-  struct.set 13 0   ; snippet$Holder.b
-  local.field 1 13 0   ; h snippet$Holder.b
+  struct.set 15 0   ; snippet$Holder.b
+  local.field 1 15 0   ; h snippet$Holder.b
   call 0   ; snippet$show_byte
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   string.const 5   ; "s"
   retag 3   ; string
   local.set 2   ; local
@@ -265,7 +294,7 @@ fn 6 snippet$main (ref) -> i32
   retag 4   ; u8
   local.tee 2   ; local
   call 0   ; snippet$show_byte
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   array.new 29 0   ; union[]
   local.set 1   ; h
   array.new 30 0   ; bool[]
@@ -283,11 +312,11 @@ fn 6 snippet$main (ref) -> i32
   struct.new 28   ; std_collections$Set__string___u8
   local.tee 1   ; h
   local.get 2   ; local
-  call 41   ; std_collections$add__string___u8
+  call 49   ; std_collections$add__string___u8
   drop
   local.get 1   ; h
   local.get 2   ; local
-  call 41   ; std_collections$add__string___u8
+  call 49   ; std_collections$add__string___u8
   drop
   i64.const 25
   buffer.new
@@ -297,24 +326,24 @@ fn 6 snippet$main (ref) -> i32
   local.get 3   ; $arr_30
   local.get 5   ; __off_1
   string.const 6   ; "seen "
-  call 10   ; std_core$write_string_at
+  call 12   ; std_core$write_string_at
   local.set 5   ; __off_1
   local.get 1   ; h
-  call 42   ; std_collections$len__string___u8
+  call 50   ; std_collections$len__string___u8
   local.set 6   ; $call_48
   local.get 3   ; $arr_30
   local.get 5   ; __off_1
   local.get 6   ; $call_48
-  call 11   ; std_core$write_int
+  call 13   ; std_core$write_int
   local.set 5   ; __off_1
   local.get 3   ; $arr_30
   local.get 5   ; __off_1
-  call 9   ; std_core$finish_buffer
-  call 46   ; std_console$println__string
+  call 11   ; std_core$finish_buffer
+  call 54   ; std_console$println__string
   i32.const 12
   retag 4   ; u8
-  call 47   ; snippet_bytes$describe
-  call 46   ; std_console$println__string
+  call 57   ; snippet_bytes$describe
+  call 54   ; std_console$println__string
   local.get 0   ; arg 0
   array.len
   i64.const 0
@@ -330,7 +359,7 @@ fn 6 snippet$main (ref) -> i32
   end $L0
   local.get 2   ; local
   call 0   ; snippet$show_byte
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   local.get 0   ; arg 0
   array.len
   i64.to_i32
@@ -338,15 +367,15 @@ fn 6 snippet$main (ref) -> i32
   i32.checked_sub
   call 4   ; snippet$pick
   call 0   ; snippet$show_byte
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   i32.const 13
   retag 4   ; u8
   call 0   ; snippet$show_byte
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   string.const 5   ; "s"
   retag 3   ; string
   call 0   ; snippet$show_byte
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   i32.const 1
   struct.new 10   ; snippet$Plain
   local.set 2   ; local
@@ -354,7 +383,7 @@ fn 6 snippet$main (ref) -> i32
   retag 4   ; u8
   local.get 2   ; local
   virtual.call 2 snippet$Shower.shown -> string
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   string.const 7   ; "x"
   retag 3   ; string
   struct.new 32   ; $Cell_Union_string_u8__d0f53381
@@ -363,21 +392,21 @@ fn 6 snippet$main (ref) -> i32
   call 7   ; __lambda_snippet_0
   local.field 2 32 0   ; local $Cell_Union_string_u8__d0f53381.value
   call 0   ; snippet$show_byte
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   i32.const 1
   drop
   i32.const 16
   retag 4   ; u8
   call 0   ; snippet$show_byte
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   i32.const 17
   retag 4   ; u8
   call 0   ; snippet$show_byte
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   i32.const 2
   retag 8   ; snippet$Color
   call 2   ; snippet$show_cell
-  call 46   ; std_console$println__string
+  call 54   ; std_console$println__string
   i32.const 0
   retag 8   ; snippet$Color
   string.const 7   ; "x"
@@ -406,7 +435,7 @@ fn 6 snippet$main (ref) -> i32
       local.get 6   ; $call_48
       array.get 33   ; union[]
       call 2   ; snippet$show_cell
-      call 46   ; std_console$println__string
+      call 54   ; std_console$println__string
       local.get 6   ; $call_48
       i64.const 1
       i64.add
@@ -454,14 +483,37 @@ fn 8 concat_2 (string,string) -> string
   return
 end
 
-fn 9 std_core$finish_buffer (ref,i64) -> string
+fn 9 snippet$Color$Equals$equals (u8,u8) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.eq
+  return
+end
+
+fn 10 snippet$Color$Equals$equals$guard (u8,any) -> bool
+  local $cast_4 u8
+  local.get 1   ; arg 1
+  type_check 8   ; snippet$Color
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 4   ; u8
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    call 9   ; snippet$Color$Equals$equals
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 11 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 10 std_core$write_string_at (ref,i64,string) -> i64
+fn 12 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -476,7 +528,7 @@ fn 10 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 11 std_core$write_int (ref,i64,i64) -> i64
+fn 13 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -590,7 +642,7 @@ fn 11 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 12 std_core$write_unsigned (ref,i64,u64) -> i64
+fn 14 std_core$write_unsigned (ref,i64,u64) -> i64
   local ndigits i64
   local m u64
   local i i64
@@ -670,72 +722,93 @@ fn 12 std_core$write_unsigned (ref,i64,u64) -> i64
   return
 end
 
-fn 13 std_core$i8$Hash$hash (i8) -> u64
+fn 15 std_core$i8$Hash$hash (i8) -> u64
   local.get 0   ; arg 0
   i8.to_i64
   return
 end
 
-fn 14 std_core$i16$Hash$hash (i16) -> u64
+fn 16 std_core$i16$Hash$hash (i16) -> u64
   local.get 0   ; arg 0
   i16.to_i64
   return
 end
 
-fn 15 std_core$i32$Hash$hash (i32) -> u64
+fn 17 std_core$i32$Hash$hash (i32) -> u64
   local.get 0   ; arg 0
   i32.to_i64
   return
 end
 
-fn 16 std_core$i64$Hash$hash (i64) -> u64
+fn 18 std_core$i64$Hash$hash (i64) -> u64
   local.get 0   ; arg 0
   i64.to_i64
   return
 end
 
-fn 17 std_core$u8$Hash$hash (u8) -> u64
+fn 19 std_core$u8$Hash$hash (u8) -> u64
   local.get 0   ; arg 0
   u8.to_i64
   return
 end
 
-fn 18 std_core$u16$Hash$hash (u16) -> u64
+fn 20 std_core$u16$Hash$hash (u16) -> u64
   local.get 0   ; arg 0
   u16.to_i64
   return
 end
 
-fn 19 std_core$u32$Hash$hash (u32) -> u64
+fn 21 std_core$u32$Hash$hash (u32) -> u64
   local.get 0   ; arg 0
   u32.to_i64
   return
 end
 
-fn 20 std_core$u64$Hash$hash (u64) -> u64
+fn 22 std_core$u64$Hash$hash (u64) -> u64
   local.get 0   ; arg 0
   return
 end
 
-fn 21 std_core$char$Hash$hash (char) -> u64
+fn 23 std_core$char$Hash$hash (char) -> u64
   local.get 0   ; arg 0
   char.to_i64
   return
 end
 
-fn 22 std_core$string$Hash$hash (string) -> u64
+fn 24 std_core$string$Hash$hash (string) -> u64
   local.get 0   ; arg 0
   string.hash
   return
 end
 
-fn 23 std_core$i8$Equals$equals$guard (i8,any) -> bool
+fn 25 std_core$DecoratorTarget$Equals$equals (u8,u8) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.eq
+  return
+end
+
+fn 26 std_core$Readiness$Equals$equals (i32,i32) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.eq
+  return
+end
+
+fn 27 std_core$CollectorStatistic$Equals$equals (i32,i32) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.eq
+  return
+end
+
+fn 28 std_core$i8$Equals$equals$guard (i8,any) -> bool
   local $cast_4 i8
   local.get 1   ; arg 1
-  type_check 18   ; i8
+  type_check 20   ; i8
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 18   ; i8
+    ref.cast 20   ; i8
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -745,13 +818,13 @@ fn 23 std_core$i8$Equals$equals$guard (i8,any) -> bool
   return.lit bool.const false
 end
 
-fn 24 std_core$i16$Equals$equals$guard (i16,any) -> bool
+fn 29 std_core$i16$Equals$equals$guard (i16,any) -> bool
   local $cast_4 i16
   local.get 1   ; arg 1
-  type_check 19   ; i16
+  type_check 21   ; i16
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 19   ; i16
+    ref.cast 21   ; i16
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -761,7 +834,7 @@ fn 24 std_core$i16$Equals$equals$guard (i16,any) -> bool
   return.lit bool.const false
 end
 
-fn 25 std_core$i32$Equals$equals$guard (i32,any) -> bool
+fn 30 std_core$i32$Equals$equals$guard (i32,any) -> bool
   local $cast_4 i32
   local.get 1   ; arg 1
   type_check 9   ; i32
@@ -777,13 +850,13 @@ fn 25 std_core$i32$Equals$equals$guard (i32,any) -> bool
   return.lit bool.const false
 end
 
-fn 26 std_core$i64$Equals$equals$guard (i64,any) -> bool
+fn 31 std_core$i64$Equals$equals$guard (i64,any) -> bool
   local $cast_4 i64
   local.get 1   ; arg 1
-  type_check 16   ; i64
+  type_check 18   ; i64
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 16   ; i64
+    ref.cast 18   ; i64
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -793,7 +866,7 @@ fn 26 std_core$i64$Equals$equals$guard (i64,any) -> bool
   return.lit bool.const false
 end
 
-fn 27 std_core$u8$Equals$equals$guard (u8,any) -> bool
+fn 32 std_core$u8$Equals$equals$guard (u8,any) -> bool
   local $cast_4 u8
   local.get 1   ; arg 1
   type_check 4   ; u8
@@ -809,13 +882,13 @@ fn 27 std_core$u8$Equals$equals$guard (u8,any) -> bool
   return.lit bool.const false
 end
 
-fn 28 std_core$u16$Equals$equals$guard (u16,any) -> bool
+fn 33 std_core$u16$Equals$equals$guard (u16,any) -> bool
   local $cast_4 u16
   local.get 1   ; arg 1
-  type_check 20   ; u16
+  type_check 22   ; u16
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 20   ; u16
+    ref.cast 22   ; u16
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -825,7 +898,7 @@ fn 28 std_core$u16$Equals$equals$guard (u16,any) -> bool
   return.lit bool.const false
 end
 
-fn 29 std_core$u32$Equals$equals$guard (u32,any) -> bool
+fn 34 std_core$u32$Equals$equals$guard (u32,any) -> bool
   local $cast_4 u32
   local.get 1   ; arg 1
   type_check 6   ; u32
@@ -841,13 +914,13 @@ fn 29 std_core$u32$Equals$equals$guard (u32,any) -> bool
   return.lit bool.const false
 end
 
-fn 30 std_core$u64$Equals$equals$guard (u64,any) -> bool
+fn 35 std_core$u64$Equals$equals$guard (u64,any) -> bool
   local $cast_4 u64
   local.get 1   ; arg 1
-  type_check 17   ; u64
+  type_check 19   ; u64
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 17   ; u64
+    ref.cast 19   ; u64
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -857,7 +930,7 @@ fn 30 std_core$u64$Equals$equals$guard (u64,any) -> bool
   return.lit bool.const false
 end
 
-fn 31 std_core$f32$Equals$equals$guard (f32,any) -> bool
+fn 36 std_core$f32$Equals$equals$guard (f32,any) -> bool
   local $cast_4 f32
   local.get 1   ; arg 1
   type_check 24   ; f32
@@ -873,7 +946,7 @@ fn 31 std_core$f32$Equals$equals$guard (f32,any) -> bool
   return.lit bool.const false
 end
 
-fn 32 std_core$f64$Equals$equals$guard (f64,any) -> bool
+fn 37 std_core$f64$Equals$equals$guard (f64,any) -> bool
   local $cast_4 f64
   local.get 1   ; arg 1
   type_check 25   ; f64
@@ -889,13 +962,13 @@ fn 32 std_core$f64$Equals$equals$guard (f64,any) -> bool
   return.lit bool.const false
 end
 
-fn 33 std_core$bool$Equals$equals$guard (bool,any) -> bool
+fn 38 std_core$bool$Equals$equals$guard (bool,any) -> bool
   local $cast_4 bool
   local.get 1   ; arg 1
-  type_check 23   ; bool
+  type_check 13   ; bool
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 23   ; bool
+    ref.cast 13   ; bool
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -905,13 +978,13 @@ fn 33 std_core$bool$Equals$equals$guard (bool,any) -> bool
   return.lit bool.const false
 end
 
-fn 34 std_core$char$Equals$equals$guard (char,any) -> bool
+fn 39 std_core$char$Equals$equals$guard (char,any) -> bool
   local $cast_4 char
   local.get 1   ; arg 1
-  type_check 21   ; char
+  type_check 23   ; char
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 21   ; char
+    ref.cast 23   ; char
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -921,7 +994,7 @@ fn 34 std_core$char$Equals$equals$guard (char,any) -> bool
   return.lit bool.const false
 end
 
-fn 35 std_core$string$Equals$equals$guard (string,any) -> bool
+fn 40 std_core$string$Equals$equals$guard (string,any) -> bool
   local $cast_4 string
   local.get 1   ; arg 1
   type_check 3   ; string
@@ -937,7 +1010,55 @@ fn 35 std_core$string$Equals$equals$guard (string,any) -> bool
   return.lit bool.const false
 end
 
-fn 36 std_collections$first_slot (u64,i64) -> i64
+fn 41 std_core$DecoratorTarget$Equals$equals$guard (u8,any) -> bool
+  local $cast_4 u8
+  local.get 1   ; arg 1
+  type_check 34   ; std_core$DecoratorTarget
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 4   ; u8
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    call 25   ; std_core$DecoratorTarget$Equals$equals
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 42 std_core$Readiness$Equals$equals$guard (i32,any) -> bool
+  local $cast_4 i32
+  local.get 1   ; arg 1
+  type_check 35   ; std_core$Readiness
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 9   ; i32
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    call 26   ; std_core$Readiness$Equals$equals
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 43 std_core$CollectorStatistic$Equals$equals$guard (i32,any) -> bool
+  local $cast_4 i32
+  local.get 1   ; arg 1
+  type_check 36   ; std_core$CollectorStatistic
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 9   ; i32
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    call 27   ; std_core$CollectorStatistic$Equals$equals
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 44 std_collections$first_slot (u64,i64) -> i64
   local.get 0   ; arg 0
   u64.to_i64
   local.get 1   ; arg 1
@@ -945,7 +1066,7 @@ fn 36 std_collections$first_slot (u64,i64) -> i64
   return
 end
 
-fn 37 std_collections$next_slot (i64,u64,i64) -> i64
+fn 45 std_collections$next_slot (i64,u64,i64) -> i64
   local $mul_4 i64
   local $cast_5 i64
   local.get 0   ; arg 0
@@ -965,7 +1086,7 @@ fn 37 std_collections$next_slot (i64,u64,i64) -> i64
   return
 end
 
-fn 38 std_collections$rehash__string___u8__bool (ref,i64) -> void
+fn 46 std_collections$rehash__string___u8__bool (ref,i64) -> void
   local if_res i64
   local fresh ref
   local e i64
@@ -1010,7 +1131,7 @@ fn 38 std_collections$rehash__string___u8__bool (ref,i64) -> void
   i64.const 0
   local.set 4   ; e
   local.field 0 27 5   ; arg 0 std_collections$Map__string___u8__bool.size
-  ref.cast 16   ; i64
+  ref.cast 18   ; i64
   local.set 5   ; __for_hi_1
   loop $L3 void
     local.get 4   ; e
@@ -1023,7 +1144,7 @@ fn 38 std_collections$rehash__string___u8__bool (ref,i64) -> void
       virtual.call 1 std_core$Hash.hash -> u64
       local.tee 6   ; perturb
       local.get 2   ; if_res
-      call 36   ; std_collections$first_slot
+      call 44   ; std_collections$first_slot
       local.set 7   ; s
       loop $L5 void
         local.get 3   ; fresh
@@ -1039,7 +1160,7 @@ fn 38 std_collections$rehash__string___u8__bool (ref,i64) -> void
           local.get 7   ; s
           local.get 6   ; perturb
           local.get 2   ; if_res
-          call 37   ; std_collections$next_slot
+          call 45   ; std_collections$next_slot
           local.set 7   ; s
           br $L5
         end $L6
@@ -1081,7 +1202,7 @@ fn 38 std_collections$rehash__string___u8__bool (ref,i64) -> void
   return
 end
 
-fn 39 std_collections$grow_index__string___u8__bool (ref) -> void
+fn 47 std_collections$grow_index__string___u8__bool (ref) -> void
   local new_count i64
   local $mul_checked_5 i64
   local $mul_checked_7 i64
@@ -1089,7 +1210,7 @@ fn 39 std_collections$grow_index__string___u8__bool (ref) -> void
   local.set 1   ; new_count
   loop $L0 void
     local.field 0 27 5   ; arg 0 std_collections$Map__string___u8__bool.size
-    ref.cast 16   ; i64
+    ref.cast 18   ; i64
     i64.const 4
     i64.checked_mul
     local.set 2   ; $mul_checked_5
@@ -1110,11 +1231,11 @@ fn 39 std_collections$grow_index__string___u8__bool (ref) -> void
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; new_count
-  call 38   ; std_collections$rehash__string___u8__bool
+  call 46   ; std_collections$rehash__string___u8__bool
   return
 end
 
-fn 40 std_collections$put__string___u8__bool (ref,any,bool) -> bool
+fn 48 std_collections$put__string___u8__bool (ref,any,bool) -> bool
   local first_tomb i64
   local empty i64
   local perturb u64
@@ -1137,11 +1258,11 @@ fn 40 std_collections$put__string___u8__bool (ref,any,bool) -> bool
     virtual.call 1 std_core$Hash.hash -> u64
     local.set 5   ; perturb
     local.field 0 27 3   ; arg 0 std_collections$Map__string___u8__bool.mask
-    ref.cast 16   ; i64
+    ref.cast 18   ; i64
     local.set 6   ; $field_13
     local.get 5   ; perturb
     local.get 6   ; $field_13
-    call 36   ; std_collections$first_slot
+    call 44   ; std_collections$first_slot
     local.set 6   ; $field_13
     loop $L1 void
       local.field 0 27 2   ; arg 0 std_collections$Map__string___u8__bool.index
@@ -1189,12 +1310,12 @@ fn 40 std_collections$put__string___u8__bool (ref,any,bool) -> bool
         u64.shr
         local.set 5   ; perturb
         local.field 0 27 3   ; arg 0 std_collections$Map__string___u8__bool.mask
-        ref.cast 16   ; i64
+        ref.cast 18   ; i64
         local.set 10   ; $field_36
         local.get 6   ; $field_13
         local.get 5   ; perturb
         local.get 10   ; $field_36
-        call 37   ; std_collections$next_slot
+        call 45   ; std_collections$next_slot
         local.set 6   ; $field_13
         br $L1
       end $L2
@@ -1203,7 +1324,7 @@ fn 40 std_collections$put__string___u8__bool (ref,any,bool) -> bool
     local.set 4   ; empty
   end $L0
   local.field 0 27 5   ; arg 0 std_collections$Map__string___u8__bool.size
-  ref.cast 16   ; i64
+  ref.cast 18   ; i64
   local.set 6   ; $field_13
   local.field 0 27 0   ; arg 0 std_collections$Map__string___u8__bool.ekeys
   array.len
@@ -1226,7 +1347,7 @@ fn 40 std_collections$put__string___u8__bool (ref,any,bool) -> bool
     array.push 2   ; union
     local.field 0 27 1   ; arg 0 std_collections$Map__string___u8__bool.evals
     local.get 2   ; arg 2
-    array.push 23   ; bool
+    array.push 13   ; bool
   end $L6
   local.get 6   ; $field_13
   i64.const 1
@@ -1236,21 +1357,21 @@ fn 40 std_collections$put__string___u8__bool (ref,any,bool) -> bool
   local.get 8   ; ei
   struct.set 27 5   ; std_collections$Map__string___u8__bool.size
   local.field 0 27 6   ; arg 0 std_collections$Map__string___u8__bool.tombs
-  ref.cast 16   ; i64
+  ref.cast 18   ; i64
   local.set 8   ; ei
   local.get 6   ; $field_13
   local.get 8   ; ei
   i64.checked_add
   local.set 8   ; ei
   local.field 0 27 4   ; arg 0 std_collections$Map__string___u8__bool.grow_at
-  ref.cast 16   ; i64
+  ref.cast 18   ; i64
   local.set 10   ; $field_36
   local.get 8   ; ei
   local.get 10   ; $field_36
   i64.ge
   if $L7 void
     local.get 0   ; arg 0
-    call 39   ; std_collections$grow_index__string___u8__bool
+    call 47   ; std_collections$grow_index__string___u8__bool
     return.lit bool.const true
   end $L7
   local.get 3   ; first_tomb
@@ -1258,7 +1379,7 @@ fn 40 std_collections$put__string___u8__bool (ref,any,bool) -> bool
   i64.ge
   if $L8 void
     local.field 0 27 6   ; arg 0 std_collections$Map__string___u8__bool.tombs
-    ref.cast 16   ; i64
+    ref.cast 18   ; i64
     i64.const 1
     i64.checked_sub
     local.set 8   ; ei
@@ -1292,22 +1413,22 @@ fn 40 std_collections$put__string___u8__bool (ref,any,bool) -> bool
   return.lit bool.const true
 end
 
-fn 41 std_collections$add__string___u8 (ref,any) -> bool
+fn 49 std_collections$add__string___u8 (ref,any) -> bool
   local.field 0 28 0   ; arg 0 std_collections$Set__string___u8.inner
   local.get 1   ; arg 1
   bool.const true
-  call 40   ; std_collections$put__string___u8__bool
+  call 48   ; std_collections$put__string___u8__bool
   return
 end
 
-fn 42 std_collections$len__string___u8 (ref) -> i64
+fn 50 std_collections$len__string___u8 (ref) -> i64
   local.field 0 28 0   ; arg 0 std_collections$Set__string___u8.inner
   struct.get 27 5   ; std_collections$Map__string___u8__bool.size
-  ref.cast 16   ; i64
+  ref.cast 18   ; i64
   return
 end
 
-fn 43 std_console$write (u8,string) -> void
+fn 51 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -1318,7 +1439,7 @@ fn 43 std_console$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 44   ; std_console$write_text
+  call 52   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -1349,7 +1470,7 @@ fn 43 std_console$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 45   ; std_console$write_bytes
+      call 53   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -1369,11 +1490,11 @@ fn 43 std_console$write (u8,string) -> void
   return
 end
 
-fn 44 std_console$write_text (u8,string) -> bool
+fn 52 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 45 std_console$write_bytes (u8,ref,i64) -> i32
+fn 53 std_console$write_bytes (u8,ref,i64) -> i32
   local fd i32
   local written i64
   local.get 0   ; arg 0
@@ -1412,7 +1533,7 @@ fn 45 std_console$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 46 std_console$println__string (string) -> void
+fn 54 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 8   ; "\n"
@@ -1420,11 +1541,34 @@ fn 46 std_console$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 43   ; std_console$write
+  call 51   ; std_console$write
   return
 end
 
-fn 47 snippet_bytes$describe (any) -> string
+fn 55 std_console$Stream$Equals$equals (u8,u8) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.eq
+  return
+end
+
+fn 56 std_console$Stream$Equals$equals$guard (u8,any) -> bool
+  local $cast_4 u8
+  local.get 1   ; arg 1
+  type_check 37   ; std_console$Stream
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 4   ; u8
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    call 55   ; std_console$Stream$Equals$equals
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 57 snippet_bytes$describe (any) -> string
   local __buf_0 ref
   local __off_1 i64
   local $cast_11 u64
@@ -1439,7 +1583,7 @@ fn 47 snippet_bytes$describe (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     string.const 9   ; "alias u8 "
-    call 10   ; std_core$write_string_at
+    call 12   ; std_core$write_string_at
     local.set 2   ; __off_1
     local.get 0   ; arg 0
     ref.cast 4   ; u8
@@ -1448,12 +1592,81 @@ fn 47 snippet_bytes$describe (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     local.get 3   ; $cast_11
-    call 12   ; std_core$write_unsigned
+    call 14   ; std_core$write_unsigned
     local.set 2   ; __off_1
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
-    call 9   ; std_core$finish_buffer
+    call 11   ; std_core$finish_buffer
     return
   end $L0
   return.lit string.const 10   ; "alias text"
+end
+
+fn 58 std_target$Os$Equals$equals (u8,u8) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.eq
+  return
+end
+
+fn 59 std_target$Arch$Equals$equals (u8,u8) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.eq
+  return
+end
+
+fn 60 std_target$Os$Equals$equals$guard (u8,any) -> bool
+  local $cast_4 u8
+  local.get 1   ; arg 1
+  type_check 38   ; std_target$Os
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 4   ; u8
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    call 58   ; std_target$Os$Equals$equals
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 61 std_target$Arch$Equals$equals$guard (u8,any) -> bool
+  local $cast_4 u8
+  local.get 1   ; arg 1
+  type_check 39   ; std_target$Arch
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 4   ; u8
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    call 59   ; std_target$Arch$Equals$equals
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 62 std_io$IOErrorKind$Equals$equals (u8,u8) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.eq
+  return
+end
+
+fn 63 std_io$IOErrorKind$Equals$equals$guard (u8,any) -> bool
+  local $cast_4 u8
+  local.get 1   ; arg 1
+  type_check 40   ; std_io$IOErrorKind
+  if $L0 void
+    local.get 1   ; arg 1
+    ref.cast 4   ; u8
+    local.set 2   ; $cast_4
+    local.get 0   ; arg 0
+    local.get 2   ; $cast_4
+    call 62   ; std_io$IOErrorKind$Equals$equals
+    return
+  end $L0
+  return.lit bool.const false
 end

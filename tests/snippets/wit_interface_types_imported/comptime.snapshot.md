@@ -1,3 +1,7 @@
 # Comptime
 
 ## tests/snippets/wit_interface_types_imported
+
+# Diagnostics
+
+- `` [36:22] warning[W0016] the enum name adds nothing here, since the slot already pins it and the bare variant reads the same: write `.Directory` ``

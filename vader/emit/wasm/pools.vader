@@ -97,9 +97,14 @@ baked_value :: fn(
 ) -> WasmExpression | WasmUnsupported = match value {
     is Bc.BcValPrim   -> {
         class :: class_of_kind(value.kind)
+        constant :: apply(data_constant(class, value.bits), [])
+        // An enum held in a box goes in its own (`BcValPrim.tag`).
+        if value.tag >= 0 && held == .EqRef {
+            return struct_new(box_of_row(ctx.gc, value.tag, class), [constant])
+        }
         adapted(
             ctx,
-            apply(data_constant(class, value.bits), []),
+            constant,
             scalar_field_type(class),
             class,
             held,

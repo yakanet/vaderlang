@@ -419,8 +419,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // Pin the receiver struct type so structs only kept through an
             // impl row survive when the row's trait is actually dispatched
             // on.
-            key_str :: type_intern_key(ve.struct_type)
-            existing_t :: ctx.type_key[key_str]
+            existing_t :: ctx.type_key[box_tag_key(ve.struct_type)]
             if existing_t is i32 { ctx.pinned_types.push(existing_t) }
             root_idx :: resolve_fn_index(ve.fn_symbol, ctx)
             if root_idx != null { vtable_roots.push(root_idx) }
@@ -488,10 +487,10 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
     }
     rows_by_key :: Map<string, i64> {}
     out: VtableRow[]: []
-    // An enum's tag answers as its representation's, and a distinct boxes under
-    // that tag, so its entry shares that type's slot : listed last, it only fills
-    // a slot the representation leaves empty: a boxed `u8` keeps rendering as a
-    // `u8`, on every backend.
+    hashed_as :: enum_tags_by_representation(ctx)
+    // A distinct boxes under its backing's tag, so its entry shares that type's
+    // slot : listed last, it only fills a slot the representation leaves empty: a
+    // boxed `u8` keeps rendering as a `u8`, on every backend.
     ordered: LoweredVtableEntry[]: []
     deferred: LoweredVtableEntry[]: []
     for ve in entries {
@@ -504,9 +503,14 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
     ordered.push_all(deferred)
     for ve in ordered {
         fn_idx :: resolve_fn_index(ve.fn_symbol, ctx) else continue
-        receiver_key :: type_intern_key(ve.struct_type)
+        receiver_key :: box_tag_key(ve.struct_type)
         receiver_slot :: ctx.type_key[receiver_key]
         if receiver_slot !is i32 { continue }
+        receivers: i32[]: [receiver_slot]
+        // An enum's built-in `Hash` is its integer's.
+        if ve.trait_name == HASH_TRAIT_KEY {
+            receivers.push_all(hashed_as[receiver_key] else [])
+        }
         // No receiver-shape guard here, unlike the impl table: a vtable dispatches
         // on any receiver shape : `i32 implements Display` pins a `BcScalar`
         // slot, and requiring a struct drops those rows into a runtime
@@ -514,11 +518,32 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
         for trait_name in ve.row_traits {
             key :: vtable_key(trait_name, ve.method_name)
             if used_keys[key] is bool {
-                add_vtable_entry(out, rows_by_key, key, receiver_slot, fn_idx)
+                for receiver in receivers {
+                    add_vtable_entry(out, rows_by_key, key, receiver, fn_idx)
+                }
             }
         }
     }
     return out
+}
+
+// The tags of the boxed enums, by the `type_key` of the integer each rides.
+enum_tags_by_representation :: fn(ctx: EmitterCtx) -> Map<string, i32[]> {
+    out :: Map<string, i32[]> {}
+    for i in 0..<ctx.types.len() {
+        enum_type :: enum_at(ctx, i32(i)) else continue
+        out.get_or_put_with(type_intern_key(enum_type), () -> []).push(i32(i))
+    }
+    return out
+}
+
+// The enum behind the row `index`, when it is an enum's own.
+enum_at :: fn(ctx: EmitterCtx, index: i32) -> EnumType | null {
+    if ctx.types[index] !is BcNominal || i64(index) >= ctx.type_by_slot.len() {
+        return null
+    }
+    t :: ctx.type_by_slot[index]
+    return if t is EnumType { t } else { null }
 }
 
 // Give the row `key` of `out` the entry of `receiver_idx`, unless it holds one: of
@@ -552,8 +577,8 @@ has_receiver :: fn(row: VtableRow, type_index: i32) -> bool {
 }
 
 // Builds the module's impl table : one BcImplEntry per (type_index,
-// trait_name) seen in the vtable entries, for a struct or an array receiver, the
-// shapes whose run-time tag names their own type. Sole builder: the CFG emit path
+// trait_name) seen in the vtable entries, for a struct, an array or an enum
+// receiver, the shapes whose run-time tag names their own type. Sole builder: the CFG emit path
 // is the only bytecode emit path there is.
 build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Map<i32, string[]>, ctx: EmitterCtx) -> BcImplEntry[] {
     out: BcImplEntry[]: []
@@ -564,12 +589,12 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Ma
         // here would otherwise mint a fresh `ref` placeholder for a
         // struct that's been DCE'd everywhere else (`Foo implements
         // Into<Foo>` rejected by typecheck, so Foo is dropped entirely).
-        key_str :: type_intern_key(entry.struct_type)
+        key_str :: box_tag_key(entry.struct_type)
         existing :: ctx.type_key[key_str]
         if existing !is i32 { continue }
         type_index :: existing
         if i64(type_index) in 0..<ctx.types.len() {
-            if ctx.types[type_index] !is BcStruct | BcArray { continue }
+            if ctx.types[type_index] !is BcStruct | BcArray | BcNominal { continue }
         }
         for trait_name in entry.row_traits {
             key :: "${type_index}|${trait_name}"
@@ -582,21 +607,30 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Ma
     // each trait its source symbol implements: independent of whether any
     // impl method was materialised. Covers is-only structs AND generic
     // instances (all instances share `symbol_id`), which the vtable-sourced
-    // rows above miss. This loop is struct-only ; enums and primitives carry no
-    // `impl_table` row, their `is Trait` resolving at compile time.
+    // rows above miss, and a boxed enum, its built-in `Equals` and `Hash`
+    // included. A primitive carries no `impl_table` row, its `is Trait`
+    // resolving at compile time.
     for i in 0..<ctx.types.len() {
-        st :: ctx.types[i]
-        if st is BcStruct {
-            traits :: membership[st.symbol_id] else continue
-            for tr in traits {
-                key :: "${i}|${tr}"
-                if seen[key] is bool { continue }
-                seen[key] = true
-                out.push(BcImplEntry { .type_index = i32(i), .trait_name = tr })
-            }
+        traits :: declared_traits_at(ctx, membership, i32(i))
+        for tr in traits {
+            key :: "${i}|${tr}"
+            if seen[key] is bool { continue }
+            seen[key] = true
+            out.push(BcImplEntry { .type_index = i32(i), .trait_name = tr })
         }
     }
     return out
+}
+
+// The traits the declaration behind the row `index` implements: a struct's, or a
+// boxed enum's with its built-in ones.
+declared_traits_at :: fn(ctx: EmitterCtx, membership: Map<i32, string[]>, index: i32) -> string[] {
+    row :: ctx.types[index]
+    if row is BcStruct {
+        return membership[row.symbol_id] else []
+    }
+    enum_type :: enum_at(ctx, index) else return []
+    return ENUM_BUILTIN_TRAITS + (membership[enum_type.symbol.id] else [])
 }
 
 // ---- Per-fn structurer ----------------------------------------------------

@@ -56,6 +56,20 @@
       std_core$Intrinsic$buffer_write_string(buf, c0, p1)
       std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
+  snippet$Day$Equals$equals :: fn(self: Day, other: Day) -> bool {
+      self == other
+  }
+  snippet$Color$Equals$equals :: fn(self: Color, other: Color) -> bool {
+      self == other
+  }
+  snippet$Day$Equals$equals$guard :: fn(self: Day, other: Any) -> bool {
+      (other is Day) && snippet$Day$Equals$equals(self, Day(other))
+  }
+  snippet$Color$Equals$equals$guard :: fn(self: Color, other: Any) -> bool {
+      (other is Color) && snippet$Color$Equals$equals(self, Color(other))
+  }
+  vtable std.core.Equals.equals for Color  snippet$Color$Equals$equals$guard
+  vtable std.core.Equals.equals for Day  snippet$Day$Equals$equals$guard
 
 ## lowered in dependencies
   std/console
@@ -63,5 +77,21 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard

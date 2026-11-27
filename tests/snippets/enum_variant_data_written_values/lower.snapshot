@@ -154,7 +154,28 @@
       std_core$Intrinsic$buffer_write_string(buf, c0, p1)
       std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
+  snippet$HttpStatus$Equals$equals :: fn(self: HttpStatus, other: HttpStatus) -> bool {
+      self == other
+  }
+  snippet$Reply$Equals$equals :: fn(self: Reply, other: Reply) -> bool {
+      self == other
+  }
+  snippet$Level$Equals$equals :: fn(self: Level, other: Level) -> bool {
+      self == other
+  }
+  snippet$HttpStatus$Equals$equals$guard :: fn(self: HttpStatus, other: Any) -> bool {
+      (other is HttpStatus) && snippet$HttpStatus$Equals$equals(self, HttpStatus(other))
+  }
+  snippet$Reply$Equals$equals$guard :: fn(self: Reply, other: Any) -> bool {
+      (other is Reply) && snippet$Reply$Equals$equals(self, Reply(other))
+  }
+  snippet$Level$Equals$equals$guard :: fn(self: Level, other: Any) -> bool {
+      (other is Level) && snippet$Level$Equals$equals(self, Level(other))
+  }
   vtable std.core.Display.to_string for HttpStatus  snippet.HttpStatus.to_string  // snippet$HttpStatus$std_core$Display$to_string
+  vtable std.core.Equals.equals for HttpStatus  snippet$HttpStatus$Equals$equals$guard
+  vtable std.core.Equals.equals for Level  snippet$Level$Equals$equals$guard
+  vtable std.core.Equals.equals for Reply  snippet$Reply$Equals$equals$guard
 
 ## lowered in dependencies
   std/console
@@ -162,10 +183,26 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard

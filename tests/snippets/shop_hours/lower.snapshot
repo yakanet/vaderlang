@@ -153,8 +153,22 @@
       std_core$Intrinsic$buffer_write_string(buf, c0, p1)
       std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
+  snippet$Weekday$Equals$equals :: fn(self: Weekday, other: Weekday) -> bool {
+      self == other
+  }
+  snippet$Discount$Equals$equals :: fn(self: Discount, other: Discount) -> bool {
+      self == other
+  }
+  snippet$Weekday$Equals$equals$guard :: fn(self: Weekday, other: Any) -> bool {
+      (other is Weekday) && snippet$Weekday$Equals$equals(self, Weekday(other))
+  }
+  snippet$Discount$Equals$equals$guard :: fn(self: Discount, other: Any) -> bool {
+      (other is Discount) && snippet$Discount$Equals$equals(self, Discount(other))
+  }
   vtable std.core.Display.to_string for Discount  snippet.Discount.to_string  // snippet$Discount$std_core$Display$to_string
   vtable std.core.Display.to_string for Weekday  snippet.Weekday.to_string  // snippet$Weekday$std_core$Display$to_string
+  vtable std.core.Equals.equals for Discount  snippet$Discount$Equals$equals$guard
+  vtable std.core.Equals.equals for Weekday  snippet$Weekday$Equals$equals$guard
 
 ## lowered in dependencies
   std/console
@@ -163,6 +177,8 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.string.to_string  // std_core$string$Display$to_string
@@ -170,4 +186,18 @@
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard

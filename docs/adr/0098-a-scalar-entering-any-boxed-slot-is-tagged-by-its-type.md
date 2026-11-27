@@ -9,6 +9,9 @@ Amended (2026-10-20) by 0100: an enum type argument is kept, so the `K` of
 `MutableMap<Color, i32>` no longer erases; the tag still matters for a trait
 value, a union and the arguments of an indirect or a virtual call.
 
+Amended (2026-11-27) by 0187: a boxed enum is tagged with a row of its own, no
+longer its integer's.
+
 ## Context
 
 0026 tagged a scalar entering a union with its own type (`retag`), because its

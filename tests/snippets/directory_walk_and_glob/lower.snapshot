@@ -125,6 +125,8 @@
 
 ## lowered in dependencies
   wasi:filesystem/types@0.3.0
+    fn wasi_0filesystem_types_10_23_20$ErrorCodeCase$Equals$equals
+    fn wasi_0filesystem_types_10_23_20$ErrorCodeCase$Equals$equals$guard
     struct wasi:filesystem.types@0.3.0.Descriptor  // wasi_0filesystem_types_10_23_20$Descriptor
     struct wasi:filesystem.types@0.3.0.ErrorCodeOther  // wasi_0filesystem_types_10_23_20$ErrorCodeOther
   std/char
@@ -136,6 +138,8 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     fn std.core.char.to_string  // std_core$char$Display$to_string
     fn std.core.clone<ListedEntry>  // std_core$clone__std_fs_ListedEntry
@@ -150,6 +154,12 @@
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
     struct std.core.WasmFuture<ErrorCodeCase | ErrorCodeOther | void>  // std_core$WasmFuture__wasi_0filesystem_types_10_23_20_ErrorCodeCase___wasi_0filesystem_types_10_23_20_ErrorCodeOther___void
@@ -196,6 +206,8 @@
     fn std.fs.system_write  // std_fs$system_write
     fn std.fs.walk  // std_fs$walk
     fn std.fs.write_file  // std_fs$write_file
+    fn std_fs$EntryKind$Equals$equals
+    fn std_fs$EntryKind$Equals$equals$guard
     struct __defer_env_std_fs_1
     struct std.fs.File  // std_fs$File
     struct std.fs.ListedEntry  // std_fs$ListedEntry
@@ -223,6 +235,8 @@
     fn std.glob.range_end_at  // std_glob$range_end_at
     fn std.glob.star_token  // std_glob$star_token
     fn std.glob.token_at  // std_glob$token_at
+    fn std_glob$PosixClass$Equals$equals
+    fn std_glob$PosixClass$Equals$equals$guard
     struct std.glob.Glob  // std_glob$Glob
     struct std.glob.GlobAnyChar  // std_glob$GlobAnyChar
     struct std.glob.GlobBracket  // std_glob$GlobBracket
@@ -243,7 +257,12 @@
     fn std.io.failure_unless  // std_io$failure_unless
     fn std.io.io_error_of  // std_io$io_error_of
     fn std.io.last_io_error  // std_io$last_io_error
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
     struct std.io.IOError  // std_io$IOError
+  std/numbers
+    fn std_numbers$SignMode$Equals$equals
+    fn std_numbers$SignMode$Equals$equals$guard
   std/path
     fn std.path.as_string  // std_path$as_string
     fn std.path.is_absolute_on  // std_path$is_absolute_on
@@ -277,5 +296,10 @@
     fn std.string_builder.append_char  // std_string__builder$append_char
     fn std.string_builder.byte_len  // std_string__builder$byte_len
     struct std.string_builder.StringBuilder  // std_string__builder$StringBuilder
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard
   std/testing
     fn std.testing.assert_succeeds  // std_testing$assert_succeeds

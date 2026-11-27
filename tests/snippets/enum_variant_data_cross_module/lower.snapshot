@@ -32,6 +32,13 @@
   storage
     const Code$data: Info[]  data pool #0
   snippet.codes.Info :: struct { id: string, message: string }  // snippet_codes$Info
+  snippet_codes$Code$Equals$equals :: fn(self: Code, other: Code) -> bool {
+      self == other
+  }
+  snippet_codes$Code$Equals$equals$guard :: fn(self: Code, other: Any) -> bool {
+      (other is Code) && snippet_codes$Code$Equals$equals(self, Code(other))
+  }
+  vtable std.core.Equals.equals for Code  snippet_codes$Code$Equals$equals$guard
 
 ## lowered in dependencies
   std/console
@@ -39,5 +46,21 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard

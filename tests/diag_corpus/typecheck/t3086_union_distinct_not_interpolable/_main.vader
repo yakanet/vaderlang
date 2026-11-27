@@ -1,0 +1,21 @@
+// Interpolating a union that holds a distinct: T3086.
+//
+// A boxed distinct carries its backing's runtime type, not its own : `"${v}"` would
+// render through the backing's `Display` and print the bare number where the
+// distinct's own `Display` says `code 404`. Narrowing first renders it through its
+// own.
+module "snippet"
+
+Code :: i32
+
+Code implements Display {
+    to_string :: fn(self) -> string = "code ${i32(self)}"
+}
+
+pick :: fn(found: bool) -> Code | null = if found { Code(404) } else { null }
+
+main :: fn() -> i32 {
+    v :: pick(true)
+    line :: "status ${v}"
+    return 0
+}

@@ -32,7 +32,14 @@ reduce_data_pool :: fn(entries: BcDataEntry[], types: BcType[], type_ids: i32[])
 // carries its own type_id, which a trait value or a union dispatches on.
 bc_value_to_vm :: fn(v: BcDataValue, types: BcType[]) -> Value {
     if v is BcValStr { return StringVal(v.value) }
-    if v is BcValPrim { return value_from_bits(v.kind, v.bits) }
+    if v is BcValPrim {
+        value :: value_from_bits(v.kind, v.bits)
+        // An enum held in a box (`BcValPrim.tag`).
+        if v.tag >= 0 {
+            return NominalVal { .type_id = v.tag, .inner = value }
+        }
+        return value
+    }
     if v is BcValStruct {
         fields: Value[]: []
         for f in v.fields { fields.push(bc_value_to_vm(f, types)) }

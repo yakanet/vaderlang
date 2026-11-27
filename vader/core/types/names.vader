@@ -266,17 +266,20 @@ export core_trait_arg :: fn(t: Type, name: string) -> Type | null {
     return null
 }
 
-/// Whether `t` implements `trait_key` with no impl : every enum implements
-/// `Equals`, comparing by variant, and `Hash`, so it keys a `Map`. A boxed
-/// enum carries its integer, whose `Equals` and `Hash` a vtable reaches. No impl is
-/// registered, so the run-time trait lookup does not see these : an `is Trait`
-/// test of an enum is resolved before it runs.
+/// The traits every enum implements with no impl written: `Equals`, comparing by
+/// variant, and `Hash`, so it keys a `Map`. `has_builtin_impl` answers the same
+/// keys without reading the array, which a read would copy.
+export ENUM_BUILTIN_TRAITS: string[]: [EQUALS_TRAIT_KEY, HASH_TRAIT_KEY]
+
+/// Whether `t` implements `trait_key` with no impl written (`ENUM_BUILTIN_TRAITS`).
+/// Where the type is known, a call compares or hashes the integer in place; a
+/// boxed enum reaches the `Equals` lowering synthesises for it and its integer's
+/// `Hash`, both listed in the run-time trait table under the enum's own row.
 ///
 /// @param t          the implementing type.
 /// @param trait_key  the trait asked for.
 export has_builtin_impl :: fn(t: Type, trait_key: string) -> bool =
-    t is EnumType &&
-        (trait_key == EQUALS_TRAIT_KEY || trait_key == HASH_TRAIT_KEY)
+    t is EnumType && (trait_key == EQUALS_TRAIT_KEY || trait_key == HASH_TRAIT_KEY)
 
 /// The trait name inside a `trait_key`: what a message shows the user.
 ///

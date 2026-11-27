@@ -108,7 +108,7 @@ export TypecheckCode :: enum(CodeInfo) {
     BodyFallsOffEnd                 { .id = "T3083", .message = "not every path through the body returns a value" },
     EnumDataNotStruct               { .id = "T3084", .message = "enum variant data must be a struct" },
     VariantDataWithoutEnumData      { .id = "T3085", .message = "variant data on an enum whose header declares none" },
-    UnionLosesVariantIdentity       { .id = "T3086", .message = "a union holding an enum or a distinct cannot dispatch through a trait" },
+    UnionLosesVariantIdentity       { .id = "T3086", .message = "a union variant boxed as its representation cannot dispatch through a trait" },
     IsTestOnSharedInstance          { .id = "T3087", .message = "the instances of a generic that share one body cannot be told apart" },
     NotIterable                     { .id = "T3088", .message = "not iterable" },
     AmbiguousLiteralInUnion         { .id = "T3089", .message = "literal could take several members of the union" },

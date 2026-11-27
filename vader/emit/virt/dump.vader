@@ -188,6 +188,9 @@ write_data_value :: fn(
         // No `prim` tag : a primitive leaf is `<kind> <hex>`. The kind name
         // (i32, u8, f64, ...) never collides with the str/strref/struct/array tags,
         // so the parser dispatches a primitive as the fall-through case.
+        if v.tag >= 0 {
+            out.append(" nominal ${v.tag}")
+        }
         out.append(" ${array_kind_name(v.kind)} ${data_value_hex(v.kind, v.bits)}")
     } else if v is BcValStr {
         hit :: str_index[v.value]

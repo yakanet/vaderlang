@@ -93,14 +93,16 @@ every instance of a declaration with an impl of the trait, whatever its type
 arguments, without checking the impl's bounds. And `is f32` and `is f64`
 both accept either tag. `TODO.md` lists both as bugs.
 
-A box holds an enum under an index of its own, which every test and every trait
-call still reads as its integer's index. An integer range type and a distinct type
-have no index of their own: a box holds a range under its integer's index, a
-distinct under its backing's (over a struct, an array, a tuple or a function, a
-distinct is the backing's object, header included). So `is` cannot tell `Color`
-from `u8` in a `Color | u8`, a union SPEC §4 *Unions* rejects, and a trait call on
-such a box reaches the representation's impl, the type's own impl only when the
-representation has none.
+A box holds an enum under an index of its own, which tests and trait calls read
+as the enum's: `is Color` is false for a `u8` or a `Fruit` that stores the same
+integer, and the enum's `Equals` answers `false` for a value of another type
+([ADR 0187](adr/0187-a-boxed-enum-carries-its-own-type.md)). An integer range type
+and a distinct type have no index of their own: a box holds a range under its
+integer's index, a distinct under its backing's (over a struct, an array, a tuple
+or a function, a distinct is the backing's object, header included). So `is`
+cannot tell `Hour` from `u8` in a `Hour | u8`, a union SPEC §4 *Unions* rejects,
+and a trait call on a boxed distinct reaches the representation's impl, the type's
+own impl only when the representation has none.
 
 On the VM, a union slot holds the member's own `Value`, whose variant is the tag;
 the native build of the VM stores a scalar `Value` without allocating

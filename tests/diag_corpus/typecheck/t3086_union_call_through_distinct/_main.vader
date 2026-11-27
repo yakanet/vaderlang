@@ -1,0 +1,28 @@
+// A union boxes a distinct as its backing, so a call dispatched by the box's tag
+// would reach the backing's impl, not the distinct's. T3086, at the member.
+module "snippet"
+
+Shape :: trait {
+    area :: fn(self) -> f64
+}
+
+Sq :: struct {
+    s: f64
+}
+
+Sq implements Shape {
+    area :: fn(self) -> f64 = self.s
+}
+
+Side :: f64
+
+Side implements Shape {
+    area :: fn(self) -> f64 = f64(self) * f64(self)
+}
+
+area_of :: fn(u: Sq | Side) -> f64 = u.area()
+
+main :: fn() -> i32 {
+    area :: area_of(Sq { .s = 1.0 })
+    return if area > 0.0 { 0 } else { 1 }
+}

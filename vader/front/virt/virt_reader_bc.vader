@@ -996,6 +996,14 @@ parse_data_value :: fn(tokens: string[], pos: i32[], strings: string[]) -> BcDat
         for _ in 0..<n { elems.push(parse_data_value(tokens, pos, strings)) }
         return BcValArray { .type_id = type_id, .elements = elems }
     }
+    if tag == "nominal" {
+        nominal :: token_to_int(take_token(tokens, pos))
+        leaf :: parse_data_value(tokens, pos, strings)
+        if leaf is BcValPrim {
+            return BcValPrim { ...leaf, .tag = nominal }
+        }
+        return leaf
+    }
     // Fall-through : a primitive leaf `<kind> <hex>` ; `tag` is the kind name.
     kind :: array_kind_from_name(tag)
     esz :: i64(array_kind_element_size(kind))

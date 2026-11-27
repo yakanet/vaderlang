@@ -331,6 +331,9 @@ export BcDataValue :: BcValPrim | BcValStr | BcValStruct | BcValArray
 export BcValPrim :: struct {
     kind: ArrayKind
     bits: u64
+    /// The tag of a leaf held in a box when it is not its kind's: the `BcNominal`
+    /// row of an enum ; `-1` otherwise.
+    tag:  i32 = -1
 }
 
 /// A string leaf: the value verbatim ; resolved to an atom id at the backend

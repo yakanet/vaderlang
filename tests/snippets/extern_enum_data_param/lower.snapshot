@@ -51,6 +51,13 @@
       std_core$Intrinsic$buffer_write_string(buf, c0, p1)
       std_core$Intrinsic$buffer_intern_string(buf, c1)
   }
+  snippet$Step$Equals$equals :: fn(self: Step, other: Step) -> bool {
+      self == other
+  }
+  snippet$Step$Equals$equals$guard :: fn(self: Step, other: Any) -> bool {
+      (other is Step) && snippet$Step$Equals$equals(self, Step(other))
+  }
+  vtable std.core.Equals.equals for Step  snippet$Step$Equals$equals$guard
 
 ## snippet/status
   storage
@@ -65,6 +72,13 @@
       snippet_status$seed_with$extern_import(i32(snippet.status.HttpStatus$value[i64(status)]))
   }
   snippet.status.StatusInfo :: struct { reason: string }  // snippet_status$StatusInfo
+  snippet_status$HttpStatus$Equals$equals :: fn(self: HttpStatus, other: HttpStatus) -> bool {
+      self == other
+  }
+  snippet_status$HttpStatus$Equals$equals$guard :: fn(self: HttpStatus, other: Any) -> bool {
+      (other is HttpStatus) && snippet_status$HttpStatus$Equals$equals(self, HttpStatus(other))
+  }
+  vtable std.core.Equals.equals for HttpStatus  snippet_status$HttpStatus$Equals$equals$guard
 
 ## lowered in dependencies
   std/console
@@ -72,10 +86,26 @@
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
     fn std.console.write_text  // std_console$write_text
+    fn std_console$Stream$Equals$equals
+    fn std_console$Stream$Equals$equals$guard
   std/core
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$CollectorStatistic$Equals$equals
+    fn std_core$CollectorStatistic$Equals$equals$guard
+    fn std_core$DecoratorTarget$Equals$equals
+    fn std_core$DecoratorTarget$Equals$equals$guard
+    fn std_core$Readiness$Equals$equals
+    fn std_core$Readiness$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std_io$IOErrorKind$Equals$equals
+    fn std_io$IOErrorKind$Equals$equals$guard
+  std/target
+    fn std_target$Arch$Equals$equals
+    fn std_target$Arch$Equals$equals$guard
+    fn std_target$Os$Equals$equals
+    fn std_target$Os$Equals$equals$guard

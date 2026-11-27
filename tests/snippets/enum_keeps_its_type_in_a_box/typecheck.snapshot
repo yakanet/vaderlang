@@ -1,0 +1,174 @@
+# Typecheck
+
+## tests/snippets/enum_keeps_its_type_in_a_box
+  FnDecl         cell_of              :: fn(Color | string) -> string
+  EnumDecl       Color                :: Color
+  FnDecl         colors               :: fn() -> Iterator<Color | string>
+  ConstDecl      Either               :: type
+  EnumDecl       Fruit                :: Fruit
+  StructDecl     Holder               :: Holder
+  FnDecl         kind_of              :: fn(Color | Fruit) -> string
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         name_of              :: fn(Color | u8) -> string
+  ConstDecl      PALETTE              :: (Color | string)[]
+  FnDecl         pick                 :: fn(i32) -> Color | string
+  FnDecl         render               :: fn(Display) -> string
+  FnDecl         same                 :: fn(Equals, Equals) -> bool
+  ConstDecl      Shown                :: type
+  expr 11:39    MatchExpr      :: string
+  expr 11:45    IdentExpr      :: Fruit
+  expr 12:19    StringLitExpr  :: string
+  expr 13:18    StringLitExpr  :: string
+  expr 26:30    SeqLitExpr     :: (Color | string)[]
+  expr 26:31    DotVariantExpr :: Color
+  expr 26:38    StringLitExpr  :: string
+  expr 28:37    IfExpr         :: string
+  expr 28:40    BinaryExpr     :: bool
+  expr 28:40    IdentExpr      :: Color | u8
+  expr 28:45    IdentExpr      :: Color
+  expr 28:53    StringLitExpr  :: string
+  expr 28:62    IdentExpr      :: Color
+  expr 28:75    StringLitExpr  :: string
+  expr 28:83    IdentExpr      :: u8
+  expr 30:38    IfExpr         :: string
+  expr 30:41    BinaryExpr     :: bool
+  expr 30:41    IdentExpr      :: Color | Fruit
+  expr 30:46    IdentExpr      :: Color
+  expr 30:54    StringLitExpr  :: string
+  expr 30:63    IdentExpr      :: Color
+  expr 30:76    StringLitExpr  :: string
+  expr 30:85    IdentExpr      :: Fruit
+  expr 32:38    CallExpr       :: string
+  expr 32:38    FieldExpr      :: fn() -> string
+  expr 32:38    IdentExpr      :: Display
+  expr 34:44    CallExpr       :: bool
+  expr 34:44    FieldExpr      :: fn(Equals) -> bool
+  expr 34:44    IdentExpr      :: Equals
+  expr 34:53    IdentExpr      :: Equals
+  expr 36:46    IfExpr         :: string
+  expr 36:49    BinaryExpr     :: bool
+  expr 36:49    IdentExpr      :: Color | string
+  expr 36:54    IdentExpr      :: Color
+  expr 36:62    StringLitExpr  :: string
+  expr 36:71    IdentExpr      :: Color
+  expr 36:84    StringLitExpr  :: string
+  expr 36:92    IdentExpr      :: string
+  expr 39:11    DotVariantExpr :: Color
+  expr 40:11    StringLitExpr  :: string
+  expr 43:40    IfExpr         :: Color | string
+  expr 43:43    BinaryExpr     :: bool
+  expr 43:43    IdentExpr      :: i32
+  expr 43:52    DotVariantExpr :: Color
+  expr 43:66    StringLitExpr  :: string
+  expr 46:13    StringLitExpr  :: string
+  expr 46:16    CallExpr       :: string
+  expr 46:16    IdentExpr      :: fn(Color | u8) -> string
+  expr 46:24    DotVariantExpr :: Color
+  expr 46:35    CallExpr       :: string
+  expr 46:35    IdentExpr      :: fn(Color | u8) -> string
+  expr 46:43    CallExpr       :: u8
+  expr 46:43    IdentExpr      :: type
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn(T) -> void
+  expr 47:13    StringLitExpr  :: string
+  expr 47:16    CallExpr       :: string
+  expr 47:16    IdentExpr      :: fn(Color | Fruit) -> string
+  expr 47:24    DotVariantExpr :: Color
+  expr 47:33    CallExpr       :: string
+  expr 47:33    IdentExpr      :: fn(Color | Fruit) -> string
+  expr 47:41    DotVariantExpr :: Fruit
+  expr 47:5     CallExpr       :: void
+  expr 47:5     IdentExpr      :: fn(T) -> void
+  expr 48:13    CallExpr       :: string
+  expr 48:13    IdentExpr      :: fn(Display) -> string
+  expr 48:20    FieldExpr      :: Color
+  expr 48:20    IdentExpr      :: Color
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(T) -> void
+  expr 49:15    CallExpr       :: bool
+  expr 49:15    IdentExpr      :: fn(Equals, Equals) -> bool
+  expr 49:20    FieldExpr      :: Color
+  expr 49:20    IdentExpr      :: Color
+  expr 49:31    FieldExpr      :: Fruit
+  expr 49:31    IdentExpr      :: Fruit
+  expr 4:39     MatchExpr      :: string
+  expr 4:45     IdentExpr      :: Color
+  expr 50:13    StringLitExpr  :: string
+  expr 50:16    CallExpr       :: bool
+  expr 50:16    IdentExpr      :: fn(Equals, Equals) -> bool
+  expr 50:21    FieldExpr      :: Color
+  expr 50:21    IdentExpr      :: Color
+  expr 50:32    FieldExpr      :: Color
+  expr 50:32    IdentExpr      :: Color
+  expr 50:46    IdentExpr      :: bool
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 50:56    CallExpr       :: bool
+  expr 50:56    IdentExpr      :: fn(Equals, Equals) -> bool
+  expr 50:61    FieldExpr      :: Color
+  expr 50:61    IdentExpr      :: Color
+  expr 50:72    FieldExpr      :: Color
+  expr 50:72    IdentExpr      :: Color
+  expr 51:32    SeqLitExpr     :: (Color | string)[]
+  expr 51:33    DotVariantExpr :: Color
+  expr 51:41    StringLitExpr  :: string
+  expr 52:13    CallExpr       :: string
+  expr 52:13    IdentExpr      :: fn(Color | string) -> string
+  expr 52:21    IdentExpr      :: (Color | string)[]
+  expr 52:21    IndexExpr      :: Color | string
+  expr 52:5     CallExpr       :: void
+  expr 52:5     IdentExpr      :: fn(T) -> void
+  expr 53:16    StructLitExpr  :: Map<string, Color | string>
+  expr 54:13    StringLitExpr  :: string
+  expr 54:22    DotVariantExpr :: Color
+  expr 54:5     IdentExpr      :: Map<string, Color | string>
+  expr 55:13    CallExpr       :: string
+  expr 55:13    IdentExpr      :: fn(Color | string) -> string
+  expr 55:21    FallbackExpr   :: Color | string
+  expr 55:21    IdentExpr      :: Map<string, Color | string>
+  expr 55:21    IndexExpr      :: Color | null | string
+  expr 55:29    StringLitExpr  :: string
+  expr 55:41    StringLitExpr  :: string
+  expr 55:5     CallExpr       :: void
+  expr 55:5     IdentExpr      :: fn(T) -> void
+  expr 56:13    StructLitExpr  :: Holder
+  expr 56:30    DotVariantExpr :: Color
+  expr 57:13    CallExpr       :: string
+  expr 57:13    IdentExpr      :: fn(Color | string) -> string
+  expr 57:21    FieldExpr      :: Color | string
+  expr 57:21    IdentExpr      :: Holder
+  expr 57:5     CallExpr       :: void
+  expr 57:5     IdentExpr      :: fn(T) -> void
+  expr 58:17    FieldExpr      :: Color
+  expr 58:17    IdentExpr      :: Color
+  expr 59:13    LambdaExpr     :: fn() -> string
+  expr 59:19    CallExpr       :: string
+  expr 59:19    IdentExpr      :: fn(Display) -> string
+  expr 59:26    IdentExpr      :: Color
+  expr 5:17     StringLitExpr  :: string
+  expr 60:13    CallExpr       :: string
+  expr 60:13    IdentExpr      :: fn() -> string
+  expr 60:5     CallExpr       :: void
+  expr 60:5     IdentExpr      :: fn(T) -> void
+  expr 61:15    IdentExpr      :: fn(i32) -> Color | string
+  expr 62:13    CallExpr       :: string
+  expr 62:13    IdentExpr      :: fn(Color | string) -> string
+  expr 62:21    CallExpr       :: Color | string
+  expr 62:21    IdentExpr      :: fn(i32) -> Color | string
+  expr 62:5     CallExpr       :: void
+  expr 62:5     IdentExpr      :: fn(T) -> void
+  expr 63:14    CallExpr       :: Iterator<Color | string>
+  expr 63:14    IdentExpr      :: fn() -> Iterator<Color | string>
+  expr 64:17    CallExpr       :: string
+  expr 64:17    IdentExpr      :: fn(Color | string) -> string
+  expr 64:25    IdentExpr      :: Color | string
+  expr 64:9     CallExpr       :: void
+  expr 64:9     IdentExpr      :: fn(T) -> void
+  expr 66:13    CallExpr       :: string
+  expr 66:13    IdentExpr      :: fn(Color | string) -> string
+  expr 66:21    IdentExpr      :: (Color | string)[]
+  expr 66:21    IndexExpr      :: Color | string
+  expr 66:5     CallExpr       :: void
+  expr 66:5     IdentExpr      :: fn(T) -> void
+  expr 6:19     StringLitExpr  :: string
+  expr 7:18     StringLitExpr  :: string

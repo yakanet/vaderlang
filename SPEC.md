@@ -1231,7 +1231,7 @@ show :: fn(r: Result) -> string {
 
 A union is written `A | B | C`, in place or named by an alias. A value that may be absent is typed `T | null` (*Nullability*, below), and an operation that may fail with nothing to return `void | E` (*Nothing to return*, below).
 
-A union value, like a trait value, carries the run-time type of what it holds (`docs/RUNTIME.md` *Boxes and tags*): for an enum or an integer range type, the integer that stores it; for a distinct type, its backing. A union of two variants that carry the same run-time type is an error: `Direction | u8` (an enum and its backing), `Fruit | Direction` (two enums with one backing), `Path | string` (a distinct type and its backing).
+A union value, like a trait value, carries the run-time type of what it holds (`docs/RUNTIME.md` *Boxes and tags*): an enum its own; an integer range type the integer that stores it; a distinct type its backing. A union of two variants that carry the same run-time type is an error: `Hour | u8` (a range type and its integer), `Path | string` (a distinct type and its backing). An enum is told apart from its integer and from another enum: `Direction | u8` and `Fruit | Direction` are unions like any other.
 
 The instances of a generic struct that differ only in reference-type arguments carry one type (`Box<Foo>` and `Box<Bar>` look alike), but may share a union (*Type tests*, below).
 
@@ -1504,7 +1504,7 @@ Direction implements Display -> match self {
 ```
 
 - In a generic, a `T` bound to an enum renders through the enum's `Display`, in a generic impl too (`Box<Direction>`). A generic function renders a `T` bound to a distinct type through the distinct's `Display`.
-- Interpolating a union that holds an enum, or a distinct type with a `Display` of its own, is an error, and so is interpolating an array of such unions: narrow first. A distinct type without its own `Display` renders through its backing type's, inside a union too.
+- Interpolating a union that holds an array of enums, or a distinct type with a `Display` of its own, is an error, and so is interpolating an array of such unions: narrow first. A distinct type without its own `Display` renders through its backing type's, inside a union too.
 
 ---
 
@@ -1951,7 +1951,7 @@ These are errors (narrow the union first):
 
 - a member that two traits offer every variant;
 - a variant that implements the trait more than once;
-- a variant that is an enum, a distinct type implementing the trait itself, or an array of either (*Unions*, above);
+- a variant that is a distinct type implementing the trait itself, or an array of enums or of such distinct types (*Unions*, above);
 - a member taking another `Self` (`compare`, `Add<Self>`), except in `Equals`, whose parameter checks the other operand's type;
 - a member returning `Self` inside another type (`Self[]`), unless every variant is a struct.
 
@@ -2369,7 +2369,7 @@ a.is_disjoint([3, 4])           // true: no element in common
 **Details.**
 
 - A generic `Equals` impl failing on a bound (`Box<T> implements<T: Equals> Equals` on a `Box<Raw>`) is an error naming the type argument that lacks it.
-- A generic body compares a `T: Equals` with the impl of the receiver's run-time type. When the other operand holds another type (`T` is a union, or the values are typed `Equals`), `equals` returns `false` without running it, except for an enum or a distinct type, compared as their representation (*Unions*, above).
+- A generic body compares a `T: Equals` with the impl of the receiver's run-time type. When the other operand holds another type (`T` is a union, or the values are typed `Equals`), `equals` returns `false` without running it, except for a distinct type, compared as its representation (*Unions*, above). An enum equals only a value of its own type: `Color.Red` and `Fruit.Apple` differ, though both store `0`.
 - A union variant that cannot be told apart at run time (*Unions*, above) may sit only beside `null`: a type parameter, or a generic struct instance with a type argument other than a primitive or an enum (`Box<Point>`). A union holding such an instance beside a variant other than `null` does not satisfy `Equals` either.
 - A distinct type stands for its backing through any number of layers: two integers compare when one holds the other (`s == w` compares in `i64`, for `w: i64` and `s` of a distinct type over `Hour`), and two other scalars only when they are the same primitive. `h == INVALID_HANDLE` with `h: Handle` (`Handle :: CPointer`) against an `i64`, and `b == c` with `b: u8` and a `char` variable, are errors.
 

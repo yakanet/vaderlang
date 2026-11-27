@@ -1,0 +1,1 @@
+[23:40] error[T3086] a union variant boxed as its representation cannot dispatch through a trait: `Side` ; narrow `Side | Sq` first

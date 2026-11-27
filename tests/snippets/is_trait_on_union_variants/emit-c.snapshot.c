@@ -945,7 +945,7 @@ static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
 static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv);
 
 static vader_string_t snippet$kind(vader_box_t l0) {
-	if ((l0.tag == 3u || l0.tag == 4u || ((l0.tag == 32u) || (l0.tag == 6u) || (l0.tag == 12u)) || l0.tag == 5u || l0.tag == 8u)) {
+	if ((l0.tag == 3u || l0.tag == 4u || ((l0.tag == 32u) || (l0.tag == 4u) || (l0.tag == 6u) || (l0.tag == 12u)) || l0.tag == 5u || l0.tag == 8u)) {
 		return 1u;
 	}
 	if (!(l0.tag == 7u)) {
@@ -967,7 +967,7 @@ static vader_string_t snippet$describe(vader_box_t l0) {
 		vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	if (!(((l0.tag == 32u) || (l0.tag == 6u) || (l0.tag == 12u) || l0.tag == 5u))) {
+	if (!(((l0.tag == 32u) || (l0.tag == 4u) || (l0.tag == 6u) || (l0.tag == 12u) || l0.tag == 5u))) {
 		l1 = (void*) vader_buffer_new((size_t) INT64_C(26));
 		l2 = INT64_C(0);
 		l2 = std_core$write_string_at(l1, l2, 3u);
@@ -994,7 +994,7 @@ static vader_string_t snippet$colour_or_point(vader_box_t l0) {
 		vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	if (!((l0.tag == 4u || ((l0.tag == 32u) || (l0.tag == 6u) || (l0.tag == 12u))))) {
+	if (!((l0.tag == 4u || ((l0.tag == 32u) || (l0.tag == 4u) || (l0.tag == 6u) || (l0.tag == 12u))))) {
 		l1 = (void*) vader_buffer_new((size_t) INT64_C(26));
 		l2 = INT64_C(0);
 		l2 = std_core$write_string_at(l1, l2, 3u);
@@ -1021,7 +1021,7 @@ static vader_string_t snippet$hashable(vader_box_t l0) {
 		vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	if (((l0.tag == 36u) || (l0.tag == 12u) || l0.tag == 8u)) {
+	if (((l0.tag == 36u) || (l0.tag == 4u) || (l0.tag == 12u) || l0.tag == 8u)) {
 		{ vader_gc_top = gc_frame.prev; return 5u; }
 	}
 	if (!(l0.tag == 7u)) {
@@ -1061,7 +1061,7 @@ static vader_string_t snippet$shown_points(vader_box_t l0) {
 }
 
 static vader_string_t snippet$open(vader_box_t l0) {
-	if (!((l0.tag == 3u || l0.tag == 27u || ((l0.tag == 32u) || (l0.tag == 6u) || (l0.tag == 12u)) || (l0.tag == 28u || l0.tag == 29u) || (l0.tag == 28u || l0.tag == 29u) || l0.tag == 23u || l0.tag == 5u || l0.tag == 20u || l0.tag == 22u || l0.tag == 8u || l0.tag == 25u || l0.tag == 26u || l0.tag == 21u || (l0.tag == 24u || l0.tag == 4u)))) {
+	if (!((l0.tag == 3u || l0.tag == 27u || ((l0.tag == 32u) || (l0.tag == 4u) || (l0.tag == 6u) || (l0.tag == 12u)) || (l0.tag == 28u || l0.tag == 29u) || (l0.tag == 28u || l0.tag == 29u) || l0.tag == 23u || l0.tag == 5u || l0.tag == 20u || l0.tag == 22u || l0.tag == 8u || l0.tag == 25u || l0.tag == 26u || l0.tag == 21u || l0.tag == 24u))) {
 		return 8u;
 	}
 	return 1u;
@@ -1080,7 +1080,7 @@ static vader_string_t snippet$displayed(vader_box_t l0) {
 		vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	if (!((l0.tag == 3u || l0.tag == 27u || ((l0.tag == 18u) || (l0.tag == 14u)) || (l0.tag == 28u || l0.tag == 29u) || (l0.tag == 28u || l0.tag == 29u) || l0.tag == 23u || l0.tag == 5u || l0.tag == 20u || l0.tag == 22u || l0.tag == 8u || l0.tag == 25u || l0.tag == 26u || l0.tag == 21u || (l0.tag == 24u || l0.tag == 4u)))) {
+	if (!((l0.tag == 3u || l0.tag == 27u || ((l0.tag == 18u) || (l0.tag == 14u)) || (l0.tag == 28u || l0.tag == 29u) || (l0.tag == 28u || l0.tag == 29u) || l0.tag == 23u || l0.tag == 5u || l0.tag == 20u || l0.tag == 22u || l0.tag == 8u || l0.tag == 25u || l0.tag == 26u || l0.tag == 21u || l0.tag == 24u))) {
 		l1 = (void*) vader_buffer_new((size_t) INT64_C(26));
 		l2 = INT64_C(0);
 		l2 = std_core$write_string_at(l1, l2, 3u);
@@ -2510,7 +2510,6 @@ static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
 		case 5u: return std_core$i32$Display$to_string(((int32_t) recv.payload.i));
 		case 20u: return std_core$i64$Display$to_string(((int64_t) recv.payload.i));
 		case 24u: return std_core$u8$Display$to_string(((uint8_t) recv.payload.i));
-		case 4u: return std_core$u8$Display$to_string(((uint8_t) recv.payload.i));
 		case 25u: return std_core$u16$Display$to_string(((uint16_t) recv.payload.i));
 		case 26u: return std_core$u32$Display$to_string(((uint32_t) recv.payload.i));
 		case 21u: return std_core$u64$Display$to_string(((uint64_t) recv.payload.i));
