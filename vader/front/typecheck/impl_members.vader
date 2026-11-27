@@ -2,6 +2,7 @@
 
 module "vader/front/typecheck"
 
+import "std/iter"
 AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
 import "vader/core/types"
@@ -91,7 +92,8 @@ check_member_signature :: fn(
     for i in 0..<want.params.len() {
         param :: member.params[i + skip]
         have :: got.params[i + skip]
-        if !equals_type(want.params[i], have) {
+        // An unknown type on the trait's side is reported at the trait.
+        if want.params[i] !is UnresolvedType && !equals_type(want.params[i], have) {
             detail :: "`${member.name}` parameter `${param.name}`: ${expected_got(want.params[i], have)}"
             diags.push(typecheck_error(.ImplMemberSignatureDiffers, param.span, detail))
         }
@@ -105,6 +107,21 @@ check_member_signature :: fn(
 // `expected X, got Y` over two types.
 expected_got :: fn(want: Type, got: Type) -> string =
     "expected `${display_type(want)}`, got `${display_type(got)}`"
+
+// T3024 for each parameter of a member of `d` that writes no type: the impls of the
+// trait read theirs there.
+reject_untyped_member_params :: fn(d: AST.TraitDecl, diags: Diagnostic[]) -> void {
+    for m in d.members {
+        for i in receiver_count(m)..<m.params.len() {
+            p :: m.params[i]
+            if p.ty == null {
+                diags.push(
+                    typecheck_error(.FnSignatureMustBeAnnotated, p.span, "parameter `${p.name}` lacks a type"),
+                )
+            }
+        }
+    }
+}
 
 lookup_trait_method :: fn(td: AST.TraitDecl | null, name: string) -> AST.FnDecl | null {
     if td is null {
@@ -159,8 +176,10 @@ ufcs_method_type :: fn(
         return FnType { ...inherited, .type_params = of_impl + inherited.type_params }
     }
     rest: Type[]: []
-    for i in receiver_count(fd)..<fd.params.len() {
-        rest.push(param_type(fd.params[i], for_ty, typed, diags))
+    from_trait :: trait_param_types(fd, for_ty, trait_method, trait_type, typed)
+    skip :: receiver_count(fd)
+    for i in skip..<fd.params.len() {
+        rest.push(param_type(fd.params[i], given_at(from_trait, i - skip), for_ty, typed, diags))
     }
     ret :: declare_impl_return(fd, for_ty, trait_method, trait_type, typed, diags)
     return mk_fn(rest, ret, impl_member_quantifier(impl_, fd, typed.resolved))
@@ -202,8 +221,15 @@ declare_impl_method_for_trait :: fn(
     diags: Diagnostic[],
 ) -> void {
     params: Type[]: []
-    for p in fd.params {
-        pt :: param_type(p, for_ty, typed, diags)
+    from_trait :: trait_param_types(fd, for_ty, trait_method, trait_type, typed)
+    generic :: trait_type != null && trait_method != null && trait_method.type_params.len() > 0
+    for i in 0..<fd.params.len() {
+        p :: fd.params[i]
+        pt :: param_type(p, given_at(from_trait, i - receiver_count(fd)), for_ty, typed, diags)
+        if generic && p.ty == null && pt is UnresolvedType {
+            detail :: "parameter `${p.name}` lacks a type, which a generic trait member does not give"
+            diags.push(typecheck_error(.FnSignatureMustBeAnnotated, p.span, detail))
+        }
         record_param(typed, p, pt)
         params.push(pt)
     }
@@ -245,21 +271,53 @@ declare_impl_return :: fn(
     return type_with_self(declared, for_ty, typed.resolved, diags)
 }
 
+// The type of the parameter `p`: the one it writes, `for_ty` for `self`, else `given`,
+// the one its trait gives. Unresolved when none does.
 param_type :: fn(
     p: AST.FnParam,
+    given: Type | null,
     for_ty: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
-    if p.ty == null {
+    written :: p.ty else {
         if p.name == "self" {
             return for_ty
         }
-        return TY_UNRESOLVED
+        return given else TY_UNRESOLVED
     }
     // Substitute `Self` -> `for_ty` so an explicit `Self`-typed param (e.g.
     // `Comparable.compare(self, other: Self)`) records the concrete carrier:
     // otherwise the impl method's type keeps `other: Self`, and a caller
     // passing a `for_ty` value mismatches `expected Self, got <for_ty>`.
-    return type_with_self(p.ty, for_ty, typed.resolved, diags)
+    return type_with_self(written, for_ty, typed.resolved, diags)
+}
+
+// The types the trait gives the parameters of `fd`, an impl member, its receiver
+// dropped: its trait method's, at the impl's trait arguments, `Self` read as `for_ty`.
+// Null when `fd` writes every type, for a default body checked in its own trait, and
+// for a generic trait method, whose types name its own type parameters.
+trait_param_types :: fn(
+    fd: AST.FnDecl,
+    for_ty: Type,
+    trait_method: AST.FnDecl | null,
+    trait_type: TraitType | null,
+    typed: TypedProgram,
+) -> Type[] | null {
+    method :: trait_method else return null
+    implemented :: trait_type else return null
+    unwritten :: fd.params.any_match((p) -> p.ty == null && p.name != "self")
+    if !unwritten || method.type_params.len() > 0 {
+        return null
+    }
+    from_trait :: try_trait_method(implemented, fd.name, typed, for_ty)
+    return if from_trait is FnType { from_trait.params } else { null }
+}
+
+// The type `types` holds at `i`, null past its ends or without types.
+given_at :: fn(types: Type[] | null, i: i64) -> Type | null {
+    if types == null || i < 0 || i >= types.len() {
+        return null
+    }
+    return types[i]
 }

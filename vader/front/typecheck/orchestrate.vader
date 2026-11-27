@@ -255,6 +255,7 @@ check_project_modules :: fn(
     populate_external_types(entry_typed, project, per_module)
     populate_imported_fn_overloads(entry_typed, entry_loaded.collected.files, typed_by_name)
     pull_field_external_types(entry_typed, per_module)
+    publish_member_defaults(project, per_module)
     // Coherence : at most one impl per (concrete type, trait, trait-args) across
     // the whole program: the prelude's `i32 implements Display` etc. are in
     // scope everywhere, so a user re-impl is a conflict (R2030), not a silent

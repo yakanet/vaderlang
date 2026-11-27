@@ -1660,9 +1660,9 @@ parse_trait_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
     p.skip_newlines()
     for !p.check(.RBrace) && !p.check(.Eof) {
         fn_opt :: p.parse_fn_decl_inside_trait()
-        match fn_opt {
-            is FnDecl -> { members.push(fn_opt) }
-            is null   -> {}
+        if fn_opt != null {
+            p.reject_trait_member_defaults(fn_opt)
+            members.push(fn_opt)
         }
         p.skip_newlines()
     }
@@ -1676,6 +1676,21 @@ parse_trait_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
         .requires    = requires,
         .members     = members,
         .decorators  = decorators,
+    }
+}
+
+// A default belongs to an impl: a call through the trait reaches no impl it could
+// take one from.
+reject_trait_member_defaults :: fn(p: Parser, member: FnDecl) -> void {
+    for param in member.params {
+        default_value :: param.default_value
+        if default_value != null {
+            p.error(
+                .TraitMemberDefault,
+                default_value.span,
+                "give `${param.name}` its default in the impls of the trait",
+            )
+        }
     }
 }
 

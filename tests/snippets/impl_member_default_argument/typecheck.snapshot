@@ -1,0 +1,91 @@
+# Typecheck
+
+## tests/snippets/impl_member_default_argument
+  FnDecl         main                 :: fn() -> i32
+  expr 13:10    StructLitExpr  :: Square
+  expr 14:13    CallExpr       :: string
+  expr 14:13    FieldExpr      :: fn(i32, string) -> string
+  expr 14:13    IdentExpr      :: Square
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void
+  expr 15:13    CallExpr       :: string
+  expr 15:13    FieldExpr      :: fn(i32, string) -> string
+  expr 15:13    IdentExpr      :: Square
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 16:13    CallExpr       :: string
+  expr 16:13    FieldExpr      :: fn(i32, string) -> string
+  expr 16:13    IdentExpr      :: Square
+  expr 16:29    StringLitExpr  :: string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 17:16    BinaryExpr     :: i64
+  expr 18:13    StringLitExpr  :: string
+  expr 18:16    CallExpr       :: i64
+  expr 18:16    FieldExpr      :: fn(i64) -> i64
+  expr 18:16    IdentExpr      :: Square
+  expr 18:30    CallExpr       :: i64
+  expr 18:30    FieldExpr      :: fn(i64) -> i64
+  expr 18:30    IdentExpr      :: Square
+  expr 18:39    IdentExpr      :: i64
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 19:13    CallExpr       :: string
+  expr 19:13    FieldExpr      :: fn(null | SourceLocation) -> string
+  expr 19:13    IdentExpr      :: Square
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void
+  expr 20:13    CallExpr       :: Square
+  expr 20:13    CallExpr       :: string
+  expr 20:13    FieldExpr      :: fn(i32) -> Square
+  expr 20:13    FieldExpr      :: fn(i32, string) -> string
+  expr 20:13    IdentExpr      :: Square
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 21:18    IdentExpr      :: Square
+  expr 22:13    CallExpr       :: string
+  expr 22:13    FieldExpr      :: fn(i32, string) -> string
+  expr 22:13    IdentExpr      :: Drawable
+  expr 22:23    StringLitExpr  :: string
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 27:30    IdentExpr      :: ?
+  expr 27:47    CallExpr       :: string
+  expr 27:47    IdentExpr      :: fn() -> string
+  expr 30:23    BinaryExpr     :: ?
+  expr 30:23    IdentExpr      :: ?
+  expr 31:31    IntrinsicCallExpr :: null | SourceLocation
+
+## tests/snippets/impl_member_default_argument/shapes
+  ConstDecl      COPIES               :: i32
+  TraitDecl      Drawable             :: Drawable
+  FnDecl         ending_mark          :: fn() -> string
+  StructDecl     Square               :: Square
+  expr 22:33    StringLitExpr  :: string
+  expr 28:13    FieldExpr      :: i32
+  expr 28:13    IdentExpr      :: Square
+  expr 28:28    CallExpr       :: i64
+  expr 28:28    IdentExpr      :: type
+  expr 28:32    IdentExpr      :: i32
+  expr 28:41    IdentExpr      :: string
+  expr 28:9     BinaryExpr     :: string
+  expr 28:9     BinaryExpr     :: string
+  expr 28:9     StringLitExpr  :: string
+  expr 29:45    BinaryExpr     :: i64
+  expr 29:45    CallExpr       :: i64
+  expr 29:45    IdentExpr      :: type
+  expr 29:49    BinaryExpr     :: i32
+  expr 29:49    FieldExpr      :: i32
+  expr 29:49    IdentExpr      :: Square
+  expr 29:61    FieldExpr      :: i32
+  expr 29:61    IdentExpr      :: Square
+  expr 29:74    IdentExpr      :: i64
+  expr 30:47    StructLitExpr  :: Square
+  expr 30:64    IdentExpr      :: i32
+  expr 32:12    BinaryExpr     :: bool
+  expr 32:12    IdentExpr      :: null | SourceLocation
+  expr 32:9     IfExpr         :: void
+  expr 33:20    StringLitExpr  :: string
+  expr 35:16    StringLitExpr  :: string
+  expr 35:24    FieldExpr      :: i32
+  expr 35:24    IdentExpr      :: SourceLocation

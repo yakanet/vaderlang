@@ -1652,7 +1652,12 @@ export trait_member_type :: fn(trait_id: i32, m: AST.FnDecl, typed: TypedProgram
     owner_resolved :: typed.trait_decl_owners[trait_id] else typed.resolved
     params: Type[]: []
     for i in receiver_count(m)..<m.params.len() {
-        params.push(opt_or_void(m.params[i].ty, owner_resolved, []))
+        // A parameter without a type is T3024 at the trait.
+        written :: m.params[i].ty else {
+            params.push(TY_UNRESOLVED)
+            continue
+        }
+        params.push(type_from_expr(written, owner_resolved, []))
     }
     return mk_fn(
         params,

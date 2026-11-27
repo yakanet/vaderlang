@@ -1,0 +1,2 @@
+[18:25] error[T3024] function signature must be fully annotated: parameter `value` lacks a type, which a generic trait member does not give
+[8:22] error[T3024] function signature must be fully annotated: parameter `by` lacks a type

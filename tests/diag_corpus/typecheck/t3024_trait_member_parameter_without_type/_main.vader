@@ -1,0 +1,21 @@
+// A member of a trait writes the type of each parameter but `self`. A member of an
+// impl may leave it out, which its trait method gives, unless that method is
+// generic: its types name its own type parameters.
+
+module "main"
+
+Shape :: trait {
+    grow :: fn(self, by) -> i32
+    pick :: fn<T>(self, value: T) -> T
+}
+
+Square :: struct {
+    side: i32
+}
+
+Square implements Shape {
+    grow :: fn(self, by: i32) -> i32 = self.side + by
+    pick :: fn<T>(self, value) -> T = value
+}
+
+main :: fn() -> i32 = Square { .side = 1 }.grow(1)

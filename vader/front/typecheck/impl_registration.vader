@@ -33,6 +33,38 @@ register_project_impls :: fn(
     }
 }
 
+// A call on its type fills an impl member's defaults in the caller's module, any
+// module of the project: their name resolutions travel to each (`import_defaults`).
+// Once every module copied its imports, so they travel with the types copied.
+publish_member_defaults :: fn(
+    project: LoadedProject,
+    per_module: Map<string, TypedProgram>,
+) -> void {
+    for [id, owner] in per_module {
+        loaded :: project.modules[id] else continue
+        for m in members_with_defaults(concat_file_decls(loaded.module.files)) {
+            for [_, into] in per_module {
+                if into.resolved.path != owner.resolved.path {
+                    publish_default_resolutions(owner, into, m)
+                }
+            }
+        }
+    }
+}
+
+// The members of the impls of `decls` that give a parameter a default.
+members_with_defaults :: fn(decls: AST.Decl[]) -> AST.FnDecl[] {
+    out: AST.FnDecl[]: []
+    for decl in decls.filter_is<AST.ImplDecl>() {
+        for m in decl.members {
+            if m.params.any_match((p) -> p.default_value != null) {
+                out.push(m)
+            }
+        }
+    }
+    return out
+}
+
 // Record the impls of one module checked alone, `decls` declared by `owner`.
 register_module_impls :: fn(decls: AST.Decl[], owner: TypedProgram, diags: Diagnostic[]) -> void {
     found :: recorded_impls(decls, owner)

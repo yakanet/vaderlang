@@ -1,0 +1,25 @@
+// An impl member's default is filled by a call on the impl's type only. Through a
+// trait value or a bound, the call reaches the trait's declaration, which has no
+// default: every argument is passed.
+
+module "main"
+
+Counted :: trait {
+    count :: fn(self, extra: i32) -> i32
+}
+
+Bag :: struct {
+    size: i32
+}
+
+Bag implements Counted {
+    count :: fn(self, extra = 1) -> i32 = self.size + extra
+}
+
+through_bound :: fn<C: Counted>(c: C) -> i32 = c.count()
+
+main :: fn() -> i32 {
+    bag :: Bag { .size = 2 }
+    held: Counted: bag
+    return bag.count() + held.count() + through_bound(bag)
+}

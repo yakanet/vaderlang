@@ -620,9 +620,11 @@ call_needs_arg_normalisation :: fn(c: AST.CallExpr, callee_ty: FnType) -> bool {
 //   - overloaded name : the decl `pick_overload` chose, imported or not ;
 //   - direct call : the resolved symbol's decl (arity must match) ;
 //   - UFCS free-fn method (`x.m(args)`) : the method's decl minus its `self`
-//     param, which lines up with the curried callee type.
-// Returns null when no decl is reachable (fn-values, impl-block methods): those
-// stay positional.
+//     param, which lines up with the curried callee type ;
+//   - impl member reached on its type (`p.m(args)`, `T.m(args)`) : the member's
+//     decl minus its receiver, whose defaults are the impl's.
+// Returns null when no decl is reachable (fn-values, a member reached through a
+// trait, which declares no default): those stay positional.
 callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
     callee :: c.callee
     if callee is AST.IdentExpr {
@@ -683,6 +685,13 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
         if chosen is AST.FnDecl {
             return ufcs_tail_params(chosen)
         }
+        // An impl member reached on its type, static or not: the record names it.
+        // Through a bound or a trait value it names none.
+        member :: recorded_decl(typed, c) else return null
+        if receiver_offset(c, member, typed) == 0 {
+            return member.params
+        }
+        return ufcs_tail_params(member)
     }
     return null
 }

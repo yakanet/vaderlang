@@ -1941,6 +1941,8 @@ print_it :: fn<T: Display>(x: T) {
 - **Declaration**: `Name :: trait { ... }`.
 - **Implementation**: `T implements Trait { ... }`, in three forms (*Single-method trait sugar (SAM)*). `T` and `Trait` resolve like any other name, through a namespace alias too (`Point implements Fmt.Display`), and the impl belongs to the declarations they name: of two modules' `Foo` types, or `Animal` traits, an impl of one says nothing of the other.
 - An impl defines its trait's members and nothing else, each with its trait method's parameters and return type, `Self` read as the impl's type and the trait's parameters as the impl's arguments, their defaults filled in (*Generics*, above). Any other member or signature is an error.
+- A member of a trait writes the type of each parameter but `self`, and gives none a default value. A member of an impl may leave a parameter's type out, which its trait method gives, unless that method is generic.
+- A member of an impl may give its parameters default values (§6 *Default parameter values*). A call on the impl's type fills them; a call through a trait value or a bound (`T: Trait`) passes every argument.
 - **`self` and `Self`**: in a trait or an impl, a first parameter named `self` has the type `Self` with no annotation, and `Self` is the implementing type (`Foo` in `Foo implements Trait { ... }`, a written `-> Self` included). Elsewhere, `Self` is an error.
 
 A union calls the members of a trait all its variants implement: `u.area()` on `u: Sq | Circle`, like `k in u`, `u + 5` or `u[k] = v`, dispatches by the value's run-time type, as on a trait value. Each trait argument must be one type for all the variants, or each variant itself (`Out = Self`, read as the union: `a + 5` on `a: i32 | Money` is an `i32 | Money`).
@@ -2580,7 +2582,7 @@ greet("Bob", "Hi")                // "Hi, Bob"
 greet("Eve", prefix = "Hello")    // "Hello, Eve" (named parameter)
 ```
 
-A parameter of a function declaration written without a type takes the one its default gives on its own:
+A parameter of a function declaration written without a type takes the one its default gives on its own (a member of an impl takes its trait's instead, §4 *Traits*):
 
 ```vader
 repeat :: fn(text: string, times = 2, separator = ", ") -> string

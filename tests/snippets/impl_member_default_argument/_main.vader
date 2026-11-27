@@ -1,0 +1,24 @@
+// An impl member may give its parameters defaults, which a call on the type fills,
+// a static member's included: omitted, positional and named arguments, with the
+// defaults' names resolved in the module that declares the impl. A parameter written without a type takes the
+// one its trait gives (`factor` is an `i64`). A call through the trait passes every
+// argument: its declaration has no default.
+
+module "snippet"
+
+import "snippet/shapes"
+import "std/console"
+
+main :: fn() -> i32 {
+    s :: Square { .side = 2 }
+    println(s.draw())
+    println(s.draw(3))
+    println(s.draw(ending = "!"))
+    wide: i64: 1 << 40
+    println("${s.scaled()} ${s.scaled(wide)}")
+    println(s.locate())
+    println(Square.make().draw(1))
+    d: Drawable: s
+    println(d.draw(1, "?"))
+    return 0
+}

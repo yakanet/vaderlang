@@ -1,0 +1,90 @@
+# Lower
+
+## snippet
+  snippet.main :: fn() -> i32 {  // snippet$main
+      s: Square = Square { .side = 2 }
+      std.console.println<string>(snippet.shapes.Square.draw(s, 2, snippet.shapes.ending_mark()))
+      std.console.println<string>(snippet.shapes.Square.draw(s, 3, snippet.shapes.ending_mark()))
+      std.console.println<string>(snippet.shapes.Square.draw(s, 2, "!"))
+      wide: i64 = i64(1) << i64(40)
+      std.console.println<string>({
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(41))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.shapes.Square.scaled(s, i64(3)))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.shapes.Square.scaled(s, wide))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      std.console.println<string>(snippet.shapes.Square.locate(s, SourceLocation {
+          .function = "main",
+          .module = "snippet",
+          .file = "tests/snippets/impl_member_default_argument/_main.vader",
+          .line = 19,
+          .column = 13,
+      }))
+      std.console.println<string>(snippet.shapes.Square.draw(snippet_shapes$Square$Drawable$make(2 + 1 :?), 1, snippet.shapes.ending_mark()))
+      d: Drawable = s
+      std.console.println<string>(@vcall(snippet.shapes.Drawable.draw, d, 1, "?"))
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c1)
+      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
+      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
+      std_core$Intrinsic$buffer_intern_string(buf, c1)
+  }
+
+## snippet/shapes
+  snippet.shapes.ending_mark :: fn() -> string {  // snippet_shapes$ending_mark
+      "."
+  }
+  snippet.shapes.Square.draw :: fn(self: Square, times: i32, ending: string) -> string {  // snippet_shapes$Square$Drawable$draw
+      concat_2(std.core.string.mul({
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(22))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "[")
+          __off_1 = std.core.write_int(__buf_0, __off_1, self.side)
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "]")
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string, i64(times)), ending)
+  }
+  snippet.shapes.Square.scaled :: fn(self: Square, factor: i64) -> i64 {  // snippet_shapes$Square$Drawable$scaled
+      i64(self.side * self.side) * factor
+  }
+  snippet_shapes$Square$Drawable$make :: fn(size: i32) -> Square {
+      Square { .side = size }
+  }
+  snippet.shapes.Square.locate :: fn(self: Square, site: null | SourceLocation) -> string {  // snippet_shapes$Square$Drawable$locate
+      if site is null {
+          return "nowhere"
+      }
+      return {
+          __buf_0: Buffer = std_core$Intrinsic$new_byte_buffer(i64(25))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "line ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, SourceLocation(site).line)
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.shapes.Square :: struct { side: i32 }  // snippet_shapes$Square
+  vtable snippet.shapes.Drawable.draw for Square  snippet.shapes.Square.draw  // snippet_shapes$Square$Drawable$draw
+  vtable snippet.shapes.Drawable.locate for Square  snippet.shapes.Square.locate  // snippet_shapes$Square$Drawable$locate
+  vtable snippet.shapes.Drawable.scaled for Square  snippet.shapes.Square.scaled  // snippet_shapes$Square$Drawable$scaled
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.string.mul  // std_core$string$Mul$mul
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.SourceLocation  // std_core$SourceLocation

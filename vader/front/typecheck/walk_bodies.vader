@@ -107,6 +107,7 @@ walk_bodies :: fn(decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[]) -
             }
             is AST.EnumDecl      -> { check_variant_data(decl, typed, diags) }
             is AST.TraitDecl     -> {
+                reject_untyped_member_params(decl, diags)
                 walk_default_bodies(decl, typed, diags)
             }
             // Body-less decl kinds: nothing to walk. Listed explicitly (not

@@ -1,0 +1,3 @@
+[5:1] warning[W0007] declaration is never used in its module: `Greeter` is never used
+[6:36] error[P1046] a member of a trait takes no default: give `times` its default in the impls of the trait
+[7:36] error[P1046] a member of a trait takes no default: give `times` its default in the impls of the trait

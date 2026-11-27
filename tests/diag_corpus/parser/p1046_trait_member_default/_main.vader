@@ -1,0 +1,10 @@
+// A default belongs to an impl of the trait: in the trait's declaration, a
+// required member or one with a default body, it is P1046.
+module "snippet"
+
+Greeter :: trait {
+    greet :: fn(self, times: i32 = 2) -> i32
+    shout :: fn(self, times: i32 = 3) -> i32 = self.greet(times) * 2
+}
+
+main :: fn() -> i32 = 0
