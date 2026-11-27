@@ -1119,12 +1119,12 @@ static bool vader_lower_optimise$is_fresh_array(vader_box_t l0) {
 	}
 	t0 = l0.payload.obj;
 	t1 = ((vader_struct_vader_lower_ir$LoweredIntrinsicCall_t*) t0)->f_name;
-	if (t1 == 2041u) {
+	if (t1 == 2056u) {
 		return true;
 	}
 	t0 = l0.payload.obj;
 	t1 = ((vader_struct_vader_lower_ir$LoweredIntrinsicCall_t*) t0)->f_name;
-	if (t1 == 2038u) {
+	if (t1 == 2053u) {
 		t0 = l0.payload.obj;
 		t2 = vader_array_length(((vader_array_t*) ((vader_struct_vader_lower_ir$LoweredIntrinsicCall_t*) t0)->f_args));
 		l1 = t2 == INT64_C(2);
@@ -2279,7 +2279,7 @@ static void vader_lower_optimise$rewrite_expr(vader_box_t l0, void* l1) {
 					_a2_obj->f_symbol = l11;
 					_a2_obj->f_fresh = false;
 					t0 = (void*) _a2_obj;
-					vader_array_t* _a3_arr = vader_array_new(513u, 1u, 13u, 2987u);
+					vader_array_t* _a3_arr = vader_array_new(513u, 1u, 13u, 2988u);
 					((void**) _a3_arr->buf->slots)[vader_array_offset(_a3_arr) + 0u] = t0;
 					l3 = (void*) _a3_arr;
 					t0 = l0.payload.obj;

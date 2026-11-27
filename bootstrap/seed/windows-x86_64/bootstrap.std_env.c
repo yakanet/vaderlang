@@ -41,7 +41,7 @@ vader_string_t std_env$current_executable_location(void) {
 		t4 = std_path$to_posix(t3);
 		{ vader_string_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
 	}
-	{ vader_gc_top = gc_frame.prev; return 489u; }
+	{ vader_gc_top = gc_frame.prev; return 491u; }
 }
 
 vader_string_t std_env$current_working_directory(void) {
@@ -80,7 +80,7 @@ vader_string_t std_env$current_working_directory(void) {
 		t3 = std_path$to_posix(t2);
 		{ vader_string_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
 	}
-	{ vader_gc_top = gc_frame.prev; return 489u; }
+	{ vader_gc_top = gc_frame.prev; return 491u; }
 }
 
 vader_box_t std_env$get_env(vader_string_t l0) {
@@ -163,6 +163,6 @@ vader_box_t std_env$set_current_working_directory(vader_string_t l0) {
 	if (!(t1 == INT32_C(0))) {
 		{ vader_box_t __vret = vader_box_obj(643u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
 	}
-	t0 = std_io$last_io_error(2198u);
+	t0 = std_io$last_io_error(2214u);
 	{ vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 }

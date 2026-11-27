@@ -431,7 +431,7 @@ static void* vader_midir_optimise$annotate_function(void* l0) {
 		VADER_ARRAY_RESOLVE_BUF(_a13_slotarr)
 		l12 = vader_array_ref_load_obj(_a13_slotarr->buf, vader_array_offset(_a13_slotarr) + (size_t) l4);
 		l18 = false;
-		vader_array_t* _a14_arr = vader_array_new(517u, 0u, 13u, 3056u);
+		vader_array_t* _a14_arr = vader_array_new(517u, 0u, 13u, 3058u);
 		l19 = (void*) _a14_arr;
 		l20 = ((vader_struct_vader_midir$BasicBlock_t*) l12)->f_instructions;
 		l6 = vader_array_length(((vader_array_t*) l20));
@@ -876,7 +876,7 @@ static void* vader_midir_optimise$compact_locals(void* l0) {
 		VADER_ARRAY_RESOLVE_BUF(_a21_slotarr)
 		l13 = vader_array_ref_load_obj(_a21_slotarr->buf, vader_array_offset(_a21_slotarr) + (size_t) l5);
 		t4 = vader_array_length(((vader_array_t*) ((vader_struct_vader_midir$BasicBlock_t*) l13)->f_instructions));
-		vader_array_t* _a22_arr = vader_array_reserve(517u, (int64_t) t4, 13u, 3056u);
+		vader_array_t* _a22_arr = vader_array_reserve(517u, (int64_t) t4, 13u, 3058u);
 		l20 = (void*) _a22_arr;
 		l21 = ((vader_struct_vader_midir$BasicBlock_t*) l13)->f_instructions;
 		l6 = vader_array_length(((vader_array_t*) l21));
@@ -1777,7 +1777,7 @@ static void* vader_midir_optimise$fold_moves_in_block(void* l0, void* l1, void* 
 	};
 	vader_gc_frame_t gc_frame = { vader_gc_top, 6u, 13u, gc_roots, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
-	vader_array_t* _a0_arr = vader_array_new(517u, 0u, 13u, 3056u);
+	vader_array_t* _a0_arr = vader_array_new(517u, 0u, 13u, 3058u);
 	l4 = (void*) _a0_arr;
 	l5 = INT64_C(0);
 	l6 = vader_array_length(((vader_array_t*) ((vader_struct_vader_midir$BasicBlock_t*) l0)->f_instructions));
@@ -1940,7 +1940,7 @@ static void* vader_midir_optimise$forward_block(void* l0) {
 	vader_array_t* _a0_arr = vader_array_new(436u, 0u, 13u, 2106u);
 	l1 = (void*) _a0_arr;
 	t0 = vader_array_length(((vader_array_t*) l0));
-	vader_array_t* _a1_arr = vader_array_reserve(517u, (int64_t) t0, 13u, 3056u);
+	vader_array_t* _a1_arr = vader_array_reserve(517u, (int64_t) t0, 13u, 3058u);
 	l2 = (void*) _a1_arr;
 	l3 = l0;
 	l4 = vader_array_length(((vader_array_t*) l3));
@@ -3075,18 +3075,18 @@ void vader_midir_optimise$report_heap_allocations(void* l0) {
 	std_string__builder$append(l1, 9u);
 	l2 = (void*) vader_buffer_new((size_t) INT64_C(102));
 	l3 = INT64_C(0);
-	l3 = std_core$write_string_at(l2, l3, 52u);
+	l3 = std_core$write_string_at(l2, l3, 54u);
 	l4 = vader_array_length(((vader_array_t*) ((vader_struct_vader_midir_optimise$EscapeStats_t*) l0)->f_heap_sites));
 	l3 = std_core$write_int(l2, l3, l4);
-	l3 = std_core$write_string_at(l2, l3, 231u);
+	l3 = std_core$write_string_at(l2, l3, 233u);
 	t2 = ((vader_struct_vader_midir_optimise$EscapeStats_t*) l0)->f_total_allocs;
 	l4 = ((int64_t) (int32_t) t2);
 	l3 = std_core$write_int(l2, l3, l4);
-	l3 = std_core$write_string_at(l2, l3, 71u);
+	l3 = std_core$write_string_at(l2, l3, 73u);
 	t2 = ((vader_struct_vader_midir_optimise$EscapeStats_t*) l0)->f_stack_promoted;
 	l4 = ((int64_t) (int32_t) t2);
 	l3 = std_core$write_int(l2, l3, l4);
-	l3 = std_core$write_string_at(l2, l3, 396u);
+	l3 = std_core$write_string_at(l2, l3, 398u);
 	l5 = std_core$finish_buffer(l2, l3);
 	std_string__builder$append(l1, l5);
 	l2 = ((vader_struct_vader_midir_optimise$EscapeStats_t*) l0)->f_heap_sites;
@@ -3098,7 +3098,7 @@ void vader_midir_optimise$report_heap_allocations(void* l0) {
 		l6 = vader_array_ref_load_obj(_a2_slotarr->buf, vader_array_offset(_a2_slotarr) + (size_t) l4);
 		l5 = toolchain_span$source_position(((vader_struct_vader_midir_optimise$EscapeSite_t*) l6)->f_span);
 		l7 = ((vader_struct_vader_midir_optimise$EscapeSite_t*) l6)->f_type_name;
-		l8 = concat_5(32u, l5, 1239u, l7, 150u);
+		l8 = concat_5(34u, l5, 1250u, l7, 152u);
 		std_string__builder$append(l1, l8);
 		l4 = (l4 + INT64_C(1));
 	}

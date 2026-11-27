@@ -86,7 +86,7 @@ static vader_string_t std_numbers$digits_in_base(uint64_t l0, uint64_t l1, bool 
 	};
 	vader_gc_top = &gc_frame;
 	if (l0 == INT64_C(0)) {
-		{ vader_gc_top = gc_frame.prev; return 551u; }
+		{ vader_gc_top = gc_frame.prev; return 554u; }
 	}
 	vader_array_t* _a0_arr = vader_array_new(27u, 0u, 11u, 641u);
 	l3 = (void*) _a0_arr;
@@ -162,7 +162,7 @@ static void* std_numbers$digits_of(vader_string_t l0, int64_t l1) {
 		vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 1u, gc_stack_objs, 4u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l3 = std_string$split_first(l0, 489u);
+	l3 = std_string$split_first(l0, 491u);
 	if (l3.tag == 0u) {
 		vader_struct___Tuple_string_string_66940ed4_t* _a1_obj = &_a0_storage;
 		vader_obj_header_init(_a1_obj, 673u);
@@ -446,7 +446,7 @@ static vader_string_t std_numbers$integer_digits(void* l0) {
 	vader_gc_top = &gc_frame;
 	t0 = ((vader_struct_std_numbers$DecimalDigits_t*) l0)->f_point;
 	if ((t0 <= INT64_C(0))) {
-		{ vader_gc_top = gc_frame.prev; return 551u; }
+		{ vader_gc_top = gc_frame.prev; return 554u; }
 	}
 	l1 = ((vader_struct_std_numbers$DecimalDigits_t*) l0)->f_point;
 	t1 = ((vader_struct_std_numbers$DecimalDigits_t*) l0)->f_digits;
@@ -571,7 +571,7 @@ static vader_box_t std_numbers$parse_int_in_base_1(void* l0, int32_t l1) {
 	}
 	vader_struct_std_string$ParseError_t* _a0_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
 	vader_obj_header_init(_a0_obj, 1137u);
-	_a0_obj->f_msg = 3045u;
+	_a0_obj->f_msg = 3066u;
 	t0 = (void*) _a0_obj;
 	{ vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -611,7 +611,7 @@ static vader_box_t std_numbers$parse_uint_in_base_1(void* l0, int32_t l1) {
 	if (t0) {
 		vader_struct_std_string$ParseError_t* _a0_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
 		vader_obj_header_init(_a0_obj, 1137u);
-		_a0_obj->f_msg = 2387u;
+		_a0_obj->f_msg = 2404u;
 		t1 = (void*) _a0_obj;
 		{ vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 	}
@@ -632,7 +632,7 @@ static vader_box_t std_numbers$parse_uint_in_base_1(void* l0, int32_t l1) {
 		if (l10.tag == 0u) {
 			vader_struct_std_string$ParseError_t* _a2_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
 			vader_obj_header_init(_a2_obj, 1137u);
-			_a2_obj->f_msg = 2764u;
+			_a2_obj->f_msg = 2783u;
 			t1 = (void*) _a2_obj;
 			{ vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 		}
@@ -640,7 +640,7 @@ static vader_box_t std_numbers$parse_uint_in_base_1(void* l0, int32_t l1) {
 		if ((((int32_t) (uint8_t) l9) >= l1)) {
 			vader_struct_std_string$ParseError_t* _a3_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
 			vader_obj_header_init(_a3_obj, 1137u);
-			_a3_obj->f_msg = 2764u;
+			_a3_obj->f_msg = 2783u;
 			t1 = (void*) _a3_obj;
 			{ vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 		}
@@ -657,7 +657,7 @@ static vader_box_t std_numbers$parse_uint_in_base_1(void* l0, int32_t l1) {
 		if (l11) {
 			vader_struct_std_string$ParseError_t* _a4_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
 			vader_obj_header_init(_a4_obj, 1137u);
-			_a4_obj->f_msg = 3045u;
+			_a4_obj->f_msg = 3066u;
 			t1 = (void*) _a4_obj;
 			{ vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 		}
@@ -759,7 +759,7 @@ static void* std_numbers$round_at(void* l0, int64_t l1) {
 			l3 = vader_chk_add(i64, t5, INT64_C(1));
 			vader_struct_std_numbers$DecimalDigits_t* _a7_obj = (vader_struct_std_numbers$DecimalDigits_t*) vader_gc_alloc(sizeof(vader_struct_std_numbers$DecimalDigits_t));
 			vader_obj_header_init(_a7_obj, 1134u);
-			_a7_obj->f_digits = 556u;
+			_a7_obj->f_digits = 559u;
 			_a7_obj->f_point = l3;
 			t3 = (void*) _a7_obj;
 			{ void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
@@ -822,7 +822,7 @@ static vader_string_t std_numbers$scientific_text(void* l0, int64_t l1) {
 	l7 = (void*) vader_buffer_new((size_t) (INT64_C(21) + l5));
 	l5 = INT64_C(0);
 	l5 = std_core$write_string_at(l7, l5, l3);
-	l5 = std_core$write_string_at(l7, l5, 2360u);
+	l5 = std_core$write_string_at(l7, l5, 2377u);
 	l5 = std_core$write_string_at(l7, l5, l4);
 	l2 = std_math$abs_2(l2);
 	l5 = std_core$write_int(l7, l5, l2);
@@ -845,8 +845,8 @@ static void* std_numbers$shortest_digits(double l0) {
 	};
 	vader_gc_top = &gc_frame;
 	t0 = std_core$f64$Display$to_string(l0);
-	l1 = std_string$trim_prefix(t0, 476u);
-	l3 = std_string$split_first(l1, 2360u);
+	l1 = std_string$trim_prefix(t0, 478u);
+	l3 = std_string$split_first(l1, 2377u);
 	if (l3.tag == 0u) {
 		t1 = std_numbers$digits_of(l1, INT64_C(0));
 		{ void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -861,12 +861,12 @@ static void* std_numbers$shortest_digits(double l0) {
 
 static vader_string_t std_numbers$sign_text(bool l0, uint8_t l1) {
 	if (l0) {
-		return 476u;
+		return 478u;
 	}
 	if (!(l1 == INT32_C(1))) {
 		return 0u;
 	}
-	return 434u;
+	return 436u;
 }
 
 vader_string_t std_numbers$strip_numeric_text(vader_string_t l0, int32_t l1) {
@@ -888,7 +888,7 @@ vader_string_t std_numbers$strip_numeric_text(vader_string_t l0, int32_t l1) {
 	}
 	l3 = (int64_t) vader_string_byte_len(l0);
 	l4 = vader_string_byte_slice(l0, l2, l3);
-	t0 = std_string$string$std_core$Contains$contains(l4, 1242u);
+	t0 = std_string$string$std_core$Contains$contains(l4, 1253u);
 	if (!(t0)) {
 		{ vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 	}
@@ -992,7 +992,7 @@ static vader_string_t std_numbers$with_point(vader_string_t l0, vader_string_t l
 	vader_gc_top = &gc_frame;
 	l3 = std_string$pad_end(l1, l2, 48u);
 	if (!(l3 == 0u)) {
-		t0 = concat_3(l0, 489u, l3);
+		t0 = concat_3(l0, 491u, l3);
 		{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	{ vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }

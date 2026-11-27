@@ -147,15 +147,15 @@ static vader_string_t toolchain_diagnostics$diag_key(void* l0) {
 	l7 = INT64_C(0);
 	l8 = ((int64_t) (int32_t) l1);
 	l7 = std_core$write_int(l9, l7, l8);
-	l7 = std_core$write_string_at(l9, l7, 3801u);
+	l7 = std_core$write_string_at(l9, l7, 3824u);
 	l7 = std_core$write_string_at(l9, l7, l2);
-	l7 = std_core$write_string_at(l9, l7, 3801u);
+	l7 = std_core$write_string_at(l9, l7, 3824u);
 	l7 = std_core$write_string_at(l9, l7, l3);
-	l7 = std_core$write_string_at(l9, l7, 3801u);
+	l7 = std_core$write_string_at(l9, l7, 3824u);
 	l7 = std_core$write_int(l9, l7, l4);
-	l7 = std_core$write_string_at(l9, l7, 3801u);
+	l7 = std_core$write_string_at(l9, l7, 3824u);
 	l7 = std_core$write_int(l9, l7, l5);
-	l7 = std_core$write_string_at(l9, l7, 3801u);
+	l7 = std_core$write_string_at(l9, l7, 3824u);
 	l7 = std_core$write_string_at(l9, l7, l6);
 	t0 = std_core$finish_buffer(l9, l7);
 	{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -240,16 +240,16 @@ static void toolchain_diagnostics$format_diagnostic(void* l0, void* l1, void* l2
 	vader_gc_top = &gc_frame;
 	l4 = ((vader_struct_toolchain_diagnostics$Diagnostic_t*) l1)->f_severity;
 	if (l4 == INT32_C(0)) {
-		l3 = 2418u;
+		l3 = 2435u;
 	} else if (l4 == INT32_C(1)) {
-		l3 = 3725u;
+		l3 = 3747u;
 	} else if (l4 == INT32_C(2)) {
-		l3 = 2721u;
+		l3 = 2740u;
 	} else {
 		if (!(l4 == INT32_C(3))) {
 			vader_unreachable("non-exhaustive match (T3013 should have caught this)");
 		}
-		l3 = 2632u;
+		l3 = 2651u;
 	}
 	t0 = ((vader_struct_toolchain_diagnostics$Channel_t*) l2)->f_user;
 	if (t0) {
@@ -278,7 +278,7 @@ static void toolchain_diagnostics$format_diagnostic(void* l0, void* l1, void* l2
 	t0 = std_core$is_empty_1(t1);
 	if (!(t0)) {
 		l8 = ((vader_struct_toolchain_diagnostics$Diagnostic_t*) l1)->f_detail;
-		l3 = concat_2(564u, l8);
+		l3 = concat_2(567u, l8);
 	}
 	t0 = ((vader_struct_toolchain_diagnostics$Channel_t*) l2)->f_files;
 	if (t0) {
@@ -288,11 +288,11 @@ static void toolchain_diagnostics$format_diagnostic(void* l0, void* l1, void* l2
 		l11 = (void*) vader_buffer_new((size_t) (INT64_C(42) + l10));
 		l10 = INT64_C(0);
 		l10 = std_core$write_string_at(l11, l10, l9);
-		l10 = std_core$write_string_at(l11, l10, 563u);
+		l10 = std_core$write_string_at(l11, l10, 566u);
 		t2 = ((vader_struct_toolchain_span$Position_t*) l7)->f_line;
 		l12 = ((int64_t) (int32_t) t2);
 		l10 = std_core$write_int(l11, l10, l12);
-		l10 = std_core$write_string_at(l11, l10, 563u);
+		l10 = std_core$write_string_at(l11, l10, 566u);
 		t2 = ((vader_struct_toolchain_span$Position_t*) l7)->f_column;
 		l12 = ((int64_t) (int32_t) t2);
 		l10 = std_core$write_int(l11, l10, l12);
@@ -303,7 +303,7 @@ static void toolchain_diagnostics$format_diagnostic(void* l0, void* l1, void* l2
 		t2 = ((vader_struct_toolchain_span$Position_t*) l7)->f_line;
 		l12 = ((int64_t) (int32_t) t2);
 		l10 = std_core$write_int(l11, l10, l12);
-		l10 = std_core$write_string_at(l11, l10, 563u);
+		l10 = std_core$write_string_at(l11, l10, 566u);
 		t2 = ((vader_struct_toolchain_span$Position_t*) l7)->f_column;
 		l12 = ((int64_t) (int32_t) t2);
 		l10 = std_core$write_int(l11, l10, l12);
@@ -311,7 +311,7 @@ static void toolchain_diagnostics$format_diagnostic(void* l0, void* l1, void* l2
 	}
 	l9 = ((vader_struct_toolchain_diagnostics$CodeInfo_t*) ((vader_struct_toolchain_diagnostics$Diagnostic_t*) l1)->f_code)->f_id;
 	l13 = ((vader_struct_toolchain_diagnostics$CodeInfo_t*) ((vader_struct_toolchain_diagnostics$Diagnostic_t*) l1)->f_code)->f_message;
-	l3 = concat_9(1217u, l8, 1236u, l5, 1217u, l9, 1236u, l13, l3);
+	l3 = concat_9(1228u, l8, 1247u, l5, 1228u, l9, 1247u, l13, l3);
 	std_string__builder$append(l0, l3);
 	l7 = ((vader_struct_toolchain_diagnostics$Diagnostic_t*) l1)->f_related;
 	l10 = vader_array_length(((vader_array_t*) l7));
@@ -334,13 +334,13 @@ static void toolchain_diagnostics$format_diagnostic(void* l0, void* l1, void* l2
 		l21 = INT64_C(0);
 		l21 = std_core$write_string_at(l20, l21, 4u);
 		l21 = std_core$write_string_at(l20, l21, l3);
-		l21 = std_core$write_string_at(l20, l21, 563u);
+		l21 = std_core$write_string_at(l20, l21, 566u);
 		l22 = ((int64_t) (int32_t) l15);
 		l21 = std_core$write_int(l20, l21, l22);
-		l21 = std_core$write_string_at(l20, l21, 563u);
+		l21 = std_core$write_string_at(l20, l21, 566u);
 		l23 = ((int64_t) (int32_t) l16);
 		l21 = std_core$write_int(l20, l21, l23);
-		l21 = std_core$write_string_at(l20, l21, 1236u);
+		l21 = std_core$write_string_at(l20, l21, 1247u);
 		l21 = std_core$write_string_at(l20, l21, l5);
 		l8 = std_core$finish_buffer(l20, l21);
 		std_string__builder$append(l0, l8);
@@ -487,11 +487,11 @@ vader_string_t toolchain_diagnostics$relative_to(vader_string_t l0, vader_string
 	if (t0) {
 		{ vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
 	}
-	t0 = std_string$ends_with(l1, 534u);
+	t0 = std_string$ends_with(l1, 536u);
 	if (t0) {
 		l2 = l1;
 	} else {
-		l2 = concat_2(l1, 534u);
+		l2 = concat_2(l1, 536u);
 	}
 	t0 = std_string$starts_with(l0, l2);
 	if (!(t0)) {
@@ -569,11 +569,11 @@ static vader_string_t toolchain_diagnostics$render_diagnostics(void* l0, void* l
 		std_string__builder$append_char(l3, 10u);
 		l5 = (void*) vader_buffer_new((size_t) INT64_C(47));
 		l6 = INT64_C(0);
-		l6 = std_core$write_string_at(l5, l6, 493u);
+		l6 = std_core$write_string_at(l5, l6, 495u);
 		t1 = vader_array_length(((vader_array_t*) l2));
 		l4 = vader_chk_sub(i64, t1, l4);
 		l6 = std_core$write_int(l5, l6, l4);
-		l6 = std_core$write_string_at(l5, l6, 222u);
+		l6 = std_core$write_string_at(l5, l6, 224u);
 		l9 = std_core$finish_buffer(l5, l6);
 		std_string__builder$append(l3, l9);
 		t3 = std_string__builder$StringBuilder$std_core$Display$to_string(l3);
@@ -679,9 +679,9 @@ vader_string_t toolchain_diagnostics$wildcard_clash_detail(vader_string_t l0, vo
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l2 = std_string$join(l1, 441u);
-	l2 = concat_4(1307u, l0, 1465u, l2);
-	l3 = concat_3(3087u, l0, 1636u);
-	t0 = concat_6(l2, 98u, l3, 239u, l0, 120u);
+	l2 = std_string$join(l1, 443u);
+	l2 = concat_4(1318u, l0, 1476u, l2);
+	l3 = concat_3(3108u, l0, 1648u);
+	t0 = concat_6(l2, 100u, l3, 241u, l0, 122u);
 	{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }

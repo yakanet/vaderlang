@@ -6,7 +6,7 @@ static vader_box_t vader_core_mangle$wit_name_escape(uint8_t l0);
 
 vader_string_t vader_core_mangle$cell_struct_name(vader_string_t l0) {
 	vader_string_t t0;
-	t0 = concat_2(335u, l0);
+	t0 = concat_2(337u, l0);
 	return t0;
 }
 
@@ -17,7 +17,7 @@ vader_string_t vader_core_mangle$declaration_mangle(vader_string_t l0, vader_str
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 5u, gc_atom_roots };
 	vader_gc_top = &gc_frame;
 	t0 = vader_core_mangle$mangle_module_id(l0);
-	t1 = concat_4(t0, 331u, l1, l2);
+	t1 = concat_4(t0, 333u, l1, l2);
 	{ vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -27,33 +27,33 @@ vader_string_t vader_core_mangle$derived_mangle(vader_string_t l0, uint8_t l1) {
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
 	vader_gc_top = &gc_frame;
 	if (l1 == INT32_C(0)) {
-		l2 = concat_2(l0, 343u);
+		l2 = concat_2(l0, 345u);
 		{ vader_string_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	if (l1 == INT32_C(1)) {
-		l2 = concat_2(l0, 348u);
+		l2 = concat_2(l0, 350u);
 	} else if (l1 == INT32_C(2)) {
-		l2 = concat_2(l0, 345u);
+		l2 = concat_2(l0, 347u);
 	} else if (l1 == INT32_C(3)) {
-		l2 = concat_2(l0, 351u);
+		l2 = concat_2(l0, 353u);
 	} else if (l1 == INT32_C(4)) {
-		l2 = concat_2(l0, 340u);
+		l2 = concat_2(l0, 342u);
 	} else if (l1 == INT32_C(5)) {
-		l2 = concat_2(l0, 337u);
+		l2 = concat_2(l0, 339u);
 	} else if (l1 == INT32_C(6)) {
-		l2 = concat_2(l0, 352u);
+		l2 = concat_2(l0, 354u);
 	} else {
 		if (!(l1 == INT32_C(7))) {
 			vader_unreachable("non-exhaustive match (T3013 should have caught this)");
 		}
-		l2 = concat_2(l0, 333u);
+		l2 = concat_2(l0, 335u);
 	}
 	{ vader_string_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 vader_string_t vader_core_mangle$field_default_mangle(vader_string_t l0, vader_string_t l1) {
 	vader_string_t t0;
-	t0 = concat_3(l0, 338u, l1);
+	t0 = concat_3(l0, 340u, l1);
 	return t0;
 }
 
@@ -72,7 +72,7 @@ vader_string_t vader_core_mangle$fn_overload_suffix(int64_t l0) {
 	}
 	l1 = (void*) vader_buffer_new((size_t) INT64_C(21));
 	l2 = INT64_C(0);
-	l2 = std_core$write_string_at(l1, l2, 1242u);
+	l2 = std_core$write_string_at(l1, l2, 1253u);
 	l2 = std_core$write_int(l1, l2, l0);
 	t0 = std_core$finish_buffer(l1, l2);
 	{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -85,13 +85,13 @@ vader_string_t vader_core_mangle$generated_name(vader_string_t l0, uint8_t l1) {
 	vader_string_t* gc_atom_roots[3] = { &l0, &l2, &t1 };
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 3u, gc_atom_roots };
 	vader_gc_top = &gc_frame;
-	t0 = std_string$string$std_core$Contains$contains(l0, 331u);
+	t0 = std_string$string$std_core$Contains$contains(l0, 333u);
 	if (!(t0)) {
 		l2 = vader_core_mangle$generated_word(l1);
-		t1 = concat_3(l0, 332u, l2);
+		t1 = concat_3(l0, 334u, l2);
 		{ vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 	}
-	t1 = concat_3(2600u, l0, 1492u);
+	t1 = concat_3(2619u, l0, 1503u);
 	vader_host_std_core$Runtime$panic(t1);
 	vader_unreachable("a no-return call returned");
 	vader_gc_top = gc_frame.prev;
@@ -100,27 +100,27 @@ vader_string_t vader_core_mangle$generated_name(vader_string_t l0, uint8_t l1) {
 static vader_string_t vader_core_mangle$generated_word(uint8_t l0) {
 	vader_string_t l1;
 	if (l0 == INT32_C(0)) {
-		l1 = 2740u;
+		l1 = 2759u;
 		return l1;
 	}
 	if (l0 == INT32_C(1)) {
-		l1 = 2818u;
+		l1 = 2837u;
 	} else if (l0 == INT32_C(2)) {
-		l1 = 870u;
+		l1 = 876u;
 	} else if (l0 == INT32_C(3)) {
-		l1 = 3079u;
+		l1 = 3100u;
 	} else {
 		if (!(l0 == INT32_C(4))) {
 			vader_unreachable("non-exhaustive match (T3013 should have caught this)");
 		}
-		l1 = 3147u;
+		l1 = 3168u;
 	}
 	return l1;
 }
 
 vader_string_t vader_core_mangle$generator_state_name(vader_string_t l0, vader_string_t l1) {
 	vader_string_t t0;
-	t0 = concat_3(342u, l0, l1);
+	t0 = concat_3(344u, l0, l1);
 	return t0;
 }
 
@@ -131,7 +131,7 @@ vader_string_t vader_core_mangle$impl_member_mangle(vader_string_t l0, vader_str
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 7u, gc_atom_roots };
 	vader_gc_top = &gc_frame;
 	t0 = vader_core_mangle$mangle_module_id(l0);
-	t1 = concat_8(t0, 331u, l1, 331u, l2, 331u, l3, l4);
+	t1 = concat_8(t0, 333u, l1, 333u, l2, 333u, l3, l4);
 	{ vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -150,7 +150,7 @@ vader_string_t vader_core_mangle$impl_overload_suffix(int64_t l0) {
 	}
 	l1 = (void*) vader_buffer_new((size_t) INT64_C(21));
 	l2 = INT64_C(0);
-	l2 = std_core$write_string_at(l1, l2, 331u);
+	l2 = std_core$write_string_at(l1, l2, 333u);
 	l2 = std_core$write_int(l1, l2, l0);
 	t0 = std_core$finish_buffer(l1, l2);
 	{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -185,7 +185,7 @@ vader_string_t vader_core_mangle$instance_suffix(void* l0) {
 		VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
 		t1 = vader_array_box_slots(_a2_slotarr->buf)[vader_array_offset(_a2_slotarr) + (size_t) l4];
 		l5 = t1.payload.s;
-		std_string__builder$append(l1, 1255u);
+		std_string__builder$append(l1, 1266u);
 		std_string__builder$append(l1, l5);
 		l4 = (l4 + INT64_C(1));
 	}
@@ -195,7 +195,7 @@ vader_string_t vader_core_mangle$instance_suffix(void* l0) {
 
 bool vader_core_mangle$is_tuple_struct_name(vader_string_t l0) {
 	bool t0;
-	t0 = std_string$string$std_core$Contains$contains(l0, 1256u);
+	t0 = std_string$string$std_core$Contains$contains(l0, 1267u);
 	return t0;
 }
 
@@ -220,7 +220,7 @@ vader_string_t vader_core_mangle$lifted_mangle(uint8_t l0, bool l1, vader_string
 	l6 = INT64_C(0);
 	l6 = std_core$write_string_at(l8, l6, l4);
 	l6 = std_core$write_string_at(l8, l6, l5);
-	l6 = std_core$write_string_at(l8, l6, 1242u);
+	l6 = std_core$write_string_at(l8, l6, 1253u);
 	l6 = std_core$write_int(l8, l6, l3);
 	t0 = std_core$finish_buffer(l8, l6);
 	{ vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -234,7 +234,7 @@ vader_string_t vader_core_mangle$lifted_module_part(vader_string_t l0) {
 	vader_box_t l11;
 	bool t0;
 	vader_box_t t1;
-	t0 = std_string$starts_with(l0, 1255u);
+	t0 = std_string$starts_with(l0, 1266u);
 	if (!(t0)) {
 		return 0u;
 	}
@@ -273,32 +273,32 @@ static vader_string_t vader_core_mangle$lifted_prefix(uint8_t l0, bool l1) {
 	vader_string_t l2;
 	if (l0 == INT32_C(0)) {
 		if (l1) {
-			l2 = 1271u;
+			l2 = 1282u;
 		} else {
-			l2 = 1270u;
+			l2 = 1281u;
 		}
 		return l2;
 	}
 	if (l0 == INT32_C(1)) {
 		if (l1) {
-			l2 = 1267u;
+			l2 = 1278u;
 		} else {
-			l2 = 1266u;
+			l2 = 1277u;
 		}
 	} else if (l0 == INT32_C(2)) {
 		if (l1) {
-			l2 = 1269u;
+			l2 = 1280u;
 		} else {
-			l2 = 1268u;
+			l2 = 1279u;
 		}
 	} else {
 		if (!(l0 == INT32_C(3))) {
 			vader_unreachable("non-exhaustive match (T3013 should have caught this)");
 		}
 		if (l1) {
-			l2 = 1273u;
+			l2 = 1284u;
 		} else {
-			l2 = 1272u;
+			l2 = 1283u;
 		}
 	}
 	return l2;
@@ -418,18 +418,18 @@ vader_string_t vader_core_mangle$ranked_generated_name(vader_string_t l0, uint8_
 vader_string_t vader_core_mangle$shape_segment_name(uint8_t l0) {
 	vader_string_t l1;
 	if (l0 == INT32_C(0)) {
-		l1 = 336u;
+		l1 = 338u;
 		return l1;
 	}
 	if (l0 == INT32_C(1)) {
-		l1 = 349u;
+		l1 = 351u;
 	} else if (l0 == INT32_C(2)) {
-		l1 = 341u;
+		l1 = 343u;
 	} else {
 		if (!(l0 == INT32_C(3))) {
 			vader_unreachable("non-exhaustive match (T3013 should have caught this)");
 		}
-		l1 = 350u;
+		l1 = 352u;
 	}
 	return l1;
 }
@@ -441,13 +441,13 @@ vader_string_t vader_core_mangle$trait_member_mangle(vader_string_t l0, vader_st
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 5u, gc_atom_roots };
 	vader_gc_top = &gc_frame;
 	t0 = vader_core_mangle$mangle_module_id(l0);
-	t1 = concat_5(t0, 331u, l1, 331u, l2);
+	t1 = concat_5(t0, 333u, l1, 333u, l2);
 	{ vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 vader_string_t vader_core_mangle$tuple_struct_name(vader_string_t l0) {
 	vader_string_t t0;
-	t0 = concat_2(1257u, l0);
+	t0 = concat_2(1268u, l0);
 	return t0;
 }
 
@@ -475,7 +475,7 @@ vader_string_t vader_core_mangle$uniq(void* l0, vader_string_t l1) {
 		l5 = (void*) vader_buffer_new((size_t) (INT64_C(21) + l4));
 		l6 = INT64_C(0);
 		l6 = std_core$write_string_at(l5, l6, l3);
-		l6 = std_core$write_string_at(l5, l6, 1242u);
+		l6 = std_core$write_string_at(l5, l6, 1253u);
 		l6 = std_core$write_int(l5, l6, l2);
 		l7 = std_core$finish_buffer(l5, l6);
 		t0 = std_collections$add__string(l0, l7);
@@ -490,7 +490,7 @@ vader_string_t vader_core_mangle$uniq(void* l0, vader_string_t l1) {
 	l5 = (void*) vader_buffer_new((size_t) (INT64_C(21) + l4));
 	l4 = INT64_C(0);
 	l4 = std_core$write_string_at(l5, l4, l3);
-	l4 = std_core$write_string_at(l5, l4, 1242u);
+	l4 = std_core$write_string_at(l5, l4, 1253u);
 	l4 = std_core$write_int(l5, l4, l2);
 	t1 = std_core$finish_buffer(l5, l4);
 	{ vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -506,15 +506,15 @@ vader_string_t vader_core_mangle$vtable_dispatcher_mangle(vader_string_t l0) {
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	t0 = std_string$split(l0, 489u);
-	t1 = std_string$join(t0, 331u);
+	t0 = std_string$split(l0, 491u);
+	t1 = std_string$join(t0, 333u);
 	t2 = vader_core_mangle$derived_mangle(t1, (uint8_t) 7);
 	{ vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 vader_string_t vader_core_mangle$vtable_key(vader_string_t l0, vader_string_t l1) {
 	vader_string_t t0;
-	t0 = concat_3(l0, 489u, l1);
+	t0 = concat_3(l0, 491u, l1);
 	return t0;
 }
 

@@ -88,7 +88,7 @@ static vader_box_t std_fs$File$std_io$Writer$write(void* l0, vader_box_t l1) {
 			if (l5 == INT64_C(0)) {
 				vader_struct_std_io$IOError_t* _a2_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
 				vader_obj_header_init(_a2_obj, 1131u);
-				_a2_obj->f_msg = 3773u;
+				_a2_obj->f_msg = 3795u;
 				_a2_obj->f_kind = (uint8_t) 0;
 				_a2_obj->f_code = INT32_C(0);
 				t1 = (void*) _a2_obj;
@@ -204,7 +204,7 @@ static void* std_fs$invalid_options(vader_string_t l0) {
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	t0 = concat_2(2771u, l0);
+	t0 = concat_2(2790u, l0);
 	vader_struct_std_io$IOError_t* _a0_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
 	vader_obj_header_init(_a0_obj, 1131u);
 	_a0_obj->f_msg = t0;
@@ -221,7 +221,7 @@ static void* std_fs$is_a_directory(int32_t l0) {
 	vader_gc_top = &gc_frame;
 	vader_struct_std_io$IOError_t* _a0_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
 	vader_obj_header_init(_a0_obj, 1131u);
-	_a0_obj->f_msg = 2773u;
+	_a0_obj->f_msg = 2792u;
 	_a0_obj->f_kind = (uint8_t) 6;
 	_a0_obj->f_code = l0;
 	t0 = (void*) _a0_obj;
@@ -269,7 +269,7 @@ static uint8_t std_fs$kind_of_dirent(vader_string_t l0, vader_string_t l1, int32
 		t0 = std_fs$kind_of(((int64_t) (int32_t) l2));
 		{ uint8_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 	}
-	t1 = concat_3(l0, 534u, l1);
+	t1 = concat_3(l0, 536u, l1);
 	l3 = std_fs$stat_cells(t1, false);
 	if (l3.tag == 1131u) {
 		{ vader_gc_top = gc_frame.prev; return (uint8_t) 3; }
@@ -309,7 +309,7 @@ static vader_box_t std_fs$list_dir(vader_string_t l0) {
 	vader_gc_top = &gc_frame;
 	l2 = vader_host_system_posix$sys_opendir(l0);
 	if (l2.tag == 0u) {
-		t0 = std_io$last_io_error(2211u);
+		t0 = std_io$last_io_error(2227u);
 		{ vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	l1 = ((void*) (intptr_t) l2.payload.i);
@@ -330,10 +330,10 @@ static vader_box_t std_fs$list_dir(vader_string_t l0) {
 		if (!(l2.tag == 0u)) {
 			l4 = ((void*) (intptr_t) l2.payload.i);
 			l5 = vader_host_system_posix$dirent_name(l4);
-			if (!(l5 != 489u)) {
+			if (!(l5 != 491u)) {
 				continue;
 			}
-			if (!(l5 != 491u)) {
+			if (!(l5 != 493u)) {
 				continue;
 			}
 			l6 = vader_host_system_posix$dirent_kind(l4);
@@ -554,7 +554,7 @@ static vader_box_t std_fs$read_file_bytes(vader_string_t l0, int64_t l1) {
 	}
 	vader_struct_std_io$IOError_t* _a10_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
 	vader_obj_header_init(_a10_obj, 1131u);
-	_a10_obj->f_msg = 2536u;
+	_a10_obj->f_msg = 2555u;
 	_a10_obj->f_kind = (uint8_t) 0;
 	_a10_obj->f_code = INT32_C(0);
 	l2 = (void*) _a10_obj;
@@ -661,7 +661,7 @@ static vader_box_t std_fs$refusal_of(vader_string_t l0, void* l1) {
 	t0 = ((vader_struct_std_fs$OpenOptions_t*) l1)->f_read;
 	if (!(t0)) {
 		if (!(l2)) {
-			t1 = std_fs$invalid_options(2955u);
+			t1 = std_fs$invalid_options(2975u);
 			{ vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 		}
 	}
@@ -674,7 +674,7 @@ static vader_box_t std_fs$refusal_of(vader_string_t l0, void* l1) {
 			}
 		}
 		if (!(l2)) {
-			t1 = std_fs$invalid_options(2306u);
+			t1 = std_fs$invalid_options(2323u);
 			{ vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 		}
 	} end_30: ;
@@ -682,7 +682,7 @@ static vader_box_t std_fs$refusal_of(vader_string_t l0, void* l1) {
 	if (t0) {
 		t0 = ((vader_struct_std_fs$OpenOptions_t*) l1)->f_write;
 		if (!(t0)) {
-			t1 = std_fs$invalid_options(3398u);
+			t1 = std_fs$invalid_options(3420u);
 			{ vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 		}
 	}
@@ -690,7 +690,7 @@ static vader_box_t std_fs$refusal_of(vader_string_t l0, void* l1) {
 	if (t0) {
 		t0 = ((vader_struct_std_fs$OpenOptions_t*) l1)->f_append;
 		if (t0) {
-			t1 = std_fs$invalid_options(3397u);
+			t1 = std_fs$invalid_options(3419u);
 			{ vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 		}
 		{ vader_box_t __vret = vader_box_obj(643u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
@@ -720,7 +720,7 @@ static vader_box_t std_fs$stat_cells(vader_string_t l0, bool l1) {
 	if (!(t0 != INT32_C(0))) {
 		{ vader_box_t __vret = vader_ref_box(l2); vader_gc_top = gc_frame.prev; return __vret; }
 	}
-	t1 = std_io$last_io_error(2210u);
+	t1 = std_io$last_io_error(2226u);
 	{ vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -736,7 +736,7 @@ static vader_box_t std_fs$system_close(vader_box_t l0) {
 	if (!(t1 != INT32_C(0))) {
 		{ vader_box_t __vret = vader_box_obj(643u, NULL); vader_gc_top = gc_frame.prev; return __vret; }
 	}
-	t2 = std_io$last_io_error(2240u);
+	t2 = std_io$last_io_error(2256u);
 	{ vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -753,7 +753,7 @@ static vader_box_t std_fs$system_open(vader_string_t l0, void* l1) {
 	l2 = std_fs$open_flags(l1);
 	l2 = vader_host_system_posix$sys_open(l0, l2, INT32_C(438));
 	if ((l2 < INT32_C(0))) {
-		t0 = std_io$last_io_error(2208u);
+		t0 = std_io$last_io_error(2224u);
 		{ vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	t1 = std_fs$access_mode(l1);
@@ -785,7 +785,7 @@ static vader_box_t std_fs$system_read(vader_box_t l0, void* l1, int64_t l2) {
 			if (!(t0 != INT32_C(4))) {
 				continue;
 			}
-			t1 = std_io$last_io_error(3098u);
+			t1 = std_io$last_io_error(3119u);
 			{ vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 		}
 		break;
@@ -822,7 +822,7 @@ static vader_box_t std_fs$system_write(vader_box_t l0, void* l1) {
 			if (!(t0 != INT32_C(4))) {
 				continue;
 			}
-			t1 = std_io$last_io_error(3772u);
+			t1 = std_io$last_io_error(3794u);
 			{ vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 		}
 		break;

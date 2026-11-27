@@ -884,7 +884,7 @@ void* std_core$clone__vader_vm_ArrayVal___bool___char___f64___vader_vm_FnVal___i
 	vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
 	t0 = vader_array_length(((vader_array_t*) l0));
-	vader_array_t* _a0_arr = vader_array_reserve(519u, (int64_t) t0, 0u, 3098u);
+	vader_array_t* _a0_arr = vader_array_reserve(519u, (int64_t) t0, 0u, 3100u);
 	l1 = (void*) _a0_arr;
 	vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l0);
 	{ void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -1619,7 +1619,7 @@ void* std_core$filled__vader_vm_ArrayVal___bool___char___f64___vader_vm_FnVal___
 	void** gc_raw_roots[2] = { &l1, &l2 };
 	vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
-	vader_array_t* _a0_arr = vader_array_reserve(519u, (int64_t) l0, 0u, 3098u);
+	vader_array_t* _a0_arr = vader_array_reserve(519u, (int64_t) l0, 0u, 3100u);
 	l2 = (void*) _a0_arr;
 	l3 = INT64_C(0);
 	while ((l3 < l0)) {
@@ -1774,19 +1774,19 @@ static vader_string_t std_core$format_f64(double l0) {
 	l1 = (uint64_t) (int64_t) t0;
 	if (l1 == INT64_C(2047)) {
 		if (l3 != INT64_C(0)) {
-			{ vader_gc_top = gc_frame.prev; return 2949u; }
+			{ vader_gc_top = gc_frame.prev; return 2969u; }
 		}
 		if (l2) {
-			{ vader_gc_top = gc_frame.prev; return 488u; }
+			{ vader_gc_top = gc_frame.prev; return 490u; }
 		}
-		{ vader_gc_top = gc_frame.prev; return 2720u; }
+		{ vader_gc_top = gc_frame.prev; return 2739u; }
 	}
 	if (l1 == INT64_C(0)) {
 		if (l3 == INT64_C(0)) {
 			if (l2) {
-				{ vader_gc_top = gc_frame.prev; return 479u; }
+				{ vader_gc_top = gc_frame.prev; return 481u; }
 			}
-			{ vader_gc_top = gc_frame.prev; return 553u; }
+			{ vader_gc_top = gc_frame.prev; return 556u; }
 		}
 	}
 	std_core$shortest_f64(l3, l1, &t1, &t2);
@@ -3439,10 +3439,10 @@ void* std_core$utf8_encode(uint32_t l0) {
 int64_t std_core$write_bool(void* l0, int64_t l1, bool l2) {
 	int64_t t0;
 	if (!(l2)) {
-		t0 = std_core$write_string_at(l0, l1, 2502u);
+		t0 = std_core$write_string_at(l0, l1, 2520u);
 		return t0;
 	}
-	t0 = std_core$write_string_at(l0, l1, 3396u);
+	t0 = std_core$write_string_at(l0, l1, 3418u);
 	return t0;
 }
 

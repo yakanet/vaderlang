@@ -6,7 +6,7 @@ bool vader_core_symbol$is_compiler_decorator_symbol(void* l0) {
 	t0 = ((vader_struct_vader_core_symbol$Symbol_t*) l0)->f_is_decorator;
 	if (t0) {
 		t1 = ((vader_struct_vader_core_symbol$Symbol_t*) l0)->f_module_name;
-		return t1 == 3209u;
+		return t1 == 3230u;
 	}
 	return false;
 }

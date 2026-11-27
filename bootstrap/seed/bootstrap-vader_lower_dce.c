@@ -109,7 +109,7 @@ void __lambda_vader_lower_dce_5(void* l0, vader_string_t l1, vader_string_t l2) 
 		vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
 	};
 	vader_gc_top = &gc_frame;
-	l3 = concat_3(l1, 3801u, l2);
+	l3 = concat_3(l1, 3824u, l2);
 	t0 = std_collections$add__string(((vader_struct___lambda_env_vader_lower_dce_6_t*) l0)->f_cap_0, l3);
 	if (t0) {
 		vader_array_push_scalar((vader_array_t*) ((vader_struct___lambda_env_vader_lower_dce_6_t*) l0)->f_cap_1, vader_box_string(642u, l3));
@@ -435,7 +435,7 @@ void* vader_lower_dce$prune_unreachable_fns(void* l0, void* l1) {
 	vader_obj_header_init(_a17_obj, 1110u);
 	_a17_obj->f_inner = t0;
 	l5 = (void*) _a17_obj;
-	vader_array_t* _a18_arr = vader_array_new(515u, 0u, 13u, 3026u);
+	vader_array_t* _a18_arr = vader_array_new(515u, 0u, 13u, 3028u);
 	l6 = (void*) _a18_arr;
 	vader_array_t* _a19_arr = vader_array_new(29u, 0u, 7u, 645u);
 	l7 = (void*) _a19_arr;
@@ -616,7 +616,7 @@ void* vader_lower_dce$prune_unreachable_fns(void* l0, void* l1) {
 			t1 = vader_array_box_slots(_a37_slotarr->buf)[vader_array_offset(_a37_slotarr) + (size_t) l22];
 			l15 = t1.payload.s;
 			l16 = ((vader_struct_vader_lower_ir$LoweredVtableEntry_t*) l12)->f_method_name;
-			l18 = concat_3(l15, 3801u, l16);
+			l18 = concat_3(l15, 3824u, l16);
 			l20 = (void*) &vader_fn_static___lambda_vader_lower_dce_2;
 			t0 = std_collections$get_or_put_with__string__vader_lower_ir_LoweredVtableEntry__(l9, l18, l20);
 			vader_array_push_ref((vader_array_t*) t0, l12);
@@ -787,7 +787,7 @@ void* vader_lower_dce$prune_unreachable_fns(void* l0, void* l1) {
 		l6 = vader_array_ref_load_obj(_a61_slotarr->buf, vader_array_offset(_a61_slotarr) + (size_t) l13);
 		l16 = l15;
 		l9 = l6;
-		vader_array_t* _a62_arr = vader_array_new(515u, 0u, 13u, 3026u);
+		vader_array_t* _a62_arr = vader_array_new(515u, 0u, 13u, 3028u);
 		l11 = (void*) _a62_arr;
 		l12 = ((vader_struct_vader_lower_ir$LoweredModule_t*) l9)->f_decls;
 		l21 = vader_array_length(((vader_array_t*) l12));

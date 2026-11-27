@@ -99,7 +99,7 @@ void* vader_pipeline_check$DeadCode$toolchain_stage$Stage$describe(void* l0) {
 	vader_gc_top = &gc_frame;
 	vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
 	vader_obj_header_init(_a0_obj, 2124u);
-	_a0_obj->f_name = 2316u;
+	_a0_obj->f_name = 2333u;
 	_a0_obj->f_purpose = (uint8_t) 0;
 	_a0_obj->f_needs = (uint8_t) 1;
 	_a0_obj->f_per = (uint8_t) 1;
@@ -148,7 +148,7 @@ void* vader_pipeline_check$DeepCopies$toolchain_stage$Stage$describe(void* l0) {
 	vader_gc_top = &gc_frame;
 	vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
 	vader_obj_header_init(_a0_obj, 2124u);
-	_a0_obj->f_name = 2325u;
+	_a0_obj->f_name = 2342u;
 	_a0_obj->f_purpose = (uint8_t) 0;
 	_a0_obj->f_needs = (uint8_t) 1;
 	_a0_obj->f_per = (uint8_t) 0;
@@ -190,7 +190,7 @@ void* vader_pipeline_check$Frozen$toolchain_stage$Stage$describe(void* l0) {
 	vader_gc_top = &gc_frame;
 	vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
 	vader_obj_header_init(_a0_obj, 2124u);
-	_a0_obj->f_name = 2571u;
+	_a0_obj->f_name = 2590u;
 	_a0_obj->f_purpose = (uint8_t) 0;
 	_a0_obj->f_needs = (uint8_t) 1;
 	_a0_obj->f_per = (uint8_t) 0;
@@ -224,7 +224,7 @@ void* vader_pipeline_check$TaskFaults$toolchain_stage$Stage$describe(void* l0) {
 	vader_gc_top = &gc_frame;
 	vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
 	vader_obj_header_init(_a0_obj, 2124u);
-	_a0_obj->f_name = 3311u;
+	_a0_obj->f_name = 3333u;
 	_a0_obj->f_purpose = (uint8_t) 0;
 	_a0_obj->f_needs = (uint8_t) 1;
 	_a0_obj->f_per = (uint8_t) 0;
@@ -258,7 +258,7 @@ void* vader_pipeline_check$UncoveredUses$toolchain_stage$Stage$describe(void* l0
 	vader_gc_top = &gc_frame;
 	vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
 	vader_obj_header_init(_a0_obj, 2124u);
-	_a0_obj->f_name = 3476u;
+	_a0_obj->f_name = 3498u;
 	_a0_obj->f_purpose = (uint8_t) 0;
 	_a0_obj->f_needs = (uint8_t) 1;
 	_a0_obj->f_per = (uint8_t) 0;
@@ -300,7 +300,7 @@ void* vader_pipeline_check$UnusedExports$toolchain_stage$Stage$describe(void* l0
 	vader_gc_top = &gc_frame;
 	vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
 	vader_obj_header_init(_a0_obj, 2124u);
-	_a0_obj->f_name = 3517u;
+	_a0_obj->f_name = 3539u;
 	_a0_obj->f_purpose = (uint8_t) 1;
 	_a0_obj->f_needs = (uint8_t) 0;
 	_a0_obj->f_per = (uint8_t) 0;
@@ -326,7 +326,7 @@ void* vader_pipeline_check$UnusedImports$toolchain_stage$Stage$describe(void* l0
 	vader_gc_top = &gc_frame;
 	vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
 	vader_obj_header_init(_a0_obj, 2124u);
-	_a0_obj->f_name = 3518u;
+	_a0_obj->f_name = 3540u;
 	_a0_obj->f_purpose = (uint8_t) 0;
 	_a0_obj->f_needs = (uint8_t) 1;
 	_a0_obj->f_per = (uint8_t) 0;
@@ -363,7 +363,7 @@ void* vader_pipeline_check$Widening$toolchain_stage$Stage$describe(void* l0) {
 	vader_gc_top = &gc_frame;
 	vader_struct_vader_pipeline_check$CheckSpec_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckSpec_t));
 	vader_obj_header_init(_a0_obj, 2124u);
-	_a0_obj->f_name = 3751u;
+	_a0_obj->f_name = 3773u;
 	_a0_obj->f_purpose = (uint8_t) 0;
 	_a0_obj->f_needs = (uint8_t) 1;
 	_a0_obj->f_per = (uint8_t) 0;
@@ -701,7 +701,7 @@ static vader_box_t vader_pipeline_check$parsed_body(void* l0, void* l1, void* l2
 		l11 = (l11 + INT64_C(1));
 	}
 	l5 = ((vader_struct_toolchain_ast$FnDecl_t*) ((vader_struct_vader_front_resolver$LateFn_t*) l1)->f_decl)->f_name;
-	l5 = concat_5(1307u, l5, 1471u, l3, 1671u);
+	l5 = concat_5(1318u, l5, 1482u, l3, 1683u);
 	l7 = ((vader_struct_toolchain_ast$FnDecl_t*) ((vader_struct_vader_front_resolver$LateFn_t*) l1)->f_decl)->f_name_span;
 	l7 = toolchain_diagnostics$hook_error((uint8_t) 3, l7, l5);
 	vader_array_push_ref((vader_array_t*) l4, l7);
@@ -734,7 +734,7 @@ static void* vader_pipeline_check$plan_checks(void* l0, void* l1) {
 	if (l3.tag == 1300u) {
 		t0 = l4.payload.obj;
 		l5 = ((vader_struct_toolchain_stage$PlanError_t*) t0)->f_message;
-		t1 = concat_2(2238u, l5);
+		t1 = concat_2(2254u, l5);
 		vader_host_std_core$Runtime$panic(t1);
 		vader_unreachable("a no-return call returned");
 	} else {
@@ -929,7 +929,7 @@ static void vader_pipeline_check$provide_module_bodies(void* l0, void* l1, void*
 	l6 = std_collections$Map$std_core$Index$at__string__Any(l4, l5);
 	if (l6.tag == 0u) {
 		l5 = ((vader_struct_vader_pipeline_check$ModuleBodies_t*) l0)->f_module_id;
-		t0 = concat_3(2817u, l5, 1614u);
+		t0 = concat_3(2836u, l5, 1626u);
 		vader_host_std_core$Runtime$panic(t0);
 		vader_unreachable("a no-return call returned");
 	} else {
@@ -939,7 +939,7 @@ static void vader_pipeline_check$provide_module_bodies(void* l0, void* l1, void*
 		l6 = std_collections$Map$std_core$Index$at__string__Any(l7, l5);
 		if (l6.tag == 0u) {
 			l5 = ((vader_struct_vader_pipeline_check$ModuleBodies_t*) l0)->f_module_id;
-			t0 = concat_3(2817u, l5, 1615u);
+			t0 = concat_3(2836u, l5, 1627u);
 			vader_host_std_core$Runtime$panic(t0);
 			vader_unreachable("a no-return call returned");
 		} else {

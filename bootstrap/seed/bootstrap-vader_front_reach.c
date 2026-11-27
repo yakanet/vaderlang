@@ -236,7 +236,7 @@ bool vader_front_reach$is_wired_root(void* l0, vader_string_t l1) {
 	int64_t l3, l4;
 	void* t0;
 	bool t1;
-	if (l1 == 2871u) {
+	if (l1 == 2891u) {
 		return true;
 	}
 	l2 = l0;
@@ -296,7 +296,7 @@ static uint8_t vader_front_reach$name_through(vader_box_t l0, void* l1, void* l2
 
 vader_string_t vader_front_reach$qualified_name(vader_string_t l0, vader_string_t l1) {
 	vader_string_t t0;
-	t0 = concat_3(l0, 326u, l1);
+	t0 = concat_3(l0, 328u, l1);
 	return t0;
 }
 
