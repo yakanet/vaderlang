@@ -246,6 +246,8 @@ Touch :: struct {
     access: CalleeAccess | null = null
     /// The name it goes through, for a read.
     name: string = ""
+    /// The slot it goes through ; null for a singleton's.
+    slot: i64 | null = null
     /// The call hands the value to a task (a door).
     sent: bool = false
     /// For a call of a lambda of the body, where its body makes the access.
@@ -416,6 +418,7 @@ note_touches :: fn(ctx: TaskCtx, body: TaskBody) -> void {
                 .kind = .Read,
                 .at = u.at,
                 .name = u.name,
+                .slot = u.slot,
             }
             body.touches.push(touch)
         }
@@ -433,6 +436,7 @@ note_touches :: fn(ctx: TaskCtx, body: TaskBody) -> void {
                 .path = below,
                 .kind = kind,
                 .at = m.at,
+                .slot = m.slot,
             }
             body.touches.push(touch)
         }
@@ -513,6 +517,7 @@ note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) 
                             .access = callee_access(target, params, q, i),
                             .sent = sent,
                             .through = through,
+                            .slot = arg,
                         }
                         body.touches.push(touch)
                     }
@@ -1060,10 +1065,16 @@ sent_touch :: fn(r: Root, path: PartPath, kind: TouchKind, door: Door) -> Touch 
 
 // Whether root `root` is a local bound inside `span`: a value of each run of it.
 bound_inside :: fn(body: TaskBody, root: i64, span: Span) -> bool {
+    local :: body.local_of(root) else return false
+    return inside(span, local.at)
+}
+
+// The local whose root is `root` ; null for a parameter's or a singleton's.
+local_of :: fn(body: TaskBody, root: i64) -> Local | null {
     if root < body.first_local || root >= body.singleton_base {
-        return false
+        return null
     }
-    return inside(span, body.s.locals[root - body.first_local].at)
+    return body.s.locals[root - body.first_local]
 }
 
 // The name of root `root`: a parameter's or a local's.

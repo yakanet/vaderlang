@@ -278,7 +278,13 @@ assign_name :: fn(ctx: WalkCtx, name: AST.IdentExpr, value: i64 | null) -> void 
         return
     }
     sym :: ctx.typed.resolved.idents[name.span.hash()] else return
-    ctx.s.rebinds.push(Use { .slot = slot, .name = sym.name, .at = name.span })
+    rebind :: Use {
+        .slot = slot,
+        .name = sym.name,
+        .at = name.span,
+        .from = value,
+    }
+    ctx.s.rebinds.push(rebind)
     ctx.bind_copy(slot, value, name.span, sym)
 }
 

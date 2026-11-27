@@ -69,11 +69,12 @@ check_door :: fn(
     // crossing hands on is reached under it, not by tasks of their own.
     repeats :: repeated_at(door, region)
     shared: SharedWrites[]: []
+    carried :: body.carried_of(door, region)
     if repeats != null && !door.stored {
         // A write through a trait value is its implementations' to answer for.
         writes: Touch[]: []
         for w in outermost_writes(task) {
-            if body.bound_inside(w.root, repeats) {
+            if body.bound_inside(w.root, repeats) || handed_once(carried, w.root) {
                 continue
             }
             implemented :: w.through
@@ -105,6 +106,9 @@ check_door :: fn(
             continue
         }
         t :: strongest_clash(task, s) else continue
+        if body.taken_anew(door, region, s) || holds_run_value(carried, door, s, p) {
+            continue
+        }
         // A clash with a write the crossings share is that fault's too: each task
         // returning its part ends both.
         held :: shared.find((w) -> w.holds(t))

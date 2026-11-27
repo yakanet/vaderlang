@@ -132,11 +132,14 @@ taken :: fn(ctx: TaskCtx, s: Skeleton, names: Bindings, e: AST.Expr) -> bool {
         return false
     }
     value :: names.bound_value(e)
-    if value !is AST.CallExpr {
-        return false
-    }
+    return value is AST.CallExpr && is_take(ctx.index, s, value)
+}
+
+// Whether `value` is a call of `s` to a primitive that hands back what another task
+// handed on (`receive`).
+is_take :: fn(index: CalleeIndex, s: Skeleton, value: AST.Expr) -> bool {
     site :: s.sites.find((site) -> same_span(site.at, value.span)) else return false
-    door :: ctx.index.door_of(site.callee) else return false
+    door :: index.door_of(site.callee) else return false
     return door.takes
 }
 

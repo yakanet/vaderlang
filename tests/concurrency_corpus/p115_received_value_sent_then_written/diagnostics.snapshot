@@ -1,0 +1,1 @@
+[24:9] error[T3129] value written by several tasks: this writes `got.value` while a task it was handed to at line 23 writes it too (through `send`) ; hand on a copy, `got.deep_copy()`, or leave `got` alone once handed on

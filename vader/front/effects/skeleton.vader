@@ -122,6 +122,8 @@ Use :: struct {
     slot: i64
     name: string
     at: Span
+    /// For a rebind, the slot of the value it binds ; null when it holds none.
+    from: i64 | null = null
 }
 
 /// A local of the body, for the task check: its slot, and where it is bound.

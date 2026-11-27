@@ -1,0 +1,24 @@
+// P113: the loop rebinds `held` to `outer`, bound before it: every crossing after
+// the first hands that same value.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Node :: struct {
+    value: i64
+}
+
+main :: fn() -> i32 {
+    channel :: Channel<Node> { .capacity = 1 }
+    outer :: Node { .value = 9 }
+    held: Node = Node { .value = 1 }
+    for 0..<3 {
+        channel.send(held)
+        held = outer
+    }
+    return 0
+}

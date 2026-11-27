@@ -1,0 +1,156 @@
+// vader/front/effects/task_carried: what a loop carries from one crossing of a door
+// to the next.
+//
+// A door in a loop hands what a name holds at each crossing. When the code past the
+// door rebinds that name, on every path back to the door, to a value each run binds
+// anew, every crossing hands another value: the one the name held before the loop
+// goes out once, and inside the loop the name holds a value of the run before the
+// door and past the rebind. A `break` before the rebind leaves the loop with the
+// value sent, so this holds inside the body only, and a `defer` there, which runs
+// on that path too, leaves the loop unread.
+//
+// A value a run takes from another task (`receive`) past the door is that run's
+// own: whatever a crossing handed of it, the take handed back, since the code that
+// hands a value on may not touch it after.
+
+module "vader/front/effects"
+
+import "std/iter"
+import "toolchain/span"
+
+AST :: import "toolchain/ast"
+
+// The local a door crossed again hands, when each crossing hands another value of
+// it.
+Carried :: struct {
+    /// The local's slot, and its own root: the value it holds before the loop.
+    slot: i64
+    root: i64
+    /// The body of the loop that crosses the door again.
+    loop_body: Span
+    /// The local's rebinds past the door that run on every path back to it.
+    rebinds: Span[]
+}
+
+// What the loop around `door` carries of the local the door hands ; null when a
+// crossing may hand what an earlier one did. The door is crossed once per run of
+// the loop's own body, outside any `defer`, and every rebind of the local in the
+// loop binds a value of the run.
+carried_of :: fn(body: TaskBody, door: Door, region: Region) -> Carried | null {
+    if door.sending.many || body.s.rebinds.is_empty() {
+        return null
+    }
+    repeats :: region.repeats else return null
+    slot :: door.arg else return null
+    root :: body.root_of_slot(slot)
+    if body.local_of(root) == null {
+        return null
+    }
+    loop :: body.shape.loops.find((l) -> same_span(l.span, repeats)) else return null
+    nested :: (r: Span) -> contains(loop.body.span, r) && contains(r, door.site.at)
+    if body.shape.repeats.any_match(nested) || holds_defer(loop.body) {
+        return null
+    }
+    rebinds: Span[]: []
+    for r in body.s.rebinds {
+        if r.slot != slot || !inside(repeats, r.at) {
+            continue
+        }
+        if !body.bound_each_run(r.from, repeats) {
+            return null
+        }
+        if rebound_before_crossing(loop.body, door, r.at) {
+            rebinds.push(r.at)
+        }
+    }
+    if rebinds.is_empty() {
+        return null
+    }
+    return Carried {
+        .slot = slot,
+        .root = root,
+        .loop_body = loop.body.span,
+        .rebinds = rebinds,
+    }
+}
+
+// Whether the crossings that `carried` describes hand root `root` once at most.
+handed_once :: fn(carried: Carried | null, root: i64) -> bool = carried != null && root == carried.root
+
+// Whether `touch`, at offset `p`, reaches what `carried`'s local holds inside the
+// loop body, where it holds no longer the value of its root: before the door in a
+// later run, or past a rebind.
+holds_run_value :: fn(carried: Carried | null, door: Door, touch: Touch, p: i64) -> bool {
+    if carried == null || touch.slot != carried.slot || touch.root != carried.root {
+        return false
+    }
+    if !holds_offset(carried.loop_body, p) {
+        return false
+    }
+    return p < door.site.at.end.offset || carried.rebinds.any_match((r) -> r.end.offset <= p)
+}
+
+// Whether what slot `from` holds is bound anew by each run of `repeats`: none of it
+// is a value an earlier run, or the code before the loop, holds.
+bound_each_run :: fn(body: TaskBody, from: i64 | null, repeats: Span) -> bool {
+    slot :: from else return false
+    return body.roots_at(slot).all_match((r) -> body.bound_inside(r.param, repeats))
+}
+
+// Whether the rebind at `at`, a statement of the loop body `block` past `door`,
+// runs on every path from the door back to it: nothing between them leaves the
+// body for another crossing.
+rebound_before_crossing :: fn(block: AST.BlockExpr, door: Door, at: Span) -> bool {
+    if at.start.offset < door.site.at.end.offset {
+        return false
+    }
+    statement :: block.stmts.find((s) -> contains(s.span, at)) else return false
+    if statement !is AST.AssignStmt || !same_span(statement.target.span, at) {
+        return false
+    }
+    return leaving_of(block, door.site.at, at) != .Escape
+}
+
+// Whether `block` holds a `defer` of its own.
+holds_defer :: fn(block: AST.BlockExpr) -> bool {
+    found := false
+    AST.inspect(block, (n) -> {
+        if n is AST.LambdaExpr {
+            return .Skip
+        }
+        if n is AST.DeferStmt {
+            found = true
+            return .Stop
+        }
+        return .Descend
+    })
+    return found
+}
+
+// Whether `touch` reaches the value of a constant local that the code past `door`,
+// in the loop that crosses it again, binds to what it takes from another task: the
+// run's own, which a crossing before the binding handed back if it handed it at all.
+taken_anew :: fn(body: TaskBody, door: Door, region: Region, touch: Touch) -> bool {
+    if door.sending.many {
+        return false
+    }
+    repeats :: region.repeats else return false
+    local :: body.local_of(touch.root) else return false
+    if touch.slot != local.slot || !inside(repeats, local.at) {
+        return false
+    }
+    if local.at.start.offset < door.site.at.end.offset {
+        return false
+    }
+    if body.s.rebinds.any_match((r) -> r.slot == local.slot) {
+        return false
+    }
+    bound :: body.shape.lets.find((l) -> binds_at(l, local.at)) else return false
+    return is_take(body.index, body.s, bound.value)
+}
+
+// Whether `l` binds the one name whose span is `at`.
+binds_at :: fn(l: AST.LetStmt, at: Span) -> bool {
+    b :: l.binding
+    return b is AST.SimpleBinding && same_span(b.name_span, at)
+}

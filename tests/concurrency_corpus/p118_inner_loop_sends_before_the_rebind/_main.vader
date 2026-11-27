@@ -1,0 +1,29 @@
+// P118: an inner loop sends `held` twice before the outer one rebinds it: the
+// second crossing hands the same value again.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Node :: struct {
+    value: i64
+}
+
+main :: fn() -> i32 {
+    channel :: Channel<Node> { .capacity = 4 }
+    held: Node = Node { .value = 1 }
+    for 0..<3 {
+        for 0..<2 {
+            channel.send(held)
+        }
+        got :: channel.receive()
+        if got is Closed {
+            break
+        }
+        held = got
+    }
+    return 0
+}

@@ -1,0 +1,2 @@
+[20:13] error[T3129] value written by several tasks: each task launched here writes `got...` (through `send`), which they all share with lines 23 and 26 ; let each task return its part, or give each one its own value
+[20:13] error[T3129] value written by several tasks: each task launched here writes `held...` (through `send`), which they all share ; let each task return its part, or give each one its own value

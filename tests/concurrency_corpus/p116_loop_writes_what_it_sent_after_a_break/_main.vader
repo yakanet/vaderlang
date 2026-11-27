@@ -1,0 +1,28 @@
+// P116: a `break` leaves the loop before the rebind: after the loop, `held` still
+// holds the value the last crossing sent.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Node :: struct {
+    value: i64
+}
+
+main :: fn() -> i32 {
+    channel :: Channel<Node> { .capacity = 1 }
+    held: Node = Node { .value = 1 }
+    for 0..<3 {
+        channel.send(held)
+        got :: channel.receive()
+        if got is Closed {
+            break
+        }
+        held = got
+    }
+    held.value = 7
+    return 0
+}
