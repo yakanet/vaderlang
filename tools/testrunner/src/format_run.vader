@@ -1,7 +1,7 @@
 // tools/testrunner/src/format_run: the `format` stage, what `vader fmt` makes of
 // a source.
 //
-// Every file of a snippet and of each folder of `lib/` is held to two
+// Every file of a snippet and of each folder of `lib/` and `vader/` is held to two
 // properties: the output parses to the program the source parses to, spans
 // aside, and a second pass leaves it as it is. A stably wrong output passes the
 // second alone. The files of `NO_OP_FILES` are also left byte for byte. A fixture of `FORMAT_CORPUS` also pins the output: its snapshot
@@ -25,14 +25,15 @@ import "vader/tools/fmt"
 
 FORMAT_CORPUS :: "tests/fixtures/format"
 
-// The libraries the toolchain ships, one case per folder of sources.
-FORMAT_LIBRARIES :: "lib"
+// The sources held to the stage, one case per folder: the libraries the toolchain
+// ships, and the compiler.
+FORMAT_ROOTS: string[]: ["lib", "vader"]
 
-// The files of `FORMAT_LIBRARIES` that `vader fmt` leaves byte for byte, a
+// The files of `FORMAT_ROOTS` that `vader fmt` leaves byte for byte, a
 // comment moved or a line rewrapped included; to grow as the formatter does.
 NO_OP_FILES: string[]: ["lib/std/math/math.vader", "lib/std/runtime/runtime.vader"]
 
-// The fixtures of `FORMAT_CORPUS` and the folders of `FORMAT_LIBRARIES`, pushed
+// The fixtures of `FORMAT_CORPUS` and the folders of `FORMAT_ROOTS`, pushed
 // on `found`; the snippets take the stage with their others (`find_snippets`).
 find_format_cases :: fn(found: Discovery) -> void {
     for name in entries_where(found, FORMAT_CORPUS, (path) -> path.ends_with(".vader")) {
@@ -49,16 +50,18 @@ find_format_cases :: fn(found: Discovery) -> void {
             },
         )
     }
-    walk_source_folders(
-        FORMAT_LIBRARIES,
-        (folder, _) -> found.cases.push(
-            Case {
-                .name = "${FORMAT_PHASE}/${folder}",
-                .dir = folder,
-                .phases = [FORMAT_PHASE],
-            },
-        ),
-    )
+    for root in FORMAT_ROOTS {
+        walk_source_folders(
+            root,
+            (folder, _) -> found.cases.push(
+                Case {
+                    .name = "${FORMAT_PHASE}/${folder}",
+                    .dir = folder,
+                    .phases = [FORMAT_PHASE],
+                },
+            ),
+        )
+    }
 }
 
 // Check what `vader fmt` makes of the files of `case`, a fixture when it names a

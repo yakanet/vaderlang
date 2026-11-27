@@ -1,0 +1,22 @@
+// tests/fixtures/format/if_chain_member_too_wide: a member of a lookup-table
+// `if`-chain whose inline form passes the line leaves the chain and expands. The
+// members around it form their own runs, each aligned on its own widest condition.
+
+module "if_chain_member_too_wide"
+
+Shape :: struct {
+    name: string
+    sides: i32
+    width: f64
+}
+
+shape_of :: fn(code: i32) -> Shape | null {
+    if code == 0 { return Shape { .name = "point", .sides = 0, .width = 0.0 } }
+    if code == 1 { return null }
+    if code == 3 {
+        return Shape { .name = "a triangle with a long description", .sides = 3, .width = 1.0 }
+    }
+    if code == 4  { return null }
+    if code == 40 { return null }
+    return null
+}

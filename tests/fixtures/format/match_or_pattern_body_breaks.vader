@@ -1,0 +1,19 @@
+// tests/fixtures/format/match_or_pattern_body_breaks: an or-pattern stays on one
+// line when the first line of its body fits after it. The body is measured from
+// the column it starts at, where its call breaks.
+
+module "match_or_pattern_body_breaks"
+
+Kind :: enum {
+    Alpha,
+    Bravo,
+    Charlie,
+    Delta,
+}
+
+describe :: fn(name: string, count: i32, detail: string) -> string = "${name} ${count} ${detail}"
+
+label_of :: fn(k: Kind) -> string = match k {
+    .Alpha -> "alpha"
+    .Bravo | .Charlie | .Delta -> describe("one of the later letters of the list", 3, "kept for the test of the arm")
+}

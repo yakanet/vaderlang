@@ -116,8 +116,11 @@ newline :: fn(self: Printer) -> void {
 
 indent :: fn(self: Printer) -> void {
     for 0..<self.depth { self.buf.append(INDENT) }
-    self.column = self.column + i64(self.depth) * INDENT.byte_len()
+    self.column = self.column + self.indent_column()
 }
+
+// The column a line written at the current depth starts at.
+indent_column :: fn(self: Printer) -> i64 = i64(self.depth) * INDENT.byte_len()
 
 // Columns `s` takes on a line: one per codepoint, as `pad_start` and `pad_end`
 // count them, not one per byte. Every width and alignment in the printer goes
@@ -2293,8 +2296,9 @@ emit_arm_pattern :: fn(self: Printer, arm: p.MatchArm) -> void {
         self.emit_pattern(pat)
         return
     }
-    tail :: arm_tail_width(self.source, arm)
-    if self.has_room_for(pattern_width(self.source, pat) + tail) {
+    flat :: pattern_width(self.source, pat)
+    tail :: arm_tail_width(self.source, arm, self.column + flat)
+    if self.has_room_for(flat + tail) {
         self.emit_pattern(pat)
         return
     }
@@ -2323,11 +2327,13 @@ emit_arm_pattern :: fn(self: Printer, arm: p.MatchArm) -> void {
 // Whether `width` more columns fit on the line.
 has_room_for :: fn(self: Printer, width: i64) -> bool = self.column + width <= i64(MAX_LINE)
 
-// What follows the pattern of `arm` on its line: its guard, the arrow and the first
-// line of its body, in columns.
-arm_tail_width :: fn(source: string, arm: p.MatchArm) -> i64 {
+// What follows the pattern of `arm` on its line, written from `column`: its guard,
+// the arrow and the first line of its body, in columns. The column matters: a body
+// that fits at column 0 can break where it is written, which shortens its first line.
+arm_tail_width :: fn(source: string, arm: p.MatchArm, column: i64) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.keep_line_breaks = false
+    sub.column = column
     sub.emit_expr_with_prefix(" if ", arm.guard)
     sub.write(" -> ")
     sub.emit_expr(arm.body)
@@ -2346,7 +2352,7 @@ pattern_width :: fn(source: string, pat: p.Pattern) -> i64 {
 }
 
 // Rendered width of a match arm's head: `pattern [if guard]`, the part before
-// ` -> `. Measured via a sub-printer, like `if_cond_width`.
+// ` -> `. Measured via a sub-printer, like a `ChainEntry`'s condition.
 match_arm_head_width :: fn(source: string, arm: p.MatchArm) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.keep_line_breaks = false
@@ -2375,22 +2381,22 @@ match_arm_align :: fn(source: string, arms: p.MatchArm[]) -> i64 {
 // body still fits comfortably under `MAX_LINE`.
 MATCH_ALIGN_MAX: i64: 44
 
-// A single-line `if <cond> { <one stmt/expr> }` with no `else`: a lookup-table
-// entry. A RUN of >=2 consecutive such statements is kept inline (the aligned
-// lookup-table idiom) ; a lone one is expanded like any other control-flow body.
-inline_if_stmt :: fn(s: p.Stmt) -> bool {
+// The `if` of a single-line `if <cond> { <one stmt/expr> }` with no `else`, or
+// null: a lookup-table entry. A RUN of >=2 consecutive such statements is kept
+// inline (the aligned lookup-table idiom) ; a lone one is expanded like any other
+// control-flow body.
+inline_if_of :: fn(s: p.Stmt) -> p.IfExpr | null {
     if s is p.ExprStmt {
         iff :: s.expr
         if iff is p.IfExpr {
-            if iff.else_branch != null { return false }
             tb :: iff.then_block
-            if tb.span.start.line != tb.span.end.line { return false }
-            one_stmt :: tb.stmts.len() == 1 && tb.trailing == null
-            one_expr :: tb.stmts.len() == 0 && tb.trailing != null
-            return one_stmt || one_expr
+            one_line :: tb.span.start.line == tb.span.end.line
+            if iff.else_branch == null && one_line && has_one_entry(tb) {
+                return iff
+            }
         }
     }
-    return false
+    return null
 }
 
 // A statement whose body is a control-flow block that should always expand
@@ -2401,50 +2407,79 @@ control_flow_stmt :: fn(s: p.Stmt) -> bool {
     return false
 }
 
-// Layout for statement `i` of a block : keep a lookup-table `if`-chain inline,
-// force a control-flow body multi-line, otherwise preserve the source form.
-block_mode_for :: fn(stmts: p.Stmt[], i: i64) -> BlockLayout {
-    if inline_if_stmt(stmts[i]) {
-        prev :: i > 0 && inline_if_stmt(stmts[i - 1])
-        next :: i + 1 < stmts.len() && inline_if_stmt(stmts[i + 1])
-        if prev || next { return .Inline }
+// Layout for the statement `s`, whose `chain_width` comes from `chain_widths` :
+// keep a member of a lookup-table `if`-chain inline, force a control-flow body
+// multi-line, otherwise preserve the source form.
+block_mode_for :: fn(s: p.Stmt, chain_width: i64) -> BlockLayout {
+    if chain_width > 0 {
+        return .Inline
     }
-    if control_flow_stmt(stmts[i]) { return .Expand }
+    if control_flow_stmt(s) {
+        return .Expand
+    }
     return .Preserve
 }
 
-// Rendered width of a lookup-table `if`'s condition (for `{`-column alignment),
-// or 0 when `s` isn't an inline `if`.
-if_cond_width :: fn(s: p.Stmt, source: string) -> i64 {
-    if s is p.ExprStmt {
-        if s.expr is p.IfExpr {
-            return format_expr(source, s.expr.cond).text_width()
-        }
-    }
-    return 0
+// A statement of a block as `chain_widths` sees it, measured once in columns.
+ChainEntry :: struct {
+    /// Whether it still counts as a member: an inline `if` not dropped for its width.
+    member: bool = false
+    /// The width of its condition.
+    condition: i64 = 0
+    /// Where its line ends, its condition aside: the column it starts at, `if `,
+    /// the space before the braces and the braced body.
+    rest: i64 = 0
 }
 
-// Per-statement `{`-alignment target : for each run of >=2 consecutive inline
-// `if`s (a lookup table), the max condition width across the run ; 0 otherwise.
-// Mirrors the `::` decl-group width computation in `alignment_widths`.
-compute_if_align :: fn(stmts: p.Stmt[], source: string) -> i64[] {
+// The `ChainEntry` of `s`, written from `column`: an empty one for a statement
+// that is not an inline `if`.
+chain_entry :: fn(s: p.Stmt, source: string, column: i64) -> ChainEntry {
+    iff :: inline_if_of(s) else return ChainEntry {}
+    body :: single_entry_width(source, iff.then_block)
+    return ChainEntry {
+        .member = true,
+        .condition = format_expr(source, iff.cond).text_width(),
+        .rest = column + "if ".byte_len() + " ".byte_len() + INLINE_BRACES + body,
+    }
+}
+
+// The `{`-alignment width of each statement of `stmts`, written from `column`:
+// for a member of a lookup-table `if`-chain the widest condition of its run, 0
+// for any other statement. A member is an inline `if` of a run of >= 2 whose
+// inline form fits within `MAX_LINE` once its condition is padded to that width.
+// One that does not fit expands, which splits its run and can narrow what is
+// left of it, hence the loop. The fit is decided here, before the block is
+// written, so that a second pass reads the runs this one writes.
+chain_widths :: fn(stmts: p.Stmt[], source: string, column: i64) -> i64[] {
+    entries :: stmts.map((s) -> chain_entry(s, source, column)).collect()
+    widths := run_widths(entries)
+    for drop_unfit_members(entries, widths) {
+        widths = run_widths(entries)
+    }
+    return widths
+}
+
+// For each of `entries`, the widest condition of its run of >= 2 consecutive
+// members, or 0. Mirrors the `::` decl-group width computation in
+// `alignment_widths`.
+run_widths :: fn(entries: ChainEntry[]) -> i64[] {
     out: i64[]: []
     i: i64 = 0
-    for i < stmts.len() {
-        if !inline_if_stmt(stmts[i]) {
+    for i < entries.len() {
+        if !entries[i].member {
             out.push(0)
             i = i + 1
             continue
         }
         end := i + 1
-        w_max := if_cond_width(stmts[i], source)
-        for end < stmts.len() {
-            if !inline_if_stmt(stmts[end]) { break }
-            w :: if_cond_width(stmts[end], source)
-            if w > w_max { w_max = w }
+        w_max := entries[i].condition
+        for end < entries.len() && entries[end].member {
+            if entries[end].condition > w_max {
+                w_max = entries[end].condition
+            }
             end = end + 1
         }
-        // Solo inline `if` (run of 1) expands, so it needs no alignment.
+        // A run of 1 expands, so it needs no alignment.
         group :: if end - i >= 2 { w_max } else { 0 }
         for k in i..<end { out.push(group) }
         i = end
@@ -2452,23 +2487,52 @@ compute_if_align :: fn(stmts: p.Stmt[], source: string) -> i64[] {
     return out
 }
 
+// Clear the members whose line passes `MAX_LINE`, whether one was cleared. A
+// member too wide on its own goes first: it is what sets a wide run width, and
+// the run may fit once it is gone. Only when none is does a member go for passing
+// the line once its condition is padded to the width `widths` gives it.
+drop_unfit_members :: fn(entries: ChainEntry[], widths: i64[]) -> bool =
+    drop_past_line(entries, widths, false) || drop_past_line(entries, widths, true)
+
+// Clear each member of a run whose line passes `MAX_LINE`, its condition padded
+// to the run's width when `padded`; whether one was cleared.
+drop_past_line :: fn(entries: ChainEntry[], widths: i64[], padded: bool) -> bool {
+    dropped := false
+    for i in 0..<entries.len() {
+        condition :: if padded { widths[i] } else { entries[i].condition }
+        if widths[i] > 0 && entries[i].rest + condition > i64(MAX_LINE) {
+            entries[i].member = false
+            dropped = true
+        }
+    }
+    return dropped
+}
+
+// Whether `b` holds one entry: a single statement, or a trailing expression alone.
+has_one_entry :: fn(b: p.BlockExpr) -> bool =
+    (b.stmts.len() == 1 && b.trailing == null) || (b.stmts.len() == 0 && b.trailing != null)
+
+// The width of the one entry of `b` on a single line (see `has_one_entry`).
+single_entry_width :: fn(source: string, b: p.BlockExpr) -> i64 {
+    tr :: b.trailing
+    if tr != null {
+        return flat_printer(source, tr).finish().text_width()
+    }
+    return flat_stmt_width(source, b.stmts[0])
+}
+
+// The braces of an inline block and the spaces inside them: `{ ` and ` }`.
+INLINE_BRACES: i64: 4
+
 // Does this block's INLINE form (`{ <one stmt or trailing expr> }`) fit on the
-// current line ? `4` covers the braces and their two spaces. True for any block
+// current line ? True for any block
 // shape that has no inline form to begin with (empty, or more than one entry):
 // those are decided elsewhere and must not be forced to expand here.
 inline_block_fits :: fn(self: Printer, b: p.BlockExpr) -> bool {
-    tr :: b.trailing
-    if b.stmts.len() == 0 {
-        if tr == null {
-            return true
-        }
-        width :: flat_printer(self.source, tr).finish().text_width()
-        return self.column + 4 + width <= i64(MAX_LINE)
+    if !has_one_entry(b) {
+        return true
     }
-    if b.stmts.len() == 1 && tr == null {
-        return self.column + 4 + flat_stmt_width(self.source, b.stmts[0]) <= i64(MAX_LINE)
-    }
-    return true
+    return self.column + INLINE_BRACES + single_entry_width(self.source, b) <= i64(MAX_LINE)
 }
 
 emit_block_expr :: fn(self: Printer, block: p.BlockExpr) -> void {
@@ -2487,12 +2551,10 @@ emit_block_expr :: fn(self: Printer, block: p.BlockExpr) -> void {
     // A second `vader fmt` reads that block as multi-line and expands the braces,
     // so `fmt(fmt(x)) != fmt(x)`.
     //
-    // `.Inline` keeps its UNCONDITIONAL answer, and that is measured rather than
-    // assumed: a lookup-table `if`-chain stays inline by contract, and
-    // giving it the fit test too takes tree-wide idempotency from 272/285 to
-    // 267/285: a member that expands stops the run from reading as a chain on the
-    // next pass, so the alignment moves instead. The chain members that do not fit
-    // are a SEPARATE non-idempotency, not this one.
+    // `.Inline` answers without a fit test: `chain_widths` admits a member of a
+    // lookup-table `if`-chain only when its inline form fits, at the width the
+    // run aligns it to. Testing here instead would expand a member the run was
+    // aligned with, and the next pass would align another run.
     inline_ok :: match self.block_mode {
         .Expand   -> false
         .Inline   -> true
@@ -2556,7 +2618,7 @@ emit_block_expr :: fn(self: Printer, block: p.BlockExpr) -> void {
     }
     self.write("{")
     self.depth = self.depth + 1
-    if_align :: compute_if_align(b.stmts, self.source)
+    widths :: chain_widths(b.stmts, self.source, self.indent_column())
     for i in 0..<b.stmts.len() {
         s :: b.stmts[i]
         sp :: s.span
@@ -2565,8 +2627,8 @@ emit_block_expr :: fn(self: Printer, block: p.BlockExpr) -> void {
         self.indent()
         saved_mode :: self.block_mode
         saved_align :: self.align_if_width
-        self.block_mode = block_mode_for(b.stmts, i)
-        self.align_if_width = if_align[i]
+        self.block_mode = block_mode_for(s, widths[i])
+        self.align_if_width = widths[i]
         self.emit_stmt(s)
         self.block_mode = saved_mode
         self.align_if_width = saved_align
