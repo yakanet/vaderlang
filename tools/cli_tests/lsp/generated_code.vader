@@ -76,7 +76,7 @@ test_a_copy_of_code_the_compiler_wrote_is_analysed_as_that_code :: fn() -> void 
     document :: """{"uri":${quoted(uri)},"version":2}"""
     params :: """{"textDocument":${document},"contentChanges":[{"text":${quoted(written)}}]}"""
     client.send(notification("textDocument/didChange", params))
-    assert_eq(error_places(coded(diagnostics_of(client, uri, changed), "T3006")), "T3006@19")
+    assert_eq(error_places(coded(diagnostics_of(client, uri, changed), "T3006")), "T3006@21")
     // `Log` in `state: Log<i32, Opaque>`.
     position :: r""","position":{"line":4,"character":11}"""
     found :: request(client, "textDocument/definition", on_document(uri, position))

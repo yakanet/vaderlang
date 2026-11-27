@@ -149,6 +149,15 @@ export CompilerIntrinsic :: enum(IntrinsicInfo) {
         .signature = "@decorator(f, D: type) -> D",
         .doc       = "The value of the decorator `D` written once on `f`, a function of this module, every field filled. Read in a function body.",
     },
+    // `@call_site()`: the place of each call, as the default of a parameter. The
+    // typecheck gives the argument it fills the span of the call, which the lowerer
+    // turns into a `SourceLocation` literal, or `null` in a release build.
+    CallSite {
+        .name      = "call_site",
+        .result    = "call_site",
+        .signature = "@call_site() -> SourceLocation | null",
+        .doc       = "The place of the call, as the default of a parameter: a `SourceLocation` in a debug build, `null` in a release one, where the parameter is `null` whatever the call passes.",
+    },
 }
 
 /// The intrinsic written `@name`, or null when the compiler knows none.
@@ -192,6 +201,7 @@ export intrinsic_args :: fn(intrinsic: CompilerIntrinsic) -> IntrinsicArgKind[] 
     .TypeArgs     -> [.Type]
     .Field        -> [.Value, .Value]
     .Decorator    -> [.Unevaluated, .Type]
+    .CallSite     -> []
 }
 
 /// The kind of argument `i` of `intrinsic`. One past those it declares is a

@@ -1247,8 +1247,17 @@ declare_fn_param :: fn(
         return TY_UNRESOLVED
     }
     written :: type_from_expr(ty, resolved, diags)
-    typed.param_types[p.span.hash()] = written
+    record_param(typed, p, written)
     return written
+}
+
+// Records the type of `p`, and whether its default is `@call_site()`, which a
+// release build reads as `null` in the body.
+record_param :: fn(typed: TypedProgram, p: AST.FnParam, type: Type) -> void {
+    typed.param_types[p.span.hash()] = type
+    if is_call_site_default(p.default_value) {
+        typed.call_site_params.add(p.span.hash())
+    }
 }
 
 declare_fn_return :: fn(

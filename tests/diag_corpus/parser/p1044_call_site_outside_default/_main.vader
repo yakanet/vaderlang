@@ -1,0 +1,13 @@
+// `@call_site()` is the place of a call only as the whole default of a parameter:
+// in a body, or as part of a default, it is P1044.
+module "snippet"
+
+nested :: fn(site: SourceLocation | null = @call_site() else null) -> bool = site == null
+
+main :: fn() -> i32 {
+    here :: @call_site()
+    if nested() {
+        return 0
+    }
+    return 1
+}

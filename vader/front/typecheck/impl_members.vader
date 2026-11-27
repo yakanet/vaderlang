@@ -204,7 +204,7 @@ declare_impl_method_for_trait :: fn(
     params: Type[]: []
     for p in fd.params {
         pt :: param_type(p, for_ty, typed, diags)
-        typed.param_types[p.span.hash()] = pt
+        record_param(typed, p, pt)
         params.push(pt)
     }
     ret :: declare_impl_return(fd, for_ty, trait_method, trait_type, typed, diags)

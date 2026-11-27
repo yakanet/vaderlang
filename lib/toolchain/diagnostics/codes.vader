@@ -207,6 +207,7 @@ export ParserCode :: enum(CodeInfo) {
     DecoratorTypeParameters    { .id = "P1041", .message = "a decorator takes no type parameter" },
     VariadicFieldMisplaced     { .id = "P1042", .message = "a variadic field is the last field of a decorator, an array without a default" },
     ImplMemberWithoutBody      { .id = "P1043", .message = "an impl member needs a body" },
+    CallSiteOutsideDefault     { .id = "P1044", .message = "`@call_site()` is only the default of a parameter" },
 }
 
 // R-codes belong to the resolver pass (name-binding).

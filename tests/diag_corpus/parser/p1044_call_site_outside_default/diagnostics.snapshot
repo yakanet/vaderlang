@@ -1,0 +1,2 @@
+[5:44] error[P1044] `@call_site()` is only the default of a parameter: write it as the whole default: `site: SourceLocation | null = @call_site()`
+[8:13] error[P1044] `@call_site()` is only the default of a parameter: write it as the whole default: `site: SourceLocation | null = @call_site()`

@@ -63,7 +63,7 @@ infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diag
             type_for_result(info.result, typed)
         }
         .SizeOf | .AlignOf | .TypeName | .TypeKind | .FieldCount | .VariantCount
-            | .Satisfies | .TypeArgs -> type_for_result(info.result, typed)
+            | .Satisfies | .TypeArgs | .CallSite -> type_for_result(info.result, typed)
     }
 }
 
@@ -234,6 +234,11 @@ type_for_result :: fn(name: string, typed: TypedProgram) -> Type {
     if name == "string"     { return TY_STRING }
     if name == "type"       { return TY_TYPE }
     if name == "type_array" { return mk_array(TY_TYPE) }
+    if name == "call_site" {
+        // `@call_site() -> SourceLocation | null`, the struct of std/core.
+        located :: typed.source_location_symbol else return TY_UNRESOLVED
+        return union_of([mk_struct(located, []), TY_NULL])
+    }
     if name == "field_array" {
         // `@fields(T) -> Field[]`: `Field` lives in std/core
         // (auto-imported). Fall back to Unresolved when std/core

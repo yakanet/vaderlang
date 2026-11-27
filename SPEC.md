@@ -3693,7 +3693,7 @@ fib :: fn(n: i64) -> i64 = if n < 2 { n } else { fib(n - 1) + fib(n - 2) }
 ```
 
 - The function `around` names takes four parameters: the state of the marked function, its site, its arguments, and `proceed`, which calls the marked function itself. It returns what the call returns.
-- The site is a `Site<D>` of `std/core`, `D` being the decorator: the name of the marked function (`function`), its module (`module`), the file and line it is declared at (`location`, `main.vader:12`) and the decorator written on it, every field filled (`marker`). Each marked function has one, built on its first call.
+- The site is a `Site<D>` of `std/core`, `D` being the decorator: the fields of a `SourceLocation` for the marked function, its name (`function`), its module (`module`) and the place of its name (`file`, `line`, `column`), and the decorator written on it, every field filled (`marker`). Each marked function has one, built on its first call.
 - `A` is the type of the one parameter of the marked function, or the tuple of the types of its parameters: `fn(a: i32, b: i32) -> i32` passes `[i32, i32]`, which `proceed` takes back. `R` is its result.
 - The state is a struct `S<A, R>` of the decorator's module, whose fields all have a default. Each marked function keeps one for the whole program, built on its first call.
 - Every call goes through `around`, the recursive calls of the function included: `fib(4)` above counts nine calls.
@@ -4216,6 +4216,7 @@ An argument `T: type` is a type, a value of the metatype `type` (§4), fixed at 
 | `@type_args(T: type) -> type[]` | Type arguments of a generic struct or trait instance, else `[]`. |
 | `@field(x, name: string) -> <field type>` | Field `name` of `x`. |
 | `@decorator(f, D: type) -> D` | The decorator `D` written on the function `f`, every field filled (*`@decorator`*, below). |
+| `@call_site() -> SourceLocation \| null` | The place of each call, as the default of a parameter (§17 *The place of a call: `@call_site()`*). |
 
 `@assert` checks them at build time:
 
@@ -4700,6 +4701,28 @@ if VADER_BUILD == .Debug {
 A test whose answer is known at compile time is settled there: the branch the build does not take is not in its binary, its strings included, though it is checked as any other code is. This holds for a test of `VADER_BUILD`, `VADER_OS` or `VADER_ARCH` (`&&` and `||` included), and for a test of a constant that holds `null` (`==`, `!=`, `is`, `match`, `else`).
 
 The branch is for diagnostics, not for what the program does: code whose effects the rest of the program depends on behaves differently in the two builds.
+
+### The place of a call: `@call_site()`
+
+A parameter whose default is `@call_site()` receives the place of each call that leaves it out, a `SourceLocation` (`std/core`): the function the call is written in (`function`, the one around a lambda), its module (`module`), and the file, line and column of the call (`file`, `line`, `column`). The file is named from the root of the project, or from the working directory for a file compiled on its own, and by its whole path outside them. Its `Display` form is the one an editor's terminal opens on a click.
+
+```vader
+log :: fn(message: string, site: SourceLocation | null = @call_site()) -> void {
+    if site != null {
+        println("${site}: ${message}")   // src/server.vader:42:9, in `serve`: listening
+    } else {
+        println(message)
+    }
+}
+
+// Hands on the place of its own call.
+warn :: fn(message: string, site: SourceLocation | null = @call_site()) -> void =
+    log("warning: ${message}", site)
+```
+
+- `@call_site()` is the whole default of a parameter of type `SourceLocation | null`; written anywhere else, it is an error.
+- A function that wraps another hands on its own parameter, as `warn` does: called without it, the inner function would name the line inside the wrapper.
+- A release build keeps no place: every call passes `null`, and the parameter is `null` in its function whatever a call passes, so the code its test guards is left out of the binary.
 
 ### Native (Linux, macOS, Windows)
 

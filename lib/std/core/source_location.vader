@@ -1,0 +1,39 @@
+// std/core/source_location: a place in the source, as a debug build keeps it.
+//
+// `@call_site()` fills a parameter with the place of each call, and an
+// interceptor's `Site` names the place of the function it wraps. Same
+// `module "std/core"` as `core.vader`, so every program sees the type without an
+// import.
+
+module "std/core"
+
+/// A place in the source: a function, its module, and the file, line and column.
+///
+/// Its `Display` form is the one a terminal of an editor opens on a click:
+/// `src/net/server.vader:42:9, in `serve``.
+///
+/// @example
+///   # import "std/console"
+///   log :: fn(message: string, site: SourceLocation | null = @call_site()) -> void {
+///       if site != null {
+///           println("${site}: ${message}")
+///       } else {
+///           println(message)
+///       }
+///   }
+export SourceLocation :: struct {
+    /// The name of the function, as written.
+    function: string
+    /// The module that declares it.
+    module: string
+    /// The file, from the root of the project (of the working directory for a file
+    /// compiled on its own); the whole path for a file outside it.
+    file: string
+    /// The line, counted from 1.
+    line: i32
+    /// The column, counted from 1.
+    column: i32
+}
+
+SourceLocation implements Display ->
+    "${self.file}:${self.line}:${self.column}, in `${self.function}`"

@@ -455,6 +455,18 @@ collect_overload_candidates :: fn(
 
 // ---- named-arg + default-value normalisation -----------------------------
 
+/// Whether `default` is `@call_site()`, the place of each call.
+///
+/// @param default  the default value of a parameter.
+export is_call_site_default :: fn(default: AST.Expr | null) -> bool =
+    default is AST.IntrinsicCallExpr && default.intrinsic == .CallSite
+
+// The span of the argument a default fills: the call's for `@call_site()`, which
+// the lowerer reads the place of the call from (the default is one node every call
+// shares), the default's own otherwise.
+default_argument_span :: fn(default: AST.Expr, c: AST.CallExpr) -> Span =
+    if is_call_site_default(default) { c.span } else { default.span }
+
 // Reorder `c`'s args into positional parameter order, filling omitted params
 // from their `default_value`. The result replaces `c.args` in place (see
 // `infer_call`), the written list kept in `c.written_args`, so a reordered /
@@ -539,7 +551,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
             if dv != null {
                 out.push(
                     AST.CallArg {
-                        .span = dv.span,
+                        .span = default_argument_span(dv, c),
                         .name = null,
                         .value = dv,
                         .spread = false,

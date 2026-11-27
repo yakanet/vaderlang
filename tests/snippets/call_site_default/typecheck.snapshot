@@ -1,0 +1,57 @@
+# Typecheck
+
+## tests/snippets/call_site_default
+  FnDecl         log                  :: fn(string, null | SourceLocation) -> void
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         shout                :: fn(T, null | SourceLocation) -> void
+  FnDecl         warn                 :: fn(string, null | SourceLocation) -> void
+  expr 10:58    IntrinsicCallExpr :: null | SourceLocation
+  expr 11:5     IfExpr         :: void
+  expr 11:8     BinaryExpr     :: bool
+  expr 11:8     IdentExpr      :: null | SourceLocation
+  expr 12:17    StringLitExpr  :: string
+  expr 12:20    IdentExpr      :: SourceLocation
+  expr 12:29    IdentExpr      :: string
+  expr 12:9     CallExpr       :: void
+  expr 12:9     IdentExpr      :: fn(T) -> void
+  expr 14:17    IdentExpr      :: string
+  expr 14:9     CallExpr       :: void
+  expr 14:9     IdentExpr      :: fn(T) -> void
+  expr 19:59    IntrinsicCallExpr :: null | SourceLocation
+  expr 20:21    IdentExpr      :: string
+  expr 20:32    IdentExpr      :: null | SourceLocation
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(string, null | SourceLocation) -> void
+  expr 20:9     StringLitExpr  :: string
+  expr 22:65    IntrinsicCallExpr :: null | SourceLocation
+  expr 23:5     IfExpr         :: void
+  expr 23:8     BinaryExpr     :: bool
+  expr 23:8     IdentExpr      :: null | SourceLocation
+  expr 24:17    StringLitExpr  :: string
+  expr 24:20    IdentExpr      :: T
+  expr 24:39    FieldExpr      :: i32
+  expr 24:39    IdentExpr      :: SourceLocation
+  expr 24:56    FieldExpr      :: string
+  expr 24:56    IdentExpr      :: SourceLocation
+  expr 24:9     CallExpr       :: void
+  expr 24:9     IdentExpr      :: fn(T) -> void
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(string, null | SourceLocation) -> void
+  expr 29:9     StringLitExpr  :: string
+  expr 30:5     CallExpr       :: void
+  expr 30:5     FieldExpr      :: fn(null | SourceLocation) -> void
+  expr 30:5     StringLitExpr  :: string
+  expr 31:10    StringLitExpr  :: string
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(string, null | SourceLocation) -> void
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T, null | SourceLocation) -> void
+  expr 33:12    LambdaExpr     :: fn() -> void
+  expr 33:18    CallExpr       :: void
+  expr 33:18    IdentExpr      :: fn(string, null | SourceLocation) -> void
+  expr 33:22    StringLitExpr  :: string
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn() -> void
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(string, null | SourceLocation) -> void
+  expr 35:9     StringLitExpr  :: string

@@ -52,10 +52,7 @@ lower_defer :: fn(ctx: FnLowerCtx, defer_stmt: AST.DeferStmt) -> LoweredStmt {
     })
     lifted_entry :: synth_mono_entry(ctx, lifted_symbol)
 
-    lifted_ctx :: new_fn_lower_ctx(
-        ctx.project, lifted_entry, ctx.typed, ctx.subst, TY_VOID,
-    )
-    lifted_ctx.comptime_bindings = ctx.comptime_bindings
+    lifted_ctx :: lifted_fn_ctx(ctx, lifted_entry, TY_VOID)
     lifted_ctx.lifted_context = LiftedFnContext {
         .env_symbol     = env_param_symbol,
         .env_type       = env_type,

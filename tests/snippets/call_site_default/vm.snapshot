@@ -1,0 +1,9 @@
+# stdout
+tests/snippets/call_site_default/_main.vader:29:5, in `main`: direct
+tests/snippets/call_site_default/_main.vader:30:5, in `main`: ufcs
+tests/snippets/call_site_default/_main.vader:31:5, in `main`: warning: forwarded
+42 from line 32 of `snippet`
+tests/snippets/call_site_default/_main.vader:33:18, in `main`: in a lambda
+passed by hand
+# exit
+0

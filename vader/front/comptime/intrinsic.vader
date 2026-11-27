@@ -31,7 +31,7 @@ evaluate_intrinsic_call :: fn(
     .FieldIndex   -> intrinsic_field_index(expr, context)
     .Satisfies    -> intrinsic_satisfies(expr, context)
     .Min | .Max   -> intrinsic_integer_bound(expr, context)
-    .TypeOf | .Fields | .TypeArgs | .Field | .Decorator ->
+    .TypeOf | .Fields | .TypeArgs | .Field | .Decorator | .CallSite ->
         vm_required(expr.span, "@${AST.intrinsic_name(expr.intrinsic)}")
 }
 

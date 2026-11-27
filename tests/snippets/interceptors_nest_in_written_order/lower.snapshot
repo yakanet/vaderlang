@@ -100,7 +100,9 @@
           .site = Site<Any> {
               .function = "fib",
               .module = "snippet",
-              .location = "_main.vader:45",
+              .file = "tests/snippets/interceptors_nest_in_written_order/_main.vader",
+              .line = 45,
+              .column = 1,
               .marker = Traced {},
           },
       }
@@ -114,7 +116,9 @@
           .site = Site<Any> {
               .function = "fib",
               .module = "snippet",
-              .location = "_main.vader:45",
+              .file = "tests/snippets/interceptors_nest_in_written_order/_main.vader",
+              .line = 45,
+              .column = 1,
               .marker = Counted {},
           },
       }
@@ -128,7 +132,9 @@
           .site = Site<Any> {
               .function = "add",
               .module = "snippet",
-              .location = "_main.vader:54",
+              .file = "tests/snippets/interceptors_nest_in_written_order/_main.vader",
+              .line = 54,
+              .column = 1,
               .marker = Counted {},
           },
       }
@@ -142,7 +148,9 @@
           .site = Site<Any> {
               .function = "add",
               .module = "snippet",
-              .location = "_main.vader:54",
+              .file = "tests/snippets/interceptors_nest_in_written_order/_main.vader",
+              .line = 54,
+              .column = 1,
               .marker = Traced {},
           },
       }

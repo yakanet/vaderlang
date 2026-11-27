@@ -62,16 +62,13 @@ export DecoratorTarget :: enum {
 ///   # Traced :: decorator(.Function) { label: string = "" }
 ///   # Log :: struct<A, R> {}
 ///   traced :: fn<A, R>(state: Log<A, R>, site: Site<Traced>, args: A, proceed: fn(A) -> R) -> R {
-///       println("${site.marker.label} ${site.function} at ${site.location}")
+///       println("${site.marker.label} ${site.function} at ${site.file}:${site.line}")
 ///       return proceed(args)
 ///   }
 export Site :: struct<D> {
-    /// The name of the function, as written.
-    function: string
-    /// The module that declares it.
-    module: string
-    /// The file and the line it is declared at: `main.vader:12`.
-    location: string
+    // The function and where it is declared: its name, its module, and the file,
+    // line and column of its name.
+    ...SourceLocation
     /// The decorator written on it, every field filled.
     marker: D
 }

@@ -1,0 +1,101 @@
+// vader/lower/call_site: the place of a call, as `@call_site()` gives it.
+//
+// The default of a parameter is one node every call shares, so the place cannot be
+// read from it: the typecheck gives the argument it fills the span of the call
+// (`default_argument_span`), and `lower_call_args` turns that span into a
+// `SourceLocation` literal. A release build keeps none: the argument is `null`, and
+// so is the parameter wherever its function reads it, which settles the tests on
+// it and drops what they guard, strings included.
+
+module "vader/lower"
+
+import "std/collections"
+import "toolchain/ast"
+import "toolchain/span"
+import "vader/core/symbol"
+import "vader/core/types"
+import "vader/front/resolver"
+import "vader/front/typecheck"
+import "vader/lower/ir"
+
+/// The argument `arg` lowered: the place of the call for one `@call_site()` fills.
+///
+/// @param ctx  the fn-body context of the call.
+/// @param arg  an argument of the call, as `normalize_call_args` left it.
+lower_argument :: fn(ctx: FnLowerCtx, arg: CallArg) -> LoweredExpr {
+    if is_call_site_default(arg.value) {
+        return call_site_value(ctx, arg.span)
+    }
+    return lower_expr(ctx, arg.value)
+}
+
+// The `SourceLocation` of the call at `span`, or `null` in a release build.
+call_site_value :: fn(ctx: FnLowerCtx, span: Span) -> LoweredExpr {
+    if is_release(ctx) {
+        return LoweredNullLit { .span = span, .type = TY_NULL }
+    }
+    located :: find_core_type(ctx, STRUCT_SOURCE_LOCATION, [])
+        else return stub(span, TY_UNRESOLVED, "std/core declares no SourceLocation")
+    start :: span.start
+    fields: LoweredStructLitField[]: [
+        text_field("function", ctx.function_name, span),
+        text_field("module", ctx.typed.resolved.display_path, span),
+        text_field("file", source_file_name(start.file, ctx.project.loaded.project_root), span),
+        number_field("line", start.line, span),
+        number_field("column", start.column, span),
+    ]
+    return build_core_struct_lit(ctx, located, fields, span)
+}
+
+text_field :: fn(name: string, value: string, span: Span) = LoweredStructLitField {
+    .name = name,
+    .value = LoweredStringLit { .span = span, .type = TY_STRING, .value = value },
+}
+
+number_field :: fn(name: string, value: i32, span: Span) = LoweredStructLitField {
+    .name = name,
+    .value = LoweredIntLit { .span = span, .type = TY_I32, .value = i64(value) },
+}
+
+// Whether the program is built for release, which keeps no place of a call.
+is_release :: fn(ctx: FnLowerCtx) = ctx.project.loaded.build == .Release
+
+/// A read of the parameter `symbol` in a release build when its default is
+/// `@call_site()`: `null` whatever the call passed, boxed at `type` as a constant
+/// read at its union is (`settled_read`), or a trap where a test excluded it.
+/// Null for any other read.
+///
+/// @param ctx     the fn-body context of the read.
+/// @param symbol  the name read.
+/// @param type    the type of the read.
+/// @param span    the read.
+call_site_parameter_read :: fn(ctx: FnLowerCtx, symbol: Symbol, type: Type, span: Span) -> LoweredExpr | null {
+    if symbol.kind != .Param || ctx.typed.call_site_params.is_empty() || !is_release(ctx) {
+        return null
+    }
+    declared :: symbol.defined_at else return null
+    if !ctx.typed.call_site_params.contains(declared.hash()) {
+        return null
+    }
+    return null_read(type, span)
+}
+
+/// `null` read at `type`: boxed when `type` holds a tag, a trap when it is a type
+/// without `null`, which a read only has where a test of the value excluded it.
+///
+/// @param type  the type of the read.
+/// @param span  the read.
+null_read :: fn(type: Type, span: Span) -> LoweredExpr {
+    literal :: LoweredNullLit { .span = span, .type = TY_NULL }
+    if is_null_type(type) {
+        return literal
+    }
+    if !has_run_time_tag(type) {
+        return LoweredUnreachable {
+            .span = span,
+            .type = type,
+            .reason = "a value that is null, read where a test excludes it",
+        }
+    }
+    return LoweredCast { .span = span, .type = type, .value = literal }
+}

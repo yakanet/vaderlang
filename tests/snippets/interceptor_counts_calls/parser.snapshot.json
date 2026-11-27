@@ -258,7 +258,37 @@
                         "kind": "IdentExpr",
                         "name": "site"
                       },
-                      "field": "location"
+                      "field": "file"
+                    }
+                  },
+                  {
+                    "kind": "text",
+                    "value": ":"
+                  },
+                  {
+                    "kind": "interpolation",
+                    "expr": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "site"
+                      },
+                      "field": "line"
+                    }
+                  },
+                  {
+                    "kind": "text",
+                    "value": ":"
+                  },
+                  {
+                    "kind": "interpolation",
+                    "expr": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "site"
+                      },
+                      "field": "column"
                     }
                   }
                 ]

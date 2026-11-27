@@ -447,6 +447,10 @@ export TypedProgram :: struct {
     /// via `Span.hash()`.
     param_types: Map<u64, Type>
 
+    /// The parameters whose default is `@call_site()`, keyed like `param_types`:
+    /// a release build reads each as `null`.
+    call_site_params: Set<u64> = Set<u64> {}
+
     /// Type of every type-position expression: `let x: T = ...` annotations,
     /// fn signatures, struct field types, etc. Keyed by the expression's
     /// own span via `Span.hash()` so downstream passes can reuse what
@@ -537,6 +541,8 @@ export TypedProgram :: struct {
     /// the orchestrator ; replaces the name-keyed core-symbol lookups for these.
     range_symbol: Symbol | null
     field_symbol: Symbol | null
+    /// `std/core`'s `SourceLocation`, what `@call_site()` gives.
+    source_location_symbol: Symbol | null = null
     /// `std/core`'s `Equals` trait symbol: the trait every enum implements with
     /// no impl (`has_builtin_impl`). Populated once from core by the orchestrator.
     equals_symbol: Symbol | null

@@ -60,11 +60,14 @@ Interceptor :: struct {
 /// load.
 ///
 /// @param modules  the modules of the load, parsed, none collected yet.
+/// @param project  the project root, which a `Site` names its file from; null
+///                 for a file on its own.
 /// @param ids      numbers the declarations the wrapping adds.
 /// @param diags    where a misdeclared interceptor and a function it cannot wrap
 ///                 are reported.
 intercept_functions :: fn(
     modules: DeferredModule[],
+    project: string | null,
     ids: NodeIdFactory,
     diags: Diagnostic[],
 ) -> void {
@@ -76,7 +79,7 @@ intercept_functions :: fn(
     for m in modules {
         glue_files: SourceFile[]: []
         for source in m.sources {
-            glue :: wrap_file(source, m.found.name, interceptors, declared, ids, diags)
+            glue :: wrap_file(source, m.found.name, project, interceptors, declared, ids, diags)
             if glue != null {
                 glue_files.push(glue)
             }
@@ -122,6 +125,7 @@ Interception :: struct {
 wrap_file :: fn(
     source: SourceFile,
     module_name: string,
+    project: string | null,
     interceptors: Interceptor[],
     declared: Map<string, Set<string>>,
     ids: NodeIdFactory,
@@ -143,9 +147,10 @@ wrap_file :: fn(
             continue
         }
         result :: f.return_type else continue
+        file :: source_file_name(source.path, project)
         for depth in 1..=interceptions.len() {
             start :: glue.byte_len()
-            glue.append(layer_text(source, module_name, f, result, interceptions, depth))
+            glue.append(layer_text(source, module_name, file, f, result, interceptions, depth))
             origins.push(CodeOrigin {
                 .start = header.byte_len() + start,
                 .end = header.byte_len() + glue.byte_len(),
@@ -280,10 +285,11 @@ layer_function :: fn(base: string, depth: i64, count: i64) -> string {
 
 // The singleton and the wrapper of the layer `depth` of `f`, a function of
 // `source` in the module `module_name` that `interceptions` mark, whose written
-// result is `result`.
+// result is `result`. `file` names `source` as a `Site` gives it.
 layer_text :: fn(
     source: SourceFile,
     module_name: string,
+    file: string,
     f: FnDecl,
     result: TypeExpr,
     interceptions: Interception[],
@@ -295,7 +301,6 @@ layer_text :: fn(
     interception :: interceptions[depth - 1]
     qualifier :: interception.qualifier
     interceptor :: interception.interceptor
-    location :: "${source.path.to_path().filename()}:${f.name_span.start.line}"
     decorator_name :: "${qualifier}${interception.name}"
     state_type :: "${qualifier}${interceptor.state}<${arguments_type(content, f)}, ${result_text}>"
     intercepted :: generated_name(f.name, .Intercepted)
@@ -312,7 +317,9 @@ layer_text :: fn(
     out.append("    .site = Site<${decorator_name}> {\n")
     out.append("        .function = ${quote_vader(f.name)},\n")
     out.append("        .module = ${quote_vader(module_name)},\n")
-    out.append("        .location = ${quote_vader(location)},\n")
+    out.append("        .file = ${quote_vader(file)},\n")
+    out.append("        .line = ${f.name_span.start.line},\n")
+    out.append("        .column = ${f.name_span.start.column},\n")
     out.append("        .marker = @decorator(${intercepted}, ${decorator_name}),\n")
     out.append("    },\n")
     out.append("}\n")

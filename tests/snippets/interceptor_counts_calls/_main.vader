@@ -23,7 +23,7 @@ logged :: fn<A, R: Display>(
     proceed: fn(A) -> R,
 ) -> R {
     result :: proceed(args)
-    called :: "${site.module}.${site.function} at ${site.location}"
+    called :: "${site.module}.${site.function} at ${site.file}:${site.line}:${site.column}"
     println("${site.marker.label}: ${called} -> ${result}")
     return result
 }

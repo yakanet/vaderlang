@@ -114,6 +114,8 @@ try_fold_static_intrinsic :: fn(
     // Folded once its name argument is known, by `lower_intrinsic`.
     .Field                       -> null
     .Decorator                   -> fold_decorator(ctx, intrinsic, type)
+    // The place of a call, which `lower_call_args` gives the argument it fills.
+    .CallSite                    -> stub(intrinsic.span, type, "@call_site() lowered away from a call")
 }
 
 // `@decorator(f, D)`: the value the comptime pass computed for the `@D` the
@@ -189,7 +191,7 @@ type_query :: fn(intrinsic: CompilerIntrinsic, ty: Type, span: Span, type: Type)
             .value = type_kind_label(ty),
         }
         .FieldCount | .VariantCount | .FieldIndex | .Satisfies | .Min | .Max | .TypeOf
-            | .Fields | .TypeArgs | .Field | .Decorator -> null
+            | .Fields | .TypeArgs | .Field | .Decorator | .CallSite -> null
     }
 
 // `@min(T)` or `@max(T)`, a literal of `type`, the integer `T` is held in ; of an

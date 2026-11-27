@@ -250,6 +250,18 @@ export absolute_path :: fn(path: string) -> string =
 export normalized_path :: fn(path: string) -> string =
     absolute_path(path.to_posix()).to_path().normalize().as_string()
 
+/// The path a running program names `file` by: from the root of `project`, or of
+/// the working directory for a file compiled on its own; the whole path for a file
+/// outside it.
+///
+/// @param file     the source file, as the load read it.
+/// @param project  the project root, `/`-separated; null for a file compiled on
+///                 its own.
+export source_file_name :: fn(file: string, project: string | null) -> string {
+    root :: project else current_working_directory()
+    return relative_to(normalized_path(file), normalized_path(root))
+}
+
 /// Resolve a resource directory `<base>/subdir` next to the executable, falling
 /// back to the bare cwd-relative `subdir`. The sidecar candidate wins only when
 /// it holds `marker`. Lets a `dist/` bundle find its stdlib + C runtime next to

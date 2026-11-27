@@ -204,6 +204,10 @@ Parser :: struct {
     // The depth of a match-arm guard, where a bare lambda is not parsed: in
     // `is T if n > 0 -> body` the arrow belongs to the arm. -1 outside a guard.
     no_bare_lambda_at: i32 = -1
+    // The position of the token a parameter's default starts at, where `@call_site()`
+    // is allowed: the default of a parameter is the one place it may be written. -1
+    // outside a default, and once the `@call_site()` written there is read.
+    call_site_at: i32 = -1
     // When non-null, the lexer's `>>` token has been split : its first `>`
     // was already consumed (and `pos` advanced past it), and this field
     // holds a synthetic `Gt` exposing the second `>`. The next
@@ -421,6 +425,27 @@ sync_to_top_level :: fn(p: Parser) -> void {
 }
 
 // -------------------------------------------------------- error reporting
+
+CALL_SITE_HINT :: "write it as the whole default: `site: SourceLocation | null = @call_site()`"
+
+// A default that opens with `@call_site()` and goes on (`@call_site().line`) is not
+// the place of the call: `@call_site()` is the whole default or nothing.
+check_call_site_default :: fn(p: Parser, written: Expr, opened: bool) -> void {
+    if written is IntrinsicCallExpr || !opened {
+        return
+    }
+    p.error(.CallSiteOutsideDefault, written.span, CALL_SITE_HINT)
+}
+
+// A `@call_site()` at the token `at`: the opening of the default being read, or
+// misplaced.
+read_call_site :: fn(p: Parser, at: i32, span: Span) -> void {
+    if at != p.call_site_at {
+        p.error(.CallSiteOutsideDefault, span, CALL_SITE_HINT)
+        return
+    }
+    p.call_site_at = -1
+}
 
 error :: fn(p: Parser, code: ParserCode, span: Span, detail: string) -> void {
     // Once the expression-depth guard trips, mute every further diagnostic :
@@ -1391,7 +1416,15 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
             }
             default_value: Expr | null = null
             if p.match_kind(.Assign) != null {
-                default_value = p.parse_expr(0)
+                // Restored after: a default can hold a lambda with defaults of its own.
+                outer :: p.call_site_at
+                start :: p.pos
+                p.call_site_at = start
+                written :: p.parse_expr(0)
+                opened :: p.call_site_at != start
+                p.call_site_at = outer
+                p.check_call_site_default(written, opened)
+                default_value = written
             }
 
             params.push(FnParam {
@@ -3300,6 +3333,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
     //                                 `intrinsics.vader`.
     // Anything else is P1014.
     if t.kind == .At {
+        at :: p.pos
         at_tok :: p.advance()
         name_tok :: p.intrinsic_name_token()
         if is_match_decorator(name_tok.text) {
@@ -3328,6 +3362,9 @@ parse_prefix :: fn(p: Parser) -> Expr {
                 return NullLitExpr { .span = p.span_of(at_tok, name_tok) }
             }
             is CompilerIntrinsic -> {
+                if intrinsic == .CallSite {
+                    p.read_call_site(at, p.span_of(at_tok, name_tok))
+                }
                 p.expect(.LParen, "`(` after `@${name_tok.text}`")
                 args: Expr[]: []
                 p.skip_newlines()

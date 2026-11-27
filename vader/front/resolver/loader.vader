@@ -65,6 +65,9 @@ export LoadedProject :: struct {
     factory:      SymbolFactory
     project_root: string | null
     diags:        Diagnostic[]
+    /// How the build is made, which `VADER_BUILD` holds: what a release build
+    /// leaves out, the lowerer leaves out (`@call_site()`).
+    build:        Build = .Debug
     /// The functions the source stages wrote without a body, in the order they
     /// were written: each takes its body after the comptime
     /// (`vader/pipeline/check/late_bodies.vader`).
@@ -258,6 +261,7 @@ export load_project_with_overlay :: fn(
                 .keep_docs = keep_docs,
                 .tested = if under_test { entry_module.folder } else { null },
                 .only_reached = only_reached,
+                .project_root = project,
                 .source_stages = planned_source_stages(project),
                 .body_stages = planned_body_stages(project),
                 .module_server = module_server_for(roots.paths),
@@ -306,6 +310,7 @@ export load_project_with_overlay :: fn(
                 .factory = factory,
                 .project_root = project,
                 .diags = loader_diags,
+                .build = build,
                 .late_fns = ctx.late_fns,
                 .body_stages = ctx.body_stages,
                 .wit_interfaces = read_interfaces(ctx.module_server),
@@ -471,6 +476,8 @@ LoadState :: struct {
     tested: string | null
     /// Whether a dependency keeps only what the program reaches.
     only_reached: bool
+    /// The project the entry belongs to, `/`-separated; null for a file on its own.
+    project_root: string | null = null
     /// The modules read so far whose symbols are still to mint.
     deferred: DeferredModule[] = []
     /// The source stages that write into them, planned
@@ -791,7 +798,7 @@ collect_deferred :: fn(ctx: LoadState) -> void {
         load_stage_imports(ctx, first, end)
         first = end
     }
-    intercept_functions(ctx.deferred, ctx.node_factory, ctx.diags)
+    intercept_functions(ctx.deferred, ctx.project_root, ctx.node_factory, ctx.diags)
     modules :: if ctx.only_reached { trimmed_to_reached(ctx) } else { ctx.deferred }
     for read in modules {
         ctx.uncovered.push_all(read.uncovered)

@@ -1,0 +1,37 @@
+// A parameter whose default is `@call_site()` receives the place of each call: a
+// direct call, a UFCS one, a generic one, one written in a lambda (named after the
+// function around it), and through a wrapper that hands its own on. The file is
+// named from the root of the project.
+
+module "snippet"
+
+import "std/console"
+
+log :: fn(message: string, site: SourceLocation | null = @call_site()) -> void {
+    if site != null {
+        println("${site}: ${message}")
+    } else {
+        println(message)
+    }
+}
+
+// Hands on the place of its own call.
+warn :: fn(message: string, site: SourceLocation | null = @call_site()) -> void =
+    log("warning: ${message}", site)
+
+shout :: fn<T: Display>(value: T, site: SourceLocation | null = @call_site()) -> void {
+    if site != null {
+        println("${value} from line ${site.line} of `${site.module}`")
+    }
+}
+
+main :: fn() -> i32 {
+    log("direct")
+    "ufcs".log()
+    warn("forwarded")
+    shout(42)
+    run :: () -> log("in a lambda")
+    run()
+    log("passed by hand", null)
+    return 0
+}

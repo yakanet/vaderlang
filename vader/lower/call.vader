@@ -247,14 +247,10 @@ resolve_namespace_member :: fn(ctx: FnLowerCtx, namespace_symbol: Symbol, name: 
 // Shared by `lower_ident` (every ident) and `try_lower_namespace_const`.
 fold_const_symbol :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) -> LoweredExpr | null {
     folded :: fold_const_value(ctx, sym, type, span) else return null
-    // A constant holding `null`, read at a type without it: the read sits where a
-    // test of the constant narrowed it, a branch that never runs.
-    if folded is LoweredNullLit && !has_run_time_tag(type) && !is_null_type(type) {
-        return LoweredUnreachable {
-            .span = span,
-            .type = type,
-            .reason = "a constant holding null, read where a test excludes it",
-        }
+    // A constant holding `null`: boxed at its union, or a trap where a test of the
+    // constant narrowed the read to a type without it, a branch that never runs.
+    if folded is LoweredNullLit {
+        return null_read(type, span)
     }
     // The value carries its own variant's type ; a read typed as a union boxes it,
     // as reading the const's slot would: `==` and `is` dispatch on that type.

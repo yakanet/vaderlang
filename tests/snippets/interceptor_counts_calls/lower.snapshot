@@ -61,7 +61,9 @@
           .site = Site<Any> {
               .function = "fib",
               .module = "snippet",
-              .location = "_main.vader:32",
+              .file = "tests/snippets/interceptor_counts_calls/_main.vader",
+              .line = 32,
+              .column = 1,
               .marker = Counted {},
           },
       }
@@ -75,7 +77,9 @@
           .site = Site<Any> {
               .function = "add",
               .module = "snippet",
-              .location = "_main.vader:40",
+              .file = "tests/snippets/interceptor_counts_calls/_main.vader",
+              .line = 40,
+              .column = 1,
               .marker = Logged { .label = "sum" },
           },
       }
@@ -86,37 +90,39 @@
   snippet.Log<[i32, i32], i32> :: struct {}  // snippet$Log___i32__i32___i32
   snippet.logged<[i32, i32], i32> :: fn(state: Log<Any, i32>, site: Site<Logged>, args: Any, proceed: fn(Any) -> i32) -> i32 {  // snippet$logged__Any__i32
       result: i32 = proceed(args)
-      called: string = concat_5(site.module, ".", site.function, " at ", site.location)
+      called: string = {
+          __p_0: string = site.module
+          __p_1: string = site.function
+          __p_2: string = site.file
+          __buf_3: Buffer = std_core$Intrinsic$new_byte_buffer(i64(47) +% ((std_core$Intrinsic$byte_len(__p_0) +% std_core$Intrinsic$byte_len(__p_1)) +% std_core$Intrinsic$byte_len(__p_2)))
+          __off_4: i64 = 0
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_0)
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, ".")
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_1)
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, " at ")
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_2)
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, ":")
+          __off_4 = std.core.write_int(__buf_3, __off_4, site.line)
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, ":")
+          __off_4 = std.core.write_int(__buf_3, __off_4, site.column)
+          std.core.finish_buffer(__buf_3, __off_4)
+      }
       std.console.println<string>({
-          __p_0: string = site.marker.label
-          __p_1: string = called
-          __buf_2: Buffer = std_core$Intrinsic$new_byte_buffer(i64(26) +% (std_core$Intrinsic$byte_len(__p_0) +% std_core$Intrinsic$byte_len(__p_1)))
-          __off_3: i64 = 0
-          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_0)
-          __off_3 = std.core.write_string_at(__buf_2, __off_3, ": ")
-          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
-          __off_3 = std.core.write_string_at(__buf_2, __off_3, " -> ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, result)
-          std.core.finish_buffer(__buf_2, __off_3)
+          __p_5: string = site.marker.label
+          __p_6: string = called
+          __buf_7: Buffer = std_core$Intrinsic$new_byte_buffer(i64(26) +% (std_core$Intrinsic$byte_len(__p_5) +% std_core$Intrinsic$byte_len(__p_6)))
+          __off_8: i64 = 0
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, __p_5)
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, ": ")
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, __p_6)
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, " -> ")
+          __off_8 = std.core.write_int(__buf_7, __off_8, result)
+          std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       return result
   }
   snippet.Log<[Any, Any], i32> :: struct {}  // snippet$Log___Any__Any___i32
   snippet.Log<Any, i32> :: struct {}  // snippet$Log__Any__i32
-  concat_5 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string) -> string {
-      c0: i64 = std_core$Intrinsic$byte_len(p0)
-      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
-      c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
-      c3: i64 = c2 +% std_core$Intrinsic$byte_len(p3)
-      c4: i64 = c3 +% std_core$Intrinsic$byte_len(p4)
-      buf: Buffer = std_core$Intrinsic$new_byte_buffer(c4)
-      std_core$Intrinsic$buffer_write_string(buf, i64(0), p0)
-      std_core$Intrinsic$buffer_write_string(buf, c0, p1)
-      std_core$Intrinsic$buffer_write_string(buf, c1, p2)
-      std_core$Intrinsic$buffer_write_string(buf, c2, p3)
-      std_core$Intrinsic$buffer_write_string(buf, c3, p4)
-      std_core$Intrinsic$buffer_intern_string(buf, c4)
-  }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std_core$Intrinsic$byte_len(p0)
       c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)

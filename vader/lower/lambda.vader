@@ -43,8 +43,7 @@ lower_lambda :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> LoweredExpr {
     lifted_symbol :: fresh_lifted_symbol(ctx, is_env = false)
     return_type :: lambda_return_type(ctx, lambda)
     lifted_entry :: synth_mono_entry(ctx, lifted_symbol)
-    lifted_ctx :: new_fn_lower_ctx(ctx.project, lifted_entry, ctx.typed, ctx.subst, return_type)
-    lifted_ctx.comptime_bindings = ctx.comptime_bindings
+    lifted_ctx :: lifted_fn_ctx(ctx, lifted_entry, return_type)
     own_params :: lambda_params(lifted_ctx, lambda)
     if captures.len() == 0 {
         ctx.project.synth_decls.push(lift_fn(lifted_ctx, lifted_symbol, lambda, own_params))

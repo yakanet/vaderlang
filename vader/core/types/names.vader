@@ -288,6 +288,7 @@ export trait_key_name :: fn(key: string) -> string = mangle_last_segment(key)
 /// Names of stdlib core structs the compiler refers to by symbol.
 export STRUCT_RANGE: string: @type_name(Range)
 export STRUCT_FIELD: string: @type_name(Field)
+export STRUCT_SOURCE_LOCATION: string: @type_name(SourceLocation)
 
 /// `std/core::Stop`, what an `Iterator.next` returns once the iteration is over.
 export STRUCT_STOP: string: @type_name(Stop)

@@ -227,6 +227,9 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
                 comptime_val :: ctx.comptime_bindings[symbol.id]
                 if !(comptime_val is null) { return comptime_val }
             }
+            // Ahead of the routing of a capture: a lambda reads the parameter too.
+            placeless :: call_site_parameter_read(ctx, symbol, type, ident.span)
+            if placeless != null { return placeless }
             if type is FnType {
                 reference :: recorded_fn_reference(ctx, ident, type)
                 if reference != null { return reference }

@@ -515,6 +515,10 @@ FnLowerCtx :: struct {
     return_type:        Type
     blocks:             BlockCtx[]
 
+    /// The function as written that the body belongs to, which `@call_site()`
+    /// names: a lambda or a `defer` lifted out of a function keeps its name.
+    function_name:      string = ""
+
     /// Monotonically-increasing counter used to mint unique synthetic
     /// hint suffixes per fn body. Reset at fn entry so two parallel
     /// lowerings of different bodies don't intersect.
@@ -639,7 +643,22 @@ new_fn_lower_ctx :: fn(
         .uniq              = 0,
         .lifted_context    = null,
         .comptime_bindings = Map<i32, LoweredExpr> {},
+        .function_name     = decl_name(entry.decl),
     }
+}
+
+/// The context of a function lifted out of the body `ctx` lowers (a lambda, a
+/// `defer`): it reads the constants `ctx` binds, and a place of a call names the
+/// function it was written in.
+///
+/// @param ctx          the context of the body it is written in.
+/// @param entry        the lifted function's entry.
+/// @param return_type  the lifted function's return type.
+lifted_fn_ctx :: fn(ctx: FnLowerCtx, entry: MonoEntry, return_type: Type) -> FnLowerCtx {
+    lifted :: new_fn_lower_ctx(ctx.project, entry, ctx.typed, ctx.subst, return_type)
+    lifted.comptime_bindings = ctx.comptime_bindings
+    lifted.function_name = ctx.function_name
+    return lifted
 }
 
 /// An enum table due for materialisation, with the const that will hold it.

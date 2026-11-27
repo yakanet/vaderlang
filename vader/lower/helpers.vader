@@ -90,7 +90,7 @@ lower_call_args :: fn(
 ) -> LoweredExpr[] {
     lowered: LoweredExpr[]: []
     for arg in args {
-        lowered.push(lower_expr(ctx, arg.value))
+        lowered.push(lower_argument(ctx, arg))
     }
     out: LoweredExpr[]: []
     for i in 0..<lowered.len() {
