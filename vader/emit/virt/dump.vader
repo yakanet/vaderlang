@@ -232,6 +232,7 @@ data_items_hex :: fn(entry: BcPrimData) -> string {
 
 format_bc_type :: fn(t: BcType) -> string = match t {
     is BcScalar    -> "scalar ${val_type_name(t.val)}"
+    is BcNominal   -> "nominal ${quote_ident(t.name)} ${val_type_name(t.val)}"
     is BcStruct    -> {
         // `as "<c type>"` only when the struct mirrors one, `shared` only when tasks
         // share it: an ordinary struct writes exactly what it did before.
@@ -1087,6 +1088,7 @@ type_label_at :: fn(module: BytecodeModule, type_id: i32, depth: i32) -> string 
     if type_id < 0 || i64(type_id) >= module.types.len() { return "<type #${type_id} out of range>" }
     return match p :: module.types[type_id] {
         is BcScalar    -> val_type_name(p.val)
+        is BcNominal   -> p.name
         is BcStruct    -> p.name
         is BcArray     -> "${type_label_at(module, p.element, depth + 1)}[]"
         is BcUnion     -> "union"

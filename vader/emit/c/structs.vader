@@ -392,7 +392,12 @@ emit_ref_cast :: fn(s: FnState, op: Bc.RefCast) -> void {
 emit_retag_op :: fn(s: FnState, op: Bc.Retag) -> void {
     v :: pop(s)
     if val_of(v) == .Any {
-        push_into_temporary(s, expression_of(v), .Any)
+        // A box already made, by a read from an array of enums say, carries the
+        // tag of its storage row: it takes the one the op names, the payload kept.
+        temporary :: new_temporary(s, .Any)
+        assign(s, temporary, expression_of(v))
+        assign(s, CMember { .base = temporary, .member = "tag" }, verbatim("${op.type_id}u"))
+        push_temporary(s, temporary, .Any)
         return
     }
     if val_of(v) == .Ref {

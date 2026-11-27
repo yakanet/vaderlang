@@ -2,6 +2,7 @@
 
 module "vader/emit/c"
 
+import "std/iter"
 import "vader/core/bytecode"
 import "vader/emit/c/ast"
 // The opcode union pulls in ~120 names ; the namespace form keeps the
@@ -77,7 +78,12 @@ one_variant_check :: fn(s: FnState, tag_expr: CExpression, type_id: i32) -> CExp
             return float_tag_check_expr(s.ctx.module.types, tag_expr)
         }
     }
-    return tag_equals(tag_expr, type_id)
+    tags :: tags_answering_as(s.ctx.module.types, type_id)
+    if tags.len() == 1 {
+        return tag_equals(tag_expr, type_id)
+    }
+    checks :: tags.map(tag -> tag_equals(tag_expr, tag)).collect()
+    return CParenthesized { .inner = any_of(checks) }
 }
 
 // `tag == <type_id>u`.

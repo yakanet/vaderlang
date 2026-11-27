@@ -222,6 +222,31 @@ export intern_type :: fn(t: Type, ctx: EmitterCtx) -> i32 {
     return new_index
 }
 
+/// The tag a value of `t` carries once boxed: the `BcNominal` row of an enum, the
+/// row `intern_type` gives any other type. An enum is still stored under its
+/// representation's row, so only what writes or tests a tag asks for this one.
+///
+/// @param t    the static type of the boxed value.
+/// @param ctx  the emit context.
+/// @return     the type-table index of the tag.
+export intern_box_tag :: fn(t: Type, ctx: EmitterCtx) -> i32 {
+    if t !is EnumType {
+        return intern_type(t, ctx)
+    }
+    name :: declaration_mangle(t.symbol.module_name, t.symbol.name)
+    new_index :: i32(ctx.types.len())
+    existing :: ctx.type_key.get_or_put("nominal ${name}", new_index)
+    if existing != new_index {
+        return existing
+    }
+    if ctx.types_frozen {
+        panic("emit/bytecode/emit_ctx: intern_box_tag would mint the tag of `${name}` after prune_unused_types")
+    }
+    ctx.types.push(BcNominal { .val = val_type_of_type(t), .name = name })
+    record_slot_type(ctx, new_index, t)
+    return new_index
+}
+
 /// Intern a string literal into the module-wide pool. Returns the
 /// pool index. Like `intern_type`, idempotent on identical content.
 ///
@@ -308,7 +333,8 @@ bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx) -> BcType {
         is ArrayType     -> { return BcArray { .element = intern_type(t.element, ctx) } }
         is UnionType     -> {
             variant_indices: i32[]: []
-            for v in t.variants { variant_indices.push(intern_type(v, ctx)) }
+            // A union lists the tags its values carry, an enum's own among them.
+            for v in t.variants { variant_indices.push(intern_box_tag(v, ctx)) }
             return BcUnion { .variants = variant_indices }
         }
         is FnType -> {

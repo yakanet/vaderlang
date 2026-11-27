@@ -128,7 +128,6 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
             if e.receiver_type_index in seen_tags {
                 continue
             }
-            seen_tags.push(e.receiver_type_index)
             callee :: ctx.module.functions[e.fn_index]
             csig :: callee.signature
             args: CExpression[]: [coerce_expr(types, verbatim("recv"), .Any, csig.params[0])]
@@ -151,7 +150,12 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
                     },
                 ]
             }
-            cases.push(CCase { .value = unsigned(i64(e.receiver_type_index)), .body = body })
+            for tag in tags_answering_as(types, e.receiver_type_index) {
+                if tag !in seen_tags {
+                    seen_tags.push(tag)
+                    cases.push(CCase { .value = unsigned(i64(tag)), .body = body })
+                }
+            }
         }
         miss :: CExpressionStatement {
             .expression = call(
@@ -177,6 +181,24 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
         })
     }
     printer.print_section(CSection { .comment = ["vtable dispatchers"], .items = dispatchers })
+}
+
+// The tags a box answers to as the row `index`: the row itself, and for a scalar
+// every `BcNominal` row it represents, since an enum's own tag tests and dispatches
+// as the scalar row of its representation.
+tags_answering_as :: fn(types: BcType[], index: i32) -> i32[] {
+    out: i32[]: [index]
+    row :: types[index]
+    if row !is BcScalar {
+        return out
+    }
+    for i in 0..<types.len() {
+        t :: types[i]
+        if t is BcNominal && t.val == row.val {
+            out.push(i32(i))
+        }
+    }
+    return out
 }
 
 // The dispatcher's head, shared by its prototype and its definition.

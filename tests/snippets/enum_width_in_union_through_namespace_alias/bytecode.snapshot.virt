@@ -8,10 +8,11 @@ type 5 scalar i64
 type 6 scalar u8
 type 7 array 6
 type 8 scalar bool
-type 9 union 6,10,11
-type 10 struct snippet_codes$FailureMessage { text:3 }
-type 11 struct snippet_codes$Found { id:2 }
-type 12 union 6,10
+type 9 union 10,11,12
+type 10 nominal snippet_codes$FailureCode u8
+type 11 struct snippet_codes$FailureMessage { text:3 }
+type 12 struct snippet_codes$Found { id:2 }
+type 13 union 10,11
 string 0 "message "
 string 1 "code "
 string 2 "found "
@@ -48,14 +49,14 @@ fn 0 snippet$main () -> i32
       local.tee 2   ; __fallback_0
       local.set 3   ; got
       local.get 2   ; __fallback_0
-      type_check 12   ; union
+      type_check 13   ; union
       if $L2 void
         local.get 3   ; got
-        type_check 10   ; snippet_codes$FailureMessage
+        type_check 11   ; snippet_codes$FailureMessage
         if $L3 void
           local.get 3   ; got
-          ref.cast 10   ; snippet_codes$FailureMessage
-          struct.get 10 0   ; snippet_codes$FailureMessage.text
+          ref.cast 11   ; snippet_codes$FailureMessage
+          struct.get 11 0   ; snippet_codes$FailureMessage.text
           ref.cast 3   ; string
           local.set 4   ; $field_12
           string.const 0   ; "message "
@@ -95,7 +96,7 @@ fn 0 snippet$main () -> i32
         br $L0
       end $L2
       local.get 2   ; __fallback_0
-      ref.cast 11   ; snippet_codes$Found
+      ref.cast 12   ; snippet_codes$Found
       local.set 1   ; got
       i64.const 26
       buffer.new
@@ -107,7 +108,7 @@ fn 0 snippet$main () -> i32
       string.const 2   ; "found "
       call 3   ; std_core$write_string_at
       local.set 9   ; __off_4
-      local.field 1 11 0   ; got snippet_codes$Found.id
+      local.field 1 12 0   ; got snippet_codes$Found.id
       ref.cast 2   ; i32
       i32.to_i64
       local.set 10   ; $cast_37
@@ -418,7 +419,7 @@ fn 9 snippet_codes$look_up (i32) -> any
   i32.eq
   if $L0 void
     i32.const 1
-    struct.new 11   ; snippet_codes$Found
+    struct.new 12   ; snippet_codes$Found
     return
   end $L0
   local.get 0   ; arg 0
@@ -427,10 +428,10 @@ fn 9 snippet_codes$look_up (i32) -> any
   if $L1 void
   else
     string.const 4   ; "gone"
-    struct.new 10   ; snippet_codes$FailureMessage
+    struct.new 11   ; snippet_codes$FailureMessage
     return
   end $L1
   i32.const 1
-  retag 6   ; u8
+  retag 10   ; snippet_codes$FailureCode
   return
 end

@@ -364,6 +364,7 @@ export BcValArray :: struct {
 /// `BcArray.element`, `BcFn.params`, `BcFn.return_type`, `BcUnion.variants`)
 /// is an index into that array.
 export BcType :: BcScalar
+    | BcNominal
     | BcStruct
     | BcArray
     | BcUnion
@@ -373,6 +374,17 @@ export BcType :: BcScalar
 /// A value held in one stack slot, of the value class `val`.
 export BcScalar :: struct {
     val: ValType
+}
+
+/// The tag an enum value carries once boxed (a union, a trait value, an erased
+/// slot): the type the source wrote, not its representation. Never the type of a
+/// slot: the value is stored and moved as `val`, the integer it rides, so a reader
+/// of storage treats it as the `BcScalar` of `val`.
+export BcNominal :: struct {
+    /// The representation its values are stored as.
+    val: ValType
+    /// The module-qualified name of the declaration (`main.Direction`).
+    name: string
 }
 
 /// One field of a `BcStruct`. `type_index` keys the parent module's
@@ -600,7 +612,7 @@ POINTER_BYTES: i32: @comptime { return i32(primitive_size("CPointer")) }
 /// @param t  the bytecode type-table entry.
 /// @return   the byte size in the runtime layout.
 export size_of_bc_type :: fn(t: BcType) -> i32 = match t {
-    is BcScalar                    -> size_of_val_type(t.val)
+    is BcScalar | BcNominal        -> size_of_val_type(t.val)
     is BcStruct | BcArray | BcFn   -> i32(REF_SLOT_BYTES)
     is BcUnion | BcRef             -> i32(BOX_SLOT_BYTES)
 }
@@ -618,7 +630,7 @@ export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
     is BcArray -> true
     is BcFn -> true
     is BcScalar -> t.val == .Null
-    is BcRef -> false
+    is BcNominal | BcRef -> false
     is BcUnion -> {
         for v in t.variants {
             if !is_ref_only_element(types[v], types) { return false }
@@ -640,7 +652,7 @@ export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
 /// @param types    the module type table (to resolve union variant indices).
 /// @return         the storage discriminator the runtime reads off the buffer.
 export array_kind_of :: fn(element: BcType, types: BcType[]) -> ArrayKind = match element {
-    is BcScalar -> array_kind_of_val(element.val)
+    is BcScalar | BcNominal -> array_kind_of_val(element.val)
     is BcStruct -> .Ref
     is BcArray -> .Ref
     is BcFn -> .Ref
@@ -698,6 +710,7 @@ export bc_type_key :: fn(types: BcType[], idx: i32) -> string {
     }
     return match t :: types[idx] {
         is BcScalar -> "p:${i32(t.val)}"
+        is BcNominal   -> "n:${t.name}"
         // Structs key by NAME, not by their fields: the name is unique after
         // monomorphisation, and descending would not terminate on a recursive
         // struct.

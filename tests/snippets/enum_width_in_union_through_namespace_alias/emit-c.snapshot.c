@@ -53,7 +53,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[13] = {
+const vader_type_info_t vader_type_info_table[14] = {
 	[2] = { .slot_size = 4 },
 	[3] = { .slot_size = 4 },
 	[4] = {
@@ -68,19 +68,20 @@ const vader_type_info_t vader_type_info_table[13] = {
 	},
 	[8] = { .slot_size = 1 },
 	[9] = { .slot_size = 16 },
-	[10] = {
+	[10] = { .slot_size = 1 },
+	[11] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_codes$FailureMessage_t),
 		.slot_size = 8,
 		.string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_codes$FailureMessage_t, f_text) },
 		.string_count = 1,
 	},
-	[11] = {
+	[12] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_codes$Found_t),
 		.slot_size = 8,
 	},
-	[12] = { .slot_size = 16 },
+	[13] = { .slot_size = 16 },
 };
-const size_t vader_type_info_count = 13;
+const size_t vader_type_info_count = 14;
 
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
@@ -140,8 +141,8 @@ static int32_t snippet$main(void) {
 	while ((l0 < INT32_C(3))) {
 		l2 = snippet_codes$look_up(l0);
 		l3 = l2;
-		if ((l2.tag == 6u || l2.tag == 10u)) {
-			if (l3.tag == 10u) {
+		if ((l2.tag == 10u || l2.tag == 11u)) {
+			if (l3.tag == 11u) {
 				t0 = l3.payload.obj;
 				l4 = ((vader_struct_snippet_codes$FailureMessage_t*) t0)->f_text;
 				t1 = concat_2(1u, l4);
@@ -344,19 +345,19 @@ static vader_box_t snippet_codes$look_up(int32_t l0) {
 	vader_gc_top = &gc_frame;
 	if (l0 == INT32_C(0)) {
 		vader_struct_snippet_codes$Found_t* _a0_obj = (vader_struct_snippet_codes$Found_t*) vader_gc_alloc(sizeof(vader_struct_snippet_codes$Found_t));
-		vader_obj_header_init(_a0_obj, 11u);
+		vader_obj_header_init(_a0_obj, 12u);
 		_a0_obj->f_id = INT32_C(1);
 		t0 = (void*) _a0_obj;
 		{ vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 	}
 	if (!(l0 == INT32_C(1))) {
 		vader_struct_snippet_codes$FailureMessage_t* _a1_obj = (vader_struct_snippet_codes$FailureMessage_t*) vader_gc_alloc(sizeof(vader_struct_snippet_codes$FailureMessage_t));
-		vader_obj_header_init(_a1_obj, 10u);
+		vader_obj_header_init(_a1_obj, 11u);
 		_a1_obj->f_text = 5u;
 		t0 = (void*) _a1_obj;
 		{ vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 	}
-	{ vader_box_t __vret = vader_box_i32(6u, INT32_C(1)); vader_gc_top = gc_frame.prev; return __vret; }
+	{ vader_box_t __vret = vader_box_i32(10u, INT32_C(1)); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 int main(int argc, char** argv) {

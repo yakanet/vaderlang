@@ -971,10 +971,10 @@ export carries_own_tag :: fn(t: Type) -> bool = match t {
     is NeverType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType -> false
 }
 
-/// Whether a boxed value of type `t` carries its representation's runtime type
-/// rather than its own : an enum boxes as its integer, a distinct as its
-/// backing. A trait dispatched on such a value reaches its own impl only where
-/// its type is known statically.
+/// Whether a boxed value of type `t` answers as its representation's runtime
+/// type rather than its own : an enum as its integer (its own tag tests and
+/// dispatches as that integer's), a distinct as its backing. A trait dispatched
+/// on such a value reaches its own impl only where its type is known statically.
 ///
 /// @param t  the type of the value boxed.
 export boxes_as_representation :: fn(t: Type) -> bool =

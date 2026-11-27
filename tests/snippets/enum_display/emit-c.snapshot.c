@@ -74,7 +74,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 1334) vader_data_0_buf = {
-	VADER_STATIC_BUF_HEADER(11u, 4u, 1334u),
+	VADER_STATIC_BUF_HEADER(12u, 4u, 1334u),
 	.slots = {
 		(uint64_t) UINT64_C(17218479456385750618), (uint64_t) UINT64_C(1242899115359157055),
 		(uint64_t) UINT64_C(10761549660241094136), (uint64_t) UINT64_C(5388497965526861063),
@@ -745,7 +745,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 1334) vader_data_0_buf = {
 		(uint64_t) UINT64_C(11392378155556871081), (uint64_t) UINT64_C(7784369436827535057),
 	},
 };
-static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(20u, 1334u, &vader_data_0_buf);
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(21u, 1334u, &vader_data_0_buf);
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
@@ -819,40 +819,41 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[21] = {
+const vader_type_info_t vader_type_info_table[22] = {
 	[2] = { .slot_size = 1 },
 	[3] = { .slot_size = 4 },
 	[4] = { .slot_size = 1 },
 	[5] = { .slot_size = 16 },
-	[6] = { .slot_size = 16 },
-	[7] = { .slot_size = 4 },
-	[8] = {
+	[6] = { .slot_size = 1 },
+	[7] = { .slot_size = 16 },
+	[8] = { .slot_size = 4 },
+	[9] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
 		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
 	},
-	[9] = {
+	[10] = {
 		.kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
 		.slot_size = 8,
 	},
-	[10] = { .slot_size = 8 },
 	[11] = { .slot_size = 8 },
-	[12] = { .slot_size = 1 },
-	[13] = { .slot_size = 2 },
+	[12] = { .slot_size = 8 },
+	[13] = { .slot_size = 1 },
 	[14] = { .slot_size = 2 },
-	[15] = { .slot_size = 4 },
+	[15] = { .slot_size = 2 },
 	[16] = { .slot_size = 4 },
 	[17] = { .slot_size = 4 },
-	[18] = { .slot_size = 8 },
-	[19] = {
+	[18] = { .slot_size = 4 },
+	[19] = { .slot_size = 8 },
+	[20] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
 		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
 	},
-	[20] = {
+	[21] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 12u,
 	},
 };
-const size_t vader_type_info_count = 21;
+const size_t vader_type_info_count = 22;
 
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
@@ -862,7 +863,7 @@ const size_t vader_type_info_count = 21;
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 8u, 2u);
+	return (void*) vader_string_bytes_view(a0, 9u, 2u);
 }
 
 static vader_string_t vader_host_std_core$Runtime$bytes_to_string(void* a0) {
@@ -920,7 +921,7 @@ static vader_string_t snippet$Weight$std_core$Display$to_string(uint8_t l0) {
 
 static vader_box_t snippet$maybe_direction(bool l0) {
 	if (l0) {
-		return vader_box_i32(2u, INT32_C(1));
+		return vader_box_i32(6u, INT32_C(1));
 	}
 	return vader_box_obj(0u, NULL);
 }
@@ -964,7 +965,7 @@ static int32_t snippet$main(void) {
 		t0 = concat_2(3u, l1);
 		std_console$println__string(t0);
 	}
-	vader_array_t* _a0_arr = vader_array_new(8u, 2u, 1u, 2u);
+	vader_array_t* _a0_arr = vader_array_new(9u, 2u, 1u, 2u);
 	((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 1u] = (uint8_t) INT32_C(3);
 	((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint8_t) INT32_C(0);
 	t2 = (void*) _a0_arr;
@@ -985,7 +986,7 @@ static int32_t snippet$main(void) {
 	l3 = snippet$pair__snippet_Direction((uint8_t) 0, (uint8_t) 1);
 	t0 = concat_5(l1, 2u, l2, 2u, l3);
 	std_console$println__string(t0);
-	vader_array_t* _a1_arr = vader_array_new(8u, 2u, 1u, 2u);
+	vader_array_t* _a1_arr = vader_array_new(9u, 2u, 1u, 2u);
 	((uint8_t*) _a1_arr->buf->slots)[vader_array_offset(_a1_arr) + 1u] = (uint8_t) INT32_C(2);
 	((uint8_t*) _a1_arr->buf->slots)[vader_array_offset(_a1_arr) + 0u] = (uint8_t) INT32_C(1);
 	t2 = (void*) _a1_arr;
@@ -1295,7 +1296,7 @@ static vader_string_t std_core$$array$Display$to_string__snippet_Direction(void*
 	};
 	vader_gc_top = &gc_frame;
 	t0 = vader_array_length(((vader_array_t*) l0));
-	vader_array_t* _a0_arr = vader_array_reserve(19u, (int64_t) t0, 0u, 3u);
+	vader_array_t* _a0_arr = vader_array_reserve(20u, (int64_t) t0, 0u, 3u);
 	l1 = (void*) _a0_arr;
 	l2 = INT64_C(2);
 	l3 = l0;
@@ -1552,12 +1553,12 @@ static void* std_core$utf8_encode(uint32_t l0) {
 	t0 = ((int32_t) (uint32_t) l0);
 	l1 = (uint32_t) (int32_t) t0;
 	if ((l1 < INT32_C(128))) {
-		vader_array_t* _a0_arr = vader_array_new(8u, 1u, 1u, 2u);
+		vader_array_t* _a0_arr = vader_array_new(9u, 1u, 1u, 2u);
 		((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint8_t) (((int32_t) (uint32_t) l1) & INT32_C(255));
 		t1 = (void*) _a0_arr;
 		{ void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 	}
-	vader_array_t* _a1_arr = vader_array_new(8u, 0u, 1u, 2u);
+	vader_array_t* _a1_arr = vader_array_new(9u, 0u, 1u, 2u);
 	l2 = (void*) _a1_arr;
 	if ((l1 < INT32_C(2048))) {
 		l3 = (l1 >> INT32_C(6));
@@ -2397,21 +2398,22 @@ static void std_console$println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
 	switch (recv.tag) {
-		case 8u: return std_core$$array$Display$to_string__snippet_Direction(recv.payload.obj);
-		case 12u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));
-		case 13u: return std_core$i16$Display$to_string(((int16_t) recv.payload.i));
-		case 7u: return std_core$i32$Display$to_string(((int32_t) recv.payload.i));
-		case 10u: return std_core$i64$Display$to_string(((int64_t) recv.payload.i));
+		case 9u: return std_core$$array$Display$to_string__snippet_Direction(recv.payload.obj);
+		case 13u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));
+		case 14u: return std_core$i16$Display$to_string(((int16_t) recv.payload.i));
+		case 8u: return std_core$i32$Display$to_string(((int32_t) recv.payload.i));
+		case 11u: return std_core$i64$Display$to_string(((int64_t) recv.payload.i));
 		case 2u: return std_core$u8$Display$to_string(((uint8_t) recv.payload.i));
-		case 14u: return std_core$u16$Display$to_string(((uint16_t) recv.payload.i));
-		case 15u: return std_core$u32$Display$to_string(((uint32_t) recv.payload.i));
-		case 11u: return std_core$u64$Display$to_string(((uint64_t) recv.payload.i));
+		case 6u: return std_core$u8$Display$to_string(((uint8_t) recv.payload.i));
+		case 15u: return std_core$u16$Display$to_string(((uint16_t) recv.payload.i));
+		case 16u: return std_core$u32$Display$to_string(((uint32_t) recv.payload.i));
+		case 12u: return std_core$u64$Display$to_string(((uint64_t) recv.payload.i));
 		case 4u: return std_core$bool$Display$to_string(recv.payload.b);
-		case 16u: return std_core$char$Display$to_string(((uint32_t) recv.payload.i));
+		case 17u: return std_core$char$Display$to_string(((uint32_t) recv.payload.i));
 		case 3u: return std_core$string$Display$to_string(recv.payload.s);
 		case 0u: return std_core$null$Display$to_string(recv);
-		case 17u: return std_core$f32$Display$to_string(((float) recv.payload.f));
-		case 18u: return std_core$f64$Display$to_string(((double) recv.payload.f));
+		case 18u: return std_core$f32$Display$to_string(((float) recv.payload.f));
+		case 19u: return std_core$f64$Display$to_string(((double) recv.payload.f));
 		default: vader_unreachable("vtable miss in std_core$Display.to_string");
 	}
 	vader_unreachable("vtable miss in std_core$Display.to_string");

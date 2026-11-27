@@ -11,9 +11,10 @@
 //         other is Point && Point$Equals$equals(self, other as Point)
 //
 // A receiver that does not carry its own tag (`carries_own_tag`) keeps its plain
-// entry, since a tag test cannot tell it apart: an enum or a distinct boxes under
-// its representation's tag, and a generic instance whose body other instances
-// share has none (refused beside another variant in a `T: Equals` union).
+// entry, since a tag test cannot tell it apart: an enum's tag answers as its
+// representation's, a distinct boxes under that tag, and a generic instance whose
+// body other instances share has none (refused beside another variant in a
+// `T: Equals` union).
 
 module "vader/lower"
 

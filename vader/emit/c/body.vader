@@ -274,10 +274,11 @@ box_expr_unknown :: fn(types: BcType[], value: CExpression, val: ValType) -> CEx
 
 /// True when the type at `type_index` is exactly the scalar of class
 /// `slot_val` : the compile-time answer for `type_check` on a value held in
-/// a scalar slot (no runtime tag to inspect).
+/// a scalar slot (no runtime tag to inspect). An enum's tag answers as its
+/// representation.
 export class_matches_type :: fn(types: BcType[], slot_val: ValType, type_index: i32) -> bool {
     t :: types[type_index]
-    if t is BcScalar { return t.val == slot_val }
+    if t is BcScalar | BcNominal { return t.val == slot_val }
     return false
 }
 
@@ -357,7 +358,7 @@ export c_type_for :: fn(t: BcType) -> string = c_type_for_val_bare(val_type_of_b
 /// @return   the stack-machine value class : a `BcScalar`'s own, `Ref` for
 ///           a concrete heap shape, `Any` for a union or a ref.
 export val_type_of_bc_type :: fn(t: BcType) -> ValType = match t {
-    is BcScalar -> t.val
+    is BcScalar | BcNominal -> t.val
     // Concrete heap -> `.Ref` (void*) ; erased trait/union -> `.Any` (box).
     // Mirrors `type_classify.vader::val_type_of_type`.
     is BcStruct -> .Ref

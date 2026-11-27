@@ -422,6 +422,17 @@ parse_type_decl_bc :: fn(cleaned: string, types: BcType[]) -> void | DirectiveEr
         types.push(BcScalar { .val = vt_or_void(kind) })
         return
     }
+    if rest.starts_with("nominal ") {
+        // `nominal <name> <class>`: the class is the last word, the name may be quoted.
+        body :: rest.trim_prefix("nominal ").trim()
+        cut :: body.last_index_of(' ') else {
+            return DirectiveError { .reason = "nominal type: no class after the name in `${body}`" }
+        }
+        name :: unquote_name(body.byte_slice(0, cut).trim())
+        kind :: body.byte_slice(cut + 1, body.byte_len()).trim()
+        types.push(BcNominal { .val = vt_or_void(kind), .name = name })
+        return
+    }
     if rest.starts_with("array ") {
         element_text :: rest.trim_prefix("array ").trim()
         parsed :: parse_int_in_base(element_text, 10) else {

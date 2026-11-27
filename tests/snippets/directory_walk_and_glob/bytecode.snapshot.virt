@@ -59,13 +59,13 @@ type 56 struct std_string$StringChars { s:5,cursor:7 }
 type 57 union 8,16
 type 58 struct std_glob$GlobOptions { pathname:4,globstar:4,explicit_period:4 }
 type 59 union 60,31
-type 60 struct std_glob$Glob { options:58,tokens:79 }
+type 60 struct std_glob$Glob { options:58,tokens:80 }
 type 61 array 8
 type 62 union 63,31
 type 63 struct __Tuple_2_ca1b4b98917b36a8 { _0:64,_1:7 }
 type 64 union 65,66,67,68,69,70
 type 65 struct std_glob$GlobAnyChar {  }
-type 66 struct std_glob$GlobBracket { ranges:80,classes:9,negated:4 }
+type 66 struct std_glob$GlobBracket { ranges:81,classes:9,negated:4 }
 type 67 struct std_glob$GlobDeepStar {  }
 type 68 struct std_glob$GlobDirectories {  }
 type 69 struct std_glob$GlobLiteral { ch:8 }
@@ -77,17 +77,18 @@ type 74 union 75,31,0
 type 75 struct __Tuple_char_i64_d35e0494 { _0:8,_1:7 }
 type 76 union 77,0
 type 77 struct __Tuple_i64_i64_f049c617 { _0:7,_1:7 }
-type 78 union 0,10
-type 79 array 64
-type 80 array 81
-type 81 struct std_glob$GlobRange { low:8,high:8 }
-type 82 struct std_string__builder$StringBuilder { parts:15 }
-type 83 fn () -> 1
-type 84 array 16
-type 85 array 65
-type 86 array 70
-type 87 array 67
-type 88 array 68
+type 78 union 0,79
+type 79 nominal std_glob$PosixClass u8
+type 80 array 64
+type 81 array 82
+type 82 struct std_glob$GlobRange { low:8,high:8 }
+type 83 struct std_string__builder$StringBuilder { parts:15 }
+type 84 fn () -> 1
+type 85 array 16
+type 86 array 65
+type 87 array 70
+type 88 array 67
+type 89 array 68
 string 0 "/vader_snippet_walk"
 string 1 "/src/front"
 string 2 "/node_modules/x"
@@ -230,7 +231,7 @@ impl 33 std_io$Writer
 impl 22 std_core$Error
 impl 56 std_core$Iterator
 impl 31 std_core$Error
-impl 82 std_core$Display
+impl 83 std_core$Display
 impl 6 std_core$ByteAccess
 impl 26 std_core$Into
 impl 33 std_io$Reader
@@ -1852,7 +1853,7 @@ fn 28 std_fs$list_dir (string) -> any
   ref.cast 38   ; pointer
   local.tee 1   ; d
   struct.new 29   ; __defer_env_std_fs_1
-  make_closure 29 83   ; __defer_std_fs_0 fn
+  make_closure 29 84   ; __defer_std_fs_0 fn
   defer.push
   array.new 13 0   ; std_fs$ListedEntry[]
   local.set 3   ; out
@@ -4608,9 +4609,9 @@ fn 91 std_string$StringChars$std_core$Iterator$next (ref) -> any
   local.get 2   ; $call_4
   i64.ge
   if $L0 void
-    data.const 2 84   ; pool[2] std_core$Stop[]
+    data.const 2 85   ; pool[2] std_core$Stop[]
     i64.const 0
-    array.get 84 safe   ; std_core$Stop[]
+    array.get 85 safe   ; std_core$Stop[]
     return
   end $L0
   local.field 0 56 0   ; arg 0 std_string$StringChars.s
@@ -4715,7 +4716,7 @@ fn 92 std_glob$parse_glob (string,ref) -> any
   end $L0
   local.get 3   ; out
   local.set 2   ; chars
-  array.new 79 0   ; union[]
+  array.new 80 0   ; union[]
   local.set 3   ; out
   i64.const 0
   local.set 6   ; i
@@ -4835,7 +4836,7 @@ fn 93 std_glob$matches (ref,string) -> bool
     if $L3 void
       local.field 0 60 1   ; arg 0 std_glob$Glob.tokens
       local.get 6   ; $add_checked_16
-      array.get 79   ; union[]
+      array.get 80   ; union[]
       local.set 4   ; __fuse_step_0
       local.field 0 60 0   ; arg 0 std_glob$Glob.options
       local.set 8   ; $field_37
@@ -4923,9 +4924,9 @@ fn 94 std_glob$token_at (ref,i64,ref) -> any
   char.const 63
   i32.eq
   if $L3 void
-    data.const 3 85   ; pool[3] std_glob$GlobAnyChar[]
+    data.const 3 86   ; pool[3] std_glob$GlobAnyChar[]
     i64.const 0
-    array.get 85 safe   ; std_glob$GlobAnyChar[]
+    array.get 86 safe   ; std_glob$GlobAnyChar[]
     local.set 7   ; $struct_19
     local.get 1   ; arg 1
     i64.const 1
@@ -5431,7 +5432,7 @@ fn 96 std_glob$bracket_token (ref,i64,bool) -> any
     i64.checked_add
     local.set 4   ; $add_checked_6
   end $L2
-  array.new 80 0   ; std_glob$GlobRange[]
+  array.new 81 0   ; std_glob$GlobRange[]
   local.set 7   ; ranges
   array.new 9 0   ; u8[]
   local.set 8   ; classes
@@ -5543,11 +5544,11 @@ fn 96 std_glob$bracket_token (ref,i64,bool) -> any
         if $L14 void
           local.get 23   ; low_char
           local.get 23   ; low_char
-          struct.new 81   ; std_glob$GlobRange
+          struct.new 82   ; std_glob$GlobRange
           local.set 28   ; $struct_85
           local.get 7   ; ranges
           local.get 28   ; $struct_85
-          array.push 81   ; std_glob$GlobRange
+          array.push 82   ; std_glob$GlobRange
           local.get 24   ; after_low
           local.set 4   ; $add_checked_6
           br $L3
@@ -5583,11 +5584,11 @@ fn 96 std_glob$bracket_token (ref,i64,bool) -> any
         end $L15
         local.get 23   ; low_char
         local.get 30   ; high_char
-        struct.new 81   ; std_glob$GlobRange
+        struct.new 82   ; std_glob$GlobRange
         local.set 34   ; $struct_100
         local.get 7   ; ranges
         local.get 34   ; $struct_100
-        array.push 81   ; std_glob$GlobRange
+        array.push 82   ; std_glob$GlobRange
         local.get 31   ; after_high
         local.set 4   ; $add_checked_6
         br $L3
@@ -5698,9 +5699,9 @@ fn 97 std_glob$star_token (ref,i64,bool) -> ref
   end $L5
   local.get 5   ; or_res
   if $L7 void
-    data.const 4 86   ; pool[4] std_glob$GlobStar[]
+    data.const 4 87   ; pool[4] std_glob$GlobStar[]
     i64.const 0
-    array.get 86 safe   ; std_glob$GlobStar[]
+    array.get 87 safe   ; std_glob$GlobStar[]
     local.get 3   ; end
     struct.new 63   ; __Tuple_2_ca1b4b98917b36a8
     return
@@ -5712,9 +5713,9 @@ fn 97 std_glob$star_token (ref,i64,bool) -> ref
   local.get 4   ; $len_4
   i64.eq
   if $L8 void
-    data.const 5 87   ; pool[5] std_glob$GlobDeepStar[]
+    data.const 5 88   ; pool[5] std_glob$GlobDeepStar[]
     i64.const 0
-    array.get 87 safe   ; std_glob$GlobDeepStar[]
+    array.get 88 safe   ; std_glob$GlobDeepStar[]
     local.get 3   ; end
     struct.new 63   ; __Tuple_2_ca1b4b98917b36a8
     return
@@ -5726,16 +5727,16 @@ fn 97 std_glob$star_token (ref,i64,bool) -> ref
   i32.eq
   if $L9 void
   else
-    data.const 4 86   ; pool[4] std_glob$GlobStar[]
+    data.const 4 87   ; pool[4] std_glob$GlobStar[]
     i64.const 0
-    array.get 86 safe   ; std_glob$GlobStar[]
+    array.get 87 safe   ; std_glob$GlobStar[]
     local.get 3   ; end
     struct.new 63   ; __Tuple_2_ca1b4b98917b36a8
     return
   end $L9
-  data.const 6 88   ; pool[6] std_glob$GlobDirectories[]
+  data.const 6 89   ; pool[6] std_glob$GlobDirectories[]
   i64.const 0
-  array.get 88 safe   ; std_glob$GlobDirectories[]
+  array.get 89 safe   ; std_glob$GlobDirectories[]
   local.set 7   ; $idx_43
   local.get 3   ; end
   i64.const 1
@@ -6053,16 +6054,16 @@ fn 102 std_glob$lists (ref,char) -> bool
     if $L1 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 80   ; std_glob$GlobRange[]
+      array.get 81   ; std_glob$GlobRange[]
       local.set 5   ; range
-      local.field 5 81 0   ; range std_glob$GlobRange.low
+      local.field 5 82 0   ; range std_glob$GlobRange.low
       ref.cast 8   ; char
       local.set 6   ; $field_11
       local.get 1   ; arg 1
       local.get 6   ; $field_11
       i32.ge
       if $L2 void
-        local.field 5 81 1   ; range std_glob$GlobRange.high
+        local.field 5 82 1   ; range std_glob$GlobRange.high
         ref.cast 8   ; char
         local.set 7   ; $field_13
         local.get 1   ; arg 1
@@ -6201,7 +6202,7 @@ fn 104 std_glob$chars_between (ref,i64,i64) -> string
   local k i64
   local $idx_8 char
   array.new 15 0   ; string[]
-  struct.new 82   ; std_string__builder$StringBuilder
+  struct.new 83   ; std_string__builder$StringBuilder
   local.set 3   ; sb
   local.get 1   ; arg 1
   local.set 4   ; k
@@ -6236,7 +6237,7 @@ fn 105 std_glob$posix_class_named (string) -> any
   string.eq
   if $L0 void
     i32.const 0
-    retag 10   ; u8
+    retag 79   ; std_glob$PosixClass
     local.tee 1   ; if_res
     return
   end $L0
@@ -6245,7 +6246,7 @@ fn 105 std_glob$posix_class_named (string) -> any
   string.eq
   if $L1 void
     i32.const 1
-    retag 10   ; u8
+    retag 79   ; std_glob$PosixClass
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
@@ -6253,7 +6254,7 @@ fn 105 std_glob$posix_class_named (string) -> any
     string.eq
     if $L2 void
       i32.const 2
-      retag 10   ; u8
+      retag 79   ; std_glob$PosixClass
       local.set 1   ; if_res
     else
       local.get 0   ; arg 0
@@ -6261,7 +6262,7 @@ fn 105 std_glob$posix_class_named (string) -> any
       string.eq
       if $L3 void
         i32.const 3
-        retag 10   ; u8
+        retag 79   ; std_glob$PosixClass
         local.set 1   ; if_res
       else
         local.get 0   ; arg 0
@@ -6269,7 +6270,7 @@ fn 105 std_glob$posix_class_named (string) -> any
         string.eq
         if $L4 void
           i32.const 4
-          retag 10   ; u8
+          retag 79   ; std_glob$PosixClass
           local.set 1   ; if_res
         else
           local.get 0   ; arg 0
@@ -6277,7 +6278,7 @@ fn 105 std_glob$posix_class_named (string) -> any
           string.eq
           if $L5 void
             i32.const 5
-            retag 10   ; u8
+            retag 79   ; std_glob$PosixClass
             local.set 1   ; if_res
           else
             local.get 0   ; arg 0
@@ -6285,7 +6286,7 @@ fn 105 std_glob$posix_class_named (string) -> any
             string.eq
             if $L6 void
               i32.const 6
-              retag 10   ; u8
+              retag 79   ; std_glob$PosixClass
               local.set 1   ; if_res
             else
               local.get 0   ; arg 0
@@ -6293,7 +6294,7 @@ fn 105 std_glob$posix_class_named (string) -> any
               string.eq
               if $L7 void
                 i32.const 7
-                retag 10   ; u8
+                retag 79   ; std_glob$PosixClass
                 local.set 1   ; if_res
               else
                 local.get 0   ; arg 0
@@ -6301,7 +6302,7 @@ fn 105 std_glob$posix_class_named (string) -> any
                 string.eq
                 if $L8 void
                   i32.const 8
-                  retag 10   ; u8
+                  retag 79   ; std_glob$PosixClass
                   local.set 1   ; if_res
                 else
                   local.get 0   ; arg 0
@@ -6309,7 +6310,7 @@ fn 105 std_glob$posix_class_named (string) -> any
                   string.eq
                   if $L9 void
                     i32.const 9
-                    retag 10   ; u8
+                    retag 79   ; std_glob$PosixClass
                     local.set 1   ; if_res
                   else
                     local.get 0   ; arg 0
@@ -6317,7 +6318,7 @@ fn 105 std_glob$posix_class_named (string) -> any
                     string.eq
                     if $L10 void
                       i32.const 10
-                      retag 10   ; u8
+                      retag 79   ; std_glob$PosixClass
                       local.set 1   ; if_res
                     else
                       local.get 0   ; arg 0
@@ -6325,7 +6326,7 @@ fn 105 std_glob$posix_class_named (string) -> any
                       string.eq
                       if $L11 void
                         i32.const 11
-                        retag 10   ; u8
+                        retag 79   ; std_glob$PosixClass
                         local.set 1   ; if_res
                       else
                         null.const
@@ -6607,7 +6608,7 @@ end
 fn 108 std_string__builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 82 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 83 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 9   ; std_core$utf8_encode
@@ -6628,7 +6629,7 @@ fn 109 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> str
   local __for_i_2 i64
   local p string
   local $call_27 i64
-  local.field 0 82 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 83 0   ; arg 0 std_string__builder$StringBuilder.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -6640,7 +6641,7 @@ fn 109 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> str
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 82 0   ; arg 0 std_string__builder$StringBuilder.parts
+    local.field 0 83 0   ; arg 0 std_string__builder$StringBuilder.parts
     i32.const 0
     array.get 15   ; string[]
     ref.cast 5   ; string
@@ -6653,7 +6654,7 @@ fn 109 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> str
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; off
-  local.field 0 82 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 83 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 4   ; __for_arr_0
   array.len
   local.set 5   ; __for_len_1
@@ -6701,7 +6702,7 @@ fn 110 std_string__builder$byte_len (ref) -> i64
   local $call_12 i64
   i64.const 0
   local.set 1   ; total
-  local.field 0 82 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 83 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1

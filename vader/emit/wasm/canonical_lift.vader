@@ -64,7 +64,7 @@ held_class :: fn(ctx: ModuleCtx, t: WitType, type_id: i32 | null) -> Bc.ValType 
         return erased_class(t)
     }
     held :: ctx.module.types[type_id]
-    if held is Bc.BcScalar {
+    if held is Bc.BcScalar | Bc.BcNominal {
         return held.val
     }
     return null
@@ -464,7 +464,7 @@ bare_cases_value :: fn(
 ) -> WasmExpression | WasmUnsupported {
     enum_id :: l.variant_of(union_id, holder_of(holders)) else return no_holder(t, l.function)
     held :: l.ctx.module.types[enum_id]
-    if held !is Bc.BcScalar {
+    if held !is Bc.BcScalar | Bc.BcNominal {
         return no_holder(t, l.function)
     }
     // The position of the case among the bare ones: each case with a payload

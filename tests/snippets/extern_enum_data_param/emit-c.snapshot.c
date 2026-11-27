@@ -62,14 +62,14 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 3) vader_data_0_buf = {
 		},
 	},
 };
-static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(11u, 3u, &vader_data_0_buf);
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(12u, 3u, &vader_data_0_buf);
 static const VADER_ARRAY_STATIC_BUF(int16_t, 3) vader_data_1_buf = {
-	VADER_STATIC_BUF_HEADER(13u, 6u, 3u),
+	VADER_STATIC_BUF_HEADER(14u, 6u, 3u),
 	.slots = {
 		(int16_t) UINT64_C(200), (int16_t) UINT64_C(404), (int16_t) UINT64_C(18446744073709551198),
 	},
 };
-static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(12u, 3u, &vader_data_1_buf);
+static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(13u, 3u, &vader_data_1_buf);
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static int32_t snippet$apply(void* l0, uint8_t l1);
@@ -100,7 +100,7 @@ static vader_fn_t vader_fn_static_snippet_status$abs_status = {
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[14] = {
+const vader_type_info_t vader_type_info_table[15] = {
 	[2] = { .slot_size = 1 },
 	[3] = { .slot_size = 8 },
 	[4] = {
@@ -124,17 +124,18 @@ const vader_type_info_t vader_type_info_table[14] = {
 		.string_count = 1,
 	},
 	[10] = { .slot_size = 1 },
-	[11] = {
+	[11] = { .slot_size = 1 },
+	[12] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
 		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
 	},
-	[12] = {
+	[13] = {
 		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 13u,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 14u,
 	},
-	[13] = { .slot_size = 2 },
+	[14] = { .slot_size = 2 },
 };
-const size_t vader_type_info_count = 14;
+const size_t vader_type_info_count = 15;
 
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <stdlib.h>
@@ -209,7 +210,7 @@ static int32_t snippet$apply(void* l0, uint8_t l1) {
 	vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
 	vader_gc_top = &gc_frame;
 	vader_fn_t* _a0_fnobj = (vader_fn_t*) l0;
-	t0 = ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(2u, (int32_t)(uint32_t) l1));
+	t0 = ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(11u, (int32_t)(uint32_t) l1));
 	t1 = ((int32_t) t0.payload.i);
 	{ int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -380,7 +381,7 @@ static int32_t snippet_status$abs_status(uint8_t l0) {
 	vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
 	VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
 	VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
-	t0 = vader_box_i32(13u, ((int16_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) l2]);
+	t0 = vader_box_i32(14u, ((int16_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) l2]);
 	t1 = ((int16_t) t0.payload.i);
 	t2 = vader_host_snippet_status$abs_status$extern_import(((int32_t) (int16_t) t1));
 	{ int32_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
@@ -400,7 +401,7 @@ static void snippet_status$seed_with(uint8_t l0) {
 	vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
 	VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
 	VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
-	t0 = vader_box_i32(13u, ((int16_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) l2]);
+	t0 = vader_box_i32(14u, ((int16_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) l2]);
 	t1 = ((int16_t) t0.payload.i);
 	vader_host_snippet_status$seed_with$extern_import(((int32_t) (int16_t) t1));
 	{ vader_gc_top = gc_frame.prev; return; }

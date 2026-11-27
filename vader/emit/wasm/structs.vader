@@ -176,7 +176,7 @@ field_held_as :: fn(gc: GcTypes, t: i32, field_index: i32) -> WasmValType {
 
 // How a value of `t` is held: a scalar as itself, anything else as a reference.
 field_type_of :: fn(t: Bc.BcType) -> WasmValType = match t {
-    is Bc.BcScalar -> scalar_field_type(t.val)
+    is Bc.BcScalar | Bc.BcNominal -> scalar_field_type(t.val)
     is Bc.BcStruct | Bc.BcArray | Bc.BcUnion | Bc.BcRef | Bc.BcFn -> .EqRef
 }
 
@@ -194,6 +194,10 @@ scalar_field_type :: fn(v: Bc.ValType) -> WasmValType = match v {
 // The box a value of `t` is held in where any type may be, null for a type held
 // as a reference, or a foreign pointer.
 box_of :: fn(gc: GcTypes, t: Bc.BcType) -> i32 | null {
+    // An enum's own tag is held in the box of its representation.
+    if t is Bc.BcNominal {
+        return gc.of_box[t.val]
+    }
     if t !is Bc.BcScalar {
         return null
     }

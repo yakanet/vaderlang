@@ -322,7 +322,9 @@ export type_matches :: fn(state: VmState, v: Value, type_id: i32) -> bool {
     if type_id < 0 || i64(type_id) >= state.bc.types.len() { return false }
     type_decl :: state.bc.types[type_id]
     return match type_decl {
-        is bc.BcScalar -> class_matches(v, type_decl.val)
+        // The VM holds an enum as the integer it rides, so its nominal tag is
+        // told by that representation.
+        is bc.BcScalar | bc.BcNominal -> class_matches(v, type_decl.val)
         // @partial: only StructVal carries a matchable tag; every other Value -> false.
         is bc.BcStruct        -> @partial match v {
             is StructVal -> v.type_id == type_id

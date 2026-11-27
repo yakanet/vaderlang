@@ -25,6 +25,7 @@ type 22 scalar f64
 type 23 scalar char
 type 24 array 17
 type 25 struct __Tuple_Struct_snippet_Point_i32_43df0650 { _0:2,_1:6 }
+type 26 nominal snippet$Color u8
 string 0 "a"
 string 1 " "
 string 2 "5"
@@ -860,7 +861,7 @@ fn 3 snippet$main () -> i32
   call 10   ; std_core$finish_buffer
   call 29   ; std_console$println__string
   i32.const 0
-  retag 17   ; u8
+  retag 26   ; snippet$Color
   local.set 3   ; s1
   i64.const 11
   buffer.new
@@ -869,7 +870,7 @@ fn 3 snippet$main () -> i32
   local.set 8   ; __off_1
   local.get 3   ; s1
   i32.const 0
-  retag 17   ; u8
+  retag 26   ; snippet$Color
   ref.eq
   local.set 9   ; and_res
   local.get 7   ; __buf_0
@@ -884,7 +885,7 @@ fn 3 snippet$main () -> i32
   local.set 8   ; __off_1
   local.get 3   ; s1
   i32.const 1
-  retag 17   ; u8
+  retag 26   ; snippet$Color
   ref.eq
   local.set 9   ; and_res
   local.get 7   ; __buf_0

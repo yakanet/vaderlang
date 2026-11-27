@@ -93,12 +93,13 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
     ctx.import_index_by_mangle[ext.mangled] = import_index
 }
 
-// The index of `t` in the table of types, `-1` for none.
+// The row that holds a value of `t` where the import hands it, `-1` for none: an
+// enum's own tag, which is what a union it enters lists.
 interned_or_none :: fn(t: Type | null, ctx: EmitterCtx) -> i32 {
     if t == null {
         return -1
     }
-    return intern_type(t, ctx)
+    return intern_box_tag(t, ctx)
 }
 
 reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
@@ -487,10 +488,10 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
     }
     rows_by_key :: Map<string, i64> {}
     out: VtableRow[]: []
-    // An enum or a distinct boxes under its representation's tag, so its entry
-    // shares that type's slot : listed last, it only fills a slot the
-    // representation leaves empty: a boxed `u8` keeps rendering as a `u8`, on
-    // every backend.
+    // An enum's tag answers as its representation's, and a distinct boxes under
+    // that tag, so its entry shares that type's slot : listed last, it only fills
+    // a slot the representation leaves empty: a boxed `u8` keeps rendering as a
+    // `u8`, on every backend.
     ordered: LoweredVtableEntry[]: []
     deferred: LoweredVtableEntry[]: []
     for ve in entries {
@@ -911,7 +912,7 @@ emit_retag_into :: fn(ctx: FnEmitCfg, value: LocalId, boxed: bool, span: Span) -
     }
     t :: ctx.fn_.locals[i64(value)].type
     if is_scalar_class(val_type_of_type(t)) {
-        push_emit(ctx, Retag { .type_id = intern_type(t, ctx.project) }, span)
+        push_emit(ctx, Retag { .type_id = intern_box_tag(t, ctx.project) }, span)
     }
 }
 
@@ -1301,7 +1302,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     if ins is InstrTypeCheck {
         refuse_shared_identity_test(ctx.fn_.mangled, ins.check_type)
         emit_first_get(ctx, pos, ins.value, ins.span)
-        type_index :: intern_type(ins.check_type, ctx.project)
+        type_index :: intern_box_tag(ins.check_type, ctx.project)
         push_emit(ctx, TypeCheck { .type_id = type_index }, ins.span)
         emit_result(ctx, pos, ins.dst, ins.span)
         return
@@ -1318,7 +1319,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         from_val :: val_type_of_type(from_type)
         to_val :: val_type_of_type(ins.type)
         if to_val == .Any && is_scalar_class(from_val) {
-            push_emit(ctx, Retag { .type_id = intern_type(from_type, ctx.project) }, ins.span)
+            push_emit(ctx, Retag { .type_id = intern_box_tag(from_type, ctx.project) }, ins.span)
         } else if from_val != to_val {
             // Numeric / char <-> numeric / char routes through Convert,
             // carrying the source width as a string so the dump emits

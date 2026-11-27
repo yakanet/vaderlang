@@ -94,7 +94,7 @@ RECORDED_ACCESS  :: ElementAccess { .recorded = true }
 // `Bc.array_kind_of`, the native runtime's: a string is an `i32` atom here,
 // stored as itself.
 element_access :: fn(types: Bc.BcType[], element: Bc.BcType) -> ElementAccess = match element {
-    is Bc.BcScalar                        -> scalar_access(element.val)
+    is Bc.BcScalar | Bc.BcNominal         -> scalar_access(element.val)
     is Bc.BcStruct | Bc.BcArray | Bc.BcFn -> REFERENCE_ACCESS
     is Bc.BcUnion                         -> union_access(types, element)
     is Bc.BcRef                           -> RECORDED_ACCESS

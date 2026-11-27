@@ -168,7 +168,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[19] = {
+const vader_type_info_t vader_type_info_table[20] = {
 	[2] = { .slot_size = 16 },
 	[3] = { .slot_size = 1 },
 	[4] = {
@@ -187,38 +187,39 @@ const vader_type_info_t vader_type_info_table[19] = {
 	[8] = { .slot_size = 8 },
 	[9] = { .slot_size = 8 },
 	[10] = { .slot_size = 1 },
-	[11] = {
-		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
-	},
+	[11] = { .slot_size = 1 },
 	[12] = {
+		.kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+		.ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
+	},
+	[13] = {
 		.kind = VADER_TYPE_KIND_STRUCT,
 		.size = sizeof(vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t),
 		.slot_size = 8,
 		.ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t, f_value) },
 		.ptr_count = 1,
 	},
-	[13] = { .slot_size = 16 },
-	[14] = {
+	[14] = { .slot_size = 16 },
+	[15] = {
 		.kind = VADER_TYPE_KIND_STRUCT,
 		.size = sizeof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t),
 		.slot_size = 8,
 	},
-	[15] = {
+	[16] = {
 		.kind = VADER_TYPE_KIND_STRUCT,
 		.size = sizeof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t),
 		.slot_size = 8,
 		.ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t, f_type), offsetof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t, f_data_access_timestamp), offsetof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t, f_data_modification_timestamp), offsetof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t, f_status_change_timestamp) },
 		.ptr_count = 4,
 	},
-	[16] = { .slot_size = 16 },
-	[17] = {
+	[17] = { .slot_size = 16 },
+	[18] = {
 		.kind = VADER_TYPE_KIND_STRUCT,
 		.size = sizeof(vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t), .slot_size = 8,
 	},
-	[18] = { .slot_size = 4 },
+	[19] = { .slot_size = 4 },
 };
-const size_t vader_type_info_count = 19;
+const size_t vader_type_info_count = 20;
 
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
@@ -228,7 +229,7 @@ const size_t vader_type_info_count = 19;
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 static void* vader_host_std_core$Runtime$bytes(vader_string_t a0) {
-	return (void*) vader_string_bytes_view(a0, 11u, 3u);
+	return (void*) vader_string_bytes_view(a0, 12u, 11u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -314,12 +315,12 @@ static int32_t snippet$main(void) {
 	};
 	vader_gc_top = &gc_frame;
 	vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t* _a0_obj = (vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t*) vader_gc_alloc(sizeof(vader_struct_wasi_0clocks_system_3clock_10_23_20$Instant_t));
-	vader_obj_header_init(_a0_obj, 17u);
+	vader_obj_header_init(_a0_obj, 18u);
 	_a0_obj->f_seconds = INT64_C(3);
 	_a0_obj->f_nanoseconds = (uint32_t) 250;
 	l0 = (void*) _a0_obj;
 	vader_struct_wasi_0filesystem_types_10_23_20$DescriptorFlags_t* _a2_obj = &_a1_storage;
-	vader_obj_header_init(_a2_obj, 14u);
+	vader_obj_header_init(_a2_obj, 15u);
 	_a2_obj->f_read = true;
 	_a2_obj->f_write = false;
 	_a2_obj->f_file_integrity_sync = false;
@@ -328,7 +329,7 @@ static int32_t snippet$main(void) {
 	_a2_obj->f_mutate_directory = false;
 	l1 = (void*) _a2_obj;
 	vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t* _a3_obj = (vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t*) vader_gc_alloc(sizeof(vader_struct_wasi_0filesystem_types_10_23_20$DescriptorStat_t));
-	vader_obj_header_init(_a3_obj, 15u);
+	vader_obj_header_init(_a3_obj, 16u);
 	_a3_obj->f_type = vader_box_i32(3u, INT32_C(2));
 	_a3_obj->f_link_count = (uint64_t) 1;
 	_a3_obj->f_size = (uint64_t) 4096;
@@ -373,7 +374,7 @@ static int32_t snippet$main(void) {
 	std_console$println__string(t2);
 	l8 = wasi_0filesystem_types_10_23_20$ErrorCodeCase$std_core$Error$message((uint8_t) 19);
 	vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t* _a5_obj = (vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t*) vader_gc_alloc(sizeof(vader_struct_wasi_0filesystem_types_10_23_20$ErrorCodeOther_t));
-	vader_obj_header_init(_a5_obj, 12u);
+	vader_obj_header_init(_a5_obj, 13u);
 	_a5_obj->f_value = vader_box_obj(0u, NULL);
 	t3 = (void*) _a5_obj;
 	l9 = wasi_0filesystem_types_10_23_20$ErrorCodeOther$std_core$Error$message(t3);
